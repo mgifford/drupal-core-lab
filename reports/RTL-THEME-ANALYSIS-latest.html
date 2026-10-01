@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RTL + Theme Accessibility Analysis</title>
+  <style>
+    :root {
+      --page-bg: #eef2f8;
+      --card-bg: #ffffff;
+      --surface-bg: #f7f9fc;
+      --text: #1c2431;
+      --muted: #546173;
+      --border: #d5dce7;
+      --link: #0e4fb5;
+      --accent: #b7ccf6;
+      --table-stripe: #f5f8ff;
+      --shadow: 0 12px 34px rgba(20, 35, 60, 0.08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --page-bg: #111722;
+        --card-bg: #1a2331;
+        --surface-bg: #131b27;
+        --text: #e8edf5;
+        --muted: #93a0b5;
+        --border: #2b3950;
+        --link: #8cb8ff;
+        --accent: #23395f;
+        --table-stripe: #162032;
+        --shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
+      }
+    }
+    * { box-sizing: border-box; }
+    html { color-scheme: light dark; scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      padding: 2rem 1rem 4rem;
+      font: 16px/1.7 Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+      background:
+        radial-gradient(circle at top left, rgba(14, 79, 181, 0.08), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 16%),
+        var(--page-bg);
+      color: var(--text);
+    }
+    a { color: var(--link); }
+    a:hover, a:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: grid;
+      gap: 1.25rem;
+    }
+    .hero,
+    .toc,
+    .content {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      box-shadow: var(--shadow);
+    }
+    .hero {
+      padding: 1.5rem;
+    }
+    .hero h1 {
+      margin: 0 0 0.5rem;
+      line-height: 1.15;
+      font-size: clamp(2rem, 4vw, 3rem);
+    }
+    .lede,
+    .meta {
+      color: var(--muted);
+      margin: 0.35rem 0 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .toc {
+      padding: 1rem 1.25rem;
+    }
+    .toc h2 {
+      margin: 0 0 0.65rem;
+      font-size: 1rem;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .toc ol {
+      margin: 0;
+      padding-left: 1.2rem;
+      display: grid;
+      gap: 0.4rem;
+    }
+    .toc li.level-3 {
+      margin-left: 1rem;
+      color: var(--muted);
+    }
+    .content {
+      padding: 1.5rem;
+      overflow: hidden;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      line-height: 1.25;
+      scroll-margin-top: 1rem;
+    }
+    h2, h3 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    h2 {
+      margin-top: 2.4rem;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h3 {
+      margin-top: 1.8rem;
+    }
+    .heading-anchor {
+      text-decoration: none;
+      opacity: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    h2:hover .heading-anchor,
+    h2:focus-within .heading-anchor,
+    h3:hover .heading-anchor,
+    h3:focus-within .heading-anchor {
+      opacity: 1;
+    }
+    p, ul, ol, blockquote, pre, .table-wrap, hr {
+      margin: 1rem 0;
+    }
+    ul, ol {
+      padding-left: 1.5rem;
+    }
+    li + li {
+      margin-top: 0.35rem;
+    }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    code {
+      background: rgba(127, 127, 127, 0.14);
+      padding: 0.1rem 0.35rem;
+      border-radius: 0.3rem;
+      font-size: 0.95em;
+    }
+    pre {
+      overflow-x: auto;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 0.85rem;
+      background: var(--surface-bg);
+    }
+    blockquote {
+      border-left: 4px solid var(--link);
+      padding: 0.25rem 0 0.25rem 1rem;
+      color: var(--muted);
+      margin-left: 0;
+      background: linear-gradient(90deg, rgba(14, 79, 181, 0.08), transparent 60%);
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid var(--border);
+    }
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 0.85rem;
+      background: var(--surface-bg);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 680px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 0.7rem 0.85rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--accent);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.92rem;
+    }
+    tbody tr:nth-child(even) td {
+      background: var(--table-stripe);
+    }
+    @media (min-width: 900px) {
+      .page {
+        grid-template-columns: minmax(0, 1fr) 280px;
+        align-items: start;
+      }
+      .hero,
+      .content {
+        grid-column: 1;
+      }
+      .toc {
+        grid-column: 2;
+        position: sticky;
+        top: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <h1>RTL + Theme Accessibility Analysis</h1>
+      <p class="lede">undefined</p>
+      <p class="meta">Source markdown: <code>RTL-THEME-ANALYSIS-latest.md</code></p>
+    </header>
+    
+    <nav class="toc" aria-label="Table of contents">
+      <h2>Contents</h2>
+      <ol>
+        <li class="level-2"><a href="#table-of-contents">Table of Contents</a></li><li class="level-2"><a href="#rtl-exclusive-issues">RTL-Exclusive Issues</a></li><li class="level-2"><a href="#rtl-amplified-issues">RTL-Amplified Issues</a></li><li class="level-2"><a href="#admin-gin-theme-only">Admin (Gin) Theme Only</a></li><li class="level-2"><a href="#claro-theme-only">Claro Theme Only</a></li><li class="level-2"><a href="#admin-and-claro-not-olivero">Admin and Claro (not Olivero)</a></li><li class="level-3"><a href="#admin-claro-details">Admin + Claro Details</a></li><li class="level-2"><a href="#master-priority-list">Master Priority List</a></li><li class="level-2"><a href="#drupal-issue-queue">Drupal Issue Queue</a></li><li class="level-3"><a href="#suggested-search-links-by-rule">Suggested search links by rule</a></li><li class="level-3"><a href="#rtl-specific-issues-hebrew-rtl-component-in-drupal-core">RTL-specific issues — Hebrew/RTL component in Drupal core</a></li><li class="level-3"><a href="#admin-gin-theme-issues">Admin/Gin theme issues</a></li>
+      </ol>
+    </nav>
+    <main class="content">
+      <h1 id="rtl-theme-specific-accessibility-analysis">RTL / Theme-Specific Accessibility Analysis</h1>
+<p>Generated: 2026-05-06   Total crawl records analysed: <strong>2193</strong></p>
+<hr>
+<h2 id="table-of-contents">Table of Contents<a class="heading-anchor" href="#table-of-contents" aria-label="Link to Table of Contents section">#</a></h2>
+<ol><li><a href="#rtl-exclusive-issues">RTL-Exclusive Issues (Hebrew only, not in English)</a></li><li><a href="#rtl-amplified-issues">RTL-Amplified Issues (worse in Hebrew than English)</a></li><li><a href="#admin-gin-theme-only">Admin (Gin) Theme Only</a></li><li><a href="#claro-theme-only">Claro / Claro Dark Theme Only</a></li><li><a href="#admin-and-claro-not-olivero">Admin + Claro (not Olivero)</a></li><li><a href="#master-priority-list">Master Priority List (all issues, composite score)</a></li><li><a href="#drupal-issue-queue">How to Use This Report with the Drupal Issue Queue</a></li></ol>
+<hr>
+<h2 id="rtl-exclusive-issues">RTL-Exclusive Issues<a class="heading-anchor" href="#rtl-exclusive-issues" aria-label="Link to RTL-Exclusive Issues section">#</a></h2>
+<p>These violations appear <strong>only</strong> when Drupal is rendered in Hebrew (RTL). They have zero matching violations in the equivalent English (LTR) page+theme+rule combination. This likely indicates either:</p>
+<ul><li>An element that only renders in RTL context (e.g. the Hebrew language switcher link)</li><li>A CSS layout or text rendering issue triggered by <code>dir=&quot;rtl&quot;</code> that changes the computed colour or position enough to fail</li></ul>
+<p>_No purely RTL-exclusive violations found in current dataset._</p>
+<hr>
+<h2 id="rtl-amplified-issues">RTL-Amplified Issues<a class="heading-anchor" href="#rtl-amplified-issues" aria-label="Link to RTL-Amplified Issues section">#</a></h2>
+<p>These violations exist in both English and Hebrew, but appear <strong>more frequently</strong> in Hebrew/RTL contexts. The amplification ratio shows RTL-instance-count ÷ LTR-instance-count.</p>
+<p><strong>2 issues are more severe in RTL.</strong></p>
+<div class="table-wrap"><table><thead><tr><th scope="col">#</th><th scope="col">Rule</th><th scope="col">Impact</th><th scope="col">Theme</th><th scope="col">Path</th><th scope="col">Selector</th><th scope="col">LTR nodes</th><th scope="col">RTL nodes</th><th scope="col">Ratio</th></tr></thead><tbody><tr><td>1</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>admin</code></td><td><code>/admin/structure/types/add</code></td><td><code>#edit-save-continue</code></td><td>3</td><td>4</td><td>1.33×</td></tr><tr><td>2</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>admin</code></td><td><code>/admin/structure/types/add</code></td><td><code>#edit-submit</code></td><td>3</td><td>4</td><td>1.33×</td></tr></tbody></table></div>
+<hr>
+<h2 id="admin-gin-theme-only">Admin (Gin) Theme Only<a class="heading-anchor" href="#admin-gin-theme-only" aria-label="Link to Admin (Gin) Theme Only section">#</a></h2>
+<p>These violations are found in the <strong>Admin/Gin theme but not in Claro or Olivero</strong>. Issues here are specific to the Gin administration theme which ships separately from Drupal core.</p>
+<div class="table-wrap"><table><thead><tr><th scope="col">#</th><th scope="col">Rule</th><th scope="col">Impact</th><th scope="col">Selector</th><th scope="col">Pages</th><th scope="col">Node count</th></tr></thead><tbody><tr><td>1</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>a[hreflang=&quot;he&quot;]</code></td><td>17</td><td>131</td></tr><tr><td>2</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>a[hreflang=&quot;en&quot;]</code></td><td>16</td><td>123</td></tr><tr><td>3</td><td><code>label-title-only</code></td><td>🟠 Serious</td><td><code>.gin--sticky-table-header &gt; thead &gt; tr &gt; .select-all.gin--st</code></td><td>1</td><td>88</td></tr><tr><td>4</td><td><code>label-title-only</code></td><td>🟠 Serious</td><td><code>.views-table &gt; thead &gt; tr &gt; .select-all.gin--sticky-bulk-sel</code></td><td>1</td><td>88</td></tr><tr><td>5</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>.button--action</code></td><td>3</td><td>21</td></tr><tr><td>6</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>summary[aria-controls=&quot;edit-submission&quot;] &gt; .gin-details__sum</code></td><td>1</td><td>20</td></tr><tr><td>7</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>summary[aria-controls=&quot;edit-workflow&quot;] &gt; .gin-details__summa</code></td><td>1</td><td>20</td></tr><tr><td>8</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>summary[aria-controls=&quot;edit-language&quot;] &gt; .gin-details__summa</code></td><td>1</td><td>20</td></tr><tr><td>9</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>summary[aria-controls=&quot;edit-display&quot;] &gt; .gin-details__summar</code></td><td>1</td><td>20</td></tr><tr><td>10</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>p:nth-child(1) &gt; a</code></td><td>2</td><td>11</td></tr><tr><td>11</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>.feed-icon</code></td><td>1</td><td>8</td></tr><tr><td>12</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>a[href=&quot;/&quot;]</code></td><td>1</td><td>8</td></tr><tr><td>13</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>a[href=&quot;/he&quot;]</code></td><td>1</td><td>8</td></tr><tr><td>14</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-no-icon</code></td><td>1</td><td>8</td></tr><tr><td>15</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-no-icon--2</code></td><td>1</td><td>8</td></tr><tr><td>16</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-no-icon--3</code></td><td>1</td><td>8</td></tr><tr><td>17</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-no-icon--4</code></td><td>1</td><td>8</td></tr><tr><td>18</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-no-icon--5</code></td><td>1</td><td>8</td></tr><tr><td>19</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-no-icon--6</code></td><td>1</td><td>8</td></tr><tr><td>20</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-plus</code></td><td>1</td><td>8</td></tr><tr><td>21</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-plus--2</code></td><td>1</td><td>8</td></tr><tr><td>22</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-plus--3</code></td><td>1</td><td>8</td></tr><tr><td>23</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-plus--4</code></td><td>1</td><td>8</td></tr><tr><td>24</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-plus--5</code></td><td>1</td><td>8</td></tr><tr><td>25</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-plus--6</code></td><td>1</td><td>8</td></tr><tr><td>26</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-trash</code></td><td>1</td><td>8</td></tr><tr><td>27</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-trash--3</code></td><td>1</td><td>8</td></tr><tr><td>28</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-trash--5</code></td><td>1</td><td>8</td></tr><tr><td>29</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-cog</code></td><td>1</td><td>8</td></tr><tr><td>30</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-cog--2</code></td><td>1</td><td>8</td></tr><tr><td>31</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-cog--3</code></td><td>1</td><td>8</td></tr><tr><td>32</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-cog--4</code></td><td>1</td><td>8</td></tr><tr><td>33</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-cog--5</code></td><td>1</td><td>8</td></tr><tr><td>34</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-cog--6</code></td><td>1</td><td>8</td></tr><tr><td>35</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-ex</code></td><td>1</td><td>8</td></tr><tr><td>36</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-ex--2</code></td><td>1</td><td>8</td></tr><tr><td>37</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-ex--3</code></td><td>1</td><td>8</td></tr><tr><td>38</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-ex--4</code></td><td>1</td><td>8</td></tr><tr><td>39</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-ex--5</code></td><td>1</td><td>8</td></tr><tr><td>40</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-ex--6</code></td><td>1</td><td>8</td></tr><tr><td>41</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-checkmark</code></td><td>1</td><td>8</td></tr><tr><td>42</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-checkmark--2</code></td><td>1</td><td>8</td></tr><tr><td>43</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-checkmark--3</code></td><td>1</td><td>8</td></tr><tr><td>44</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-checkmark--4</code></td><td>1</td><td>8</td></tr><tr><td>45</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-checkmark--5</code></td><td>1</td><td>8</td></tr><tr><td>46</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-checkmark--6</code></td><td>1</td><td>8</td></tr><tr><td>47</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-show</code></td><td>1</td><td>8</td></tr><tr><td>48</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-show--2</code></td><td>1</td><td>8</td></tr><tr><td>49</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-show--3</code></td><td>1</td><td>8</td></tr><tr><td>50</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-show--4</code></td><td>1</td><td>8</td></tr><tr><td>51</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-show--5</code></td><td>1</td><td>8</td></tr><tr><td>52</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-show--6</code></td><td>1</td><td>8</td></tr><tr><td>53</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-hide</code></td><td>1</td><td>8</td></tr><tr><td>54</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-hide--2</code></td><td>1</td><td>8</td></tr><tr><td>55</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-hide--3</code></td><td>1</td><td>8</td></tr><tr><td>56</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-hide--4</code></td><td>1</td><td>8</td></tr><tr><td>57</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-hide--5</code></td><td>1</td><td>8</td></tr><tr><td>58</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#action-link-hide--6</code></td><td>1</td><td>8</td></tr><tr><td>59</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>p:nth-child(2) &gt; a[href$=&quot;block&quot;]</code></td><td>1</td><td>8</td></tr><tr><td>60</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>.language-link[aria-current=&quot;page&quot;][href$=&quot;content&quot;]</code></td><td>1</td><td>8</td></tr><tr><td>61</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>p:nth-child(2) &gt; a</code></td><td>1</td><td>8</td></tr><tr><td>62</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>.compact-link &gt; a</code></td><td>1</td><td>8</td></tr><tr><td>63</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>input[value=&quot;Search&quot;]</code></td><td>1</td><td>8</td></tr><tr><td>64</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>a[href=&quot;/system/404&quot;]</code></td><td>1</td><td>8</td></tr><tr><td>65</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>a[href=&quot;/he/system/404&quot;]</code></td><td>1</td><td>8</td></tr><tr><td>66</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>input[value=&quot;Log in&quot;]</code></td><td>1</td><td>8</td></tr><tr><td>67</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>input[value=&quot;Submit&quot;]</code></td><td>1</td><td>8</td></tr><tr><td>68</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>a[href=&quot;/system/403&quot;]</code></td><td>1</td><td>8</td></tr><tr><td>69</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>a[href=&quot;/he/system/403&quot;]</code></td><td>1</td><td>8</td></tr><tr><td>70</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>#edit-save-continue</code></td><td>1</td><td>7</td></tr><tr><td>71</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>.tabs__link.js-tabs-link[aria-current=&quot;page&quot;]</code></td><td>1</td><td>6</td></tr><tr><td>72</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>p:nth-child(2) &gt; a[href$=&quot;updates&quot;]</code></td><td>1</td><td>3</td></tr><tr><td>73</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>a[href$=&quot;update.php&quot;]</code></td><td>1</td><td>3</td></tr><tr><td>74</td><td><code>region</code></td><td>🟡 Moderate</td><td><code>.top-bar__actions</code></td><td>3</td><td>264</td></tr><tr><td>75</td><td><code>heading-order</code></td><td>🟡 Moderate</td><td><code>div[data-drupal-selector=&quot;edit-test-datelist&quot;] &gt; h4</code></td><td>1</td><td>88</td></tr><tr><td>76</td><td><code>region</code></td><td>🟡 Moderate</td><td><code>#secondary-tabs-title</code></td><td>1</td><td>88</td></tr></tbody></table></div>
+<hr>
+<h2 id="claro-theme-only">Claro Theme Only<a class="heading-anchor" href="#claro-theme-only" aria-label="Link to Claro Theme Only section">#</a></h2>
+<p>These violations exist in <strong>Claro or Claro-Dark but not in Admin or Olivero</strong>. Issues here belong to Drupal core&#39;s Claro administration theme.</p>
+<div class="table-wrap"><table><thead><tr><th scope="col">#</th><th scope="col">Rule</th><th scope="col">Impact</th><th scope="col">Selector</th><th scope="col">Pages</th><th scope="col">Node count</th></tr></thead><tbody><tr><td>1</td><td><code>label</code></td><td>🔴 Critical</td><td><code>#edit-imagefile-file-limited-0-display</code></td><td>1</td><td>8</td></tr><tr><td>2</td><td><code>label</code></td><td>🔴 Critical</td><td><code>#edit-imagefile-file-limited-1-display</code></td><td>1</td><td>8</td></tr><tr><td>3</td><td><code>label</code></td><td>🔴 Critical</td><td><code>#edit-imagefile-file-limited-dis-0-display</code></td><td>1</td><td>8</td></tr><tr><td>4</td><td><code>label</code></td><td>🔴 Critical</td><td><code>#edit-imagefile-file-limited-dis-1-display</code></td><td>1</td><td>8</td></tr><tr><td>5</td><td><code>label-title-only</code></td><td>🟠 Serious</td><td><code>input[title=&quot;Select all rows in this table&quot;]</code></td><td>3</td><td>24</td></tr><tr><td>6</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>tr[data-drupal-selector=&quot;edit-blocks-claro-help&quot;] &gt; td:nth-c</code></td><td>1</td><td>8</td></tr><tr><td>7</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>.block-disabled.draggable[data-once=&quot;claroTabledrag&quot;]:nth-ch</code></td><td>1</td><td>8</td></tr><tr><td>8</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>.region-hidden-message &gt; td[colspan=&quot;9&quot;]</code></td><td>1</td><td>8</td></tr><tr><td>9</td><td><code>tabindex</code></td><td>🟠 Serious</td><td><code>#edit-submit</code></td><td>1</td><td>8</td></tr><tr><td>10</td><td><code>tabindex</code></td><td>🟠 Serious</td><td><code>#edit-danger</code></td><td>1</td><td>8</td></tr><tr><td>11</td><td><code>tabindex</code></td><td>🟠 Serious</td><td><code>#edit-cancel</code></td><td>1</td><td>8</td></tr><tr><td>12</td><td><code>tabindex</code></td><td>🟠 Serious</td><td><code>#edit-submit--2</code></td><td>1</td><td>8</td></tr><tr><td>13</td><td><code>tabindex</code></td><td>🟠 Serious</td><td><code>#edit-danger--2</code></td><td>1</td><td>8</td></tr><tr><td>14</td><td><code>tabindex</code></td><td>🟠 Serious</td><td><code>#edit-cancel--2</code></td><td>1</td><td>8</td></tr><tr><td>15</td><td><code>label-title-only</code></td><td>🟠 Serious</td><td><code>#edit-checkbox-hidden-label-value</code></td><td>1</td><td>8</td></tr><tr><td>16</td><td><code>label-title-only</code></td><td>🟠 Serious</td><td><code>#edit-checkbox-hidden-label-disabled-value</code></td><td>1</td><td>8</td></tr><tr><td>17</td><td><code>landmark-contentinfo-is-top-level</code></td><td>🟡 Moderate</td><td><code>.messages-list__item</code></td><td>1</td><td>8</td></tr><tr><td>18</td><td><code>heading-order</code></td><td>🟡 Moderate</td><td><code>.form-datetime-wrapper.form-item:nth-child(4) &gt; h4</code></td><td>1</td><td>8</td></tr><tr><td>19</td><td><code>heading-order</code></td><td>🟡 Moderate</td><td><code>h4</code></td><td>1</td><td>8</td></tr><tr><td>20</td><td><code>heading-order</code></td><td>🟡 Moderate</td><td><code>.layout-column.layout-column--half:nth-child(1) &gt; .panel:nth</code></td><td>1</td><td>8</td></tr><tr><td>21</td><td><code>heading-order</code></td><td>🟡 Moderate</td><td><code>#multitext-unlimited-values &gt; thead &gt; tr &gt; .field-label[cols</code></td><td>1</td><td>8</td></tr><tr><td>22</td><td><code>heading-order</code></td><td>🟡 Moderate</td><td><code>#presuf-formatted-m-values &gt; thead &gt; tr &gt; .field-label[colsp</code></td><td>1</td><td>8</td></tr><tr><td>23</td><td><code>heading-order</code></td><td>🟡 Moderate</td><td><code>#presuf-number-m-values &gt; thead &gt; tr &gt; .field-label[colspan=</code></td><td>1</td><td>8</td></tr><tr><td>24</td><td><code>heading-order</code></td><td>🟡 Moderate</td><td><code>#presuf-text-m-values &gt; thead &gt; tr &gt; .field-label[colspan=&quot;2</code></td><td>1</td><td>8</td></tr><tr><td>25</td><td><code>heading-order</code></td><td>🟡 Moderate</td><td><code>#edit-timestamp-wrapper &gt; .form-datetime-wrapper.form-item &gt;</code></td><td>1</td><td>8</td></tr><tr><td>26</td><td><code>landmark-contentinfo-is-top-level</code></td><td>🟡 Moderate</td><td><code>.messages--status</code></td><td>1</td><td>8</td></tr><tr><td>27</td><td><code>landmark-contentinfo-is-top-level</code></td><td>🟡 Moderate</td><td><code>.messages--info</code></td><td>1</td><td>8</td></tr><tr><td>28</td><td><code>landmark-contentinfo-is-top-level</code></td><td>🟡 Moderate</td><td><code>.messages--custom</code></td><td>1</td><td>8</td></tr><tr><td>29</td><td><code>landmark-no-duplicate-contentinfo</code></td><td>🟡 Moderate</td><td><code>.messages--status</code></td><td>1</td><td>8</td></tr><tr><td>30</td><td><code>landmark-unique</code></td><td>🟡 Moderate</td><td><code>.messages--info</code></td><td>1</td><td>8</td></tr><tr><td>31</td><td><code>empty-heading</code></td><td>🔵 Minor</td><td><code>h3:nth-child(3)</code></td><td>2</td><td>16</td></tr><tr><td>32</td><td><code>empty-heading</code></td><td>🔵 Minor</td><td><code>h3:nth-child(4)</code></td><td>2</td><td>16</td></tr><tr><td>33</td><td><code>empty-heading</code></td><td>🔵 Minor</td><td><code>h3:nth-child(5)</code></td><td>2</td><td>16</td></tr><tr><td>34</td><td><code>empty-heading</code></td><td>🔵 Minor</td><td><code>h3:nth-child(6)</code></td><td>2</td><td>16</td></tr><tr><td>35</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>th:nth-child(2)</code></td><td>1</td><td>8</td></tr><tr><td>36</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#multitext-unlimited-values &gt; thead &gt; tr &gt; th:nth-child(2)</code></td><td>1</td><td>8</td></tr><tr><td>37</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#multitext-unlimited-disabled-values &gt; thead &gt; tr &gt; th:nth-c</code></td><td>1</td><td>8</td></tr><tr><td>38</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#multitext-unlimited-required-values &gt; thead &gt; tr &gt; th:nth-c</code></td><td>1</td><td>8</td></tr><tr><td>39</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#multitext-unlimited-required-dis-values &gt; thead &gt; tr &gt; th:n</code></td><td>1</td><td>8</td></tr><tr><td>40</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#multitext-limited-values &gt; thead &gt; tr &gt; th:nth-child(2)</code></td><td>1</td><td>8</td></tr><tr><td>41</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#multitext-limited-disabled-values &gt; thead &gt; tr &gt; th:nth-chi</code></td><td>1</td><td>8</td></tr><tr><td>42</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#multitext-limited-required-values &gt; thead &gt; tr &gt; th:nth-chi</code></td><td>1</td><td>8</td></tr><tr><td>43</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#multitext-limited-required-dis-values &gt; thead &gt; tr &gt; th:nth</code></td><td>1</td><td>8</td></tr><tr><td>44</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#presuf-formatted-m-values &gt; thead &gt; tr &gt; th:nth-child(2)</code></td><td>1</td><td>8</td></tr><tr><td>45</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#presuf-formatted-pre-m-values &gt; thead &gt; tr &gt; th:nth-child(2</code></td><td>1</td><td>8</td></tr><tr><td>46</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#presuf-formatted-suf-m-values &gt; thead &gt; tr &gt; th:nth-child(2</code></td><td>1</td><td>8</td></tr><tr><td>47</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#presuf-formatted-pre-suf-m-values &gt; thead &gt; tr &gt; th:nth-chi</code></td><td>1</td><td>8</td></tr><tr><td>48</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#presuf-number-m-values &gt; thead &gt; tr &gt; th:nth-child(2)</code></td><td>1</td><td>8</td></tr><tr><td>49</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#presuf-number-pre-m-values &gt; thead &gt; tr &gt; th:nth-child(2)</code></td><td>1</td><td>8</td></tr><tr><td>50</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#presuf-number-suf-m-values &gt; thead &gt; tr &gt; th:nth-child(2)</code></td><td>1</td><td>8</td></tr><tr><td>51</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#presuf-number-pre-suf-m-values &gt; thead &gt; tr &gt; th:nth-child(</code></td><td>1</td><td>8</td></tr><tr><td>52</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#presuf-text-m-values &gt; thead &gt; tr &gt; th:nth-child(2)</code></td><td>1</td><td>8</td></tr><tr><td>53</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#presuf-text-pre-m-values &gt; thead &gt; tr &gt; th:nth-child(2)</code></td><td>1</td><td>8</td></tr><tr><td>54</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#presuf-text-suf-m-values &gt; thead &gt; tr &gt; th:nth-child(2)</code></td><td>1</td><td>8</td></tr><tr><td>55</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#presuf-text-pre-suf-m-values &gt; thead &gt; tr &gt; th:nth-child(2)</code></td><td>1</td><td>8</td></tr><tr><td>56</td><td><code>empty-heading</code></td><td>🔵 Minor</td><td><code>h3:nth-child(7)</code></td><td>1</td><td>8</td></tr><tr><td>57</td><td><code>empty-heading</code></td><td>🔵 Minor</td><td><code>h3:nth-child(8)</code></td><td>1</td><td>8</td></tr><tr><td>58</td><td><code>empty-table-header</code></td><td>🔵 Minor</td><td><code>#edit-table-empty &gt; thead &gt; tr &gt; .select-all</code></td><td>1</td><td>8</td></tr><tr><td>59</td><td><code>empty-heading</code></td><td>🔵 Minor</td><td><code>#block-claro-content &gt; h3</code></td><td>1</td><td>8</td></tr><tr><td>60</td><td><code>empty-heading</code></td><td>🔵 Minor</td><td><code>#block-claro-content &gt; h3:nth-child(1)</code></td><td>1</td><td>8</td></tr><tr><td>61</td><td><code>empty-heading</code></td><td>🔵 Minor</td><td><code>h3:nth-child(2)</code></td><td>1</td><td>8</td></tr></tbody></table></div>
+<hr>
+<h2 id="admin-and-claro-not-olivero">Admin and Claro (not Olivero)<a class="heading-anchor" href="#admin-and-claro-not-olivero" aria-label="Link to Admin and Claro (not Olivero) section">#</a></h2>
+<p>These violations appear in admin-facing themes (Gin and/or Claro) but <strong>not</strong> in Olivero (the front-end theme). This makes them administration UI issues rather than front-end concerns, and the most relevant for the Admin theme accessibility report.</p>
+<p><strong>7 selector/rule combinations found only in admin-facing themes.</strong></p>
+<div class="table-wrap"><table><thead><tr><th scope="col">#</th><th scope="col">Rule</th><th scope="col">Impact</th><th scope="col">Themes</th><th scope="col">Selector</th><th scope="col">Total nodes</th><th scope="col">Drupal core?</th></tr></thead><tbody><tr><td>1</td><td><code>color-contrast</code></td><td>🟠 Serious</td><td><code>admin, claro-dark, claro</code></td><td><code>#edit-submit</code></td><td>88</td><td>✅ Yes (Claro)</td></tr><tr><td>2</td><td><code>summary-name</code></td><td>🟠 Serious</td><td><code>admin, claro-dark, claro</code></td><td><code>#edit-modules-nyan-cat-enable-description &gt; .module-lis</code></td><td>24</td><td>✅ Yes (Claro)</td></tr><tr><td>3</td><td><code>landmark-contentinfo-is-top-level</code></td><td>🟡 Moderate</td><td><code>admin, claro-dark, claro</code></td><td><code>.messages--error</code></td><td>153</td><td>✅ Yes (Claro)</td></tr><tr><td>4</td><td><code>landmark-contentinfo-is-top-level</code></td><td>🟡 Moderate</td><td><code>admin, claro-dark, claro</code></td><td><code>.messages--warning</code></td><td>153</td><td>✅ Yes (Claro)</td></tr><tr><td>5</td><td><code>landmark-no-duplicate-contentinfo</code></td><td>🟡 Moderate</td><td><code>admin, claro-dark, claro</code></td><td><code>.messages--error</code></td><td>145</td><td>✅ Yes (Claro)</td></tr><tr><td>6</td><td><code>heading-order</code></td><td>🟡 Moderate</td><td><code>admin, claro-dark, claro</code></td><td><code>#pagination-heading</code></td><td>96</td><td>✅ Yes (Claro)</td></tr><tr><td>7</td><td><code>empty-heading</code></td><td>🔵 Minor</td><td><code>admin, claro-dark, claro</code></td><td><code>h1</code></td><td>96</td><td>✅ Yes (Claro)</td></tr></tbody></table></div>
+<h3 id="admin-claro-details">Admin + Claro Details<a class="heading-anchor" href="#admin-claro-details" aria-label="Link to Admin + Claro Details section">#</a></h3>
+<h4 id="ac-1-color-contrast-edit-submit">AC-1: <code>color-contrast</code> — <code>#edit-submit</code><a class="heading-anchor" href="#ac-1-color-contrast-edit-submit" aria-label="Link to AC-1: `color-contrast` — `#edit-submit` section">#</a></h4>
+<ul><li><strong>Impact:</strong> 🟠 Serious</li><li><strong>Themes affected:</strong> <code>admin</code>, <code>claro-dark</code>, <code>claro</code></li><li><strong>In Drupal core Claro:</strong> Yes</li><li><strong>WCAG:</strong> 1.4.3 Contrast (Minimum) (AA)</li><li><strong>Axe docs:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast">https://dequeuniversity.com/rules/axe/4.11/color-contrast</a></li><li><strong>Total violation nodes:</strong> 88</li><li><strong>Paths:</strong> <code>/admin/appearance</code>, <code>/admin/content</code>, <code>/admin/form_style</code>, <code>/admin/modules</code>, <code>/admin/structure/block</code> +6 more</li><li><strong>HTML:</strong></li></ul>
+<p>  ``<code>html   &lt;input data-drupal-selector=&quot;edit-submit&quot; type=&quot;submit&quot; id=&quot;edit-submit&quot; name=&quot;op&quot; value=&quot;Save configuration&quot; class=&quot;button button--primary js-form-submit form-submit&quot;&gt;   </code>``</p>
+<ul><li><strong>Drupal issue search:</strong> <a href="https://www.drupal.org/project/issues/search?text=color-contrast%20%23edit-submit&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=color-contrast%20%23edit-submit&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility</a></li></ul>
+<h4 id="ac-2-summary-name-edit-modules-nyan-cat-enable-description-module-list-module-summary">AC-2: <code>summary-name</code> — <code>#edit-modules-nyan-cat-enable-description &gt; .module-list__module-summary</code><a class="heading-anchor" href="#ac-2-summary-name-edit-modules-nyan-cat-enable-description-module-list-module-summary" aria-label="Link to AC-2: `summary-name` — `#edit-modules-nyan-cat-enable-description &gt; .module-list__module-summary` section">#</a></h4>
+<ul><li><strong>Impact:</strong> 🟠 Serious</li><li><strong>Themes affected:</strong> <code>admin</code>, <code>claro-dark</code>, <code>claro</code></li><li><strong>In Drupal core Claro:</strong> Yes</li><li><strong>WCAG:</strong> 4.1.2 Name, Role, Value (A)</li><li><strong>Axe docs:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/summary-name">https://dequeuniversity.com/rules/axe/4.11/summary-name</a></li><li><strong>Total violation nodes:</strong> 24</li><li><strong>Paths:</strong> <code>/admin/modules</code></li><li><strong>HTML:</strong></li></ul>
+<p>  ``<code>html   &lt;summary aria-controls=&quot;edit-modules-nyan-cat-enable-description&quot; role=&quot;button&quot; aria-expanded=&quot;false&quot; class=&quot;gin-details__summary module-list__module-summary&quot;&gt;&lt;span class=&quot;text module-description&quot;&gt;&lt;/s   </code>``</p>
+<ul><li><strong>Drupal issue search:</strong> <a href="https://www.drupal.org/project/issues/search?text=summary-name%20%23edit-modules-nyan-cat-enable-description%20%3E%20.mo&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=summary-name%20%23edit-modules-nyan-cat-enable-description%20%3E%20.mo&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility</a></li></ul>
+<h4 id="ac-3-landmark-contentinfo-is-top-level-messages-error">AC-3: <code>landmark-contentinfo-is-top-level</code> — <code>.messages--error</code><a class="heading-anchor" href="#ac-3-landmark-contentinfo-is-top-level-messages-error" aria-label="Link to AC-3: `landmark-contentinfo-is-top-level` — `.messages--error` section">#</a></h4>
+<ul><li><strong>Impact:</strong> 🟡 Moderate</li><li><strong>Themes affected:</strong> <code>admin</code>, <code>claro-dark</code>, <code>claro</code></li><li><strong>In Drupal core Claro:</strong> Yes</li><li><strong>WCAG:</strong> 1.3.6 Identify Purpose (AAA)</li><li><strong>Axe docs:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/landmark-contentinfo-is-top-level">https://dequeuniversity.com/rules/axe/4.11/landmark-contentinfo-is-top-level</a></li><li><strong>Total violation nodes:</strong> 153</li><li><strong>Paths:</strong> <code>/admin/appearance</code>, <code>/admin/modules</code>, <code>/message</code></li><li><strong>HTML:</strong></li></ul>
+<p>  ``<code>html   &lt;div role=&quot;contentinfo&quot; aria-labelledby=&quot;message-error-title&quot; class=&quot;messages-list__item messages messages--error&quot;&gt;   </code>``</p>
+<ul><li><strong>Drupal issue search:</strong> <a href="https://www.drupal.org/project/issues/search?text=landmark-contentinfo-is-top-level%20.messages--error&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=landmark-contentinfo-is-top-level%20.messages--error&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility</a></li></ul>
+<h4 id="ac-4-landmark-contentinfo-is-top-level-messages-warning">AC-4: <code>landmark-contentinfo-is-top-level</code> — <code>.messages--warning</code><a class="heading-anchor" href="#ac-4-landmark-contentinfo-is-top-level-messages-warning" aria-label="Link to AC-4: `landmark-contentinfo-is-top-level` — `.messages--warning` section">#</a></h4>
+<ul><li><strong>Impact:</strong> 🟡 Moderate</li><li><strong>Themes affected:</strong> <code>admin</code>, <code>claro-dark</code>, <code>claro</code></li><li><strong>In Drupal core Claro:</strong> Yes</li><li><strong>WCAG:</strong> 1.3.6 Identify Purpose (AAA)</li><li><strong>Axe docs:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/landmark-contentinfo-is-top-level">https://dequeuniversity.com/rules/axe/4.11/landmark-contentinfo-is-top-level</a></li><li><strong>Total violation nodes:</strong> 153</li><li><strong>Paths:</strong> <code>/admin/appearance</code>, <code>/admin/modules</code>, <code>/message</code></li><li><strong>HTML:</strong></li></ul>
+<p>  ``<code>html   &lt;div role=&quot;contentinfo&quot; aria-labelledby=&quot;message-warning-title&quot; class=&quot;messages-list__item messages messages--warning&quot;&gt;   </code>``</p>
+<ul><li><strong>Drupal issue search:</strong> <a href="https://www.drupal.org/project/issues/search?text=landmark-contentinfo-is-top-level%20.messages--warning&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=landmark-contentinfo-is-top-level%20.messages--warning&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility</a></li></ul>
+<h4 id="ac-5-landmark-no-duplicate-contentinfo-messages-error">AC-5: <code>landmark-no-duplicate-contentinfo</code> — <code>.messages--error</code><a class="heading-anchor" href="#ac-5-landmark-no-duplicate-contentinfo-messages-error" aria-label="Link to AC-5: `landmark-no-duplicate-contentinfo` — `.messages--error` section">#</a></h4>
+<ul><li><strong>Impact:</strong> 🟡 Moderate</li><li><strong>Themes affected:</strong> <code>admin</code>, <code>claro-dark</code>, <code>claro</code></li><li><strong>In Drupal core Claro:</strong> Yes</li><li><strong>WCAG:</strong> 1.3.6 Identify Purpose (AAA)</li><li><strong>Axe docs:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/landmark-no-duplicate-contentinfo">https://dequeuniversity.com/rules/axe/4.11/landmark-no-duplicate-contentinfo</a></li><li><strong>Total violation nodes:</strong> 145</li><li><strong>Paths:</strong> <code>/admin/appearance</code>, <code>/admin/modules</code></li><li><strong>HTML:</strong></li></ul>
+<p>  ``<code>html   &lt;div role=&quot;contentinfo&quot; aria-labelledby=&quot;message-error-title&quot; class=&quot;messages-list__item messages messages--error&quot;&gt;   </code>``</p>
+<ul><li><strong>Drupal issue search:</strong> <a href="https://www.drupal.org/project/issues/search?text=landmark-no-duplicate-contentinfo%20.messages--error&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=landmark-no-duplicate-contentinfo%20.messages--error&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility</a></li></ul>
+<h4 id="ac-6-heading-order-pagination-heading">AC-6: <code>heading-order</code> — <code>#pagination-heading</code><a class="heading-anchor" href="#ac-6-heading-order-pagination-heading" aria-label="Link to AC-6: `heading-order` — `#pagination-heading` section">#</a></h4>
+<ul><li><strong>Impact:</strong> 🟡 Moderate</li><li><strong>Themes affected:</strong> <code>admin</code>, <code>claro-dark</code>, <code>claro</code></li><li><strong>In Drupal core Claro:</strong> Yes</li><li><strong>WCAG:</strong> 1.3.1 Info and Relationships (A)</li><li><strong>Axe docs:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/heading-order">https://dequeuniversity.com/rules/axe/4.11/heading-order</a></li><li><strong>Total violation nodes:</strong> 96</li><li><strong>Paths:</strong> <code>/admin/content</code></li><li><strong>HTML:</strong></li></ul>
+<p>  ``<code>html   &lt;h4 id=&quot;pagination-heading&quot; class=&quot;visually-hidden&quot;&gt;Pagination&lt;/h4&gt;   </code>``</p>
+<ul><li><strong>Drupal issue search:</strong> <a href="https://www.drupal.org/project/issues/search?text=heading-order%20%23pagination-heading&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=heading-order%20%23pagination-heading&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility</a></li></ul>
+<h4 id="ac-7-empty-heading-h1">AC-7: <code>empty-heading</code> — <code>h1</code><a class="heading-anchor" href="#ac-7-empty-heading-h1" aria-label="Link to AC-7: `empty-heading` — `h1` section">#</a></h4>
+<ul><li><strong>Impact:</strong> 🔵 Minor</li><li><strong>Themes affected:</strong> <code>admin</code>, <code>claro-dark</code>, <code>claro</code></li><li><strong>In Drupal core Claro:</strong> Yes</li><li><strong>WCAG:</strong> 2.4.6 Headings and Labels (AA)</li><li><strong>Axe docs:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/empty-heading">https://dequeuniversity.com/rules/axe/4.11/empty-heading</a></li><li><strong>Total violation nodes:</strong> 96</li><li><strong>Paths:</strong> <code>/</code></li><li><strong>HTML:</strong></li></ul>
+<p>  ``<code>html   &lt;h1 class=&quot;page-title&quot;&gt;&lt;/h1&gt;   </code>``</p>
+<ul><li><strong>Drupal issue search:</strong> <a href="https://www.drupal.org/project/issues/search?text=empty-heading%20h1&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=empty-heading%20h1&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility</a></li></ul>
+<hr>
+<h2 id="master-priority-list">Master Priority List<a class="heading-anchor" href="#master-priority-list" aria-label="Link to Master Priority List section">#</a></h2>
+<p>Composite score = <code>impactWeight × log₂(1 + uniquePathCount)</code>.   Impact weights: Critical=4, Serious=3, Moderate=2, Minor=1.   This ranks issues that are both severe <strong>and</strong> widespread highest.</p>
+<div class="table-wrap"><table><thead><tr><th scope="col">Rank</th><th scope="col">Score</th><th scope="col">Rule</th><th scope="col">Impact</th><th scope="col">Unique paths</th><th scope="col">Nodes</th><th scope="col">Admin/Claro?</th><th scope="col">RTL effect</th><th scope="col">Themes</th></tr></thead><tbody><tr><td>1</td><td>12.51</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>17</td><td>131</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin</code></td></tr><tr><td>2</td><td>12.262</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>16</td><td>123</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin</code></td></tr><tr><td>3</td><td>11.51</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/region?application=playwright"><code>region</code></a></td><td>🟡 Moderate</td><td>53</td><td>2193</td><td>🌐 All</td><td>—</td><td><code>admin, claro-dark, claro…</code></td></tr><tr><td>4</td><td>10.755</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>11</td><td>88</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin, claro-dark, claro</code></td></tr><tr><td>5</td><td>6</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/region?application=playwright"><code>region</code></a></td><td>🟡 Moderate</td><td>7</td><td>585</td><td>🌐 All</td><td>—</td><td><code>admin, olivero-dark, olivero</code></td></tr><tr><td>6</td><td>6</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>3</td><td>21</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin</code></td></tr><tr><td>7</td><td>6</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/label-title-only?application=playwright"><code>label-title-only</code></a></td><td>🟠 Serious</td><td>3</td><td>24</td><td>✅ Admin/Claro</td><td>—</td><td><code>claro-dark, claro</code></td></tr><tr><td>8</td><td>4.755</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>2</td><td>11</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin</code></td></tr><tr><td>9</td><td>4</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/landmark-contentinfo-is-top-level?application=playwright"><code>landmark-contentinfo-is-top-level</code></a></td><td>🟡 Moderate</td><td>3</td><td>153</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin, claro-dark, claro</code></td></tr><tr><td>10</td><td>4</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/landmark-contentinfo-is-top-level?application=playwright"><code>landmark-contentinfo-is-top-level</code></a></td><td>🟡 Moderate</td><td>3</td><td>153</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin, claro-dark, claro</code></td></tr><tr><td>11</td><td>4</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/region?application=playwright"><code>region</code></a></td><td>🟡 Moderate</td><td>3</td><td>264</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin</code></td></tr><tr><td>12</td><td>4</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/label?application=playwright"><code>label</code></a></td><td>🔴 Critical</td><td>1</td><td>8</td><td>✅ Admin/Claro</td><td>—</td><td><code>claro-dark, claro</code></td></tr><tr><td>13</td><td>4</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/label?application=playwright"><code>label</code></a></td><td>🔴 Critical</td><td>1</td><td>8</td><td>✅ Admin/Claro</td><td>—</td><td><code>claro-dark, claro</code></td></tr><tr><td>14</td><td>4</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/label?application=playwright"><code>label</code></a></td><td>🔴 Critical</td><td>1</td><td>8</td><td>✅ Admin/Claro</td><td>—</td><td><code>claro-dark, claro</code></td></tr><tr><td>15</td><td>4</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/label?application=playwright"><code>label</code></a></td><td>🔴 Critical</td><td>1</td><td>8</td><td>✅ Admin/Claro</td><td>—</td><td><code>claro-dark, claro</code></td></tr><tr><td>16</td><td>3.17</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/landmark-no-duplicate-contentinfo?application=playwright"><code>landmark-no-duplicate-contentinfo</code></a></td><td>🟡 Moderate</td><td>2</td><td>145</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin, claro-dark, claro</code></td></tr><tr><td>17</td><td>3</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>1</td><td>8</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin</code></td></tr><tr><td>18</td><td>3</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>1</td><td>8</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin</code></td></tr><tr><td>19</td><td>3</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>1</td><td>8</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin</code></td></tr><tr><td>20</td><td>3</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>1</td><td>8</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin</code></td></tr><tr><td>21</td><td>3</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>1</td><td>8</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin</code></td></tr><tr><td>22</td><td>3</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>1</td><td>8</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin</code></td></tr><tr><td>23</td><td>3</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>1</td><td>8</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin</code></td></tr><tr><td>24</td><td>3</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>1</td><td>8</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin</code></td></tr><tr><td>25</td><td>3</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>1</td><td>8</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin</code></td></tr><tr><td>26</td><td>3</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>1</td><td>8</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin</code></td></tr><tr><td>27</td><td>3</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>1</td><td>8</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin</code></td></tr><tr><td>28</td><td>3</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>1</td><td>8</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin</code></td></tr><tr><td>29</td><td>3</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>1</td><td>8</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin</code></td></tr><tr><td>30</td><td>3</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>1</td><td>8</td><td>✅ Admin/Claro</td><td>—</td><td><code>admin</code></td></tr></tbody></table></div>
+<hr>
+<h2 id="drupal-issue-queue">Drupal Issue Queue<a class="heading-anchor" href="#drupal-issue-queue" aria-label="Link to Drupal Issue Queue section">#</a></h2>
+<p>Each issue below links directly to a filtered Drupal.org issue queue search. When filing or updating issues, include the pattern ID (DRU-XXXXXXXX from bugs-latest.json), the axe rule ID, the WCAG criterion, and the HTML snippet from this report.</p>
+<h3 id="suggested-search-links-by-rule">Suggested search links by rule<a class="heading-anchor" href="#suggested-search-links-by-rule" aria-label="Link to Suggested search links by rule section">#</a></h3>
+<ul><li><strong><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></strong> — WCAG 1.4.3 Contrast (Minimum) (AA)  </li></ul>
+<p>  <a href="https://www.drupal.org/project/issues/search?text=color-contrast&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">Search Drupal issue queue</a></p>
+<ul><li><strong><a href="https://dequeuniversity.com/rules/axe/4.11/region?application=playwright"><code>region</code></a></strong> — WCAG 1.3.6 Identify Purpose (AAA)  </li></ul>
+<p>  <a href="https://www.drupal.org/project/issues/search?text=region&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">Search Drupal issue queue</a></p>
+<ul><li><strong><a href="https://dequeuniversity.com/rules/axe/4.11/label-title-only?application=playwright"><code>label-title-only</code></a></strong> — WCAG 1.3.1 Info and Relationships (A)  </li></ul>
+<p>  <a href="https://www.drupal.org/project/issues/search?text=label-title-only&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">Search Drupal issue queue</a></p>
+<ul><li><strong><a href="https://dequeuniversity.com/rules/axe/4.11/landmark-contentinfo-is-top-level?application=playwright"><code>landmark-contentinfo-is-top-level</code></a></strong> — WCAG 1.3.6 Identify Purpose (AAA)  </li></ul>
+<p>  <a href="https://www.drupal.org/project/issues/search?text=landmark-contentinfo-is-top-level&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">Search Drupal issue queue</a></p>
+<ul><li><strong><a href="https://dequeuniversity.com/rules/axe/4.11/label?application=playwright"><code>label</code></a></strong> — WCAG 1.3.1 Info and Relationships (A)  </li></ul>
+<p>  <a href="https://www.drupal.org/project/issues/search?text=label&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">Search Drupal issue queue</a></p>
+<ul><li><strong><a href="https://dequeuniversity.com/rules/axe/4.11/landmark-no-duplicate-contentinfo?application=playwright"><code>landmark-no-duplicate-contentinfo</code></a></strong> — WCAG 1.3.6 Identify Purpose (AAA)  </li></ul>
+<p>  <a href="https://www.drupal.org/project/issues/search?text=landmark-no-duplicate-contentinfo&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">Search Drupal issue queue</a></p>
+<h3 id="rtl-specific-issues-hebrew-rtl-component-in-drupal-core">RTL-specific issues — Hebrew/RTL component in Drupal core<a class="heading-anchor" href="#rtl-specific-issues-hebrew-rtl-component-in-drupal-core" aria-label="Link to RTL-specific issues — Hebrew/RTL component in Drupal core section">#</a></h3>
+<p>RTL-exclusive issues should be filed/searched against the <strong>Language</strong> or <strong>RTL</strong> tags in addition to Accessibility:</p>
+<ul><li><a href="https://www.drupal.org/project/issues/search?text=RTL+accessibility&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">Search for RTL + Accessibility issues</a></li><li><a href="https://www.drupal.org/project/issues/search?text=Hebrew+accessibility&amp;projects=drupal&amp;status[]=Open">Search for Hebrew language issues</a></li></ul>
+<h3 id="admin-gin-theme-issues">Admin/Gin theme issues<a class="heading-anchor" href="#admin-gin-theme-issues" aria-label="Link to Admin/Gin theme issues section">#</a></h3>
+<p>The Admin theme in this test matrix corresponds to the <strong>Gin</strong> theme. Issues specific to Gin should be searched/filed against the Gin project:</p>
+<ul><li><a href="https://www.drupal.org/project/issues/gin?text=&amp;status[]=Open&amp;issue_tags=Accessibility">Gin project issue queue (Accessibility)</a></li><li><a href="https://www.drupal.org/project/issues/search?text=claro+accessibility&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">Claro theme issues in Drupal core</a></li></ul>
+    </main>
+  </div>
+</body>
+</html>

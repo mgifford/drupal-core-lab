@@ -1,0 +1,34 @@
+{
+  "finding_id": "a11y_navigation_logo_focus_not_visible",
+  "fingerprint": "2f47889baa9602c5bb1ef8573390c7eef7bc7fff720cf936cb491f86187a49d8",
+  "source": "Real Tab focus, element screenshots, and computed-style comparison on the Navigation Home logo",
+  "wcag_or_apg": "WCAG 2.2 SC 2.4.7 Focus Visible",
+  "section_508_fpc_context": "not in scope",
+  "severity": "MAJOR",
+  "perspective_alarms": {
+    "screen_reader_semantic": "LOW",
+    "keyboard_motor": "HIGH",
+    "magnification_reflow": "HIGH",
+    "cognitive_neurodivergent": "MEDIUM",
+    "vestibular_motion": "NONE",
+    "environmental_contrast": "HIGH",
+    "auditory_access": "NONE"
+  },
+  "evidence": [
+    "EVID-FULL-SUITE-RESOLUTIONS: two real Tab presses reached .admin-toolbar__logo on /admin/content.",
+    "The focused element had no outline, border, or box shadow, and its focused and unfocused PNG captures had the identical SHA-256 e165cb22a87ff3455f7b1c47860b4398a108a7a4e3e5c9a762125035f73cf77b.",
+    "The independent keyboard matrix also recorded the shared Navigation logo in the tab sequence."
+  ],
+  "reproduction_steps": [
+    "Enable Navigation, authenticate as an administrator, and open /admin/content at a desktop viewport.",
+    "Start at the document and press Tab twice to focus the Home logo in the left Navigation sidebar.",
+    "Compare the logo before and after focus."
+  ],
+  "expected_behavior": "A visible focus indicator identifies the Navigation Home logo when it receives keyboard focus.",
+  "actual_behavior": "The Home logo receives focus, but its focused rendering is pixel-identical to its unfocused rendering.",
+  "evaluation_context": {
+    "evaluation_id": "AS-OACR-001",
+    "sample_id": "S-STR-008",
+    "state_id": "ST-002"
+  }
+}

@@ -1,0 +1,635 @@
+diff --git a/core/themes/default_admin/css/components/sidebar.css b/core/themes/default_admin/css/components/sidebar.css
+index 1a2d69c6609..69aea76b0d5 100644
+--- a/core/themes/default_admin/css/components/sidebar.css
++++ b/core/themes/default_admin/css/components/sidebar.css
+@@ -113,6 +113,7 @@ body[data-meta-sidebar="open"] {
+ 
+ :is(#extra-specificity-hack, [data-drupal-admin-styles]) .meta-sidebar__trigger,
+ .meta-sidebar__trigger {
++  position: relative;
+   display: block;
+   width: 2rem;
+   height: 2rem;
+@@ -133,6 +134,33 @@ body[data-meta-sidebar="open"] {
+     mask-size: var(--admin-icon-size-sidebar-toggle) var(--admin-icon-size-sidebar-toggle);
+   }
+ 
++  &.has-error {
++    width: 3.5rem;
++    padding-inline-end: 1.5rem;
++
++    &::before {
++      background-color: var(--admin-color-error);
++    }
++
++    &::after {
++      --admin-icon-size-sidebar-toggle: 1.125rem;
++
++      position: absolute;
++      display: inline-block;
++      width: 2rem;
++      height: 2rem;
++      content: "";
++      border-radius: 50%;
++      background-color: var(--admin-color-error);
++      inset-block-start: -1px;
++      inset-inline-end: 0;
++      mask-repeat: no-repeat;
++      mask-position: center center;
++      mask-image: var(--admin-icon-error);
++      mask-size: var(--admin-icon-size-sidebar-toggle) var(--admin-icon-size-sidebar-toggle);
++    }
++  }
++
+   &:hover,
+   &:focus,
+   &.is-active,
+diff --git a/core/themes/default_admin/css/components/sidebar.pcss.css b/core/themes/default_admin/css/components/sidebar.pcss.css
+index a7420b2e344..76b0c2aea87 100644
+--- a/core/themes/default_admin/css/components/sidebar.pcss.css
++++ b/core/themes/default_admin/css/components/sidebar.pcss.css
+@@ -108,6 +108,7 @@ body[data-meta-sidebar="open"] {
+ 
+ :is(#extra-specificity-hack, [data-drupal-admin-styles]) .meta-sidebar__trigger,
+ .meta-sidebar__trigger {
++  position: relative;
+   display: block;
+   width: 32px;
+   height: 32px;
+@@ -128,6 +129,33 @@ body[data-meta-sidebar="open"] {
+     mask-size: var(--admin-icon-size-sidebar-toggle) var(--admin-icon-size-sidebar-toggle);
+   }
+ 
++  &.has-error {
++    width: 3.5rem;
++    padding-inline-end: 1.5rem;
++
++    &::before {
++      background-color: var(--admin-color-error);
++    }
++
++    &::after {
++      --admin-icon-size-sidebar-toggle: 18px;
++
++      position: absolute;
++      display: inline-block;
++      width: 2rem;
++      height: 2rem;
++      content: "";
++      border-radius: 50%;
++      background-color: var(--admin-color-error);
++      inset-block-start: -1px;
++      inset-inline-end: 0;
++      mask-repeat: no-repeat;
++      mask-position: center center;
++      mask-image: var(--admin-icon-error);
++      mask-size: var(--admin-icon-size-sidebar-toggle) var(--admin-icon-size-sidebar-toggle);
++    }
++  }
++
+   &:hover,
+   &:focus,
+   &.is-active,
+diff --git a/core/themes/default_admin/migration/js/sidebar.js b/core/themes/default_admin/migration/js/sidebar.js
+index 80773ec1541..a259fdf1a77 100644
+--- a/core/themes/default_admin/migration/js/sidebar.js
++++ b/core/themes/default_admin/migration/js/sidebar.js
+@@ -8,9 +8,17 @@
+   const storageWidth = "Drupal.gin.sidebarWidth";
+   const reSizer = document.getElementById('gin-sidebar-draggable');
+   const resizable = document.getElementById('default_admin_sidebar');
++  const sidebar = document.getElementById('default_admin_sidebar');
+   let isResizing = false;
+   let startX, startWidth;
+ 
++  // Modal state: when the sidebar overlays content (narrow viewports) it must
++  // behave like a modal dialog so keyboard and screen-reader users cannot
++  // reach the content behind the greyed-out overlay.
++  let modalActive = false;
++  let backgroundContainers = [];
++  let lastTrigger = null;
++
+   Drupal.behaviors.ginSidebar = {
+     attach: function attach(context) {
+       Drupal.ginSidebar.init(context);
+@@ -58,31 +66,34 @@
+       // Toolbar toggle
+       once('ginSidebarToggle', '.meta-sidebar__trigger', context).forEach(el => el.addEventListener('click', e => {
+         e.preventDefault();
++        lastTrigger = el;
+         this.removeInlineStyles();
+-        this.toggleSidebar();
++        this.toggleSidebar(true);
+       }));
+ 
+       // Toolbar close
+       once('ginSidebarClose', '.meta-sidebar__close, .meta-sidebar__overlay', context).forEach(el => el.addEventListener('click', e => {
+         e.preventDefault();
+         this.removeInlineStyles();
+-        this.collapseSidebar();
++        this.collapseSidebar(true);
+       }));
+     },
+ 
+-    toggleSidebar: () => {
++    toggleSidebar: (fromUser = false) => {
+       // Set active state.
+       if (document.querySelector('.meta-sidebar__trigger').classList.contains('is-active')) {
+-        Drupal.ginSidebar.collapseSidebar();
++        Drupal.ginSidebar.collapseSidebar(fromUser);
+         Drupal.ginStickyFormActions?.hideMoreActions();
+       }
+       else {
+-        Drupal.ginSidebar.showSidebar();
++        Drupal.ginSidebar.showSidebar(fromUser);
+         Drupal.ginStickyFormActions?.hideMoreActions();
+       }
+     },
+ 
+-    showSidebar: () => {
++    isModalWidth: () => window.innerWidth < breakpoint,
++
++    showSidebar: (fromUser = false) => {
+       const chooseStorage = window.innerWidth < breakpoint ? storageMobile : storageDesktop;
+       const hideLabel = Drupal.t('Hide sidebar panel');
+       const sidebarTrigger = document.querySelector('.meta-sidebar__trigger');
+@@ -98,6 +109,20 @@
+ 
+       document.body.setAttribute('data-meta-sidebar', 'open');
+ 
++      // When the sidebar overlays the page content it must act as a modal:
++      // trap focus inside it and make the background inert.
++      if (Drupal.ginSidebar.isModalWidth() && sidebar) {
++        if (!modalActive) {
++          Drupal.ginSidebar.enableModal();
++        }
++        if (fromUser) {
++          Drupal.ginSidebar.focusSidebar();
++        }
++      }
++      else if (modalActive) {
++        Drupal.ginSidebar.disableModal();
++      }
++
+       // Expose to localStorage.
+       localStorage.setItem(chooseStorage, 'true');
+ 
+@@ -107,7 +132,7 @@
+       }
+     },
+ 
+-    collapseSidebar: () => {
++    collapseSidebar: (fromUser = false) => {
+       const chooseStorage = window.innerWidth < breakpoint ? storageMobile : storageDesktop;
+       const showLabel = Drupal.t('Show sidebar panel');
+       const sidebarTrigger = document.querySelector('.meta-sidebar__trigger');
+@@ -123,10 +148,157 @@
+ 
+       document.body.setAttribute('data-meta-sidebar', 'closed');
+ 
++      // Release the modal behaviour before handing focus back to the trigger.
++      if (modalActive) {
++        Drupal.ginSidebar.disableModal(fromUser && lastTrigger);
++      }
++
+       // Expose to localStorage.
+       localStorage.setItem(chooseStorage, 'false');
+     },
+ 
++    // --- Modal helpers -------------------------------------------------------
++
++    enableModal: () => {
++      if (modalActive || !sidebar) {
++        return;
++      }
++      Drupal.ginSidebar.makeBackgroundInert();
++      document.addEventListener('keydown', Drupal.ginSidebar.modalKeydown, true);
++      sidebar.setAttribute('role', 'dialog');
++      sidebar.setAttribute('aria-modal', 'true');
++      sidebar.setAttribute('aria-label', Drupal.t('Sidebar'));
++      modalActive = true;
++    },
++
++    disableModal: (returnFocus = false) => {
++      if (!modalActive) {
++        return;
++      }
++      Drupal.ginSidebar.releaseBackground();
++      document.removeEventListener('keydown', Drupal.ginSidebar.modalKeydown, true);
++      sidebar.removeAttribute('role');
++      sidebar.removeAttribute('aria-modal');
++      sidebar.removeAttribute('aria-label');
++      modalActive = false;
++      if (returnFocus && lastTrigger && document.contains(lastTrigger)) {
++        lastTrigger.focus();
++      }
++    },
++
++    makeBackgroundInert: () => {
++      const trigger = document.querySelector('.meta-sidebar__trigger');
++      backgroundContainers = Drupal.ginSidebar.getBackgroundContainers(sidebar, trigger);
++      backgroundContainers.forEach(el => {
++        el.setAttribute('inert', '');
++        el.setAttribute('aria-hidden', 'true');
++      });
++    },
++
++    releaseBackground: () => {
++      backgroundContainers.forEach(el => {
++        el.removeAttribute('inert');
++        el.removeAttribute('aria-hidden');
++      });
++      backgroundContainers = [];
++    },
++
++    // Collect every branch of the DOM that is not the sidebar panel (and not the
++    // overlay) so it can be made inert while the modal is open. The single
++    // sidebar control (.meta-sidebar__trigger) must stay interactive in both
++    // states, so its container is kept alive and only its siblings are inerted.
++    getBackgroundContainers: (panel, trigger) => {
++      const containers = [];
++      let node = panel;
++      while (node && node.parentElement) {
++        const parent = node.parentElement;
++        for (const sibling of parent.children) {
++          if (sibling === panel || sibling.contains(panel) || sibling.classList.contains('meta-sidebar__overlay')) {
++            continue;
++          }
++          if (trigger && (sibling === trigger || sibling.contains(trigger))) {
++            // Keep the trigger usable: inert only its siblings within this
++            // container rather than the container that holds the trigger.
++            for (const child of sibling.children) {
++              if (child !== trigger && !child.contains(trigger)) {
++                containers.push(child);
++              }
++            }
++            continue;
++          }
++          containers.push(sibling);
++        }
++        node = parent;
++        if (parent === document.body) {
++          break;
++        }
++      }
++      return containers;
++    },
++
++    // Focusable elements inside the modal, including the single sidebar control
++    // so it stays reachable by keyboard while the panel is open.
++    getModalFocusable: () => {
++      const list = Drupal.ginSidebar.getFocusable(sidebar);
++      const trigger = document.querySelector('.meta-sidebar__trigger');
++      if (trigger && !list.includes(trigger)) {
++        list.push(trigger);
++      }
++      return list;
++    },
++
++    getFocusable: (container) => {
++      const selector = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]), details > summary';
++      return Array.from(container.querySelectorAll(selector))
++        .filter(el => el.offsetParent !== null || el === document.activeElement);
++    },
++
++    focusSidebar: () => {
++      if (!sidebar) {
++        return;
++      }
++      // Focus the dialog container so screen readers announce it, then Tab
++      // moves into the first focusable field or the sidebar control.
++      sidebar.focus();
++    },
++
++    // Keydown handler (capture phase) used while the modal is open.
++    modalKeydown: (e) => {
++      if (e.key === 'Escape') {
++        e.preventDefault();
++        Drupal.ginSidebar.collapseSidebar(true);
++        return;
++      }
++      if (e.key === 'Tab') {
++        Drupal.ginSidebar.trapFocus(e);
++      }
++    },
++
++    // Keep keyboard focus confined to the sidebar panel (plus the control).
++    trapFocus: (e) => {
++      if (!sidebar) {
++        return;
++      }
++      const focusable = Drupal.ginSidebar.getModalFocusable();
++      if (!focusable.length) {
++        e.preventDefault();
++        sidebar.focus();
++        return;
++      }
++      const first = focusable[0];
++      const last = focusable[focusable.length - 1];
++      if (e.shiftKey) {
++        if (document.activeElement === first || !sidebar.contains(document.activeElement)) {
++          e.preventDefault();
++          last.focus();
++        }
++      }
++      else if (document.activeElement === last || !sidebar.contains(document.activeElement)) {
++        e.preventDefault();
++        first.focus();
++      }
++    },
++
+     handleResize: (windowSize = window) => {
+       Drupal.ginSidebar.removeInlineStyles();
+ 
+diff --git a/core/themes/default_admin/src/Hook/FormHooks.php b/core/themes/default_admin/src/Hook/FormHooks.php
+index fbd7bbee352..f45311e7f06 100644
+--- a/core/themes/default_admin/src/Hook/FormHooks.php
++++ b/core/themes/default_admin/src/Hook/FormHooks.php
+@@ -4,6 +4,7 @@
+ 
+ namespace Drupal\default_admin\Hook;
+ 
++use Drupal\Component\Render\FormattableMarkup;
+ use Drupal\default_admin\Helper;
+ use Drupal\default_admin\Settings;
+ use Drupal\Core\Ajax\AjaxHelperTrait;
+@@ -183,7 +184,7 @@ public function formMediaFormAlter(array &$form, FormStateInterface $form_state)
+    * Implements hook_form_BASE_FORM_ID_alter().
+    */
+   #[Hook('form_media_library_add_form_alter')]
+-  public function formMediaLibraryAddFormAlter(array &$form): void {
++  public function formMediaLibraryAddFormAlter(array &$form, FormStateInterface $form_state): void {
+     $form['#attributes']['class'][] = 'media-library-add-form';
+     $form['#attached']['library'][] = 'default_admin/media_library.theme';
+ 
+@@ -205,7 +206,7 @@ public function formMediaLibraryAddFormAlter(array &$form): void {
+    * Implements hook_form_FORM_ID_alter().
+    */
+   #[Hook('form_media_library_add_form_oembed_alter')]
+-  public function formMediaLibraryAddFormOembedAlter(array &$form): void {
++  public function formMediaLibraryAddFormOembedAlter(array &$form, FormStateInterface $form_state): void {
+     $form['#attributes']['class'][] = 'media-library-add-form--oembed';
+ 
+     // If no media items have been added yet, add a couple of styling classes
+@@ -221,7 +222,7 @@ public function formMediaLibraryAddFormOembedAlter(array &$form): void {
+    * Implements hook_form_FORM_ID_alter().
+    */
+   #[Hook('form_media_library_add_form_upload_alter')]
+-  public function formMediaLibraryAddFormUploadAlter(array &$form): void {
++  public function formMediaLibraryAddFormUploadAlter(array &$form, FormStateInterface $form_state): void {
+     $form['#attributes']['class'][] = 'media-library-add-form--upload';
+     if (isset($form['container']['upload'])) {
+       // Set this flag so we can prevent the details element from being added
+@@ -240,7 +241,7 @@ public function formMediaLibraryAddFormUploadAlter(array &$form): void {
+    * different 'details' sections.
+    */
+   #[Hook('form_menu_link_content_form_alter')]
+-  public function formMenuLinkContentFormAlter(array &$form): void {
++  public function formMenuLinkContentFormAlter(array &$form, FormStateInterface $form_state): void {
+     $form['#theme'] = ['menu_link_form'];
+     $form['#attached']['library'][] = 'default_admin/form-two-columns';
+     $form['advanced'] = [
+@@ -291,8 +292,8 @@ public function formMenuLinkContentFormAlter(array &$form): void {
+    * 'details' sections.
+    */
+   #[Hook('form_menu_link_edit_alter')]
+-  public function formMenuLinkEditAlter(array &$form): void {
+-    $this->formMenuLinkContentFormAlter($form);
++  public function formMenuLinkEditAlter(array &$form, FormStateInterface $form_state): void {
++    $this->formMenuLinkContentFormAlter($form, $form_state);
+   }
+ 
+   /**
+@@ -301,7 +302,7 @@ public function formMenuLinkEditAlter(array &$form): void {
+    * Changes vertical tabs to container.
+    */
+   #[Hook('form_node_form_alter')]
+-  public function formNodeFormAlter(array &$form): void {
++  public function formNodeFormAlter(array &$form, FormStateInterface $form_state): void {
+     $form['#theme'] = ['node_edit_form'];
+     $form['#attached']['library'][] = 'default_admin/form-two-columns';
+     $this->ensureAdvancedSettings($form);
+@@ -311,7 +312,7 @@ public function formNodeFormAlter(array &$form): void {
+    * Implements hook_form_FORM_ID_alter().
+    */
+   #[Hook('form_node_preview_form_select_alter')]
+-  public function formNodePreviewFormSelectAlter(array &$form): void {
++  public function formNodePreviewFormSelectAlter(array &$form, FormStateInterface $form_state): void {
+     if (isset($form['backlink'])) {
+       $form['backlink']['#options']['attributes']['class'][] = 'action-link';
+       $form['backlink']['#options']['attributes']['class'][] = 'action-link--icon-chevron-left';
+@@ -322,7 +323,7 @@ public function formNodePreviewFormSelectAlter(array &$form): void {
+    * Implements hook_form_FORM_ID_alter() for the system_modules form.
+    */
+   #[Hook('form_system_modules_alter')]
+-  public function formSystemModulesAlter(array &$form): void {
++  public function formSystemModulesAlter(array &$form, FormStateInterface $form_state): void {
+     if (isset($form['filters'])) {
+       $form['filters']['#attributes']['class'][] = 'modules-table-filter';
+       if (isset($form['filters']['text'])) {
+@@ -360,7 +361,7 @@ public function formSystemModulesAlter(array &$form): void {
+    * Implement hook form_system_theme_settings_alter().
+    */
+   #[Hook('form_system_theme_settings_alter')]
+-  public function formSystemThemeSettingsAlter(array &$form): void {
++  public function formSystemThemeSettingsAlter(array &$form, FormStateInterface $form_state): void {
+     if (!isset($form['config_key']['#value']) || $form['config_key']['#value'] !== 'default_admin.settings') {
+       return;
+     }
+@@ -411,7 +412,7 @@ public static function formSystemThemeSettingsAlterSubmit(array &$form, FormStat
+    * Implements hook_form_FORM_ID_alter() for the user_admin_permissions form.
+    */
+   #[Hook('form_user_admin_permissions_alter')]
+-  public function formUserAdminPermissionsAlter(array &$form): void {
++  public function formUserAdminPermissionsAlter(array &$form, FormStateInterface $form_state): void {
+     if (isset($form['filters'])) {
+       $form['filters']['#attributes']['class'][] = 'permissions-table-filter';
+       if (isset($form['filters']['text'])) {
+@@ -512,7 +513,7 @@ public function formViewsExposedFormAlter(array &$form, FormStateInterface $form
+    * Implements hook_form_FORM_ID_alter() for Views UI add handler form.
+    */
+   #[Hook('form_views_ui_add_handler_form_alter')]
+-  public function formViewsUiAddHandlerFormAlter(array &$form): void {
++  public function formViewsUiAddHandlerFormAlter(array &$form, FormStateInterface $form_state): void {
+     // Remove container-inline class to allow more control over styling.
+     if (isset($form['selected']['#attributes']['class'])) {
+       $form['selected']['#attributes']['class'] = array_diff($form['selected']['#attributes']['class'], ['container-inline']);
+@@ -720,7 +721,21 @@ public function stickyActionButtonsAndSidebar(array &$form, FormStateInterface $
+     // Add sidebar toggle.
+     $hide_panel = $this->t('Hide sidebar panel');
+     $form['default_admin_sticky_actions']['default_admin_sidebar_toggle'] = [
+-      '#markup' => '<a href="#toggle-sidebar" class="meta-sidebar__trigger trigger" role="button" title="' . $hide_panel . '" aria-controls="default_admin_sidebar"><span class="visually-hidden">' . $hide_panel . '</span></a>',
++      '#type' => 'html_tag',
++      '#tag' => 'a',
++      '#value' => new FormattableMarkup('<span class="visually-hidden">@text</span>', [
++        '@text' => $hide_panel,
++      ]),
++      '#attributes' => [
++        'class' => [
++          'meta-sidebar__trigger',
++          'trigger',
++        ],
++        'href' => '#toggle-sidebar',
++        'role' => 'button',
++        'title' => $hide_panel,
++        'aria-controls' => 'default_admin_sidebar',
++      ],
+       '#weight' => 1000,
+     ];
+     $form['#attached']['library'][] = 'default_admin/sidebar';
+@@ -740,12 +755,6 @@ public function stickyActionButtonsAndSidebar(array &$form, FormStateInterface $
+     // Copy footer over.
+     $form['default_admin_sidebar']['footer'] = ($form['footer']) ?? [];
+ 
+-    // Sidebar close button.
+-    $close_sidebar_translation = $this->t('Close sidebar panel');
+-    $form['default_admin_sidebar']['default_admin_sidebar_close'] = [
+-      '#markup' => '<a href="#close-sidebar" class="meta-sidebar__close trigger" role="button" title="' . $close_sidebar_translation . '"><span class="visually-hidden">' . $close_sidebar_translation . '</span></a>',
+-    ];
+-
+     $form['default_admin_sidebar_overlay'] = [
+       '#markup' => '<div class="meta-sidebar__overlay trigger"></div>',
+     ];
+diff --git a/core/themes/default_admin/src/Hook/PreprocessHooks.php b/core/themes/default_admin/src/Hook/PreprocessHooks.php
+index 6ac34503ca4..8813993bc7d 100644
+--- a/core/themes/default_admin/src/Hook/PreprocessHooks.php
++++ b/core/themes/default_admin/src/Hook/PreprocessHooks.php
+@@ -546,6 +546,19 @@ public function preprocessFilterTips(array &$variables): void {
+     $variables['#attached']['library'][] = 'filter/drupal.filter';
+   }
+ 
++  /**
++   * Implements hook_preprocess_HOOK() for form.
++   */
++  #[Hook('preprocess_form')]
++  public function preprocessForm(array &$variables): void {
++    // Record that the sidebar (advanced group) has child element errors. The
++    // toggle is rendered later via a lazy builder, which reads this flag once
++    // the content form (and therefore validation errors) have been rendered.
++    if (!empty($variables['element']['advanced']['#children_errors'])) {
++      Helper::sidebarHasChildErrors(TRUE);
++    }
++  }
++
+   /**
+    * Implements hook_preprocess_HOOK() for form_element.
+    */
+@@ -1035,12 +1048,18 @@ public function preprocessPage(array &$variables): void {
+     }
+ 
+     // Get form actions.
+-    if ($form_actions = Helper::formActions()) {
++    if (Helper::formActions()) {
+       if ($this->moduleHandler->moduleExists('navigation')) {
+         $variables['default_admin_form_actions'] = '';
+       }
+       else {
+-        $variables['default_admin_form_actions'] = $form_actions;
++        // Render the actions as a lazy builder so the placeholder is replaced
++        // after the content form has been rendered and hook_preprocess_form has
++        // set the sidebar error flag.
++        $variables['default_admin_form_actions'] = [
++          '#lazy_builder' => [Helper::class . '::buildFormActions', []],
++          '#create_placeholder' => TRUE,
++        ];
+       }
+       $variables['default_admin_form_actions_class'] = 'gin-sticky-form-actions--preprocessed';
+     }
+@@ -1297,8 +1316,13 @@ public function preprocessTopBar(array &$variables): void {
+     $variables['#attached']['library'][] = 'default_admin/top_bar';
+ 
+     // Get form actions.
+-    if ($form_actions = Helper::formActions()) {
+-      $variables['default_admin_form_actions'] = $form_actions;
++    if (Helper::formActions()) {
++      // Defer reading the actions until render time so that
++      // hook_preprocess_form has already added any error indicators.
++      $variables['default_admin_form_actions'] = [
++        '#lazy_builder' => [Helper::class . '::buildFormActions', []],
++        '#create_placeholder' => TRUE,
++      ];
+       $variables['default_admin_form_actions_class'] = 'gin-sticky-form-actions--preprocessed';
+       $variables['#attached']['library'][] = 'default_admin/top_bar';
+     }
+diff --git a/core/themes/default_admin/tests/src/Functional/SidebarChildErrorsTest.php b/core/themes/default_admin/tests/src/Functional/SidebarChildErrorsTest.php
+new file mode 100644
+index 00000000000..92ac425aed2
+--- /dev/null
++++ b/core/themes/default_admin/tests/src/Functional/SidebarChildErrorsTest.php
+@@ -0,0 +1,76 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\default_admin\Functional;
++
++use Drupal\Tests\BrowserTestBase;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++
++/**
++ * Tests that the forms sidebar indicates child element errors.
++ *
++ * @see https://www.drupal.org/project/drupal/issues/3619387
++ */
++#[Group('default_admin')]
++#[RunTestsInSeparateProcesses]
++class SidebarChildErrorsTest extends BrowserTestBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  protected static $modules = [
++    'node',
++    'path',
++    'toolbar',
++  ];
++
++  /**
++   * {@inheritdoc}
++   */
++  protected $defaultTheme = 'stark';
++
++  /**
++   * {@inheritdoc}
++   */
++  protected function setUp(): void {
++    parent::setUp();
++
++    $this->container->get('theme_installer')->install(['default_admin']);
++    $this->config('system.theme')
++      ->set('default', 'default_admin')
++      ->set('admin', 'default_admin')
++      ->save();
++
++    $this->drupalCreateContentType(['type' => 'article', 'name' => 'Article']);
++
++    $admin_user = $this->drupalCreateUser([
++      'access administration pages',
++      'access toolbar',
++      'administer content types',
++      'create article content',
++      'edit own article content',
++      'administer url aliases',
++    ]);
++    $this->drupalLogin($admin_user);
++  }
++
++  /**
++   * Tests the sidebar toggle indicates a child error after a failed submit.
++   */
++  public function testSidebarIndicatesChildErrors(): void {
++    $this->drupalGet('node/add/article');
++    $this->submitForm([
++      'title[0][value]' => 'Test article',
++      'path[0][alias]' => 'about',
++    ], 'Save');
++
++    // The invalid alias must produce a validation error.
++    $this->assertSession()->pageTextContains('The alias path has to start with a slash');
++
++    // The closed sidebar toggle must indicate there are child errors.
++    $this->assertSession()->elementExists('css', 'a.meta-sidebar__trigger.has-error');
++  }
++
++}

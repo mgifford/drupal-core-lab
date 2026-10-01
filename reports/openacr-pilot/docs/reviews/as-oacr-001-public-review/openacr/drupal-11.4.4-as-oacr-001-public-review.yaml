@@ -1,0 +1,753 @@
+title: Drupal 11.4.4 Standard Reference Installation — AS-OACR-001 Public Review Draft
+product:
+  name: Drupal 11.4.4 Standard Reference Installation — AS-OACR-001 Test Build
+  version: 11.4.4
+  description: >-
+    A reproducible, local, core-only Drupal 11.4.4 Standard profile reference installation evaluated
+    as a methodology test and published for community review. This artifact does not describe Drupal
+    generally or make a whole-product conformance claim.
+author:
+  name: TBD
+  email: tbd@example.invalid
+report_date: "2026-08-23"
+last_modified_date: "2026-08-24"
+version: 2
+catalog: 2.5-edition-wcag-2.2-en
+notes: >-
+  PUBLIC REVIEW DRAFT — METADATA INCOMPLETE; NOT ISSUED. All 55 WCAG 2.2 A/AA criteria have a
+  sample-scoped outcome; confirmed failures prevent an AA conformance statement. Author identity,
+  author contact, official report feedback ownership, issuer, and release approval remain unresolved.
+  Alex Urevick-Ackelsberg maintains this independent pull-request review package. This review copy
+  uses the repository documentation license; that choice is not a Drupal Association license or
+  issuance decision. Catalog criterion 4.1.1 is omitted because it was removed from WCAG 2.2.
+evaluation_methods_used: >-
+  WCAG-EM 2.0 sample-scoped evaluation of 20 structured and 2 deterministic random page samples plus
+  five complete processes. The full suite completed 22 of 22 Playwright page tests with 1,183
+  forward and 1,161 reverse keyboard stops, 44 default/expanded axe runs, 66 viewport and
+  text-spacing checks, and 88 full-page screenshots. An independent keyboard matrix completed 44
+  desktop/mobile runs. Additional evidence includes driven live-region interaction, actual 200%
+  Chrome browser zoom across all samples, native Safari plus VoiceOver, native macOS Voice Control,
+  rendered DOM facts, Chrome accessibility trees, reflow checks, and retained manual resolution
+  evidence. Windows screen readers, mobile screen readers, switch access, and actual Windows forced
+  colors were unavailable.
+legal_disclaimer: >-
+  PUBLIC REVIEW DRAFT — NOT ISSUED. This review copy is based on the frozen AS-OACR-001 sample and
+  evidence boundary. It is not a Drupal Association position, Mike Gifford approval,
+  release-readiness decision, Section 508 report, or whole-product conformance claim.
+license: CC-BY-SA-2.0
+repository: https://github.com/mgifford/drupal-core
+chapters:
+  success_criteria_level_a:
+    notes: >-
+      Sample-scoped WCAG 2.2 Level A results. Every Level A criterion in the target catalog has a
+      recorded outcome.
+    criteria:
+      - num: 1.1.1
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-003. The sampled informative image
+                loaded with a non-empty alternative; automated, DOM, and complete-process evidence
+                also covered shared decorative/icon alternatives.
+      - num: 1.2.1
+        components:
+          - name: web
+            adherence:
+              level: not-applicable
+              notes: >-
+                Not present: Exploration and all 22 rendered DOM inventories found no prerecorded
+                audio-only or video-only content.
+      - num: 1.2.2
+        components:
+          - name: web
+            adherence:
+              level: not-applicable
+              notes: >-
+                Not present: No prerecorded synchronized media was present in the frozen core-only
+                installation.
+      - num: 1.2.3
+        components:
+          - name: web
+            adherence:
+              level: not-applicable
+              notes: "Not present: No prerecorded synchronized media was present."
+      - num: 1.3.1
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-009, S-STR-014, S-STR-020.
+                Rendered headings, landmarks, form labels, tables, relationships, and accessibility
+                trees were checked on representative Olivero/Claro forms and dense admin surfaces;
+                no sampled failure was confirmed.
+      - num: 1.3.2
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-001, S-STR-009, S-STR-020. DOM
+                order and accessibility-tree order remained meaningful on representative public,
+                authoring, and Views UI pages.
+      - num: 1.3.3
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-001, S-STR-018. Sampled
+                instructions used textual labels and did not rely solely on shape, location,
+                orientation, or sound.
+      - num: 1.4.1
+        components:
+          - name: web
+            adherence:
+              level: does-not-support
+              notes: >-
+                Sample-scoped: fails in S-STR-004 (WCAG-EM). Findings:
+                a11y_olivero_tabs_trigger_focus_indicator. At the mobile breakpoint, the Olivero
+                local-tabs trigger indicates keyboard focus only by changing its existing 1 CSS
+                pixel border from gray to blue; the state-color difference is below 3:1, so color is
+                the only visual cue.
+      - num: 1.4.2
+        components:
+          - name: web
+            adherence:
+              level: not-applicable
+              notes: "Not present: No automatically playing audio was present."
+      - num: 2.1.1
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-001, S-STR-004, S-STR-009,
+                S-STR-018, S-RND-001. Real keyboard events completed the five representative
+                processes, including CKEditor toolbar entry/navigation/exit.
+      - num: 2.1.2
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-001, S-STR-009, S-STR-020. Forward
+                and reverse traces plus complete processes did not trap focus in the sampled
+                interfaces.
+      - num: 2.1.4
+        components:
+          - name: web
+            adherence:
+              level: not-applicable
+              notes: >-
+                Not present: No single-character keyboard shortcut was exposed; observed CKEditor
+                shortcuts required modifiers.
+      - num: 2.2.1
+        components:
+          - name: web
+            adherence:
+              level: not-applicable
+              notes: "Not present: No user task in the sampled local installation imposed a time limit."
+      - num: 2.2.2
+        components:
+          - name: web
+            adherence:
+              level: not-applicable
+              notes: >-
+                Not present: No moving, blinking, scrolling, or auto-updating content meeting the
+                criterion thresholds was present.
+      - num: 2.3.1
+        components:
+          - name: web
+            adherence:
+              level: not-applicable
+              notes: "Not present: No flashing content was present."
+      - num: 2.4.1
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-001. A real Tab then Enter
+                activation of the bypass link moved focus to main content.
+      - num: 2.4.2
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-001, S-STR-009, S-STR-019.
+                Representative public, authoring, and administration pages had descriptive document
+                titles.
+      - num: 2.4.3
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-001, S-STR-009, S-STR-018,
+                S-RND-001. Recorded forward/reverse sequences and task traces followed the rendered
+                interaction order; no sampled order failure was confirmed.
+      - num: 2.4.4
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-001, S-STR-019. Sampled link text
+                and surrounding context identified destinations or actions.
+      - num: 2.5.1
+        components:
+          - name: web
+            adherence:
+              level: not-applicable
+              notes: >-
+                Not present: No multipoint or path-based pointer gesture was required by the sampled
+                interfaces.
+      - num: 2.5.2
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-016. Real pointer sequences
+                confirmed that down-events alone did not complete ordinary-control or tabledrag
+                actions; the tabledrag change could be undone with the visible weight control before
+                saving, and reload confirmed no persisted configuration change.
+      - num: 2.5.3
+        components:
+          - name: web
+            adherence:
+              level: does-not-support
+              notes: >-
+                Sample-scoped: fails in S-STR-016 (WCAG-EM). Findings:
+                a11y_claro_configure_label_not_in_name. Twelve Block layout links visibly labeled
+                Configure had accessible names such as Edit Site branding that did not contain the
+                visible label, preventing reliable activation by the presented label.
+      - num: 2.5.4
+        components:
+          - name: web
+            adherence:
+              level: not-applicable
+              notes: "Not present: No device-motion actuation was present."
+      - num: 3.1.1
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-001, S-STR-009, S-STR-019. The
+                rendered html language was English across representative Olivero and Claro samples.
+      - num: 3.2.1
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-001, S-STR-009, S-STR-020. Real
+                focus traversal did not trigger an unexpected change of context.
+      - num: 3.2.2
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-004, S-STR-009, S-STR-018,
+                S-RND-001. Form input changes did not change context before explicit
+                submit/activation.
+      - num: 3.2.6
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-012. The repeated administrative
+                Help mechanism consistently linked to /admin/help in the sampled administration page
+                set.
+      - num: 3.3.1
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-004, S-STR-009, S-STR-018,
+                S-RND-001. Real keyboard submissions moved focus to the first invalid field and
+                exposed browser-native Please fill out this field messages; native Safari plus
+                VoiceOver also exposed the invalid-login error as a named region and allowed
+                navigation to its text. The password-manager prompt interrupted observation of any
+                automatic announcement.
+      - num: 3.3.2
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-004, S-STR-009, S-RND-001. Sampled
+                form inputs had visible labels and applicable instructions/descriptions.
+      - num: 3.3.7
+        components:
+          - name: web
+            adherence:
+              level: not-applicable
+              notes: >-
+                Not present: The sampled processes did not require re-entering previously supplied
+                information in the same process.
+      - num: 4.1.2
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-001, S-STR-009, S-STR-020.
+                Rendered native/custom controls exposed names, roles, and states in
+                DOM/accessibility-tree evidence. A transient expanded-state link-name candidate
+                resolved to a stable Content link in the steady accessibility tree.
+  success_criteria_level_aa:
+    notes: >-
+      Sample-scoped WCAG 2.2 Level AA results. Every Level AA criterion in the target catalog has a
+      recorded outcome.
+    criteria:
+      - num: 1.2.4
+        components:
+          - name: web
+            adherence:
+              level: not-applicable
+              notes: "Not present: No live synchronized media was present."
+      - num: 1.2.5
+        components:
+          - name: web
+            adherence:
+              level: not-applicable
+              notes: "Not present: No prerecorded video was present."
+      - num: 1.3.4
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-001, S-STR-018. Wide and narrow
+                layouts rendered without an enforced display orientation.
+      - num: 1.3.5
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-004, S-STR-007, S-RND-001.
+                Authentication and account fields exposed expected purpose/autocomplete semantics in
+                the sampled forms.
+      - num: 1.4.3
+        components:
+          - name: web
+            adherence:
+              level: does-not-support
+              notes: >-
+                Sample-scoped: fails in S-STR-008, S-STR-013, S-STR-016, S-STR-020 (WCAG-EM).
+                Findings: a11y_claro_bulk_button_contrast, a11y_claro_empty_region_contrast.
+                Confirmed 4.24:1 small primary-button text on three admin surfaces and 3.78:1
+                empty-region text on Block layout.
+      - num: 1.4.4
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-001, S-STR-002, S-STR-003,
+                S-STR-004, S-STR-005, S-STR-006, S-STR-007, S-STR-008, S-STR-009, S-STR-010,
+                S-STR-011, S-STR-012, S-STR-013, S-STR-014, S-STR-015, S-STR-016, S-STR-017,
+                S-STR-018, S-STR-019, S-STR-020, S-RND-001, S-RND-002. All 22 samples were exercised
+                at verified 200% Chrome browser zoom using real Command+Plus input. No sampled
+                non-table text or control became unavailable; the dense permissions table remained a
+                two-dimensional layout.
+      - num: 1.4.5
+        components:
+          - name: web
+            adherence:
+              level: not-applicable
+              notes: >-
+                Not present: No image of text was used to convey required information; the synthetic
+                image label was test-fixture decoration with a text alternative.
+      - num: 1.4.10
+        components:
+          - name: web
+            adherence:
+              level: does-not-support
+              notes: >-
+                Sample-scoped: fails in S-STR-010, S-STR-019 (WCAG-EM). Findings:
+                a11y_claro_article_edit_reflow, a11y_claro_status_report_reflow. The Article edit
+                form and Status report required horizontal scrolling at 320 CSS pixels outside the
+                two-dimensional content exception.
+      - num: 1.4.11
+        components:
+          - name: web
+            adherence:
+              level: does-not-support
+              notes: >-
+                Sample-scoped: fails in S-STR-004 (WCAG-EM). Findings:
+                a11y_olivero_tabs_trigger_focus_indicator. The focused Olivero mobile local-tabs
+                trigger uses a blue border with a measured 2.902:1 contrast against its adjacent
+                background, below the required 3:1 for visual component/state information.
+      - num: 1.4.12
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-009, S-STR-010, S-STR-019,
+                S-STR-020. Exact WCAG text-spacing overrides produced no confirmed
+                text-spacing-specific clipping or overlap in targeted public/form/status/Views UI
+                checks; the independent reflow failures remain recorded under 1.4.10.
+      - num: 1.4.13
+        components:
+          - name: web
+            adherence:
+              level: does-not-support
+              notes: >-
+                Sample-scoped: fails in S-STR-020 (WCAG-EM). Findings:
+                a11y_navigation_focus_tooltip_not_dismissible. The collapsed Navigation toolbar
+                exposes a focus-triggered tooltip over main content that remains visible after
+                Escape, so the sampled additional content is not dismissible without moving focus.
+      - num: 2.4.5
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-002, S-STR-019. Repeated
+                site/admin navigation and breadcrumbs provided multiple routes to sampled pages
+                within their page sets.
+      - num: 2.4.6
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-009, S-STR-019. Representative
+                form and status-report headings and labels described their topics and purpose.
+      - num: 2.4.7
+        components:
+          - name: web
+            adherence:
+              level: does-not-support
+              notes: >-
+                Sample-scoped: fails in S-STR-008 (WCAG-EM). Findings:
+                a11y_navigation_logo_focus_not_visible. Real Tab traversal reached the Navigation
+                Home logo, but its focused and unfocused element screenshots were byte-identical and
+                computed styles exposed no outline, border, or shadow change.
+      - num: 2.4.11
+        components:
+          - name: web
+            adherence:
+              level: does-not-support
+              notes: >-
+                Sample-scoped: fails in S-STR-010 (WCAG-EM). Findings:
+                a11y_navigation_breadcrumb_focus_obscured. After a complete forward focus cycle,
+                reverse keyboard traversal placed focus on the Article and Home breadcrumb links
+                while the fixed Navigation top bar completely covered them; 25 sampled points per
+                link had zero visible overlap with the focused link.
+      - num: 2.5.7
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-016. Block layout exposed select
+                controls as non-drag alternatives for region assignment.
+      - num: 2.5.8
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-020. Retained selector-level
+                geometry and DOM context confirmed that the 20 CSS pixel-high Views UI links are
+                constrained by the parent and surrounding non-target text at a 20 CSS pixel
+                line-height, so the second branch of the WCAG inline exception applied; no other
+                sampled target-size candidate remained.
+      - num: 3.1.2
+        components:
+          - name: web
+            adherence:
+              level: not-applicable
+              notes: >-
+                Not present: Exploration found English-only content with no foreign-language
+                passages requiring a language-of-parts declaration.
+      - num: 3.2.3
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-001, S-STR-002, S-STR-012,
+                S-STR-019. Repeated Olivero and Claro navigation mechanisms retained their relative
+                order within each page set.
+      - num: 3.2.4
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-008, S-STR-013, S-STR-020.
+                Repeated administrative components and actions were identified consistently across
+                the sampled interfaces.
+      - num: 3.3.3
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-004, S-STR-009, S-STR-018,
+                S-RND-001. Where correction guidance was known, keyboard-submitted required fields
+                exposed a specific browser-native suggestion and the invalid-login state supplied a
+                specific credential error; no sampled security-sensitive field required disclosure
+                of a more detailed suggestion.
+      - num: 3.3.4
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-009, S-STR-018. Sampled data
+                changes were reversible: the Article remained editable and the configuration marker
+                was restored; no legal or financial transaction was present.
+      - num: 3.3.8
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-004. Authentication allowed entry,
+                paste/autofill, and password-manager-compatible fields without a cognitive-function
+                test.
+      - num: 4.1.3
+        components:
+          - name: web
+            adherence:
+              level: supports
+              notes: >-
+                Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM).
+                Criterion-specific retained evidence covers S-STR-008. A driven keyboard session
+                announced both 1 item selected and No items selected through the live-region
+                simulator after real Space-key toggles on the Content administration page.
+  success_criteria_level_aaa:
+    notes: WCAG 2.2 Level AAA was outside this engagement's target.
+    criteria:
+      - num: 1.2.6
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 1.2.7
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 1.2.8
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 1.2.9
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 1.3.6
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 1.4.6
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 1.4.7
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 1.4.8
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 1.4.9
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 2.1.3
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 2.2.3
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 2.2.4
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 2.2.5
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 2.2.6
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 2.3.2
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 2.3.3
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 2.4.8
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 2.4.9
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 2.4.10
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 2.4.12
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 2.4.13
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 2.5.5
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 2.5.6
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 3.1.3
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 3.1.4
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 3.1.5
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 3.1.6
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 3.2.5
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 3.3.5
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 3.3.6
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).
+      - num: 3.3.9
+        components:
+          - name: web
+            adherence:
+              level: not-evaluated
+              notes: Not evaluated at this engagement's conformance target (WCAG 2.2 AA).

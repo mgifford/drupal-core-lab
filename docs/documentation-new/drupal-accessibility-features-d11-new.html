@@ -1,0 +1,57 @@
+<p>Drupal core includes features that support accessible websites and authoring. They provide a foundation for site builders, content authors, developers, and themers. They do not make every Drupal site accessible. Configuration, contributed projects, custom code, themes, and content can change the result.</p>
+
+<p>The examples below describe Drupal 11.x. Review and test the Drupal version and configuration used by your site.</p>
+
+<h2>Semantic HTML and ARIA</h2>
+
+<p>Drupal core uses semantic HTML for page structure, relationships, and controls. Core themes include landmarks, headings, lists, form labels, and other native elements. Drupal uses <a href="https://www.w3.org/WAI/standards-guidelines/aria/">Accessible Rich Internet Applications (WAI-ARIA)</a> when HTML cannot express the required name, role, state, or relationship.</p>
+
+<p>Native HTML is preferred where it provides the required semantics and behavior. ARIA does not add keyboard behavior or repair incorrect HTML.</p>
+
+<h2>Status Announcements</h2>
+
+<p>The <a href="https://api.drupal.org/api/drupal/core%21misc%21announce.js/11.x"><code>Drupal.announce()</code> API</a> sends text to an ARIA live region. Use it to communicate meaningful page changes that may not be apparent to screen-reader users.</p>
+
+<p>Announcements use a polite priority by default. Reserve assertive announcements for urgent information because they may interrupt other speech.</p>
+
+<pre><code>Drupal.announce(Drupal.t('Three results were added.'));</code></pre>
+
+<h2>Keyboard and Focus Management</h2>
+
+<p>The <a href="https://github.com/drupal/core/blob/11.x/misc/tabbingmanager.js"><code>TabbingManager</code> API</a> can constrain keyboard navigation to a set of elements and restore the previous tab order. Drupal uses it when focus needs to remain within an active context.</p>
+
+<p>This API does not make a component accessible. Components still need logical keyboard operation, visible focus, appropriate initial focus, and predictable focus restoration.</p>
+
+<h2>Hidden and Focusable Content</h2>
+
+<p>Drupal provides <code>hidden</code>, <code>visually-hidden</code>, and <code>focusable</code> utility classes. They support content hidden from everyone, available only to assistive technology, or displayed on keyboard focus. The <a href="https://www.drupal.org/docs/getting-started/accessibility/hide-content-properly">Hide Content Properly guide</a> explains each approach.</p>
+
+<h2>Forms and Error Messages</h2>
+
+<p>Drupal’s Form API supports labels, descriptions, required states, and <code>fieldset</code> and <code>legend</code> elements. These features help developers preserve relationships in forms.</p>
+
+<p>The <a href="https://www.drupal.org/docs/8/core/modules/inline-form-errors/inline-form-errors-module-overview">Inline Form Errors module</a> places error messages next to the affected controls and provides an error summary. The module is included in Drupal core but is not enabled by default.</p>
+
+<h2>Alternative Text</h2>
+
+<p>Drupal image fields and CKEditor 5 provide controls for text alternatives. The standard Article configuration requires alternative text for its image field. Administrators can change these settings, so each site must verify its configuration.</p>
+
+<p>Requiring an entry cannot determine whether the alternative is useful. Content guidance and editorial review are still necessary.</p>
+
+<h2>Content Authoring with CKEditor 5</h2>
+
+<p>Drupal’s Basic HTML text format provides structured heading options from <code>h2</code> through <code>h6</code>. CKEditor 5 also supports text alternatives for images and embedded media.</p>
+
+<p>Administrators can add the Language toolbar item to identify changes in language or text direction. Editor capabilities depend on the toolbar, allowed HTML, filters, and permissions.</p>
+
+<h2>Core Themes</h2>
+
+<p>Olivero is Drupal core’s public-facing default theme. Claro is the default administration theme. Both include accessible patterns for navigation, forms, focus indicators, responsive layouts, and forced-colors modes. They continue to be reviewed and improved through the Drupal core issue queue.</p>
+
+<p>Changing templates, styles, components, or JavaScript can alter their accessibility. Treat a core theme as a tested starting point, not a site-wide conformance guarantee.</p>
+
+<h2>Configuration and Testing</h2>
+
+<p>Accessibility features can be disabled, reconfigured, or overridden. Test the completed interface, including its content and important interaction states. Use automated checks together with keyboard, zoom, reflow, and assistive-technology testing.</p>
+
+<p>Follow Drupal’s <a href="https://www.drupal.org/docs/getting-started/accessibility/accessibility-coding-standards">Accessibility Coding Standards</a> and the guide to <a href="https://www.drupal.org/docs/getting-started/accessibility/how-to-do-an-accessibility-review">performing an accessibility review</a>.</p>

@@ -1,0 +1,119 @@
+diff --git a/core/themes/default_admin/tests/src/FunctionalJavascript/AdminInlineFormErrorsTest.php b/core/themes/default_admin/tests/src/FunctionalJavascript/AdminInlineFormErrorsTest.php
+index 0aff9e39434..9222e2ff374 100644
+--- a/core/themes/default_admin/tests/src/FunctionalJavascript/AdminInlineFormErrorsTest.php
++++ b/core/themes/default_admin/tests/src/FunctionalJavascript/AdminInlineFormErrorsTest.php
+@@ -4,8 +4,6 @@
+ 
+ namespace Drupal\Tests\default_admin\FunctionalJavascript;
+ 
+-use Behat\Mink\Element\NodeElement;
+-use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
+ use Drupal\FunctionalTests\Core\Recipe\RecipeTestTrait;
+ use PHPUnit\Framework\Attributes\Group;
+ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+@@ -15,7 +13,7 @@
+  */
+ #[Group('default_admin')]
+ #[RunTestsInSeparateProcesses]
+-class AdminInlineFormErrorsTest extends WebDriverTestBase {
++class AdminInlineFormErrorsTest extends DefaultAdminJavascriptTestBase {
+ 
+   use RecipeTestTrait;
+ 
+@@ -28,11 +26,6 @@ class AdminInlineFormErrorsTest extends WebDriverTestBase {
+     'node',
+   ];
+ 
+-  /**
+-   * {@inheritdoc}
+-   */
+-  protected $defaultTheme = 'default_admin';
+-
+   /**
+    * {@inheritdoc}
+    */
+@@ -101,30 +94,4 @@ public function testSidebarOpensForInlineFormErrorsLinks(): void {
+     $this->assertSame('false', $session->evaluateScript("localStorage.getItem('$storage_key')"));
+   }
+ 
+-  /**
+-   * Checks the focus of a node.
+-   *
+-   * @param \Behat\Mink\Element\NodeElement $node
+-   *   A valid node.
+-   *
+-   * @return bool
+-   *   Returns TRUE if the node has focus, FALSE otherwise.
+-   *
+-   * @todo Replace with assertHasFocus() in https://drupal.org/i/3041768.
+-   */
+-  private function hasFocus(NodeElement $node): bool {
+-    $xpath = str_replace("\n", '', $node->getXpath());
+-
+-    // This JavaScript tests if the given DOM node (as resolved by XPath) is
+-    // also the active element of the current document. The active element is a
+-    // standard property of the document object (or a shadow DOM root) pointing
+-    // to the node that has focus. It's best to test this using vanilla
+-    // JavaScript, not jQuery, since jQuery may not be available.
+-    // @see https://developer.mozilla.org/en-US/docs/Web/API/DocumentOrShadowRoot/activeElement
+-    $js = <<<JS
+-return document.evaluate("$xpath", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue === document.activeElement;
+-JS;
+-    return $this->getSession()->evaluateScript($js);
+-  }
+-
+ }
+diff --git a/core/themes/default_admin/tests/src/FunctionalJavascript/DefaultAdminJavascriptTestBase.php b/core/themes/default_admin/tests/src/FunctionalJavascript/DefaultAdminJavascriptTestBase.php
+new file mode 100644
+index 00000000000..3294c4fc8cc
+--- /dev/null
++++ b/core/themes/default_admin/tests/src/FunctionalJavascript/DefaultAdminJavascriptTestBase.php
+@@ -0,0 +1,48 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\default_admin\FunctionalJavascript;
++
++use Behat\Mink\Element\NodeElement;
++use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
++
++/**
++ * Base class for FunctionalJavascript tests of the Default Admin theme.
++ *
++ * Does not install any modules, so subclasses install only what they need.
++ */
++abstract class DefaultAdminJavascriptTestBase extends WebDriverTestBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  protected $defaultTheme = 'default_admin';
++
++  /**
++   * Checks the focus of a node.
++   *
++   * @param \Behat\Mink\Element\NodeElement $node
++   *   A valid node.
++   *
++   * @return bool
++   *   Returns TRUE if the node has focus, FALSE otherwise.
++   *
++   * @todo Replace with assertHasFocus() in https://drupal.org/i/3041768.
++   */
++  protected function hasFocus(NodeElement $node): bool {
++    $xpath = str_replace("\n", '', $node->getXpath());
++
++    // This JavaScript tests if the given DOM node (as resolved by XPath) is
++    // also the active element of the current document. The active element is a
++    // standard property of the document object (or a shadow DOM root) pointing
++    // to the node that has focus. It's best to test this using vanilla
++    // JavaScript, not jQuery, since jQuery may not be available.
++    // @see https://developer.mozilla.org/en-US/docs/Web/API/DocumentOrShadowRoot/activeElement
++    $js = <<<JS
++return document.evaluate("$xpath", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue === document.activeElement;
++JS;
++    return $this->getSession()->evaluateScript($js);
++  }
++
++}

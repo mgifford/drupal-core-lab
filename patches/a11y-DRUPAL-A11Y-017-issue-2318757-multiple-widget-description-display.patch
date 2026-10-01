@@ -1,0 +1,262 @@
+diff --git b/core/lib/Drupal/Core/Field/FieldPreprocess.php a/core/lib/Drupal/Core/Field/FieldPreprocess.php
+index 85f03d9eaf..1e29a3fdd4 100644
+--- b/core/lib/Drupal/Core/Field/FieldPreprocess.php
++++ a/core/lib/Drupal/Core/Field/FieldPreprocess.php
+@@ -195,7 +195,11 @@ public function preprocessFieldMultipleValueForm(array &$variables): void {
+ 
+       if (!empty($element['#description'])) {
+         $description_id = $element['#attributes']['aria-describedby'];
+-        $description_attributes['id'] = $description_id;
++        $description_attributes = ['id' => $description_id];
++        $variables['description_display'] = $element['#description_display'] ?? 'after';
++        if ($variables['description_display'] === 'invisible') {
++          $description_attributes['class'][] = 'visually-hidden';
++        }
+         $variables['description']['attributes'] = new Attribute($description_attributes);
+         $variables['description']['content'] = $element['#description'];
+ 
+diff --git b/core/modules/field/tests/modules/field_test/src/Hook/FieldTestHooks.php a/core/modules/field/tests/modules/field_test/src/Hook/FieldTestHooks.php
+index dd58152a90..67174dc383 100644
+--- b/core/modules/field/tests/modules/field_test/src/Hook/FieldTestHooks.php
++++ a/core/modules/field/tests/modules/field_test/src/Hook/FieldTestHooks.php
+@@ -220,6 +220,9 @@ public function alterWidget($hook, array &$field_widget_complete_form, FormState
+     $alter_info = \Drupal::state()->get("field_test.widget_alter_test");
+     $name = $context['items']->getFieldDefinition()->getName();
+     if (!empty($alter_info) && $hook === $alter_info['hook'] && $name === $alter_info['field_name']) {
++      if (!empty($alter_info['description_display'])) {
++        $elements['#description_display'] = $alter_info['description_display'];
++      }
+       $elements['#prefix'] = "From $hook(): prefix on $name parent element.";
+       foreach (Element::children($elements) as $delta => $element) {
+         $elements[$delta]['#suffix'] = "From $hook(): suffix on $name child element.";
+diff --git b/core/modules/field/tests/src/Functional/MultipleWidgetFormTest.php a/core/modules/field/tests/src/Functional/MultipleWidgetFormTest.php
+index fe02b63d26..39e9d9efdf 100644
+--- b/core/modules/field/tests/src/Functional/MultipleWidgetFormTest.php
++++ a/core/modules/field/tests/src/Functional/MultipleWidgetFormTest.php
+@@ -183,6 +183,58 @@ public function testLabelOnMultiValueFields(): void {
+     $this->assertSession()->assertEscaped("<script>alert('a configurable field');</script>");
+   }
+ 
++  /**
++   * Tests configurable description position for multi-value field widgets.
++   */
++  public function testDescriptionDisplayOnMultiValueFields(): void {
++    $field_storage = $this->fieldStorageMultiple;
++    $field_name = $field_storage['field_name'];
++    $this->field['field_name'] = $field_name;
++    $this->field['description'] = 'Multiple widget description.';
++    FieldStorageConfig::create($field_storage)->save();
++    FieldConfig::create($this->field)->save();
++    \Drupal::service('entity_display.repository')->getFormDisplay($this->field['entity_type'], $this->field['bundle'], 'default')
++      ->setComponent($field_name, [
++        'type' => 'test_field_widget_multiple',
++      ])
++      ->save();
++
++    $selector = str_replace('_', '-', $field_name);
++
++    // By default, the description is rendered after the field table.
++    $this->drupalGet('entity_test/add');
++    $this->assertSession()->elementExists('css', '[data-drupal-selector="edit-' . $selector . '"] > table.field-multiple-table + div.description');
++    $this->assertSession()->pageTextContains('Multiple widget description.');
++
++    // Configure the widget to render its description before the field table.
++    \Drupal::state()->set('field_test.widget_alter_test', [
++      'hook' => 'hook_field_widget_complete_form_alter',
++      'field_name' => $field_name,
++      'widget' => 'test_field_widget_multiple',
++      'description_display' => 'before',
++    ]);
++    $this->rebuildAll();
++
++    $this->drupalGet('entity_test/add');
++    $this->assertSession()->elementExists('css', '[data-drupal-selector="edit-' . $selector . '"] > div.description + table.field-multiple-table');
++
++    // Configure the widget to render its description in an invisible style.
++    \Drupal::state()->set('field_test.widget_alter_test', [
++      'hook' => 'hook_field_widget_complete_form_alter',
++      'field_name' => $field_name,
++      'widget' => 'test_field_widget_multiple',
++      'description_display' => 'invisible',
++    ]);
++    $this->rebuildAll();
++
++    $this->drupalGet('entity_test/add');
++    $this->assertSession()->elementExists('css', '[data-drupal-selector="edit-' . $selector . '"] > table.field-multiple-table + div.description.visually-hidden');
++    $this->assertSession()->pageTextContains('Multiple widget description.');
++
++    \Drupal::state()->delete('field_test.widget_alter_test');
++    $this->rebuildAll();
++  }
++
+   /**
+    * Tests hook_field_widget_complete_form_alter().
+    */
+diff --git b/core/modules/system/templates/field-multiple-value-form.html.twig a/core/modules/system/templates/field-multiple-value-form.html.twig
+index ecd268690b..d96e17fbf3 100644
+--- b/core/modules/system/templates/field-multiple-value-form.html.twig
++++ a/core/modules/system/templates/field-multiple-value-form.html.twig
+@@ -14,6 +14,10 @@
+  * - description: The description element containing the following properties:
+  *   - content: The description content of the form element.
+  *   - attributes: HTML attributes to apply to the description container.
++ * - description_display: Description display setting. It can have these values:
++ *   - before: The description is output before the element.
++ *   - after: The description is output after the element.
++ *   - invisible: The description is output after the element, hidden visually.
+  * - button: "Add another item" button.
+  *
+  * @see \Drupal\Core\Field\FieldPreprocess::preprocessFieldMultipleValueForm()
+@@ -29,8 +33,11 @@
+     ]
+   %}
+   <div{{ attributes.addClass(classes) }}>
++    {% if description.content and description_display == 'before' %}
++      <div{{ description.attributes.addClass('description') }} >{{ description.content }}</div>
++    {% endif %}
+     {{ table }}
+-    {% if description.content %}
++    {% if description.content and description_display != 'before' %}
+       <div{{ description.attributes.addClass('description') }} >{{ description.content }}</div>
+     {% endif %}
+     {% if button %}
+diff --git b/core/themes/claro/templates/form/field-multiple-value-form.html.twig a/core/themes/claro/templates/form/field-multiple-value-form.html.twig
+index 89a08a2528..706afc7f3e 100644
+--- b/core/themes/claro/templates/form/field-multiple-value-form.html.twig
++++ a/core/themes/claro/templates/form/field-multiple-value-form.html.twig
+@@ -15,6 +15,10 @@
+  * - description: The description element containing the following properties:
+  *   - content: The description content of the form element.
+  *   - attributes: HTML attributes to apply to the description container.
++ * - description_display: Description display setting. It can have these values:
++ *   - before: The description is output before the element.
++ *   - after: The description is output after the element.
++ *   - invisible: The description is output after the element, hidden visually.
+  * - button: "Add another item" button.
+  *
+  * @see \Drupal\Core\Field\FieldPreprocess::preprocessFieldMultipleValueForm()
+@@ -37,8 +41,11 @@
+     ]
+   %}
+   <div{{ attributes.addClass(classes) }}>
++    {% if description.content and description_display == 'before' %}
++      <div{{ description.attributes.addClass(description_classes) }} >{{ description.content }}</div>
++    {% endif %}
+     {{ table }}
+-    {% if description.content %}
++    {% if description.content and description_display != 'before' %}
+       <div{{ description.attributes.addClass(description_classes) }} >{{ description.content }}</div>
+     {% endif %}
+     {% if button %}
+diff --git b/core/themes/default_admin/templates/form/field-multiple-value-form.html.twig a/core/themes/default_admin/templates/form/field-multiple-value-form.html.twig
+index 57972d3c5b..e69d24c2fb 100644
+--- b/core/themes/default_admin/templates/form/field-multiple-value-form.html.twig
++++ a/core/themes/default_admin/templates/form/field-multiple-value-form.html.twig
+@@ -15,6 +15,10 @@
+  * - description: The description element containing the following properties:
+  *   - content: The description content of the form element.
+  *   - attributes: HTML attributes to apply to the description container.
++ * - description_display: Description display setting. It can have these values:
++ *   - before: The description is output before the element.
++ *   - after: The description is output after the element.
++ *   - invisible: The description is output after the element, hidden visually.
+  * - button: "Add another item" button.
+  *
+  * @see \Drupal\Core\Field\FieldPreprocess::preprocessFieldMultipleValueForm()
+@@ -37,8 +41,11 @@
+     ]
+   %}
+   <div{{ attributes.addClass(classes) }}>
++    {% if description.content and description_display == 'before' %}
++      <div{{ description.attributes.addClass(description_classes) }} >{{ description.content }}</div>
++    {% endif %}
+     {{ table }}
+-    {% if description.content %}
++    {% if description.content and description_display != 'before' %}
+       <div{{ description.attributes.addClass(description_classes) }} >{{ description.content }}</div>
+     {% endif %}
+     {% if button %}
+diff --git b/core/themes/olivero/templates/form/field-multiple-value-form.html.twig a/core/themes/olivero/templates/form/field-multiple-value-form.html.twig
+index f187e37fe5..90a4efe128 100644
+--- b/core/themes/olivero/templates/form/field-multiple-value-form.html.twig
++++ a/core/themes/olivero/templates/form/field-multiple-value-form.html.twig
+@@ -14,6 +14,10 @@
+  * - description: The description element containing the following properties:
+  *   - content: The description content of the form element.
+  *   - attributes: HTML attributes to apply to the description container.
++ * - description_display: Description display setting. It can have these values:
++ *   - before: The description is output before the element.
++ *   - after: The description is output after the element.
++ *   - invisible: The description is output after the element, hidden visually.
+  * - button: "Add another item" button.
+  *
+  * @see \Drupal\Core\Field\FieldPreprocess::preprocessFieldMultipleValueForm()
+@@ -35,8 +39,11 @@
+     ]
+   %}
+   <div{{ attributes.addClass(classes) }}>
++    {% if description.content and description_display == 'before' %}
++      <div{{ description.attributes.addClass(description_classes) }}>{{ description.content }}</div>
++    {% endif %}
+     {{ table }}
+-    {% if description.content %}
++    {% if description.content and description_display != 'before' %}
+       <div{{ description.attributes.addClass(description_classes) }}>{{ description.content }}</div>
+     {% endif %}
+     {% if button %}
+diff --git b/core/themes/stable9/templates/form/field-multiple-value-form.html.twig a/core/themes/stable9/templates/form/field-multiple-value-form.html.twig
+index 7e548afad6..101ad50f28 100644
+--- b/core/themes/stable9/templates/form/field-multiple-value-form.html.twig
++++ a/core/themes/stable9/templates/form/field-multiple-value-form.html.twig
+@@ -14,6 +14,10 @@
+  * - description: The description element containing the following properties:
+  *   - content: The description content of the form element.
+  *   - attributes: HTML attributes to apply to the description container.
++ * - description_display: Description display setting. It can have these values:
++ *   - before: The description is output before the element.
++ *   - after: The description is output after the element.
++ *   - invisible: The description is output after the element, hidden visually.
+  * - button: "Add another item" button.
+  *
+  * @see \Drupal\Core\Field\FieldPreprocess::preprocessFieldMultipleValueForm()
+@@ -27,8 +31,11 @@
+     ]
+   %}
+   <div{{ attributes.addClass(classes) }}>
++    {% if description.content and description_display == 'before' %}
++      <div{{ description.attributes.addClass('description') }} >{{ description.content }}</div>
++    {% endif %}
+     {{ table }}
+-    {% if description.content %}
++    {% if description.content and description_display != 'before' %}
+       <div{{ description.attributes.addClass('description') }} >{{ description.content }}</div>
+     {% endif %}
+     {% if button %}
+diff --git b/core/themes/starterkit_theme/templates/form/field-multiple-value-form.html.twig a/core/themes/starterkit_theme/templates/form/field-multiple-value-form.html.twig
+index 7e548afad6..101ad50f28 100644
+--- b/core/themes/starterkit_theme/templates/form/field-multiple-value-form.html.twig
++++ a/core/themes/starterkit_theme/templates/form/field-multiple-value-form.html.twig
+@@ -14,6 +14,10 @@
+  * - description: The description element containing the following properties:
+  *   - content: The description content of the form element.
+  *   - attributes: HTML attributes to apply to the description container.
++ * - description_display: Description display setting. It can have these values:
++ *   - before: The description is output before the element.
++ *   - after: The description is output after the element.
++ *   - invisible: The description is output after the element, hidden visually.
+  * - button: "Add another item" button.
+  *
+  * @see \Drupal\Core\Field\FieldPreprocess::preprocessFieldMultipleValueForm()
+@@ -27,8 +31,11 @@
+     ]
+   %}
+   <div{{ attributes.addClass(classes) }}>
++    {% if description.content and description_display == 'before' %}
++      <div{{ description.attributes.addClass('description') }} >{{ description.content }}</div>
++    {% endif %}
+     {{ table }}
+-    {% if description.content %}
++    {% if description.content and description_display != 'before' %}
+       <div{{ description.attributes.addClass('description') }} >{{ description.content }}</div>
+     {% endif %}
+     {% if button %}

@@ -1,0 +1,244 @@
+<p>An accessibility review examines whether people with disabilities can complete the affected tasks and whether the interface satisfies the applicable accessibility requirements. Use this process for Drupal core, contributed projects, themes, and sites.</p>
+
+<p>A contribution review is not automatically a conformance audit. A conformance claim requires a defined scope, complete processes, representative pages and states, and an appropriate evaluation method. This guide helps contributors find barriers, prevent regressions, and record evidence that another reviewer can reproduce.</p>
+
+<h2>1. Define the review scope</h2>
+
+<p>Start with the user task, not a testing tool. Identify what changed, who may be affected, and what a person must be able to perceive, understand, and operate.</p>
+
+<p>Record the relevant:</p>
+
+<ul>
+	<li>Pages, components, routes, and complete workflows.</li>
+	<li>Drupal version, project version, patch, or merge request.</li>
+	<li>Enabled modules, themes, text formats, permissions, and other configuration.</li>
+	<li>User roles, content, languages, and validation states.</li>
+	<li>Viewport sizes, zoom levels, color modes, and user preferences.</li>
+	<li>Browsers and assistive technologies required by the project or affected behavior.</li>
+</ul>
+
+<p>Select the checks that apply to the affected task and surfaces. Record what is included, what is excluded, and why. Do not exclude a task, surface, or state known to be affected by the change. For Drupal core, state whether the accessibility gate applies to all or part of the change, or is not applicable. Resolve a disputed applicability decision before passing the gate. For a contributed project, follow any project-specific review and release requirements and use this guide to select relevant evidence.</p>
+
+<p>For a proposed change, record the behavior before and after applying it. If no comparable baseline exists, record why and define the expected result. Test every state introduced or changed, including loading, empty, error, expanded, selected, disabled, and completed states where relevant.</p>
+
+<p>A stable preview makes a review easier to repeat. Drupal core, Drupal CMS, and many contributed projects provide <a href="https://www.drupal.org/docs/develop/git/using-git-to-contribute-to-drupal/using-tugboat-previews-on-drupal-core-and-contrib-merge-requests">Tugboat previews for merge requests</a>. A local environment is also acceptable when the configuration and steps are documented.</p>
+
+<h2>2. Distinguish barriers, requirements, and rules</h2>
+
+<p>Use four levels of evidence:</p>
+
+<ol>
+	<li><strong>Accessibility barriers</strong> affect people and tasks. Describe who is affected and what becomes difficult or impossible.</li>
+	<li><strong>Accessibility requirements</strong> include Web Content Accessibility Guidelines (WCAG), Authoring Tool Accessibility Guidelines (ATAG), and Drupal policies.</li>
+	<li><strong>Test rules</strong> evaluate particular conditions. A rule may test part of a requirement, contribute evidence about several requirements, or cover an optional best practice.</li>
+	<li><strong>Automated gates</strong> use the smaller subset of rules that are deterministic in the project environment and do not routinely produce false positives.</li>
+</ol>
+
+<p>A barrier may exist without a direct WCAG mapping. A WCAG failure may exist even when one user does not encounter it. Passing an automated rule does not establish that a success criterion is satisfied, and passing every available rule does not establish conformance.</p>
+
+<p>Use the <a href="https://www.drupal.org/docs/getting-started/accessibility/accessibility-coding-standards">Accessibility Coding Standards</a> as the reference for required implementation behavior.</p>
+
+<h2>3. Run relevant automated checks</h2>
+
+<p>Automated tools can identify some deterministic failures and flag other conditions for review. Run them after the affected content and interaction state are available, not only on the initial page load.</p>
+
+<ul>
+	<li>Test the pages, components, themes, viewports, and states included in the review scope.</li>
+	<li>Record the tool and version, rule identifier, tested element, and result.</li>
+	<li>Separate WCAG 2.2 Level A and AA rules from Level AAA and best-practice rules.</li>
+	<li>Review incomplete, needs-review, and context-dependent results manually.</li>
+	<li>Compare results before and after a proposed change to identify regressions.</li>
+	<li>Verify that the reported element and state can be reproduced before filing an issue.</li>
+</ul>
+
+<p>Drupal core uses axe-core with Nightwatch on representative public and administration pages. New or substantially changed interactive behavior should receive automated regression coverage where practical.</p>
+
+<p>A failed automated rule may block a build only when the result is deterministic and consistently represents a defect in the tested environment. Keep rule exceptions narrow, explain why each rule is disabled, link to an issue that tracks the underlying problem, and state when the exception should be rechecked. Do not suppress an entire rule set to remove inconvenient results.</p>
+
+<h2>4. Perform manual checks</h2>
+
+<p>Automated testing does not replace manual evaluation. Perform the checks that apply to the affected task and record the result of each check.</p>
+
+<h3>Keyboard and focus</h3>
+
+<ul>
+	<li>Complete every action using the keyboard alone. Test forward and backward navigation.</li>
+	<li>Confirm that focus order follows the reading and interaction order.</li>
+	<li>Check that focus is always visible and is not obscured by sticky content, dialogs, or overlays.</li>
+	<li>Confirm that there are no keyboard traps. A modal dialog may contain focus while open, but it must provide a predictable way to close.</li>
+	<li>Check initial focus and focus restoration when a dialog, menu, overlay, or other temporary context opens and closes.</li>
+	<li>Confirm that custom widgets support the expected keys and that static content is not placed in the tab order without a reason.</li>
+	<li>Verify that content shown on hover is also available on focus and remains dismissible, hoverable, and persistent when required.</li>
+</ul>
+
+<h3>Pointer, touch, and alternative input</h3>
+
+<ul>
+	<li>Provide a single-pointer alternative for multipoint or path-based gestures unless the path is essential.</li>
+	<li>Provide a non-dragging alternative for drag interactions.</li>
+	<li>Confirm that pointer actions can be cancelled or undone where WCAG requires it.</li>
+	<li>Check that visible labels match accessible names so speech-input users can identify controls.</li>
+	<li>Test targets against the WCAG 2.2 minimum size and spacing requirement, including its exceptions.</li>
+</ul>
+
+<h3>Zoom, reflow, and personalization</h3>
+
+<ul>
+	<li>Resize text to 200 percent without losing content or functionality.</li>
+	<li>Test reflow at 400 percent browser zoom on a 1280 CSS-pixel-wide viewport, or the equivalent 320 CSS-pixel viewport, where the criterion applies.</li>
+	<li>Repeat keyboard checks in responsive layouts and when navigation or controls change form.</li>
+	<li>Apply WCAG text-spacing overrides and confirm that content remains readable and operable.</li>
+	<li>Test forced-colors mode, increased contrast settings, and reduced motion when the change affects them.</li>
+	<li>Check that content and functionality do not require one display orientation unless that orientation is essential.</li>
+</ul>
+
+<h3>Structure, names, and visual information</h3>
+
+<ul>
+	<li>Confirm that the page title and headings describe the content and that heading levels reflect the structure. WCAG does not require exactly one <code>h1</code>.</li>
+	<li>Check landmarks, lists, tables, reading order, page language, and changes in language.</li>
+  <li>Inspect the final rendered document object model and accessibility tree when the result depends on generated semantics, names, states, properties, or relationships.</li>
+	<li>Confirm that every control has an accessible name and that it includes the visible label.</li>
+	<li>Review link and button text in context.</li>
+	<li>Check meaningful images, icons, charts, and other non-text content for an appropriate text alternative. Confirm that decorative images are ignored.</li>
+	<li>Verify text contrast, including the large-text exception, and non-text contrast for controls, focus indicators, states, and essential graphics.</li>
+	<li>Confirm that color, position, shape, sound, or an icon is not the only way information is conveyed.</li>
+</ul>
+
+<h3>Forms, errors, and authentication</h3>
+
+<ul>
+	<li>Check labels, instructions, descriptions, required states, input purposes, and related control groups.</li>
+	<li>Submit valid and invalid data. Confirm that errors are identified in text, associated with the affected controls, and explain how to correct the input.</li>
+	<li>Verify that an error summary or notification is easy to find and that entered values are preserved when appropriate.</li>
+	<li>Check that users are not required to enter the same information twice in one process unless an exception applies.</li>
+	<li>Test password managers and copying and pasting. Confirm that authentication does not depend on a cognitive-function test when an accessible alternative is required.</li>
+	<li>Review important submissions for appropriate confirmation, correction, and error-prevention steps.</li>
+</ul>
+
+<h3>Dynamic content</h3>
+
+<ul>
+	<li>Confirm that visible names, roles, states, and properties remain correct after each update.</li>
+	<li>Check whether focus should remain in place or move to the updated content. The result should be predictable and easy to find.</li>
+	<li>Verify that meaningful status changes are announced when they are not otherwise apparent.</li>
+	<li>Check that announcements are concise and do not duplicate information already communicated through focus.</li>
+	<li>Confirm loading, progress, completion, empty, and error states where they affect the task.</li>
+</ul>
+
+<h3>Media, timing, and motion</h3>
+
+<ul>
+	<li>Apply the relevant WCAG requirements for prerecorded and live audio and video. Captions, transcripts, audio descriptions, and media alternatives are not interchangeable in every case.</li>
+	<li>Check controls for autoplaying audio and for moving, blinking, scrolling, or auto-updating content.</li>
+	<li>Confirm that time limits can be adjusted, extended, or disabled when required.</li>
+	<li>Check flashing content against the applicable threshold.</li>
+	<li>Respect reduced-motion preferences and provide a reduced or static alternative when motion is not essential.</li>
+</ul>
+
+<h3>Authoring workflows and generated content</h3>
+
+<p>For editors, layout tools, media tools, and other authoring features, review both the interface used by authors and the content it produces.</p>
+
+<p>Record separate outcomes for whether disabled authors can complete the task and whether the feature preserves accessibility information and helps authors produce accessible output. Assess the rendered output against the relevant WCAG target.</p>
+
+<ul>
+	<li>Complete the authoring task by keyboard and with the relevant assistive technology.</li>
+	<li>Check whether disabled authors receive the same instructions, validation, previews, and repair options.</li>
+	<li>Review generated markup and content in its published context, not only inside the editor.</li>
+	<li>Confirm that accessible information, including headings, language, alternative text, table structure, and media alternatives, is preserved when content is edited, transformed, saved, and reused.</li>
+	<li>Check that defaults and templates generate accessible output and that authors are prompted for information Drupal cannot supply automatically.</li>
+	<li>Confirm that accessibility options are as easy to find and use as comparable authoring options.</li>
+</ul>
+
+<h2>5. Test with assistive technology</h2>
+
+<p>Select browser and assistive-technology combinations based on the project’s support policy, the affected users, and the behavior being reviewed. Record the exact browser, operating system, and assistive-technology versions, the task and state tested, and the test date. Testing every available combination is neither possible nor necessary.</p>
+
+<p>Complete the defined tasks rather than exploring the page without a goal. Check:</p>
+
+<ul>
+	<li>Page title, landmarks, headings, lists, tables, and reading order.</li>
+	<li>Control names, roles, states, values, descriptions, and keyboard behavior.</li>
+	<li>Forms, validation, errors, instructions, and completion messages.</li>
+	<li>Dynamic updates, status announcements, focus placement, and focus restoration.</li>
+	<li>Alternative text and the order and clarity of meaningful content.</li>
+</ul>
+
+<p>A contributor who does not regularly use a screen reader can identify implementation defects, but that test does not reproduce the experience of a person who relies on it. Do not turn off the monitor as a substitute for testing with blind users. Do not infer that one assistive-technology result applies to every product, browser, disability, or user.</p>
+
+<h2>6. Test with disabled users</h2>
+
+<p>Include disabled users when reviewing new, complex, high-impact, or unfamiliar patterns where possible. Participation should be voluntary and informed. Ask participants to complete defined tasks using their usual technologies and strategies. Fix obvious standards failures before user testing so the session can focus on problems that technical review is less likely to find.</p>
+
+<p>Record the test scope, access method and environment relevant to the finding, observed barriers, and limitations. Default to an anonymized, task-based summary. Do not require a diagnosis, treat participants as approvers or representatives of a group, or generalize one person’s result to an entire disability group. Do not attach recordings, names, contact details, or uniquely identifying participant details to a public issue without explicit permission.</p>
+
+<p>User testing can identify barriers that WCAG evaluation misses. It does not establish WCAG conformance and does not replace standards-based review.</p>
+
+<h2>7. Record reproducible evidence</h2>
+
+<p>A review is useful only when another contributor can understand and repeat it. Record:</p>
+
+<ul>
+	<li>The affected people and task.</li>
+	<li>The page, component, configuration, role, content, viewport, and interface state.</li>
+	<li>Exact steps and the expected and actual results.</li>
+	<li>The applicable WCAG, ATAG, or project requirement.</li>
+	<li>Tool rules and versions, when a tool contributed evidence.</li>
+	<li>Browsers, assistive technologies, and user preferences used.</li>
+	<li>Whether the result is new, pre-existing, intermittent, or dependent on a particular condition.</li>
+  <li>Relevant screenshots, recordings, markup, or console output. Describe information in images in text, and provide captions or a transcript for recordings needed to understand the result.</li>
+  <li>Relevant checks not performed and why, and any limits on what the evaluation can establish.</li>
+</ul>
+
+<p>Raw tool output is not a complete bug report. Explain the user impact and the evidence needed to reproduce the result.</p>
+
+<p>After a fix, repeat the failed task and the relevant automated and manual checks. Also test adjacent states and components that use the same pattern. Record the successful retest rather than closing the issue from code inspection alone.</p>
+
+<p>Record the review disposition and rationale, including whether a result blocks approval, needs manual review, belongs in a follow-up issue, or is an accepted narrow exception. For a follow-up or exception, record the condition for rechecking it.</p>
+
+<h2>8. Determine the review outcome</h2>
+
+<table>
+	<caption>Accessibility review outcomes</caption>
+	<thead>
+		<tr>
+			<th scope="col">Result</th>
+			<th scope="col">Treatment</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<th scope="row">Confirmed barrier or new Level A or AA failure</th>
+			<td>Resolve it before approval. Add regression coverage where practical.</td>
+		</tr>
+		<tr>
+			<th scope="row">Deterministic automated regression</th>
+			<td>It may block the build when the rule is reliable in the tested environment.</td>
+		</tr>
+		<tr>
+			<th scope="row">Incomplete, unstable, or context-dependent result</th>
+			<td>Send it to manual review. Do not make it an unattended blocker.</td>
+		</tr>
+		<tr>
+			<th scope="row">Pre-existing problem outside the change</th>
+			<td>Document it and create a follow-up issue. Confirm that the change does not make it worse.</td>
+		</tr>
+		<tr>
+			<th scope="row">Level AAA or optional best practice under an AA target</th>
+			<td>Report it as aspirational, not as a Level AA failure.</td>
+		</tr>
+		<tr>
+			<th scope="row">False positive</th>
+			<td>Document the test context and rationale. Use only a narrow suppression or baseline exception.</td>
+		</tr>
+		<tr>
+			<th scope="row">Barrier without a direct WCAG mapping</th>
+			<td>Treat it as an accessibility or usability problem based on its effect on the task. WCAG does not cover every user need.</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>For Drupal core, apply the <a href="https://www.drupal.org/about/core/policies/core-change-policies/core-gates/accessibility">accessibility gate</a>. The gate defines the indicators for adding the <a href="https://www.drupal.org/docs/develop/issues/fields-and-other-parts-of-an-issue/issue-tags-special-tags"><code>Needs accessibility review</code> issue tag</a> and records its Topic Maintainer signoff requirement. Routine changes using established patterns still need applicable evidence, but do not automatically require the tag.</p>
+
+<p>See also the guidance on <a href="https://www.drupal.org/docs/getting-started/accessibility/how-to-ensure-your-contribution-is-accessible">ensuring a contribution is accessible</a>.</p>

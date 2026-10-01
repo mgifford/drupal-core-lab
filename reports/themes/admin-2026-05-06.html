@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Accessibility Report: Admin / Gin Theme</title>
+  <style>
+    :root {
+      --page-bg: #eef2f8;
+      --card-bg: #ffffff;
+      --surface-bg: #f7f9fc;
+      --text: #1c2431;
+      --muted: #546173;
+      --border: #d5dce7;
+      --link: #0e4fb5;
+      --accent: #b7ccf6;
+      --table-stripe: #f5f8ff;
+      --shadow: 0 12px 34px rgba(20, 35, 60, 0.08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --page-bg: #111722;
+        --card-bg: #1a2331;
+        --surface-bg: #131b27;
+        --text: #e8edf5;
+        --muted: #93a0b5;
+        --border: #2b3950;
+        --link: #8cb8ff;
+        --accent: #23395f;
+        --table-stripe: #162032;
+        --shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
+      }
+    }
+    * { box-sizing: border-box; }
+    html { color-scheme: light dark; scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      padding: 2rem 1rem 4rem;
+      font: 16px/1.7 Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+      background:
+        radial-gradient(circle at top left, rgba(14, 79, 181, 0.08), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 16%),
+        var(--page-bg);
+      color: var(--text);
+    }
+    a { color: var(--link); }
+    a:hover, a:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: grid;
+      gap: 1.25rem;
+    }
+    .hero,
+    .toc,
+    .content {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      box-shadow: var(--shadow);
+    }
+    .hero {
+      padding: 1.5rem;
+    }
+    .hero h1 {
+      margin: 0 0 0.5rem;
+      line-height: 1.15;
+      font-size: clamp(2rem, 4vw, 3rem);
+    }
+    .lede,
+    .meta {
+      color: var(--muted);
+      margin: 0.35rem 0 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .toc {
+      padding: 1rem 1.25rem;
+    }
+    .toc h2 {
+      margin: 0 0 0.65rem;
+      font-size: 1rem;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .toc ol {
+      margin: 0;
+      padding-left: 1.2rem;
+      display: grid;
+      gap: 0.4rem;
+    }
+    .toc li.level-3 {
+      margin-left: 1rem;
+      color: var(--muted);
+    }
+    .content {
+      padding: 1.5rem;
+      overflow: hidden;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      line-height: 1.25;
+      scroll-margin-top: 1rem;
+    }
+    h2, h3 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    h2 {
+      margin-top: 2.4rem;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h3 {
+      margin-top: 1.8rem;
+    }
+    .heading-anchor {
+      text-decoration: none;
+      opacity: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    h2:hover .heading-anchor,
+    h2:focus-within .heading-anchor,
+    h3:hover .heading-anchor,
+    h3:focus-within .heading-anchor {
+      opacity: 1;
+    }
+    p, ul, ol, blockquote, pre, .table-wrap, hr {
+      margin: 1rem 0;
+    }
+    ul, ol {
+      padding-left: 1.5rem;
+    }
+    li + li {
+      margin-top: 0.35rem;
+    }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    code {
+      background: rgba(127, 127, 127, 0.14);
+      padding: 0.1rem 0.35rem;
+      border-radius: 0.3rem;
+      font-size: 0.95em;
+    }
+    pre {
+      overflow-x: auto;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 0.85rem;
+      background: var(--surface-bg);
+    }
+    blockquote {
+      border-left: 4px solid var(--link);
+      padding: 0.25rem 0 0.25rem 1rem;
+      color: var(--muted);
+      margin-left: 0;
+      background: linear-gradient(90deg, rgba(14, 79, 181, 0.08), transparent 60%);
+    }
+    details {
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.5rem 1rem;
+      margin: 0.75rem 0;
+      background: var(--surface-bg);
+    }
+    details[open] {
+      padding-bottom: 0.75rem;
+    }
+    details summary {
+      cursor: pointer;
+      font-weight: 600;
+      padding: 0.25rem 0;
+      list-style: none;
+      color: var(--text);
+    }
+    details summary::-webkit-details-marker { display: none; }
+    details summary::before {
+      content: '▶ ';
+      font-size: 0.7em;
+      color: var(--muted);
+    }
+    details[open] summary::before { content: '▼ '; }
+    details table {
+      margin-top: 0.75rem;
+      min-width: 0;
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid var(--border);
+    }
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 0.85rem;
+      background: var(--surface-bg);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 680px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 0.7rem 0.85rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--accent);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.92rem;
+    }
+    tbody tr:nth-child(even) td {
+      background: var(--table-stripe);
+    }
+    @media (min-width: 900px) {
+      .page {
+        grid-template-columns: minmax(0, 1fr) 280px;
+        align-items: start;
+      }
+      .hero,
+      .content {
+        grid-column: 1;
+      }
+      .toc {
+        grid-column: 2;
+        position: sticky;
+        top: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <h1>Accessibility Report: Admin / Gin Theme</h1>
+      <p class="lede">undefined</p>
+      <p class="meta">Source markdown: <code>themes/admin-latest.md</code></p>
+    </header>
+    
+    <nav class="toc" aria-label="Table of contents">
+      <h2>Contents</h2>
+      <ol>
+        <li class="level-2"><a href="#about-admin-gin">About Admin / Gin</a></li><li class="level-2"><a href="#summary-by-rule">Summary by Rule</a></li><li class="level-2"><a href="#rule-details">Rule Details</a></li><li class="level-3"><a href="#color-contrast-rule-color-contrast">`color-contrast` {#rule-color-contrast}</a></li><li class="level-3"><a href="#region-rule-region">`region` {#rule-region}</a></li><li class="level-3"><a href="#landmark-contentinfo-is-top-level-rule-landmark-contentinfo-is-top-level">`landmark-contentinfo-is-top-level` {#rule-landmark-contentinfo-is-top-level}</a></li><li class="level-3"><a href="#heading-order-rule-heading-order">`heading-order` {#rule-heading-order}</a></li><li class="level-3"><a href="#landmark-no-duplicate-contentinfo-rule-landmark-no-duplicate-contentinfo">`landmark-no-duplicate-contentinfo` {#rule-landmark-no-duplicate-contentinfo}</a></li><li class="level-3"><a href="#label-title-only-rule-label-title-only">`label-title-only` {#rule-label-title-only}</a></li><li class="level-3"><a href="#summary-name-rule-summary-name">`summary-name` {#rule-summary-name}</a></li><li class="level-3"><a href="#empty-heading-rule-empty-heading">`empty-heading` {#rule-empty-heading}</a></li><li class="level-2"><a href="#how-to-file-issues">How to File Issues</a></li>
+      </ol>
+    </nav>
+    <main class="content">
+      <h1 id="accessibility-report-admin-gin-theme">Accessibility Report: Admin / Gin Theme</h1>
+<p>Generated: 2026-05-06   Crawl records for this theme group: <strong>1713</strong></p>
+<hr>
+<h2 id="about-admin-gin">About Admin / Gin<a class="heading-anchor" href="#about-admin-gin" aria-label="Link to About Admin / Gin section">#</a></h2>
+<p>The <strong>Gin administration theme</strong> (<code>admin</code>) — a contributed theme for Drupal that replaces the default toolbar and admin UI. Issues here should be reported to the <a href="https://www.drupal.org/project/issues/gin?status[]=Open&amp;issue_tags=Accessibility">Gin project issue queue</a>.</p>
+<p><strong>Issue queue:</strong> <a href="https://www.drupal.org/project/issues/gin?status[]=Open&amp;issue_tags=Accessibility">Gin project issue queue</a></p>
+<hr>
+<h2 id="summary-by-rule">Summary by Rule<a class="heading-anchor" href="#summary-by-rule" aria-label="Link to Summary by Rule section">#</a></h2>
+<p>Composite score = <code>impactWeight × log₂(1 + uniquePageCount)</code>. Higher = higher priority.</p>
+<div class="table-wrap"><table><thead><tr><th scope="col">Rank</th><th scope="col">Score</th><th scope="col">Rule</th><th scope="col">Impact</th><th scope="col">WCAG</th><th scope="col">Unique pages</th><th scope="col">Total nodes</th><th scope="col">Selectors</th></tr></thead><tbody><tr><td>1</td><td>13.177</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright"><code>color-contrast</code></a></td><td>🟠 Serious</td><td>1.4.3 (AA)</td><td>20</td><td>929</td><td>72</td></tr><tr><td>2</td><td>8.785</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/region?application=playwright"><code>region</code></a></td><td>🟡 Moderate</td><td>1.3.6 (AAA)</td><td>20</td><td>2634</td><td>4</td></tr><tr><td>3</td><td>3.17</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/landmark-contentinfo-is-top-level?application=playwright"><code>landmark-contentinfo-is-top-level</code></a></td><td>🟡 Moderate</td><td>1.3.6 (AAA)</td><td>2</td><td>258</td><td>2</td></tr><tr><td>4</td><td>3.17</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/heading-order?application=playwright"><code>heading-order</code></a></td><td>🟡 Moderate</td><td>1.3.1 (A)</td><td>2</td><td>176</td><td>2</td></tr><tr><td>5</td><td>3.17</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/landmark-no-duplicate-contentinfo?application=playwright"><code>landmark-no-duplicate-contentinfo</code></a></td><td>🟡 Moderate</td><td>1.3.6 (AAA)</td><td>2</td><td>129</td><td>1</td></tr><tr><td>6</td><td>3</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/label-title-only?application=playwright"><code>label-title-only</code></a></td><td>🟠 Serious</td><td>1.3.1 (A)</td><td>1</td><td>176</td><td>2</td></tr><tr><td>7</td><td>3</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/summary-name?application=playwright"><code>summary-name</code></a></td><td>🟠 Serious</td><td>4.1.2 (A)</td><td>1</td><td>22</td><td>1</td></tr><tr><td>8</td><td>1</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/empty-heading?application=playwright"><code>empty-heading</code></a></td><td>🔵 Minor</td><td>2.4.6 (AA)</td><td>1</td><td>88</td><td>1</td></tr></tbody></table></div>
+<hr>
+<h2 id="rule-details">Rule Details<a class="heading-anchor" href="#rule-details" aria-label="Link to Rule Details section">#</a></h2>
+<ol><li><a href="#rule-color-contrast"><code>color-contrast</code></a>  </li><li><a href="#rule-region"><code>region</code></a>  </li><li><a href="#rule-landmark-contentinfo-is-top-level"><code>landmark-contentinfo-is-top-level</code></a>  </li><li><a href="#rule-heading-order"><code>heading-order</code></a>  </li><li><a href="#rule-landmark-no-duplicate-contentinfo"><code>landmark-no-duplicate-contentinfo</code></a>  </li><li><a href="#rule-label-title-only"><code>label-title-only</code></a>  </li><li><a href="#rule-summary-name"><code>summary-name</code></a>  </li><li><a href="#rule-empty-heading"><code>empty-heading</code></a></li></ol>
+<hr>
+<h3 id="color-contrast-rule-color-contrast"><code>color-contrast</code> {#rule-color-contrast}<a class="heading-anchor" href="#color-contrast-rule-color-contrast" aria-label="Link to `color-contrast` {#rule-color-contrast} section">#</a></h3>
+<p><strong>Impact:</strong> 🟠 Serious   <strong>WCAG:</strong> 1.4.3 — Contrast (Minimum) (Level AA)   <strong>Axe docs:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright">https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright</a>   <strong>Unique pages affected:</strong> 20   <strong>Total violation nodes:</strong> 929   <strong>Composite score:</strong> 13.177  </p>
+<blockquote><p>Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds</p></blockquote>
+<h4 id="failing-selectors">Failing selectors<a class="heading-anchor" href="#failing-selectors" aria-label="Link to Failing selectors section">#</a></h4>
+<div class="table-wrap"><table><thead><tr><th scope="col">Selector</th><th scope="col">Themes</th><th scope="col">Pages affected</th><th scope="col">Nodes</th></tr></thead><tbody><tr><td><code>a[hreflang=&quot;he&quot;]</code></td><td>admin</td><td>17</td><td>131</td></tr><tr><td><code>a[hreflang=&quot;en&quot;]</code></td><td>admin</td><td>16</td><td>123</td></tr><tr><td><code>#edit-submit</code></td><td>admin</td><td>10</td><td>72</td></tr><tr><td><code>.button--action</code></td><td>admin</td><td>3</td><td>21</td></tr><tr><td><code>p:nth-child(1) &gt; a</code></td><td>admin</td><td>2</td><td>11</td></tr><tr><td><code>summary[aria-controls=&quot;edit-submission&quot;] &gt; .gin-details__summary-summary</code></td><td>admin</td><td>1</td><td>20</td></tr><tr><td><code>summary[aria-controls=&quot;edit-workflow&quot;] &gt; .gin-details__summary-summary</code></td><td>admin</td><td>1</td><td>20</td></tr><tr><td><code>summary[aria-controls=&quot;edit-language&quot;] &gt; .gin-details__summary-summary</code></td><td>admin</td><td>1</td><td>20</td></tr><tr><td><code>summary[aria-controls=&quot;edit-display&quot;] &gt; .gin-details__summary-summary</code></td><td>admin</td><td>1</td><td>20</td></tr><tr><td><code>.feed-icon</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>a[href=&quot;/&quot;]</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>a[href=&quot;/he&quot;]</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-no-icon</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-no-icon--2</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-no-icon--3</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-no-icon--4</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-no-icon--5</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-no-icon--6</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-plus</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-plus--2</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-plus--3</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-plus--4</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-plus--5</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-plus--6</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-trash</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-trash--3</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-trash--5</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-cog</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-cog--2</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-cog--3</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-cog--4</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-cog--5</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-cog--6</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-ex</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-ex--2</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-ex--3</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-ex--4</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-ex--5</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-ex--6</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-checkmark</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-checkmark--2</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-checkmark--3</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-checkmark--4</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-checkmark--5</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-checkmark--6</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-show</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-show--2</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-show--3</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-show--4</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-show--5</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-show--6</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-hide</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-hide--2</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-hide--3</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-hide--4</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-hide--5</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#action-link-hide--6</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>p:nth-child(2) &gt; a[href$=&quot;block&quot;]</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>.language-link[aria-current=&quot;page&quot;][href$=&quot;content&quot;]</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>p:nth-child(2) &gt; a</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>.compact-link &gt; a</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>input[value=&quot;Search&quot;]</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>a[href=&quot;/system/404&quot;]</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>a[href=&quot;/he/system/404&quot;]</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>input[value=&quot;Log in&quot;]</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>input[value=&quot;Submit&quot;]</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>a[href=&quot;/system/403&quot;]</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>a[href=&quot;/he/system/403&quot;]</code></td><td>admin</td><td>1</td><td>8</td></tr><tr><td><code>#edit-save-continue</code></td><td>admin</td><td>1</td><td>7</td></tr><tr><td><code>.tabs__link.js-tabs-link[aria-current=&quot;page&quot;]</code></td><td>admin</td><td>1</td><td>6</td></tr><tr><td><code>p:nth-child(2) &gt; a[href$=&quot;updates&quot;]</code></td><td>admin</td><td>1</td><td>3</td></tr><tr><td><code>a[href$=&quot;update.php&quot;]</code></td><td>admin</td><td>1</td><td>3</td></tr></tbody></table></div>
+<h4 id="details">Details<a class="heading-anchor" href="#details" aria-label="Link to Details section">#</a></h4>
+<p><strong>1. Selector:</strong> <code>a[hreflang=&quot;he&quot;]</code></p>
+<p>_Element has insufficient color contrast of 4.38 (foreground color: #c55228, background color: #fefaf8, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1_</p>
+<pre><code class="language-html">&lt;a href=&quot;/he/action-link&quot; class=&quot;language-link&quot; hreflang=&quot;he&quot; data-drupal-link-system-path=&quot;action-link&quot;&gt;Hebrew&lt;/a&gt;</code></pre>
+<p>Pages: <code>/action-link</code>, <code>/admin</code>, <code>/admin/appearance</code>, <code>/admin/content</code>, <code>/admin/form_style</code>, <code>/admin/modules</code>, <code>/admin/structure</code>, <code>/admin/structure/block</code> +9 more</p>
+<p><strong>2. Selector:</strong> <code>a[hreflang=&quot;en&quot;]</code></p>
+<p>_Element has insufficient color contrast of 4.38 (foreground color: #c55228, background color: #fefaf8, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1_</p>
+<pre><code class="language-html">&lt;a href=&quot;/action-link&quot; class=&quot;language-link is-active&quot; hreflang=&quot;en&quot; data-drupal-link-system-path=&quot;action-link&quot; aria-current=&quot;page&quot;&gt;English&lt;/a&gt;</code></pre>
+<p>Pages: <code>/action-link</code>, <code>/admin</code>, <code>/admin/appearance</code>, <code>/admin/form_style</code>, <code>/admin/modules</code>, <code>/admin/structure</code>, <code>/admin/structure/block</code>, <code>/admin/structure/taxonomy</code> +8 more</p>
+<p><strong>3. Selector:</strong> <code>#edit-submit</code></p>
+<p>_Element has insufficient color contrast of 3.73 (foreground color: #131313, background color: #956707, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1_</p>
+<pre><code class="language-html">&lt;input data-drupal-selector=&quot;edit-submit&quot; type=&quot;submit&quot; id=&quot;edit-submit&quot; name=&quot;op&quot; value=&quot;Save configuration&quot; class=&quot;button button--primary js-form-submit form-submit&quot;&gt;</code></pre>
+<p>Pages: <code>/admin/appearance</code>, <code>/admin/content</code>, <code>/admin/form_style</code>, <code>/admin/modules</code>, <code>/admin/structure/block</code>, <code>/admin/structure/taxonomy</code>, <code>/admin/structure/taxonomy/add</code>, <code>/admin/structure/types/add</code> +2 more</p>
+<p><strong>4. Selector:</strong> <code>.button--action</code></p>
+<p>_Element has insufficient color contrast of 3.68 (foreground color: #141414, background color: #946708, font size: 9.8pt (13px), font weight: normal). Expected contrast ratio of 4.5:1_</p>
+<pre><code class="language-html">&lt;a href=&quot;/node/add&quot; class=&quot;button button--action button--primary&quot; data-drupal-link-system-path=&quot;node/add&quot;&gt;Add content&lt;/a&gt;</code></pre>
+<p>Pages: <code>/admin/content</code>, <code>/admin/structure/taxonomy</code>, <code>/admin/structure/types</code></p>
+<p><strong>5. Selector:</strong> <code>p:nth-child(1) &gt; a</code></p>
+<p>_Element has insufficient color contrast of 4.38 (foreground color: #c55228, background color: #fefaf8, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1_</p>
+<pre><code class="language-html">&lt;a href=&quot;https://www.drupal.org/project/project_theme&quot;&gt;themes&lt;/a&gt;</code></pre>
+<p>Pages: <code>/admin/appearance</code>, <code>/admin/modules</code></p>
+<p><strong>Search Drupal issue queue:</strong> <a href="https://www.drupal.org/project/issues/search?text=color-contrast&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">color-contrast + Accessibility</a></p>
+<hr>
+<h3 id="region-rule-region"><code>region</code> {#rule-region}<a class="heading-anchor" href="#region-rule-region" aria-label="Link to `region` {#rule-region} section">#</a></h3>
+<p><strong>Impact:</strong> 🟡 Moderate   <strong>WCAG:</strong> 1.3.6 — Identify Purpose (Level AAA)   <strong>Axe docs:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/region?application=playwright">https://dequeuniversity.com/rules/axe/4.11/region?application=playwright</a>   <strong>Unique pages affected:</strong> 20   <strong>Total violation nodes:</strong> 2634   <strong>Composite score:</strong> 8.785  </p>
+<blockquote><p>Ensure all page content is contained by landmarks</p></blockquote>
+<h4 id="failing-selectors">Failing selectors<a class="heading-anchor" href="#failing-selectors" aria-label="Link to Failing selectors section">#</a></h4>
+<div class="table-wrap"><table><thead><tr><th scope="col">Selector</th><th scope="col">Themes</th><th scope="col">Pages affected</th><th scope="col">Nodes</th></tr></thead><tbody><tr><td><code>.themeswitcher-form__form-item</code></td><td>admin</td><td>20</td><td>1713</td></tr><tr><td><code>#primary-tabs-title</code></td><td>admin</td><td>7</td><td>569</td></tr><tr><td><code>.top-bar__actions</code></td><td>admin</td><td>3</td><td>264</td></tr><tr><td><code>#secondary-tabs-title</code></td><td>admin</td><td>1</td><td>88</td></tr></tbody></table></div>
+<h4 id="details">Details<a class="heading-anchor" href="#details" aria-label="Link to Details section">#</a></h4>
+<p><strong>1. Selector:</strong> <code>.themeswitcher-form__form-item</code></p>
+<p>_Some page content is not contained by landmarks_</p>
+<pre><code class="language-html">&lt;div class=&quot;themeswitcher-form__form-item js-form-item form-item js-form-type-select form-type--select js-form-item-preferred-theme form-item--preferred-theme&quot;&gt;</code></pre>
+<p>Pages: <code>/</code>, <code>/action-link</code>, <code>/admin</code>, <code>/admin/appearance</code>, <code>/admin/content</code>, <code>/admin/form_style</code>, <code>/admin/modules</code>, <code>/admin/structure</code> +12 more</p>
+<p><strong>2. Selector:</strong> <code>#primary-tabs-title</code></p>
+<p>_Some page content is not contained by landmarks_</p>
+<pre><code class="language-html">&lt;h2 id=&quot;primary-tabs-title&quot; class=&quot;visually-hidden&quot;&gt;Primary tabs&lt;/h2&gt;</code></pre>
+<p>Pages: <code>/admin</code>, <code>/admin/appearance</code>, <code>/admin/content</code>, <code>/admin/modules</code>, <code>/admin/structure/types</code>, <code>/user/login</code>, <code>/user/password</code></p>
+<p><strong>3. Selector:</strong> <code>.top-bar__actions</code></p>
+<p>_Some page content is not contained by landmarks_</p>
+<pre><code class="language-html">&lt;div class=&quot;top-bar__actions&quot;&gt;</code></pre>
+<p>Pages: <code>/admin/content</code>, <code>/admin/structure/taxonomy</code>, <code>/admin/structure/types</code></p>
+<p><strong>4. Selector:</strong> <code>#secondary-tabs-title</code></p>
+<p>_Some page content is not contained by landmarks_</p>
+<pre><code class="language-html">&lt;h2 id=&quot;secondary-tabs-title&quot; class=&quot;visually-hidden&quot;&gt;Secondary tabs&lt;/h2&gt;</code></pre>
+<p>Pages: <code>/admin/structure/block</code></p>
+<p><strong>Search Drupal issue queue:</strong> <a href="https://www.drupal.org/project/issues/search?text=region&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">region + Accessibility</a></p>
+<hr>
+<h3 id="landmark-contentinfo-is-top-level-rule-landmark-contentinfo-is-top-level"><code>landmark-contentinfo-is-top-level</code> {#rule-landmark-contentinfo-is-top-level}<a class="heading-anchor" href="#landmark-contentinfo-is-top-level-rule-landmark-contentinfo-is-top-level" aria-label="Link to `landmark-contentinfo-is-top-level` {#rule-landmark-contentinfo-is-top-level} section">#</a></h3>
+<p><strong>Impact:</strong> 🟡 Moderate   <strong>WCAG:</strong> 1.3.6 — Identify Purpose (Level AAA)   <strong>Axe docs:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/landmark-contentinfo-is-top-level?application=playwright">https://dequeuniversity.com/rules/axe/4.11/landmark-contentinfo-is-top-level?application=playwright</a>   <strong>Unique pages affected:</strong> 2   <strong>Total violation nodes:</strong> 258   <strong>Composite score:</strong> 3.17  </p>
+<blockquote><p>Ensure the contentinfo landmark is at top level</p></blockquote>
+<h4 id="failing-selectors">Failing selectors<a class="heading-anchor" href="#failing-selectors" aria-label="Link to Failing selectors section">#</a></h4>
+<div class="table-wrap"><table><thead><tr><th scope="col">Selector</th><th scope="col">Themes</th><th scope="col">Pages affected</th><th scope="col">Nodes</th></tr></thead><tbody><tr><td><code>.messages--error</code></td><td>admin</td><td>2</td><td>129</td></tr><tr><td><code>.messages--warning</code></td><td>admin</td><td>2</td><td>129</td></tr></tbody></table></div>
+<h4 id="details">Details<a class="heading-anchor" href="#details" aria-label="Link to Details section">#</a></h4>
+<p><strong>1. Selector:</strong> <code>.messages--error</code></p>
+<p>_The contentinfo landmark is contained in another landmark._</p>
+<pre><code class="language-html">&lt;div role=&quot;contentinfo&quot; aria-labelledby=&quot;message-error-title&quot; class=&quot;messages-list__item messages messages--error&quot;&gt;</code></pre>
+<p>Pages: <code>/admin/appearance</code>, <code>/admin/modules</code></p>
+<p><strong>2. Selector:</strong> <code>.messages--warning</code></p>
+<p>_The contentinfo landmark is contained in another landmark._</p>
+<pre><code class="language-html">&lt;div role=&quot;contentinfo&quot; aria-labelledby=&quot;message-warning-title&quot; class=&quot;messages-list__item messages messages--warning&quot;&gt;</code></pre>
+<p>Pages: <code>/admin/appearance</code>, <code>/admin/modules</code></p>
+<p><strong>Search Drupal issue queue:</strong> <a href="https://www.drupal.org/project/issues/search?text=landmark-contentinfo-is-top-level&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">landmark-contentinfo-is-top-level + Accessibility</a></p>
+<hr>
+<h3 id="heading-order-rule-heading-order"><code>heading-order</code> {#rule-heading-order}<a class="heading-anchor" href="#heading-order-rule-heading-order" aria-label="Link to `heading-order` {#rule-heading-order} section">#</a></h3>
+<p><strong>Impact:</strong> 🟡 Moderate   <strong>WCAG:</strong> 1.3.1 — Info and Relationships (Level A)   <strong>Axe docs:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/heading-order?application=playwright">https://dequeuniversity.com/rules/axe/4.11/heading-order?application=playwright</a>   <strong>Unique pages affected:</strong> 2   <strong>Total violation nodes:</strong> 176   <strong>Composite score:</strong> 3.17  </p>
+<blockquote><p>Ensure the order of headings is semantically correct</p></blockquote>
+<h4 id="failing-selectors">Failing selectors<a class="heading-anchor" href="#failing-selectors" aria-label="Link to Failing selectors section">#</a></h4>
+<div class="table-wrap"><table><thead><tr><th scope="col">Selector</th><th scope="col">Themes</th><th scope="col">Pages affected</th><th scope="col">Nodes</th></tr></thead><tbody><tr><td><code>#pagination-heading</code></td><td>admin</td><td>1</td><td>88</td></tr><tr><td><code>div[data-drupal-selector=&quot;edit-test-datelist&quot;] &gt; h4</code></td><td>admin</td><td>1</td><td>88</td></tr></tbody></table></div>
+<h4 id="details">Details<a class="heading-anchor" href="#details" aria-label="Link to Details section">#</a></h4>
+<p><strong>1. Selector:</strong> <code>#pagination-heading</code></p>
+<p>_Heading order invalid_</p>
+<pre><code class="language-html">&lt;h4 id=&quot;pagination-heading&quot; class=&quot;visually-hidden&quot;&gt;Pagination&lt;/h4&gt;</code></pre>
+<p>Pages: <code>/admin/content</code></p>
+<p><strong>2. Selector:</strong> <code>div[data-drupal-selector=&quot;edit-test-datelist&quot;] &gt; h4</code></p>
+<p>_Heading order invalid_</p>
+<pre><code class="language-html">&lt;h4 class=&quot;form-item__label&quot;&gt;Datelist&lt;/h4&gt;</code></pre>
+<p>Pages: <code>/admin/form_style</code></p>
+<p><strong>Search Drupal issue queue:</strong> <a href="https://www.drupal.org/project/issues/search?text=heading-order&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">heading-order + Accessibility</a></p>
+<hr>
+<h3 id="landmark-no-duplicate-contentinfo-rule-landmark-no-duplicate-contentinfo"><code>landmark-no-duplicate-contentinfo</code> {#rule-landmark-no-duplicate-contentinfo}<a class="heading-anchor" href="#landmark-no-duplicate-contentinfo-rule-landmark-no-duplicate-contentinfo" aria-label="Link to `landmark-no-duplicate-contentinfo` {#rule-landmark-no-duplicate-contentinfo} section">#</a></h3>
+<p><strong>Impact:</strong> 🟡 Moderate   <strong>WCAG:</strong> 1.3.6 — Identify Purpose (Level AAA)   <strong>Axe docs:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/landmark-no-duplicate-contentinfo?application=playwright">https://dequeuniversity.com/rules/axe/4.11/landmark-no-duplicate-contentinfo?application=playwright</a>   <strong>Unique pages affected:</strong> 2   <strong>Total violation nodes:</strong> 129   <strong>Composite score:</strong> 3.17  </p>
+<blockquote><p>Ensure the document has at most one contentinfo landmark</p></blockquote>
+<h4 id="failing-selectors">Failing selectors<a class="heading-anchor" href="#failing-selectors" aria-label="Link to Failing selectors section">#</a></h4>
+<div class="table-wrap"><table><thead><tr><th scope="col">Selector</th><th scope="col">Themes</th><th scope="col">Pages affected</th><th scope="col">Nodes</th></tr></thead><tbody><tr><td><code>.messages--error</code></td><td>admin</td><td>2</td><td>129</td></tr></tbody></table></div>
+<h4 id="details">Details<a class="heading-anchor" href="#details" aria-label="Link to Details section">#</a></h4>
+<p><strong>1. Selector:</strong> <code>.messages--error</code></p>
+<p>_Document has more than one contentinfo landmark_</p>
+<pre><code class="language-html">&lt;div role=&quot;contentinfo&quot; aria-labelledby=&quot;message-error-title&quot; class=&quot;messages-list__item messages messages--error&quot;&gt;</code></pre>
+<p>Pages: <code>/admin/appearance</code>, <code>/admin/modules</code></p>
+<p><strong>Search Drupal issue queue:</strong> <a href="https://www.drupal.org/project/issues/search?text=landmark-no-duplicate-contentinfo&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">landmark-no-duplicate-contentinfo + Accessibility</a></p>
+<hr>
+<h3 id="label-title-only-rule-label-title-only"><code>label-title-only</code> {#rule-label-title-only}<a class="heading-anchor" href="#label-title-only-rule-label-title-only" aria-label="Link to `label-title-only` {#rule-label-title-only} section">#</a></h3>
+<p><strong>Impact:</strong> 🟠 Serious   <strong>WCAG:</strong> 1.3.1 — Info and Relationships (Level A)   <strong>Axe docs:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/label-title-only?application=playwright">https://dequeuniversity.com/rules/axe/4.11/label-title-only?application=playwright</a>   <strong>Unique pages affected:</strong> 1   <strong>Total violation nodes:</strong> 176   <strong>Composite score:</strong> 3  </p>
+<blockquote><p>Ensure that every form element has a visible label and is not solely labeled using hidden labels, or the title or aria-describedby attributes</p></blockquote>
+<h4 id="failing-selectors">Failing selectors<a class="heading-anchor" href="#failing-selectors" aria-label="Link to Failing selectors section">#</a></h4>
+<div class="table-wrap"><table><thead><tr><th scope="col">Selector</th><th scope="col">Themes</th><th scope="col">Pages affected</th><th scope="col">Nodes</th></tr></thead><tbody><tr><td><code>.gin--sticky-table-header &gt; thead &gt; tr &gt; .select-all.gin--sticky-bulk-select &gt; .</code></td><td>admin</td><td>1</td><td>88</td></tr><tr><td><code>.views-table &gt; thead &gt; tr &gt; .select-all.gin--sticky-bulk-select &gt; .form-checkbox</code></td><td>admin</td><td>1</td><td>88</td></tr></tbody></table></div>
+<h4 id="details">Details<a class="heading-anchor" href="#details" aria-label="Link to Details section">#</a></h4>
+<p><strong>1. Selector:</strong> <code>.gin--sticky-table-header &gt; thead &gt; tr &gt; .select-all.gin--sticky-bulk-select &gt; .form-checkbox.form-b</code></p>
+<p>_Only title used to generate label for form element_</p>
+<pre><code class="language-html">&lt;input type=&quot;checkbox&quot; class=&quot;form-checkbox form-boolean form-boolean--type-checkbox&quot; title=&quot;Select all rows in this table&quot;&gt;</code></pre>
+<p>Pages: <code>/admin/content</code></p>
+<p><strong>2. Selector:</strong> <code>.views-table &gt; thead &gt; tr &gt; .select-all.gin--sticky-bulk-select &gt; .form-checkbox.form-boolean[title=</code></p>
+<p>_Only title used to generate label for form element_</p>
+<pre><code class="language-html">&lt;input type=&quot;checkbox&quot; class=&quot;form-checkbox form-boolean form-boolean--type-checkbox&quot; title=&quot;Select all rows in this table&quot;&gt;</code></pre>
+<p>Pages: <code>/admin/content</code></p>
+<p><strong>Search Drupal issue queue:</strong> <a href="https://www.drupal.org/project/issues/search?text=label-title-only&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">label-title-only + Accessibility</a></p>
+<hr>
+<h3 id="summary-name-rule-summary-name"><code>summary-name</code> {#rule-summary-name}<a class="heading-anchor" href="#summary-name-rule-summary-name" aria-label="Link to `summary-name` {#rule-summary-name} section">#</a></h3>
+<p><strong>Impact:</strong> 🟠 Serious   <strong>WCAG:</strong> 4.1.2 — Name, Role, Value (Level A)   <strong>Axe docs:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/summary-name?application=playwright">https://dequeuniversity.com/rules/axe/4.11/summary-name?application=playwright</a>   <strong>Unique pages affected:</strong> 1   <strong>Total violation nodes:</strong> 22   <strong>Composite score:</strong> 3  </p>
+<blockquote><p>Ensure summary elements have discernible text</p></blockquote>
+<h4 id="failing-selectors">Failing selectors<a class="heading-anchor" href="#failing-selectors" aria-label="Link to Failing selectors section">#</a></h4>
+<div class="table-wrap"><table><thead><tr><th scope="col">Selector</th><th scope="col">Themes</th><th scope="col">Pages affected</th><th scope="col">Nodes</th></tr></thead><tbody><tr><td><code>#edit-modules-nyan-cat-enable-description &gt; .module-list__module-summary</code></td><td>admin</td><td>1</td><td>22</td></tr></tbody></table></div>
+<h4 id="details">Details<a class="heading-anchor" href="#details" aria-label="Link to Details section">#</a></h4>
+<p><strong>1. Selector:</strong> <code>#edit-modules-nyan-cat-enable-description &gt; .module-list__module-summary</code></p>
+<p>_Element does not have text that is visible to screen readers   aria-label attribute does not exist or is empty   aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty   Element has no title attribute_</p>
+<pre><code class="language-html">&lt;summary aria-controls=&quot;edit-modules-nyan-cat-enable-description&quot; role=&quot;button&quot; aria-expanded=&quot;false&quot; class=&quot;gin-details__summary module-list__module-summary&quot;&gt;&lt;span class=&quot;text module-description&quot;&gt;&lt;/span&gt;&lt;span class=&quot;gin-details__summary-summary&quot;&gt;&lt;/span&gt;&lt;/summary&gt;</code></pre>
+<p>Pages: <code>/admin/modules</code></p>
+<p><strong>Search Drupal issue queue:</strong> <a href="https://www.drupal.org/project/issues/search?text=summary-name&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">summary-name + Accessibility</a></p>
+<hr>
+<h3 id="empty-heading-rule-empty-heading"><code>empty-heading</code> {#rule-empty-heading}<a class="heading-anchor" href="#empty-heading-rule-empty-heading" aria-label="Link to `empty-heading` {#rule-empty-heading} section">#</a></h3>
+<p><strong>Impact:</strong> 🔵 Minor   <strong>WCAG:</strong> 2.4.6 — Headings and Labels (Level AA)   <strong>Axe docs:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/empty-heading?application=playwright">https://dequeuniversity.com/rules/axe/4.11/empty-heading?application=playwright</a>   <strong>Unique pages affected:</strong> 1   <strong>Total violation nodes:</strong> 88   <strong>Composite score:</strong> 1  </p>
+<blockquote><p>Ensure headings have discernible text</p></blockquote>
+<h4 id="failing-selectors">Failing selectors<a class="heading-anchor" href="#failing-selectors" aria-label="Link to Failing selectors section">#</a></h4>
+<div class="table-wrap"><table><thead><tr><th scope="col">Selector</th><th scope="col">Themes</th><th scope="col">Pages affected</th><th scope="col">Nodes</th></tr></thead><tbody><tr><td><code>h1</code></td><td>admin</td><td>1</td><td>88</td></tr></tbody></table></div>
+<h4 id="details">Details<a class="heading-anchor" href="#details" aria-label="Link to Details section">#</a></h4>
+<p><strong>1. Selector:</strong> <code>h1</code></p>
+<p>_Element does not have text that is visible to screen readers   aria-label attribute does not exist or is empty   aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty   Element has no title attribute_</p>
+<pre><code class="language-html">&lt;h1 class=&quot;page-title&quot;&gt;&lt;/h1&gt;</code></pre>
+<p>Pages: <code>/</code></p>
+<p><strong>Search Drupal issue queue:</strong> <a href="https://www.drupal.org/project/issues/search?text=empty-heading&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">empty-heading + Accessibility</a></p>
+<hr>
+<h2 id="how-to-file-issues">How to File Issues<a class="heading-anchor" href="#how-to-file-issues" aria-label="Link to How to File Issues section">#</a></h2>
+<p>When filing accessibility issues for the Admin / Gin theme, include:</p>
+<ol><li><strong>The axe rule ID</strong> (e.g. <code>color-contrast</code>, <code>label</code>)</li><li><strong>The WCAG Success Criterion</strong> — see the Summary table above</li><li><strong>The failing selector</strong> and <strong>HTML snippet</strong> from the Rule Details above</li><li><strong>Which pages are affected</strong> — listed per selector</li><li><strong>Steps to reproduce</strong> — load the page in Drupal, run <code>axe</code> in browser DevTools</li></ol>
+<p>File against: <a href="https://www.drupal.org/project/issues/gin?status[]=Open&amp;issue_tags=Accessibility">Gin project issue queue</a></p>
+<p>Add the tag <code>Accessibility</code> and reference the WCAG criterion in the issue summary.</p>
+    </main>
+  </div>
+</body>
+</html>

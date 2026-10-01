@@ -1,0 +1,43 @@
+diff --git a/modules/contrib/theming_tools/modules/dialog/src/Controller/DialogController.php b/modules/contrib/theming_tools/modules/dialog/src/Controller/DialogController.php
+index 991134a2cc1..5f2ad6575d3 100644
+--- a/modules/contrib/theming_tools/modules/dialog/src/Controller/DialogController.php
++++ b/modules/contrib/theming_tools/modules/dialog/src/Controller/DialogController.php
+@@ -185,9 +185,9 @@ protected function buildFilterTips(): array {
+         if ($filter->status) {
+           $tip = $filter->tips(TRUE);
+           if (isset($tip)) {
+-            $tips[$format->label()][$name] = [
++            $tips[$format->label()]['name'] = $format->label();
++            $tips[$format->label()]['list'][] = [
+               'tip' => ['#markup' => $tip],
+-              'id' => $name,
+             ];
+           }
+         }
+diff --git a/modules/contrib/theming_tools/modules/tab/src/Controller/TabController.php b/modules/contrib/theming_tools/modules/tab/src/Controller/TabController.php
+index 19629b90033..67cecce8232 100644
+--- a/modules/contrib/theming_tools/modules/tab/src/Controller/TabController.php
++++ b/modules/contrib/theming_tools/modules/tab/src/Controller/TabController.php
+@@ -62,9 +62,9 @@ protected function buildTipsRenderArray(?FilterFormatInterface $filter_format):
+         if ($filter->status) {
+           $tip = $filter->tips(TRUE);
+           if (isset($tip)) {
+-            $tips[$format->label()][$name] = [
++            $tips[$format->label()]['name'] = $format->label();
++            $tips[$format->label()]['list'][] = [
+               'tip' => ['#markup' => $tip],
+-              'id' => $name,
+             ];
+           }
+         }
+@@ -76,7 +76,9 @@ protected function buildTipsRenderArray(?FilterFormatInterface $filter_format):
+       $build[$label] = [
+         '#theme' => 'filter_tips',
+         '#long' => TRUE,
+-        '#tips' => [$label => $format_tips],
++        '#tips' => [
++          $label => $format_tips,
++        ],
+       ];
+     }
+     return $build;

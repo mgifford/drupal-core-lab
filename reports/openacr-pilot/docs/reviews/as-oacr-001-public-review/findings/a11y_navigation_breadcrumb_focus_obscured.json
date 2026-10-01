@@ -1,0 +1,35 @@
+{
+  "finding_id": "a11y_navigation_breadcrumb_focus_obscured",
+  "fingerprint": "f0d17128b665121d18ef809bdf0f40958645cc6768e01c00a79b03b958bffb19",
+  "source": "Complete forward and reverse keyboard traversal with focused-element geometry and element-from-point sampling",
+  "wcag_or_apg": "WCAG 2.2 SC 2.4.11 Focus Not Obscured (Minimum)",
+  "section_508_fpc_context": "not in scope",
+  "severity": "MINOR",
+  "perspective_alarms": {
+    "screen_reader_semantic": "LOW",
+    "keyboard_motor": "HIGH",
+    "magnification_reflow": "HIGH",
+    "cognitive_neurodivergent": "MEDIUM",
+    "vestibular_motion": "NONE",
+    "environmental_contrast": "MEDIUM",
+    "auditory_access": "NONE"
+  },
+  "evidence": [
+    "EVID-FULL-SUITE-SUMMARY: a 23-stop forward cycle and 22-stop reverse traversal used real Tab and Shift+Tab events on /node/2/edit.",
+    "EVID-FULL-SUITE-RESOLUTIONS: the Article and Home breadcrumb links received focus at y=33 while the fixed Navigation top bar was the top element over all 25 sampled points for each link.",
+    "Each focused breadcrumb had a visible sample fraction of 0 even though the focus style was present underneath the overlay."
+  ],
+  "reproduction_steps": [
+    "Enable Navigation, authenticate as an author, and open /node/2/edit at a desktop viewport.",
+    "Use Tab until the focus sequence returns to its first control.",
+    "Use Shift+Tab to traverse backward to the Article and Home breadcrumb links.",
+    "Observe that the fixed top bar completely covers each focused link."
+  ],
+  "expected_behavior": "When a user interface component receives keyboard focus, it is not entirely hidden by author-created content.",
+  "actual_behavior": "The fixed Navigation top bar completely covers both focused breadcrumb links during reverse keyboard traversal.",
+  "evaluation_context": {
+    "evaluation_id": "AS-OACR-001",
+    "sample_id": "S-STR-010",
+    "state_id": "ST-002"
+  }
+}

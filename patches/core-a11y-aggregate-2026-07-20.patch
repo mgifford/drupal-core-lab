@@ -1,0 +1,3037 @@
+core/lib/Drupal/Core/Datetime/DatePreprocess.php   |  19 +++
+ core/lib/Drupal/Core/Field/FieldPreprocess.php     |  19 ++-
+ core/lib/Drupal/Core/Form/FormPreprocess.php       |   2 +-
+ core/lib/Drupal/Core/Render/Element/Details.php    |   1 +
+ core/misc/details-aria.js                          |   5 +-
+ core/misc/message.js                               |   7 +-
+ core/misc/tabledrag.js                             |   2 +-
+ core/misc/tableselect.js                           |   6 +-
+ .../modules/field_test/src/Hook/FieldTestHooks.php |   3 +
+ .../field/tests/src/Functional/FormTest.php        |   3 +
+ .../src/Functional/MultipleWidgetFormTest.php      |  54 ++++++++
+ core/modules/file/src/Hook/FileThemeHooks.php      |   2 +-
+ .../src/Plugin/Field/FieldWidget/FileWidget.php    |   5 +-
+ .../tests/src/Functional/FileFieldDisplayTest.php  |  13 ++
+ .../modules/filter/src/FilterFormatListBuilder.php |   9 ++
+ core/modules/filter/src/Hook/FilterThemeHooks.php  |  49 +++++++
+ .../tests/src/Functional/FilterAdminTest.php       |   6 +-
+ .../tests/src/Kernel/FilterTipsRenderTest.php      | 153 +++++++++++++++++++++
+ .../inline_form_errors/src/FormErrorHandler.php    |  45 ++++++
+ .../tests/src/Unit/FormErrorHandlerTest.php        |  18 ++-
+ .../language/src/Hook/LanguageThemeHooks.php       |   3 +
+ .../tests/src/Functional/LanguageSwitchingTest.php |   5 +
+ .../node/config/optional/views.view.content.yml    |   2 +-
+ core/modules/node/node.post_update.php             |  15 ++
+ .../node/tests/src/Functional/NodeAdminTest.php    |  17 +++
+ .../node/tests/src/Kernel/NodePostUpdateTest.php   |  61 ++++++++
+ .../src/Theme/SystemAdminThemePreprocess.php       |   8 ++
+ .../modules/system/templates/admin-block.html.twig |   2 +-
+ .../system/templates/datetime-wrapper.html.twig    |   6 +-
+ core/modules/system/templates/details.html.twig    |  15 +-
+ .../templates/field-multiple-value-form.html.twig  |   9 +-
+ .../system/templates/status-messages.html.twig     |  11 +-
+ .../templates/system-modules-details.html.twig     |   2 +-
+ .../src/Form/FormTestGroupDetailsForm.php          |  33 +++++
+ .../tests/src/Functional/Form/ElementTest.php      |  15 ++
+ .../src/Functional/Form/ElementsLabelsTest.php     |   7 +
+ .../src/Functional/Form/ModulesListFormWebTest.php |  17 ++-
+ .../Functional/Render/PlaceholderMessageTest.php   |   2 +-
+ .../tests/src/Functional/System/AdminTest.php      |   2 +
+ .../Form/ElementsTableSelectTest.php               |   6 +
+ .../templates/status-messages.html.twig            |  11 +-
+ core/modules/user/src/Hook/UserHooks.php           |   2 +-
+ .../user/tests/src/Functional/UserLoginTest.php    |  12 ++
+ core/modules/views_ui/src/ViewListBuilder.php      |   1 +
+ .../src/FunctionalJavascript/ViewsListingTest.php  |   7 +-
+ .../umami/js/components/messages/messages.js       |   2 +-
+ .../classy/form/datetime-wrapper.html.twig         |   6 +-
+ .../umami/templates/classy/form/details.html.twig  |  16 ++-
+ core/test-results/.last-run.json                   |   4 +
+ .../Ajax/MessageCommandTest.php                    |  21 +++
+ .../Core/Form/FormGroupingElementsTest.php         |   8 +-
+ core/themes/claro/css/components/form.css          |   2 +-
+ core/themes/claro/css/components/form.pcss.css     |   2 +-
+ core/themes/claro/js/messages.js                   |   2 +-
+ core/themes/claro/js/tabledrag.js                  |   2 +-
+ .../admin/system-modules-details.html.twig         |   2 +-
+ .../claro/templates/datetime-wrapper.html.twig     |   4 +-
+ core/themes/claro/templates/details.html.twig      |  12 +-
+ .../form/field-multiple-value-form.html.twig       |   9 +-
+ .../claro/templates/misc/status-messages.html.twig |  45 +++---
+ core/themes/default_admin/css/components/form.css  |   2 +-
+ .../default_admin/css/components/form.pcss.css     |   2 +-
+ core/themes/default_admin/js/messages.js           |   2 +-
+ core/themes/default_admin/js/tabledrag.js          |   2 +-
+ core/themes/default_admin/migration/js/messages.js |   2 +-
+ .../themes/default_admin/migration/js/tabledrag.js |   2 +-
+ .../default_admin/migration/js/tableselect.js      |   6 +-
+ core/themes/default_admin/src/Helper.php           |   2 +-
+ .../templates/admin/admin-block.html.twig          |   2 +-
+ .../admin/system-modules-details.html.twig         |   2 +-
+ .../templates/dataset/table.html.twig              |   2 +-
+ .../templates/form/datetime-wrapper.html.twig      |   2 +-
+ .../default_admin/templates/form/details.html.twig |   5 +-
+ .../form/field-multiple-value-form.html.twig       |   9 +-
+ .../templates/misc/status-messages.html.twig       |   5 +-
+ .../templates/views/views-view-table.html.twig     |   2 +-
+ .../tests/src/Functional/AdminTest.php             |  17 +++
+ core/themes/olivero/js/message.theme.js            |   2 +-
+ core/themes/olivero/src/Hook/OliveroHooks.php      |   2 +-
+ .../olivero/templates/datetime-wrapper.html.twig   |   4 +-
+ .../olivero/templates/form/details.html.twig       |  16 ++-
+ .../form/field-multiple-value-form.html.twig       |   9 +-
+ .../templates/misc/status-messages.html.twig       |   7 +-
+ .../src/Unit/OliveroFieldMultipleValueFormTest.php |  51 +++++++
+ .../admin/system-modules-details.html.twig         |   2 +-
+ .../templates/form/datetime-wrapper.html.twig      |   6 +-
+ .../stable9/templates/form/details.html.twig       |  15 +-
+ .../form/field-multiple-value-form.html.twig       |   9 +-
+ .../media-library/status-messages.html.twig        |  11 +-
+ .../templates/form/datetime-wrapper.html.twig      |   6 +-
+ .../templates/form/details.html.twig               |  16 ++-
+ .../form/field-multiple-value-form.html.twig       |   9 +-
+ .../templates/misc/status-messages.html.twig       |  11 +-
+ 93 files changed, 934 insertions(+), 137 deletions(-)
+
+diff --git a/core/lib/Drupal/Core/Datetime/DatePreprocess.php b/core/lib/Drupal/Core/Datetime/DatePreprocess.php
+index 6206288b0b..91a7dfd731 100644
+--- a/core/lib/Drupal/Core/Datetime/DatePreprocess.php
++++ b/core/lib/Drupal/Core/Datetime/DatePreprocess.php
+@@ -93,6 +93,18 @@ public function preprocessDatetimeForm(array &$variables): void {
+    */
+   public function preprocessDatetimeWrapper(array &$variables): void {
+     $element = $variables['element'];
++    if (
++      !isset($variables['attributes'])
++      || !$variables['attributes'] instanceof Attribute
++    ) {
++      $variables['attributes'] = new Attribute($variables['attributes'] ?? []);
++    }
++    if (
++      !isset($variables['title_attributes'])
++      || !$variables['title_attributes'] instanceof Attribute
++    ) {
++      $variables['title_attributes'] = new Attribute($variables['title_attributes'] ?? []);
++    }
+ 
+     if (!empty($element['#title'])) {
+       $variables['title'] = $element['#title'];
+@@ -102,6 +114,13 @@ public function preprocessDatetimeWrapper(array &$variables): void {
+         $variables['title'] = ['#markup' => $variables['title']];
+       }
+     }
++    if (!empty($variables['title']) && !empty($element['#id'])) {
++      $title_id = $element['#id'] . '--label';
++      $variables['title_attributes']->setAttribute('id', $title_id);
++      $variables['attributes']
++        ->setAttribute('role', 'group')
++        ->setAttribute('aria-labelledby', $title_id);
++    }
+ 
+     // Suppress error messages.
+     $variables['errors'] = NULL;
+diff --git a/core/lib/Drupal/Core/Field/FieldPreprocess.php b/core/lib/Drupal/Core/Field/FieldPreprocess.php
+index 4f06ce2403..1e29a3fdd4 100644
+--- a/core/lib/Drupal/Core/Field/FieldPreprocess.php
++++ b/core/lib/Drupal/Core/Field/FieldPreprocess.php
+@@ -108,14 +108,23 @@ public function preprocessFieldMultipleValueForm(array &$variables): void {
+         [
+           'data' => [
+             '#type' => 'html_tag',
+-            '#tag' => 'h4',
++            '#tag' => 'span',
+             '#value' => $element['#title'],
+             '#attributes' => $header_attributes,
+           ],
+           'colspan' => 2,
+           'class' => ['field-label'],
+         ],
+-        [],
++        [
++          'data' => [
++            '#type' => 'html_tag',
++            '#tag' => 'span',
++            '#value' => $this->t('Operations'),
++            '#attributes' => [
++              'class' => ['visually-hidden'],
++            ],
++          ],
++        ],
+         $this->t('Order', [], ['context' => 'Sort order']),
+       ];
+       $rows = [];
+@@ -186,7 +195,11 @@ public function preprocessFieldMultipleValueForm(array &$variables): void {
+ 
+       if (!empty($element['#description'])) {
+         $description_id = $element['#attributes']['aria-describedby'];
+-        $description_attributes['id'] = $description_id;
++        $description_attributes = ['id' => $description_id];
++        $variables['description_display'] = $element['#description_display'] ?? 'after';
++        if ($variables['description_display'] === 'invisible') {
++          $description_attributes['class'][] = 'visually-hidden';
++        }
+         $variables['description']['attributes'] = new Attribute($description_attributes);
+         $variables['description']['content'] = $element['#description'];
+ 
+diff --git a/core/lib/Drupal/Core/Form/FormPreprocess.php b/core/lib/Drupal/Core/Form/FormPreprocess.php
+index 342f92f1ff..b581917a4e 100644
+--- a/core/lib/Drupal/Core/Form/FormPreprocess.php
++++ b/core/lib/Drupal/Core/Form/FormPreprocess.php
+@@ -351,7 +351,6 @@ public function preprocessDetails(array &$variables): void {
+     $variables['attributes'] = $element['#attributes'];
+     $variables['summary_attributes'] = new Attribute($element['#summary_attributes']);
+     if (!empty($element['#title'])) {
+-      $variables['summary_attributes']['role'] = 'button';
+       if (!empty($element['#attributes']['id'])) {
+         $variables['summary_attributes']['aria-controls'] = $element['#attributes']['id'];
+       }
+@@ -364,6 +363,7 @@ public function preprocessDetails(array &$variables): void {
+       $variables['title'] = ['#markup' => $variables['title']];
+     }
+     $variables['description'] = (!empty($element['#description'])) ? $element['#description'] : '';
++    $variables['description_display'] = $element['#description_display'] ?? 'after';
+     $variables['children'] = (isset($element['#children'])) ? $element['#children'] : '';
+     $variables['value'] = (isset($element['#value'])) ? $element['#value'] : '';
+     $variables['required'] = !empty($element['#required']) ? $element['#required'] : NULL;
+diff --git a/core/lib/Drupal/Core/Render/Element/Details.php b/core/lib/Drupal/Core/Render/Element/Details.php
+index 28e7396887..e164480550 100644
+--- a/core/lib/Drupal/Core/Render/Element/Details.php
++++ b/core/lib/Drupal/Core/Render/Element/Details.php
+@@ -46,6 +46,7 @@ public function getInfo() {
+       '#open' => FALSE,
+       '#summary_attributes' => [],
+       '#value' => NULL,
++      '#title' => $this->t('Details'),
+       '#process' => [
+         [static::class, 'processGroup'],
+         [static::class, 'processAjaxForm'],
+diff --git a/core/misc/details-aria.js b/core/misc/details-aria.js
+index c629719a3f..cf715b8f81 100644
+--- a/core/misc/details-aria.js
++++ b/core/misc/details-aria.js
+@@ -16,10 +16,7 @@
+         'summary',
+         (event) => {
+           const $summary = $(event.currentTarget);
+-          const open =
+-            $(event.currentTarget.parentNode).attr('open') === 'open'
+-              ? 'false'
+-              : 'true';
++          const open = event.currentTarget.parentNode.open ? 'false' : 'true';
+ 
+           $summary.attr({
+             'aria-expanded': open,
+diff --git a/core/misc/message.js b/core/misc/message.js
+index 4b93cb21ca..0bc5c61bf2 100644
+--- a/core/misc/message.js
++++ b/core/misc/message.js
+@@ -197,10 +197,7 @@
+      *   Message type, can be either 'status', 'error' or 'warning'.
+      */
+     static announce(message, options) {
+-      if (
+-        !options.priority &&
+-        (options.type === 'warning' || options.type === 'error')
+-      ) {
++      if (!options.priority && options.type === 'error') {
+         options.priority = 'assertive';
+       }
+       /**
+@@ -253,7 +250,7 @@
+     messageWrapper.setAttribute('class', `messages messages--${type}`);
+     messageWrapper.setAttribute(
+       'role',
+-      type === 'error' || type === 'warning' ? 'alert' : 'status',
++      type === 'error' ? 'alert' : 'status',
+     );
+     messageWrapper.setAttribute('data-drupal-message-id', id);
+     messageWrapper.setAttribute('data-drupal-message-type', type);
+diff --git a/core/misc/tabledrag.js b/core/misc/tabledrag.js
+index 2b8979e29b..b7827ffb5d 100644
+--- a/core/misc/tabledrag.js
++++ b/core/misc/tabledrag.js
+@@ -1734,7 +1734,7 @@
+        *   Markup for the warning.
+        */
+       tableDragChangedWarning() {
+-        return `<div class="tabledrag-changed-warning messages messages--warning" role="alert">${Drupal.theme(
++        return `<div class="tabledrag-changed-warning messages messages--warning" role="status">${Drupal.theme(
+           'tableDragChangedMarker',
+         )} ${Drupal.t('You have unsaved changes.')}</div>`;
+       },
+diff --git a/core/misc/tableselect.js b/core/misc/tableselect.js
+index af1fe5fe11..5f6e487213 100644
+--- a/core/misc/tableselect.js
++++ b/core/misc/tableselect.js
+@@ -53,7 +53,7 @@
+           const stateChanged = $checkbox.prop('checked') !== state;
+ 
+           $checkbox.attr(
+-            'title',
++            'aria-label',
+             state ? strings.selectNone : strings.selectAll,
+           );
+ 
+@@ -69,7 +69,9 @@
+     // Find all <th> with class select-all, and insert the check all checkbox.
+     $table
+       .find('th.select-all')
+-      .prepend($(Drupal.theme('checkbox')).attr('title', strings.selectAll))
++      .prepend(
++        $(Drupal.theme('checkbox')).attr('aria-label', strings.selectAll),
++      )
+       .on('click', (event) => {
+         if (event.target.matches('input[type="checkbox"]')) {
+           // Loop through all checkboxes and set their state to the select all
+diff --git a/core/modules/field/tests/modules/field_test/src/Hook/FieldTestHooks.php b/core/modules/field/tests/modules/field_test/src/Hook/FieldTestHooks.php
+index dd58152a90..67174dc383 100644
+--- a/core/modules/field/tests/modules/field_test/src/Hook/FieldTestHooks.php
++++ b/core/modules/field/tests/modules/field_test/src/Hook/FieldTestHooks.php
+@@ -220,6 +220,9 @@ public function alterWidget($hook, array &$field_widget_complete_form, FormState
+     $alter_info = \Drupal::state()->get("field_test.widget_alter_test");
+     $name = $context['items']->getFieldDefinition()->getName();
+     if (!empty($alter_info) && $hook === $alter_info['hook'] && $name === $alter_info['field_name']) {
++      if (!empty($alter_info['description_display'])) {
++        $elements['#description_display'] = $alter_info['description_display'];
++      }
+       $elements['#prefix'] = "From $hook(): prefix on $name parent element.";
+       foreach (Element::children($elements) as $delta => $element) {
+         $elements[$delta]['#suffix'] = "From $hook(): suffix on $name child element.";
+diff --git a/core/modules/field/tests/src/Functional/FormTest.php b/core/modules/field/tests/src/Functional/FormTest.php
+index 61b489b2a0..5a6d130590 100644
+--- a/core/modules/field/tests/src/Functional/FormTest.php
++++ b/core/modules/field/tests/src/Functional/FormTest.php
+@@ -284,6 +284,9 @@ public function testFieldFormUnlimited(): void {
+ 
+     // Check if aria-describedby attribute is placed on multiple value widgets.
+     $this->assertSession()->elementAttributeContains('xpath', '//table[@id="field-unlimited-values"]', 'aria-describedby', 'edit-field-unlimited--description');
++    // The operations column header is visually hidden, but still available to
++    // assistive technology.
++    $this->assertSession()->elementExists('xpath', '//table[@id="field-unlimited-values"]/thead/tr/th[2]/span[contains(@class, "visually-hidden") and normalize-space(.) = "Operations"]');
+ 
+     // Press 'add more' button -> 2 widgets.
+     $this->submitForm([], 'Add another item');
+diff --git a/core/modules/field/tests/src/Functional/MultipleWidgetFormTest.php b/core/modules/field/tests/src/Functional/MultipleWidgetFormTest.php
+index 121e1652d6..39e9d9efdf 100644
+--- a/core/modules/field/tests/src/Functional/MultipleWidgetFormTest.php
++++ b/core/modules/field/tests/src/Functional/MultipleWidgetFormTest.php
+@@ -177,10 +177,64 @@ public function testLabelOnMultiValueFields(): void {
+     $this->drupalGet('entity_test_base_field_display/manage/' . $entity->id());
+     $this->assertSession()->statusCodeEquals(200);
+     $this->assertSession()->pageTextContains('A field with multiple values');
++    $this->assertSession()->elementExists('css', 'th.field-label > span.label');
++    $this->assertSession()->elementNotExists('css', 'th.field-label > h4');
+     // Test if labels were XSS filtered.
+     $this->assertSession()->assertEscaped("<script>alert('a configurable field');</script>");
+   }
+ 
++  /**
++   * Tests configurable description position for multi-value field widgets.
++   */
++  public function testDescriptionDisplayOnMultiValueFields(): void {
++    $field_storage = $this->fieldStorageMultiple;
++    $field_name = $field_storage['field_name'];
++    $this->field['field_name'] = $field_name;
++    $this->field['description'] = 'Multiple widget description.';
++    FieldStorageConfig::create($field_storage)->save();
++    FieldConfig::create($this->field)->save();
++    \Drupal::service('entity_display.repository')->getFormDisplay($this->field['entity_type'], $this->field['bundle'], 'default')
++      ->setComponent($field_name, [
++        'type' => 'test_field_widget_multiple',
++      ])
++      ->save();
++
++    $selector = str_replace('_', '-', $field_name);
++
++    // By default, the description is rendered after the field table.
++    $this->drupalGet('entity_test/add');
++    $this->assertSession()->elementExists('css', '[data-drupal-selector="edit-' . $selector . '"] > table.field-multiple-table + div.description');
++    $this->assertSession()->pageTextContains('Multiple widget description.');
++
++    // Configure the widget to render its description before the field table.
++    \Drupal::state()->set('field_test.widget_alter_test', [
++      'hook' => 'hook_field_widget_complete_form_alter',
++      'field_name' => $field_name,
++      'widget' => 'test_field_widget_multiple',
++      'description_display' => 'before',
++    ]);
++    $this->rebuildAll();
++
++    $this->drupalGet('entity_test/add');
++    $this->assertSession()->elementExists('css', '[data-drupal-selector="edit-' . $selector . '"] > div.description + table.field-multiple-table');
++
++    // Configure the widget to render its description in an invisible style.
++    \Drupal::state()->set('field_test.widget_alter_test', [
++      'hook' => 'hook_field_widget_complete_form_alter',
++      'field_name' => $field_name,
++      'widget' => 'test_field_widget_multiple',
++      'description_display' => 'invisible',
++    ]);
++    $this->rebuildAll();
++
++    $this->drupalGet('entity_test/add');
++    $this->assertSession()->elementExists('css', '[data-drupal-selector="edit-' . $selector . '"] > table.field-multiple-table + div.description.visually-hidden');
++    $this->assertSession()->pageTextContains('Multiple widget description.');
++
++    \Drupal::state()->delete('field_test.widget_alter_test');
++    $this->rebuildAll();
++  }
++
+   /**
+    * Tests hook_field_widget_complete_form_alter().
+    */
+diff --git a/core/modules/file/src/Hook/FileThemeHooks.php b/core/modules/file/src/Hook/FileThemeHooks.php
+index 9f8b0ac747..0bd32d2b42 100644
+--- a/core/modules/file/src/Hook/FileThemeHooks.php
++++ b/core/modules/file/src/Hook/FileThemeHooks.php
+@@ -282,7 +282,7 @@ public function preprocessFileWidgetMultiple(array &$variables): void {
+ 
+       // Arrange the row with the rest of the rendered columns.
+       if ($element['#display_field']) {
+-        unset($widget['display']['#title']);
++        $widget['display']['#title_display'] = 'invisible';
+         $row[] = [
+           'data' => $widget['display'],
+           'class' => ['checkbox'],
+diff --git a/core/modules/file/src/Plugin/Field/FieldWidget/FileWidget.php b/core/modules/file/src/Plugin/Field/FieldWidget/FileWidget.php
+index bd409e434d..705ef130a7 100644
+--- a/core/modules/file/src/Plugin/Field/FieldWidget/FileWidget.php
++++ b/core/modules/file/src/Plugin/Field/FieldWidget/FileWidget.php
+@@ -400,7 +400,10 @@ public static function process($element, FormStateInterface $form_state, $form)
+       $element['display'] = [
+         '#type' => empty($item['fids']) ? 'hidden' : 'checkbox',
+         '#title' => new TranslatableMarkup('Include file in display'),
+-        '#attributes' => ['class' => ['file-display']],
++        '#attributes' => [
++          'class' => ['file-display'],
++          'aria-label' => (string) new TranslatableMarkup('Include file in display'),
++        ],
+       ];
+       if (isset($item['display'])) {
+         $element['display']['#value'] = $item['display'] ? '1' : '';
+diff --git a/core/modules/file/tests/src/Functional/FileFieldDisplayTest.php b/core/modules/file/tests/src/Functional/FileFieldDisplayTest.php
+index bbae99ac6c..e31c0ae3bc 100644
+--- a/core/modules/file/tests/src/Functional/FileFieldDisplayTest.php
++++ b/core/modules/file/tests/src/Functional/FileFieldDisplayTest.php
+@@ -124,14 +124,27 @@ public function testNodeDisplay(): void {
+     $this->clickLink('Back to content editing');
+     // First file.
+     $this->assertSession()->responseContains($field_name . '[0][display]');
++    $this->assertFileDisplayCheckboxHasLabel($field_name, 0);
+     // Second file.
+     $this->assertSession()->responseContains($field_name . '[1][display]');
++    $this->assertFileDisplayCheckboxHasLabel($field_name, 1);
+     $this->assertSession()->responseContains($field_name . '[1][description]');
+ 
+     // Check that the file fields don't contain duplicate HTML IDs.
+     $this->assertSession()->pageContainsNoDuplicateId();
+   }
+ 
++  /**
++   * Asserts that a file display checkbox has an invisible label.
++   */
++  protected function assertFileDisplayCheckboxHasLabel(string $field_name, int $delta): void {
++    $display_checkbox = $this->assertSession()->fieldExists($field_name . "[$delta][display]");
++    $label = $this->assertSession()->elementExists('xpath', '//label[@for="' . $display_checkbox->getAttribute('id') . '"]');
++    $this->assertSame('Include file in display', $label->getText());
++    $this->assertStringContainsString('visually-hidden', $label->getAttribute('class'));
++    $this->assertSame('Include file in display', $display_checkbox->getAttribute('aria-label'));
++  }
++
+   /**
+    * Tests default display of File Field.
+    */
+diff --git a/core/modules/filter/src/FilterFormatListBuilder.php b/core/modules/filter/src/FilterFormatListBuilder.php
+index e6a90f7a9e..2500a5a9b7 100644
+--- a/core/modules/filter/src/FilterFormatListBuilder.php
++++ b/core/modules/filter/src/FilterFormatListBuilder.php
+@@ -133,6 +133,15 @@ protected function getDefaultOperations(EntityInterface $entity, CacheableMetada
+ 
+     if (isset($operations['edit'])) {
+       $operations['edit']['title'] = $this->t('Configure');
++      // Keep the accessible name aligned with the overridden title.
++      if (isset($operations['edit']['url'])) {
++        $url = $operations['edit']['url'];
++        $attributes = $url->getOption('attributes') ?: [];
++        $attributes['aria-label'] = $this->t('Configure @entity_label', [
++          '@entity_label' => $entity->label(),
++        ]);
++        $url->setOption('attributes', $attributes);
++      }
+     }
+ 
+     // The fallback format may not be disabled.
+diff --git a/core/modules/filter/src/Hook/FilterThemeHooks.php b/core/modules/filter/src/Hook/FilterThemeHooks.php
+index c516f9fd2a..ae77ff3021 100644
+--- a/core/modules/filter/src/Hook/FilterThemeHooks.php
++++ b/core/modules/filter/src/Hook/FilterThemeHooks.php
+@@ -4,6 +4,7 @@
+ 
+ use Drupal\Core\Hook\Attribute\Hook;
+ use Drupal\Core\Session\AccountInterface;
++use Drupal\Core\Template\Attribute;
+ use Drupal\filter\FilterFormatRepositoryInterface;
+ 
+ /**
+@@ -27,6 +28,7 @@ public function theme() : array {
+           'tips' => NULL,
+           'long' => FALSE,
+         ],
++        'initial preprocess' => static::class . ':preprocessFilterTips',
+       ],
+       'text_format_wrapper' => [
+         'variables' => [
+@@ -53,6 +55,53 @@ public function theme() : array {
+     ];
+   }
+ 
++  /**
++   * Prepares variables for filter tips templates.
++   *
++   * Default template: filter-tips.html.twig.
++   *
++   * @param array $variables
++   *   An associative array containing:
++   *   - tips: An associative array of filter tips keyed by text format label.
++   *   - long: Whether the tips use the long explanatory format.
++   */
++  public function preprocessFilterTips(array &$variables): void {
++    $tips = $variables['tips'] ?? [];
++    $variables['multiple'] = count($tips) > 1;
++
++    foreach ($tips as $name => $tip_list) {
++      // Some callers or themes may already provide the normalized template
++      // shape. Leave those values intact.
++      if (isset($tip_list['list'])) {
++        $variables['tips'][$name]['list'] = $this->normalizeFilterTipList($tip_list['list']);
++        $variables['tips'][$name] += [
++          'name' => $name,
++          'attributes' => new Attribute(),
++        ];
++        continue;
++      }
++
++      $variables['tips'][$name] = [
++        'name' => $name,
++        'list' => $this->normalizeFilterTipList($tip_list),
++        'attributes' => new Attribute(),
++      ];
++    }
++  }
++
++  /**
++   * Ensures each filter tip item has template-safe attributes.
++   */
++  protected function normalizeFilterTipList(array $tip_list): array {
++    foreach ($tip_list as &$item) {
++      if (is_array($item)) {
++        $item += ['attributes' => new Attribute()];
++      }
++    }
++    unset($item);
++    return $tip_list;
++  }
++
+   /**
+    * Prepares variables for text format guideline templates.
+    *
+diff --git a/core/modules/filter/tests/src/Functional/FilterAdminTest.php b/core/modules/filter/tests/src/Functional/FilterAdminTest.php
+index b9776c852a..245bd05931 100644
+--- a/core/modules/filter/tests/src/Functional/FilterAdminTest.php
++++ b/core/modules/filter/tests/src/Functional/FilterAdminTest.php
+@@ -498,7 +498,11 @@ public function testFilterEnableAndDisable(): void {
+     $this->assertSession()->linkByHrefNotExists('/admin/config/content/formats/manage/filter_test/enable');
+ 
+     // Test the configure link appears for Filter test.
+-    $this->assertSession()->elementExists('xpath', '//a[contains(@href, "/admin/config/content/formats/manage/filter_test") and text()="Configure"]');
++    $configure_link = $this->assertSession()->elementExists(
++      'xpath',
++      '//a[contains(@href, "/admin/config/content/formats/manage/filter_test") and text()="Configure"]',
++    );
++    $this->assertSame('Configure Filter test', $configure_link->getAttribute('aria-label'));
+ 
+     // Disable 'Filter test'.
+     $this->getSession()->getPage()->find('css', '[href*="/admin/config/content/formats/manage/filter_test/disable"]')->click();
+diff --git a/core/modules/filter/tests/src/Kernel/FilterTipsRenderTest.php b/core/modules/filter/tests/src/Kernel/FilterTipsRenderTest.php
+new file mode 100644
+index 0000000000..76daf02b82
+--- /dev/null
++++ b/core/modules/filter/tests/src/Kernel/FilterTipsRenderTest.php
+@@ -0,0 +1,153 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\filter\Kernel;
++
++use Drupal\Core\Theme\ThemeInitializationInterface;
++use Drupal\filter\FilterFormatRepositoryInterface;
++use Drupal\filter\Hook\FilterThemeHooks;
++use Drupal\KernelTests\KernelTestBase;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++
++/**
++ * Tests rendered filter tips.
++ */
++#[Group('filter')]
++#[RunTestsInSeparateProcesses]
++class FilterTipsRenderTest extends KernelTestBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  protected static $modules = ['system', 'filter'];
++
++  /**
++   * Tests long filter tips with one format.
++   */
++  public function testSingleFormatLongTipsRenderNamedHeading(): void {
++    foreach ($this->filterTipThemes() as $theme) {
++      $this->setActiveTheme($theme);
++      $output = $this->renderFilterTips([
++        'Plain text' => $this->filterTips()['Plain text'],
++      ]);
++
++      $this->assertStringContainsString('<h3>Plain text</h3>', $output, "$theme should render the format name.");
++      $this->assertStringNotContainsString('<h3' . '></h3>', $output, "$theme should not render an empty heading.");
++    }
++  }
++
++  /**
++   * Tests long filter tips with multiple formats.
++   */
++  public function testMultipleFormatLongTipsRenderNamedHeadings(): void {
++    foreach ($this->filterTipThemes() as $theme) {
++      $this->setActiveTheme($theme);
++      $output = $this->renderFilterTips($this->filterTips());
++
++      $this->assertStringContainsString('<h2>Text Formats</h2>', $output, "$theme should render the filter tips heading.");
++      $this->assertStringContainsString('<h3>Basic HTML</h3>', $output, "$theme should render the first format name.");
++      $this->assertStringContainsString('<h3>Plain text</h3>', $output, "$theme should render the second format name.");
++      $this->assertStringNotContainsString('<h3' . '></h3>', $output, "$theme should not render an empty heading.");
++    }
++  }
++
++  /**
++   * Tests preprocessing for theme overrides.
++   */
++  public function testPreprocessFilterTipsNormalizesTemplateVariables(): void {
++    $variables = [
++      'tips' => $this->filterTips(),
++      'long' => TRUE,
++    ];
++    $this->filterThemeHooks()->preprocessFilterTips($variables);
++
++    $this->assertTrue($variables['multiple']);
++    $this->assertSame('Basic HTML', $variables['tips']['Basic HTML']['name']);
++    $this->assertArrayHasKey('attributes', $variables['tips']['Basic HTML']);
++    $this->assertArrayHasKey('attributes', $variables['tips']['Basic HTML']['list']['filter_html']);
++
++    $variables = [
++      'tips' => [
++        'Existing format' => [
++          'name' => 'Provided format',
++          'list' => [
++            'filter_html' => [
++              'tip' => ['#markup' => 'Allowed HTML tags: <code>&lt;p&gt;</code>'],
++              'id' => 'filter_html',
++            ],
++          ],
++        ],
++      ],
++      'long' => TRUE,
++    ];
++    $this->filterThemeHooks()->preprocessFilterTips($variables);
++
++    $this->assertSame('Provided format', $variables['tips']['Existing format']['name']);
++    $this->assertArrayHasKey('attributes', $variables['tips']['Existing format']);
++    $this->assertArrayHasKey('attributes', $variables['tips']['Existing format']['list']['filter_html']);
++  }
++
++  /**
++   * Sets the active theme.
++   */
++  private function setActiveTheme(string $theme): void {
++    $this->container->get('theme_installer')->install([$theme]);
++    $active_theme = $this->container
++      ->get(ThemeInitializationInterface::class)
++      ->initTheme($theme);
++    $this->container->get('theme.manager')->setActiveTheme($active_theme);
++  }
++
++  /**
++   * Gets themes that render filter tips with format headings.
++   */
++  private function filterTipThemes(): array {
++    return ['claro', 'default_admin'];
++  }
++
++  /**
++   * Renders filter tips.
++   */
++  private function renderFilterTips(array $tips): string {
++    $build = [
++      '#theme' => 'filter_tips',
++      '#long' => TRUE,
++      '#tips' => $tips,
++    ];
++
++    return (string) $this->container->get('renderer')->renderRoot($build);
++  }
++
++  /**
++   * Gets the filter theme hooks service.
++   */
++  private function filterThemeHooks(): FilterThemeHooks {
++    return new FilterThemeHooks(
++      $this->container->get('current_user'),
++      $this->container->get(FilterFormatRepositoryInterface::class),
++    );
++  }
++
++  /**
++   * Builds filter tips keyed by text format label.
++   */
++  private function filterTips(): array {
++    return [
++      'Basic HTML' => [
++        'filter_html' => [
++          'tip' => ['#markup' => 'Allowed HTML tags: <code>&lt;p&gt;</code>'],
++          'id' => 'filter_html',
++        ],
++      ],
++      'Plain text' => [
++        'filter_autop' => [
++          'tip' => ['#markup' => 'Lines and paragraphs break automatically.'],
++          'id' => 'filter_autop',
++        ],
++      ],
++    ];
++  }
++
++}
+diff --git a/core/modules/inline_form_errors/src/FormErrorHandler.php b/core/modules/inline_form_errors/src/FormErrorHandler.php
+index 2a449ab89d..0c791732ed 100644
+--- a/core/modules/inline_form_errors/src/FormErrorHandler.php
++++ b/core/modules/inline_form_errors/src/FormErrorHandler.php
+@@ -2,6 +2,7 @@
+ 
+ namespace Drupal\inline_form_errors;
+ 
++use Drupal\Component\Utility\Html;
+ use Drupal\Core\Form\FormElementHelper;
+ use Drupal\Core\Form\FormErrorHandler as CoreFormErrorHandler;
+ use Drupal\Core\Form\FormStateInterface;
+@@ -50,6 +51,19 @@ public function __construct(TranslationInterface $string_translation, RendererIn
+     $this->messenger = $messenger;
+   }
+ 
++  /**
++   * {@inheritdoc}
++   */
++  public function handleFormErrors(array &$form, FormStateInterface $form_state) {
++    parent::handleFormErrors($form, $form_state);
++
++    if (!empty($form_state->getErrors()) && empty($form['#disable_inline_form_errors'])) {
++      $this->setTableElementInlineErrors($form);
++    }
++
++    return $this;
++  }
++
+   /**
+    * Loops through and displays all form errors.
+    *
+@@ -122,4 +136,35 @@ protected function displayErrorMessages(array $form, FormStateInterface $form_st
+     }
+   }
+ 
++  /**
++   * Adds inline table error markup for table elements with element-level errors.
++   *
++   * @param array $elements
++   *   Form render array elements by reference.
++   */
++  protected function setTableElementInlineErrors(array &$elements): void {
++    foreach (Element::children($elements) as $key) {
++      if (empty($elements[$key])) {
++        continue;
++      }
++
++      $element = &$elements[$key];
++
++      if (($element['#type'] ?? NULL) === 'table' && !empty($element['#errors']) && empty($element['#error_no_message'])) {
++        $error_id = ($element['#id'] ?? ('inline-form-errors-table-' . $key)) . '--error';
++        $existing_prefix = (string) ($element['#prefix'] ?? '');
++
++        if (!str_contains($existing_prefix, $error_id)) {
++          $error_markup = '<div id="' . Html::escape($error_id) . '" class="form-item--error-message form-item__error-message">' . Html::escape((string) $element['#errors']) . '</div>';
++          $element['#prefix'] = $error_markup . $existing_prefix;
++
++          $describedby = trim((string) ($element['#attributes']['aria-describedby'] ?? ''));
++          $element['#attributes']['aria-describedby'] = trim($describedby . ' ' . $error_id);
++        }
++      }
++
++      $this->setTableElementInlineErrors($element);
++    }
++  }
++
+ }
+diff --git a/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php b/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php
+index f046ac965f..8a659863d8 100644
+--- a/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php
++++ b/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php
+@@ -105,6 +105,14 @@ protected function setUp(): void {
+       '#array_parents' => ['test6'],
+       '#id' => 'edit-test6',
+     ];
++    $this->testForm['table'] = [
++      '#type' => 'table',
++      '#title' => 'Table test',
++      '#parents' => ['table'],
++      '#array_parents' => ['table'],
++      '#id' => 'edit-table',
++      '#attributes' => [],
++    ];
+   }
+ 
+   /**
+@@ -119,7 +127,7 @@ public function testErrorMessagesInline(): void {
+       'no title given',
+       'element is invisible',
+       'this missing element is invalid',
+-      '3 errors have been found: <ul-comma-list-mock><li-mock>Test 1</li-mock><li-mock>Test 2 &amp; a half</li-mock><li-mock>Test 3</li-mock></ul-comma-list-mock>',
++      '4 errors have been found: <ul-comma-list-mock><li-mock>Test 1</li-mock><li-mock>Test 2 &amp; a half</li-mock><li-mock>Test 3</li-mock><li-mock>Table test</li-mock></ul-comma-list-mock>',
+     ];
+ 
+     $this->messenger->expects($this->exactly(count($messages)))
+@@ -149,6 +157,7 @@ public function testErrorMessagesInline(): void {
+     $form_state->setErrorByName('test4', 'no error message');
+     $form_state->setErrorByName('test5', 'no title given');
+     $form_state->setErrorByName('test6', 'element is invisible');
++    $form_state->setErrorByName('table', 'No items selected.');
+     $form_state->setErrorByName('missing_element', 'this missing element is invalid');
+     $this->formErrorHandler->handleFormErrors($this->testForm, $form_state);
+ 
+@@ -159,6 +168,9 @@ public function testErrorMessagesInline(): void {
+     $this->assertSame('no error message', $this->testForm['test4']['#errors']);
+     $this->assertSame('no title given', $this->testForm['test5']['#errors']);
+     $this->assertSame('element is invisible', $this->testForm['test6']['#errors']);
++    $this->assertSame('No items selected.', $this->testForm['table']['#errors']);
++    $this->assertStringContainsString('No items selected.', $this->testForm['table']['#prefix']);
++    $this->assertStringContainsString('edit-table--error', $this->testForm['table']['#attributes']['aria-describedby']);
+   }
+ 
+   /**
+@@ -173,6 +185,7 @@ public function testErrorMessagesNotInline(): void {
+       'no error message',
+       'no title given',
+       'element is invisible',
++      'No items selected.',
+       'this missing element is invalid',
+     ];
+ 
+@@ -198,6 +211,7 @@ public function testErrorMessagesNotInline(): void {
+     $form_state->setErrorByName('test4', 'no error message');
+     $form_state->setErrorByName('test5', 'no title given');
+     $form_state->setErrorByName('test6', 'element is invisible');
++    $form_state->setErrorByName('table', 'No items selected.');
+     $form_state->setErrorByName('missing_element', 'this missing element is invalid');
+     $this->formErrorHandler->handleFormErrors($this->testForm, $form_state);
+ 
+@@ -208,6 +222,8 @@ public function testErrorMessagesNotInline(): void {
+     $this->assertSame('no error message', $this->testForm['test4']['#errors']);
+     $this->assertSame('no title given', $this->testForm['test5']['#errors']);
+     $this->assertSame('element is invisible', $this->testForm['test6']['#errors']);
++    $this->assertSame('No items selected.', $this->testForm['table']['#errors']);
++    $this->assertArrayNotHasKey('#prefix', $this->testForm['table']);
+   }
+ 
+ }
+diff --git a/core/modules/language/src/Hook/LanguageThemeHooks.php b/core/modules/language/src/Hook/LanguageThemeHooks.php
+index 269cca04bd..79d7199033 100644
+--- a/core/modules/language/src/Hook/LanguageThemeHooks.php
++++ b/core/modules/language/src/Hook/LanguageThemeHooks.php
+@@ -177,6 +177,9 @@ public function preprocessLanguageContentSettingsTable(array &$variables): void
+   public function preprocessBlock(&$variables): void {
+     if ($variables['configuration']['provider'] == 'language') {
+       $variables['attributes']['role'] = 'navigation';
++      if (empty($variables['attributes']['aria-label']) && empty($variables['attributes']['aria-labelledby'])) {
++        $variables['attributes']['aria-label'] = !empty($variables['label']) ? $variables['label'] : $this->t('Language switcher');
++      }
+     }
+   }
+ 
+diff --git a/core/modules/language/tests/src/Functional/LanguageSwitchingTest.php b/core/modules/language/tests/src/Functional/LanguageSwitchingTest.php
+index 825cac86af..801b148552 100644
+--- a/core/modules/language/tests/src/Functional/LanguageSwitchingTest.php
++++ b/core/modules/language/tests/src/Functional/LanguageSwitchingTest.php
+@@ -115,6 +115,11 @@ protected function doTestHomePageLinks(string|int|float|bool $block_label): void
+     $this->DrupalGet('<front>');
+     // The language switcher block should display.
+     $this->assertSession()->pageTextContains($block_label);
++    $language_switcher_nav = $this->xpath('//div[@id=:id and @role="navigation" and @aria-label=:label]', [
++      ':id' => 'block-test-language-block',
++      ':label' => (string) $block_label,
++    ]);
++    $this->assertNotEmpty($language_switcher_nav, 'Language switcher block navigation landmark has accessible name.');
+     // Assert that each list item and anchor element has the appropriate data-
+     // attributes.
+     $language_switchers = $this->xpath('//div[@id=:id]/ul/li', [':id' => 'block-test-language-block']);
+diff --git a/core/modules/node/config/optional/views.view.content.yml b/core/modules/node/config/optional/views.view.content.yml
+index 09ba3dcc35..b9f74760f6 100644
+--- a/core/modules/node/config/optional/views.view.content.yml
++++ b/core/modules/node/config/optional/views.view.content.yml
+@@ -312,7 +312,7 @@ display:
+       pager:
+         type: full
+         options:
+-          pagination_heading_level: h4
++          pagination_heading_level: h2
+           items_per_page: 50
+           tags:
+             next: 'Next ›'
+diff --git a/core/modules/node/node.post_update.php b/core/modules/node/node.post_update.php
+index 4a831dc407..050a81c490 100644
+--- a/core/modules/node/node.post_update.php
++++ b/core/modules/node/node.post_update.php
+@@ -20,3 +20,18 @@ function node_removed_post_updates(): array {
+     'node_post_update_add_rebuild_permission_to_roles' => '12.0.0',
+   ];
+ }
++
++/**
++ * Updates the content overview pager heading level.
++ */
++function node_post_update_content_view_pager_heading_level(): void {
++  $config = \Drupal::configFactory()->getEditable('views.view.content');
++  if ($config->isNew()) {
++    return;
++  }
++
++  $pager_heading_level = 'display.default.display_options.pager.options.pagination_heading_level';
++  if ($config->get($pager_heading_level) === 'h4') {
++    $config->set($pager_heading_level, 'h2')->save();
++  }
++}
+diff --git a/core/modules/node/tests/src/Functional/NodeAdminTest.php b/core/modules/node/tests/src/Functional/NodeAdminTest.php
+index 57660092c6..a53ff0cc0d 100644
+--- a/core/modules/node/tests/src/Functional/NodeAdminTest.php
++++ b/core/modules/node/tests/src/Functional/NodeAdminTest.php
+@@ -140,6 +140,23 @@ public function testContentAdminSort(): void {
+     $this->assertSession()->elementAttributeContains('css', 'table thead tr th.views-field-title', 'aria-sort', 'ascending');
+   }
+ 
++  /**
++   * Tests the content overview pager heading level.
++   */
++  public function testContentAdminPagerHeadingLevel(): void {
++    $this->config('views.view.content')
++      ->set('display.default.display_options.pager.options.items_per_page', 1)
++      ->save();
++
++    $this->drupalCreateNode(['type' => 'page']);
++    $this->drupalCreateNode(['type' => 'page']);
++
++    $this->drupalLogin($this->adminUser);
++    $this->drupalGet('admin/content');
++
++    $this->assertSame('h2', $this->assertSession()->elementExists('css', '#pagination-heading')->getTagName());
++  }
++
+   /**
+    * Tests content overview with different user permissions.
+    *
+diff --git a/core/modules/node/tests/src/Kernel/NodePostUpdateTest.php b/core/modules/node/tests/src/Kernel/NodePostUpdateTest.php
+new file mode 100644
+index 0000000000..2acb9b6a9a
+--- /dev/null
++++ b/core/modules/node/tests/src/Kernel/NodePostUpdateTest.php
+@@ -0,0 +1,61 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\node\Kernel;
++
++use Drupal\Core\Config\Config;
++use Drupal\KernelTests\KernelTestBase;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++
++/**
++ * Tests node post update functions.
++ */
++#[Group('node')]
++#[RunTestsInSeparateProcesses]
++class NodePostUpdateTest extends KernelTestBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  protected static $modules = ['field', 'filter', 'node', 'system', 'text', 'user', 'views'];
++
++  /**
++   * The content View pager heading level config path.
++   */
++  private const PAGER_HEADING_LEVEL = 'display.default.display_options.pager.options.pagination_heading_level';
++
++  /**
++   * {@inheritdoc}
++   */
++  protected function setUp(): void {
++    parent::setUp();
++    $this->installEntitySchema('user');
++    $this->installConfig(['node']);
++    require_once $this->root . '/core/modules/node/node.post_update.php';
++  }
++
++  /**
++   * Tests content View pager heading level updates.
++   */
++  public function testContentViewPagerHeadingLevelPostUpdate(): void {
++    $this->assertSame('h2', $this->contentViewConfig()->get(self::PAGER_HEADING_LEVEL));
++
++    $this->contentViewConfig()->set(self::PAGER_HEADING_LEVEL, 'h4')->save();
++    node_post_update_content_view_pager_heading_level();
++    $this->assertSame('h2', $this->contentViewConfig()->get(self::PAGER_HEADING_LEVEL));
++
++    $this->contentViewConfig()->set(self::PAGER_HEADING_LEVEL, 'h3')->save();
++    node_post_update_content_view_pager_heading_level();
++    $this->assertSame('h3', $this->contentViewConfig()->get(self::PAGER_HEADING_LEVEL));
++  }
++
++  /**
++   * Gets the editable content View configuration.
++   */
++  private function contentViewConfig(): Config {
++    return $this->container->get('config.factory')->getEditable('views.view.content');
++  }
++
++}
+diff --git a/core/modules/system/src/Theme/SystemAdminThemePreprocess.php b/core/modules/system/src/Theme/SystemAdminThemePreprocess.php
+index edd9585bce..76a76a38d6 100644
+--- a/core/modules/system/src/Theme/SystemAdminThemePreprocess.php
++++ b/core/modules/system/src/Theme/SystemAdminThemePreprocess.php
+@@ -2,6 +2,7 @@
+ 
+ namespace Drupal\system\Theme;
+ 
++use Drupal\Component\Render\PlainTextOutput;
+ use Drupal\Component\Utility\Html;
+ use Drupal\Component\Utility\Xss;
+ use Drupal\Core\Extension\ModuleExtensionList;
+@@ -214,6 +215,13 @@ public function preprocessSystemModulesDetails(array &$variables): void {
+         $module['version'] = $this->renderer->render($module['version']);
+       }
+ 
++      $module['summary_label'] = NULL;
++      if (trim(PlainTextOutput::renderFromHtml($module['description']['#markup'] ?? '')) === '') {
++        $module['summary_label'] = $this->t('Details for @module', [
++          '@module' => trim(PlainTextOutput::renderFromHtml($module['name']['#markup'] ?? '')),
++        ]);
++      }
++
+       $module['attributes'] = new Attribute($module['#attributes']);
+       $variables['modules'][] = $module;
+     }
+diff --git a/core/modules/system/templates/admin-block.html.twig b/core/modules/system/templates/admin-block.html.twig
+index 6d1fa535db..f3c756d342 100644
+--- a/core/modules/system/templates/admin-block.html.twig
++++ b/core/modules/system/templates/admin-block.html.twig
+@@ -22,7 +22,7 @@
+ %}
+ <div{{ attributes.addClass(classes) }}>
+   {% if block.title %}
+-    <h3 class="panel__title">{{ block.title }}</h3>
++    <h2 class="panel__title">{{ block.title }}</h2>
+   {% endif %}
+   {% if block.content %}
+     <div class="panel__content">{{ block.content }}</div>
+diff --git a/core/modules/system/templates/datetime-wrapper.html.twig b/core/modules/system/templates/datetime-wrapper.html.twig
+index a184449000..45fe88a684 100644
+--- a/core/modules/system/templates/datetime-wrapper.html.twig
++++ b/core/modules/system/templates/datetime-wrapper.html.twig
+@@ -22,7 +22,8 @@
+   ]
+ %}
+ {% if title %}
+-  <h4{{ title_attributes.addClass(title_classes) }}>{{ title }}</h4>
++<div{{ attributes }}>
++  <div{{ title_attributes.addClass(title_classes) }}>{{ title }}</div>
+ {% endif %}
+ {{ content }}
+ {% if errors %}
+@@ -35,3 +36,6 @@
+     {{ description }}
+   </div>
+ {% endif %}
++{% if title %}
++</div>
++{% endif %}
+diff --git a/core/modules/system/templates/details.html.twig b/core/modules/system/templates/details.html.twig
+index 1e235a07ef..577f553eab 100644
+--- a/core/modules/system/templates/details.html.twig
++++ b/core/modules/system/templates/details.html.twig
+@@ -34,11 +34,22 @@
+     </div>
+   {% endif %}
+ 
+-  {%- if description -%}
++  {%- if description and description_display == 'before' -%}
+     {% set description_attributes = create_attribute({id: attributes['aria-describedby']}) %}
+-    <div{{ description_attributes }}>{{ description }}</div>
++    {% set description_classes = [
++      description_display == 'invisible' ? 'visually-hidden',
++    ] %}
++    <div{{ description_attributes.addClass(description_classes) }}>{{ description }}</div>
+   {%- endif -%}
+ 
+   {{ children }}
+   {{ value }}
++
++  {%- if description and description_display in ['after', 'invisible'] -%}
++    {% set description_attributes = create_attribute({id: attributes['aria-describedby']}) %}
++    {% set description_classes = [
++      description_display == 'invisible' ? 'visually-hidden',
++    ] %}
++    <div{{ description_attributes.addClass(description_classes) }}>{{ description }}</div>
++  {%- endif -%}
+ </details>
+diff --git a/core/modules/system/templates/field-multiple-value-form.html.twig b/core/modules/system/templates/field-multiple-value-form.html.twig
+index ecd268690b..d96e17fbf3 100644
+--- a/core/modules/system/templates/field-multiple-value-form.html.twig
++++ b/core/modules/system/templates/field-multiple-value-form.html.twig
+@@ -14,6 +14,10 @@
+  * - description: The description element containing the following properties:
+  *   - content: The description content of the form element.
+  *   - attributes: HTML attributes to apply to the description container.
++ * - description_display: Description display setting. It can have these values:
++ *   - before: The description is output before the element.
++ *   - after: The description is output after the element.
++ *   - invisible: The description is output after the element, hidden visually.
+  * - button: "Add another item" button.
+  *
+  * @see \Drupal\Core\Field\FieldPreprocess::preprocessFieldMultipleValueForm()
+@@ -29,8 +33,11 @@
+     ]
+   %}
+   <div{{ attributes.addClass(classes) }}>
++    {% if description.content and description_display == 'before' %}
++      <div{{ description.attributes.addClass('description') }} >{{ description.content }}</div>
++    {% endif %}
+     {{ table }}
+-    {% if description.content %}
++    {% if description.content and description_display != 'before' %}
+       <div{{ description.attributes.addClass('description') }} >{{ description.content }}</div>
+     {% endif %}
+     {% if button %}
+diff --git a/core/modules/system/templates/status-messages.html.twig b/core/modules/system/templates/status-messages.html.twig
+index be6711b270..d39df84c14 100644
+--- a/core/modules/system/templates/status-messages.html.twig
++++ b/core/modules/system/templates/status-messages.html.twig
+@@ -23,10 +23,10 @@
+ #}
+ <div data-drupal-messages>
+ {% for type, messages in message_list %}
+-  <div role="contentinfo" aria-label="{{ status_headings[type] }}"{{ attributes|without('role', 'aria-label') }}>
+-    {% if type == 'error' %}
+-      <div role="alert">
+-    {% endif %}
++  {%
++    set message_role = type == 'error' ? 'alert' : 'status'
++  %}
++  <div role="{{ message_role }}" aria-label="{{ status_headings[type] }}"{{ attributes|without('role', 'aria-label') }}>
+     {% if status_headings[type] %}
+       <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
+     {% endif %}
+@@ -39,9 +39,6 @@
+     {% else %}
+       {{ messages|first }}
+     {% endif %}
+-    {% if type == 'error' %}
+-      </div>
+-    {% endif %}
+   </div>
+ {% endfor %}
+ </div>
+diff --git a/core/modules/system/templates/system-modules-details.html.twig b/core/modules/system/templates/system-modules-details.html.twig
+index 9726886106..ded47e1fb9 100644
+--- a/core/modules/system/templates/system-modules-details.html.twig
++++ b/core/modules/system/templates/system-modules-details.html.twig
+@@ -44,7 +44,7 @@
+         </td>
+         <td class="description expand priority-low">
+           <details class="js-form-wrapper form-wrapper" id="{{ module.enable_id }}-description">
+-            <summary aria-controls="{{ module.enable_id }}-description" role="button" aria-expanded="false"><span class="text module-description">{{ module.description }}</span></summary>
++            <summary aria-controls="{{ module.enable_id }}-description" role="button" aria-expanded="false"{% if module.summary_label %} aria-label="{{ module.summary_label }}"{% endif %}><span class="text module-description">{{ module.description }}</span></summary>
+             <div class="details-wrapper">
+               <div class="details-description">
+                 <div class="requirements">
+diff --git a/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupDetailsForm.php b/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupDetailsForm.php
+index 226eb70580..eb9068f633 100644
+--- a/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupDetailsForm.php
++++ b/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupDetailsForm.php
+@@ -53,6 +53,39 @@ public function buildForm(array $form, FormStateInterface $form_state, $required
+       '#title' => 'Details element with description',
+       '#description' => 'I am a details description',
+     ];
++    $form['description_before'] = [
++      '#type' => 'details',
++      '#title' => 'Details element with description before',
++      '#description' => 'I am a before description',
++      '#description_display' => 'before',
++    ];
++    $form['description_before']['child'] = [
++      '#type' => 'textfield',
++      '#title' => 'Before child',
++    ];
++    $form['description_after'] = [
++      '#type' => 'details',
++      '#title' => 'Details element with description after',
++      '#description' => 'I am an after description',
++      '#description_display' => 'after',
++    ];
++    $form['description_after']['child'] = [
++      '#type' => 'textfield',
++      '#title' => 'After child',
++    ];
++    $form['description_invisible'] = [
++      '#type' => 'details',
++      '#title' => 'Details element with invisible description',
++      '#description' => 'I am an invisible description',
++      '#description_display' => 'invisible',
++    ];
++    $form['default_title'] = [
++      '#type' => 'details',
++    ];
++    $form['default_title']['child'] = [
++      '#type' => 'textfield',
++      '#title' => 'Default title child',
++    ];
+     return $form;
+   }
+ 
+diff --git a/core/modules/system/tests/src/Functional/Form/ElementTest.php b/core/modules/system/tests/src/Functional/Form/ElementTest.php
+index 37385cc316..76313f0f8e 100644
+--- a/core/modules/system/tests/src/Functional/Form/ElementTest.php
++++ b/core/modules/system/tests/src/Functional/Form/ElementTest.php
+@@ -41,6 +41,7 @@ public function testFormElements(): void {
+     $this->testFormAutocomplete();
+     $this->testFormElementErrors();
+     $this->testDetailsSummaryAttributes();
++    $this->testDetailsDefaultTitle();
+     $this->testDetailsDescriptionAttributes();
+   }
+ 
+@@ -243,6 +244,17 @@ protected function testFormElementErrors(): void {
+   protected function testDetailsSummaryAttributes(): void {
+     $this->drupalGet('form-test/group-details');
+     $this->assertSession()->elementExists('css', 'summary[data-summary-attribute="test"]');
++    $this->assertSession()->elementExists('css', 'summary[data-summary-attribute="test"][aria-expanded="false"]');
++    $this->assertSession()->elementNotExists('css', 'summary[data-summary-attribute="test"][role]');
++  }
++
++  /**
++   * Tests that details render a summary when #title is omitted.
++   */
++  protected function testDetailsDefaultTitle(): void {
++    $this->drupalGet('form-test/group-details');
++    $this->assertSession()->elementExists('xpath', '//details[@id="edit-default-title"]/summary[normalize-space()="Details"]');
++    $this->assertSession()->elementExists('css', 'details#edit-default-title > summary[aria-expanded="false"]');
+   }
+ 
+   /**
+@@ -252,6 +264,9 @@ protected function testDetailsDescriptionAttributes(): void {
+     $this->drupalGet('form-test/group-details');
+     $this->assertSession()->elementExists('css', 'details[aria-describedby="edit-description-attributes--description"]');
+     $this->assertSession()->elementExists('css', 'div[id="edit-description-attributes--description"]');
++    $this->assertSession()->elementExists('xpath', '//details[@id="edit-description-before"]//div[@id="edit-description-before--description"][following-sibling::*//input[@id="edit-description-before-child"]]');
++    $this->assertSession()->elementExists('xpath', '//details[@id="edit-description-after"]//div[@id="edit-description-after--description"][preceding-sibling::*//input[@id="edit-description-after-child"]]');
++    $this->assertSession()->elementExists('css', 'details[aria-describedby="edit-description-invisible--description"] div#edit-description-invisible--description.visually-hidden');
+   }
+ 
+ }
+diff --git a/core/modules/system/tests/src/Functional/Form/ElementsLabelsTest.php b/core/modules/system/tests/src/Functional/Form/ElementsLabelsTest.php
+index 55fde7ecb7..33b925eace 100644
+--- a/core/modules/system/tests/src/Functional/Form/ElementsLabelsTest.php
++++ b/core/modules/system/tests/src/Functional/Form/ElementsLabelsTest.php
+@@ -108,6 +108,13 @@ protected function testFormLabels(): void {
+     // Check Title/Label not displayed when 'visually-hidden' attribute is set
+     // in radios.
+     $this->assertSession()->elementExists('xpath', '//fieldset[@id="edit-form-radios-title-invisible--wrapper"]/legend/span[contains(@class, "visually-hidden")]');
++
++    foreach (['datelist', 'datetime'] as $type) {
++      $id = "edit-form-$type-title-no-xss";
++      $label_id = "$id--label";
++      $this->assertSession()->elementExists('css', "[role=\"group\"][aria-labelledby=\"$label_id\"] #$label_id");
++      $this->assertSession()->elementNotExists('css', "[role=\"group\"][aria-labelledby=\"$label_id\"] h4");
++    }
+   }
+ 
+   /**
+diff --git a/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php b/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php
+index 810d003cb0..53807a3144 100644
+--- a/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php
++++ b/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php
+@@ -76,21 +76,21 @@ public function testModulesListFormStatusMessage(): void {
+     // Enable a module that does not define permissions.
+     $edit = ['modules[layout_discovery][enable]' => 'layout_discovery'];
+     $this->submitForm($edit, 'Install');
+-    $this->assertSession()->elementTextContains('xpath', "//div[@role='contentinfo' and h2[text()='Status message']]", 'Module Layout Discovery has been installed.');
+-    $this->assertSession()->elementNotExists('xpath', "//div[@role='contentinfo' and h2[text()='Status message']]//a");
++    $this->assertSession()->elementTextContains('xpath', "//div[@role='status' and h2[text()='Status message']]", 'Module Layout Discovery has been installed.');
++    $this->assertSession()->elementNotExists('xpath', "//div[@role='status' and h2[text()='Status message']]//a");
+ 
+     // Enable a module that defines permissions.
+     $edit = ['modules[filter][enable]' => 'filter'];
+     $this->submitForm($edit, 'Install');
+-    $this->assertSession()->elementTextContains('xpath', "//div[@role='contentinfo' and h2[text()='Status message']]", 'Module Filter has been installed.');
+-    $this->assertSession()->elementExists('xpath', "//div[@role='contentinfo' and h2[text()='Status message']]//a[contains(@href, '/admin/people/permissions/module/filter')]");
++    $this->assertSession()->elementTextContains('xpath', "//div[@role='status' and h2[text()='Status message']]", 'Module Filter has been installed.');
++    $this->assertSession()->elementExists('xpath', "//div[@role='status' and h2[text()='Status message']]//a[contains(@href, '/admin/people/permissions/module/filter')]");
+ 
+     // Enable a module that has dependencies and both define permissions.
+     $edit = ['modules[content_moderation][enable]' => 'content_moderation'];
+     $this->submitForm($edit, 'Install');
+     $this->submitForm([], 'Continue');
+-    $this->assertSession()->elementTextContains('xpath', "//div[@role='contentinfo' and h2[text()='Status message']]", '2 modules have been installed: Content Moderation, Workflows.');
+-    $this->assertSession()->elementExists('xpath', "//div[@role='contentinfo' and h2[text()='Status message']]//a[contains(@href, '/admin/people/permissions/module/content_moderation%2Cworkflows')]");
++    $this->assertSession()->elementTextContains('xpath', "//div[@role='status' and h2[text()='Status message']]", '2 modules have been installed: Content Moderation, Workflows.');
++    $this->assertSession()->elementExists('xpath', "//div[@role='status' and h2[text()='Status message']]//a[contains(@href, '/admin/people/permissions/module/content_moderation%2Cworkflows')]");
+   }
+ 
+   /**
+@@ -150,6 +150,11 @@ public function testModulesListFormWithEmptyDescriptionInfoFile(): void {
+     $this->assertSession()
+       ->pageTextContains("Module with empty description");
+ 
++    $this->assertSession()
++      ->elementExists('xpath', '//details[@id="edit-modules-missing-description-enable-description"]/summary[@aria-label="Details for Module with empty description"]');
++    $this->assertSession()
++      ->elementNotExists('xpath', '//details[@id="edit-modules-system-test-enable-description"]/summary[@aria-label]');
++
+     // Check that the module filter text box is available.
+     $this->assertSession()->elementExists('xpath', '//input[@name="text"]');
+   }
+diff --git a/core/modules/system/tests/src/Functional/Render/PlaceholderMessageTest.php b/core/modules/system/tests/src/Functional/Render/PlaceholderMessageTest.php
+index a30c31ee8e..088e696472 100644
+--- a/core/modules/system/tests/src/Functional/Render/PlaceholderMessageTest.php
++++ b/core/modules/system/tests/src/Functional/Render/PlaceholderMessageTest.php
+@@ -33,7 +33,7 @@ class PlaceholderMessageTest extends BrowserTestBase {
+    * Tests rendering of message placeholder.
+    */
+   public function testMessagePlaceholder(): void {
+-    $messages_markup = '<div role="contentinfo" aria-label="Status message"';
++    $messages_markup = '<div role="status" aria-label="Status message"';
+ 
+     $test_routes = [
+       // Messages placeholder rendered first.
+diff --git a/core/modules/system/tests/src/Functional/System/AdminTest.php b/core/modules/system/tests/src/Functional/System/AdminTest.php
+index 8996983f3e..3206279e34 100644
+--- a/core/modules/system/tests/src/Functional/System/AdminTest.php
++++ b/core/modules/system/tests/src/Functional/System/AdminTest.php
+@@ -192,6 +192,8 @@ public function testConfigBlocksDescription(): void {
+     // Go to Config administration page.
+     $this->drupalGet('admin/config');
+     $this->assertSession()->statusCodeEquals(200);
++    $this->assertSession()->elementExists('css', 'h2.panel__title');
++    $this->assertSession()->elementNotExists('css', 'h3.panel__title');
+     // Validates the content block without description.
+     $this->assertSession()->pageTextContains('Test custom admin block without description');
+     // Validates an empty description block.
+diff --git a/core/modules/system/tests/src/FunctionalJavascript/Form/ElementsTableSelectTest.php b/core/modules/system/tests/src/FunctionalJavascript/Form/ElementsTableSelectTest.php
+index 051381932a..fe121bea3e 100644
+--- a/core/modules/system/tests/src/FunctionalJavascript/Form/ElementsTableSelectTest.php
++++ b/core/modules/system/tests/src/FunctionalJavascript/Form/ElementsTableSelectTest.php
+@@ -33,6 +33,10 @@ public function testAjax(): void {
+     $this->drupalGet('form_test/tableselect/multiple-true');
+     $session = $this->getSession();
+     $page = $session->getPage();
++    $select_all_checkbox = $this->assertSession()->elementExists('css', 'th.select-all input[type="checkbox"]');
++    $this->assertSame('Select all rows in this table', $select_all_checkbox->getAttribute('aria-label'));
++    $this->assertFalse($select_all_checkbox->hasAttribute('title'));
++
+     for ($i = 1; $i <= 3; $i++) {
+       $row = 'row' . $i;
+       $page->hasUncheckedField($row);
+@@ -44,6 +48,8 @@ public function testAjax(): void {
+         $page->hasCheckedField($other_row);
+       }
+     }
++    $this->assertSame('Deselect all rows in this table', $select_all_checkbox->getAttribute('aria-label'));
++    $this->assertFalse($select_all_checkbox->hasAttribute('title'));
+ 
+     // Test radios (#multiple == FALSE).
+     $this->drupalGet('form_test/tableselect/multiple-false');
+diff --git a/core/modules/system/tests/themes/test_messages/templates/status-messages.html.twig b/core/modules/system/tests/themes/test_messages/templates/status-messages.html.twig
+index 42f105d3df..0ad60e7a50 100644
+--- a/core/modules/system/tests/themes/test_messages/templates/status-messages.html.twig
++++ b/core/modules/system/tests/themes/test_messages/templates/status-messages.html.twig
+@@ -13,10 +13,10 @@
+       'messages--' ~ type,
+     ]
+   %}
+-  <div role="contentinfo" aria-label="{{ status_headings[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
+-    {% if type == 'error' %}
+-      <div role="alert">
+-    {% endif %}
++  {%
++    set message_role = type == 'error' ? 'alert' : 'status'
++  %}
++  <div role="{{ message_role }}" aria-label="{{ status_headings[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
+       {% if status_headings[type] %}
+         <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
+       {% endif %}
+@@ -29,9 +29,6 @@
+       {% else %}
+         {{ messages|first }}
+       {% endif %}
+-    {% if type == 'error' %}
+-      </div>
+-    {% endif %}
+   </div>
+   {# Remove type specific classes. #}
+   {% set attributes = attributes.removeClass(classes) %}
+diff --git a/core/modules/user/src/Hook/UserHooks.php b/core/modules/user/src/Hook/UserHooks.php
+index d029f4aa15..d7ce7ef532 100644
+--- a/core/modules/user/src/Hook/UserHooks.php
++++ b/core/modules/user/src/Hook/UserHooks.php
+@@ -144,7 +144,7 @@ public function userView(array &$build, UserInterface $account, EntityViewDispla
+     if ($account->isAuthenticated() && $display->getComponent('member_for')) {
+       $build['member_for'] = [
+         '#type' => 'item',
+-        '#markup' => '<h4 class="label">' . $this->t('Member for') . '</h4> ' . \Drupal::service('date.formatter')->formatTimeDiffSince($account->getCreatedTime()),
++        '#markup' => '<div class="label">' . $this->t('Member for') . '</div> ' . \Drupal::service('date.formatter')->formatTimeDiffSince($account->getCreatedTime()),
+       ];
+     }
+   }
+diff --git a/core/modules/user/tests/src/Functional/UserLoginTest.php b/core/modules/user/tests/src/Functional/UserLoginTest.php
+index 91921fc060..18f1abc9c2 100644
+--- a/core/modules/user/tests/src/Functional/UserLoginTest.php
++++ b/core/modules/user/tests/src/Functional/UserLoginTest.php
+@@ -140,6 +140,18 @@ public function testPerUserLoginFloodControl(): void {
+     $this->assertSession()->responseContains('Member for');
+   }
+ 
++  /**
++   * Tests that the "Member for" label is not rendered as a heading.
++   */
++  public function testMemberForUsesNonHeadingMarkup(): void {
++    $account = $this->drupalCreateUser([]);
++    $this->drupalLogin($account);
++    $this->drupalGet('user/' . $account->id());
++
++    $this->assertSession()->elementNotExists('xpath', '//h4[contains(@class, "label") and normalize-space() = "Member for"]');
++    $this->assertSession()->elementExists('xpath', '//div[contains(@class, "label") and contains(normalize-space(.), "Member for")]');
++  }
++
+   /**
+    * Tests user password is re-hashed upon login after changing $count_log2.
+    */
+diff --git a/core/modules/views_ui/src/ViewListBuilder.php b/core/modules/views_ui/src/ViewListBuilder.php
+index 7649b83aa6..9cfa9fb1ce 100644
+--- a/core/modules/views_ui/src/ViewListBuilder.php
++++ b/core/modules/views_ui/src/ViewListBuilder.php
+@@ -209,6 +209,7 @@ public function render() {
+ 
+     $list['filters']['text'] = [
+       '#type' => 'search',
++      '#id' => 'edit-views-filter-text',
+       '#title' => $this->t('Filter'),
+       '#title_display' => 'invisible',
+       '#size' => 60,
+diff --git a/core/modules/views_ui/tests/src/FunctionalJavascript/ViewsListingTest.php b/core/modules/views_ui/tests/src/FunctionalJavascript/ViewsListingTest.php
+index 7c1d97e345..eadde1b792 100644
+--- a/core/modules/views_ui/tests/src/FunctionalJavascript/ViewsListingTest.php
++++ b/core/modules/views_ui/tests/src/FunctionalJavascript/ViewsListingTest.php
+@@ -53,6 +53,12 @@ public function testFilterViewsListing(): void {
+     $session = $this->assertSession();
+ 
+     $page = $this->getSession()->getPage();
++    $search_input = $page->find('css', '.views-filter-text.form-search');
++    $search_input_id = $search_input->getAttribute('id');
++
++    // Verify the search label is explicitly associated with the input.
++    $this->assertNotEmpty($search_input_id);
++    $this->assertSession()->elementExists('css', 'label.visually-hidden[for="' . $search_input_id . '"]');
+ 
+     // Test that we search in both the enabled and disabled rows.
+     $enabled_rows = $page->findAll('css', 'tr.views-ui-list-enabled');
+@@ -65,7 +71,6 @@ public function testFilterViewsListing(): void {
+     $this->assertCount($disabled_views_count, $disabled_rows);
+ 
+     // Filter on the string 'people'. This should only show the people view.
+-    $search_input = $page->find('css', '.views-filter-text.form-search');
+     $search_input->setValue('people');
+ 
+     $enabled_rows = $page->findAll('css', 'tr.views-ui-list-enabled');
+diff --git a/core/profiles/demo_umami/themes/umami/js/components/messages/messages.js b/core/profiles/demo_umami/themes/umami/js/components/messages/messages.js
+index 2b3c8e7a61..bce7d79e3c 100644
+--- a/core/profiles/demo_umami/themes/umami/js/components/messages/messages.js
++++ b/core/profiles/demo_umami/themes/umami/js/components/messages/messages.js
+@@ -42,7 +42,7 @@
+     messageWrapper.setAttribute('class', `messages messages--${type}`);
+     messageWrapper.setAttribute(
+       'role',
+-      type === 'error' || type === 'warning' ? 'alert' : 'status',
++      type === 'error' ? 'alert' : 'status',
+     );
+     messageWrapper.setAttribute('data-drupal-message-id', id);
+     messageWrapper.setAttribute('data-drupal-message-type', type);
+diff --git a/core/profiles/demo_umami/themes/umami/templates/classy/form/datetime-wrapper.html.twig b/core/profiles/demo_umami/themes/umami/templates/classy/form/datetime-wrapper.html.twig
+index a4ad21af06..894c6c3bc0 100644
+--- a/core/profiles/demo_umami/themes/umami/templates/classy/form/datetime-wrapper.html.twig
++++ b/core/profiles/demo_umami/themes/umami/templates/classy/form/datetime-wrapper.html.twig
+@@ -21,7 +21,8 @@
+   ]
+ %}
+ {% if title %}
+-  <h4{{ title_attributes.addClass(title_classes) }}>{{ title }}</h4>
++<div{{ attributes }}>
++  <div{{ title_attributes.addClass(title_classes) }}>{{ title }}</div>
+ {% endif %}
+ {{ content }}
+ {% if errors %}
+@@ -34,3 +35,6 @@
+     {{ description }}
+   </div>
+ {% endif %}
++{% if title %}
++</div>
++{% endif %}
+diff --git a/core/profiles/demo_umami/themes/umami/templates/classy/form/details.html.twig b/core/profiles/demo_umami/themes/umami/templates/classy/form/details.html.twig
+index 0a8a0d6032..ff13996313 100644
+--- a/core/profiles/demo_umami/themes/umami/templates/classy/form/details.html.twig
++++ b/core/profiles/demo_umami/themes/umami/templates/classy/form/details.html.twig
+@@ -31,9 +31,13 @@
+         {{ errors }}
+       </div>
+     {% endif %}
+-    {%- if description -%}
++    {%- if description and description_display == 'before' -%}
+       {% set description_attributes = create_attribute({id: attributes['aria-describedby']}) %}
+-      <div {{ description_attributes.addClass(['details-description']) }}>{{ description }}</div>
++      {% set description_classes = [
++        'details-description',
++        description_display == 'invisible' ? 'visually-hidden',
++      ] %}
++      <div{{ description_attributes.addClass(description_classes) }}>{{ description }}</div>
+     {%- endif -%}
+     {%- if children -%}
+       {{ children }}
+@@ -41,5 +45,13 @@
+     {%- if value -%}
+       {{ value }}
+     {%- endif -%}
++    {%- if description and description_display in ['after', 'invisible'] -%}
++      {% set description_attributes = create_attribute({id: attributes['aria-describedby']}) %}
++      {% set description_classes = [
++        'details-description',
++        description_display == 'invisible' ? 'visually-hidden',
++      ] %}
++      <div {{ description_attributes.addClass(description_classes) }}>{{ description }}</div>
++    {%- endif -%}
+   </div>
+ </details>
+diff --git a/core/test-results/.last-run.json b/core/test-results/.last-run.json
+new file mode 100644
+index 0000000000..cbcc1fbac1
+--- /dev/null
++++ b/core/test-results/.last-run.json
+@@ -0,0 +1,4 @@
++{
++  "status": "passed",
++  "failedTests": []
++}
+\ No newline at end of file
+diff --git a/core/tests/Drupal/FunctionalJavascriptTests/Ajax/MessageCommandTest.php b/core/tests/Drupal/FunctionalJavascriptTests/Ajax/MessageCommandTest.php
+index 26efca46cf..82792ef7a4 100644
+--- a/core/tests/Drupal/FunctionalJavascriptTests/Ajax/MessageCommandTest.php
++++ b/core/tests/Drupal/FunctionalJavascriptTests/Ajax/MessageCommandTest.php
+@@ -172,6 +172,27 @@ public function testJsStatusMessageAssertions(): void {
+     $this->assertSession()->statusMessageExistsAfterWait('not a valid type');
+   }
+ 
++  /**
++   * Tests the default live-region priority for JavaScript messages.
++   */
++  public function testMessageDefaultAnnouncementPriorities(): void {
++    $session = $this->getSession();
++    $assert_session = $this->assertSession();
++
++    $this->drupalGet('ajax-test/message');
++    $session->executeScript("new Drupal.Message().add('Warning priority probe', { type: 'warning', id: 'warning-priority-probe' });");
++    $warning_message = $assert_session->waitForElement('css', '[data-drupal-message-id="warning-priority-probe"]');
++    $this->assertSame('status', $warning_message->getAttribute('role'));
++    $this->assertAnnounceContains('Warning priority probe');
++    $this->assertSame('polite', $session->evaluateScript("document.getElementById('drupal-live-announce').getAttribute('aria-live')"));
++
++    $session->executeScript("new Drupal.Message().add('Error priority probe', { type: 'error', id: 'error-priority-probe' });");
++    $error_message = $assert_session->waitForElement('css', '[data-drupal-message-id="error-priority-probe"]');
++    $this->assertSame('alert', $error_message->getAttribute('role'));
++    $this->assertAnnounceContains('Error priority probe');
++    $this->assertSame('assertive', $session->evaluateScript("document.getElementById('drupal-live-announce').getAttribute('aria-live')"));
++  }
++
+   /**
+    * Asserts that a message of the expected type appears.
+    *
+diff --git a/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php b/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php
+index a5239d3bc3..728195cb1d 100644
+--- a/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php
++++ b/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php
+@@ -134,7 +134,13 @@ public function testDetailsChildVisibility(): void {
+     // Find the summary belonging to the closest details element.
+     $summary = $page->find('css', '#edit-meta > summary');
+ 
+-    // Assert that both aria-expanded and aria-pressed are true.
++    // Assert aria-expanded is true on open details.
++    $this->assertEquals('true', $summary->getAttribute('aria-expanded'));
++
++    // Close and reopen to ensure aria-expanded keeps synchronizing.
++    $summary->click();
++    $this->assertEquals('false', $summary->getAttribute('aria-expanded'));
++    $summary->click();
+     $this->assertEquals('true', $summary->getAttribute('aria-expanded'));
+   }
+ 
+diff --git a/core/themes/claro/css/components/form.css b/core/themes/claro/css/components/form.css
+index 70bb4c5201..9e04ebd766 100644
+--- a/core/themes/claro/css/components/form.css
++++ b/core/themes/claro/css/components/form.css
+@@ -71,7 +71,7 @@ tr .form-item,
+ /* Multiple selectors used to ensure styling even if modules override markup. */
+ 
+ .form-item__label--multiple-value-form,
+-.field-multiple-table .field-label h4.label {
++.field-multiple-table .field-label .label {
+   display: inline-block;
+   margin-block: 0;
+   align-self: center;
+diff --git a/core/themes/claro/css/components/form.pcss.css b/core/themes/claro/css/components/form.pcss.css
+index 2aad690142..ba5011414f 100644
+--- a/core/themes/claro/css/components/form.pcss.css
++++ b/core/themes/claro/css/components/form.pcss.css
+@@ -58,7 +58,7 @@ tr .form-item,
+ }
+ /* Multiple selectors used to ensure styling even if modules override markup. */
+ .form-item__label--multiple-value-form,
+-.field-multiple-table .field-label h4.label {
++.field-multiple-table .field-label .label {
+   display: inline-block;
+   margin-block: 0;
+   align-self: center;
+diff --git a/core/themes/claro/js/messages.js b/core/themes/claro/js/messages.js
+index 26632ae6bc..47c980dbae 100644
+--- a/core/themes/claro/js/messages.js
++++ b/core/themes/claro/js/messages.js
+@@ -31,7 +31,7 @@
+     );
+     messageWrapper.setAttribute(
+       'role',
+-      type === 'error' || type === 'warning' ? 'alert' : 'status',
++      type === 'error' ? 'alert' : 'status',
+     );
+     messageWrapper.setAttribute('aria-labelledby', `${id}-title`);
+     messageWrapper.setAttribute('data-drupal-message-id', id);
+diff --git a/core/themes/claro/js/tabledrag.js b/core/themes/claro/js/tabledrag.js
+index 9f9d7b1e38..0cc72a4530 100644
+--- a/core/themes/claro/js/tabledrag.js
++++ b/core/themes/claro/js/tabledrag.js
+@@ -171,7 +171,7 @@
+        *   Markup for the warning.
+        */
+       tableDragChangedWarning() {
+-        return `<div class="tabledrag-changed-warning messages messages--warning" role="alert">${Drupal.theme(
++        return `<div class="tabledrag-changed-warning messages messages--warning" role="status">${Drupal.theme(
+           'tableDragChangedMarker',
+         )} ${Drupal.t('You have unsaved changes.')}</div>`;
+       },
+diff --git a/core/themes/claro/templates/admin/system-modules-details.html.twig b/core/themes/claro/templates/admin/system-modules-details.html.twig
+index 4f43915d5e..4af84058c1 100644
+--- a/core/themes/claro/templates/admin/system-modules-details.html.twig
++++ b/core/themes/claro/templates/admin/system-modules-details.html.twig
+@@ -43,7 +43,7 @@
+         </td>
+         <td class="expand priority-low module-list__description">
+           <details class="js-form-wrapper form-wrapper module-list__module-details claro-details" id="{{ module.enable_id }}-description">
+-            <summary aria-controls="{{ module.enable_id }}-description" role="button" aria-expanded="false" class="claro-details__summary module-list__module-summary"><span class="text module-description">{{ module.description }}</span></summary>
++            <summary aria-controls="{{ module.enable_id }}-description" role="button" aria-expanded="false" class="claro-details__summary module-list__module-summary"{% if module.summary_label %} aria-label="{{ module.summary_label }}"{% endif %}><span class="text module-description">{{ module.description }}</span></summary>
+             <div class="claro-details__wrapper module-details__wrapper">
+               <div class="module-details__description">
+                 <div class="module-details__requirements">
+diff --git a/core/themes/claro/templates/datetime-wrapper.html.twig b/core/themes/claro/templates/datetime-wrapper.html.twig
+index 59d484150d..209e20fac8 100644
+--- a/core/themes/claro/templates/datetime-wrapper.html.twig
++++ b/core/themes/claro/templates/datetime-wrapper.html.twig
+@@ -14,9 +14,9 @@
+     errors ? 'has-error',
+   ]
+ %}
+-<div class="form-item form-datetime-wrapper">
++<div{{ attributes.addClass('form-item', 'form-datetime-wrapper') }}>
+ {% if title %}
+-  <h4{{ title_attributes.addClass(title_classes) }}>{{ title }}</h4>
++  <div{{ title_attributes.addClass(title_classes) }}>{{ title }}</div>
+ {% endif %}
+ {{ content }}
+ {% if errors %}
+diff --git a/core/themes/claro/templates/details.html.twig b/core/themes/claro/templates/details.html.twig
+index 78a30ed7aa..e25212b85c 100644
+--- a/core/themes/claro/templates/details.html.twig
++++ b/core/themes/claro/templates/details.html.twig
+@@ -74,11 +74,12 @@
+           {{ errors }}
+         </div>
+       {% endif %}
+-      {%- if description -%}
++      {%- if description and description_display == 'before' -%}
+         {% set description_attributes = create_attribute({id: attributes['aria-describedby']}) %}
+         {% set description_classes = [
+           'claro-details__description',
+           disabled ? 'is-disabled',
++          description_display == 'invisible' ? 'visually-hidden',
+         ] %}
+         <div{{ description_attributes.addClass(description_classes) }}>{{ description }}</div>
+       {%- endif -%}
+@@ -88,6 +89,15 @@
+       {%- if value -%}
+         {{ value }}
+       {%- endif -%}
++      {%- if description and description_display in ['after', 'invisible'] -%}
++        {% set description_attributes = create_attribute({id: attributes['aria-describedby']}) %}
++        {% set description_classes = [
++          'claro-details__description',
++          disabled ? 'is-disabled',
++          description_display == 'invisible' ? 'visually-hidden',
++        ] %}
++        <div{{ description_attributes.addClass(description_classes) }}>{{ description }}</div>
++      {%- endif -%}
+ 
+     {% if accordion or accordion_item %}
+     </div>
+diff --git a/core/themes/claro/templates/form/field-multiple-value-form.html.twig b/core/themes/claro/templates/form/field-multiple-value-form.html.twig
+index 89a08a2528..706afc7f3e 100644
+--- a/core/themes/claro/templates/form/field-multiple-value-form.html.twig
++++ b/core/themes/claro/templates/form/field-multiple-value-form.html.twig
+@@ -15,6 +15,10 @@
+  * - description: The description element containing the following properties:
+  *   - content: The description content of the form element.
+  *   - attributes: HTML attributes to apply to the description container.
++ * - description_display: Description display setting. It can have these values:
++ *   - before: The description is output before the element.
++ *   - after: The description is output after the element.
++ *   - invisible: The description is output after the element, hidden visually.
+  * - button: "Add another item" button.
+  *
+  * @see \Drupal\Core\Field\FieldPreprocess::preprocessFieldMultipleValueForm()
+@@ -37,8 +41,11 @@
+     ]
+   %}
+   <div{{ attributes.addClass(classes) }}>
++    {% if description.content and description_display == 'before' %}
++      <div{{ description.attributes.addClass(description_classes) }} >{{ description.content }}</div>
++    {% endif %}
+     {{ table }}
+-    {% if description.content %}
++    {% if description.content and description_display != 'before' %}
+       <div{{ description.attributes.addClass(description_classes) }} >{{ description.content }}</div>
+     {% endif %}
+     {% if button %}
+diff --git a/core/themes/claro/templates/misc/status-messages.html.twig b/core/themes/claro/templates/misc/status-messages.html.twig
+index 07b093c01f..dd2d698884 100644
+--- a/core/themes/claro/templates/misc/status-messages.html.twig
++++ b/core/themes/claro/templates/misc/status-messages.html.twig
+@@ -38,34 +38,31 @@
+       {%
+         set is_message_with_icon = type in ['error', 'status', 'warning']
+       %}
++      {%
++        set message_role = type == 'error' ? 'alert' : 'status'
++      %}
+ 
+-      <div role="contentinfo" aria-labelledby="{{ title_ids[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
+-        {% if type == 'error' %}
+-          <div role="alert">
+-        {% endif %}
+-          {% if is_message_with_title or is_message_with_icon %}
+-            <div class="messages__header">
+-              {% if is_message_with_title %}
+-                <h2 id="{{ title_ids[type] }}" class="messages__title">
+-                  {{ status_headings[type] }}
+-                </h2>
+-              {% endif %}
+-            </div>
+-          {% endif %}
+-          <div class="messages__content">
+-            {% if messages|length > 1 %}
+-              <ul class="messages__list">
+-                {% for message in messages %}
+-                  <li class="messages__item">{{ message }}</li>
+-                {% endfor %}
+-              </ul>
+-            {% else %}
+-              {{ messages|first }}
++      <div role="{{ message_role }}" aria-labelledby="{{ title_ids[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
++        {% if is_message_with_title or is_message_with_icon %}
++          <div class="messages__header">
++            {% if is_message_with_title %}
++              <h2 id="{{ title_ids[type] }}" class="messages__title">
++                {{ status_headings[type] }}
++              </h2>
+             {% endif %}
+           </div>
+-        {% if type == 'error' %}
+-          </div>
+         {% endif %}
++        <div class="messages__content">
++          {% if messages|length > 1 %}
++            <ul class="messages__list">
++              {% for message in messages %}
++                <li class="messages__item">{{ message }}</li>
++              {% endfor %}
++            </ul>
++          {% else %}
++            {{ messages|first }}
++          {% endif %}
++        </div>
+       </div>
+       {# Remove type specific classes. #}
+       {% set attributes = attributes.removeClass(classes) %}
+diff --git a/core/themes/default_admin/css/components/form.css b/core/themes/default_admin/css/components/form.css
+index 2e3d04b48b..119813efc2 100644
+--- a/core/themes/default_admin/css/components/form.css
++++ b/core/themes/default_admin/css/components/form.css
+@@ -105,7 +105,7 @@
+ /* Multiple selectors used to ensure styling even if modules override markup. */
+ 
+ .form-item__label--multiple-value-form,
+-.field-multiple-table .field-label h4.label {
++.field-multiple-table .field-label .label {
+   display: inline-block;
+   margin-block: 0;
+   align-self: center;
+diff --git a/core/themes/default_admin/css/components/form.pcss.css b/core/themes/default_admin/css/components/form.pcss.css
+index 7e428cca9e..909b264446 100644
+--- a/core/themes/default_admin/css/components/form.pcss.css
++++ b/core/themes/default_admin/css/components/form.pcss.css
+@@ -95,7 +95,7 @@
+ 
+ /* Multiple selectors used to ensure styling even if modules override markup. */
+ .form-item__label--multiple-value-form,
+-.field-multiple-table .field-label h4.label {
++.field-multiple-table .field-label .label {
+   display: inline-block;
+   margin-block: 0;
+   align-self: center;
+diff --git a/core/themes/default_admin/js/messages.js b/core/themes/default_admin/js/messages.js
+index 26632ae6bc..47c980dbae 100644
+--- a/core/themes/default_admin/js/messages.js
++++ b/core/themes/default_admin/js/messages.js
+@@ -31,7 +31,7 @@
+     );
+     messageWrapper.setAttribute(
+       'role',
+-      type === 'error' || type === 'warning' ? 'alert' : 'status',
++      type === 'error' ? 'alert' : 'status',
+     );
+     messageWrapper.setAttribute('aria-labelledby', `${id}-title`);
+     messageWrapper.setAttribute('data-drupal-message-id', id);
+diff --git a/core/themes/default_admin/js/tabledrag.js b/core/themes/default_admin/js/tabledrag.js
+index 9f9d7b1e38..0cc72a4530 100644
+--- a/core/themes/default_admin/js/tabledrag.js
++++ b/core/themes/default_admin/js/tabledrag.js
+@@ -171,7 +171,7 @@
+        *   Markup for the warning.
+        */
+       tableDragChangedWarning() {
+-        return `<div class="tabledrag-changed-warning messages messages--warning" role="alert">${Drupal.theme(
++        return `<div class="tabledrag-changed-warning messages messages--warning" role="status">${Drupal.theme(
+           'tableDragChangedMarker',
+         )} ${Drupal.t('You have unsaved changes.')}</div>`;
+       },
+diff --git a/core/themes/default_admin/migration/js/messages.js b/core/themes/default_admin/migration/js/messages.js
+index d81702d901..77b0691b1d 100644
+--- a/core/themes/default_admin/migration/js/messages.js
++++ b/core/themes/default_admin/migration/js/messages.js
+@@ -30,7 +30,7 @@
+     messageWrapper.setAttribute('class', `messages-list__item messages messages--${type}`);
+     messageWrapper.setAttribute(
+       'role',
+-      type === 'error' || type === 'warning' ? 'alert' : 'status',
++      type === 'error' ? 'alert' : 'status',
+     );
+     messageWrapper.setAttribute('data-drupal-message-id', id);
+     messageWrapper.setAttribute('data-drupal-message-type', type);
+diff --git a/core/themes/default_admin/migration/js/tabledrag.js b/core/themes/default_admin/migration/js/tabledrag.js
+index 2e645ec253..48e8637674 100644
+--- a/core/themes/default_admin/migration/js/tabledrag.js
++++ b/core/themes/default_admin/migration/js/tabledrag.js
+@@ -1788,7 +1788,7 @@
+        *   Markup for the warning.
+        */
+       tableDragChangedWarning() {
+-        return `<div class="tabledrag-changed-warning messages messages--warning" role="alert">${Drupal.theme(
++        return `<div class="tabledrag-changed-warning messages messages--warning" role="status">${Drupal.theme(
+           'tableDragChangedMarker',
+         )} ${Drupal.t('You have unsaved changes.')}</div>`;
+       },
+diff --git a/core/themes/default_admin/migration/js/tableselect.js b/core/themes/default_admin/migration/js/tableselect.js
+index 4dbcfeaade..9b7f9a643d 100644
+--- a/core/themes/default_admin/migration/js/tableselect.js
++++ b/core/themes/default_admin/migration/js/tableselect.js
+@@ -54,7 +54,7 @@
+           const stateChanged = $checkbox.prop('checked') !== state;
+ 
+           $checkbox.attr(
+-            'title',
++            'aria-label',
+             state ? strings.selectNone : strings.selectAll,
+           );
+ 
+@@ -76,7 +76,9 @@
+ 
+     // Check if select-all already exists, if not add it.
+     if ($table.find('th.select-all').find('input[type="checkbox"]').length === 0) {
+-      $table.find('th.select-all').prepend($(Drupal.theme('checkbox')).attr('title', strings.selectAll));
++      $table.find('th.select-all').prepend(
++        $(Drupal.theme('checkbox')).attr('aria-label', strings.selectAll),
++      );
+     }
+ 
+     // Find all <th> with class select-all, and insert the check all checkbox.
+diff --git a/core/themes/default_admin/src/Helper.php b/core/themes/default_admin/src/Helper.php
+index ba87af3a68..ae850242ba 100644
+--- a/core/themes/default_admin/src/Helper.php
++++ b/core/themes/default_admin/src/Helper.php
+@@ -60,7 +60,7 @@ public static function accentColors(): array {
+       ],
+       'orange' => [
+         'label' => t('Orange'),
+-        'hex' => '#c55228',
++        'hex' => '#bf4e25',
+       ],
+       'yellow' => [
+         'label' => t('Yellow'),
+diff --git a/core/themes/default_admin/templates/admin/admin-block.html.twig b/core/themes/default_admin/templates/admin/admin-block.html.twig
+index 2b9af654c7..b3daa99392 100644
+--- a/core/themes/default_admin/templates/admin/admin-block.html.twig
++++ b/core/themes/default_admin/templates/admin/admin-block.html.twig
+@@ -21,7 +21,7 @@
+ %}
+ <div{{ attributes.addClass(classes) }}>
+   {% if block.title %}
+-    <h3 class="panel__title">{{ block.title }}</h3>
++    <h2 class="panel__title">{{ block.title }}</h2>
+   {% endif %}
+   {% if block.content %}
+     <div class="panel__content">{{ block.content }}</div>
+diff --git a/core/themes/default_admin/templates/admin/system-modules-details.html.twig b/core/themes/default_admin/templates/admin/system-modules-details.html.twig
+index cd5f24ec55..ecd4d3688b 100644
+--- a/core/themes/default_admin/templates/admin/system-modules-details.html.twig
++++ b/core/themes/default_admin/templates/admin/system-modules-details.html.twig
+@@ -43,7 +43,7 @@
+         </td>
+         <td class="expand priority-low module-list__description">
+           <details class="js-form-wrapper form-wrapper module-list__module-details gin-details" id="{{ module.enable_id }}-description">
+-            <summary aria-controls="{{ module.enable_id }}-description" role="button" aria-expanded="false" class="gin-details__summary module-list__module-summary"><span class="text module-description">{{ module.description }}</span></summary>
++            <summary aria-controls="{{ module.enable_id }}-description" role="button" aria-expanded="false" class="gin-details__summary module-list__module-summary"{% if module.summary_label %} aria-label="{{ module.summary_label }}"{% endif %}><span class="text module-description">{{ module.description }}</span></summary>
+             <div class="gin-details__wrapper module-details__wrapper">
+               <div class="module-details__description">
+                 <div class="module-details__requirements">
+diff --git a/core/themes/default_admin/templates/dataset/table.html.twig b/core/themes/default_admin/templates/dataset/table.html.twig
+index 9bc07c5d41..6cc9658c58 100644
+--- a/core/themes/default_admin/templates/dataset/table.html.twig
++++ b/core/themes/default_admin/templates/dataset/table.html.twig
+@@ -67,8 +67,8 @@
+           {% if 'gin--sticky-bulk-select' in cell_classes %}
+             <input
+               type="checkbox"
++              aria-label="{{ 'Select all rows in this table'|t }}"
+               class="form-checkbox form-boolean form-boolean--type-checkbox"
+-              title="{{ 'Select all rows in this table'|t }}"
+             />
+           {% endif %}
+         </{{ cell.tag }}>
+diff --git a/core/themes/default_admin/templates/form/datetime-wrapper.html.twig b/core/themes/default_admin/templates/form/datetime-wrapper.html.twig
+index e4e02c98c1..681cb2a636 100644
+--- a/core/themes/default_admin/templates/form/datetime-wrapper.html.twig
++++ b/core/themes/default_admin/templates/form/datetime-wrapper.html.twig
+@@ -35,7 +35,7 @@
+   <div class="help-icon">
+   {% endif %}
+   {% if title %}
+-  <h4{{ title_attributes.addClass(title_classes) }}>{{ title }}</h4>
++  <div{{ title_attributes.addClass(title_classes) }}>{{ title }}</div>
+   {% endif %}
+   {% if show_description_toggle %}
+     {{ attach_library('default_admin/description_toggle') }}
+diff --git a/core/themes/default_admin/templates/form/details.html.twig b/core/themes/default_admin/templates/form/details.html.twig
+index 3759401a32..ce4ad74773 100644
+--- a/core/themes/default_admin/templates/form/details.html.twig
++++ b/core/themes/default_admin/templates/form/details.html.twig
+@@ -87,7 +87,7 @@
+           {{ errors }}
+         </div>
+       {% endif %}
+-      {%- if description -%}
++      {%- if description and (description_display == 'before' or description_display_toggle == 'before') -%}
+         <div{{ create_attribute().addClass(description_classes) }}>{{ description }}</div>
+       {%- endif -%}
+       {%- if children -%}
+@@ -96,6 +96,9 @@
+       {%- if value -%}
+         {{ value }}
+       {%- endif -%}
++      {%- if description and description_display in ['after', 'invisible'] and description_display_toggle != 'before' -%}
++        <div{{ create_attribute().addClass(description_classes) }}>{{ description }}</div>
++      {%- endif -%}
+ 
+     {% if accordion or accordion_item %}
+     </div>
+diff --git a/core/themes/default_admin/templates/form/field-multiple-value-form.html.twig b/core/themes/default_admin/templates/form/field-multiple-value-form.html.twig
+index 57972d3c5b..e69d24c2fb 100644
+--- a/core/themes/default_admin/templates/form/field-multiple-value-form.html.twig
++++ b/core/themes/default_admin/templates/form/field-multiple-value-form.html.twig
+@@ -15,6 +15,10 @@
+  * - description: The description element containing the following properties:
+  *   - content: The description content of the form element.
+  *   - attributes: HTML attributes to apply to the description container.
++ * - description_display: Description display setting. It can have these values:
++ *   - before: The description is output before the element.
++ *   - after: The description is output after the element.
++ *   - invisible: The description is output after the element, hidden visually.
+  * - button: "Add another item" button.
+  *
+  * @see \Drupal\Core\Field\FieldPreprocess::preprocessFieldMultipleValueForm()
+@@ -37,8 +41,11 @@
+     ]
+   %}
+   <div{{ attributes.addClass(classes) }}>
++    {% if description.content and description_display == 'before' %}
++      <div{{ description.attributes.addClass(description_classes) }} >{{ description.content }}</div>
++    {% endif %}
+     {{ table }}
+-    {% if description.content %}
++    {% if description.content and description_display != 'before' %}
+       <div{{ description.attributes.addClass(description_classes) }} >{{ description.content }}</div>
+     {% endif %}
+     {% if button %}
+diff --git a/core/themes/default_admin/templates/misc/status-messages.html.twig b/core/themes/default_admin/templates/misc/status-messages.html.twig
+index 5f4f3b27ea..b586233acd 100644
+--- a/core/themes/default_admin/templates/misc/status-messages.html.twig
++++ b/core/themes/default_admin/templates/misc/status-messages.html.twig
+@@ -38,8 +38,11 @@
+       {%
+         set is_message_with_icon = type in ['error', 'status', 'warning']
+       %}
++      {%
++        set message_role = type == 'error' ? 'alert' : 'status'
++      %}
+ 
+-      <div role="contentinfo" aria-labelledby="{{ title_ids[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
++      <div role="{{ message_role }}" aria-labelledby="{{ title_ids[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
+         {% if is_message_with_title or is_message_with_icon %}
+           <div class="messages__header">
+             {% if is_message_with_title %}
+diff --git a/core/themes/default_admin/templates/views/views-view-table.html.twig b/core/themes/default_admin/templates/views/views-view-table.html.twig
+index 50ab1ca4c4..31152a4700 100644
+--- a/core/themes/default_admin/templates/views/views-view-table.html.twig
++++ b/core/themes/default_admin/templates/views/views-view-table.html.twig
+@@ -61,8 +61,8 @@
+           {% if gin_is_sticky and fields[key] is defined and 'bulk-form' in fields[key] %}
+             <input
+               type="checkbox"
++              aria-label="{{ 'Select all rows in this table'|t }}"
+               class="form-checkbox form-boolean form-boolean--type-checkbox"
+-              title="{{ 'Select all rows in this table'|t }}"
+             />
+           {% endif %}
+           {%- if column.wrapper_element -%}
+diff --git a/core/themes/default_admin/tests/src/Functional/AdminTest.php b/core/themes/default_admin/tests/src/Functional/AdminTest.php
+index bed6e881a8..f6749401f4 100644
+--- a/core/themes/default_admin/tests/src/Functional/AdminTest.php
++++ b/core/themes/default_admin/tests/src/Functional/AdminTest.php
+@@ -44,6 +44,7 @@ protected function setUp(): void {
+     $adminUser = $this->drupalCreateUser([
+       'access administration pages',
+       'administer themes',
++      'administer site configuration',
+       'access toolbar',
+       'access content overview',
+     ]);
+@@ -79,6 +80,12 @@ public function testAccentColorSetting(): void {
+     $response = $this->drupalGet('/admin/content');
+     $this->assertSession()->statusCodeEquals(200);
+     $this->assertStringContainsString('"preset_accent_color":"red"', $response);
++
++    \Drupal::configFactory()->getEditable('default_admin.settings')->set('preset_accent_color', 'orange')->save();
++    $response = $this->drupalGet('/admin/content');
++    $this->assertSession()->statusCodeEquals(200);
++    $this->assertStringContainsString('"preset_accent_color":"orange"', $response);
++    $this->assertStringContainsString('--accent-base: #bf4e25;', $response);
+   }
+ 
+   /**
+@@ -91,6 +98,16 @@ public function testFocusColorSetting(): void {
+     $this->assertStringContainsString('"preset_focus_color":"blue"', $response);
+   }
+ 
++  /**
++   * Tests admin block title heading levels.
++   */
++  public function testAdminBlockHeadingLevel(): void {
++    $this->drupalGet('/admin/config');
++    $this->assertSession()->statusCodeEquals(200);
++    $this->assertSession()->elementExists('css', 'h2.panel__title');
++    $this->assertSession()->elementNotExists('css', 'h3.panel__title');
++  }
++
+   /**
+    * Test user settings.
+    */
+diff --git a/core/themes/olivero/js/message.theme.js b/core/themes/olivero/js/message.theme.js
+index 00c617e90f..3b141897cd 100644
+--- a/core/themes/olivero/js/message.theme.js
++++ b/core/themes/olivero/js/message.theme.js
+@@ -32,7 +32,7 @@
+     messageWrapper.setAttribute('data-drupal-selector', 'messages');
+     messageWrapper.setAttribute(
+       'role',
+-      type === 'error' || type === 'warning' ? 'alert' : 'status',
++      type === 'error' ? 'alert' : 'status',
+     );
+     messageWrapper.setAttribute('aria-labelledby', `${id}-title`);
+     messageWrapper.setAttribute('data-drupal-message-id', id);
+diff --git a/core/themes/olivero/src/Hook/OliveroHooks.php b/core/themes/olivero/src/Hook/OliveroHooks.php
+index a1acfcb364..86cec55aec 100644
+--- a/core/themes/olivero/src/Hook/OliveroHooks.php
++++ b/core/themes/olivero/src/Hook/OliveroHooks.php
+@@ -345,7 +345,7 @@ public function preprocessFieldMultipleValueForm(array &$variables): void {
+       // @todo change this after https://www.drupal.org/node/3099026 has landed.
+       $variables['table']['#header'][0]['data'] = [
+         '#type' => 'html_tag',
+-        '#tag' => 'h4',
++        '#tag' => 'span',
+         '#value' => $variables['element']['#title'],
+         '#attributes' => $header_attributes,
+       ];
+diff --git a/core/themes/olivero/templates/datetime-wrapper.html.twig b/core/themes/olivero/templates/datetime-wrapper.html.twig
+index 57c83c0858..70fabedb13 100644
+--- a/core/themes/olivero/templates/datetime-wrapper.html.twig
++++ b/core/themes/olivero/templates/datetime-wrapper.html.twig
+@@ -13,9 +13,9 @@
+     required ? 'form-required',
+   ]
+ %}
+-<div class="form-item form-datetime-wrapper">
++<div{{ attributes.addClass('form-item', 'form-datetime-wrapper') }}>
+   {% if title %}
+-    <h4{{ title_attributes.addClass(title_classes) }}>{{ title }}</h4>
++    <div{{ title_attributes.addClass(title_classes) }}>{{ title }}</div>
+   {% endif %}
+   {{ content }}
+   {% if errors %}
+diff --git a/core/themes/olivero/templates/form/details.html.twig b/core/themes/olivero/templates/form/details.html.twig
+index 6fc00ff460..f4a2d3ec4f 100644
+--- a/core/themes/olivero/templates/form/details.html.twig
++++ b/core/themes/olivero/templates/form/details.html.twig
+@@ -49,9 +49,13 @@
+         {{ errors }}
+       </div>
+     {% endif %}
+-    {%- if description -%}
++    {%- if description and description_display == 'before' -%}
+       {% set description_attributes = create_attribute({id: attributes['aria-describedby']}) %}
+-      <div{{ description_attributes.addClass(['olivero-details__description']) }}>{{ description }}</div>
++      {% set description_classes = [
++        'olivero-details__description',
++        description_display == 'invisible' ? 'visually-hidden',
++      ] %}
++      <div{{ description_attributes.addClass(description_classes) }}>{{ description }}</div>
+     {%- endif -%}
+     {%- if children -%}
+       {{ children }}
+@@ -59,5 +63,13 @@
+     {%- if value -%}
+       {{ value }}
+     {%- endif -%}
++    {%- if description and description_display in ['after', 'invisible'] -%}
++      {% set description_attributes = create_attribute({id: attributes['aria-describedby']}) %}
++      {% set description_classes = [
++        'olivero-details__description',
++        description_display == 'invisible' ? 'visually-hidden',
++      ] %}
++      <div{{ description_attributes.addClass(description_classes) }}>{{ description }}</div>
++    {%- endif -%}
+   </div>
+ </details>
+diff --git a/core/themes/olivero/templates/form/field-multiple-value-form.html.twig b/core/themes/olivero/templates/form/field-multiple-value-form.html.twig
+index f187e37fe5..90a4efe128 100644
+--- a/core/themes/olivero/templates/form/field-multiple-value-form.html.twig
++++ b/core/themes/olivero/templates/form/field-multiple-value-form.html.twig
+@@ -14,6 +14,10 @@
+  * - description: The description element containing the following properties:
+  *   - content: The description content of the form element.
+  *   - attributes: HTML attributes to apply to the description container.
++ * - description_display: Description display setting. It can have these values:
++ *   - before: The description is output before the element.
++ *   - after: The description is output after the element.
++ *   - invisible: The description is output after the element, hidden visually.
+  * - button: "Add another item" button.
+  *
+  * @see \Drupal\Core\Field\FieldPreprocess::preprocessFieldMultipleValueForm()
+@@ -35,8 +39,11 @@
+     ]
+   %}
+   <div{{ attributes.addClass(classes) }}>
++    {% if description.content and description_display == 'before' %}
++      <div{{ description.attributes.addClass(description_classes) }}>{{ description.content }}</div>
++    {% endif %}
+     {{ table }}
+-    {% if description.content %}
++    {% if description.content and description_display != 'before' %}
+       <div{{ description.attributes.addClass(description_classes) }}>{{ description.content }}</div>
+     {% endif %}
+     {% if button %}
+diff --git a/core/themes/olivero/templates/misc/status-messages.html.twig b/core/themes/olivero/templates/misc/status-messages.html.twig
+index 2dfe964a77..789ab605ef 100644
+--- a/core/themes/olivero/templates/misc/status-messages.html.twig
++++ b/core/themes/olivero/templates/misc/status-messages.html.twig
+@@ -31,14 +31,17 @@
+         'messages--' ~ type,
+       ]
+       %}
++      {%
++        set message_role = type == 'error' ? 'alert' : 'status'
++      %}
+ 
+       <div{{ attributes
+         .addClass(classes)
+         .setAttribute('data-drupal-selector', 'messages')
+-        .setAttribute('role', 'contentinfo')
++        .setAttribute('role', message_role)
+         .setAttribute('aria-label', status_headings[type])
+         }}>
+-        <div class="messages__container" data-drupal-selector="messages-container"{% if type == 'error' %} role="alert"{% endif %}>
++        <div class="messages__container" data-drupal-selector="messages-container">
+           {% if status_headings[type] %}
+             <div class="messages__header">
+             <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
+diff --git a/core/themes/olivero/tests/src/Unit/OliveroFieldMultipleValueFormTest.php b/core/themes/olivero/tests/src/Unit/OliveroFieldMultipleValueFormTest.php
+new file mode 100644
+index 0000000000..5ab902bcb4
+--- /dev/null
++++ b/core/themes/olivero/tests/src/Unit/OliveroFieldMultipleValueFormTest.php
+@@ -0,0 +1,51 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\olivero\Unit;
++
++use Drupal\Core\Template\Attribute;
++use Drupal\olivero\Hook\OliveroHooks;
++use Drupal\Tests\UnitTestCase;
++use PHPUnit\Framework\Attributes\Group;
++
++/**
++ * Tests Olivero field multiple value form preprocessing.
++ */
++#[Group('olivero')]
++final class OliveroFieldMultipleValueFormTest extends UnitTestCase {
++
++  /**
++   * Tests multiple value field labels do not add heading markup.
++   */
++  public function testMultipleValueFieldHeaderUsesNonHeadingLabel(): void {
++    $variables = [
++      'multiple' => TRUE,
++      'element' => [
++        '#field_name' => 'field_multiple',
++        '#title' => 'Multiple field',
++      ],
++      'table' => [
++        '#header' => [
++          [
++            'data' => [
++              '#type' => 'html_tag',
++              '#tag' => 'h4',
++              '#value' => 'Old label',
++              '#attributes' => new Attribute(['class' => ['label']]),
++            ],
++          ],
++        ],
++      ],
++    ];
++
++    (new OliveroHooks())->preprocessFieldMultipleValueForm($variables);
++
++    $this->assertSame('span', $variables['table']['#header'][0]['data']['#tag']);
++    $this->assertSame('Multiple field', $variables['table']['#header'][0]['data']['#value']);
++    $classes = $variables['table']['#header'][0]['data']['#attributes']['class'];
++    $this->assertContains('form-item__label', $classes);
++    $this->assertContains('form-item__label--multiple-value-form', $classes);
++  }
++
++}
+diff --git a/core/themes/stable9/templates/admin/system-modules-details.html.twig b/core/themes/stable9/templates/admin/system-modules-details.html.twig
+index e2bf4a0dac..49a7ce70b1 100644
+--- a/core/themes/stable9/templates/admin/system-modules-details.html.twig
++++ b/core/themes/stable9/templates/admin/system-modules-details.html.twig
+@@ -42,7 +42,7 @@
+         </td>
+         <td class="description expand priority-low">
+           <details class="js-form-wrapper form-wrapper" id="{{ module.enable_id }}-description">
+-            <summary aria-controls="{{ module.enable_id }}-description" role="button" aria-expanded="false"><span class="text module-description">{{ module.description }}</span></summary>
++            <summary aria-controls="{{ module.enable_id }}-description" role="button" aria-expanded="false"{% if module.summary_label %} aria-label="{{ module.summary_label }}"{% endif %}><span class="text module-description">{{ module.description }}</span></summary>
+             <div class="details-wrapper">
+               <div class="details-description">
+                 <div class="requirements">
+diff --git a/core/themes/stable9/templates/form/datetime-wrapper.html.twig b/core/themes/stable9/templates/form/datetime-wrapper.html.twig
+index 8c5995b592..234fd28cd5 100644
+--- a/core/themes/stable9/templates/form/datetime-wrapper.html.twig
++++ b/core/themes/stable9/templates/form/datetime-wrapper.html.twig
+@@ -20,7 +20,8 @@
+   ]
+ %}
+ {% if title %}
+-  <h4{{ title_attributes.addClass(title_classes) }}>{{ title }}</h4>
++<div{{ attributes }}>
++  <div{{ title_attributes.addClass(title_classes) }}>{{ title }}</div>
+ {% endif %}
+ {{ content }}
+ {% if errors %}
+@@ -33,3 +34,6 @@
+     {{ description }}
+   </div>
+ {% endif %}
++{% if title %}
++</div>
++{% endif %}
+diff --git a/core/themes/stable9/templates/form/details.html.twig b/core/themes/stable9/templates/form/details.html.twig
+index 1343adf6c8..11d589b904 100644
+--- a/core/themes/stable9/templates/form/details.html.twig
++++ b/core/themes/stable9/templates/form/details.html.twig
+@@ -32,11 +32,22 @@
+     </div>
+   {% endif %}
+ 
+-  {%- if description -%}
++  {%- if description and description_display == 'before' -%}
+     {% set description_attributes = create_attribute({id: attributes['aria-describedby']}) %}
+-    <div{{ description_attributes }}>{{ description }}</div>
++    {% set description_classes = [
++      description_display == 'invisible' ? 'visually-hidden',
++    ] %}
++    <div{{ description_attributes.addClass(description_classes) }}>{{ description }}</div>
+   {%- endif -%}
+ 
+   {{ children }}
+   {{ value }}
++
++  {%- if description and description_display in ['after', 'invisible'] -%}
++    {% set description_attributes = create_attribute({id: attributes['aria-describedby']}) %}
++    {% set description_classes = [
++      description_display == 'invisible' ? 'visually-hidden',
++    ] %}
++    <div{{ description_attributes.addClass(description_classes) }}>{{ description }}</div>
++  {%- endif -%}
+ </details>
+diff --git a/core/themes/stable9/templates/form/field-multiple-value-form.html.twig b/core/themes/stable9/templates/form/field-multiple-value-form.html.twig
+index 7e548afad6..101ad50f28 100644
+--- a/core/themes/stable9/templates/form/field-multiple-value-form.html.twig
++++ b/core/themes/stable9/templates/form/field-multiple-value-form.html.twig
+@@ -14,6 +14,10 @@
+  * - description: The description element containing the following properties:
+  *   - content: The description content of the form element.
+  *   - attributes: HTML attributes to apply to the description container.
++ * - description_display: Description display setting. It can have these values:
++ *   - before: The description is output before the element.
++ *   - after: The description is output after the element.
++ *   - invisible: The description is output after the element, hidden visually.
+  * - button: "Add another item" button.
+  *
+  * @see \Drupal\Core\Field\FieldPreprocess::preprocessFieldMultipleValueForm()
+@@ -27,8 +31,11 @@
+     ]
+   %}
+   <div{{ attributes.addClass(classes) }}>
++    {% if description.content and description_display == 'before' %}
++      <div{{ description.attributes.addClass('description') }} >{{ description.content }}</div>
++    {% endif %}
+     {{ table }}
+-    {% if description.content %}
++    {% if description.content and description_display != 'before' %}
+       <div{{ description.attributes.addClass('description') }} >{{ description.content }}</div>
+     {% endif %}
+     {% if button %}
+diff --git a/core/themes/stable9/templates/media-library/status-messages.html.twig b/core/themes/stable9/templates/media-library/status-messages.html.twig
+index 767fb79f97..1589fb680c 100644
+--- a/core/themes/stable9/templates/media-library/status-messages.html.twig
++++ b/core/themes/stable9/templates/media-library/status-messages.html.twig
+@@ -21,10 +21,10 @@
+ #}
+ <div data-drupal-messages>
+ {% for type, messages in message_list %}
+-  <div role="contentinfo" aria-label="{{ status_headings[type] }}"{{ attributes|without('role', 'aria-label') }}>
+-    {% if type == 'error' %}
+-      <div role="alert">
+-    {% endif %}
++  {%
++    set message_role = type == 'error' ? 'alert' : 'status'
++  %}
++  <div role="{{ message_role }}" aria-label="{{ status_headings[type] }}"{{ attributes|without('role', 'aria-label') }}>
+     {% if status_headings[type] %}
+       <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
+     {% endif %}
+@@ -37,9 +37,6 @@
+     {% else %}
+       {{ messages|first }}
+     {% endif %}
+-    {% if type == 'error' %}
+-      </div>
+-    {% endif %}
+   </div>
+ {% endfor %}
+ </div>
+diff --git a/core/themes/starterkit_theme/templates/form/datetime-wrapper.html.twig b/core/themes/starterkit_theme/templates/form/datetime-wrapper.html.twig
+index 456f17a7b0..e315284ae2 100644
+--- a/core/themes/starterkit_theme/templates/form/datetime-wrapper.html.twig
++++ b/core/themes/starterkit_theme/templates/form/datetime-wrapper.html.twig
+@@ -21,7 +21,8 @@
+   ]
+ %}
+ {% if title %}
+-  <h4{{ title_attributes.addClass(title_classes) }}>{{ title }}</h4>
++<div{{ attributes }}>
++  <div{{ title_attributes.addClass(title_classes) }}>{{ title }}</div>
+ {% endif %}
+ {{ content }}
+ {% if errors %}
+@@ -34,3 +35,6 @@
+     {{ description }}
+   </div>
+ {% endif %}
++{% if title %}
++</div>
++{% endif %}
+diff --git a/core/themes/starterkit_theme/templates/form/details.html.twig b/core/themes/starterkit_theme/templates/form/details.html.twig
+index 33d9461fba..8731100c98 100644
+--- a/core/themes/starterkit_theme/templates/form/details.html.twig
++++ b/core/themes/starterkit_theme/templates/form/details.html.twig
+@@ -31,9 +31,13 @@
+         <strong>{{ errors }}</strong>
+       </div>
+     {% endif %}
+-    {%- if description -%}
++    {%- if description and description_display == 'before' -%}
+       {% set description_attributes = create_attribute({id: attributes['aria-describedby']}) %}
+-      <div{{ description_attributes.addClass(['details-description']) }}>{{ description }}</div>
++      {% set description_classes = [
++        'details-description',
++        description_display == 'invisible' ? 'visually-hidden',
++      ] %}
++      <div{{ description_attributes.addClass(description_classes) }}>{{ description }}</div>
+     {%- endif -%}
+     {%- if children -%}
+       {{ children }}
+@@ -41,5 +45,13 @@
+     {%- if value -%}
+       {{ value }}
+     {%- endif -%}
++    {%- if description and description_display in ['after', 'invisible'] -%}
++      {% set description_attributes = create_attribute({id: attributes['aria-describedby']}) %}
++      {% set description_classes = [
++        'details-description',
++        description_display == 'invisible' ? 'visually-hidden',
++      ] %}
++      <div{{ description_attributes.addClass(description_classes) }}>{{ description }}</div>
++    {%- endif -%}
+   </div>
+ </details>
+diff --git a/core/themes/starterkit_theme/templates/form/field-multiple-value-form.html.twig b/core/themes/starterkit_theme/templates/form/field-multiple-value-form.html.twig
+index 7e548afad6..101ad50f28 100644
+--- a/core/themes/starterkit_theme/templates/form/field-multiple-value-form.html.twig
++++ b/core/themes/starterkit_theme/templates/form/field-multiple-value-form.html.twig
+@@ -14,6 +14,10 @@
+  * - description: The description element containing the following properties:
+  *   - content: The description content of the form element.
+  *   - attributes: HTML attributes to apply to the description container.
++ * - description_display: Description display setting. It can have these values:
++ *   - before: The description is output before the element.
++ *   - after: The description is output after the element.
++ *   - invisible: The description is output after the element, hidden visually.
+  * - button: "Add another item" button.
+  *
+  * @see \Drupal\Core\Field\FieldPreprocess::preprocessFieldMultipleValueForm()
+@@ -27,8 +31,11 @@
+     ]
+   %}
+   <div{{ attributes.addClass(classes) }}>
++    {% if description.content and description_display == 'before' %}
++      <div{{ description.attributes.addClass('description') }} >{{ description.content }}</div>
++    {% endif %}
+     {{ table }}
+-    {% if description.content %}
++    {% if description.content and description_display != 'before' %}
+       <div{{ description.attributes.addClass('description') }} >{{ description.content }}</div>
+     {% endif %}
+     {% if button %}
+diff --git a/core/themes/starterkit_theme/templates/misc/status-messages.html.twig b/core/themes/starterkit_theme/templates/misc/status-messages.html.twig
+index 68960fe9ee..46ffb6bf40 100644
+--- a/core/themes/starterkit_theme/templates/misc/status-messages.html.twig
++++ b/core/themes/starterkit_theme/templates/misc/status-messages.html.twig
+@@ -28,10 +28,10 @@
+       'messages--' ~ type,
+     ]
+   %}
+-  <div role="contentinfo" aria-label="{{ status_headings[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
+-    {% if type == 'error' %}
+-      <div role="alert">
+-    {% endif %}
++  {%
++    set message_role = type == 'error' ? 'alert' : 'status'
++  %}
++  <div role="{{ message_role }}" aria-label="{{ status_headings[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
+       {% if status_headings[type] %}
+         <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
+       {% endif %}
+@@ -44,9 +44,6 @@
+       {% else %}
+         {{ messages|first }}
+       {% endif %}
+-    {% if type == 'error' %}
+-      </div>
+-    {% endif %}
+   </div>
+   {# Remove type specific classes. #}
+   {% set attributes = attributes.removeClass(classes) %}
+
+Changes:
+
+core/lib/Drupal/Core/Datetime/DatePreprocess.php
+  @@ -93,6 +93,18 @@ public function preprocessDatetimeForm(array &$variables): void {
+  +    if (
+  +      !isset($variables['attributes'])
+  +      || !$variables['attributes'] instanceof Attribute
+  +    ) {
+  +      $variables['attributes'] = new Attribute($variables['attributes'] ?? []);
+  +    }
+  +    if (
+  +      !isset($variables['title_attributes'])
+  +      || !$variables['title_attributes'] instanceof Attribute
+  +    ) {
+  +      $variables['title_attributes'] = new Attribute($variables['title_attributes'] ?? []);
+  +    }
+   
+       if (!empty($element['#title'])) {
+         $variables['title'] = $element['#title'];
+  @@ -102,6 +114,13 @@ public function preprocessDatetimeWrapper(array &$variables): void {
+  +    if (!empty($variables['title']) && !empty($element['#id'])) {
+  +      $title_id = $element['#id'] . '--label';
+  +      $variables['title_attributes']->setAttribute('id', $title_id);
+  +      $variables['attributes']
+  +        ->setAttribute('role', 'group')
+  +        ->setAttribute('aria-labelledby', $title_id);
+  +    }
+   
+       // Suppress error messages.
+       $variables['errors'] = NULL;
+  +19 -0
+
+core/lib/Drupal/Core/Field/FieldPreprocess.php
+  @@ -108,14 +108,23 @@ public function preprocessFieldMultipleValueForm(array &$variables): void {
+  -            '#tag' => 'h4',
+  +            '#tag' => 'span',
+               '#value' => $element['#title'],
+               '#attributes' => $header_attributes,
+             ],
+             'colspan' => 2,
+             'class' => ['field-label'],
+           ],
+  -        [],
+  +        [
+  +          'data' => [
+  +            '#type' => 'html_tag',
+  +            '#tag' => 'span',
+  +            '#value' => $this->t('Operations'),
+  +            '#attributes' => [
+  +              'class' => ['visually-hidden'],
+  +            ],
+  +          ],
+  +        ],
+           $this->t('Order', [], ['context' => 'Sort order']),
+         ];
+         $rows = [];
+  @@ -186,7 +195,11 @@ public function preprocessFieldMultipleValueForm(array &$variables): void {
+  -        $description_attributes['id'] = $description_id;
+  +        $description_attributes = ['id' => $description_id];
+  +        $variables['description_display'] = $element['#description_display'] ?? 'after';
+  +        if ($variables['description_display'] === 'invisible') {
+  +          $description_attributes['class'][] = 'visually-hidden';
+  +        }
+           $variables['description']['attributes'] = new Attribute($description_attributes);
+           $variables['description']['content'] = $element['#description'];
+   
+  +16 -3
+
+core/lib/Drupal/Core/Form/FormPreprocess.php
+  @@ -351,7 +351,6 @@ public function preprocessDetails(array &$variables): void {
+  -      $variables['summary_attributes']['role'] = 'button';
+         if (!empty($element['#attributes']['id'])) {
+           $variables['summary_attributes']['aria-controls'] = $element['#attributes']['id'];
+         }
+  @@ -364,6 +363,7 @@ public function preprocessDetails(array &$variables): void {
+  +    $variables['description_display'] = $element['#description_display'] ?? 'after';
+       $variables['children'] = (isset($element['#children'])) ? $element['#children'] : '';
+       $variables['value'] = (isset($element['#value'])) ? $element['#value'] : '';
+       $variables['required'] = !empty($element['#required']) ? $element['#required'] : NULL;
+  +1 -1
+
+core/lib/Drupal/Core/Render/Element/Details.php
+  @@ -46,6 +46,7 @@ public function getInfo() {
+  +      '#title' => $this->t('Details'),
+         '#process' => [
+           [static::class, 'processGroup'],
+           [static::class, 'processAjaxForm'],
+  +1 -0
+
+core/misc/details-aria.js
+  @@ -16,10 +16,7 @@
+  -          const open =
+  -            $(event.currentTarget.parentNode).attr('open') === 'open'
+  -              ? 'false'
+  -              : 'true';
+  +          const open = event.currentTarget.parentNode.open ? 'false' : 'true';
+   
+             $summary.attr({
+               'aria-expanded': open,
+  +1 -4
+
+core/misc/message.js
+  @@ -197,10 +197,7 @@
+  -      if (
+  -        !options.priority &&
+  -        (options.type === 'warning' || options.type === 'error')
+  -      ) {
+  +      if (!options.priority && options.type === 'error') {
+           options.priority = 'assertive';
+         }
+         /**
+  @@ -253,7 +250,7 @@
+  -      type === 'error' || type === 'warning' ? 'alert' : 'status',
+  +      type === 'error' ? 'alert' : 'status',
+       );
+       messageWrapper.setAttribute('data-drupal-message-id', id);
+       messageWrapper.setAttribute('data-drupal-message-type', type);
+  +2 -5
+
+core/misc/tabledrag.js
+  @@ -1734,7 +1734,7 @@
+  -        return `<div class="tabledrag-changed-warning messages messages--warning" role="alert">${Drupal.theme(
+  +        return `<div class="tabledrag-changed-warning messages messages--warning" role="status">${Drupal.theme(
+             'tableDragChangedMarker',
+           )} ${Drupal.t('You have unsaved changes.')}</div>`;
+         },
+  +1 -1
+
+core/misc/tableselect.js
+  @@ -53,7 +53,7 @@
+  -            'title',
+  +            'aria-label',
+               state ? strings.selectNone : strings.selectAll,
+             );
+   
+  @@ -69,7 +69,9 @@
+  -      .prepend($(Drupal.theme('checkbox')).attr('title', strings.selectAll))
+  +      .prepend(
+  +        $(Drupal.theme('checkbox')).attr('aria-label', strings.selectAll),
+  +      )
+         .on('click', (event) => {
+           if (event.target.matches('input[type="checkbox"]')) {
+             // Loop through all checkboxes and set their state to the select all
+  +4 -2
+
+core/modules/field/tests/modules/field_test/src/Hook/FieldTestHooks.php
+  @@ -220,6 +220,9 @@ public function alterWidget($hook, array &$field_widget_complete_form, FormState
+  +      if (!empty($alter_info['description_display'])) {
+  +        $elements['#description_display'] = $alter_info['description_display'];
+  +      }
+         $elements['#prefix'] = "From $hook(): prefix on $name parent element.";
+         foreach (Element::children($elements) as $delta => $element) {
+           $elements[$delta]['#suffix'] = "From $hook(): suffix on $name child element.";
+  +3 -0
+
+core/modules/field/tests/src/Functional/FormTest.php
+  @@ -284,6 +284,9 @@ public function testFieldFormUnlimited(): void {
+  +    // The operations column header is visually hidden, but still available to
+  +    // assistive technology.
+  +    $this->assertSession()->elementExists('xpath', '//table[@id="field-unlimited-values"]/thead/tr/th[2]/span[contains(@class, "visually-hidden") and normalize-space(.) = "Operations"]');
+   
+       // Press 'add more' button -> 2 widgets.
+       $this->submitForm([], 'Add another item');
+  +3 -0
+
+core/modules/field/tests/src/Functional/MultipleWidgetFormTest.php
+  @@ -177,10 +177,64 @@ public function testLabelOnMultiValueFields(): void {
+  +    $this->assertSession()->elementExists('css', 'th.field-label > span.label');
+  +    $this->assertSession()->elementNotExists('css', 'th.field-label > h4');
+       // Test if labels were XSS filtered.
+       $this->assertSession()->assertEscaped("<script>alert('a configurable field');</script>");
+     }
+   
+  +  /**
+  +   * Tests configurable description position for multi-value field widgets.
+  +   */
+  +  public function testDescriptionDisplayOnMultiValueFields(): void {
+  +    $field_storage = $this->fieldStorageMultiple;
+  +    $field_name = $field_storage['field_name'];
+  +    $this->field['field_name'] = $field_name;
+  +    $this->field['description'] = 'Multiple widget description.';
+  +    FieldStorageConfig::create($field_storage)->save();
+  +    FieldConfig::create($this->field)->save();
+  +    \Drupal::service('entity_display.repository')->getFormDisplay($this->field['entity_type'], $this->field['bundle'], 'default')
+  +      ->setComponent($field_name, [
+  +        'type' => 'test_field_widget_multiple',
+  +      ])
+  +      ->save();
+  +
+  +    $selector = str_replace('_', '-', $field_name);
+  +
+  +    // By default, the description is rendered after the field table.
+  +    $this->drupalGet('entity_test/add');
+  +    $this->assertSession()->elementExists('css', '[data-drupal-selector="edit-' . $selector . '"] > table.field-multiple-table + div.description');
+  +    $this->assertSession()->pageTextContains('Multiple widget description.');
+  +
+  +    // Configure the widget to render its description before the field table.
+  +    \Drupal::state()->set('field_test.widget_alter_test', [
+  +      'hook' => 'hook_field_widget_complete_form_alter',
+  +      'field_name' => $field_name,
+  +      'widget' => 'test_field_widget_multiple',
+  +      'description_display' => 'before',
+  +    ]);
+  +    $this->rebuildAll();
+  +
+  +    $this->drupalGet('entity_test/add');
+  +    $this->assertSession()->elementExists('css', '[data-drupal-selector="edit-' . $selector . '"] > div.description + table.field-multiple-table');
+  +
+  +    // Configure the widget to render its description in an invisible style.
+  +    \Drupal::state()->set('field_test.widget_alter_test', [
+  +      'hook' => 'hook_field_widget_complete_form_alter',
+  +      'field_name' => $field_name,
+  +      'widget' => 'test_field_widget_multiple',
+  +      'description_display' => 'invisible',
+  +    ]);
+  +    $this->rebuildAll();
+  +
+  +    $this->drupalGet('entity_test/add');
+  +    $this->assertSession()->elementExists('css', '[data-drupal-selector="edit-' . $selector . '"] > table.field-multiple-table + div.description.visually-hidden');
+  +    $this->assertSession()->pageTextContains('Multiple widget description.');
+  +
+  +    \Drupal::state()->delete('field_test.widget_alter_test');
+  +    $this->rebuildAll();
+  +  }
+  +
+     /**
+      * Tests hook_field_widget_complete_form_alter().
+      */
+  +54 -0
+
+core/modules/file/src/Hook/FileThemeHooks.php
+  @@ -282,7 +282,7 @@ public function preprocessFileWidgetMultiple(array &$variables): void {
+  -        unset($widget['display']['#title']);
+  +        $widget['display']['#title_display'] = 'invisible';
+           $row[] = [
+             'data' => $widget['display'],
+             'class' => ['checkbox'],
+  +1 -1
+
+core/modules/file/src/Plugin/Field/FieldWidget/FileWidget.php
+  @@ -400,7 +400,10 @@ public static function process($element, FormStateInterface $form_state, $form)
+  -        '#attributes' => ['class' => ['file-display']],
+  +        '#attributes' => [
+  +          'class' => ['file-display'],
+  +          'aria-label' => (string) new TranslatableMarkup('Include file in display'),
+  +        ],
+         ];
+         if (isset($item['display'])) {
+           $element['display']['#value'] = $item['display'] ? '1' : '';
+  +4 -1
+
+core/modules/file/tests/src/Functional/FileFieldDisplayTest.php
+  @@ -124,14 +124,27 @@ public function testNodeDisplay(): void {
+  +    $this->assertFileDisplayCheckboxHasLabel($field_name, 0);
+       // Second file.
+       $this->assertSession()->responseContains($field_name . '[1][display]');
+  +    $this->assertFileDisplayCheckboxHasLabel($field_name, 1);
+       $this->assertSession()->responseContains($field_name . '[1][description]');
+   
+       // Check that the file fields don't contain duplicate HTML IDs.
+       $this->assertSession()->pageContainsNoDuplicateId();
+     }
+   
+  +  /**
+  +   * Asserts that a file display checkbox has an invisible label.
+  +   */
+  +  protected function assertFileDisplayCheckboxHasLabel(string $field_name, int $delta): void {
+  +    $display_checkbox = $this->assertSession()->fieldExists($field_name . "[$delta][display]");
+  +    $label = $this->assertSession()->elementExists('xpath', '//label[@for="' . $display_checkbox->getAttribute('id') . '"]');
+  +    $this->assertSame('Include file in display', $label->getText());
+  +    $this->assertStringContainsString('visually-hidden', $label->getAttribute('class'));
+  +    $this->assertSame('Include file in display', $display_checkbox->getAttribute('aria-label'));
+  +  }
+  +
+     /**
+      * Tests default display of File Field.
+      */
+  +13 -0
+
+core/modules/filter/src/FilterFormatListBuilder.php
+  @@ -133,6 +133,15 @@ protected function getDefaultOperations(EntityInterface $entity, CacheableMetada
+  +      // Keep the accessible name aligned with the overridden title.
+  +      if (isset($operations['edit']['url'])) {
+  +        $url = $operations['edit']['url'];
+  +        $attributes = $url->getOption('attributes') ?: [];
+  +        $attributes['aria-label'] = $this->t('Configure @entity_label', [
+  +          '@entity_label' => $entity->label(),
+  +        ]);
+  +        $url->setOption('attributes', $attributes);
+  +      }
+       }
+   
+       // The fallback format may not be disabled.
+  +9 -0
+
+core/modules/filter/src/Hook/FilterThemeHooks.php
+  @@ -4,6 +4,7 @@
+  +use Drupal\Core\Template\Attribute;
+   use Drupal\filter\FilterFormatRepositoryInterface;
+   
+   /**
+  @@ -27,6 +28,7 @@ public function theme() : array {
+  +        'initial preprocess' => static::class . ':preprocessFilterTips',
+         ],
+         'text_format_wrapper' => [
+           'variables' => [
+  @@ -53,6 +55,53 @@ public function theme() : array {
+  +  /**
+  +   * Prepares variables for filter tips templates.
+  +   *
+  +   * Default template: filter-tips.html.twig.
+  +   *
+  +   * @param array $variables
+  +   *   An associative array containing:
+  +   *   - tips: An associative array of filter tips keyed by text format label.
+  +   *   - long: Whether the tips use the long explanatory format.
+  +   */
+  +  public function preprocessFilterTips(array &$variables): void {
+  +    $tips = $variables['tips'] ?? [];
+  +    $variables['multiple'] = count($tips) > 1;
+  +
+  +    foreach ($tips as $name => $tip_list) {
+  +      // Some callers or themes may already provide the normalized template
+  +      // shape. Leave those values intact.
+  +      if (isset($tip_list['list'])) {
+  +        $variables['tips'][$name]['list'] = $this->normalizeFilterTipList($tip_list['list']);
+  +        $variables['tips'][$name] += [
+  +          'name' => $name,
+  +          'attributes' => new Attribute(),
+  +        ];
+  +        continue;
+  +      }
+  +
+  +      $variables['tips'][$name] = [
+  +        'name' => $name,
+  +        'list' => $this->normalizeFilterTipList($tip_list),
+  +        'attributes' => new Attribute(),
+  +      ];
+  +    }
+  +  }
+  +
+  +  /**
+  +   * Ensures each filter tip item has template-safe attributes.
+  +   */
+  +  protected function normalizeFilterTipList(array $tip_list): array {
+  +    foreach ($tip_list as &$item) {
+  +      if (is_array($item)) {
+  +        $item += ['attributes' => new Attribute()];
+  +      }
+  +    }
+  +    unset($item);
+  +    return $tip_list;
+  +  }
+  +
+     /**
+      * Prepares variables for text format guideline templates.
+      *
+  +49 -0
+
+core/modules/filter/tests/src/Functional/FilterAdminTest.php
+  @@ -498,7 +498,11 @@ public function testFilterEnableAndDisable(): void {
+  -    $this->assertSession()->elementExists('xpath', '//a[contains(@href, "/admin/config/content/formats/manage/filter_test") and text()="Configure"]');
+  +    $configure_link = $this->assertSession()->elementExists(
+  +      'xpath',
+  +      '//a[contains(@href, "/admin/config/content/formats/manage/filter_test") and text()="Configure"]',
+  +    );
+  +    $this->assertSame('Configure Filter test', $configure_link->getAttribute('aria-label'));
+   
+       // Disable 'Filter test'.
+       $this->getSession()->getPage()->find('css', '[href*="/admin/config/content/formats/manage/filter_test/disable"]')->click();
+  +5 -1
+
+core/modules/filter/tests/src/Kernel/FilterTipsRenderTest.php
+  @@ -0,0 +1,153 @@
+  +<?php
+  +
+  +declare(strict_types=1);
+  +
+  +namespace Drupal\Tests\filter\Kernel;
+  +
+  +use Drupal\Core\Theme\ThemeInitializationInterface;
+  +use Drupal\filter\FilterFormatRepositoryInterface;
+  +use Drupal\filter\Hook\FilterThemeHooks;
+  +use Drupal\KernelTests\KernelTestBase;
+  +use PHPUnit\Framework\Attributes\Group;
+  +use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+  +
+  +/**
+  + * Tests rendered filter tips.
+  + */
+  +#[Group('filter')]
+  +#[RunTestsInSeparateProcesses]
+  +class FilterTipsRenderTest extends KernelTestBase {
+  +
+  +  /**
+  +   * {@inheritdoc}
+  +   */
+  +  protected static $modules = ['system', 'filter'];
+  +
+  +  /**
+  +   * Tests long filter tips with one format.
+  +   */
+  +  public function testSingleFormatLongTipsRenderNamedHeading(): void {
+  +    foreach ($this->filterTipThemes() as $theme) {
+  +      $this->setActiveTheme($theme);
+  +      $output = $this->renderFilterTips([
+  +        'Plain text' => $this->filterTips()['Plain text'],
+  +      ]);
+  +
+  +      $this->assertStringContainsString('<h3>Plain text</h3>', $output, "$theme should render the format name.");
+  +      $this->assertStringNotContainsString('<h3' . '></h3>', $output, "$theme should not render an empty heading.");
+  +    }
+  +  }
+  +
+  +  /**
+  +   * Tests long filter tips with multiple formats.
+  +   */
+  +  public function testMultipleFormatLongTipsRenderNamedHeadings(): void {
+  +    foreach ($this->filterTipThemes() as $theme) {
+  +      $this->setActiveTheme($theme);
+  +      $output = $this->renderFilterTips($this->filterTips());
+  +
+  +      $this->assertStringContainsString('<h2>Text Formats</h2>', $output, "$theme should render the filter tips heading.");
+  +      $this->assertStringContainsString('<h3>Basic HTML</h3>', $output, "$theme should render the first format name.");
+  +      $this->assertStringContainsString('<h3>Plain text</h3>', $output, "$theme should render the second format name.");
+  +      $this->assertStringNotContainsString('<h3' . '></h3>', $output, "$theme should not render an empty heading.");
+  +    }
+  +  }
+  +
+  +  /**
+  +   * Tests preprocessing for theme overrides.
+  +   */
+  +  public function testPreprocessFilterTipsNormalizesTemplateVariables(): void {
+  +    $variables = [
+  +      'tips' => $this->filterTips(),
+  +      'long' => TRUE,
+  +    ];
+  +    $this->filterThemeHooks()->preprocessFilterTips($variables);
+  +
+  +    $this->assertTrue($variables['multiple']);
+  +    $this->assertSame('Basic HTML', $variables['tips']['Basic HTML']['name']);
+  +    $this->assertArrayHasKey('attributes', $variables['tips']['Basic HTML']);
+  +    $this->assertArrayHasKey('attributes', $variables['tips']['Basic HTML']['list']['filter_html']);
+  +
+  +    $variables = [
+  +      'tips' => [
+  +        'Existing format' => [
+  +          'name' => 'Provided format',
+  +          'list' => [
+  +            'filter_html' => [
+  +              'tip' => ['#markup' => 'Allowed HTML tags: <code>&lt;p&gt;</code>'],
+  +              'id' => 'filter_html',
+  +            ],
+  +          ],
+  +        ],
+  +      ],
+  +      'long' => TRUE,
+  +    ];
+  +    $this->filterThemeHooks()->preprocessFilterTips($variables);
+  +
+  +    $this->assertSame('Provided format', $variables['tips']['Existing format']['name']);
+  +    $this->assertArrayHasKey('attributes', $variables['tips']['Existing format']);
+  +    $this->assertArrayHasKey('attributes', $variables['tips']['Existing format']['list']['filter_html']);
+  +  }
+  +
+  +  /**
+  +   * Sets the active theme.
+  +   */
+  +  private function setActiveTheme(string $theme): void {
+  +    $this->container->get('theme_installer')->install([$theme]);
+  +    $active_theme = $this->container
+  +      ->get(ThemeInitializationInterface::class)
+  +      ->initTheme($theme);
+  +    $this->container->get('theme.manager')->setActiveTheme($active_theme);
+  ... (53 lines truncated)
+  +153 -0
+
+core/modules/inline_form_errors/src/FormErrorHandler.php
+  @@ -2,6 +2,7 @@
+  +use Drupal\Component\Utility\Html;
+   use Drupal\Core\Form\FormElementHelper;
+   use Drupal\Core\Form\FormErrorHandler as CoreFormErrorHandler;
+   use Drupal\Core\Form\FormStateInterface;
+  @@ -50,6 +51,19 @@ public function __construct(TranslationInterface $string_translation, RendererIn
+  +  /**
+  +   * {@inheritdoc}
+  +   */
+  +  public function handleFormErrors(array &$form, FormStateInterface $form_state) {
+  +    parent::handleFormErrors($form, $form_state);
+  +
+  +    if (!empty($form_state->getErrors()) && empty($form['#disable_inline_form_errors'])) {
+  +      $this->setTableElementInlineErrors($form);
+  +    }
+  +
+  +    return $this;
+  +  }
+  +
+     /**
+      * Loops through and displays all form errors.
+      *
+  @@ -122,4 +136,35 @@ protected function displayErrorMessages(array $form, FormStateInterface $form_st
+  +  /**
+  +   * Adds inline table error markup for table elements with element-level errors.
+  +   *
+  +   * @param array $elements
+  +   *   Form render array elements by reference.
+  +   */
+  +  protected function setTableElementInlineErrors(array &$elements): void {
+  +    foreach (Element::children($elements) as $key) {
+  +      if (empty($elements[$key])) {
+  +        continue;
+  +      }
+  +
+  +      $element = &$elements[$key];
+  +
+  +      if (($element['#type'] ?? NULL) === 'table' && !empty($element['#errors']) && empty($element['#error_no_message'])) {
+  +        $error_id = ($element['#id'] ?? ('inline-form-errors-table-' . $key)) . '--error';
+  +        $existing_prefix = (string) ($element['#prefix'] ?? '');
+  +
+  +        if (!str_contains($existing_prefix, $error_id)) {
+
+... (more changes truncated)
+  +33 -0
+[full diff: rtk git diff --no-compact]

@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Changes to Drupal Accessibility Coding Standards</title>
+</head>
+<body>
+	<main>
+		<h1>Changes to Drupal Accessibility Coding Standards</h1>
+
+		<p>This document explains the redraft of <a href="https://www.drupal.org/docs/getting-started/accessibility/accessibility-coding-standards">Accessibility Coding Standards</a>. The original page was last updated on March 4, 2026. Its implementation guidance was checked against Drupal 11.x source, current W3C standards, and Drupal core’s current Nightwatch accessibility tests.</p>
+
+		<h2>Summary</h2>
+
+		<p>The revised page remains an implementation standard. It removes product-centered testing targets and distinguishes accessibility barriers, accessibility requirements, tool rules, and automated gates. It consolidates duplicated review instructions and updates Drupal examples without turning the page into an API reference.</p>
+
+		<p>The original body contained approximately 2,269 words. The revised body contains 2,099 words, a decrease of 7.5 percent. Repeated testing instructions and product-specific tool recommendations were removed while implementation requirements were expanded.</p>
+
+		<p>The revision:</p>
+
+		<ul>
+			<li>Retains WCAG 2.2 Level AA and clarifies the role of ATAG 2.0.</li>
+			<li>Defines Level AAA and advisory guidance as aspirational under an AA target.</li>
+			<li>Centers accessibility barriers and affected user tasks.</li>
+			<li>Explains why automated rules cover only part of the standards.</li>
+			<li>Limits automated gates to deterministic tests that do not routinely produce false positives.</li>
+			<li>Replaces outdated Drupal 8 and jQuery examples with current Drupal 11.x APIs.</li>
+			<li>Uses Form API properties before manually added ARIA.</li>
+			<li>Separates coding requirements from the detailed accessibility-review procedure.</li>
+		</ul>
+
+		<h2>Detailed changes</h2>
+
+		<table>
+			<caption>Changes grouped by original section or claim</caption>
+			<thead>
+				<tr>
+					<th scope="col">Original area</th>
+					<th scope="col">Change</th>
+					<th scope="col">Reason</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<th scope="row">Page scope</th>
+					<td>Defined the page as a coding standard for Drupal core and Drupal.org projects, with contributed projects encouraged to follow it and document additional requirements.</td>
+					<td>The original page referred broadly to Drupal, websites, and digital assets without identifying where the standards apply.</td>
+				</tr>
+				<tr>
+					<th scope="row">Key goals</th>
+					<td>Replaced three abstract goals with a standards-and-scope section followed by testable implementation requirements.</td>
+					<td>Terms such as “inclusive strategy,” “accessible coding,” and “normalized testing” did not tell contributors what code must do.</td>
+				</tr>
+				<tr>
+					<th scope="row">Barriers and tool results</th>
+					<td>Added a four-layer model: accessibility barriers, accessibility requirements, test rules, and deterministic automated gates.</td>
+					<td>A user barrier, a WCAG success criterion, and an axe rule are different things. Treating them as equivalents encourages misleading counts and unsupported conformance claims.</td>
+				</tr>
+				<tr>
+					<th scope="row">WCAG and ATAG</th>
+					<td>Retained WCAG 2.2 Level AA. Clarified that WCAG applies to complete user tasks and that ATAG Part A and Part B apply to authoring interfaces and output.</td>
+					<td>The original standards were current, but their scope and relationship to implementation were underspecified.</td>
+				</tr>
+				<tr>
+					<th scope="row">Level AAA and advisory techniques</th>
+					<td>Defined them as aspirational unless another project requirement makes them mandatory.</td>
+					<td>They should remain visible as stretch goals without being reported as Level AA failures.</td>
+				</tr>
+				<tr>
+					<th scope="row">General best practices</th>
+					<td>Reorganized the short checklist into requirements for semantics, names, keyboard access, forms, dynamic content, presentation, media, and authoring.</td>
+					<td>The original list omitted several WCAG 2.2 requirements and mixed coding, content, and testing advice.</td>
+				</tr>
+				<tr>
+					<th scope="row">Semantic HTML video</th>
+					<td>Removed the third-party video and retained the native-HTML-first rule in text.</td>
+					<td>A coding standard should state the rule directly. The video was not needed to understand or maintain it.</td>
+				</tr>
+				<tr>
+					<th scope="row">ARIA description</th>
+					<td>Replaced “ARIA shims labels for screen readers” with a description of names, roles, states, properties, and relationships. Added requirements to preserve native semantics and synchronize states.</td>
+					<td>ARIA is exposed through accessibility APIs to more than screen readers. It does not merely add labels and does not supply interaction behavior.</td>
+				</tr>
+				<tr>
+					<th scope="row"><code>aria-required</code> example</th>
+					<td>Replaced manually added <code>aria-required</code> with a current Form API example using <code>#required</code>, <code>#title</code>, and <code>#description</code>.</td>
+					<td>Drupal APIs should generate the associated markup and validation. Manually duplicating a required state can become inconsistent with server-side behavior.</td>
+				</tr>
+				<tr>
+					<th scope="row"><code>Drupal.announce()</code></th>
+					<td>Retained the API, updated the example, and added limits on what to announce and when to use assertive priority.</td>
+					<td>The original section treated every dynamic change as a live-region candidate and described assertive output without warning about interruption.</td>
+				</tr>
+				<tr>
+					<th scope="row"><code>TabbingManager</code></th>
+					<td>Replaced the Drupal 8 jQuery example with the current options signature, including <code>trapFocus</code>, and documented the API’s limits.</td>
+					<td>The current API can constrain tabbing with or without wrapping focus. It does not provide component semantics, keyboard commands, or focus restoration by itself.</td>
+				</tr>
+				<tr>
+					<th scope="row">Hiding utilities</th>
+					<td>Reduced the repeated class descriptions to a short summary and linked the dedicated hiding guide.</td>
+					<td>The detailed guidance already has its own page. Duplicating it creates inconsistent updates.</td>
+				</tr>
+				<tr>
+					<th scope="row">Inline Form Errors</th>
+					<td>Retained the module and confirmed that the Drupal 11.x Standard installation profile does not enable it. Added a requirement to test the complete validation workflow.</td>
+					<td>The module improves error placement but cannot guarantee every form requirement or custom implementation.</td>
+				</tr>
+				<tr>
+					<th scope="row">Form groups</th>
+					<td>Retained <code>fieldset</code> and <code>legend</code> while removing the claim that radios, checkboxes, Form API, and advanced search always provide them by default.</td>
+					<td>Group semantics depend on the selected Form API elements and templates. The original statement was too broad.</td>
+				</tr>
+				<tr>
+					<th scope="row">Animation</th>
+					<td>Replaced the long two-query example and article list with requirements for essential motion, reduced motion, flashing, and time-based controls.</td>
+					<td>The original example mixed one implementation technique with a general standard and included subjective language.</td>
+				</tr>
+				<tr>
+					<th scope="row">Automated coverage percentage</th>
+					<td>Removed the claim that automated tools catch 35 to 40 percent of issues.</td>
+					<td>Coverage depends on the tool, rule set, content, interface state, and definition of an issue. A single percentage is not a stable or useful coding requirement.</td>
+				</tr>
+				<tr>
+					<th scope="row">“Zero axe errors” and “axe clean”</th>
+					<td>Removed both terms. Automated results are described as evidence from specific rules, pages, states, viewports, and configurations.</td>
+					<td>The terms did not become a useful Drupal standard. They collapse tool output into an accessibility claim and ignore incomplete results, untested requirements, and user barriers.</td>
+				</tr>
+				<tr>
+					<th scope="row">Tool list</th>
+					<td>Removed the list of browser extensions, services, and integration packages.</td>
+					<td>Tool lists age quickly. The standard should define the evidence and reliability required, while the review guide can discuss tool choices.</td>
+				</tr>
+				<tr>
+					<th scope="row">False positives</th>
+					<td>Limited unattended build failures to deterministic tests in the project environment. Context-dependent, incomplete, and unstable results are routed to review.</td>
+					<td>Even a low false-positive rate becomes disruptive when tests run across many pages, states, components, and builds. A review lane preserves useful evidence without making unreliable findings block development.</td>
+				</tr>
+				<tr>
+					<th scope="row">Nightwatch</th>
+					<td>Retained axe-core Nightwatch testing and added requirements for representative states, viewports, regression coverage, and narrowly documented rule exceptions.</td>
+					<td>Current Drupal 11.x tests run axe on public and administration pages, include a mobile viewport, and link disabled rules to follow-up issues.</td>
+				</tr>
+				<tr>
+					<th scope="row">Keyboard checklist</th>
+					<td>Moved the coding requirements into the keyboard and focus section and linked the detailed review guide for test procedure.</td>
+					<td>The standards page should define the required behavior. Repeating the full review procedure creates maintenance drift.</td>
+				</tr>
+				<tr>
+					<th scope="row">Scrollable regions</th>
+					<td>Removed the general recommendation to add <code>tabindex="0"</code> to overflowing content.</td>
+					<td>Making a static region focusable changes keyboard navigation and should be based on a demonstrated interaction requirement, not applied as a general fix.</td>
+				</tr>
+				<tr>
+					<th scope="row">Assistive-technology testing</th>
+					<td>Retained assistive-technology and disabled-user testing but moved detailed procedure to the review guide.</td>
+					<td>Testing by occasional assistive-technology users does not represent the lived experience of disabled users, and neither form of testing replaces standards-based evaluation.</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<h2>Content removed or consolidated</h2>
+
+		<ul>
+			<li><strong>“Drupal has made every effort”:</strong> Removed as an unverifiable product claim.</li>
+			<li><strong>“Content can be navigated and read by all”:</strong> Replaced with specific requirements. No implementation can guarantee access for every person or need.</li>
+			<li><strong>Three separate unordered lists under general practices:</strong> Consolidated into topic-based sections.</li>
+			<li><strong>Drupal 8 release link:</strong> Replaced with current Drupal 11.x source.</li>
+			<li><strong>Duplicate hidden-content instructions:</strong> Consolidated into the dedicated guide.</li>
+			<li><strong>External animation articles:</strong> Removed because the standards are stated directly and external recommendations can change.</li>
+			<li><strong>Accessibility Insights export recommendation:</strong> Removed as a product-specific bug-reporting workflow. Reproducible evidence is required regardless of tool.</li>
+			<li><strong>Tool coverage percentages:</strong> Removed because they are variable and do not measure user impact or conformance.</li>
+			<li><strong>Repeated manual review checklists:</strong> Consolidated into the accessibility review guide.</li>
+		</ul>
+
+		<h2>Claims not added</h2>
+
+		<p>The revision does not claim that:</p>
+
+		<ul>
+			<li>A tool violation is identical to an accessibility barrier.</li>
+			<li>An axe rule maps one-to-one to a WCAG success criterion.</li>
+			<li>Passing a rule means the associated success criterion is satisfied.</li>
+			<li>Passing every available automated rule establishes WCAG conformance.</li>
+			<li>Every axe rule is suitable for blocking a build.</li>
+			<li>Automated tools cover a fixed percentage of accessibility problems.</li>
+			<li>One browser, viewport, theme, configuration, or assistive-technology test is representative of all uses.</li>
+			<li>Level AAA and best-practice findings are Level AA failures.</li>
+		</ul>
+
+		<h2>Sources checked</h2>
+
+		<ul>
+			<li><a href="https://www.w3.org/TR/WCAG22/">Web Content Accessibility Guidelines (WCAG) 2.2</a></li>
+			<li><a href="https://www.w3.org/TR/ATAG20/">Authoring Tool Accessibility Guidelines (ATAG) 2.0</a></li>
+			<li><a href="https://www.w3.org/TR/act-rules-format/">Accessibility Conformance Testing Rules Format 1.1</a></li>
+			<li><a href="https://www.w3.org/WAI/test-evaluate/tools/selecting/">W3C guidance for selecting accessibility evaluation tools</a></li>
+			<li><a href="https://github.com/dequelabs/axe-core/blob/develop/README.md">axe-core rules and incomplete results</a></li>
+			<li><a href="https://github.com/drupal/core/blob/11.x/lib/Drupal/Core/Render/Element/FormElementBase.php">Drupal 11.x Form API properties</a></li>
+			<li><a href="https://github.com/drupal/core/blob/11.x/misc/announce.js"><code>Drupal.announce()</code> in Drupal 11.x</a></li>
+			<li><a href="https://github.com/drupal/core/blob/11.x/misc/tabbingmanager.js"><code>TabbingManager</code> in Drupal 11.x</a></li>
+			<li><a href="https://github.com/drupal/core/blob/11.x/modules/system/css/components/hidden.module.css">Drupal 11.x hiding utilities</a></li>
+			<li><a href="https://github.com/drupal/core/blob/11.x/profiles/standard/standard.info.yml">Drupal 11.x Standard installation profile</a></li>
+			<li><a href="https://github.com/drupal/core/blob/11.x/tests/Drupal/Nightwatch/Tests/a11yTestDefault.js">Default-theme axe-core Nightwatch tests</a></li>
+			<li><a href="https://github.com/drupal/core/blob/11.x/tests/Drupal/Nightwatch/Tests/a11yTestAdmin.js">Administration-theme axe-core Nightwatch tests</a></li>
+		</ul>
+	</main>
+</body>
+</html>

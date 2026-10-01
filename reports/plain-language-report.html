@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Plain Language Analysis — Drupal Core UI Strings</title>
+  <style>
+    :root {
+      --page-bg: #eef2f8;
+      --card-bg: #ffffff;
+      --surface-bg: #f7f9fc;
+      --text: #1c2431;
+      --muted: #546173;
+      --border: #d5dce7;
+      --link: #0e4fb5;
+      --accent: #b7ccf6;
+      --table-stripe: #f5f8ff;
+      --shadow: 0 12px 34px rgba(20, 35, 60, 0.08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --page-bg: #111722;
+        --card-bg: #1a2331;
+        --surface-bg: #131b27;
+        --text: #e8edf5;
+        --muted: #93a0b5;
+        --border: #2b3950;
+        --link: #8cb8ff;
+        --accent: #23395f;
+        --table-stripe: #162032;
+        --shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
+      }
+    }
+    * { box-sizing: border-box; }
+    html { color-scheme: light dark; scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      padding: 2rem 1rem 4rem;
+      font: 16px/1.7 Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+      background:
+        radial-gradient(circle at top left, rgba(14, 79, 181, 0.08), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 16%),
+        var(--page-bg);
+      color: var(--text);
+    }
+    a { color: var(--link); }
+    a:hover, a:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: grid;
+      gap: 1.25rem;
+    }
+    .hero,
+    .toc,
+    .content {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      box-shadow: var(--shadow);
+    }
+    .hero {
+      padding: 1.5rem;
+    }
+    .hero h1 {
+      margin: 0 0 0.5rem;
+      line-height: 1.15;
+      font-size: clamp(2rem, 4vw, 3rem);
+    }
+    .lede,
+    .meta {
+      color: var(--muted);
+      margin: 0.35rem 0 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .toc {
+      padding: 1rem 1.25rem;
+    }
+    .toc h2 {
+      margin: 0 0 0.65rem;
+      font-size: 1rem;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .toc ol {
+      margin: 0;
+      padding-left: 1.2rem;
+      display: grid;
+      gap: 0.4rem;
+    }
+    .toc li.level-3 {
+      margin-left: 1rem;
+      color: var(--muted);
+    }
+    .content {
+      padding: 1.5rem;
+      overflow: hidden;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      line-height: 1.25;
+      scroll-margin-top: 1rem;
+    }
+    h2, h3 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    h2 {
+      margin-top: 2.4rem;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h3 {
+      margin-top: 1.8rem;
+    }
+    .heading-anchor {
+      text-decoration: none;
+      opacity: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    h2:hover .heading-anchor,
+    h2:focus-within .heading-anchor,
+    h3:hover .heading-anchor,
+    h3:focus-within .heading-anchor {
+      opacity: 1;
+    }
+    p, ul, ol, blockquote, pre, .table-wrap, hr {
+      margin: 1rem 0;
+    }
+    ul, ol {
+      padding-left: 1.5rem;
+    }
+    li + li {
+      margin-top: 0.35rem;
+    }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    code {
+      background: rgba(127, 127, 127, 0.14);
+      padding: 0.1rem 0.35rem;
+      border-radius: 0.3rem;
+      font-size: 0.95em;
+    }
+    pre {
+      overflow-x: auto;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 0.85rem;
+      background: var(--surface-bg);
+    }
+    blockquote {
+      border-left: 4px solid var(--link);
+      padding: 0.25rem 0 0.25rem 1rem;
+      color: var(--muted);
+      margin-left: 0;
+      background: linear-gradient(90deg, rgba(14, 79, 181, 0.08), transparent 60%);
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid var(--border);
+    }
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 0.85rem;
+      background: var(--surface-bg);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 680px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 0.7rem 0.85rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--accent);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.92rem;
+    }
+    tbody tr:nth-child(even) td {
+      background: var(--table-stripe);
+    }
+    @media (min-width: 900px) {
+      .page {
+        grid-template-columns: minmax(0, 1fr) 280px;
+        align-items: start;
+      }
+      .hero,
+      .content {
+        grid-column: 1;
+      }
+      .toc {
+        grid-column: 2;
+        position: sticky;
+        top: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <h1>Plain Language Analysis — Drupal Core UI Strings</h1>
+      <p class="lede">Readability and plain-language diagnostics for collected Drupal admin UI strings.</p>
+      <p class="meta">Source markdown: <code>plain-language-report.md</code></p>
+    </header>
+    
+    <nav class="toc" aria-label="Table of contents">
+      <h2>Contents</h2>
+      <ol>
+        <li class="level-2"><a href="#corpus-summary">Corpus summary</a></li><li class="level-2"><a href="#grade-level-distribution">Grade level distribution</a></li><li class="level-2"><a href="#issue-summary">Issue summary</a></li><li class="level-2"><a href="#top-20-hardest-strings-by-grade-level">Top 20 hardest strings (by grade level)</a></li><li class="level-3"><a href="#grade-24-9-modules-module-description">Grade 24.9 — [Modules] module description</a></li><li class="level-3"><a href="#grade-22-8-modules-help-text">Grade 22.8 — [Modules] help text</a></li><li class="level-3"><a href="#grade-20-2-modules-help-text">Grade 20.2 — [Modules] help text</a></li><li class="level-3"><a href="#grade-20-2-modules-description">Grade 20.2 — [Modules] description</a></li><li class="level-3"><a href="#grade-20-1-modules-help-text">Grade 20.1 — [Modules] help text</a></li><li class="level-3"><a href="#grade-19-2-modules-module-description">Grade 19.2 — [Modules] module description</a></li><li class="level-3"><a href="#grade-18-6-modules-help-text">Grade 18.6 — [Modules] help text</a></li><li class="level-3"><a href="#grade-18-2-modules-help-text">Grade 18.2 — [Modules] help text</a></li><li class="level-3"><a href="#grade-18-1-add-content-type-help-text">Grade 18.1 — [Add content type] help text</a></li><li class="level-3"><a href="#grade-18-1-add-content-type-description">Grade 18.1 — [Add content type] description</a></li><li class="level-3"><a href="#grade-17-7-modules-help-text">Grade 17.7 — [Modules] help text</a></li><li class="level-3"><a href="#grade-17-4-modules-help-text">Grade 17.4 — [Modules] help text</a></li><li class="level-3"><a href="#grade-17-4-modules-description">Grade 17.4 — [Modules] description</a></li><li class="level-3"><a href="#grade-17-3-modules-help-text">Grade 17.3 — [Modules] help text</a></li><li class="level-3"><a href="#grade-17-3-modules-description">Grade 17.3 — [Modules] description</a></li><li class="level-3"><a href="#grade-17-modules-module-description">Grade 17 — [Modules] module description</a></li><li class="level-3"><a href="#grade-16-3-modules-module-description">Grade 16.3 — [Modules] module description</a></li><li class="level-3"><a href="#grade-16-modules-help-text">Grade 16 — [Modules] help text</a></li><li class="level-3"><a href="#grade-15-6-modules-module-description">Grade 15.6 — [Modules] module description</a></li><li class="level-3"><a href="#grade-15-6-modules-module-description">Grade 15.6 — [Modules] module description</a></li><li class="level-2"><a href="#all-flagged-strings">All flagged strings</a></li><li class="level-3"><a href="#grade-24-9-modules-module-description">Grade 24.9 — [Modules] module description</a></li><li class="level-3"><a href="#grade-22-8-modules-help-text">Grade 22.8 — [Modules] help text</a></li><li class="level-3"><a href="#grade-19-2-modules-module-description">Grade 19.2 — [Modules] module description</a></li><li class="level-3"><a href="#grade-18-6-modules-help-text">Grade 18.6 — [Modules] help text</a></li><li class="level-3"><a href="#grade-18-2-modules-help-text">Grade 18.2 — [Modules] help text</a></li><li class="level-3"><a href="#grade-17-7-modules-help-text">Grade 17.7 — [Modules] help text</a></li><li class="level-3"><a href="#grade-17-3-modules-description">Grade 17.3 — [Modules] description</a></li><li class="level-3"><a href="#grade-17-3-modules-help-text">Grade 17.3 — [Modules] help text</a></li><li class="level-3"><a href="#grade-16-3-modules-module-description">Grade 16.3 — [Modules] module description</a></li><li class="level-3"><a href="#grade-14-3-modules-module-description">Grade 14.3 — [Modules] module description</a></li><li class="level-3"><a href="#grade-13-5-modules-help-text">Grade 13.5 — [Modules] help text</a></li><li class="level-3"><a href="#grade-13-2-modules-help-text">Grade 13.2 — [Modules] help text</a></li><li class="level-3"><a href="#grade-13-1-account-settings-description">Grade 13.1 — [Account settings] description</a></li><li class="level-3"><a href="#grade-13-1-permissions-description">Grade 13.1 — [Permissions] description</a></li><li class="level-3"><a href="#grade-13-1-account-settings-help-text">Grade 13.1 — [Account settings] help text</a></li><li class="level-3"><a href="#grade-13-1-permissions-help-text">Grade 13.1 — [Permissions] help text</a></li><li class="level-3"><a href="#grade-12-7-modules-help-text">Grade 12.7 — [Modules] help text</a></li><li class="level-3"><a href="#grade-12-6-modules-module-description">Grade 12.6 — [Modules] module description</a></li><li class="level-3"><a href="#grade-12-6-permissions-help-text">Grade 12.6 — [Permissions] help text</a></li><li class="level-3"><a href="#grade-12-4-modules-help-text">Grade 12.4 — [Modules] help text</a></li><li class="level-3"><a href="#grade-12-3-modules-module-description">Grade 12.3 — [Modules] module description</a></li><li class="level-3"><a href="#grade-12-2-permissions-help-text">Grade 12.2 — [Permissions] help text</a></li><li class="level-3"><a href="#grade-11-9-modules-module-description">Grade 11.9 — [Modules] module description</a></li><li class="level-3"><a href="#grade-11-9-modules-help-text">Grade 11.9 — [Modules] help text</a></li><li class="level-3"><a href="#grade-11-5-modules-module-description">Grade 11.5 — [Modules] module description</a></li><li class="level-3"><a href="#grade-11-4-modules-description">Grade 11.4 — [Modules] description</a></li><li class="level-3"><a href="#grade-11-4-modules-help-text">Grade 11.4 — [Modules] help text</a></li><li class="level-3"><a href="#grade-10-6-modules-help-text">Grade 10.6 — [Modules] help text</a></li><li class="level-3"><a href="#grade-10-5-permissions-description">Grade 10.5 — [Permissions] description</a></li><li class="level-3"><a href="#grade-10-5-permissions-help-text">Grade 10.5 — [Permissions] help text</a></li><li class="level-3"><a href="#grade-10-4-text-format-restricted-description">Grade 10.4 — [Text format (restricted)] description</a></li><li class="level-3"><a href="#grade-10-4-modules-module-description">Grade 10.4 — [Modules] module description</a></li><li class="level-3"><a href="#grade-10-4-text-format-restricted-help-text">Grade 10.4 — [Text format (restricted)] help text</a></li><li class="level-3"><a href="#grade-9-9-text-format-restricted-description">Grade 9.9 — [Text format (restricted)] description</a></li><li class="level-3"><a href="#grade-9-9-text-format-restricted-help-text">Grade 9.9 — [Text format (restricted)] help text</a></li><li class="level-3"><a href="#grade-9-8-site-information-description">Grade 9.8 — [Site information] description</a></li><li class="level-3"><a href="#grade-9-8-site-information-help-text">Grade 9.8 — [Site information] help text</a></li><li class="level-3"><a href="#grade-9-7-modules-module-description">Grade 9.7 — [Modules] module description</a></li><li class="level-3"><a href="#grade-9-6-permissions-description">Grade 9.6 — [Permissions] description</a></li><li class="level-3"><a href="#grade-9-6-permissions-help-text">Grade 9.6 — [Permissions] help text</a></li><li class="level-3"><a href="#grade-9-5-logging-settings-status-message">Grade 9.5 — [Logging settings] status message</a></li><li class="level-3"><a href="#grade-9-5-logging-settings-status-message">Grade 9.5 — [Logging settings] status message</a></li><li class="level-3"><a href="#grade-9-4-permissions-description">Grade 9.4 — [Permissions] description</a></li><li class="level-3"><a href="#grade-9-4-permissions-description">Grade 9.4 — [Permissions] description</a></li><li class="level-3"><a href="#grade-9-4-permissions-description">Grade 9.4 — [Permissions] description</a></li><li class="level-3"><a href="#grade-9-4-permissions-help-text">Grade 9.4 — [Permissions] help text</a></li><li class="level-3"><a href="#grade-9-4-permissions-help-text">Grade 9.4 — [Permissions] help text</a></li><li class="level-3"><a href="#grade-9-4-permissions-help-text">Grade 9.4 — [Permissions] help text</a></li><li class="level-3"><a href="#grade-9-3-permissions-description">Grade 9.3 — [Permissions] description</a></li><li class="level-3"><a href="#grade-9-3-permissions-help-text">Grade 9.3 — [Permissions] help text</a></li><li class="level-3"><a href="#grade-9-1-modules-module-description">Grade 9.1 — [Modules] module description</a></li><li class="level-3"><a href="#grade-9-1-modules-module-description">Grade 9.1 — [Modules] module description</a></li><li class="level-3"><a href="#grade-8-8-appearance-description">Grade 8.8 — [Appearance] description</a></li><li class="level-3"><a href="#grade-8-8-appearance-help-text">Grade 8.8 — [Appearance] help text</a></li><li class="level-3"><a href="#grade-8-7-modules-help-text">Grade 8.7 — [Modules] help text</a></li><li class="level-3"><a href="#grade-7-7-maintenance-mode-description">Grade 7.7 — [Maintenance mode] description</a></li><li class="level-3"><a href="#grade-7-7-maintenance-mode-help-text">Grade 7.7 — [Maintenance mode] help text</a></li><li class="level-3"><a href="#grade-7-6-permissions-description">Grade 7.6 — [Permissions] description</a></li><li class="level-3"><a href="#grade-7-6-permissions-help-text">Grade 7.6 — [Permissions] help text</a></li><li class="level-3"><a href="#grade-7-2-add-user-description">Grade 7.2 — [Add user] description</a></li><li class="level-3"><a href="#grade-7-2-user-edit-uid-1-description">Grade 7.2 — [User edit (uid 1)] description</a></li><li class="level-3"><a href="#grade-7-2-create-basic-page-description">Grade 7.2 — [Create basic page] description</a></li><li class="level-3"><a href="#grade-7-2-create-article-description">Grade 7.2 — [Create article] description</a></li><li class="level-3"><a href="#grade-7-2-add-user-help-text">Grade 7.2 — [Add user] help text</a></li><li class="level-3"><a href="#grade-7-2-user-edit-uid-1-help-text">Grade 7.2 — [User edit (uid 1)] help text</a></li><li class="level-3"><a href="#grade-7-2-create-basic-page-help-text">Grade 7.2 — [Create basic page] help text</a></li><li class="level-3"><a href="#grade-7-2-create-article-help-text">Grade 7.2 — [Create article] help text</a></li><li class="level-3"><a href="#grade-6-9-performance-settings-description">Grade 6.9 — [Performance settings] description</a></li><li class="level-3"><a href="#grade-6-9-site-information-description">Grade 6.9 — [Site information] description</a></li><li class="level-3"><a href="#grade-6-9-text-format-restricted-description">Grade 6.9 — [Text format (restricted)] description</a></li><li class="level-3"><a href="#grade-6-9-performance-settings-help-text">Grade 6.9 — [Performance settings] help text</a></li><li class="level-3"><a href="#grade-6-9-site-information-help-text">Grade 6.9 — [Site information] help text</a></li><li class="level-3"><a href="#grade-6-9-text-format-restricted-help-text">Grade 6.9 — [Text format (restricted)] help text</a></li><li class="level-3"><a href="#grade-6-8-configuration-status-message">Grade 6.8 — [Configuration] status message</a></li><li class="level-3"><a href="#grade-6-8-configuration-status-message">Grade 6.8 — [Configuration] status message</a></li><li class="level-3"><a href="#grade-6-7-add-content-type-description">Grade 6.7 — [Add content type] description</a></li><li class="level-3"><a href="#grade-6-7-add-content-type-description">Grade 6.7 — [Add content type] description</a></li><li class="level-3"><a href="#grade-6-7-add-content-type-help-text">Grade 6.7 — [Add content type] help text</a></li><li class="level-3"><a href="#grade-6-7-add-content-type-help-text">Grade 6.7 — [Add content type] help text</a></li><li class="level-3"><a href="#grade-6-4-modules-description">Grade 6.4 — [Modules] description</a></li><li class="level-3"><a href="#grade-6-4-modules-help-text">Grade 6.4 — [Modules] help text</a></li><li class="level-3"><a href="#grade-5-8-create-basic-page-description">Grade 5.8 — [Create basic page] description</a></li><li class="level-3"><a href="#grade-5-8-create-article-description">Grade 5.8 — [Create article] description</a></li><li class="level-3"><a href="#grade-5-8-create-basic-page-help-text">Grade 5.8 — [Create basic page] help text</a></li><li class="level-3"><a href="#grade-5-8-create-article-help-text">Grade 5.8 — [Create article] help text</a></li><li class="level-3"><a href="#grade-5-5-add-user-description">Grade 5.5 — [Add user] description</a></li><li class="level-3"><a href="#grade-5-5-user-edit-uid-1-description">Grade 5.5 — [User edit (uid 1)] description</a></li><li class="level-3"><a href="#grade-5-5-add-user-help-text">Grade 5.5 — [Add user] help text</a></li><li class="level-3"><a href="#grade-5-5-user-edit-uid-1-help-text">Grade 5.5 — [User edit (uid 1)] help text</a></li><li class="level-3"><a href="#grade-5-3-site-information-description">Grade 5.3 — [Site information] description</a></li><li class="level-3"><a href="#grade-5-3-site-information-help-text">Grade 5.3 — [Site information] help text</a></li><li class="level-3"><a href="#grade-4-1-status-report-description">Grade 4.1 — [Status report] description</a></li><li class="level-3"><a href="#grade-4-1-status-report-help-text">Grade 4.1 — [Status report] help text</a></li><li class="level-3"><a href="#grade-3-7-add-user-description">Grade 3.7 — [Add user] description</a></li><li class="level-3"><a href="#grade-3-7-user-edit-uid-1-description">Grade 3.7 — [User edit (uid 1)] description</a></li><li class="level-3"><a href="#grade-3-7-add-user-help-text">Grade 3.7 — [Add user] help text</a></li><li class="level-3"><a href="#grade-3-7-user-edit-uid-1-help-text">Grade 3.7 — [User edit (uid 1)] help text</a></li><li class="level-3"><a href="#grade-1-site-information-description">Grade 1 — [Site information] description</a></li><li class="level-3"><a href="#grade-1-site-information-help-text">Grade 1 — [Site information] help text</a></li><li class="level-3"><a href="#grade-1-create-basic-page-help-text">Grade 1 — [Create basic page] help text</a></li><li class="level-3"><a href="#grade-1-create-article-help-text">Grade 1 — [Create article] help text</a></li>
+      </ol>
+    </nav>
+    <main class="content">
+      <h1 id="plain-language-analysis-drupal-core-ui-strings">Plain Language Analysis — Drupal Core UI Strings</h1>
+<p><em>Generated: 2026-05-06</em></p>
+<h2 id="corpus-summary">Corpus summary<a class="heading-anchor" href="#corpus-summary" aria-label="Link to Corpus summary section">#</a></h2>
+<div class="table-wrap"><table><thead><tr><th scope="col">Metric</th><th scope="col">Value</th></tr></thead><tbody><tr><td>Total text samples analyzed</td><td>330</td></tr><tr><td>Total words</td><td>5447</td></tr><tr><td>Flesch Reading Ease (corpus)</td><td><strong>48</strong> — Difficult (college level)</td></tr><tr><td>Flesch-Kincaid Grade Level (corpus)</td><td><strong>9.3</strong></td></tr><tr><td>Avg words per sentence</td><td>10.9</td></tr></tbody></table></div>
+<blockquote><p><strong>Target:</strong> FRE ≥ 60 (standard/plain English), FKGL ≤ 8 (grade 8).<br>Readability scores are a <em>diagnostic tool</em>, not a pass/fail gate.<br>Canada.ca (2024) and ISO plain language standard (2023) both caution<br>against relying on formulas alone — use them to find candidates for review.</p></blockquote>
+<h2 id="grade-level-distribution">Grade level distribution<a class="heading-anchor" href="#grade-level-distribution" aria-label="Link to Grade level distribution section">#</a></h2>
+<div class="table-wrap"><table><thead><tr><th scope="col">Grade</th><th scope="col">Count</th></tr></thead><tbody><tr><td>6 ✅</td><td>34</td></tr><tr><td>7 ✅</td><td>37</td></tr><tr><td>8 ✅</td><td>37</td></tr><tr><td>9</td><td>22</td></tr><tr><td>10</td><td>43</td></tr><tr><td>11</td><td>21</td></tr><tr><td>12</td><td>27</td></tr><tr><td>≤5 ✅</td><td>48</td></tr><tr><td>13+</td><td>61</td></tr></tbody></table></div>
+<h2 id="issue-summary">Issue summary<a class="heading-anchor" href="#issue-summary" aria-label="Link to Issue summary section">#</a></h2>
+<div class="table-wrap"><table><thead><tr><th scope="col">Issue type</th><th scope="col">Occurrences</th></tr></thead><tbody><tr><td>passive voice</td><td>69</td></tr><tr><td>nominalisation</td><td>33</td></tr><tr><td>jargon</td><td>14</td></tr><tr><td>long sentence (N words)</td><td>1</td></tr></tbody></table></div>
+<h2 id="top-20-hardest-strings-by-grade-level">Top 20 hardest strings (by grade level)<a class="heading-anchor" href="#top-20-hardest-strings-by-grade-level" aria-label="Link to Top 20 hardest strings (by grade level) section">#</a></h2>
+<h3 id="grade-24-9-modules-module-description">Grade 24.9 — [Modules] module description<a class="heading-anchor" href="#grade-24-9-modules-module-description" aria-label="Link to Grade 24.9 — [Modules] module description section">#</a></h3>
+<blockquote><p>New administration navigation</p></blockquote>
+<p>FRE: -78.2 | Words: 3 | Avg words/sentence: 3</p>
+<p><strong>Flags:</strong></p>
+<ul><li><em>New administration navigation</em></li><li>nominalisation: &quot;administration&quot;</li></ul>
+<h3 id="grade-22-8-modules-help-text">Grade 22.8 — [Modules] help text<a class="heading-anchor" href="#grade-22-8-modules-help-text" aria-label="Link to Grade 22.8 — [Modules] help text section">#</a></h3>
+<blockquote><p>New administration navigation Machine name: navigation Version: 12.0-dev Requires: BlockFileFieldLayout BuilderLayout DiscoveryContextual Links Help for Navigation Permissions for Navigation Configure Navigation</p></blockquote>
+<p>FRE: -49.6 | Words: 21 | Avg words/sentence: 10.5</p>
+<p><strong>Flags:</strong></p>
+<ul><li><em>New administration navigation Machine name: navigation Version: 12</em></li><li>nominalisation: &quot;administration&quot;</li></ul>
+<h3 id="grade-20-2-modules-help-text">Grade 20.2 — [Modules] help text<a class="heading-anchor" href="#grade-20-2-modules-help-text" aria-label="Link to Grade 20.2 — [Modules] help text section">#</a></h3>
+<blockquote><p>Description</p></blockquote>
+<p>FRE: -48 | Words: 1 | Avg words/sentence: 1</p>
+<h3 id="grade-20-2-modules-description">Grade 20.2 — [Modules] description<a class="heading-anchor" href="#grade-20-2-modules-description" aria-label="Link to Grade 20.2 — [Modules] description section">#</a></h3>
+<blockquote><p>Description</p></blockquote>
+<p>FRE: -48 | Words: 1 | Avg words/sentence: 1</p>
+<h3 id="grade-20-1-modules-help-text">Grade 20.1 — [Modules] help text<a class="heading-anchor" href="#grade-20-1-modules-help-text" aria-label="Link to Grade 20.1 — [Modules] help text section">#</a></h3>
+<blockquote><p>Enables the categorization of content. Machine name: taxonomy Version: 12.0-dev Requires: NodeTextFieldFilterUserSystem Help for Taxonomy Permissions for Taxonomy Configure Taxonomy</p></blockquote>
+<p>FRE: -36.8 | Words: 20 | Avg words/sentence: 6.7</p>
+<h3 id="grade-19-2-modules-module-description">Grade 19.2 — [Modules] module description<a class="heading-anchor" href="#grade-19-2-modules-module-description" aria-label="Link to Grade 19.2 — [Modules] module description section">#</a></h3>
+<blockquote><p>Exposes entities as a JSON:API-specification-compliant web API.</p></blockquote>
+<p>FRE: -29.9 | Words: 7 | Avg words/sentence: 7</p>
+<p><strong>Flags:</strong></p>
+<ul><li><em>Exposes entities as a JSON:API-specification-compliant web API</em></li><li>nominalisation: &quot;specification&quot;</li></ul>
+<h3 id="grade-18-6-modules-help-text">Grade 18.6 — [Modules] help text<a class="heading-anchor" href="#grade-18-6-modules-help-text" aria-label="Link to Grade 18.6 — [Modules] help text section">#</a></h3>
+<blockquote><p>Exposes entities as a JSON:API-specification-compliant web API. Machine name: jsonapi Version: 12.0-dev Requires: Serialization (disabled)FileField</p></blockquote>
+<p>FRE: -29.5 | Words: 15 | Avg words/sentence: 5</p>
+<p><strong>Flags:</strong></p>
+<ul><li><em>Exposes entities as a JSON:API-specification-compliant web API</em></li><li>nominalisation: &quot;specification&quot;</li></ul>
+<h3 id="grade-18-2-modules-help-text">Grade 18.2 — [Modules] help text<a class="heading-anchor" href="#grade-18-2-modules-help-text" aria-label="Link to Grade 18.2 — [Modules] help text section">#</a></h3>
+<blockquote><p>Allows users to translate configuration text. Machine name: config_translation Version: 12.0-dev Requires: Interface Translation (disabled)Language (disabled)FileField</p></blockquote>
+<p>FRE: -25.9 | Words: 16 | Avg words/sentence: 5.3</p>
+<p><strong>Flags:</strong></p>
+<ul><li><em>Allows users to translate configuration text</em></li><li>nominalisation: &quot;configuration&quot;</li></ul>
+<h3 id="grade-18-1-add-content-type-help-text">Grade 18.1 — [Add content type] help text<a class="heading-anchor" href="#grade-18-1-add-content-type-help-text" aria-label="Link to Grade 18.1 — [Add content type] help text section">#</a></h3>
+<blockquote><p>Unique machine-readable name: lowercase letters, numbers, and underscores only.</p></blockquote>
+<p>FRE: -18.5 | Words: 9 | Avg words/sentence: 9</p>
+<h3 id="grade-18-1-add-content-type-description">Grade 18.1 — [Add content type] description<a class="heading-anchor" href="#grade-18-1-add-content-type-description" aria-label="Link to Grade 18.1 — [Add content type] description section">#</a></h3>
+<blockquote><p>Unique machine-readable name: lowercase letters, numbers, and underscores only.</p></blockquote>
+<p>FRE: -18.5 | Words: 9 | Avg words/sentence: 9</p>
+<h3 id="grade-17-7-modules-help-text">Grade 17.7 — [Modules] help text<a class="heading-anchor" href="#grade-17-7-modules-help-text" aria-label="Link to Grade 17.7 — [Modules] help text section">#</a></h3>
+<blockquote><p>Allows users to configure available languages. Machine name: language Version: 12.0-dev Required by: Interface Translation (disabled)Configuration Translation (disabled)Content Translation (disabled)</p></blockquote>
+<p>FRE: -19.9 | Words: 20 | Avg words/sentence: 6.7</p>
+<p><strong>Flags:</strong></p>
+<ul><li><em>0-dev Required by: Interface Translation (disabled)Configuration Translation (disabled)Content Translation (disabled)</em></li><li>nominalisation: &quot;Configuration&quot;</li></ul>
+<h3 id="grade-17-4-modules-help-text">Grade 17.4 — [Modules] help text<a class="heading-anchor" href="#grade-17-4-modules-help-text" aria-label="Link to Grade 17.4 — [Modules] help text section">#</a></h3>
+<blockquote><p>Filters text content in preparation for display. Machine name: filter Version: 12.0-dev Requires: UserSystem Required by: TextBlock ContentText EditorCKEditor 5CommentViewsMedia Library (disabled)NodeOptionsTaxonomyViews UI Help for Filter Permissions for Filter Configure Filter</p></blockquote>
+<p>FRE: -11.1 | Words: 31 | Avg words/sentence: 10.3</p>
+<h3 id="grade-17-4-modules-description">Grade 17.4 — [Modules] description<a class="heading-anchor" href="#grade-17-4-modules-description" aria-label="Link to Grade 17.4 — [Modules] description section">#</a></h3>
+<blockquote><p>Filters text content in preparation for display. Machine name: filter Version: 12.0-dev Requires: UserSystem Required by: TextBlock ContentText EditorCKEditor 5CommentViewsMedia Library (disabled)NodeOptionsTaxonomyViews UI Help for Filter Permissions for Filter Configure Filter</p></blockquote>
+<p>FRE: -11.1 | Words: 31 | Avg words/sentence: 10.3</p>
+<h3 id="grade-17-3-modules-help-text">Grade 17.3 — [Modules] help text<a class="heading-anchor" href="#grade-17-3-modules-help-text" aria-label="Link to Grade 17.3 — [Modules] help text section">#</a></h3>
+<blockquote><p>Allows importing and exporting configuration changes. Machine name: config Version: 12.0-dev Help for Configuration Manager Permissions for Configuration Manager Configure Configuration Manager</p></blockquote>
+<p>FRE: -16 | Words: 22 | Avg words/sentence: 7.3</p>
+<p><strong>Flags:</strong></p>
+<ul><li><em>Allows importing and exporting configuration changes</em></li><li>nominalisation: &quot;configuration&quot;</li><li><em>0-dev Help for Configuration Manager Permissions for Configuration Manager Configure Configuration Manager</em></li><li>nominalisation: &quot;Configuration&quot;</li></ul>
+<h3 id="grade-17-3-modules-description">Grade 17.3 — [Modules] description<a class="heading-anchor" href="#grade-17-3-modules-description" aria-label="Link to Grade 17.3 — [Modules] description section">#</a></h3>
+<blockquote><p>Allows importing and exporting configuration changes. Machine name: config Version: 12.0-dev Help for Configuration Manager Permissions for Configuration Manager Configure Configuration Manager</p></blockquote>
+<p>FRE: -16 | Words: 22 | Avg words/sentence: 7.3</p>
+<p><strong>Flags:</strong></p>
+<ul><li><em>Allows importing and exporting configuration changes</em></li><li>nominalisation: &quot;configuration&quot;</li><li><em>0-dev Help for Configuration Manager Permissions for Configuration Manager Configure Configuration Manager</em></li><li>nominalisation: &quot;Configuration&quot;</li></ul>
+<h3 id="grade-17-modules-module-description">Grade 17 — [Modules] module description<a class="heading-anchor" href="#grade-17-modules-module-description" aria-label="Link to Grade 17 — [Modules] module description section">#</a></h3>
+<blockquote><p>Enables the categorization of content.</p></blockquote>
+<p>FRE: -18.2 | Words: 5 | Avg words/sentence: 5</p>
+<h3 id="grade-16-3-modules-module-description">Grade 16.3 — [Modules] module description<a class="heading-anchor" href="#grade-16-3-modules-module-description" aria-label="Link to Grade 16.3 — [Modules] module description section">#</a></h3>
+<blockquote><p>Allows importing and exporting configuration changes.</p></blockquote>
+<p>FRE: -10.8 | Words: 6 | Avg words/sentence: 6</p>
+<p><strong>Flags:</strong></p>
+<ul><li><em>Allows importing and exporting configuration changes</em></li><li>nominalisation: &quot;configuration&quot;</li></ul>
+<h3 id="grade-16-modules-help-text">Grade 16 — [Modules] help text<a class="heading-anchor" href="#grade-16-modules-help-text" aria-label="Link to Grade 16 — [Modules] help text section">#</a></h3>
+<blockquote><p>Enhances the media list with additional features to more easily find and use existing media items. Machine name: media_library Version: 12.0-dev Requires: Media (disabled)FileFieldImageUserSystemViewsFilter</p></blockquote>
+<p>FRE: -5.7 | Words: 24 | Avg words/sentence: 8</p>
+<h3 id="grade-15-6-modules-module-description">Grade 15.6 — [Modules] module description<a class="heading-anchor" href="#grade-15-6-modules-module-description" aria-label="Link to Grade 15.6 — [Modules] module description section">#</a></h3>
+<blockquote><p>Places error messages adjacent to form inputs, for improved usability and accessibility.</p></blockquote>
+<p>FRE: 4.3 | Words: 12 | Avg words/sentence: 12</p>
+<h3 id="grade-15-6-modules-module-description">Grade 15.6 — [Modules] module description<a class="heading-anchor" href="#grade-15-6-modules-module-description" aria-label="Link to Grade 15.6 — [Modules] module description section">#</a></h3>
+<blockquote><p>Provides an interface to create workflows with transitions between different states (for example publication or user status) provided by other modules.</p></blockquote>
+<p>FRE: 20.3 | Words: 21 | Avg words/sentence: 21</p>
+<h2 id="all-flagged-strings">All flagged strings<a class="heading-anchor" href="#all-flagged-strings" aria-label="Link to All flagged strings section">#</a></h2>
+<h3 id="grade-24-9-modules-module-description">Grade 24.9 — [Modules] module description<a class="heading-anchor" href="#grade-24-9-modules-module-description" aria-label="Link to Grade 24.9 — [Modules] module description section">#</a></h3>
+<blockquote><p>New administration navigation</p></blockquote>
+<ul><li><em>&quot;New administration navigation&quot;</em></li><li>nominalisation: &quot;administration&quot;</li></ul>
+<h3 id="grade-22-8-modules-help-text">Grade 22.8 — [Modules] help text<a class="heading-anchor" href="#grade-22-8-modules-help-text" aria-label="Link to Grade 22.8 — [Modules] help text section">#</a></h3>
+<blockquote><p>New administration navigation Machine name: navigation Version: 12.0-dev Requires: BlockFileFieldLayout BuilderLayout DiscoveryContextual Links Help for Navigation Permissions for Navigation Configure</p></blockquote>
+<ul><li><em>&quot;New administration navigation Machine name: navigation Version: 12&quot;</em></li><li>nominalisation: &quot;administration&quot;</li></ul>
+<h3 id="grade-19-2-modules-module-description">Grade 19.2 — [Modules] module description<a class="heading-anchor" href="#grade-19-2-modules-module-description" aria-label="Link to Grade 19.2 — [Modules] module description section">#</a></h3>
+<blockquote><p>Exposes entities as a JSON:API-specification-compliant web API.</p></blockquote>
+<ul><li><em>&quot;Exposes entities as a JSON:API-specification-compliant web API&quot;</em></li><li>nominalisation: &quot;specification&quot;</li></ul>
+<h3 id="grade-18-6-modules-help-text">Grade 18.6 — [Modules] help text<a class="heading-anchor" href="#grade-18-6-modules-help-text" aria-label="Link to Grade 18.6 — [Modules] help text section">#</a></h3>
+<blockquote><p>Exposes entities as a JSON:API-specification-compliant web API. Machine name: jsonapi Version: 12.0-dev Requires: Serialization (disabled)FileField</p></blockquote>
+<ul><li><em>&quot;Exposes entities as a JSON:API-specification-compliant web API&quot;</em></li><li>nominalisation: &quot;specification&quot;</li></ul>
+<h3 id="grade-18-2-modules-help-text">Grade 18.2 — [Modules] help text<a class="heading-anchor" href="#grade-18-2-modules-help-text" aria-label="Link to Grade 18.2 — [Modules] help text section">#</a></h3>
+<blockquote><p>Allows users to translate configuration text. Machine name: config_translation Version: 12.0-dev Requires: Interface Translation (disabled)Language (disabled)FileField</p></blockquote>
+<ul><li><em>&quot;Allows users to translate configuration text&quot;</em></li><li>nominalisation: &quot;configuration&quot;</li></ul>
+<h3 id="grade-17-7-modules-help-text">Grade 17.7 — [Modules] help text<a class="heading-anchor" href="#grade-17-7-modules-help-text" aria-label="Link to Grade 17.7 — [Modules] help text section">#</a></h3>
+<blockquote><p>Allows users to configure available languages. Machine name: language Version: 12.0-dev Required by: Interface Translation (disabled)Configuration Translation (disabled)Content Translation (disabled)</p></blockquote>
+<ul><li><em>&quot;0-dev Required by: Interface Translation (disabled)Configuration Translation (disabled)Content Translation (disabled)&quot;</em></li><li>nominalisation: &quot;Configuration&quot;</li></ul>
+<h3 id="grade-17-3-modules-description">Grade 17.3 — [Modules] description<a class="heading-anchor" href="#grade-17-3-modules-description" aria-label="Link to Grade 17.3 — [Modules] description section">#</a></h3>
+<blockquote><p>Allows importing and exporting configuration changes. Machine name: config Version: 12.0-dev Help for Configuration Manager Permissions for Configuration Manager Configure Configuration Manager</p></blockquote>
+<ul><li><em>&quot;Allows importing and exporting configuration changes&quot;</em></li><li>nominalisation: &quot;configuration&quot;</li><li><em>&quot;0-dev Help for Configuration Manager Permissions for Configuration Manager Configure Configuration Manager&quot;</em></li><li>nominalisation: &quot;Configuration&quot;</li></ul>
+<h3 id="grade-17-3-modules-help-text">Grade 17.3 — [Modules] help text<a class="heading-anchor" href="#grade-17-3-modules-help-text" aria-label="Link to Grade 17.3 — [Modules] help text section">#</a></h3>
+<blockquote><p>Allows importing and exporting configuration changes. Machine name: config Version: 12.0-dev Help for Configuration Manager Permissions for Configuration Manager Configure Configuration Manager</p></blockquote>
+<ul><li><em>&quot;Allows importing and exporting configuration changes&quot;</em></li><li>nominalisation: &quot;configuration&quot;</li><li><em>&quot;0-dev Help for Configuration Manager Permissions for Configuration Manager Configure Configuration Manager&quot;</em></li><li>nominalisation: &quot;Configuration&quot;</li></ul>
+<h3 id="grade-16-3-modules-module-description">Grade 16.3 — [Modules] module description<a class="heading-anchor" href="#grade-16-3-modules-module-description" aria-label="Link to Grade 16.3 — [Modules] module description section">#</a></h3>
+<blockquote><p>Allows importing and exporting configuration changes.</p></blockquote>
+<ul><li><em>&quot;Allows importing and exporting configuration changes&quot;</em></li><li>nominalisation: &quot;configuration&quot;</li></ul>
+<h3 id="grade-14-3-modules-module-description">Grade 14.3 — [Modules] module description<a class="heading-anchor" href="#grade-14-3-modules-module-description" aria-label="Link to Grade 14.3 — [Modules] module description section">#</a></h3>
+<blockquote><p>Provides an HTTP Basic authentication provider.</p></blockquote>
+<ul><li><em>&quot;Provides an HTTP Basic authentication provider&quot;</em></li><li>nominalisation: &quot;authentication&quot;</li></ul>
+<h3 id="grade-13-5-modules-help-text">Grade 13.5 — [Modules] help text<a class="heading-anchor" href="#grade-13-5-modules-help-text" aria-label="Link to Grade 13.5 — [Modules] help text section">#</a></h3>
+<blockquote><p>Manages the creation, configuration, and display of media items. Machine name: media Version: 12.0-dev Requires: FileFieldImageUserSystem Required by: Media Library (disabled)</p></blockquote>
+<ul><li><em>&quot;Manages the creation, configuration, and display of media items&quot;</em></li><li>nominalisation: &quot;configuration&quot;</li></ul>
+<h3 id="grade-13-2-modules-help-text">Grade 13.2 — [Modules] help text<a class="heading-anchor" href="#grade-13-2-modules-help-text" aria-label="Link to Grade 13.2 — [Modules] help text section">#</a></h3>
+<blockquote><p>Defines a field type for image media and provides display configuration tools. Machine name: image Version: 12.0-dev Requires: FileField Required by: Media (disabled)Media Library (disabled)Responsive</p></blockquote>
+<ul><li><em>&quot;Defines a field type for image media and provides display configuration tools&quot;</em></li><li>nominalisation: &quot;configuration&quot;</li></ul>
+<h3 id="grade-13-1-account-settings-description">Grade 13.1 — [Account settings] description<a class="heading-anchor" href="#grade-13-1-account-settings-description" aria-label="Link to Grade 13.1 — [Account settings] description section">#</a></h3>
+<blockquote><p>New users will be required to validate their email address prior to logging into the site, and will be assigned a system-generated password. With this setting disabled, users will be logged in immedia</p></blockquote>
+<ul><li><em>&quot;New users will be required to validate their email address prior to logging into the site, and will be assigned a system&quot;</em></li><li>passive voice</li><li><em>&quot;With this setting disabled, users will be logged in immediately upon registering, and may select their own passwords dur&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-13-1-permissions-description">Grade 13.1 — [Permissions] description<a class="heading-anchor" href="#grade-13-1-permissions-description" aria-label="Link to Grade 13.1 — [Permissions] description section">#</a></h3>
+<blockquote><p>Warning: This permission may have security implications depending on how the text format is configured.</p></blockquote>
+<ul><li><em>&quot;Warning: This permission may have security implications depending on how the text format is configured&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-13-1-account-settings-help-text">Grade 13.1 — [Account settings] help text<a class="heading-anchor" href="#grade-13-1-account-settings-help-text" aria-label="Link to Grade 13.1 — [Account settings] help text section">#</a></h3>
+<blockquote><p>New users will be required to validate their email address prior to logging into the site, and will be assigned a system-generated password. With this setting disabled, users will be logged in immedia</p></blockquote>
+<ul><li><em>&quot;New users will be required to validate their email address prior to logging into the site, and will be assigned a system&quot;</em></li><li>passive voice</li><li><em>&quot;With this setting disabled, users will be logged in immediately upon registering, and may select their own passwords dur&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-13-1-permissions-help-text">Grade 13.1 — [Permissions] help text<a class="heading-anchor" href="#grade-13-1-permissions-help-text" aria-label="Link to Grade 13.1 — [Permissions] help text section">#</a></h3>
+<blockquote><p>Warning: This permission may have security implications depending on how the text format is configured.</p></blockquote>
+<ul><li><em>&quot;Warning: This permission may have security implications depending on how the text format is configured&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-12-7-modules-help-text">Grade 12.7 — [Modules] help text<a class="heading-anchor" href="#grade-12-7-modules-help-text" aria-label="Link to Grade 12.7 — [Modules] help text section">#</a></h3>
+<blockquote><p>Allows users to translate interface text and to switch between interface languages. Machine name: locale Version: 12.0-dev Requires: Language (disabled)FileField Required by: Configuration Translation</p></blockquote>
+<ul><li><em>&quot;0-dev Requires: Language (disabled)FileField Required by: Configuration Translation (disabled)&quot;</em></li><li>nominalisation: &quot;Configuration&quot;</li></ul>
+<h3 id="grade-12-6-modules-module-description">Grade 12.6 — [Modules] module description<a class="heading-anchor" href="#grade-12-6-modules-module-description" aria-label="Link to Grade 12.6 — [Modules] module description section">#</a></h3>
+<blockquote><p>Provides additional publication states that can be used by other modules to moderate content.</p></blockquote>
+<ul><li><em>&quot;Provides additional publication states that can be used by other modules to moderate content&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-12-6-permissions-help-text">Grade 12.6 — [Permissions] help text<a class="heading-anchor" href="#grade-12-6-permissions-help-text" aria-label="Link to Grade 12.6 — [Permissions] help text section">#</a></h3>
+<blockquote><p>Ensure that site administrators have this permission so that security updates are applied promptly.</p></blockquote>
+<ul><li><em>&quot;Ensure that site administrators have this permission so that security updates are applied promptly&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-12-4-modules-help-text">Grade 12.4 — [Modules] help text<a class="heading-anchor" href="#grade-12-4-modules-help-text" aria-label="Link to Grade 12.4 — [Modules] help text section">#</a></h3>
+<blockquote><p>Provides an HTTP Basic authentication provider. Machine name: basic_auth Version: 12.0-dev Requires: UserSystem</p></blockquote>
+<ul><li><em>&quot;Provides an HTTP Basic authentication provider&quot;</em></li><li>nominalisation: &quot;authentication&quot;</li></ul>
+<h3 id="grade-12-3-modules-module-description">Grade 12.3 — [Modules] module description<a class="heading-anchor" href="#grade-12-3-modules-module-description" aria-label="Link to Grade 12.3 — [Modules] module description section">#</a></h3>
+<blockquote><p>Allows users to translate configuration text.</p></blockquote>
+<ul><li><em>&quot;Allows users to translate configuration text&quot;</em></li><li>nominalisation: &quot;configuration&quot;</li></ul>
+<h3 id="grade-12-2-permissions-help-text">Grade 12.2 — [Permissions] help text<a class="heading-anchor" href="#grade-12-2-permissions-help-text" aria-label="Link to Grade 12.2 — [Permissions] help text section">#</a></h3>
+<blockquote><p>Users without this permission will not have access to email addresses on user pages or other places where they might be shown, such as Views and JSON:API responses.</p></blockquote>
+<ul><li><em>&quot;Users without this permission will not have access to email addresses on user pages or other places where they might be &quot;</em></li><li>long sentence (28 words)</li></ul>
+<h3 id="grade-11-9-modules-module-description">Grade 11.9 — [Modules] module description<a class="heading-anchor" href="#grade-11-9-modules-module-description" aria-label="Link to Grade 11.9 — [Modules] module description section">#</a></h3>
+<blockquote><p>Provides an administration toolbar to display links provided by modules.</p></blockquote>
+<ul><li><em>&quot;Provides an administration toolbar to display links provided by modules&quot;</em></li><li>nominalisation: &quot;administration&quot;</li></ul>
+<h3 id="grade-11-9-modules-help-text">Grade 11.9 — [Modules] help text<a class="heading-anchor" href="#grade-11-9-modules-help-text" aria-label="Link to Grade 11.9 — [Modules] help text section">#</a></h3>
+<blockquote><p>Allows users to directly edit the configuration of blocks on the current page. Machine name: settings_tray Version: 12.0-dev Requires: BlockToolbar (disabled)BreakpointContextual Links</p></blockquote>
+<ul><li><em>&quot;Allows users to directly edit the configuration of blocks on the current page&quot;</em></li><li>nominalisation: &quot;configuration&quot;</li></ul>
+<h3 id="grade-11-5-modules-module-description">Grade 11.5 — [Modules] module description<a class="heading-anchor" href="#grade-11-5-modules-module-description" aria-label="Link to Grade 11.5 — [Modules] module description section">#</a></h3>
+<blockquote><p>Manages the creation, configuration, and display of media items.</p></blockquote>
+<ul><li><em>&quot;Manages the creation, configuration, and display of media items&quot;</em></li><li>nominalisation: &quot;configuration&quot;</li></ul>
+<h3 id="grade-11-4-modules-description">Grade 11.4 — [Modules] description<a class="heading-anchor" href="#grade-11-4-modules-description" aria-label="Link to Grade 11.4 — [Modules] description section">#</a></h3>
+<blockquote><p>Provides additional publication states that can be used by other modules to moderate content. Machine name: content_moderation Version: 12.0-dev Requires: Workflows (disabled)</p></blockquote>
+<ul><li><em>&quot;Provides additional publication states that can be used by other modules to moderate content&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-11-4-modules-help-text">Grade 11.4 — [Modules] help text<a class="heading-anchor" href="#grade-11-4-modules-help-text" aria-label="Link to Grade 11.4 — [Modules] help text section">#</a></h3>
+<blockquote><p>Provides additional publication states that can be used by other modules to moderate content. Machine name: content_moderation Version: 12.0-dev Requires: Workflows (disabled)</p></blockquote>
+<ul><li><em>&quot;Provides additional publication states that can be used by other modules to moderate content&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-10-6-modules-help-text">Grade 10.6 — [Modules] help text<a class="heading-anchor" href="#grade-10-6-modules-help-text" aria-label="Link to Grade 10.6 — [Modules] help text section">#</a></h3>
+<blockquote><p>Manages the creation, configuration, and display of the main site content. Machine name: node Version: 12.0-dev Requires: TextFieldFilterUserSystem Required by: Taxonomy Help for Node Permissions for </p></blockquote>
+<ul><li><em>&quot;Manages the creation, configuration, and display of the main site content&quot;</em></li><li>nominalisation: &quot;configuration&quot;</li></ul>
+<h3 id="grade-10-5-permissions-description">Grade 10.5 — [Permissions] description<a class="heading-anchor" href="#grade-10-5-permissions-description" aria-label="Link to Grade 10.5 — [Permissions] description section">#</a></h3>
+<blockquote><p>This is only used when the site is configured to use a separate administration theme on the Appearance page.</p></blockquote>
+<ul><li><em>&quot;This is only used when the site is configured to use a separate administration theme on the Appearance page&quot;</em></li><li>passive voice, nominalisation: &quot;administration&quot;</li></ul>
+<h3 id="grade-10-5-permissions-help-text">Grade 10.5 — [Permissions] help text<a class="heading-anchor" href="#grade-10-5-permissions-help-text" aria-label="Link to Grade 10.5 — [Permissions] help text section">#</a></h3>
+<blockquote><p>This is only used when the site is configured to use a separate administration theme on the Appearance page.</p></blockquote>
+<ul><li><em>&quot;This is only used when the site is configured to use a separate administration theme on the Appearance page&quot;</em></li><li>passive voice, nominalisation: &quot;administration&quot;</li></ul>
+<h3 id="grade-10-4-text-format-restricted-description">Grade 10.4 — [Text format (restricted)] description<a class="heading-anchor" href="#grade-10-4-text-format-restricted-description" aria-label="Link to Grade 10.4 — [Text format (restricted)] description section">#</a></h3>
+<blockquote><p>Ensures that the latest versions of images uploaded via a Text Editor are displayed, along with their dimensions.</p></blockquote>
+<ul><li><em>&quot;Ensures that the latest versions of images uploaded via a Text Editor are displayed, along with their dimensions&quot;</em></li><li>passive voice, jargon: &quot;via&quot;</li></ul>
+<h3 id="grade-10-4-modules-module-description">Grade 10.4 — [Modules] module description<a class="heading-anchor" href="#grade-10-4-modules-module-description" aria-label="Link to Grade 10.4 — [Modules] module description section">#</a></h3>
+<blockquote><p>Allows users to directly edit the configuration of blocks on the current page.</p></blockquote>
+<ul><li><em>&quot;Allows users to directly edit the configuration of blocks on the current page&quot;</em></li><li>nominalisation: &quot;configuration&quot;</li></ul>
+<h3 id="grade-10-4-text-format-restricted-help-text">Grade 10.4 — [Text format (restricted)] help text<a class="heading-anchor" href="#grade-10-4-text-format-restricted-help-text" aria-label="Link to Grade 10.4 — [Text format (restricted)] help text section">#</a></h3>
+<blockquote><p>Ensures that the latest versions of images uploaded via a Text Editor are displayed, along with their dimensions.</p></blockquote>
+<ul><li><em>&quot;Ensures that the latest versions of images uploaded via a Text Editor are displayed, along with their dimensions&quot;</em></li><li>passive voice, jargon: &quot;via&quot;</li></ul>
+<h3 id="grade-9-9-text-format-restricted-description">Grade 9.9 — [Text format (restricted)] description<a class="heading-anchor" href="#grade-9-9-text-format-restricted-description" aria-label="Link to Grade 9.9 — [Text format (restricted)] description section">#</a></h3>
+<blockquote><p>Instruct browsers to lazy load images if dimensions are specified. Use in conjunction with and place after the &#39;Track images uploaded via a Text Editor&#39; filter that adds image dimensions required for </p></blockquote>
+<ul><li><em>&quot;Instruct browsers to lazy load images if dimensions are specified&quot;</em></li><li>passive voice</li><li><em>&quot;Use in conjunction with and place after the &#39;Track images uploaded via a Text Editor&#39; filter that adds image dimensions &quot;</em></li><li>jargon: &quot;via&quot;</li></ul>
+<h3 id="grade-9-9-text-format-restricted-help-text">Grade 9.9 — [Text format (restricted)] help text<a class="heading-anchor" href="#grade-9-9-text-format-restricted-help-text" aria-label="Link to Grade 9.9 — [Text format (restricted)] help text section">#</a></h3>
+<blockquote><p>Instruct browsers to lazy load images if dimensions are specified. Use in conjunction with and place after the &#39;Track images uploaded via a Text Editor&#39; filter that adds image dimensions required for </p></blockquote>
+<ul><li><em>&quot;Instruct browsers to lazy load images if dimensions are specified&quot;</em></li><li>passive voice</li><li><em>&quot;Use in conjunction with and place after the &#39;Track images uploaded via a Text Editor&#39; filter that adds image dimensions &quot;</em></li><li>jargon: &quot;via&quot;</li></ul>
+<h3 id="grade-9-8-site-information-description">Grade 9.8 — [Site information] description<a class="heading-anchor" href="#grade-9-8-site-information-description" aria-label="Link to Grade 9.8 — [Site information] description section">#</a></h3>
+<blockquote><p>The From address in automated emails sent during registration and new password requests, and other notifications. (Use an address ending in your site&#39;s domain to help prevent this email being flagged </p></blockquote>
+<ul><li><em>&quot;(Use an address ending in your site&#39;s domain to help prevent this email being flagged as spam&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-9-8-site-information-help-text">Grade 9.8 — [Site information] help text<a class="heading-anchor" href="#grade-9-8-site-information-help-text" aria-label="Link to Grade 9.8 — [Site information] help text section">#</a></h3>
+<blockquote><p>The From address in automated emails sent during registration and new password requests, and other notifications. (Use an address ending in your site&#39;s domain to help prevent this email being flagged </p></blockquote>
+<ul><li><em>&quot;(Use an address ending in your site&#39;s domain to help prevent this email being flagged as spam&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-9-7-modules-module-description">Grade 9.7 — [Modules] module description<a class="heading-anchor" href="#grade-9-7-modules-module-description" aria-label="Link to Grade 9.7 — [Modules] module description section">#</a></h3>
+<blockquote><p>Defines a field type for image media and provides display configuration tools.</p></blockquote>
+<ul><li><em>&quot;Defines a field type for image media and provides display configuration tools&quot;</em></li><li>nominalisation: &quot;configuration&quot;</li></ul>
+<h3 id="grade-9-6-permissions-description">Grade 9.6 — [Permissions] description<a class="heading-anchor" href="#grade-9-6-permissions-description" aria-label="Link to Grade 9.6 — [Permissions] description section">#</a></h3>
+<blockquote><p>Warning: Give to trusted roles only; this permission has security implications. Define how text is handled by combining filters into text formats.</p></blockquote>
+<ul><li><em>&quot;Define how text is handled by combining filters into text formats&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-9-6-permissions-help-text">Grade 9.6 — [Permissions] help text<a class="heading-anchor" href="#grade-9-6-permissions-help-text" aria-label="Link to Grade 9.6 — [Permissions] help text section">#</a></h3>
+<blockquote><p>Warning: Give to trusted roles only; this permission has security implications. Define how text is handled by combining filters into text formats.</p></blockquote>
+<ul><li><em>&quot;Define how text is handled by combining filters into text formats&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-9-5-logging-settings-status-message">Grade 9.5 — [Logging settings] status message<a class="heading-anchor" href="#grade-9-5-logging-settings-status-message" aria-label="Link to Grade 9.5 — [Logging settings] status message section">#</a></h3>
+<blockquote><p>Status message These values are overridden. Changes on this form will be saved, but overrides will take precedence. See configuration overrides documentation for more information. Error messages to di</p></blockquote>
+<ul><li><em>&quot;Changes on this form will be saved, but overrides will take precedence&quot;</em></li><li>passive voice</li><li><em>&quot;See configuration overrides documentation for more information&quot;</em></li><li>nominalisation: &quot;configuration&quot;</li></ul>
+<h3 id="grade-9-5-logging-settings-status-message">Grade 9.5 — [Logging settings] status message<a class="heading-anchor" href="#grade-9-5-logging-settings-status-message" aria-label="Link to Grade 9.5 — [Logging settings] status message section">#</a></h3>
+<blockquote><p>Status message These values are overridden. Changes on this form will be saved, but overrides will take precedence. See configuration overrides documentation for more information. Error messages to di</p></blockquote>
+<ul><li><em>&quot;Changes on this form will be saved, but overrides will take precedence&quot;</em></li><li>passive voice</li><li><em>&quot;See configuration overrides documentation for more information&quot;</em></li><li>nominalisation: &quot;configuration&quot;</li></ul>
+<h3 id="grade-9-4-permissions-description">Grade 9.4 — [Permissions] description<a class="heading-anchor" href="#grade-9-4-permissions-description" aria-label="Link to Grade 9.4 — [Permissions] description section">#</a></h3>
+<blockquote><p>Warning: Give to trusted roles only; this permission has security implications. Maintain the types of content available and the fields that are associated with those types.</p></blockquote>
+<ul><li><em>&quot;Maintain the types of content available and the fields that are associated with those types&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-9-4-permissions-description">Grade 9.4 — [Permissions] description<a class="heading-anchor" href="#grade-9-4-permissions-description" aria-label="Link to Grade 9.4 — [Permissions] description section">#</a></h3>
+<blockquote><p>To revert a revision, you also need permission to edit the content item.</p></blockquote>
+<ul><li><em>&quot;To revert a revision, you also need permission to edit the content item&quot;</em></li><li>jargon: &quot;item&quot;</li></ul>
+<h3 id="grade-9-4-permissions-description">Grade 9.4 — [Permissions] description<a class="heading-anchor" href="#grade-9-4-permissions-description" aria-label="Link to Grade 9.4 — [Permissions] description section">#</a></h3>
+<blockquote><p>To delete a revision, you also need permission to delete the content item.</p></blockquote>
+<ul><li><em>&quot;To delete a revision, you also need permission to delete the content item&quot;</em></li><li>jargon: &quot;item&quot;</li></ul>
+<h3 id="grade-9-4-permissions-help-text">Grade 9.4 — [Permissions] help text<a class="heading-anchor" href="#grade-9-4-permissions-help-text" aria-label="Link to Grade 9.4 — [Permissions] help text section">#</a></h3>
+<blockquote><p>Warning: Give to trusted roles only; this permission has security implications. Maintain the types of content available and the fields that are associated with those types.</p></blockquote>
+<ul><li><em>&quot;Maintain the types of content available and the fields that are associated with those types&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-9-4-permissions-help-text">Grade 9.4 — [Permissions] help text<a class="heading-anchor" href="#grade-9-4-permissions-help-text" aria-label="Link to Grade 9.4 — [Permissions] help text section">#</a></h3>
+<blockquote><p>To revert a revision, you also need permission to edit the content item.</p></blockquote>
+<ul><li><em>&quot;To revert a revision, you also need permission to edit the content item&quot;</em></li><li>jargon: &quot;item&quot;</li></ul>
+<h3 id="grade-9-4-permissions-help-text">Grade 9.4 — [Permissions] help text<a class="heading-anchor" href="#grade-9-4-permissions-help-text" aria-label="Link to Grade 9.4 — [Permissions] help text section">#</a></h3>
+<blockquote><p>To delete a revision, you also need permission to delete the content item.</p></blockquote>
+<ul><li><em>&quot;To delete a revision, you also need permission to delete the content item&quot;</em></li><li>jargon: &quot;item&quot;</li></ul>
+<h3 id="grade-9-3-permissions-description">Grade 9.3 — [Permissions] description<a class="heading-anchor" href="#grade-9-3-permissions-description" aria-label="Link to Grade 9.3 — [Permissions] description section">#</a></h3>
+<blockquote><p>Warning: Give to trusted roles only; this permission has security implications. Maintain the block types of block content available and the fields that are associated with those types.</p></blockquote>
+<ul><li><em>&quot;Maintain the block types of block content available and the fields that are associated with those types&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-9-3-permissions-help-text">Grade 9.3 — [Permissions] help text<a class="heading-anchor" href="#grade-9-3-permissions-help-text" aria-label="Link to Grade 9.3 — [Permissions] help text section">#</a></h3>
+<blockquote><p>Warning: Give to trusted roles only; this permission has security implications. Maintain the block types of block content available and the fields that are associated with those types.</p></blockquote>
+<ul><li><em>&quot;Maintain the block types of block content available and the fields that are associated with those types&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-9-1-modules-module-description">Grade 9.1 — [Modules] module description<a class="heading-anchor" href="#grade-9-1-modules-module-description" aria-label="Link to Grade 9.1 — [Modules] module description section">#</a></h3>
+<blockquote><p>Manages the creation, configuration, and display of the main site content.</p></blockquote>
+<ul><li><em>&quot;Manages the creation, configuration, and display of the main site content&quot;</em></li><li>nominalisation: &quot;configuration&quot;</li></ul>
+<h3 id="grade-9-1-modules-module-description">Grade 9.1 — [Modules] module description<a class="heading-anchor" href="#grade-9-1-modules-module-description" aria-label="Link to Grade 9.1 — [Modules] module description section">#</a></h3>
+<blockquote><p>Caches pages for anonymous users and can be used when external page cache is not available.</p></blockquote>
+<ul><li><em>&quot;Caches pages for anonymous users and can be used when external page cache is not available&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-8-8-appearance-description">Grade 8.8 — [Appearance] description<a class="heading-anchor" href="#grade-8-8-appearance-description" aria-label="Link to Grade 8.8 — [Appearance] description section">#</a></h3>
+<blockquote><p>Control which roles can &quot;View the administration theme&quot; on the Permissions page.</p></blockquote>
+<ul><li><em>&quot;Control which roles can &quot;View the administration theme&quot; on the Permissions page&quot;</em></li><li>nominalisation: &quot;administration&quot;</li></ul>
+<h3 id="grade-8-8-appearance-help-text">Grade 8.8 — [Appearance] help text<a class="heading-anchor" href="#grade-8-8-appearance-help-text" aria-label="Link to Grade 8.8 — [Appearance] help text section">#</a></h3>
+<blockquote><p>Control which roles can &quot;View the administration theme&quot; on the Permissions page.</p></blockquote>
+<ul><li><em>&quot;Control which roles can &quot;View the administration theme&quot; on the Permissions page&quot;</em></li><li>nominalisation: &quot;administration&quot;</li></ul>
+<h3 id="grade-8-7-modules-help-text">Grade 8.7 — [Modules] help text<a class="heading-anchor" href="#grade-8-7-modules-help-text" aria-label="Link to Grade 8.7 — [Modules] help text section">#</a></h3>
+<blockquote><p>Provides an administration toolbar to display links provided by modules. Machine name: toolbar Version: 12.0-dev Requires: Breakpoint Required by: Settings Tray (disabled)</p></blockquote>
+<ul><li><em>&quot;Provides an administration toolbar to display links provided by modules&quot;</em></li><li>nominalisation: &quot;administration&quot;</li></ul>
+<h3 id="grade-7-7-maintenance-mode-description">Grade 7.7 — [Maintenance mode] description<a class="heading-anchor" href="#grade-7-7-maintenance-mode-description" aria-label="Link to Grade 7.7 — [Maintenance mode] description section">#</a></h3>
+<blockquote><p>Visitors will only see the maintenance mode message. Only users with the &quot;Use the site in maintenance mode&quot; permission will be able to access the site. Authorized users can log in directly via the use</p></blockquote>
+<ul><li><em>&quot;Authorized users can log in directly via the user login page&quot;</em></li><li>jargon: &quot;via&quot;</li></ul>
+<h3 id="grade-7-7-maintenance-mode-help-text">Grade 7.7 — [Maintenance mode] help text<a class="heading-anchor" href="#grade-7-7-maintenance-mode-help-text" aria-label="Link to Grade 7.7 — [Maintenance mode] help text section">#</a></h3>
+<blockquote><p>Visitors will only see the maintenance mode message. Only users with the &quot;Use the site in maintenance mode&quot; permission will be able to access the site. Authorized users can log in directly via the use</p></blockquote>
+<ul><li><em>&quot;Authorized users can log in directly via the user login page&quot;</em></li><li>jargon: &quot;via&quot;</li></ul>
+<h3 id="grade-7-6-permissions-description">Grade 7.6 — [Permissions] description<a class="heading-anchor" href="#grade-7-6-permissions-description" aria-label="Link to Grade 7.6 — [Permissions] description section">#</a></h3>
+<blockquote><p>To view a revision, you also need permission to view the content item.</p></blockquote>
+<ul><li><em>&quot;To view a revision, you also need permission to view the content item&quot;</em></li><li>jargon: &quot;item&quot;</li></ul>
+<h3 id="grade-7-6-permissions-help-text">Grade 7.6 — [Permissions] help text<a class="heading-anchor" href="#grade-7-6-permissions-help-text" aria-label="Link to Grade 7.6 — [Permissions] help text section">#</a></h3>
+<blockquote><p>To view a revision, you also need permission to view the content item.</p></blockquote>
+<ul><li><em>&quot;To view a revision, you also need permission to view the content item&quot;</em></li><li>jargon: &quot;item&quot;</li></ul>
+<h3 id="grade-7-2-add-user-description">Grade 7.2 — [Add user] description<a class="heading-anchor" href="#grade-7-2-add-user-description" aria-label="Link to Grade 7.2 — [Add user] description section">#</a></h3>
+<blockquote><p>The email address is not made public. It will only be used if you need to be contacted about your account or for opted-in notifications.</p></blockquote>
+<ul><li><em>&quot;It will only be used if you need to be contacted about your account or for opted-in notifications&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-7-2-user-edit-uid-1-description">Grade 7.2 — [User edit (uid 1)] description<a class="heading-anchor" href="#grade-7-2-user-edit-uid-1-description" aria-label="Link to Grade 7.2 — [User edit (uid 1)] description section">#</a></h3>
+<blockquote><p>The email address is not made public. It will only be used if you need to be contacted about your account or for opted-in notifications.</p></blockquote>
+<ul><li><em>&quot;It will only be used if you need to be contacted about your account or for opted-in notifications&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-7-2-create-basic-page-description">Grade 7.2 — [Create basic page] description<a class="heading-anchor" href="#grade-7-2-create-basic-page-description" aria-label="Link to Grade 7.2 — [Create basic page] description section">#</a></h3>
+<blockquote><p>Specify an alternative path by which this data can be accessed. For example, type &quot;/about&quot; when writing an about page.</p></blockquote>
+<ul><li><em>&quot;Specify an alternative path by which this data can be accessed&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-7-2-create-article-description">Grade 7.2 — [Create article] description<a class="heading-anchor" href="#grade-7-2-create-article-description" aria-label="Link to Grade 7.2 — [Create article] description section">#</a></h3>
+<blockquote><p>Specify an alternative path by which this data can be accessed. For example, type &quot;/about&quot; when writing an about page.</p></blockquote>
+<ul><li><em>&quot;Specify an alternative path by which this data can be accessed&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-7-2-add-user-help-text">Grade 7.2 — [Add user] help text<a class="heading-anchor" href="#grade-7-2-add-user-help-text" aria-label="Link to Grade 7.2 — [Add user] help text section">#</a></h3>
+<blockquote><p>The email address is not made public. It will only be used if you need to be contacted about your account or for opted-in notifications.</p></blockquote>
+<ul><li><em>&quot;It will only be used if you need to be contacted about your account or for opted-in notifications&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-7-2-user-edit-uid-1-help-text">Grade 7.2 — [User edit (uid 1)] help text<a class="heading-anchor" href="#grade-7-2-user-edit-uid-1-help-text" aria-label="Link to Grade 7.2 — [User edit (uid 1)] help text section">#</a></h3>
+<blockquote><p>The email address is not made public. It will only be used if you need to be contacted about your account or for opted-in notifications.</p></blockquote>
+<ul><li><em>&quot;It will only be used if you need to be contacted about your account or for opted-in notifications&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-7-2-create-basic-page-help-text">Grade 7.2 — [Create basic page] help text<a class="heading-anchor" href="#grade-7-2-create-basic-page-help-text" aria-label="Link to Grade 7.2 — [Create basic page] help text section">#</a></h3>
+<blockquote><p>Specify an alternative path by which this data can be accessed. For example, type &quot;/about&quot; when writing an about page.</p></blockquote>
+<ul><li><em>&quot;Specify an alternative path by which this data can be accessed&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-7-2-create-article-help-text">Grade 7.2 — [Create article] help text<a class="heading-anchor" href="#grade-7-2-create-article-help-text" aria-label="Link to Grade 7.2 — [Create article] help text section">#</a></h3>
+<blockquote><p>Specify an alternative path by which this data can be accessed. For example, type &quot;/about&quot; when writing an about page.</p></blockquote>
+<ul><li><em>&quot;Specify an alternative path by which this data can be accessed&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-6-9-performance-settings-description">Grade 6.9 — [Performance settings] description<a class="heading-anchor" href="#grade-6-9-performance-settings-description" aria-label="Link to Grade 6.9 — [Performance settings] description section">#</a></h3>
+<blockquote><p>This is used as the value for max-age in Cache-Control headers.</p></blockquote>
+<ul><li><em>&quot;This is used as the value for max-age in Cache-Control headers&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-6-9-site-information-description">Grade 6.9 — [Site information] description<a class="heading-anchor" href="#grade-6-9-site-information-description" aria-label="Link to Grade 6.9 — [Site information] description section">#</a></h3>
+<blockquote><p>This page is displayed when the requested document is denied to the current user. Leave blank to display a generic &quot;access denied&quot; page.</p></blockquote>
+<ul><li><em>&quot;This page is displayed when the requested document is denied to the current user&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-6-9-text-format-restricted-description">Grade 6.9 — [Text format (restricted)] description<a class="heading-anchor" href="#grade-6-9-text-format-restricted-description" aria-label="Link to Grade 6.9 — [Text format (restricted)] description section">#</a></h3>
+<blockquote><p>URLs longer than this number of characters will be truncated to prevent long strings that break formatting. The link itself will be retained; just the text portion of the link will be truncated.</p></blockquote>
+<ul><li><em>&quot;URLs longer than this number of characters will be truncated to prevent long strings that break formatting&quot;</em></li><li>passive voice</li><li><em>&quot;The link itself will be retained; just the text portion of the link will be truncated&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-6-9-performance-settings-help-text">Grade 6.9 — [Performance settings] help text<a class="heading-anchor" href="#grade-6-9-performance-settings-help-text" aria-label="Link to Grade 6.9 — [Performance settings] help text section">#</a></h3>
+<blockquote><p>This is used as the value for max-age in Cache-Control headers.</p></blockquote>
+<ul><li><em>&quot;This is used as the value for max-age in Cache-Control headers&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-6-9-site-information-help-text">Grade 6.9 — [Site information] help text<a class="heading-anchor" href="#grade-6-9-site-information-help-text" aria-label="Link to Grade 6.9 — [Site information] help text section">#</a></h3>
+<blockquote><p>This page is displayed when the requested document is denied to the current user. Leave blank to display a generic &quot;access denied&quot; page.</p></blockquote>
+<ul><li><em>&quot;This page is displayed when the requested document is denied to the current user&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-6-9-text-format-restricted-help-text">Grade 6.9 — [Text format (restricted)] help text<a class="heading-anchor" href="#grade-6-9-text-format-restricted-help-text" aria-label="Link to Grade 6.9 — [Text format (restricted)] help text section">#</a></h3>
+<blockquote><p>URLs longer than this number of characters will be truncated to prevent long strings that break formatting. The link itself will be retained; just the text portion of the link will be truncated.</p></blockquote>
+<ul><li><em>&quot;URLs longer than this number of characters will be truncated to prevent long strings that break formatting&quot;</em></li><li>passive voice</li><li><em>&quot;The link itself will be retained; just the text portion of the link will be truncated&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-6-8-configuration-status-message">Grade 6.8 — [Configuration] status message<a class="heading-anchor" href="#grade-6-8-configuration-status-message" aria-label="Link to Grade 6.8 — [Configuration] status message section">#</a></h3>
+<blockquote><p>Error message One or more problems were detected with your Drupal installation. Check the status report for more information. Close message</p></blockquote>
+<ul><li><em>&quot;Error message One or more problems were detected with your Drupal installation&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-6-8-configuration-status-message">Grade 6.8 — [Configuration] status message<a class="heading-anchor" href="#grade-6-8-configuration-status-message" aria-label="Link to Grade 6.8 — [Configuration] status message section">#</a></h3>
+<blockquote><p>Error message One or more problems were detected with your Drupal installation. Check the status report for more information. Close message</p></blockquote>
+<ul><li><em>&quot;Error message One or more problems were detected with your Drupal installation&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-6-7-add-content-type-description">Grade 6.7 — [Add content type] description<a class="heading-anchor" href="#grade-6-7-add-content-type-description" aria-label="Link to Grade 6.7 — [Add content type] description section">#</a></h3>
+<blockquote><p>Author username and publish date will be displayed.</p></blockquote>
+<ul><li><em>&quot;Author username and publish date will be displayed&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-6-7-add-content-type-description">Grade 6.7 — [Add content type] description<a class="heading-anchor" href="#grade-6-7-add-content-type-description" aria-label="Link to Grade 6.7 — [Add content type] description section">#</a></h3>
+<blockquote><p>This text will be displayed at the top of the page when creating or editing content of this type.</p></blockquote>
+<ul><li><em>&quot;This text will be displayed at the top of the page when creating or editing content of this type&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-6-7-add-content-type-help-text">Grade 6.7 — [Add content type] help text<a class="heading-anchor" href="#grade-6-7-add-content-type-help-text" aria-label="Link to Grade 6.7 — [Add content type] help text section">#</a></h3>
+<blockquote><p>Author username and publish date will be displayed.</p></blockquote>
+<ul><li><em>&quot;Author username and publish date will be displayed&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-6-7-add-content-type-help-text">Grade 6.7 — [Add content type] help text<a class="heading-anchor" href="#grade-6-7-add-content-type-help-text" aria-label="Link to Grade 6.7 — [Add content type] help text section">#</a></h3>
+<blockquote><p>This text will be displayed at the top of the page when creating or editing content of this type.</p></blockquote>
+<ul><li><em>&quot;This text will be displayed at the top of the page when creating or editing content of this type&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-6-4-modules-description">Grade 6.4 — [Modules] description<a class="heading-anchor" href="#grade-6-4-modules-description" aria-label="Link to Grade 6.4 — [Modules] description section">#</a></h3>
+<blockquote><p>Caches pages for anonymous users and can be used when external page cache is not available. Machine name: page_cache Version: 12.0-dev Help for Internal Page Cache</p></blockquote>
+<ul><li><em>&quot;Caches pages for anonymous users and can be used when external page cache is not available&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-6-4-modules-help-text">Grade 6.4 — [Modules] help text<a class="heading-anchor" href="#grade-6-4-modules-help-text" aria-label="Link to Grade 6.4 — [Modules] help text section">#</a></h3>
+<blockquote><p>Caches pages for anonymous users and can be used when external page cache is not available. Machine name: page_cache Version: 12.0-dev Help for Internal Page Cache</p></blockquote>
+<ul><li><em>&quot;Caches pages for anonymous users and can be used when external page cache is not available&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-5-8-create-basic-page-description">Grade 5.8 — [Create basic page] description<a class="heading-anchor" href="#grade-5-8-create-basic-page-description" aria-label="Link to Grade 5.8 — [Create basic page] description section">#</a></h3>
+<blockquote><p>Menu links with lower weights are displayed before links with higher weights.</p></blockquote>
+<ul><li><em>&quot;Menu links with lower weights are displayed before links with higher weights&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-5-8-create-article-description">Grade 5.8 — [Create article] description<a class="heading-anchor" href="#grade-5-8-create-article-description" aria-label="Link to Grade 5.8 — [Create article] description section">#</a></h3>
+<blockquote><p>Menu links with lower weights are displayed before links with higher weights.</p></blockquote>
+<ul><li><em>&quot;Menu links with lower weights are displayed before links with higher weights&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-5-8-create-basic-page-help-text">Grade 5.8 — [Create basic page] help text<a class="heading-anchor" href="#grade-5-8-create-basic-page-help-text" aria-label="Link to Grade 5.8 — [Create basic page] help text section">#</a></h3>
+<blockquote><p>Menu links with lower weights are displayed before links with higher weights.</p></blockquote>
+<ul><li><em>&quot;Menu links with lower weights are displayed before links with higher weights&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-5-8-create-article-help-text">Grade 5.8 — [Create article] help text<a class="heading-anchor" href="#grade-5-8-create-article-help-text" aria-label="Link to Grade 5.8 — [Create article] help text section">#</a></h3>
+<blockquote><p>Menu links with lower weights are displayed before links with higher weights.</p></blockquote>
+<ul><li><em>&quot;Menu links with lower weights are displayed before links with higher weights&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-5-5-add-user-description">Grade 5.5 — [Add user] description<a class="heading-anchor" href="#grade-5-5-add-user-description" aria-label="Link to Grade 5.5 — [Add user] description section">#</a></h3>
+<blockquote><p>Several special characters are allowed, including space, period (.), hyphen (-), apostrophe (&#39;), underscore (_), and the @ sign.</p></blockquote>
+<ul><li><em>&quot;Several special characters are allowed, including space, period (&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-5-5-user-edit-uid-1-description">Grade 5.5 — [User edit (uid 1)] description<a class="heading-anchor" href="#grade-5-5-user-edit-uid-1-description" aria-label="Link to Grade 5.5 — [User edit (uid 1)] description section">#</a></h3>
+<blockquote><p>Several special characters are allowed, including space, period (.), hyphen (-), apostrophe (&#39;), underscore (_), and the @ sign.</p></blockquote>
+<ul><li><em>&quot;Several special characters are allowed, including space, period (&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-5-5-add-user-help-text">Grade 5.5 — [Add user] help text<a class="heading-anchor" href="#grade-5-5-add-user-help-text" aria-label="Link to Grade 5.5 — [Add user] help text section">#</a></h3>
+<blockquote><p>Several special characters are allowed, including space, period (.), hyphen (-), apostrophe (&#39;), underscore (_), and the @ sign.</p></blockquote>
+<ul><li><em>&quot;Several special characters are allowed, including space, period (&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-5-5-user-edit-uid-1-help-text">Grade 5.5 — [User edit (uid 1)] help text<a class="heading-anchor" href="#grade-5-5-user-edit-uid-1-help-text" aria-label="Link to Grade 5.5 — [User edit (uid 1)] help text section">#</a></h3>
+<blockquote><p>Several special characters are allowed, including space, period (.), hyphen (-), apostrophe (&#39;), underscore (_), and the @ sign.</p></blockquote>
+<ul><li><em>&quot;Several special characters are allowed, including space, period (&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-5-3-site-information-description">Grade 5.3 — [Site information] description<a class="heading-anchor" href="#grade-5-3-site-information-description" aria-label="Link to Grade 5.3 — [Site information] description section">#</a></h3>
+<blockquote><p>This page is displayed when no other content matches the requested document. Leave blank to display a generic &quot;page not found&quot; page.</p></blockquote>
+<ul><li><em>&quot;This page is displayed when no other content matches the requested document&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-5-3-site-information-help-text">Grade 5.3 — [Site information] help text<a class="heading-anchor" href="#grade-5-3-site-information-help-text" aria-label="Link to Grade 5.3 — [Site information] help text section">#</a></h3>
+<blockquote><p>This page is displayed when no other content matches the requested document. Leave blank to display a generic &quot;page not found&quot; page.</p></blockquote>
+<ul><li><em>&quot;This page is displayed when no other content matches the requested document&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-4-1-status-report-description">Grade 4.1 — [Status report] description<a class="heading-anchor" href="#grade-4-1-status-report-description" aria-label="Link to Grade 4.1 — [Status report] description section">#</a></h3>
+<blockquote><p>This attribute should be explicitly set to Lax, Strict or None. If set to None then the request must be made via HTTPS. See PHP documentation</p></blockquote>
+<ul><li><em>&quot;If set to None then the request must be made via HTTPS&quot;</em></li><li>jargon: &quot;via&quot;</li><li><em>&quot;See PHP documentation&quot;</em></li><li>nominalisation: &quot;documentation&quot;</li></ul>
+<h3 id="grade-4-1-status-report-help-text">Grade 4.1 — [Status report] help text<a class="heading-anchor" href="#grade-4-1-status-report-help-text" aria-label="Link to Grade 4.1 — [Status report] help text section">#</a></h3>
+<blockquote><p>This attribute should be explicitly set to Lax, Strict or None. If set to None then the request must be made via HTTPS. See PHP documentation</p></blockquote>
+<ul><li><em>&quot;If set to None then the request must be made via HTTPS&quot;</em></li><li>jargon: &quot;via&quot;</li><li><em>&quot;See PHP documentation&quot;</em></li><li>nominalisation: &quot;documentation&quot;</li></ul>
+<h3 id="grade-3-7-add-user-description">Grade 3.7 — [Add user] description<a class="heading-anchor" href="#grade-3-7-add-user-description" aria-label="Link to Grade 3.7 — [Add user] description section">#</a></h3>
+<blockquote><p>Select the desired local time and time zone. Dates and times throughout this site will be displayed using this time zone.</p></blockquote>
+<ul><li><em>&quot;Dates and times throughout this site will be displayed using this time zone&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-3-7-user-edit-uid-1-description">Grade 3.7 — [User edit (uid 1)] description<a class="heading-anchor" href="#grade-3-7-user-edit-uid-1-description" aria-label="Link to Grade 3.7 — [User edit (uid 1)] description section">#</a></h3>
+<blockquote><p>Select the desired local time and time zone. Dates and times throughout this site will be displayed using this time zone.</p></blockquote>
+<ul><li><em>&quot;Dates and times throughout this site will be displayed using this time zone&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-3-7-add-user-help-text">Grade 3.7 — [Add user] help text<a class="heading-anchor" href="#grade-3-7-add-user-help-text" aria-label="Link to Grade 3.7 — [Add user] help text section">#</a></h3>
+<blockquote><p>Select the desired local time and time zone. Dates and times throughout this site will be displayed using this time zone.</p></blockquote>
+<ul><li><em>&quot;Dates and times throughout this site will be displayed using this time zone&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-3-7-user-edit-uid-1-help-text">Grade 3.7 — [User edit (uid 1)] help text<a class="heading-anchor" href="#grade-3-7-user-edit-uid-1-help-text" aria-label="Link to Grade 3.7 — [User edit (uid 1)] help text section">#</a></h3>
+<blockquote><p>Select the desired local time and time zone. Dates and times throughout this site will be displayed using this time zone.</p></blockquote>
+<ul><li><em>&quot;Dates and times throughout this site will be displayed using this time zone&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-1-site-information-description">Grade 1 — [Site information] description<a class="heading-anchor" href="#grade-1-site-information-description" aria-label="Link to Grade 1 — [Site information] description section">#</a></h3>
+<blockquote><p>How this is used depends on your site&#39;s theme.</p></blockquote>
+<ul><li><em>&quot;How this is used depends on your site&#39;s theme&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-1-site-information-help-text">Grade 1 — [Site information] help text<a class="heading-anchor" href="#grade-1-site-information-help-text" aria-label="Link to Grade 1 — [Site information] help text section">#</a></h3>
+<blockquote><p>How this is used depends on your site&#39;s theme.</p></blockquote>
+<ul><li><em>&quot;How this is used depends on your site&#39;s theme&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-1-create-basic-page-help-text">Grade 1 — [Create basic page] help text<a class="heading-anchor" href="#grade-1-create-basic-page-help-text" aria-label="Link to Grade 1 — [Create basic page] help text section">#</a></h3>
+<blockquote><p>The date and time that the content was created.</p></blockquote>
+<ul><li><em>&quot;The date and time that the content was created&quot;</em></li><li>passive voice</li></ul>
+<h3 id="grade-1-create-article-help-text">Grade 1 — [Create article] help text<a class="heading-anchor" href="#grade-1-create-article-help-text" aria-label="Link to Grade 1 — [Create article] help text section">#</a></h3>
+<blockquote><p>The date and time that the content was created.</p></blockquote>
+<ul><li><em>&quot;The date and time that the content was created&quot;</em></li><li>passive voice</li></ul>
+    </main>
+  </div>
+</body>
+</html>

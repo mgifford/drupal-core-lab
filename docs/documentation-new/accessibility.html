@@ -1,0 +1,112 @@
+<p>As an inclusive community, we are committed to making sure that Drupal is accessible. Content creators and site builders of all abilities should be able to use this platform to reach their audience. Disabilities are an integral part of our human experience. People have permanent, temporary, and situational disabilities. Prioritizing accessibility within Drupal is critical to our values. Digital tools are so embedded with our lives that accessibility is even more critical.</p>
+
+<h2>Goals</h2>
+
+<p>We are a community that believes in open standards. We &nbsp;have committed to ensuring that all features of Drupal core align with the guidelines from the&nbsp;<a href="http://www.w3.org/">World Wide Web Consortium (W3C)’s</a> <a href="https://www.w3.org/WAI/">Web Accessibility Initiative (WAI)</a>.</p>
+
+<p>This initiative started in 2009 with adding accessibility advancements for Drupal 7. It was here we first embraced <a href="http://www.w3.org/TR/WCAG20/#contents">Web Content Accessibility Guidelines (WCAG) 2.0 AA</a> for both front-end and back-end. With Drupal 8, we added support for <a href="http://www.w3.org/TR/ATAG20/#contents">Authoring Tool Accessibility Guidelines (ATAG) 2.0</a>&nbsp;(Part A was already included in Drupal 7).</p>
+
+<p>The Drupal Accessibility Team and&nbsp;project governance will follow the&nbsp;<a href="https://www.w3.org/WAI/standards-guidelines/wcag/">latest recommended release of the WCAG guidelines</a> (<strong>WCAG 2.2 AA</strong>).</p>
+
+<p>Drupal was selected by the <a href="https://www.drupal.org/association/blog/gaad-pledge-2022-extending-drupals-accessibility">GAAD Foundation for the #GAADPledge in 2022</a>. This further cemented our public commitment to accessibility. As part of our GAAD Pledge we have created our&nbsp;<a href="https://www.drupal.org/docs/develop/standards/accessibility-coding-standards">Accessibility Coding Standards</a> to help guide best practices in our community.&nbsp;</p>
+
+<h2>Accessibility in Drupal’s Development Process</h2>
+
+<p>The Drupal community tries to fix accessibility issues in the development process. &nbsp;Everything is documented in the issue queue, and <a href="https://www.drupal.org/project/issues/search?issue_tags=Accessibility">tagged for accessibility</a>.</p>
+
+<p>Important issues can block a Drupal release if it fails the <a href="https://www.drupal.org/about/core/policies/core-change-policies/drupal-core-gates#accessibility">accessibility gate</a>. &nbsp;Our community has decided that accessibility is essential. Major releases have been delayed several times because identified barriers were not fixed.</p>
+
+<p>The team actively works to avoid adding accessibility regressions. When updates and modifications introduce accessibility regressions, fixing them becomes a priority.</p>
+
+<p>Occasionally barriers are discovered after release. If they are critical barriers, then the fixes may be part of an update to the latest stable release of Drupal. This is often avoided as changes to core code can have unintended consequences to live sites.</p>
+
+<p>Some of Drupal’s Accessibility features are <a href="https://www.drupal.org/docs/accessibility/drupal-accessibility-features">described in the handbook</a>.</p>
+
+<h2>Automated Testing</h2>
+
+<p>We use automated testing extensively. Some of the tools we use include <a href="https://wave.webaim.org/">WebAIM’s WAVE</a>, <a href="https://chrome.google.com/webstore/detail/axe-devtools-web-accessib/lhdoppojpmngadmnindnejefpokejbdd">Deque’s Axe</a> and <a href="https://accessibilityinsights.io/">Microsoft’s Accessibility Insight</a>s. There is also a list of recommended open source accessibility tools to check common accessibility issues.</p>
+
+<p>We acknowledge that automated tools and checklists have limitations. Manual testing and input from users with lived experience is required to build an inclusive experience.</p>
+
+<h2>Assistive Technology&nbsp;</h2>
+
+<p>Drupal encourages and supports the proper use of semantic markup. This is the best way to produce robust experiences that adapt to individual users’ assistive technologies (AT). Common examples of AT include:</p>
+
+<ul>
+	<li>text-to-speech (TTS) tools like screen readers,</li>
+	<li>speech-to-text (STT),</li>
+	<li>hardware inputs such as keyboards and switch devices,&nbsp;</li>
+	<li>screen magnification tools,</li>
+	<li>many browser extensions.</li>
+</ul>
+
+<p>As of the most recent update to this document, testing with assistive technologies is primarily done with <a href="https://www.nvaccess.org/download/">NVDA</a> and VoiceOver. This is because they are common freely available screen readers. It is also easier to find volunteers who have the most knowledge of these tools. We build on the contributions from both blind developers and other experienced screen reader users as much as we can.</p>
+
+<p>We need more people with lived experience of disability to further improve Drupal's accessibility.</p>
+
+<h2>HTML &amp; ARIA</h2>
+
+<p>Drupal semantics are defined with modern HTML5 and <a href="http://www.w3.org/WAI/intro/aria">WAI Rich Internet Applications (WAI-ARIA or ARIA)</a>. We use ARIA landmarks to highlight the page regions. We try to limit the use of ARIA where possible. HTML generally provides more consistent support with assistive technologies.&nbsp;</p>
+
+<h2>Core Module</h2>
+
+<p>In Drupal Core, we want to build a platform that is accessible by default. This means that features specifically designed to support accessibility are typically enabled.This is because we &nbsp;assume that most people will want to reach the widest possible audience when building a website. There are some exceptions to this:</p>
+
+<ul>
+	<li>The Inline Form Error module is part of Core, but is not enabled by default. To have more accessible inline form errors, please consider enabling this module. &nbsp;</li>
+	<li>You will need to enable internationalization support in CKEditor, if you want to be able to provide support for Language of Parts.&nbsp;</li>
+	<li>Please suggest updates to this list. There may be other defaults that can be adjusted for specific accessibility goals.</li>
+</ul>
+
+<h2>Contributed Modules</h2>
+
+<p>Drupal Core usually has stricter criteria than the contributed modules and themes. It is worth noting that this isn’t always the case. We are happy to point to the <a href="https://www.drupal.org/project/webform">Webform module</a> as one which has gone above and beyond. Contributed modules may not always comply, but most developers follow community best practices.&nbsp;</p>
+
+<p><a href="https://www.drupal.org/docs/accessibility/contributed-modules-for-extending-accessibility-in-drupal">A list of contributed modules which may improve accessibility</a> is available in the handbook.&nbsp;</p>
+
+<h2>Core Themes</h2>
+
+<p>Drupal Core themes have been developed with accessibility in mind. Most recently Olivero and Claro have been added to Drupal 9. &nbsp;Extra effort has gone into the accessibility of the new default theme, Olivero. Olivero is named in honor of community member <a href="https://www.drupal.org/forum/general/community-spotlight/2019-02-22/remembering-rachel-olivero">Rachel Olivero</a> who died &nbsp;suddenly in 2019. She was a blind developer who was active in promoting inclusion in the Drupal community.&nbsp;</p>
+
+<h2>Contributed Themes</h2>
+
+<p>Many of the accessibility challenges are implemented at the theme layers. It is generally an accessibility best practice in Drupal to start with an accessible base theme like Olivero and build out from there. There are non-Core themes constructed with accessibility in mind, but these are not organized.</p>
+
+<p><a href="https://www.drupal.org/node/394094">The list of tools, techniques, &amp; resources</a> in the handbook has also been updated with information that may be helpful. Unfortunately, there isn’t an up-to-date guide for creating accessible Drupal themes. The legacy guide for <a href="https://www.drupal.org/docs/7/theming/creating-accessible-themes">Accessible Theming for Drupal 7</a> is still useful. &nbsp;</p>
+
+<h2>Drupal Community Sites</h2>
+
+<p>The Drupal community is largely focused around three websites, <a href="https://www.drupal.org/">Drupal.org</a>, <a href="https://groups.drupal.org/">Drupal Groups</a> and the <a href="https://api.drupal.org/">API</a>. These are managed by the <a href="https://www.drupal.org/association">Drupal Association</a>. These sites are not always running the latest version of Drupal. Some accessibility issues in legacy code may not be prioritized if the barrier will be fixed with an upgrade.&nbsp;</p>
+
+<p>If you have issues that are stopping your participation, please <a href="https://www.drupal.org/project/issues/drupalorg?categories=All">contribute a bug to the issue queue for that project</a>.</p>
+
+<h2>Accessibility Team</h2>
+
+<p>The accessibility team has worked to identify and resolve accessibility barriers with Drupal. &nbsp;Any actively developed software will have some accessibility barriers. The challenge is to &nbsp;proactively identify those issues and ensure that they are resolved quickly. We have an open issue queue and accessibility issues are tagged so that they are easy to find. This applies to both <a href="https://www.drupal.org/project/issues/search/drupal?version%5B0%5D=any_8.&amp;issue_tags=accessibility">Drupal core</a> and <a href="https://www.drupal.org/project/issues/search/?version%5B0%5D=any_8.&amp;issue_tags=accessibility">other projects on Drupal.org</a>.&nbsp;</p>
+
+<p>Accessibility is a team effort, and although we have already done a lot, there is a lot more which we should be doing. In Drupal 7, the community decided to see accessibility barriers as bugs, rather than feature requests. This resulted in us raising awareness and changing the culture of the community.&nbsp;</p>
+
+<p>There are many ways to engage with our accessibility community. Most Drupal events include accessibility. &nbsp;Drupal also uses<a href="https://www.drupal.org/community/contributor-guide/reference-information/talk/tools/slack"> Slack as a messaging platform</a>. Please sign up and join the #accessibility channel. We are also hosting monthly <a href="https://www.drupal.org/docs/accessibility/a11y-office-hours">A11y Office Hours</a> to talk about accessibility issues in core.&nbsp;</p>
+
+<p>Please, consider joining #diversity-inclusion for a broader and &nbsp;less technical discussion about inclusion in our community.&nbsp;</p>
+
+<p>More information is available about <a href="https://www.drupal.org/docs/accessibility">our accessibility community from our handbook</a>.&nbsp;</p>
+
+<h2>Our Community of Developers and Designers</h2>
+
+<p>We need your involvement to make Drupal even more accessible. Here are some common ways people are involved:&nbsp;</p>
+
+<ul>
+	<li>reporting bugs</li>
+	<li>testing patches for bugs</li>
+	<li>summarizing long comments threads</li>
+	<li>adding or updating documentation&nbsp;</li>
+	<li>answering questions on Slack</li>
+</ul>
+
+<p>If you have general questions on how to do this, please post a question to Slack.&nbsp;</p>
+
+<p>There are lots of ways to become involved. &nbsp;We strive to make the development and design environment accessible to people with disabilities.&nbsp;</p>
+
+<p>The Drupal community is generally quite responsive to constructive user feedback. Do let us know what we can do to ensure you are included.&nbsp;<br />
+&nbsp;</p>

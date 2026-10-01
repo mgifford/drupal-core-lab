@@ -1,0 +1,224 @@
+<p>Getting a sense of how accessible your module, theme or site is can seem like an overwhelming task. If you are new to accessibility, the sheer breadth of the topic can leave you wondering where to start. Accommodating a diverse range of abilities means there is a correspondingly diverse range of issues to consider. On this documentation, we have listed necessary considerations into a logical, step by step process for reviewing the accessibility of your module theme or site. <strong>Remember that just like every other bug, a developer usually needs to be able to replicate it to be able to fix it.&nbsp;</strong></p>
+
+<h2>Start by running automated tooling</h2>
+
+<p>Many accessibility problems can be caught by running the page through automated tools. Some of the automated tools include <a href="https://wave.webaim.org" target="_blank">WAVE</a>, <a href="https://accessibilityinsights.io" target="_blank">Accessibility Insights</a>, <a href="https://developers.google.com/web/tools/lighthouse/" target="_blank">Google Lighthouse</a>,&nbsp;&nbsp;<a href="https://siteimprove.com/" target="_blank">Siteimprove</a>&nbsp;and of course <a href="https://www.drupal.org/project/editoria11y">Editoria11y</a>. Some of this can be automated by using <a href="https://github.com/dequelabs/axe-core/">axe-core</a>. These tools will help you quickly catch some accessibility issues, such as the incorrect structure of the markup, missing ARIA attributes and insufficient color contrast.</p>
+
+<h2>Using live previews for manual accessibility testing</h2>
+
+<p>When live previews (powered by <a href="https://www.drupal.org/tugboat">Tugboat</a>) are enabled for a project, contributors reviewing any issue with an open merge request can access a link to an automatically built preview of a Drupal site with the MR changes applied and the appropriate modules installed. Live previews can reduce the time required for manual accessibility reviews for contributors, since they won't need to set up a local environment.&nbsp;Core, Drupal CMS, and many contributed projects already have live previews enabled. You can add Tugboat-powered live previews to any Drupal contributed project by opening an issue in the project and following the steps in&nbsp;<a href="https://www.drupal.org/docs/develop/git/using-git-to-contribute-to-drupal/using-tugboat-previews-on-drupal-core-and-contrib-merge-requests">Using Tugboat previews on Drupal Core and contrib merge requests</a>.</p>
+
+<h2>Test Keyboard Navigation</h2>
+
+<p>Keyboard navigation is the primary means of reaching everything on screen for users who either cannot or choose not to use a mouse. This includes screen reader users, as well as those with motor impairments such as Repetitive Stress Injury (RSI) or paralysis. For a good keyboarding experience, aim to have a logical tab order and easily discernible focus styles. You should also make sure that the user doesn’t have to navigate through an excessive number of tab stops.</p>
+
+<h3>What to look for</h3>
+
+<ul>
+	<li>Can you skip repeated content?
+	<ul>
+		<li>A skip link should be provided that takes users directly to the content unique to that page, skipping repeated content such as navigation menus. The skip link should be the first tab stop on the page, and should be visible when focused.</li>
+	</ul>
+	</li>
+	<li>Are all controls fully operable?
+	<ul>
+		<li>Every interactive element has to be usable with the keyboard. Expand/collapses, tree views and sliders, dialogs and overlays - drag and drops - everything. Or there needs to be an alternative way to accomplish the action.</li>
+	</ul>
+	</li>
+	<li>Can you tab in both directions?
+	<ul>
+		<li>We’ve seen some applications where tabbing forward through the page worked fine, but it was impossible to tab backward (using the Shift+Tab key combination), which created a keyboard trap. Make sure you can tab all the way through the interface in both directions.</li>
+	</ul>
+	</li>
+	<li>Are there any keyboard traps?
+	<ul>
+		<li>Beware of completely trapping focus at any point. Is there a way for the user to escape overlays, modals and autocomplete widgets by just using a keyboard? If not, you’ve just created a keyboard trap.</li>
+	</ul>
+	</li>
+	<li>Is your focus constrained when there is a dialog?
+	<ul>
+		<li>When there is a dialog, your keyboard focus should be constrained within it. Otherwise, you might tab off it and be tabbing around the page behind the dialog, unable to see where you are.</li>
+	</ul>
+	</li>
+	<li>Is your focus always visible?
+	<ul>
+		<li>The general rule of thumb is that any control users can interact with or provide input should be focusable and display a focus indicator (for example a focus ring). If a keyboard user can’t see what’s focused, they have no way of interacting with the page.</li>
+	</ul>
+	</li>
+	<li>Is there content that is not visible, but is accessible by keyboard?
+	<ul>
+		<li>Be sure that there isn’t content that is supposed to be hidden, but is still it in the tab order.</li>
+	</ul>
+	</li>
+	<li>Are there keyboard accessible equivalents to content visible based on hovering?
+	<ul>
+		<li>Use your mouse to test if there’s any content that is only visible when hovered that you cannot access by just using a keyboard. Content that is visible by hover should have an alternative way to be accessed. This is not only needed for users navigating with keyboard, but to users navigating with touch.</li>
+	</ul>
+	</li>
+	<li>Are there focusable elements that shouldn’t be focusable?
+	<ul>
+		<li>Non-interactive content should not be focusable. If something is focusable, the expectation is that the user can do something with it. Users are likely to be confused or frustrated by focusable content which can't be operated.</li>
+		<li>
+		<p>Don't put tabindex="0" attributes on elements unless the user is expected to operate them.</p>
+		</li>
+		<li>
+		<p>Adding unnecessary tabindex attributes on non-interactive elements also means it takes more effort to navigate the content.</p>
+		</li>
+	</ul>
+	</li>
+	<li>
+	<p>Is the tab order natural and logical?</p>
+
+	<ul>
+		<li>
+		<p>If tabindex has been modified, or if the layout of a page has been reorganized against the natural flow of the DOM (document object model, or elements actually scripted onto the page), then a sighted keyboard user may experience a confusing flow as they navigate through the page</p>
+		</li>
+	</ul>
+	</li>
+</ul>
+
+<h3>Test your responsive breakpoints</h3>
+
+<p>After you’ve done all those keyboard tests: Increase your browser zoom until you hit a responsive breakpoint and do it all again. Anyone who is using a high level of browser zoom will be interacting with your “tablet” or “phone” version on their laptop. Mobile breakpoints aren’t just for touchscreen users.</p>
+
+<h2>Screen Magnification</h2>
+
+<p>Low vision users often need to magnify the content in order to see it. It is a best practice to allow users to&nbsp;<a href="https://www.w3.org/WAI/WCAG21/Understanding/resize-text.html">magnify content by 200%</a>. You may have already done some zoom testing when evaluating if a site's responsive breakpoints allow keyboard focus. On a desktop/laptop users can increase or decrease the size of their content by pressing the Control Key and "+" or the Control Key and "-". Browsers usually display the zoom size and allow you to quickly git to a 200% (2X) magnification. Many low vision users will use much higher magnifitions, and it is a better practice to check that a site is still functional with a 400% (4X) magnification.</p>
+
+<p>Aside from the built-in magnification tools, there are tools like <a href="https://webaim.org/blog/at-experiment-zoomtext/">ZoomText can support some low vision users</a>. It is also worth noting that some users with disabilities may use a combination of screen magnification and screen readers in order to navigate your site.&nbsp;</p>
+
+<h2>Headings</h2>
+
+<p>Headings are the framework of your content. A good heading structure reflects the content on your page, like the index of a book. Having descriptive headings and meaningful levels is important because some screen reader users use them for skimming the contents of the page.</p>
+
+<p>If you have already run one of the automated accessibility tools, you’ve most likely covered most of the issues related to headings.</p>
+
+<h3>What to look for</h3>
+
+<ul>
+	<li>Is there only one H1 element per page?
+	<ul>
+		<li>There should be only one H1 element per page, that describes what the page is about.</li>
+	</ul>
+	</li>
+	<li>Do the heading levels match the content?
+	<ul>
+		<li>It’s important to use the other headings based on their level and not by their font size. It’s important not to skip levels on headings.</li>
+	</ul>
+	</li>
+	<li>Are the headings descriptive enough?
+	<ul>
+		<li>Good heading texts describe in short the content that follows the heading.</li>
+	</ul>
+	</li>
+</ul>
+
+<h2>Color and contrast</h2>
+
+<h3>There must be sufficient color contrast</h3>
+
+<p>Color contrast is the ratio of the foreground color (text) and the background color. Text should have a ratio of 4.5:1 or greater with the background. You can use a <a href="https://contrast-ratio.com" target="_blank">color contrast checker</a> to determine whether your colors comply with this requirement.</p>
+
+<h3>Color must not be the only means of displaying visual information</h3>
+
+<p>Although color is a valid means of displaying visual information, it can’t be the <em>only</em> way that information is conveyed. People with color blindness can experience difficulty when color alone is used to convey important information (and they may miss it entirely).</p>
+
+<p>If using color to convey information, use at least one of the following extra methods too:</p>
+
+<ul>
+	<li>Use meaningful text to provide the information. For example "on" and "off" next to a circle which changes from green to red.</li>
+	<li>Use a meaningful icon, so users can distinguish meaning by shape.</li>
+	<li>To indicate form errors, don't just say "the fields marked red". It's better to say the names of the fields, and mark them with a recognizable error icon.</li>
+</ul>
+
+<p>Another example is marking required fields with red. Some users may not be able to distinguish red from other colors and would lack information to fill out this form. This can be addressed by adding an asterisk to the field label.</p>
+
+<p>Focus states should not rely on color alone. An additional shape is necessary to convey focus. Typically this would be an extra outline surrounding the interactive control which has focus.</p>
+
+<h2>Not by icon alone</h2>
+
+<p>If an icon represents an essential part of functionality, it should be accompanied by text that describes its purpose. Make sure interactive elements such as navigation menus are labelled. Not every user understands the icons that are obvious to you. A label is also needed for screen readers to be able to read out the element.</p>
+
+<h2>Sound and Video</h2>
+
+<p>If the page relies upon sound or video to convey information, ensure that captions or a transcript is available. More information on <a href="https://webaim.org/techniques/captions/" target="_blank">WebAim article about captions, transcripts, and audio descriptions</a></p>
+
+<ul>
+	<li>When&nbsp;using an informative <strong>video</strong> on your webpage <em><strong>with audio</strong> or <strong>without audio</strong></em><strong>,</strong> your video will also need a textual transcript for people with visual impairments.</li>
+	<li>When using an informative <strong>video&nbsp;</strong>on your webpage&nbsp;<em><strong>with audio</strong>, </em>your video will need Closed Captions enabled for people with hearing impairments.</li>
+	<li>When using an informative and complex&nbsp;<strong>video&nbsp;</strong><em><strong>with sound</strong></em>, your may need to provide Audio Description that narrates the context of scenes and actions in the video not normally provided by Closed Captions, for people with visual impairments.</li>
+	<li>When using <strong>live video</strong>,<strong>&nbsp;</strong>captions must be provided for people with hearing impairments.</li>
+	<li>When using&nbsp;<strong>live audio</strong>, a textual alternative must be provided for people with visual impairments.</li>
+</ul>
+
+<p>This falls under <a href="https://www.w3.org/TR/UNDERSTANDING-WCAG20/media-equiv.html" target="_blank">Time-based Media, Guideline 1.2 of WCAG</a>.</p>
+
+<h2>Animations and Autoplay video and audio</h2>
+
+<p>Animations, videos and/or Audio that automatically plays without control of the user can be distracting to other parts of the page. Even if the animations or videos are in a position of the page that you might not think will cause an issue, we are agnostic to how users are&nbsp;viewing the page.</p>
+
+<p>Examples of Animations, Autoplay video and audio:</p>
+
+<ul>
+	<li>Animations: A carousel automatically loops through a range of images;</li>
+	<li>Autoplay video: A YouTube video plays as soon as the page is loaded;</li>
+	<li>Autoplay audio: A radio feed plays as soon as the page is loaded.</li>
+</ul>
+
+<p>To reduce the amount of distractions on the page:</p>
+
+<ul>
+	<li>Avoid playing animations,&nbsp;video and content for longer than 5 seconds.</li>
+	<li>Provide controls for the user so that they can choose when to stop, play and pause the animation, video and audio.</li>
+</ul>
+
+<h2>Dynamically changing content</h2>
+
+<p>JavaScript makes it possible to dynamically change parts of a page without fully reloading it. Users who cannot fully see these changes still need to be aware they’ve occurred. Examples of dynamic changes to a page are updating a list of search results on the fly or displaying a discrete notification which does not require user interaction. <a href="https://www.drupal.org/docs/8/api/javascript-api/accessibility-tools-for-javascript-in-drupal-8" target="_blank">Drupal.announce() API</a>&nbsp;provides a way to announce dynamic content changes on some assistive technologies.</p>
+
+<p>Drupal.announce() is an API built on top of <a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Live_Regions" target="_blank">ARIA live regions</a>. Some example use cases for this can be found in this <a href="//developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Live_Regions#Preferring_specialized_live_region_roles”" target="_blank">documentation about ARIA live region roles</a>.</p>
+
+<p>The best way to test dynamically changing content is to use a screen reader.</p>
+
+<h2>Testing with a screen reader</h2>
+
+<p>Running automatic accessibility checks and manually tabbing through the page already goes a long way. If you are not familiar with using a screen reader, many of these issues can be detected without actually using a screen reader.</p>
+
+<h3>What to look for</h3>
+
+<ul>
+	<li>Do all controls have a label?
+	<ul>
+		<li>All controls should be described by a label that describes the purpose of the control. Most of the time this is done by using the element, but in some advanced use cases, you might have to use <a href="//www.w3.org/TR/2010/WD-wai-aria-20100916/states_and_properties#aria-labelledby”" target="_blank">aria-labelledby</a> attribute.</li>
+	</ul>
+	</li>
+	<li>Are there any custom controls? Are they described by appropriate role and any required ARIA attributes that confer their state?
+	<ul>
+		<li>Users of assistive technology should have access to the same information that is conveyed to sighted users via visual cues such as formatting, cursor style, or position. Native elements have this semantic information built-in by the browser, but for custom controls you need to use <a href="https://www.w3.org/WAI/standards-guidelines/aria/" target="_blank">ARIA</a> to add this information in. For example, a custom slider component might take an ARIA role of slider, which has some related ARIA attributes: aria-valuenow, aria-valuemin and aria-valuemax.</li>
+	</ul>
+	</li>
+	<li>Is the flow of information consistent with what you see on the screen, and does it make sense?
+	<ul>
+		<li>The flow of information might be altered by CSS. Does the flow of content make sense as well when accessed with a screen reader?</li>
+	</ul>
+	</li>
+	<li>Do link texts make sense?
+	<ul>
+		<li>Most screen readers say "link" before each link. For example, a "products" link would be. read as "link products". Therefore links do not need to include "link" in the link text, because all users already know it’s a link.</li>
+		<li>Tabbing from link to link is a way of skimming web content for screen reader users. Links should make sense out of context. Phrases such as "click here," "more," "click for details," and so on are ambiguous when read out of context.</li>
+	</ul>
+	</li>
+	<li>Do all images have proper alt text?
+	<ul>
+		<li>All images should have a proper alt text. The exception to this practice is when images are primarily for presentation purposes and are not essential pieces of content. If the image should be skipped by a screen reader, set the value of the alt attribute to an empty string.</li>
+	</ul>
+	</li>
+</ul>
+
+<h3>Manual testing with a screen reader</h3>
+
+<p>Some issues can only be caught by manually testing the application with a screen reader. The most common screen readers are VoiceOver (Mac OS) and NVDA (Windows). To get started with VoiceOver you can watch a video on <a href="//www.youtube.com/watch?v=5R-6WvAihms”" target="_blank">VoiceOver basics</a> and read WebAIM tutorial for VoiceOver. To get started with NVDA you can watch a video on <a href="//www.youtube.com/watch?v=Jao3s_CwdRU”" target="_blank">NVDA basics</a> and read about how to use <a href="https://www.youtube.com/watch?v=Vx1vSd5uYS8&amp;t=1s&amp;ab_channel=DequeSystems" target="_blank">NVDA to test your web pages by Deque</a>. It is also worth watching the overview of how screen readers work by <a href="https://www.smashingmagazine.com/2019/02/accessibility-webinar/">Léonie Watson for Smashing Magazine</a>.&nbsp;</p>
+
+<p>Once you become familiar with the screen reader and have learned the general keyboard commands you need, try turning off your monitor and putting away your mouse. Remember that screen reader pronunciation should be left outside of the scope of testing.</p>
+
+<p>If you are not already a screen reader user, testing with one is not as easy as it may sound. It takes time and diligence to unlearn visual navigation, and to learn the shortcuts and techniques available to a screen reader user. Additionally, all screen readers work a little differently, and it is important to test on as many as you can, as well as to test with different browsers and platforms.</p>

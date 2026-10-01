@@ -1,0 +1,61 @@
+<p>Accessibility is part of contribution quality. Consider it when planning, designing, implementing, reviewing, and testing changes to Drupal core, contributed modules, themes, and distributions.</p>
+
+<p>Start early. Accessibility problems are usually easier to prevent than to correct after an interface and its technical approach are established.</p>
+
+<p>First decide whether the contribution can affect a user interface, rendered markup or content, documentation or examples, or an authoring workflow, including through defaults, configuration, or an API used by an interface. If it cannot affect any of those surfaces, separate accessibility testing is normally not needed. For an in-scope change, identify the affected tasks, surfaces, and states and select the relevant checks. Do not exclude anything known to be affected by the change.</p>
+
+<h2>Make accessibility a shared responsibility</h2>
+
+<p>Everyone contributing to a change has a role in accessibility. Designers should consider different ways people perceive and operate the interface. Developers should use accessible patterns and add appropriate tests. Reviewers should examine user impact and test evidence. Maintainers should not approve a known regression. On a small contribution, one person may perform several of these roles.</p>
+
+<p>A project may name an accessibility lead or champion to coordinate this work, track questions, and arrange reviews. That role does not make one person responsible for finding or resolving every barrier.</p>
+
+<h2>Use the relevant standards</h2>
+
+<p>Drupal projects should strive to meet <a href="https://www.w3.org/TR/WCAG22/">Web Content Accessibility Guidelines (WCAG) 2.2 Level AA</a> for user interfaces and rendered content. Apply the <a href="https://www.w3.org/TR/ATAG20/">Authoring Tool Accessibility Guidelines (ATAG) 2.0</a> to content-authoring functionality. ATAG Part A addresses accessibility for authors with disabilities. Part B addresses support for producing accessible content.</p>
+
+<p>Follow Drupal’s <a href="https://www.drupal.org/docs/getting-started/accessibility/accessibility-coding-standards">Accessibility Coding Standards</a>. Level AAA success criteria and advisory techniques are useful goals, but they are not Level AA requirements.</p>
+
+<h2>Plan before implementation</h2>
+
+<p>Describe the affected user task and the people who could encounter barriers. Include disabled people explicitly instead of reporting only the technical failure. Identify the applicable WCAG, ATAG, or project requirements and add a testable accessibility outcome to the acceptance criteria.</p>
+
+<p>For example: “A keyboard or screen reader user can find, understand, and correct the validation error, and focus moves to the error summary.” Plan to record the changed states tested, the result, and any relevant checks not performed and why.</p>
+
+<p>Use an established Drupal pattern when it fits the task and has no known accessibility problem that affects the change. For a new or substantially changed pattern, review the interaction and implementation approach before the design becomes difficult to change.</p>
+
+<p>For authoring features, define separate outcomes for whether disabled authors can complete the task and whether the feature preserves accessibility information and helps authors produce accessible content. Assess the rendered output against the relevant WCAG target.</p>
+
+<h2>Test during development</h2>
+
+<p>Test the final rendered output and complete affected task in every changed state, not only source code, templates, unit tests, screenshots, or the initial state. Select manual, automated, input-method, browser, and assistive-technology checks based on the task and risk. Automated tools can find some deterministic failures, but cannot determine WCAG conformance or replace manual testing.</p>
+
+<p>Use the step-by-step guide to <a href="https://www.drupal.org/docs/getting-started/accessibility/how-to-do-an-accessibility-review">performing an accessibility review</a>. It covers relevant input methods, assistive technology, final-output checks, repeatable environments, and safe, limited use of testing with disabled participants.</p>
+
+<h2>Record evidence in the issue</h2>
+
+<p>Provide enough information for another contributor to understand and repeat the test. Record the review scope, affected task and states, baseline, expected and actual results, relevant test results, checks not performed and why, and known limitations. Compare the relevant behavior before and after the change, or explain why no comparable baseline exists.</p>
+
+<p>An existing failure does not permit a new regression. Link a pre-existing or out-of-scope problem to a follow-up issue only when the contribution does not make it worse. Make review artifacts accessible, and do not rely on visual-only evidence. The detailed review guide defines the complete evidence record and participant-privacy safeguards.</p>
+
+<h2>Request accessibility review when needed</h2>
+
+<p>Ask for review early when a change significantly affects, or could significantly affect, accessibility; introduces a new or substantially revised pattern; creates a complex or high-impact interaction; or leaves an accessibility question unresolved.</p>
+
+<p>For Drupal core, follow the <a href="https://www.drupal.org/about/core/policies/core-change-policies/core-gates/accessibility">accessibility gate</a> for the maintained review indicators and use of the <a href="https://www.drupal.org/docs/develop/issues/fields-and-other-parts-of-an-issue/issue-tags-special-tags"><code>Needs accessibility review</code> issue tag</a>. The tag alerts Accessibility Topic Maintainers and signals that their signoff is needed. Routine changes using established patterns still need applicable evidence, but do not automatically require the tag or a formal review at every development stage.</p>
+
+<p>Accessibility Topic Maintainers and other experienced contributors can help identify risks and evaluate evidence. Their involvement does not transfer responsibility for the contribution to the reviewer.</p>
+
+<h2>Apply the Drupal core accessibility gate</h2>
+
+<p>For a Drupal core issue, record whether the gate applies to all or part of the change, or is not applicable. State the gate decision and rationale, show that the applicable checks were completed, and show that the change introduces or worsens no known unresolved regression or task-blocking barrier within the reviewed scope.</p>
+
+<p>The core gate does not apply to every contributed project automatically. Follow any project-specific policy, and use this guide to decide which accessibility evidence is appropriate.</p>
+
+<h2>If work is already underway</h2>
+
+<p>Start with the current design and implementation. Identify affected tasks, run the relevant checks, document the results, and address regressions before release. Ask for help if the correct outcome or implementation is unclear. A late review may require substantial changes, but delaying the review will not reduce that work.</p>
+
+<h2>Get help</h2>
+
+<p>Use the project issue queue for decisions that need to remain with the contribution. For broader questions, join the <code>#accessibility</code> channel in <a href="https://www.drupal.org/community/contributor-guide/reference-information/talk/tools/slack">Drupal Slack</a> or attend <a href="https://www.drupal.org/docs/getting-started/accessibility/drupal-accessibility-a11y-office-hours">Drupal accessibility office hours</a>. If a discussion resolves a design or testing question, summarize the decision and supporting evidence in the issue.</p>

@@ -1,0 +1,77 @@
+diff --git a/core/themes/default_admin/migration/js/sidebar.js b/core/themes/default_admin/migration/js/sidebar.js
+index 44e9967ecdc..a375dc3b60c 100644
+--- a/core/themes/default_admin/migration/js/sidebar.js
++++ b/core/themes/default_admin/migration/js/sidebar.js
+@@ -17,13 +17,16 @@
+    * Error links from the Inline Form Errors module are fragment links, and the
+    * target field is hidden while the sidebar is closed.
+    *
++   * The sidebar is opened without saving that state, so the user's own choice
++   * about whether the sidebar is open by default is not overwritten.
++   *
+    * @param {string} hash
+    *   The URL fragment, including the leading '#'.
+    */
+   const openSidebarForFragment = (hash) => {
+     const id = decodeURIComponent(hash.substring(1));
+     if (id && document.getElementById(id)?.closest('#default_admin_sidebar')) {
+-      Drupal.adminSidebar.showSidebar();
++      Drupal.adminSidebar.showSidebar(false);
+     }
+   };
+ 
+@@ -125,7 +128,7 @@
+       }
+     },
+ 
+-    showSidebar: () => {
++    showSidebar: (persist = true) => {
+       const chooseStorage =
+         window.innerWidth < breakpoint ? storageMobile : storageDesktop;
+       const hideLabel = Drupal.t('Hide sidebar panel');
+@@ -143,7 +146,9 @@
+       document.body.setAttribute('data-meta-sidebar', 'open');
+ 
+       // Expose to localStorage.
+-      localStorage.setItem(chooseStorage, 'true');
++      if (persist) {
++        localStorage.setItem(chooseStorage, 'true');
++      }
+ 
+       // Check which toolbar is active.
+       if (window.innerWidth < breakpointLarge) {
+diff --git a/core/themes/default_admin/tests/src/FunctionalJavascript/AdminInlineFormErrorsTest.php b/core/themes/default_admin/tests/src/FunctionalJavascript/AdminInlineFormErrorsTest.php
+index fc6dee193fe..0aff9e39434 100644
+--- a/core/themes/default_admin/tests/src/FunctionalJavascript/AdminInlineFormErrorsTest.php
++++ b/core/themes/default_admin/tests/src/FunctionalJavascript/AdminInlineFormErrorsTest.php
+@@ -72,8 +72,7 @@ public function testSidebarOpensForInlineFormErrorsLinks(): void {
+     $assert_session
+       ->waitForElementVisible('named', ['button', 'URL alias'])
+       ->press();
+-    // Wait for details to open.
+-    $session->wait(500);
++    $assert_session->waitForElementVisible('css', '[name="path[0][alias]"]');
+     $url_alias_field->setValue('no-slash');
+ 
+     // Close sidebar and submit form.
+@@ -86,11 +85,20 @@ public function testSidebarOpensForInlineFormErrorsLinks(): void {
+     $this->assertFalse($url_alias_field->isVisible());
+     $this->assertFalse($this->hasFocus($url_alias_field));
+ 
++    // The user closed the sidebar, which is saved as their preference.
++    $storage_key = 'Drupal.defaultAdmin.sidebarExpanded.mobile';
++    $this->assertSame('false', $session->evaluateScript("localStorage.getItem('$storage_key')"));
++
+     $error_alert
+       ->clickLink('URL alias');
+ 
+     $this->assertTrue($url_alias_field->isVisible());
++    // Focus is applied after a short delay, so wait for it.
++    $this->assertTrue($session->wait(5000, "document.activeElement.name === 'path[0][alias]'"));
+     $this->assertTrue($this->hasFocus($url_alias_field));
++
++    // Opening the sidebar from an error link must not overwrite the preference.
++    $this->assertSame('false', $session->evaluateScript("localStorage.getItem('$storage_key')"));
+   }
+ 
+   /**

@@ -1,0 +1,53 @@
+# Dependabot scope for the mgifford/drupal-core fork.
+# The fork = ddev test instance of Drupal core main (synced weekly from
+# GitLab) + a thin fork tooling layer. See AGENTS.md / .agents/ for policy.
+version: 2
+updates:
+  # Production PHP runtime deps are managed centrally by Drupal core upstream.
+  # We scope dependabot to the root production composer manifest ONLY so it
+  # does not open version-bump PRs for dev-tooling metapackages (phpcos,
+  # composer/composer, etc.) which dependabot cannot fix compatibly.
+  - package-ecosystem: "composer"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    labels:
+      - "php"
+      - "dependencies"
+    # Only production packages; skip dev-tooling metapackaged/require-dev
+    # noise that Drupal core pins itself.
+    allow:
+      - dependency-type: "production"
+
+  # npm/package-lock: root package-lock.json is playwright/MCP tooling layer,
+  # NOT the shipped JS. Keep disabled (open_pull_requests_limit: 0).
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+    labels:
+      - "javascript"
+      - "build-tools"
+
+  # core/yarn.lock: build tooling for Drupal core's JS/CSS. Kept at 0 to avoid
+  # dependabot PR spam; core maintains its own lockfile via the weekly sync.
+  - package-ecosystem: "npm"
+    directory: "/core"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+    labels:
+      - "javascript"
+      - "build-tools"
+
+  # Playwright (tests/) uses its own package-lock; built/test-only.
+  - package-ecosystem: "npm"
+    directory: "/tests"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+    labels:
+      - "javascript"
+      - "build-tools"

@@ -1,0 +1,685 @@
+{
+  "patch": "a11y-DRUPAL-A11Y-002-submit-button-contrast",
+  "config": {
+    "description": "Fix primary button color contrast on admin yellow accent",
+    "wcag": [
+      "1.4.3 (AA)"
+    ],
+    "rules": [
+      "color-contrast"
+    ],
+    "patternIds": [],
+    "maxPathsPerPattern": 6,
+    "testCases": [
+      {
+        "url": "/action-link",
+        "selectors": [
+          "a[hreflang=\"he\"]",
+          "#edit-submit",
+          ".button--action"
+        ],
+        "expectedFix": "color-contrast should pass after patch",
+        "viewport": {
+          "width": 1280,
+          "height": 1024
+        }
+      }
+    ]
+  },
+  "timestamp": "2026-07-18T22:13:03.534Z",
+  "runContext": {
+    "baseUrl": "http://drupal-core.ddev.site",
+    "variantId": "default",
+    "testCaseSource": "pattern-report",
+    "requestedColorMode": "light",
+    "requestedDirection": "ltr",
+    "patchApplicability": {
+      "success": true,
+      "error": null,
+      "kind": "applicable",
+      "targetFile": null,
+      "line": null,
+      "details": null
+    },
+    "requestedViewport": null,
+    "requestedDevice": null,
+    "requestedOrientation": null,
+    "deterministicThemeSetup": {
+      "requested": {
+        "default": "olivero",
+        "admin": "claro"
+      },
+      "commands": [
+        "ddev drush cset system.theme default olivero -y",
+        "ddev drush cset system.theme admin claro -y",
+        "ddev drush cache-rebuild",
+        "ddev drush cget system.theme --format=json"
+      ],
+      "detected": {
+        "_core": {
+          "default_config_hash": "eJ529VM1gSIA_vgTy2PdiDvJuG0xhSxfQjCyl5WKlv4"
+        },
+        "admin": "claro",
+        "default": "olivero"
+      },
+      "success": true,
+      "error": null
+    },
+    "drupalInitialState": {
+      "capturedAt": "2026-07-18T22:12:53.801Z",
+      "success": true,
+      "commands": [
+        {
+          "name": "enabled-modules",
+          "command": "ddev drush pm:list --type=module --status=enabled --format=json",
+          "success": true
+        },
+        {
+          "name": "system-theme",
+          "command": "ddev drush cget system.theme --format=json",
+          "success": true
+        },
+        {
+          "name": "core-extension",
+          "command": "ddev drush cget core.extension --format=json",
+          "success": true
+        },
+        {
+          "name": "drush-status",
+          "command": "ddev drush status --format=json",
+          "success": true
+        }
+      ],
+      "errors": [],
+      "themes": {
+        "requested": {
+          "default": "olivero",
+          "admin": "claro"
+        },
+        "detected": {
+          "_core": {
+            "default_config_hash": "eJ529VM1gSIA_vgTy2PdiDvJuG0xhSxfQjCyl5WKlv4"
+          },
+          "admin": "claro",
+          "default": "olivero"
+        },
+        "systemThemeConfig": {
+          "_core": {
+            "default_config_hash": "eJ529VM1gSIA_vgTy2PdiDvJuG0xhSxfQjCyl5WKlv4"
+          },
+          "admin": "claro",
+          "default": "olivero"
+        }
+      },
+      "enabledModules": [
+        "a11y_test_routes",
+        "actionlink",
+        "announcements_feed",
+        "autocomplete",
+        "automated_cron",
+        "big_pipe",
+        "block",
+        "block_content",
+        "breakpoint",
+        "ckeditor5",
+        "config",
+        "contextual",
+        "datetime",
+        "dblog",
+        "dynamic_page_cache",
+        "editor",
+        "field",
+        "field_ui",
+        "file",
+        "filter",
+        "form_style",
+        "help",
+        "image",
+        "layout_builder",
+        "layout_discovery",
+        "link",
+        "menu_link_content",
+        "menu_ui",
+        "mysql",
+        "navigation",
+        "node",
+        "options",
+        "page_cache",
+        "path",
+        "path_alias",
+        "search",
+        "system",
+        "taxonomy",
+        "test_multifield_desc",
+        "text",
+        "theming_tools",
+        "update",
+        "user",
+        "views",
+        "views_ui"
+      ],
+      "enabledModuleCount": 45,
+      "enabledModuleHash": "93861e900fb087fa20408946f236688feaac6b4726845e8ee70dfc7b73caf4e9",
+      "environment": {
+        "drushStatus": {
+          "drupal-version": "12.0-dev",
+          "uri": "http://drupal-core.ddev.site",
+          "db-driver": "mysql",
+          "db-hostname": "db",
+          "db-port": 3306,
+          "db-username": "db",
+          "db-password": "db",
+          "db-name": "db",
+          "db-status": "Connected",
+          "bootstrap": "Successful",
+          "theme": "olivero",
+          "admin-theme": "claro",
+          "php-bin": "/usr/bin/php8.5",
+          "php-conf": [
+            "/etc/php/8.5/cli/php.ini"
+          ],
+          "php-os": "Linux",
+          "php-version": "8.5.7",
+          "drush-script": "/var/www/html/vendor/bin/drush.php",
+          "drush-version": "14.9999999.9999999.9999999-dev",
+          "drush-temp": "/tmp",
+          "drush-conf": [],
+          "drush-alias-files": [],
+          "alias-searchpaths": [],
+          "install-profile": "standard",
+          "root": "/var/www/html",
+          "drupal-settings-file": "sites/default/settings.php",
+          "site": "sites/default",
+          "themes": "sites/all/themes",
+          "modules": "sites/all/modules",
+          "files": "sites/default/files",
+          "temp": "/tmp",
+          "config-sync": "sites/default/files/sync",
+          "config": "sites/default/files/sync",
+          "%paths": {
+            "%root": "/var/www/html",
+            "%site": "sites/default",
+            "%modules": "sites/all/modules",
+            "%themes": "sites/all/themes",
+            "%config-sync": "sites/default/files/sync",
+            "%config": "sites/default/files/sync",
+            "%files": "sites/default/files",
+            "%temp": "/tmp"
+          }
+        }
+      },
+      "fingerprints": {
+        "coreExtensionHash": "4972863d3552dc4475c3453886cab6ba2cb69c93e53c35dd5d9fb646765d7a0d",
+        "coreExtensionModulesHash": "31108b91acada94f2d8a50c9dee0956211b7218c5aada5f96ac3d2034099b00c",
+        "coreExtensionThemesHash": "30fb50fc341bcb258551ff29e9614194623fb4bbacb6032385a72afe815686ef"
+      }
+    },
+    "authSetup": {
+      "attempted": true,
+      "success": true,
+      "method": "uli",
+      "uli": "http://drupal-core.ddev.site/user/reset/1/1784412784/[REDACTED]/login",
+      "finalUrl": "http://drupal-core.ddev.site/user/1/edit?pass-reset-token=[REDACTED]&check_logged_in=1",
+      "authState": {
+        "loggedInClass": true,
+        "logoutLink": true,
+        "loginForm": true,
+        "uid": 1,
+        "authenticated": true
+      },
+      "credentialAttempted": false,
+      "error": null
+    },
+    "note": "Evaluator applies deterministic theme setup and explicit runtime condition overrides for each test.",
+    "caseGeneration": {
+      "selectedCaseCount": 1,
+      "usedFallbackConfigCases": true,
+      "diagnostics": {
+        "usePatternReportCases": true,
+        "configuredTestCases": 1,
+        "configuredPatternIds": [],
+        "reportPatternCount": 79,
+        "matchedPatternIds": [],
+        "fallbackReason": "no-configured-pattern-ids"
+      }
+    }
+  },
+  "testCases": [
+    {
+      "url": "/action-link",
+      "selectors": [
+        "a[hreflang=\"he\"]",
+        "#edit-submit",
+        ".button--action"
+      ],
+      "expected_targets": [
+        {
+          "instance_id": "DRU-a94dcccd",
+          "pattern_id": "DRU-6be5aeb9",
+          "screen_type": "desktop",
+          "orientation": "landscape",
+          "color_mode": "light",
+          "color_scheme_detected": "light",
+          "direction": "ltr",
+          "theme": "unknown",
+          "viewport": {
+            "width": 1280,
+            "height": 1024
+          },
+          "language": "en",
+          "page_path": "/action-link",
+          "selector": "a[hreflang=\"he\"]",
+          "rule_id": "color-contrast"
+        },
+        {
+          "instance_id": "DRU-f22f822e",
+          "pattern_id": "DRU-bc27b0a7",
+          "screen_type": "desktop",
+          "orientation": "landscape",
+          "color_mode": "light",
+          "color_scheme_detected": "light",
+          "direction": "ltr",
+          "theme": "unknown",
+          "viewport": {
+            "width": 1280,
+            "height": 1024
+          },
+          "language": "en",
+          "page_path": "/action-link",
+          "selector": "#edit-submit",
+          "rule_id": "color-contrast"
+        },
+        {
+          "instance_id": "DRU-eb6dfba6",
+          "pattern_id": "DRU-85a47615",
+          "screen_type": "desktop",
+          "orientation": "landscape",
+          "color_mode": "light",
+          "color_scheme_detected": "light",
+          "direction": "ltr",
+          "theme": "unknown",
+          "viewport": {
+            "width": 1280,
+            "height": 1024
+          },
+          "language": "en",
+          "page_path": "/action-link",
+          "selector": ".button--action",
+          "rule_id": "color-contrast"
+        }
+      ],
+      "before": {
+        "screenshots": [
+          {
+            "success": true,
+            "path": "/Users/mike.gifford/drupal-core/reports/artifacts/a11y-DRUPAL-A11Y-002-submit-button-contrast/default/screenshots/before--action-link-1784412787445.png"
+          },
+          {
+            "success": false,
+            "error": "Element has no bounding box: #edit-submit"
+          },
+          {
+            "success": true,
+            "path": "/Users/mike.gifford/drupal-core/reports/artifacts/a11y-DRUPAL-A11Y-002-submit-button-contrast/default/screenshots/before--action-link-1784412787492.png"
+          }
+        ],
+        "html": [
+          {
+            "selector": "a[hreflang=\"he\"]",
+            "success": true,
+            "html": "<div class=\"block__content\">\n      \n        \n          \n          <a class=\"button--action\" href=\"#\">Add content</a>\n          <a hreflang=\"he\" href=\"#\">עברית</a>\n          <a role=\"link\" hreflang=\"en\" href=\"#\">English</a>\n          <a role=\"link\" hreflang=\"fr\" href=\"#\">Français</a>\n        \n      \n    </div>"
+          },
+          {
+            "selector": "#edit-submit",
+            "success": true,
+            "html": "<div data-drupal-selector=\"edit-actions\" class=\"form-actions js-form-wrapper form-wrapper\" id=\"edit-actions\"><button class=\"button--primary search-form__submit button js-form-submit form-submit\" data-drupal-selector=\"edit-submit\" type=\"submit\" id=\"edit-submit\" value=\"Search\">\n    <span class=\"icon--search\"></span>\n    <span class=\"visually-hidden\">Search</span>\n</button>\n\n</div>"
+          },
+          {
+            "selector": ".button--action",
+            "success": true,
+            "html": "<div class=\"block__content\">\n      \n        \n          \n          <a class=\"button--action\" href=\"#\">Add content</a>\n          <a hreflang=\"he\" href=\"#\">עברית</a>\n          <a role=\"link\" hreflang=\"en\" href=\"#\">English</a>\n          <a role=\"link\" hreflang=\"fr\" href=\"#\">Français</a>\n        \n      \n    </div>"
+          }
+        ],
+        "axe": {
+          "total": 0,
+          "byRule": {},
+          "violations": []
+        },
+        "selectorCounts": {
+          "a[hreflang=\"he\"]": 1,
+          "#edit-submit": 1,
+          ".button--action": 1
+        },
+        "annotated_violations": []
+      },
+      "after": {
+        "screenshots": [],
+        "html": [],
+        "axe": {}
+      },
+      "auth": {
+        "beforeCase": {
+          "ensured": true,
+          "neededRelogin": false,
+          "before": {
+            "loggedInClass": true,
+            "logoutLink": true,
+            "loginForm": true,
+            "uid": 1,
+            "authenticated": true
+          },
+          "after": {
+            "loggedInClass": true,
+            "logoutLink": true,
+            "loginForm": true,
+            "uid": 1,
+            "authenticated": true
+          },
+          "loginAttempt": null
+        }
+      },
+      "conditions": {
+        "requested": {
+          "screenType": "desktop",
+          "orientation": "landscape",
+          "colorMode": "light",
+          "direction": "ltr",
+          "viewport": {
+            "width": 1280,
+            "height": 1024
+          }
+        },
+        "before": {
+          "screenType": "desktop",
+          "orientation": "landscape",
+          "viewport": {
+            "width": 1280,
+            "height": 1024
+          },
+          "colorMode": "light",
+          "direction": "ltr",
+          "language": "en",
+          "colorSchemeDetected": "light",
+          "prefersContrast": "no-preference",
+          "forcedColors": "none",
+          "theme": "unknown",
+          "bodyClasses": [
+            "user-logged-in",
+            "path-action-link"
+          ]
+        },
+        "after": null
+      },
+      "navigation": {
+        "before": {
+          "requestedUrl": "http://drupal-core.ddev.site/action-link",
+          "finalUrl": "http://drupal-core.ddev.site/action-link",
+          "httpStatus": 200,
+          "redirected": false,
+          "title": "Action links | Drush Site-Install",
+          "authState": {
+            "loggedInClass": true,
+            "logoutLink": true,
+            "loginForm": false,
+            "uid": 1,
+            "authenticated": true
+          },
+          "selectorCounts": {}
+        },
+        "after": null
+      },
+      "skipped": true,
+      "skipReason": "baseline-target-not-observed",
+      "skipDiagnostics": {
+        "requestedRules": [
+          "color-contrast"
+        ],
+        "requiredConditions": {
+          "authRequired": false,
+          "requested": {
+            "screenType": "desktop",
+            "orientation": "landscape",
+            "colorMode": "light",
+            "direction": "ltr",
+            "viewport": {
+              "width": 1280,
+              "height": 1024
+            }
+          },
+          "observedBefore": {
+            "screenType": "desktop",
+            "orientation": "landscape",
+            "viewport": {
+              "width": 1280,
+              "height": 1024
+            },
+            "colorMode": "light",
+            "direction": "ltr",
+            "language": "en",
+            "colorSchemeDetected": "light",
+            "prefersContrast": "no-preference",
+            "forcedColors": "none",
+            "theme": "unknown",
+            "bodyClasses": [
+              "user-logged-in",
+              "path-action-link"
+            ]
+          }
+        },
+        "matchingRuleViolationsBefore": {
+          "color-contrast": 0
+        },
+        "selectorCountsBefore": {
+          "a[hreflang=\"he\"]": 1,
+          "#edit-submit": 1,
+          ".button--action": 1
+        },
+        "navigationBefore": {
+          "requestedUrl": "http://drupal-core.ddev.site/action-link",
+          "finalUrl": "http://drupal-core.ddev.site/action-link",
+          "httpStatus": 200,
+          "redirected": false,
+          "title": "Action links | Drush Site-Install",
+          "authState": {
+            "loggedInClass": true,
+            "logoutLink": true,
+            "loginForm": false,
+            "uid": 1,
+            "authenticated": true
+          },
+          "selectorCounts": {}
+        },
+        "reproductionCandidates": [
+          {
+            "patternId": "DRU-01429747",
+            "ruleId": "color-contrast",
+            "path": "/contact/imagefile_image",
+            "selector": "#edit-imagefile-image-plain-dis-N--description",
+            "preferred": false
+          },
+          {
+            "patternId": "DRU-01429747",
+            "ruleId": "color-contrast",
+            "path": "/contact/imagefile_image",
+            "selector": "#edit-imagefile-image-plain-dis-N--description > em",
+            "preferred": false
+          },
+          {
+            "patternId": "DRU-01429747",
+            "ruleId": "color-contrast",
+            "path": "/contact/imagefile_image",
+            "selector": "#edit-imagefile-image-multi-dis-N--description",
+            "preferred": false
+          },
+          {
+            "patternId": "DRU-0460FE2F",
+            "ruleId": "color-contrast",
+            "path": "/contact/imagefile_file",
+            "selector": "#edit-imagefile-file-dis-N--description",
+            "preferred": false
+          },
+          {
+            "patternId": "DRU-0460FE2F",
+            "ruleId": "color-contrast",
+            "path": "/contact/imagefile_file",
+            "selector": "#edit-imagefile-file-dis-N--description > em",
+            "preferred": false
+          },
+          {
+            "patternId": "DRU-0460FE2F",
+            "ruleId": "color-contrast",
+            "path": "/contact/imagefile_file",
+            "selector": "#edit-imagefile-file-req-dis-N--description",
+            "preferred": false
+          },
+          {
+            "patternId": "DRU-05EC5EAB",
+            "ruleId": "color-contrast",
+            "path": "/admin/structure/types/manage/test_type/display/default",
+            "selector": ".region-hidden-message > td[colspan=\"9\"]",
+            "preferred": false
+          },
+          {
+            "patternId": "DRU-08EA9B05",
+            "ruleId": "color-contrast",
+            "path": "/contact/textform",
+            "selector": "#edit-daterange-ad-disabled-N--description",
+            "preferred": false
+          },
+          {
+            "patternId": "DRU-09E68687",
+            "ruleId": "color-contrast",
+            "path": "/admin/structure",
+            "selector": ".toolbar-button--icon--system-admin-structure > .toolbar-button__label[data-toolbar-text=\"\"]",
+            "preferred": false
+          },
+          {
+            "patternId": "DRU-09E68687",
+            "ruleId": "color-contrast",
+            "path": "/admin/structure/block",
+            "selector": ".toolbar-button--icon--system-admin-structure > .toolbar-button__label[data-toolbar-text=\"\"]",
+            "preferred": false
+          }
+        ],
+        "authSetup": {
+          "attempted": true,
+          "success": true,
+          "method": "uli",
+          "uli": "http://drupal-core.ddev.site/user/reset/1/1784412784/[REDACTED]/login",
+          "finalUrl": "http://drupal-core.ddev.site/user/1/edit?pass-reset-token=[REDACTED]&check_logged_in=1",
+          "authState": {
+            "loggedInClass": true,
+            "logoutLink": true,
+            "loginForm": true,
+            "uid": 1,
+            "authenticated": true
+          },
+          "credentialAttempted": false,
+          "error": null
+        },
+        "authBeforeCase": {
+          "ensured": true,
+          "neededRelogin": false,
+          "before": {
+            "loggedInClass": true,
+            "logoutLink": true,
+            "loginForm": true,
+            "uid": 1,
+            "authenticated": true
+          },
+          "after": {
+            "loggedInClass": true,
+            "logoutLink": true,
+            "loginForm": true,
+            "uid": 1,
+            "authenticated": true
+          },
+          "loginAttempt": null
+        }
+      }
+    }
+  ],
+  "summary": {
+    "before": {
+      "total": 0,
+      "byRule": {}
+    },
+    "after": {
+      "total": 0,
+      "byRule": {}
+    },
+    "fixed": [],
+    "new": [],
+    "resolved": false,
+    "outcome": "inconclusive",
+    "outcomeReason": "no-baseline-instances-observed",
+    "eligibleForPatchRecommendation": false
+  },
+  "patternReport": {
+    "source": "/Users/mike.gifford/drupal-core/reports/pattern-report-2026-07-05.json",
+    "matchedPatterns": [],
+    "summary": {
+      "targeted": 0,
+      "observedBefore": 0,
+      "fullyFixed": 0,
+      "partiallyFixed": 0,
+      "unchanged": 0
+    },
+    "markdownSource": "/Users/mike.gifford/drupal-core/reports/pattern-report-2026-07-05.md",
+    "sourceDiagnostics": {
+      "selectedExists": true,
+      "selectedMtimeIso": "2026-07-13T20:45:12.596Z",
+      "selectedAgeHours": 121.46,
+      "candidates": [
+        {
+          "path": "/Users/mike.gifford/drupal-core/reports/pattern-report-2026-07-05.json",
+          "mtimeIso": "2026-07-13T20:45:12.596Z"
+        }
+      ]
+    },
+    "targetPatternIds": []
+  },
+  "instanceReport": {
+    "summary": {
+      "targeted": 0,
+      "observedBefore": 0,
+      "fixed": 0,
+      "remaining": 0,
+      "notObserved": 0
+    },
+    "entries": []
+  },
+  "idValidation": {
+    "patternIdsSeen": 3,
+    "instanceIdsSeen": 3,
+    "inconsistentPatternIds": [],
+    "inconsistentInstanceIds": []
+  },
+  "validationEvidence": {
+    "targetedInstances": 0,
+    "baselineObservedInstances": 0,
+    "patternObservedBeforePatchAttempt": false,
+    "fixedInstances": 0,
+    "remainingInstances": 0,
+    "notObservedInstances": 0,
+    "hasCaseErrors": false,
+    "introducedNewViolations": 0
+  },
+  "replication": {
+    "variantId": "default",
+    "patchFile": "/Users/mike.gifford/drupal-core/patches/a11y-DRUPAL-A11Y-002-submit-button-contrast.patch",
+    "setupSteps": [
+      "ddev drush cset system.theme default olivero -y",
+      "ddev drush cset system.theme admin claro -y",
+      "ddev drush cache-rebuild"
+    ],
+    "testFlow": [
+      "Navigate to each test case URL under requested conditions and capture baseline evidence.",
+      "Apply patch with: git apply \"/Users/mike.gifford/drupal-core/patches/a11y-DRUPAL-A11Y-002-submit-button-contrast.patch\"",
+      "Clear Drupal cache with: ddev drush cache-rebuild",
+      "Revisit same URL + conditions and capture post-patch evidence.",
+      "Revert patch with: git apply -R \"/Users/mike.gifford/drupal-core/patches/a11y-DRUPAL-A11Y-002-submit-button-contrast.patch\""
+    ],
+    "expectedProof": "Problem must be observed before patch and not observed after patch under the same recorded conditions."
+  }
+}

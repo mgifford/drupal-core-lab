@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Default Admin Accessibility Reports</title>
+  <style>
+    :root {
+      --page-bg: #eef2f8;
+      --card-bg: #ffffff;
+      --panel-bg: #f7f9fc;
+      --text: #1d2431;
+      --muted: #556173;
+      --border: #d5dce7;
+      --link: #0e4fb5;
+      --link-bg: #e3edff;
+      --chip-bg: #edf5ff;
+      --chip-text: #164496;
+      --shadow: 0 10px 32px rgba(20, 35, 60, 0.08);
+      --badge-bg: #e9f7ee;
+      --badge-text: #0a6b3f;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --page-bg: #101722;
+        --card-bg: #1a2331;
+        --panel-bg: #141d2a;
+        --text: #e8edf5;
+        --muted: #92a0b4;
+        --border: #2c3950;
+        --link: #8cb8ff;
+        --link-bg: #193155;
+        --chip-bg: #162844;
+        --chip-text: #bfd7ff;
+        --shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
+        --badge-bg: #0f311d;
+        --badge-text: #68e0a1;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { color-scheme: light dark; scroll-behavior: smooth; }
+    body {
+      font: 16px/1.6 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(14, 79, 181, 0.08), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 12%),
+        var(--page-bg);
+      padding: 2rem 1rem 4rem;
+    }
+    main { max-width: 1080px; margin: 0 auto; }
+    header {
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      box-shadow: var(--shadow);
+    }
+    h1 { font-size: clamp(2rem, 4vw, 3rem); line-height: 1.1; margin-bottom: 0.65rem; }
+    .subtitle { color: var(--muted); font-size: 1.02rem; max-width: 72ch; }
+    h2 {
+      font-size: 1.15rem;
+      margin: 2rem 0 0.85rem;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px solid var(--border);
+    }
+    p + p { margin-top: 0.75rem; }
+    a { color: var(--link); }
+    a:hover, a:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+    .intro-grid,
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .panel,
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      box-shadow: var(--shadow);
+      padding: 1rem 1.1rem 1.1rem;
+    }
+    .panel {
+      background: var(--panel-bg);
+    }
+    .card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .card h3 {
+      font-size: 1.02rem;
+      line-height: 1.3;
+    }
+    .card p,
+    .panel p,
+    .panel li,
+    .card li {
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+    .badge {
+      display: inline-block;
+      width: fit-content;
+      padding: 0.16rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+    }
+    .family-links,
+    .inline-links,
+    .check-list {
+      list-style: none;
+    }
+    .family-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .family-links a,
+    .inline-links a {
+      display: inline-block;
+      text-decoration: none;
+      background: var(--link-bg);
+      color: var(--link);
+      border-radius: 999px;
+      padding: 0.32rem 0.7rem;
+      font-size: 0.88rem;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .meta-chip {
+      display: inline-block;
+      background: var(--chip-bg);
+      color: var(--chip-text);
+      border-radius: 999px;
+      padding: 0.28rem 0.65rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .inline-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 0.75rem;
+    }
+    .check-list {
+      display: grid;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    footer {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Default Admin Accessibility Reports</h1>
+      <p class="subtitle">
+        Generated reports for Default Admin color contrast, keyboard review, axe pattern analysis, and plain-language checks.
+        This index now exposes both rendered HTML and raw source artifacts so each report family is easier to validate, diff, and reuse.
+      </p>
+    </header>
+
+    <section aria-labelledby="why-this-layout">
+      <h2 id="why-this-layout">Artifact Layout</h2>
+      <div class="intro-grid">
+        <div class="panel">
+          <p>Rendered HTML is the primary reading surface. Raw Markdown, JSON, and CSV stay alongside it for validation and downstream tooling.</p>
+        </div>
+        <div class="panel">
+          <p>Axe crawl output now uses a small manifest plus shard directories and summary indexes, so the repo no longer depends on a single oversized JSON blob.</p>
+        </div>
+        <div class="panel">
+          <p>Use the family cards below when you need one place to jump between the narrative report, the raw source, and the machine-readable exports for the same dataset.</p>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="report-families">
+      <h2 id="report-families">Report Families</h2>
+      <div class="card-grid">
+        <article class="card">
+          <span class="badge">Color system</span>
+          <h3>Default Admin Color Reports</h3>
+          <p>Foreground/background contrast, focus visibility, the full combined report, the mode guide, and the CSS contrast-color reference.</p>
+          <div class="meta-row">
+            <span class="meta-chip">Rendered HTML</span>
+            <span class="meta-chip">Patch references</span>
+          </div>
+          <ul class="family-links">
+            <li><a href="DEFAULT-ADMIN-COLOR-REPORT-FG-BG-latest.html">FG/BG HTML</a></li>
+            <li><a href="DEFAULT-ADMIN-COLOR-REPORT-FOCUS-latest.html">Focus HTML</a></li>
+            <li><a href="DEFAULT-ADMIN-COLOR-REPORT-latest.html">Combined HTML</a></li>
+            <li><a href="DEFAULT-ADMIN-COLOR-MODE-GUIDE-latest.html">Mode Guide</a></li>
+            <li><a href="CONTRAST-COLOR-CSS-INTEGRATION.html">contrast-color() reference</a></li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <span class="badge">Keyboard</span>
+          <h3>Keyboard Review</h3>
+          <p>Keyboard findings by page, with HTML for browsing and Markdown/JSON retained for audit history and tooling.</p>
+          <div class="meta-row">
+            <span class="meta-chip">HTML + Markdown</span>
+            <span class="meta-chip">Raw JSON input</span>
+          </div>
+          <ul class="family-links">
+            <li><a href="KEYBOARD-REVIEW-latest.html">Latest HTML</a></li>
+            <li><a href="KEYBOARD-REVIEW-latest.md">Latest Markdown</a></li>
+            <li><a href="keyboard-review-latest.json">Latest JSON</a></li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <span class="badge">Patterns</span>
+          <h3>Accessibility Pattern Report</h3>
+          <p>Clustered axe-core issues with direct access to the bug exports and the new sharded crawl indexes for rule-, path-, and context-level pattern work.</p>
+          <div class="meta-row">
+            <span class="meta-chip">HTML + Markdown</span>
+            <span class="meta-chip">JSON + CSV exports</span>
+            <span class="meta-chip">Sharded crawl data</span>
+          </div>
+          <ul class="family-links">
+            <li><a href="pattern-report-latest.html">Latest HTML</a></li>
+            <li><a href="PATTERN-REPORT-latest.md">Latest Markdown</a></li>
+            <li><a href="bugs-latest.json">Bug export JSON</a></li>
+            <li><a href="bugs-latest.csv">Bug export CSV</a></li>
+            <li><a href="axe-results.json">Axe manifest</a></li>
+            <li><a href="axe-results/latest/by-rule.json">Axe by rule</a></li>
+            <li><a href="axe-results/latest/by-path.json">Axe by path</a></li>
+            <li><a href="axe-results/latest/by-context.json">Axe by context</a></li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <span class="badge">Content</span>
+          <h3>Plain Language Analysis</h3>
+          <p>Readability and plain-language diagnostics for captured UI strings, with both the narrative report and the structured score output.</p>
+          <div class="meta-row">
+            <span class="meta-chip">HTML + Markdown</span>
+            <span class="meta-chip">JSON output</span>
+          </div>
+          <ul class="family-links">
+            <li><a href="plain-language-report.html">HTML</a></li>
+            <li><a href="plain-language-report.md">Markdown</a></li>
+            <li><a href="plain-language-report.json">JSON</a></li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="per-theme-reports">
+      <h2 id="per-theme-reports">Theme-Specific Accessibility Reports</h2>
+      <p>Accessibility findings scoped by theme, with composite priority scoring and targeted Drupal issue queue links for each theme's maintainers.</p>
+      <div class="card-grid">
+        <article class="card">
+          <span class="badge">Admin/Gin</span>
+          <h3>Gin Administration Theme</h3>
+          <p>Issues specific to or most prevalent in the Gin administration theme. File these against the <a href="https://www.drupal.org/project/gin" target="_blank" rel="noopener">Gin project</a>.</p>
+          <div class="meta-row">
+            <span class="meta-chip">8 rules</span>
+            <span class="meta-chip">1,713 records</span>
+          </div>
+          <ul class="family-links">
+            <li><a href="themes/admin-latest.html">HTML</a></li>
+            <li><a href="themes/admin-latest.md">Markdown</a></li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <span class="badge">Claro</span>
+          <h3>Claro Administration Theme</h3>
+          <p>Issues in Drupal core's Claro and Claro-Dark themes. File these against the <a href="https://www.drupal.org/project/issues/search?projects=drupal&issue_tags=Accessibility" target="_blank" rel="noopener">Drupal core accessibility queue</a>.</p>
+          <div class="meta-row">
+            <span class="meta-chip">12 rules</span>
+            <span class="meta-chip">424 records</span>
+          </div>
+          <ul class="family-links">
+            <li><a href="themes/claro-latest.html">HTML</a></li>
+            <li><a href="themes/claro-latest.md">Markdown</a></li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <span class="badge">Olivero</span>
+          <h3>Olivero Front-End Theme</h3>
+          <p>Issues in Drupal core's Olivero and Olivero-Dark front-end themes. The public-facing theme; file issues in the core queue.</p>
+          <div class="meta-row">
+            <span class="meta-chip">2 rules</span>
+            <span class="meta-chip">56 records</span>
+          </div>
+          <ul class="family-links">
+            <li><a href="themes/olivero-latest.html">HTML</a></li>
+            <li><a href="themes/olivero-latest.md">Markdown</a></li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="rtl-theme-analysis">
+      <h2 id="rtl-theme-analysis">RTL & Theme-Specific Deep Analysis</h2>
+      <p>
+        Cross-dimensional accessibility analysis: identifies violations exclusive to Hebrew/RTL contexts,
+        violations that are worse in RTL than LTR, issues tied to specific themes, and a composite priority score combining axe severity with violation frequency.
+      </p>
+      <div class="card-grid">
+        <article class="card">
+          <span class="badge">Analysis</span>
+          <h3>RTL & Theme Deep Dive</h3>
+          <p>
+            Finds RTL-exclusive violations (Hebrew language, not in English), RTL-amplified issues (worse in Hebrew), 
+            Admin/Gin-only vs Claro-only vs Admin+Claro (not Olivero) categorization, and composite priority scoring 
+            that weights both axe severity and page spread.
+          </p>
+          <div class="meta-row">
+            <span class="meta-chip">JSON export</span>
+            <span class="meta-chip">HTML + Markdown</span>
+          </div>
+          <ul class="family-links">
+            <li><a href="RTL-THEME-ANALYSIS-latest.html">HTML</a></li>
+            <li><a href="RTL-THEME-ANALYSIS-latest.md">Markdown</a></li>
+            <li><a href="rtl-theme-analysis-latest.json">JSON</a></li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="proposal-patches">
+      <h2 id="proposal-patches">Accessibility Patch Suite (9 Patches)</h2>
+      <p>Comprehensive accessibility improvements targeting 1,200+ violations identified through axe-core scanning and RTL/theme-specific analysis. <a href="https://github.com/mgifford/drupal-core/blob/main/patches/PROPOSED-PATCHES.md" target="_blank" rel="noopener"><strong>See deployment guide</strong></a> for testing and application instructions.</p>
+      
+      <h3>Priority 1: Critical & High-Frequency (88+ violations)</h3>
+      <div class="card-grid">
+        <article class="card">
+          <h3>DRUPAL-A11Y-002: Submit Button Contrast</h3>
+          <p><strong>WCAG 1.4.3 (AA)</strong> — Darkens primary button background to fix 88 contrast violations across all admin forms.</p>
+          <ul class="family-links">
+            <li><a href="https://github.com/mgifford/drupal-core/blob/main/patches/a11y-DRUPAL-A11Y-002-submit-button-contrast.patch" target="_blank" rel="noopener">View patch</a></li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>DRUPAL-A11Y-001: File Widget Labels</h3>
+          <p><strong>WCAG 1.3.1 (Critical)</strong> — Adds aria-label to image file display checkboxes with completely missing accessible names.</p>
+          <ul class="family-links">
+            <li><a href="https://github.com/mgifford/drupal-core/blob/main/patches/a11y-DRUPAL-A11Y-001-file-widget-display-labels.patch" target="_blank" rel="noopener">View patch</a></li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>DRUPAL-A11Y-005: Language Switcher Contrast</h3>
+          <p><strong>WCAG 1.4.3 (AA)</strong> — Fixes contrast on language switcher links appearing on every admin page (254 violations).</p>
+          <ul class="family-links">
+            <li><a href="https://github.com/mgifford/drupal-core/blob/main/patches/a11y-DRUPAL-A11Y-005-language-switcher-contrast.patch" target="_blank" rel="noopener">View patch</a></li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>LABEL-IN-NAME-004: Configure Link</h3>
+          <p><strong>WCAG 2.5.3 (A)</strong> — Fixes aria-label mismatch on "Configure" link for speech-input usability.</p>
+          <ul class="family-links">
+            <li><a href="https://github.com/mgifford/drupal-core/blob/main/patches/a11y-LABEL-IN-NAME-004-filter-format-aria-label.patch" target="_blank" rel="noopener">View patch</a></li>
+          </ul>
+        </article>
+      </div>
+      
+      <h3>Priority 2: High-Frequency Moderate (424+ violations)</h3>
+      <div class="card-grid">
+        <article class="card">
+          <h3>DRUPAL-A11Y-006: Theme Switcher Landmark</h3>
+          <p><strong>WCAG 1.3.6 (AAA)</strong> — Wraps theme switcher in landmark; affects every Claro page (424 violations).</p>
+          <ul class="family-links">
+            <li><a href="https://github.com/mgifford/drupal-core/blob/main/patches/a11y-DRUPAL-A11Y-006-theme-switcher-landmark.patch" target="_blank" rel="noopener">View patch</a></li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>DRUPAL-A11Y-007: Message Landmark Role</h3>
+          <p><strong>WCAG 1.3.6 (AAA)</strong> — Changes message landmarks to proper roles and adds aria-live for error announcements (306 violations).</p>
+          <ul class="family-links">
+            <li><a href="https://github.com/mgifford/drupal-core/blob/main/patches/a11y-DRUPAL-A11Y-007-messages-landmark-role.patch" target="_blank" rel="noopener">View patch</a></li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>DRUPAL-A11Y-003: Select-All Checkbox</h3>
+          <p><strong>WCAG 1.3.1 (A)</strong> — Adds aria-label to "select all rows" checkboxes in table headers (24 violations).</p>
+          <ul class="family-links">
+            <li><a href="https://github.com/mgifford/drupal-core/blob/main/patches/a11y-DRUPAL-A11Y-003-select-all-checkbox-label.patch" target="_blank" rel="noopener">Table template</a></li>
+            <li><a href="https://github.com/mgifford/drupal-core/blob/main/patches/a11y-DRUPAL-A11Y-003-views-select-all-checkbox-label.patch" target="_blank" rel="noopener">Views template</a></li>
+          </ul>
+        </article>
+      </div>
+      
+      <h3>Priority 3: Test & Form Specific</h3>
+      <div class="card-grid">
+        <article class="card">
+          <h3>DRUPAL-A11Y-004: Tabindex Buttons</h3>
+          <p><strong>WCAG 2.1.1 (A)</strong> — Removes tabindex="1" from test form buttons to restore natural tab order.</p>
+          <ul class="family-links">
+            <li><a href="https://github.com/mgifford/drupal-core/blob/main/patches/a11y-DRUPAL-A11Y-004-tabindex-buttons-test-form.patch" target="_blank" rel="noopener">View patch</a></li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>DRUPAL-A11Y-008: Empty Table Headers</h3>
+          <p><strong>WCAG 1.3.1 (A)</strong> — Adds scope and labels to empty multifield table header cells (176 violations).</p>
+          <ul class="family-links">
+            <li><a href="https://github.com/mgifford/drupal-core/blob/main/patches/a11y-DRUPAL-A11Y-008-empty-table-headers.patch" target="_blank" rel="noopener">View patch</a></li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>DRUPAL-A11Y-009: Module Summary Names</h3>
+          <p><strong>WCAG 4.1.2 (A)</strong> — Adds aria-label to module details elements on /admin/modules (24 violations).</p>
+          <ul class="family-links">
+            <li><a href="https://github.com/mgifford/drupal-core/blob/main/patches/a11y-DRUPAL-A11Y-009-module-summary-names.patch" target="_blank" rel="noopener">View patch</a></li>
+          </ul>
+        </article>
+      </div>
+      
+      <h3>Documentation & Resources</h3>
+      <div class="card-grid">
+        <article class="card">
+          <h3>Patch Deployment Guide</h3>
+          <p>Complete documentation with deployment procedures, testing recommendations, and integration with composer-patches.</p>
+          <ul class="family-links">
+            <li><a href="https://github.com/mgifford/drupal-core/blob/main/patches/PROPOSED-PATCHES.md" target="_blank" rel="noopener">Read full guide</a></li>
+          </ul>
+        </article>
+      </div>
+      
+      <h2 id="legacy-patches">Other Proposed Patches</h2>
+      <div class="card-grid">
+        <article class="card">
+          <h3>Accent AA Defaults</h3>
+          <p>Proposed darker accent hex values intended to bring more presets into WCAG AA range in light mode.</p>
+          <ul class="family-links">
+            <li><a href="https://github.com/mgifford/drupal-core/blob/main/patches/default-admin-accent-aa-defaults.patch" target="_blank" rel="noopener">View patch</a></li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Focus AA Proposals</h3>
+          <p>Proposed focus-ring color changes and dark-mode overrides for WCAG 2.2 SC 2.4.11.</p>
+          <ul class="family-links">
+            <li><a href="https://github.com/mgifford/drupal-core/blob/main/patches/default-admin-focus-aa-proposals.patch" target="_blank" rel="noopener">View patch</a></li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>contrast-color() Hints</h3>
+          <p>Experimental CSS using contrast-color() where it can replace manual button text selection, plus the immediate yellow preset improvement.</p>
+          <ul class="family-links">
+            <li><a href="https://github.com/mgifford/drupal-core/blob/main/patches/default-admin-contrast-color-hints.patch" target="_blank" rel="noopener">View patch</a></li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="regenerate">
+      <h2 id="regenerate">How To Regenerate</h2>
+      <div class="panel">
+        <p>Use the reports README and generator scripts when you need to refresh the published artifacts.</p>
+        <ul class="inline-links">
+          <li><a href="https://github.com/mgifford/drupal-core/blob/main/reports/README.md" target="_blank" rel="noopener">reports/README.md</a></li>
+          <li><a href="https://github.com/mgifford/drupal-core/blob/main/core/tests/playwright/scripts/generate-default-admin-color-report.js" target="_blank" rel="noopener">Color report generator</a></li>
+          <li><a href="https://github.com/mgifford/drupal-core/blob/main/core/tests/playwright/scripts/run-default-admin-color-report.sh" target="_blank" rel="noopener">Color report shell wrapper</a></li>
+        </ul>
+        <ul class="check-list">
+          <li>Run the axe crawl to refresh the sharded raw manifest and indexes.</li>
+          <li>Run the pattern, keyboard, and plain-language generators to refresh their HTML and Markdown companions.</li>
+          <li>Review both the rendered HTML and the raw exports before publishing updated artifacts.</li>
+        </ul>
+      </div>
+    </section>
+
+    <footer>
+      <p>
+        Reports generated using Playwright, axe-core, and APCA references. Accessibility baseline: WCAG 2.2 AA. Published via the GitHub Pages workflow in this repository.
+      </p>
+    </footer>
+  </main>
+</body>
+</html>

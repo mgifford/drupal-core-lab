@@ -1,0 +1,52 @@
+diff --git b/core/modules/system/templates/system-modules-details.html.twig a/core/modules/system/templates/system-modules-details.html.twig
+index 9726886106..ded47e1fb9 100644
+--- b/core/modules/system/templates/system-modules-details.html.twig
++++ a/core/modules/system/templates/system-modules-details.html.twig
+@@ -44,7 +44,7 @@
+         </td>
+         <td class="description expand priority-low">
+           <details class="js-form-wrapper form-wrapper" id="{{ module.enable_id }}-description">
+-            <summary aria-controls="{{ module.enable_id }}-description" role="button" aria-expanded="false"><span class="text module-description">{{ module.description }}</span></summary>
++            <summary aria-controls="{{ module.enable_id }}-description" role="button" aria-expanded="false"{% if module.summary_label %} aria-label="{{ module.summary_label }}"{% endif %}><span class="text module-description">{{ module.description }}</span></summary>
+             <div class="details-wrapper">
+               <div class="details-description">
+                 <div class="requirements">
+diff --git b/core/themes/claro/templates/admin/system-modules-details.html.twig a/core/themes/claro/templates/admin/system-modules-details.html.twig
+index 4f43915d5e..4af84058c1 100644
+--- b/core/themes/claro/templates/admin/system-modules-details.html.twig
++++ a/core/themes/claro/templates/admin/system-modules-details.html.twig
+@@ -43,7 +43,7 @@
+         </td>
+         <td class="expand priority-low module-list__description">
+           <details class="js-form-wrapper form-wrapper module-list__module-details claro-details" id="{{ module.enable_id }}-description">
+-            <summary aria-controls="{{ module.enable_id }}-description" role="button" aria-expanded="false" class="claro-details__summary module-list__module-summary"><span class="text module-description">{{ module.description }}</span></summary>
++            <summary aria-controls="{{ module.enable_id }}-description" role="button" aria-expanded="false" class="claro-details__summary module-list__module-summary"{% if module.summary_label %} aria-label="{{ module.summary_label }}"{% endif %}><span class="text module-description">{{ module.description }}</span></summary>
+             <div class="claro-details__wrapper module-details__wrapper">
+               <div class="module-details__description">
+                 <div class="module-details__requirements">
+diff --git b/core/themes/default_admin/templates/admin/system-modules-details.html.twig a/core/themes/default_admin/templates/admin/system-modules-details.html.twig
+index cd5f24ec55..ecd4d3688b 100644
+--- b/core/themes/default_admin/templates/admin/system-modules-details.html.twig
++++ a/core/themes/default_admin/templates/admin/system-modules-details.html.twig
+@@ -43,7 +43,7 @@
+         </td>
+         <td class="expand priority-low module-list__description">
+           <details class="js-form-wrapper form-wrapper module-list__module-details gin-details" id="{{ module.enable_id }}-description">
+-            <summary aria-controls="{{ module.enable_id }}-description" role="button" aria-expanded="false" class="gin-details__summary module-list__module-summary"><span class="text module-description">{{ module.description }}</span></summary>
++            <summary aria-controls="{{ module.enable_id }}-description" role="button" aria-expanded="false" class="gin-details__summary module-list__module-summary"{% if module.summary_label %} aria-label="{{ module.summary_label }}"{% endif %}><span class="text module-description">{{ module.description }}</span></summary>
+             <div class="gin-details__wrapper module-details__wrapper">
+               <div class="module-details__description">
+                 <div class="module-details__requirements">
+diff --git b/core/themes/stable9/templates/admin/system-modules-details.html.twig a/core/themes/stable9/templates/admin/system-modules-details.html.twig
+index e2bf4a0dac..49a7ce70b1 100644
+--- b/core/themes/stable9/templates/admin/system-modules-details.html.twig
++++ a/core/themes/stable9/templates/admin/system-modules-details.html.twig
+@@ -42,7 +42,7 @@
+         </td>
+         <td class="description expand priority-low">
+           <details class="js-form-wrapper form-wrapper" id="{{ module.enable_id }}-description">
+-            <summary aria-controls="{{ module.enable_id }}-description" role="button" aria-expanded="false"><span class="text module-description">{{ module.description }}</span></summary>
++            <summary aria-controls="{{ module.enable_id }}-description" role="button" aria-expanded="false"{% if module.summary_label %} aria-label="{{ module.summary_label }}"{% endif %}><span class="text module-description">{{ module.description }}</span></summary>
+             <div class="details-wrapper">
+               <div class="details-description">
+                 <div class="requirements">

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Issue #3: Make tableselect headers and per-row selectors accessible</title>
+<style>
+ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; line-height:1.5; max-width:860px; margin:2rem auto; padding:0 1rem; color:#222; }
+ h1 { font-size:1.5rem; border-bottom:2px solid #ccc; padding-bottom:.4rem; }
+ h2 { font-size:1.1rem; margin-top:2rem; color:#1a1a1a; }
+ table.fields { border-collapse:collapse; width:100%; margin:1rem 0; }
+ table.fields th, table.fields td { border:1px solid #ddd; padding:.5rem .7rem; text-align:left; vertical-align:top; }
+ table.fields th { background:#f4f4f4; width:34%; }
+ pre { background:#f6f8fa; border:1px solid #ddd; padding:.7rem; overflow:auto; }
+ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.85rem; }
+ ul { margin:.4rem 0; }
+ .sev { font-weight:bold; }
+ .status { background:#fff8e1; border-left:4px solid #f0a020; padding:.6rem .8rem; }
+</style>
+</head>
+<body>
+<h1>Accessibility Issue #3: Make tableselect headers and per-row selectors accessible</h1>
+
+<h2>Required fields</h2>
+<table class="fields">
+<tr><th>Bug ID</th><td>DRU-933004-03</td></tr>
+<tr><th>Parent issue</th><td>Drupal.org #933004 (meta: Accessible titles)</td></tr>
+<tr><th>Issue URL</th><td>https://www.drupal.org/project/drupal/issues/933004  (child URL assigned on filing)</td></tr>
+<tr><th>Code location / XPath</th><td>core/lib/Drupal/Core/Render/Element/TableSelect.php</td></tr>
+<tr><th>Full code path</th><td>core/lib/Drupal/Core/Render/Element/TableSelect.php :: preRenderTableSelect()</td></tr>
+<tr><th>HTML / code snippet</th><td><pre><code>&lt;!-- #title is set for the master checkbox, but per-row selectors reuse the same
+     title; row checkboxes need distinct, scoped labels or aria-label --&gt;</code></pre></td></tr>
+<tr><th>WCAG 2.2 SC</th><td>1.1.1 Non-text Content (A); 4.1.2 Name, Role, Value (A); 1.3.1 Info and Relationships (A)</td></tr>
+<tr><th>Tool / rule ID</th><td>label (axe-core); aria-required-children (axe-core)</td></tr>
+<tr><th>Severity</th><td>High</td></tr>
+<tr><th>Frequency</th><td>Every administrative listing that offers bulk operations (content, users, modules, etc.).</td></tr>
+</table>
+
+<h2>Summary</h2>
+<p>TableSelect renders a select-all checkbox plus per-row checkboxes but labels are not distinct/scoped; fix the per-row accessible names.</p>
+
+<h2>Description</h2>
+<p>The master checkbox has a #title; per-row checkboxes inherit it, so each row&#x27;s control is indistinguishable to AT. Rows also need an association between the checkbox and the row&#x27;s primary text.</p>
+
+<h2>Steps to reproduce</h2>
+<ol><li>Visit /admin/content</li>
+<li>Inspect the bulk-select checkboxes</li>
+<li>Run axe-core</li></ol>
+
+<h2>Expected result</h2>
+<p>Each row checkbox has a unique, descriptive accessible name (e.g., &#x27;Select &lt;entity label&gt;&#x27;).</p>
+
+<h2>Actual result</h2>
+<p>Row checkboxes share the master label; axe flags duplicate/ambiguous names.</p>
+
+<h2>Testing environment</h2>
+<ul><li>Drupal 11.x</li>
+<li>FunctionalJavascript + axe-core</li></ul>
+
+<h2>Impact</h2>
+<p>Admins cannot reliably select specific rows with a screen reader.</p>
+
+<h2>Suggested fix</h2>
+<p>Generate per-row aria-label/title from the row&#x27;s primary field; keep the master checkbox label generic.</p>
+
+<h2>Scope</h2>
+<ul><li>TableSelect preRender</li>
+<li>Theme override if needed</li></ul>
+
+<h2>Out of scope</h2>
+<ul><li>Visual redesign of tables</li></ul>
+
+<h2>Open questions</h2>
+<ul><li>Use aria-label or a visually-hidden label span?</li></ul>
+
+<h2>Depends on / blocks</h2>
+<p>Part 1. Blocks: nothing.</p>
+
+<h2>Status</h2>
+<p class="status">Drafted (not implemented).</p>
+
+<p><small>AI-assisted: yes. Tool: opencode (hy3). External code copied: no. External sources consulted: Drupal.org #933004, MR !7659, axe-core rule docs. Copyright concern: none known.</small></p>
+</body>
+</html>

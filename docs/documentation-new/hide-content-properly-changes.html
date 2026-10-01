@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Change record: Hide content properly</title>
+</head>
+<body>
+  <main>
+    <h1>Change record: Hide content properly</h1>
+
+    <p>This record explains the proposed revision of <a href="https://www.drupal.org/docs/getting-started/accessibility/hide-content-properly">Hide Content Properly</a>. The page remains at its current URL and is rewritten for supported Drupal releases, current HTML, WAI-ARIA, and WCAG guidance.</p>
+
+    <h2>Summary</h2>
+
+    <p>The existing page identifies several useful Drupal classes, but it treats hiding as a choice between sighted people and screen-reader users. It also presents <code>hidden</code>, <code>display: none</code>, and <code>aria-hidden</code> as substitutes when they have different effects. The revision organizes the subject around the intended result for visual presentation, the accessibility tree, keyboard operation, and layout.</p>
+
+    <h2>What was retained</h2>
+
+    <ul>
+      <li>Drupal's <code>.hidden</code>, <code>.visually-hidden</code>, <code>.visually-hidden.focusable</code>, and <code>.invisible</code> classes.</li>
+      <li>The distinction between visually hidden content and content hidden from everyone.</li>
+      <li>The use of <code>.visually-hidden.focusable</code> for skip links.</li>
+      <li>The warning that hiding a required form label makes a control difficult or impossible to identify.</li>
+      <li>The use of <code>aria-hidden="true"</code> for decorative or redundant visual content when an equivalent remains.</li>
+      <li>The field-display choices for hidden and visually hidden labels.</li>
+    </ul>
+
+    <h2>What was updated or added</h2>
+
+    <h3>Decision table</h3>
+
+    <p>The old table's search-engine column was removed. The replacement compares whether each technique is visually rendered, exposed in the accessibility tree, and keyboard operable. These are the distinctions developers need to select an accessible implementation.</p>
+
+    <h3>Drupal 11 source verification</h3>
+
+    <p>The four utility classes and their effects were checked against the Drupal 11 System module's <code>hidden.module.css</code>. The page directs developers to use the core classes instead of copying their implementation. This reduces duplicated CSS and prevents documentation examples from drifting away from core.</p>
+
+    <h3>Conditional rendering and access control</h3>
+
+    <p>The revision adds a clear direction not to render content that is unauthorized or unnecessary. CSS, <code>hidden</code>, <code>inert</code>, and ARIA remain available in the browser and are not security controls.</p>
+
+    <h3>State and focus management</h3>
+
+    <p>The replacement explains that hiding a region is an interaction-state change. It adds synchronization of <code>hidden</code> and <code>aria-expanded</code>, focus movement before a focused subtree is hidden, Ajax testing, and use of established disclosure components.</p>
+
+    <h3><code>aria-hidden</code> constraints</h3>
+
+    <p>The new page explains that <code>aria-hidden="true"</code> affects the accessibility tree but does not reliably remove descendants from keyboard navigation. It prohibits focusable descendants, explains inherited hidden state, and notes the effect on voice-control users who depend on visible labels.</p>
+
+    <h3><code>inert</code></h3>
+
+    <p>The HTML <code>inert</code> attribute was added for temporarily inactive subtrees. The page explains its effects on interaction, focus, find-in-page, and accessibility APIs. It also states that <code>inert</code> supplies no visual treatment and should not be applied to essential content without a usable active alternative.</p>
+
+    <h3>Hidden names and descriptions</h3>
+
+    <p>The revision documents the current Accessible Name and Description Computation rule for content directly referenced by <code>aria-labelledby</code> or <code>aria-describedby</code>. It distinguishes text used only in a computed name or description from visually hidden content that remains independently available in the accessibility tree.</p>
+
+    <h3>Testing</h3>
+
+    <p>The page adds review of computed CSS, the accessibility tree, keyboard order, focus transitions, JavaScript failure, Ajax, voice control, touch, zoom, and forced colors. Automated tests are limited to the deterministic conditions they can inspect.</p>
+
+    <h2>What was removed or corrected</h2>
+
+    <table>
+      <caption>Material removed or corrected and the reason</caption>
+      <thead>
+        <tr>
+          <th scope="col">Existing material</th>
+          <th scope="col">Change and reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>The framing of content as available to sighted users or screen-reader users</td>
+          <td>Rewritten. People use many combinations of vision, keyboards, screen readers, voice control, magnification, touch, and other technologies. The relevant implementation distinctions are visual rendering, accessibility-tree exposure, focus, and operation.</td>
+        </tr>
+        <tr>
+          <td>Search-engine visibility and an accessibility-versus-SEO trade-off</td>
+          <td>Removed. Search-engine behavior is outside the page's accessibility purpose, changes independently, and is not reliably described by the existing table. Visible labels and headings are recommended because they help people, not because of ranking claims.</td>
+        </tr>
+        <tr>
+          <td>A general recommendation against <code>display: none</code></td>
+          <td>Corrected. <code>display: none</code> is appropriate when content should be unavailable to everyone in the current state. The failure is hiding content that people still need, not the CSS property itself.</td>
+        </tr>
+        <tr>
+          <td>The statement that <code>hidden</code> is semantically the same as <code>display: none</code></td>
+          <td>Qualified. They normally produce a similar rendered result, but <code>hidden</code> expresses an HTML state and can be overridden by CSS. The page describes the intended state rather than claiming complete equivalence.</td>
+        </tr>
+        <tr>
+          <td>The advice to use <code>aria-hidden</code> only when the HTML <code>hidden</code> attribute cannot be used</td>
+          <td>Removed. The techniques are not substitutes. <code>hidden</code> removes visual and accessibility exposure, while <code>aria-hidden</code> leaves content visible and removes it from the accessibility tree.</td>
+        </tr>
+        <tr>
+          <td>General encouragement to visually hide interactive elements for custom styling</td>
+          <td>Restricted. A visually hidden control can remain in the keyboard order without a visible target or focus indicator. The replacement requires a visible associated surface that exposes every relevant state and prefers styling the native control.</td>
+        </tr>
+        <tr>
+          <td>Copied implementations of the visually hidden and focusable utility classes</td>
+          <td>Removed. Drupal already supplies these classes. Copying their CSS duplicates core behavior and becomes stale when the implementation changes.</td>
+        </tr>
+        <tr>
+          <td>The Drupal 7 Color module preview example</td>
+          <td>Removed. It is obsolete and does not help developers choose among current hiding techniques.</td>
+        </tr>
+        <tr>
+          <td>The hidden heading for status messages as the primary visually hidden example</td>
+          <td>Removed. Current status messages require correct structure and dynamic announcement behavior. Adding a hidden heading is not a general solution and is covered more accurately in the forms and interactive-components guidance.</td>
+        </tr>
+        <tr>
+          <td>WCAG 2.0 references and old external articles</td>
+          <td>Replaced with Drupal 11 source, the living HTML Standard, WAI-ARIA 1.2, Accessible Name and Description Computation 1.2, and the relevant W3C ACT rule.</td>
+        </tr>
+        <tr>
+          <td>The statement that <code>aria-hidden</code> makes content invisible to screen readers</td>
+          <td>Made more precise. It removes the element from the accessibility tree and affects assistive technologies beyond screen readers. It can still leave descendants in keyboard navigation, which is a serious failure.</td>
+        </tr>
+        <tr>
+          <td>Exclamation marks and hypothetical user quotations</td>
+          <td>Removed. Direct implementation requirements are shorter and more consistent with the Drupal.org content style.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Content mapping</h2>
+
+    <table>
+      <caption>Where existing concepts appear in the revised page</caption>
+      <thead>
+        <tr>
+          <th scope="col">Revised section</th>
+          <th scope="col">Source or reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Choose the intended result</td>
+          <td>The old quick table, rebuilt around accessibility effects rather than search-engine claims.</td>
+        </tr>
+        <tr>
+          <td>Use Drupal's hiding utilities</td>
+          <td>The existing Drupal class and field-display guidance, verified against Drupal 11.</td>
+        </tr>
+        <tr>
+          <td>Hide content visually but retain it for assistive technologies</td>
+          <td>The existing <code>.visually-hidden</code> guidance, with interactive-control risks added.</td>
+        </tr>
+        <tr>
+          <td>Reveal controls when they receive keyboard focus</td>
+          <td>The existing skip-link guidance, simplified to use the core classes.</td>
+        </tr>
+        <tr>
+          <td>Hide content from everyone</td>
+          <td>The existing <code>hidden</code>, <code>.hidden</code>, and <code>display: none</code> material, corrected for state and focus management.</td>
+        </tr>
+        <tr>
+          <td>Preserve layout without exposing content</td>
+          <td>The existing <code>.invisible</code> class, which appeared only in the old summary and needed explanation.</td>
+        </tr>
+        <tr>
+          <td>Hide decorative or redundant content from assistive technologies</td>
+          <td>The existing <code>aria-hidden</code> example, expanded with accessibility-tree and focus constraints.</td>
+        </tr>
+        <tr>
+          <td>Make a temporarily inactive region inert</td>
+          <td>New HTML platform guidance.</td>
+        </tr>
+        <tr>
+          <td>Use hidden text for accessible names and descriptions carefully</td>
+          <td>Current accessible-name computation requirements.</td>
+        </tr>
+        <tr>
+          <td>Test hidden content and state changes</td>
+          <td>New repeatable manual and automated review scope.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Sources checked</h2>
+
+    <ul>
+      <li><a href="https://www.drupal.org/docs/getting-started/accessibility/hide-content-properly">Existing Drupal.org page: Hide Content Properly</a></li>
+      <li><a href="https://api.drupal.org/api/drupal/core%21modules%21system%21css%21components%21hidden.module.css/11.x">Drupal 11 System module: hidden.module.css</a></li>
+      <li><a href="https://api.drupal.org/api/drupal/core%21modules%21system%21system.libraries.yml/11.x">Drupal 11 System module libraries</a></li>
+      <li><a href="https://api.drupal.org/api/drupal/core%21modules%21field_ui%21help_topics%21field_ui.manage_display.html.twig/11.x">Drupal 11 Field UI help: Configuring field display</a></li>
+      <li><a href="https://html.spec.whatwg.org/multipage/interaction.html#the-hidden-attribute">HTML Standard: The hidden attribute</a></li>
+      <li><a href="https://html.spec.whatwg.org/multipage/interaction.html#the-inert-attribute">HTML Standard: The inert attribute</a></li>
+      <li><a href="https://www.w3.org/TR/wai-aria-1.2/#aria-hidden">WAI-ARIA 1.2: aria-hidden</a></li>
+      <li><a href="https://www.w3.org/TR/accname-1.2/">Accessible Name and Description Computation 1.2</a></li>
+      <li><a href="https://www.w3.org/WAI/standards-guidelines/act/rules/6cfa84/">W3C ACT Rule: Element with aria-hidden has no content in sequential focus navigation</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Techniques/css/C7.html">W3C technique C7: Using CSS to hide a portion of link text</a></li>
+    </ul>
+  </main>
+</body>
+</html>

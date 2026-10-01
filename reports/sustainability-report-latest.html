@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Drupal Core Sustainability Report</title>
+  <style>
+    :root {
+      --page-bg: #eef2f8;
+      --card-bg: #ffffff;
+      --surface-bg: #f7f9fc;
+      --text: #1c2431;
+      --muted: #546173;
+      --border: #d5dce7;
+      --link: #0e4fb5;
+      --accent: #b7ccf6;
+      --table-stripe: #f5f8ff;
+      --shadow: 0 12px 34px rgba(20, 35, 60, 0.08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --page-bg: #111722;
+        --card-bg: #1a2331;
+        --surface-bg: #131b27;
+        --text: #e8edf5;
+        --muted: #93a0b5;
+        --border: #2b3950;
+        --link: #8cb8ff;
+        --accent: #23395f;
+        --table-stripe: #162032;
+        --shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
+      }
+    }
+    * { box-sizing: border-box; }
+    html { color-scheme: light dark; scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      padding: 2rem 1rem 4rem;
+      font: 16px/1.7 Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+      background:
+        radial-gradient(circle at top left, rgba(14, 79, 181, 0.08), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 16%),
+        var(--page-bg);
+      color: var(--text);
+    }
+    a { color: var(--link); }
+    a:hover, a:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: grid;
+      gap: 1.25rem;
+    }
+    .hero,
+    .toc,
+    .content {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      box-shadow: var(--shadow);
+    }
+    .hero {
+      padding: 1.5rem;
+    }
+    .hero h1 {
+      margin: 0 0 0.5rem;
+      line-height: 1.15;
+      font-size: clamp(2rem, 4vw, 3rem);
+    }
+    .lede,
+    .meta {
+      color: var(--muted);
+      margin: 0.35rem 0 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .toc {
+      padding: 1rem 1.25rem;
+    }
+    .toc h2 {
+      margin: 0 0 0.65rem;
+      font-size: 1rem;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .toc ol {
+      margin: 0;
+      padding-left: 1.2rem;
+      display: grid;
+      gap: 0.4rem;
+    }
+    .toc li.level-3 {
+      margin-left: 1rem;
+      color: var(--muted);
+    }
+    .content {
+      padding: 1.5rem;
+      overflow: hidden;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      line-height: 1.25;
+      scroll-margin-top: 1rem;
+    }
+    h2, h3 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    h2 {
+      margin-top: 2.4rem;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h3 {
+      margin-top: 1.8rem;
+    }
+    .heading-anchor {
+      text-decoration: none;
+      opacity: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    h2:hover .heading-anchor,
+    h2:focus-within .heading-anchor,
+    h3:hover .heading-anchor,
+    h3:focus-within .heading-anchor {
+      opacity: 1;
+    }
+    p, ul, ol, blockquote, pre, .table-wrap, hr {
+      margin: 1rem 0;
+    }
+    ul, ol {
+      padding-left: 1.5rem;
+    }
+    li + li {
+      margin-top: 0.35rem;
+    }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    code {
+      background: rgba(127, 127, 127, 0.14);
+      padding: 0.1rem 0.35rem;
+      border-radius: 0.3rem;
+      font-size: 0.95em;
+    }
+    pre {
+      overflow-x: auto;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 0.85rem;
+      background: var(--surface-bg);
+    }
+    blockquote {
+      border-left: 4px solid var(--link);
+      padding: 0.25rem 0 0.25rem 1rem;
+      color: var(--muted);
+      margin-left: 0;
+      background: linear-gradient(90deg, rgba(14, 79, 181, 0.08), transparent 60%);
+    }
+    details {
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.5rem 1rem;
+      margin: 0.75rem 0;
+      background: var(--surface-bg);
+    }
+    details[open] {
+      padding-bottom: 0.75rem;
+    }
+    details summary {
+      cursor: pointer;
+      font-weight: 600;
+      padding: 0.25rem 0;
+      list-style: none;
+      color: var(--text);
+    }
+    details summary::-webkit-details-marker { display: none; }
+    details summary::before {
+      content: '▶ ';
+      font-size: 0.7em;
+      color: var(--muted);
+    }
+    details[open] summary::before { content: '▼ '; }
+    details table {
+      margin-top: 0.75rem;
+      min-width: 0;
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid var(--border);
+    }
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 0.85rem;
+      background: var(--surface-bg);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 680px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 0.7rem 0.85rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--accent);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.92rem;
+    }
+    tbody tr:nth-child(even) td {
+      background: var(--table-stripe);
+    }
+    @media (min-width: 900px) {
+      .page {
+        grid-template-columns: minmax(0, 1fr) 280px;
+        align-items: start;
+      }
+      .hero,
+      .content {
+        grid-column: 1;
+      }
+      .toc {
+        grid-column: 2;
+        position: sticky;
+        top: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <h1>Drupal Core Sustainability Report</h1>
+      <p class="lede">Page weight, requests, DOM size, image formats, and CO2 estimates per core theme, tracked over time.</p>
+      <p class="meta">Source markdown: <code>SUSTAINABILITY-latest.md</code></p>
+    </header>
+    
+    <nav class="toc" aria-label="Table of contents">
+      <h2>Contents</h2>
+      <ol>
+        <li class="level-2"><a href="#summary">Summary</a></li><li class="level-2"><a href="#trend">Trend</a></li><li class="level-2"><a href="#per-theme-baseline">Per-Theme Baseline</a></li><li class="level-2"><a href="#heaviest-pages-top-10-by-transfer-size">Heaviest Pages (top 10 by transfer size)</a></li><li class="level-2"><a href="#image-formats">Image Formats</a></li><li class="level-3"><a href="#expected-beneficial-files">Expected &amp; beneficial files</a></li><li class="level-2"><a href="#data">Data</a></li>
+      </ol>
+    </nav>
+    <main class="content">
+      <h1 id="drupal-core-sustainability-report">Drupal Core Sustainability Report</h1>
+<blockquote><p><strong>Generated:</strong> 2026-07-06T02:16:02.110Z<br><strong>CO2 model:</strong> CO2.js Sustainable Web Design v4 (per byte, global grid average)<br><strong>Method:</strong> Resource Timing API on cold-cache page loads (fresh browser context per page), desktop viewport, light mode, LTR, default accent. Same-origin DDEV site, so transfer sizes are complete.<br><strong>Standard:</strong> <a href="https://www.w3.org/TR/web-sustainability-guidelines/">W3C Web Sustainability Guidelines (draft)</a></p></blockquote>
+<h2 id="summary">Summary<a class="heading-anchor" href="#summary" aria-label="Link to Summary section">#</a></h2>
+<div class="table-wrap"><table><thead><tr><th scope="col">Metric</th><th scope="col">Value</th></tr></thead><tbody><tr><td>Pages measured (theme × page)</td><td>95</td></tr><tr><td>Themes</td><td>admin, claro, olivero</td></tr><tr><td>Median page weight (transfer)</td><td>720.2 KB</td></tr><tr><td>Average page weight (transfer)</td><td>694.0 KB</td></tr><tr><td>Average requests per page</td><td>13.2</td></tr><tr><td>Average DOM nodes per page</td><td>932</td></tr><tr><td>Estimated CO2, one view of every page</td><td>10.006 g</td></tr><tr><td>Accessibility violations on measured pages</td><td>69 (0 critical, 35 serious)</td></tr></tbody></table></div>
+<h2 id="trend">Trend<a class="heading-anchor" href="#trend" aria-label="Link to Trend section">#</a></h2>
+<p>First recorded run — trends appear from the second scan onward.</p>
+<h2 id="per-theme-baseline">Per-Theme Baseline<a class="heading-anchor" href="#per-theme-baseline" aria-label="Link to Per-Theme Baseline section">#</a></h2>
+<div class="table-wrap"><table><thead><tr><th scope="col">Theme</th><th scope="col">Pages</th><th scope="col">Median weight</th><th scope="col">Avg requests</th><th scope="col">Avg DOM nodes</th><th scope="col">CO2 (all pages)</th></tr></thead><tbody><tr><td>admin</td><td>47</td><td>757.2 KB</td><td>14.3</td><td>948</td><td>5.904 g</td></tr><tr><td>claro</td><td>47</td><td>502.5 KB</td><td>12.3</td><td>933</td><td>4.086 g</td></tr><tr><td>olivero</td><td>1</td><td>107.2 KB</td><td>8.0</td><td>111</td><td>0.016 g</td></tr></tbody></table></div>
+<h2 id="heaviest-pages-top-10-by-transfer-size">Heaviest Pages (top 10 by transfer size)<a class="heading-anchor" href="#heaviest-pages-top-10-by-transfer-size" aria-label="Link to Heaviest Pages (top 10 by transfer size) section">#</a></h2>
+<div class="table-wrap"><table><thead><tr><th scope="col">Theme</th><th scope="col">Page</th><th scope="col">Transfer</th><th scope="col">Requests</th><th scope="col">DOM nodes</th><th scope="col">CO2/view</th></tr></thead><tbody><tr><td>admin</td><td><code>/node/add/article</code></td><td>1330.4 KB</td><td>15</td><td>900</td><td>0.202 g</td></tr><tr><td>admin</td><td><code>/admin/form_style</code></td><td>1330.2 KB</td><td>15</td><td>1115</td><td>0.202 g</td></tr><tr><td>admin</td><td><code>/contact/presuf_formatted</code></td><td>1329.6 KB</td><td>17</td><td>1864</td><td>0.202 g</td></tr><tr><td>admin</td><td><code>/node/add/cd</code></td><td>1321.3 KB</td><td>15</td><td>854</td><td>0.201 g</td></tr><tr><td>admin</td><td><code>/node/add/page</code></td><td>1321.1 KB</td><td>15</td><td>840</td><td>0.200 g</td></tr><tr><td>admin</td><td><code>/contact/textarea</code></td><td>1313.6 KB</td><td>17</td><td>1220</td><td>0.199 g</td></tr><tr><td>admin</td><td><code>/admin/appearance</code></td><td>1205.3 KB</td><td>19</td><td>732</td><td>0.183 g</td></tr><tr><td>claro</td><td><code>/admin/form_style</code></td><td>1076.2 KB</td><td>13</td><td>1111</td><td>0.163 g</td></tr><tr><td>claro</td><td><code>/node/add/article</code></td><td>1073.4 KB</td><td>13</td><td>882</td><td>0.163 g</td></tr><tr><td>claro</td><td><code>/contact/presuf_formatted</code></td><td>1071.3 KB</td><td>15</td><td>1814</td><td>0.163 g</td></tr></tbody></table></div>
+<h2 id="image-formats">Image Formats<a class="heading-anchor" href="#image-formats" aria-label="Link to Image Formats section">#</a></h2>
+<p>WSG favours efficient media formats (AVIF/WebP/SVG) over legacy raster formats.</p>
+<div class="table-wrap"><table><thead><tr><th scope="col">Format</th><th scope="col">Requests</th><th scope="col">Transfer</th><th scope="col">Modern?</th></tr></thead><tbody><tr><td>png</td><td>8</td><td>962.3 KB</td><td>⚠️ legacy</td></tr><tr><td>avif</td><td>2</td><td>4.6 KB</td><td>✅</td></tr><tr><td>svg</td><td>3</td><td>2.3 KB</td><td>✅</td></tr></tbody></table></div>
+<h3 id="expected-beneficial-files">Expected &amp; beneficial files<a class="heading-anchor" href="#expected-beneficial-files" aria-label="Link to Expected &amp; beneficial files section">#</a></h3>
+<div class="table-wrap"><table><thead><tr><th scope="col">File</th><th scope="col">Kind</th><th scope="col">Status</th></tr></thead><tbody><tr><td><code>/robots.txt</code></td><td>expected</td><td>✅ 200</td></tr><tr><td><code>/favicon.ico</code></td><td>expected</td><td>⚠️ missing (404)</td></tr><tr><td><code>/sitemap.xml</code></td><td>expected</td><td>⚠️ missing (404)</td></tr><tr><td><code>/humans.txt</code></td><td>beneficial</td><td>⚠️ missing (404)</td></tr><tr><td><code>/.well-known/security.txt</code></td><td>beneficial</td><td>⚠️ missing (404)</td></tr><tr><td><code>/carbon.txt</code></td><td>beneficial</td><td>⚠️ missing (404)</td></tr></tbody></table></div>
+<h2 id="data">Data<a class="heading-anchor" href="#data" aria-label="Link to Data section">#</a></h2>
+<ul><li>Full per-page history: <a href="sustainability/history.json"><code>sustainability/history.json</code></a> — 1 run(s) recorded, append-only, one entry per scan date.</li><li>Query examples:</li></ul>
+<pre><code class="language-bash"># Page weight of /admin/content in Claro over time
+jq -r &#39;.runs[] | [.date, (.pages[] | select(.theme==&quot;claro&quot; and .path==&quot;/admin/content&quot;) | .transferBytes)] | @tsv&#39; reports/sustainability/history.json
+
+# CO2 trend for the whole crawl
+jq -r &#39;.runs[] | [.date, .summary.totalCo2Grams] | @tsv&#39; reports/sustainability/history.json</code></pre>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Changes to Drupal Accessibility Features</title>
+</head>
+<body>
+	<main>
+		<h1>Changes to Drupal Accessibility Features</h1>
+
+		<p>This document explains the redraft of <a href="https://www.drupal.org/docs/accessibility/drupal-accessibility-features">Drupal Accessibility Features</a>. The original page was last updated on September 26, 2022. Its implementation references and feature claims were checked against Drupal 11.x source and current Drupal.org documentation.</p>
+
+		<h2>Summary</h2>
+
+		<p>The revised page remains a short feature overview. It no longer presents accessibility as an automatic result of using Drupal. It identifies the feature, its intended benefit, important limitations, and where configuration or testing remains necessary.</p>
+
+		<p>The original body contained 496 words. The revised body contains 547 words, an increase of 10.3 percent. The additional text provides scope and limitations rather than adding more feature claims.</p>
+
+		<p>The revision:</p>
+
+		<ul>
+			<li>Retains features that still exist in Drupal 11.x.</li>
+			<li>Updates links to current documentation or versioned source.</li>
+			<li>Removes implementation history that does not help current users.</li>
+			<li>Replaces absolute claims with scoped descriptions.</li>
+			<li>Groups related features around user outcomes.</li>
+			<li>Adds a clear reminder that site accessibility depends on configuration and implementation.</li>
+		</ul>
+
+		<h2>Detailed Changes</h2>
+
+		<table>
+			<thead>
+				<tr>
+					<th scope="col">Original area</th>
+					<th scope="col">Change</th>
+					<th scope="col">Reason</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<th scope="row">Page introduction</th>
+					<td>Added a short explanation of the page’s scope and identified Drupal 11.x as the version reviewed.</td>
+					<td>The original page began directly with implementation details. It did not explain that core features are foundations rather than a conformance guarantee for completed sites.</td>
+				</tr>
+				<tr>
+					<th scope="row">More Semantic</th>
+					<td>Renamed the section “Semantic HTML and ARIA.” Explained the native-HTML-first rule and the limited role of ARIA.</td>
+					<td>“More Semantic” was vague and grammatically incomplete. Listing landmarks, roles, and properties did not explain how developers should choose between HTML and ARIA.</td>
+				</tr>
+				<tr>
+					<th scope="row">Aural Alerts</th>
+					<td>Renamed the section “Status Announcements.” Retained <code>Drupal.announce()</code>, updated the link to Drupal 11.x API documentation, and explained polite and assertive priorities.</td>
+					<td>“Aural alerts” is dated terminology and suggests that every message is an alert. The API communicates dynamic status information through an ARIA live region.</td>
+				</tr>
+				<tr>
+					<th scope="row"><code>Drupal.announce()</code> examples</th>
+					<td>Replaced “Hello world” with a meaningful status message and retained translation through <code>Drupal.t()</code>.</td>
+					<td>A feature page should demonstrate the intended accessibility use, not only the function signature.</td>
+				</tr>
+				<tr>
+					<th scope="row">Controlled Tab Order</th>
+					<td>Renamed the section “Keyboard and Focus Management.” Retained <code>TabbingManager</code> and described its current ability to constrain and restore tabbing.</td>
+					<td>The original description overstated “control over the order” and did not mention focus placement, focus restoration, visible focus, or component keyboard behavior.</td>
+				</tr>
+				<tr>
+					<th scope="row">Hidden/Invisible/On-focus</th>
+					<td>Renamed the section “Hidden and Focusable Content.” Listed the current utility classes and linked the current guide URL.</td>
+					<td>The former heading exposed internal terminology. The reference to HTML5 Boilerplate described history rather than current Drupal behavior.</td>
+				</tr>
+				<tr>
+					<th scope="row">Fieldsets</th>
+					<td>Combined fieldsets with labels, descriptions, and required states under “Forms and Error Messages.”</td>
+					<td>A fieldset is one part of accessible form construction. Isolating it implied broader coverage than the section provided.</td>
+				</tr>
+				<tr>
+					<th scope="row">jQuery UI</th>
+					<td>Removed the section.</td>
+					<td>jQuery UI is an implementation dependency, not an accessibility feature. Its use may also change as Drupal replaces older components. The revised page describes outcomes such as keyboard and focus management instead.</td>
+				</tr>
+				<tr>
+					<th scope="row">Alt Text</th>
+					<td>Renamed the section “Alternative Text.” Scoped the requirement to the standard Article image-field configuration and described authoring controls in CKEditor 5.</td>
+					<td>The claim “alternative text is required by default” was too broad. Administrators can change field and text-format settings, and requiring text does not establish its quality.</td>
+				</tr>
+				<tr>
+					<th scope="row">Olivero theme</th>
+					<td>Combined Olivero and Claro under “Core Themes.” Retained their public-facing and administration roles. Removed qualitative claims such as “extremely accessible” and “work flawlessly.”</td>
+					<td>Those statements are not defensible as conformance evidence. Core themes can still contain defects, and site customizations can introduce new barriers.</td>
+				</tr>
+				<tr>
+					<th scope="row">National Federation of the Blind</th>
+					<td>Removed the testing reference.</td>
+					<td>The original page did not link to a report describing the tested version, scope, method, findings, or date. A historical testing relationship should not be used as a continuing product claim without that evidence.</td>
+				</tr>
+				<tr>
+					<th scope="row">Accessible Inline Form Errors</th>
+					<td>Renamed the section “Forms and Error Messages.” Retained the module’s function and the fact that it is included in core but not enabled by default. Updated the documentation link.</td>
+					<td>The original text was repetitive. The revised wording states what the module provides without claiming that it resolves every form-validation requirement.</td>
+				</tr>
+				<tr>
+					<th scope="row">WYSIWYG (CKEditor)</th>
+					<td>Renamed the section “Content Authoring with CKEditor 5.” Corrected the broken sentence and specified the Basic HTML heading options.</td>
+					<td>“WYSIWYG” is unnecessary jargon for this audience. The current implementation is CKEditor 5, and its capabilities depend on toolbar and text-format configuration.</td>
+				</tr>
+				<tr>
+					<th scope="row">Language of Parts</th>
+					<td>Retained the Language toolbar feature and added text-direction support. Clarified that an administrator must configure the toolbar and allowed HTML.</td>
+					<td>Drupal 11.x still contains the CKEditor 5 language plugin, which supports <code>lang</code> and <code>dir</code> attributes on text spans.</td>
+				</tr>
+				<tr>
+					<th scope="row">Testing</th>
+					<td>Added a final “Configuration and Testing” section.</td>
+					<td>The original page listed features without explaining that they can be overridden or misused. The new section links features to the coding standards and review process.</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<h2>Content Removed or Altered</h2>
+
+		<ul>
+			<li><strong>“More semantic HTML5”:</strong> Replaced with specific language about semantic HTML and ARIA.</li>
+			<li><strong>“Aural users”:</strong> Replaced with screen-reader users and status announcements.</li>
+			<li><strong>HTML5 Boilerplate history:</strong> Removed because it does not explain current use of Drupal’s utility classes.</li>
+			<li><strong>jQuery UI collaboration history:</strong> Removed because it is not a stable Drupal accessibility feature.</li>
+			<li><strong>“Alternative text is required by default”:</strong> Narrowed to configurations where the requirement is verifiable.</li>
+			<li><strong>“Extremely accessible” and “work flawlessly”:</strong> Removed as unsupported absolute claims.</li>
+			<li><strong>Unlinked testing claims:</strong> Removed where no scoped report was available.</li>
+			<li><strong>Repeated statements about administrator overrides:</strong> Consolidated into the relevant feature sections and the closing configuration section.</li>
+		</ul>
+
+		<h2>Claims Not Added</h2>
+
+		<p>The revision does not claim that:</p>
+
+		<ul>
+			<li>Drupal core or its themes fully conform to WCAG 2.2 AA.</li>
+			<li>Enabling a feature makes a completed site conformant.</li>
+			<li>Automated validation can determine the quality of alternative text.</li>
+			<li>One keyboard or screen-reader test covers every use or configuration.</li>
+			<li>Core theme behavior remains unchanged after custom theming.</li>
+		</ul>
+
+		<p>These claims would require defined scope, dated evidence, and continuing review.</p>
+
+		<h2>Sources Checked</h2>
+
+		<ul>
+			<li><a href="https://github.com/drupal/core/blob/11.x/misc/announce.js"><code>Drupal.announce()</code> in Drupal 11.x</a></li>
+			<li><a href="https://github.com/drupal/core/blob/11.x/misc/tabbingmanager.js"><code>TabbingManager</code> in Drupal 11.x</a></li>
+			<li><a href="https://github.com/drupal/core/blob/11.x/modules/system/css/components/hidden.module.css">Drupal 11.x hiding utilities</a></li>
+			<li><a href="https://github.com/drupal/core/blob/11.x/modules/inline_form_errors/inline_form_errors.info.yml">Inline Form Errors module definition</a></li>
+			<li><a href="https://github.com/drupal/core/blob/11.x/profiles/standard/config/install/editor.editor.basic_html.yml">Basic HTML editor configuration</a></li>
+			<li><a href="https://github.com/drupal/core/blob/11.x/modules/ckeditor5/ckeditor5.ckeditor5.yml">Drupal core CKEditor 5 plugins</a></li>
+			<li><a href="https://github.com/drupal/core/blob/11.x/themes/olivero/olivero.info.yml">Olivero theme definition</a></li>
+			<li><a href="https://github.com/drupal/core/blob/11.x/themes/claro/claro.info.yml">Claro theme definition</a></li>
+		</ul>
+	</main>
+</body>
+</html>

@@ -1,0 +1,34 @@
+{
+  "finding_id": "a11y_olivero_tabs_trigger_focus_indicator",
+  "fingerprint": "75ebf8641d40c486fab1ea80493c45532f512aa0ec4be735f1c7f8fe1719676c",
+  "source": "Real Tab focus, computed-style capture, rendered screenshot, and contrast measurement on the Olivero mobile local-tabs trigger",
+  "wcag_or_apg": "WCAG 2.2 SC 1.4.1 Use of Color and SC 1.4.11 Non-text Contrast",
+  "section_508_fpc_context": "not in scope",
+  "severity": "MINOR",
+  "perspective_alarms": {
+    "screen_reader_semantic": "LOW",
+    "keyboard_motor": "HIGH",
+    "magnification_reflow": "MEDIUM",
+    "cognitive_neurodivergent": "MEDIUM",
+    "vestibular_motion": "NONE",
+    "environmental_contrast": "HIGH",
+    "auditory_access": "NONE"
+  },
+  "evidence": [
+    "EVID-FULL-SUITE-RESOLUTIONS: five real Tab presses reached the visible .tabs__trigger at a 320 by 568 CSS pixel viewport.",
+    "The existing 1 CSS pixel border changed from rgb(234, 238, 240) to rgb(27, 154, 228); no outline or shadow appeared.",
+    "The focused border measured 2.902:1 against the adjacent rgb(246, 248, 248) background, below 3:1."
+  ],
+  "reproduction_steps": [
+    "Open /user/login with Olivero active and set the viewport below the local-tabs breakpoint.",
+    "Press Tab until focus reaches the Tabs display toggle.",
+    "Compare the focused and unfocused trigger and measure the focused border against its adjacent background."
+  ],
+  "expected_behavior": "Keyboard focus has a non-color cue or a color change with sufficient luminance contrast, and the visual focus indicator reaches at least 3:1 against adjacent colors.",
+  "actual_behavior": "Focus changes only the color of the existing 1 CSS pixel border, and the focused border measures 2.902:1 against the adjacent background.",
+  "evaluation_context": {
+    "evaluation_id": "AS-OACR-001",
+    "sample_id": "S-STR-004",
+    "state_id": "ST-002"
+  }
+}

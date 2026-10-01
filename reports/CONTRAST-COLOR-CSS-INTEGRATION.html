@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Experimental: Contrast-Color CSS Integration Points | Drupal Default Admin</title>
+  <style>
+    :root {
+      --text: #1a1a1a;
+      --bg: #ffffff;
+      --border: #e0e0e0;
+      --card-bg: #f9f9f9;
+      --muted: #666;
+      --ok: #0a7f0e;
+      --ok-bg: #e8f5e9;
+      --warning: #f57c00;
+      --warning-bg: #fff3e0;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font: 1rem/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    h1 {
+      margin: 2rem 0 1rem;
+      font-size: 2rem;
+    }
+    h2 {
+      margin: 1.5rem 0 1rem;
+      font-size: 1.5rem;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 0.5rem;
+    }
+    h3 {
+      margin: 1rem 0 0.75rem;
+      font-size: 1.25rem;
+    }
+    h4 {
+      margin: 0.75rem 0 0.5rem;
+      font-size: 1.05rem;
+    }
+    p {
+      margin-bottom: 1rem;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.9em;
+      background: var(--card-bg);
+      padding: 0.2em 0.4em;
+      border-radius: 0.25rem;
+    }
+    pre {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+      line-height: 1.4;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+    }
+    .hint {
+      background: #fffacd;
+      border-left: 4px solid #f0ad4e;
+      padding: 0.75rem;
+      margin: 1rem 0;
+      border-radius: 0.25rem;
+    }
+    .hint strong {
+      color: #d9851a;
+    }
+    ol, ul {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    li {
+      margin-bottom: 0.5rem;
+    }
+    a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-left: 0.5rem;
+    }
+    .badge.experimental {
+      color: #f57c00;
+      background: #fff3e0;
+    }
+    nav {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 2rem;
+    }
+    nav h3 {
+      margin-top: 0;
+    }
+    nav ul {
+      list-style: none;
+      margin: 0;
+    }
+    nav li {
+      margin-bottom: 0.5rem;
+    }
+    nav a {
+      display: block;
+      padding: 0.3rem 0;
+    }
+    .feature-comparison {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+    .feature-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 1rem;
+    }
+    .feature-card h4 {
+      margin-top: 0;
+    }
+    .priority-high { border-left: 4px solid #d32f2f; }
+    .priority-medium { border-left: 4px solid #f57c00; }
+    .priority-low { border-left: 4px solid #1976d2; }
+  </style>
+</head>
+<body>
+  <h1>Experimental: Contrast-Color CSS Integration Points</h1>
+  
+  <p>
+    <strong>Status:</strong> <span class="badge experimental">Experimental</span>
+    <strong>Last updated:</strong> <span id="lastUpdated"></span>
+  </p>
+
+  <nav>
+    <h3>Quick Navigation</h3>
+    <ul>
+      <li><a href="#overview">What contrast-color() Does</a></li>
+      <li><a href="#integration-points">Integration Points</a></li>
+      <li><a href="#rollout">Rollout Strategy</a></li>
+      <li><a href="#browser-support">Browser Support</a></li>
+      <li><a href="#reference">Reference & Resources</a></li>
+    </ul>
+  </nav>
+
+  <section id="overview">
+    <h2>What Is contrast-color()?</h2>
+    <p class="hint">
+      The CSS Working Group is developing <code>contrast-color()</code>, a function that automatically generates a contrasting color from a background.
+      This section identifies where Default Admin could integrate contrast-color overrides to improve accessibility resilience.
+      <strong>Note:</strong> This is informational only; contrast-color is not yet part of WCAG standards and requires <code>@supports</code> feature detection.
+    </p>
+
+    <h3>How It Works</h3>
+    <p>
+      <code>contrast-color(color, target: AA)</code> returns either white or black (or specified options), whichever has higher contrast against the input color.
+      Browsers will handle the contrast math, eliminating the need for manual light/dark branching.
+    </p>
+
+    <pre><code>/* Example: Using contrast-color to pick text automatically */
+button {
+  background: var(--button-bg);
+  color: white; /* fallback for browsers without support */
+}
+
+@supports (color: contrast-color(white)) {
+  button {
+    color: contrast-color(var(--button-bg), target: AA);
+  }
+}</code></pre>
+
+    <h3>Benefits Over Current Approach</h3>
+    <ul>
+      <li><strong>Reduced Manual Branching:</strong> No need to maintain separate light/dark mode tokens</li>
+      <li><strong>Adaptability:</strong> Works across any background color, including user-provided or dynamic values</li>
+      <li><strong>Standards-Based:</strong> Browser handles contrast calculations; always compliant with WCAG levels</li>
+      <li><strong>Resilience:</strong> If background color changes, text color adapts automatically</li>
+    </ul>
+  </section>
+
+  <section id="integration-points">
+    <h2>Integration Points in Default Admin</h2>
+    
+    <div class="feature-comparison">
+      <div class="feature-card priority-high">
+        <h4>1. Button Foreground</h4>
+        <p><strong>Priority:</strong> Highest</p>
+        <p>Most frequently interacted with; manual branching is error-prone when presets change.</p>
+        <pre><code>/* File: core/themes/default_admin/css/base/variables.css */
+@supports (color: contrast-color(white)) {
+  --button-fg-color--primary: contrast-color(
+    var(--button-bg-color--primary), 
+    target: AA
+  );
+}</code></pre>
+        <p><strong>Impact:</strong> Removes dependency on --gin-color-button-text token switching.</p>
+      </div>
+
+      <div class="feature-card priority-high">
+        <h4>2. Accent-Derived Foreground</h4>
+        <p><strong>Priority:</strong> High</p>
+        <p>Automatically adapts when users change accent presets.</p>
+        <pre><code>/* File: core/themes/default_admin/css/base/accents.css */
+@supports (color: contrast-color(white)) {
+  --gin-color-primary-text: contrast-color(
+    var(--gin-color-primary), 
+    target: AA
+  );
+}</code></pre>
+        <p><strong>Impact:</strong> Eliminates need for per-preset text color overrides.</p>
+      </div>
+
+      <div class="feature-card priority-medium">
+        <h4>3. Focus Ring Color</h4>
+        <p><strong>Priority:</strong> Medium</p>
+        <p>Focus indicators adapt to whatever background surface they appear on.</p>
+        <pre><code>/* File: core/themes/default_admin/css/base/variables.css */
+@supports (color: contrast-color(white)) {
+  --gin-color-focus: contrast-color(
+    var(--gin-bg-layer), 
+    target: 3:1
+  );
+}</code></pre>
+        <p><strong>Impact:</strong> Reduces hard-coded focus colors; ensures 3:1 focus-to-unfocused contrast automatically.</p>
+      </div>
+
+      <div class="feature-card priority-medium">
+        <h4>4. Form Control Borders</h4>
+        <p><strong>Priority:</strong> Medium</p>
+        <p>Form element borders must meet 3:1 contrast against background.</p>
+        <pre><code>/* File: core/themes/default_admin/css/base/variables.css */
+@supports (color: contrast-color(white)) {
+  --gin-border-color-form-element: contrast-color(
+    var(--gin-bg-layer), 
+    target: 3:1
+  );
+}</code></pre>
+      </div>
+
+      <div class="feature-card priority-low">
+        <h4>5. Link Text Color</h4>
+        <p><strong>Priority:</strong> Lower</p>
+        <p>Links embedded in content; less critical for primary UI.</p>
+        <pre><code>/* File: core/themes/default_admin/css/base/variables.pcss.css */
+@supports (color: contrast-color(white)) {
+  --gin-color-link: contrast-color(
+    var(--gin-bg-app), 
+    target: AA
+  );
+}</code></pre>
+      </div>
+    </div>
+
+    <h3>Full Integration Example</h3>
+    <pre><code>/* Comprehensive approach with fallbacks */
+:root {
+  /* Default fallback for browsers without contrast-color support */
+  --button-fg-color--primary: var(--gin-color-button-text);
+  --gin-color-focus: #007bff;
+  --gin-border-color-form-element: #999;
+}
+
+/* Enhanced support for modern browsers */
+@supports (color: contrast-color(white)) {
+  :root {
+    --button-fg-color--primary: contrast-color(var(--button-bg-color--primary), target: AA);
+    --gin-color-focus: contrast-color(var(--gin-bg-layer), target: 3:1);
+    --gin-border-color-form-element: contrast-color(var(--gin-bg-layer), target: 3:1);
+  }
+}</code></pre>
+  </section>
+
+  <section id="rollout">
+    <h2>Proposed Rollout Strategy</h2>
+    
+    <h3>Phase 1: Pilot (Months 1–3)</h3>
+    <ol>
+      <li><strong>Add @supports-wrapped contrast-color for button foreground only</strong>
+        <ul>
+          <li>Lowest risk; most frequently used and tested</li>
+          <li>Gather browser support metrics via feature detection</li>
+          <li>Log fallback usage if contrast-color unavailable</li>
+        </ul>
+      </li>
+      <li><strong>Monitor real-world usage</strong>
+        <ul>
+          <li>Track which browsers fallback to manual colors</li>
+          <li>Collect user feedback on readability</li>
+        </ul>
+      </li>
+    </ol>
+
+    <h3>Phase 2: Expand (Months 4–6)</h3>
+    <ol>
+      <li><strong>Add to focus ring and form borders</strong>
+        <ul>
+          <li>Medium complexity; affects accessibility indicators</li>
+          <li>Test across all theme mode combinations</li>
+        </ul>
+      </li>
+      <li><strong>Validate contrast in forced-colors mode</strong>
+        <ul>
+          <li>Ensure high-contrast overrides still work</li>
+        </ul>
+      </li>
+    </ol>
+
+    <h3>Phase 3: Full Integration (Months 7–12)</h3>
+    <ol>
+      <li><strong>Integrate with accent system</strong>
+        <ul>
+          <li>Highest complexity; affects accent-mix-base derivation</li>
+          <li>Requires rethinking how light/dark mode colors are generated</li>
+        </ul>
+      </li>
+      <li><strong>Deprecate manual light/dark branching</strong>
+        <ul>
+          <li>Remove redundant tokens once support is sufficient</li>
+        </ul>
+      </li>
+    </ol>
+  </section>
+
+  <section id="browser-support">
+    <h2>Current Browser Support</h2>
+    
+    <p class="hint">
+      <strong>⚠️ As of May 2026,</strong> <code>contrast-color()</code> is <strong>not yet part</strong> of the CSS Color Module Level 4 final spec and is highly experimental.
+      Implementations vary; always provide fallbacks via <code>@supports</code>.
+    </p>
+
+    <h3>Support Status</h3>
+    <ul>
+      <li><strong>Experimental in:</strong> Chrome/Edge (v125+), Firefox Nightly</li>
+      <li><strong>Not supported:</strong> Safari, older browser versions</li>
+      <li><strong>Check real-time support:</strong> <a href="https://caniuse.com/css-contrast-color" target="_blank" rel="noopener">CanIUse - CSS contrast-color</a></li>
+    </ul>
+
+    <h3>Feature Detection Pattern</h3>
+    <pre><code>/* Check support at runtime (JavaScript) */
+const supportsContrastColor = CSS.supports('color', 'contrast-color(white)');
+if (supportsContrastColor) {
+  document.documentElement.classList.add('has-contrast-color-support');
+}
+
+/* Or use CSS @supports directly (recommended) */
+@supports (color: contrast-color(white)) {
+  /* Apply contrast-color enhancements */
+}</code></pre>
+  </section>
+
+  <section id="reference">
+    <h2>References & Resources</h2>
+
+    <h3>Specifications & Drafts</h3>
+    <ul>
+      <li><a href="https://drafts.csswg.org/css-color-5/#contrast-color" target="_blank" rel="noopener">CSS Color Module Level 5: contrast-color() (Draft)</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html" target="_blank" rel="noopener">WCAG 2.1: Contrast (Minimum)</a></li>
+    </ul>
+
+    <h3>Related Drupal Documentation</h3>
+    <ul>
+      <li><a href="DEFAULT-ADMIN-COLOR-REPORT-latest.html">Default Admin Color Accessibility Report</a></li>
+      <li><a href="DEFAULT-ADMIN-COLOR-MODE-GUIDE-latest.html">Mode and Token Derivation Guide</a></li>
+      <li><a href="https://mgifford.github.io/ACCESSIBILITY.md/examples/COLOR_CONTRAST_ACCESSIBILITY_BEST_PRACTICES.html" target="_blank" rel="noopener">ACCESSIBILITY.md: Color Contrast Best Practices</a></li>
+    </ul>
+
+    <h3>Implementation Discussions</h3>
+    <ul>
+      <li><a href="https://github.com/drupal/core/issues" target="_blank" rel="noopener">Drupal Core Issue Queue</a></li>
+      <li>See issue comments for real-world contrast-color discussions and use cases</li>
+    </ul>
+  </section>
+
+  <footer style="margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.9rem;">
+    <p>
+      This documentation is part of the Default Admin accessibility research and is updated with each color report generation.
+      For the latest color accessibility metrics, see the <a href="DEFAULT-ADMIN-COLOR-REPORT-latest.html">main color report</a>.
+    </p>
+    <p>
+      Questions or feedback? Report accessibility issues on the 
+      <a href="https://github.com/drupal/core/issues" target="_blank" rel="noopener">Drupal Core issue queue</a>.
+    </p>
+  </footer>
+
+  <script>
+    // Set last updated date
+    document.getElementById('lastUpdated').textContent = new Date().toISOString().split('T')[0];
+  </script>
+</body>
+</html>

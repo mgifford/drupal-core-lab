@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Replacement record: Color, contrast, and typography</title>
+</head>
+<body>
+  <main>
+    <h1>Replacement record: Color, contrast, and typography</h1>
+
+    <p>This record explains how two Drupal 7 theming pages were consolidated into the proposed current documentation page, <a href="https://www.drupal.org/docs/getting-started/accessibility/color-contrast-and-typography">Color, contrast, and typography</a>. It also provides a short archival notice for each Drupal 7 page.</p>
+
+    <h2>Pages replaced</h2>
+
+    <table>
+      <caption>Drupal 7 source pages consolidated into the current page</caption>
+      <thead>
+        <tr>
+          <th scope="col">Drupal 7 page</th>
+          <th scope="col">Disposition</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://www.drupal.org/docs/7/creating-accessible-themes/improving-readability-with-fonts-and-typography">Improving readability with fonts and typography</a></td>
+          <td>The durable guidance on real text, legible type, resizing, and alignment was retained and corrected. Motion guidance was assigned to the interactive-components page.</td>
+        </tr>
+        <tr>
+          <td><a href="https://www.drupal.org/docs/7/creating-accessible-themes/specifying-colors-and-contrast-for-accessibility">Specifying colors and contrast for accessibility</a></td>
+          <td>The text-contrast ratios were retained. The page was updated from WCAG 2.0 to WCAG 2.2 and expanded beyond text contrast.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>What was retained</h2>
+
+    <ul>
+      <li>Use real text rather than images of text.</li>
+      <li>Choose legible type and provide sufficient text contrast.</li>
+      <li>Allow people to resize text.</li>
+      <li>Avoid extended passages of fully justified text.</li>
+      <li>Use 4.5:1 for normal text and 3:1 for large-scale text at WCAG Level AA.</li>
+      <li>Measure contrast instead of relying on appearance or assumptions about color vision.</li>
+    </ul>
+
+    <h2>What was updated or added</h2>
+
+    <h3>WCAG 2.2 requirements</h3>
+
+    <p>The old contrast page covered only WCAG 2.0 text contrast. The replacement keeps the correct minimum ratios and adds:</p>
+
+    <ul>
+      <li>non-text contrast for controls, states, focus indicators, and meaningful graphics;</li>
+      <li>use of color requirements;</li>
+      <li>text spacing;</li>
+      <li>200% text resizing;</li>
+      <li>400% zoom and reflow; and</li>
+      <li>testing of dynamic component states.</li>
+    </ul>
+
+    <h3>AA requirements and AAA aspirations</h3>
+
+    <p>The replacement does not describe AAA as "necessary" under loosely defined conditions. For a project targeting AA, enhanced text contrast, the visual-presentation provisions, and other AAA criteria are identified as aspirational. User research or a product policy may set a stronger requirement, but that is distinct from the WCAG AA conformance target.</p>
+
+    <h3>Complete theme states</h3>
+
+    <p>The replacement covers default, hover, focus, active, visited, selected, disabled, and error states. It adds CKEditor output, status messages, administrative elements in the front-end theme, third-party modules, gradients, images, and transparency. This replaces palette-level testing with rendered-component testing.</p>
+
+    <h3>Light, dark, and forced-color modes</h3>
+
+    <p>The new page adds <code>prefers-color-scheme</code>, <code>color-scheme</code>, <code>light-dark()</code>, <code>contrast-color()</code>, and forced colors. These are presented as implementation mechanisms, not conformance guarantees. The page explicitly warns that <code>contrast-color()</code> can produce inadequate text contrast on mid-tone backgrounds and that every resulting state must still be measured.</p>
+
+    <p>No Drupal 11 color values or theme-specific CSS were copied into the page. Drupal core has several themes with different visual systems, so presenting one core theme's palette as the Drupal implementation would be misleading and difficult to maintain.</p>
+
+    <h3>Current typography guidance</h3>
+
+    <p>The replacement avoids prescribing one font category or family. It directs authors to assess character differentiation, weight, language support, resizing, line spacing, line length, and real content. It also distinguishes WCAG text-spacing test values from recommended default design values.</p>
+
+    <h3>Repeatable testing</h3>
+
+    <p>The test list covers computed colors, component states, color-independent meaning, light and dark modes, forced colors, text-spacing overrides, text resizing, reflow, languages, and real content. Automated results are treated as evidence for the combinations they evaluate, not proof that every state meets WCAG.</p>
+
+    <h2>What was removed or corrected</h2>
+
+    <table>
+      <caption>Material removed or corrected and the reason</caption>
+      <thead>
+        <tr>
+          <th scope="col">Old material</th>
+          <th scope="col">Change and reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>The Vischeck statistic that roughly one in twenty people has a color vision deficiency</td>
+          <td>Removed. A dated prevalence claim is unnecessary to explain the requirement and adds a maintenance burden.</td>
+        </tr>
+        <tr>
+          <td>The claim that black text on white is the most readable combination for most people</td>
+          <td>Removed. User needs vary, and some people need different color combinations. The durable requirement is sufficient contrast plus support for user preferences.</td>
+        </tr>
+        <tr>
+          <td>The Drupal 7 "accessibility gate" framing</td>
+          <td>Removed. The current page states WCAG requirements directly and does not imply that one automated gate establishes accessibility.</td>
+        </tr>
+        <tr>
+          <td>A long catalogue of Flash, Adobe AIR, Firefox-extension, Windows, and abandoned contrast tools</td>
+          <td>Removed. Most entries are obsolete. Tool lists age quickly and belong in maintained testing resources, not durable implementation guidance.</td>
+        </tr>
+        <tr>
+          <td>Enhanced contrast described as necessary for urgent headings, small text, glare, or an audience with poor vision</td>
+          <td>Corrected. WCAG enhanced contrast is Level AAA. It is aspirational under an AA target unless the product sets a stronger requirement based on research or policy.</td>
+        </tr>
+        <tr>
+          <td>A preferred list of sans-serif fonts, including Verdana, Tahoma, Trebuchet MS, and Bitstream Vera Sans</td>
+          <td>Removed. No single font category or old system-font list guarantees legibility across languages, devices, and user settings.</td>
+        </tr>
+        <tr>
+          <td>A 9-pixel minimum attributed to W3C</td>
+          <td>Removed. WCAG has no minimum body-text size. The current requirements concern contrast, resizing, spacing, and reflow.</td>
+        </tr>
+        <tr>
+          <td>The claim that pixels and other absolute units must always be avoided because Internet Explorer 6 and 7 could not resize them</td>
+          <td>Removed. The browser limitation is obsolete. Relative units remain useful, but conformance depends on actual resizing and reflow.</td>
+        </tr>
+        <tr>
+          <td>Internet Explorer-specific stylesheets and the instruction not to set text below 75%</td>
+          <td>Removed. These are unsupported browser workarounds and arbitrary thresholds.</td>
+        </tr>
+        <tr>
+          <td>The suggestion to make small text bold as a contrast remedy</td>
+          <td>Removed. Bolding text does not replace adequate font size or required foreground-to-background contrast.</td>
+        </tr>
+        <tr>
+          <td>A line-height range presented as particularly suitable for people with dyslexia</td>
+          <td>Rewritten. A unitless value near 1.5 is presented only as a starting point. The correct result depends on the typeface, language, line length, and user settings.</td>
+        </tr>
+        <tr>
+          <td>The categorical claim that screen readers pronounce all-capital text as individual letters</td>
+          <td>Removed. Pronunciation varies by text, language, screen reader, and voice settings. Long all-capital passages are discouraged for visual readability.</td>
+        </tr>
+        <tr>
+          <td>Blinking and moving text guidance</td>
+          <td>Moved to the planned Accessible JavaScript and interactive components page. Pausing, stopping, animation, motion preferences, and flashing thresholds are behavioral requirements and should not be maintained in two places.</td>
+        </tr>
+        <tr>
+          <td>An old image-replacement technique for graphical headings</td>
+          <td>Removed. Use real text. Current exceptions and alternative-text requirements are covered by Accessible images and media.</td>
+        </tr>
+        <tr>
+          <td>Malformed list and definition-list markup in the typography page</td>
+          <td>Removed during restructuring. The replacement uses valid headings, paragraphs, and lists.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Content mapping</h2>
+
+    <table>
+      <caption>Where the source material appears in the consolidated page</caption>
+      <thead>
+        <tr>
+          <th scope="col">Current section</th>
+          <th scope="col">Primary source material</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Meet minimum text contrast</td>
+          <td>Specifying colors and contrast, updated from WCAG 2.0 to WCAG 2.2.</td>
+        </tr>
+        <tr>
+          <td>Provide non-text contrast and Do not use color alone</td>
+          <td>New coverage needed for current WCAG and component design.</td>
+        </tr>
+        <tr>
+          <td>Design complete color systems</td>
+          <td>Palette-selection intent from the old contrast-tool section, rewritten for semantic tokens and rendered states.</td>
+        </tr>
+        <tr>
+          <td>Support light and dark color schemes</td>
+          <td>New coverage for current CSS and user preferences.</td>
+        </tr>
+        <tr>
+          <td>Respect forced colors and user styles</td>
+          <td>New coverage for forced-color environments and native semantics.</td>
+        </tr>
+        <tr>
+          <td>Choose legible typography</td>
+          <td>Typography source page, with font-family, font-size, and screen-reader claims corrected.</td>
+        </tr>
+        <tr>
+          <td>Allow text-spacing overrides</td>
+          <td>Current WCAG requirement replacing fixed spacing prescriptions.</td>
+        </tr>
+        <tr>
+          <td>Support resizing and reflow</td>
+          <td>Text-resizing intent from the typography page, expanded for WCAG 2.2 reflow.</td>
+        </tr>
+        <tr>
+          <td>Test color and typography</td>
+          <td>Old tool intent converted into a maintainable, repeatable manual and automated test list.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Copy-ready archival notices</h2>
+
+    <h3>Improving readability with fonts and typography</h3>
+
+    <pre><code>&lt;p&gt;&lt;strong&gt;This Drupal 7 page is no longer supported.&lt;/strong&gt; See &lt;a href="/docs/getting-started/accessibility/color-contrast-and-typography"&gt;Color, contrast, and typography&lt;/a&gt; for current guidance. Drupal 7 reached end of life on 5 January 2025. See &lt;a href="/about/drupal-7/d7eol/partners"&gt;Drupal 7 support options&lt;/a&gt; if you still maintain a Drupal 7 site.&lt;/p&gt;</code></pre>
+
+    <h3>Specifying colors and contrast for accessibility</h3>
+
+    <pre><code>&lt;p&gt;&lt;strong&gt;This Drupal 7 page is no longer supported.&lt;/strong&gt; See &lt;a href="/docs/getting-started/accessibility/color-contrast-and-typography"&gt;Color, contrast, and typography&lt;/a&gt; for current guidance. Drupal 7 reached end of life on 5 January 2025. See &lt;a href="/about/drupal-7/d7eol/partners"&gt;Drupal 7 support options&lt;/a&gt; if you still maintain a Drupal 7 site.&lt;/p&gt;</code></pre>
+
+    <h2>Sources checked</h2>
+
+    <ul>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html">W3C: Understanding Contrast (Minimum)</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/contrast-enhanced.html">W3C: Understanding Contrast (Enhanced)</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html">W3C: Understanding Non-text Contrast</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html">W3C: Understanding Use of Color</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/text-spacing.html">W3C: Understanding Text Spacing</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/resize-text.html">W3C: Understanding Resize Text</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/reflow.html">W3C: Understanding Reflow</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/visual-presentation.html">W3C: Understanding Visual Presentation</a></li>
+      <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/forced-colors">MDN: forced-colors</a></li>
+      <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/prefers-color-scheme">MDN: prefers-color-scheme</a></li>
+      <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/color_value/light-dark">MDN: light-dark()</a></li>
+      <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/color_value/contrast-color">MDN: contrast-color()</a></li>
+    </ul>
+  </main>
+</body>
+</html>

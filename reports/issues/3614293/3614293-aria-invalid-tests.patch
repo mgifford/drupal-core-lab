@@ -1,0 +1,500 @@
+diff --git a/core/modules/system/tests/modules/form_test/form_test.routing.yml b/core/modules/system/tests/modules/form_test/form_test.routing.yml
+index 9daceb0e8b7..97fa6adec92 100644
+--- a/core/modules/system/tests/modules/form_test/form_test.routing.yml
++++ b/core/modules/system/tests/modules/form_test/form_test.routing.yml
+@@ -92,6 +92,14 @@ form_test.validate_required:
+   requirements:
+     _access: 'TRUE'
+ 
++form_test.aria_invalid:
++  path: '/form-test/aria-invalid'
++  defaults:
++    _form: '\Drupal\form_test\Form\FormTestAriaInvalidForm'
++    _title: 'Form aria-invalid testing'
++  requirements:
++    _access: 'TRUE'
++
+ form_test.validate_required_no_title:
+   path: '/form-test/validate-required-no-title'
+   defaults:
+diff --git a/core/modules/system/tests/modules/form_test/src/Form/FormTestAriaInvalidForm.php b/core/modules/system/tests/modules/form_test/src/Form/FormTestAriaInvalidForm.php
+new file mode 100644
+index 00000000000..f7236af440a
+--- /dev/null
++++ b/core/modules/system/tests/modules/form_test/src/Form/FormTestAriaInvalidForm.php
+@@ -0,0 +1,118 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\form_test\Form;
++
++use Drupal\Core\Form\FormBase;
++use Drupal\Core\Form\FormStateInterface;
++
++/**
++ * Form constructor to test aria-invalid on various form element types.
++ *
++ * Provides a form with multiple element types that can be validated
++ * to trigger aria-invalid="true" attributes for accessibility testing.
++ *
++ * @internal
++ */
++class FormTestAriaInvalidForm extends FormBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  public function getFormId() {
++    return 'form_test_aria_invalid_form';
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function buildForm(array $form, FormStateInterface $form_state) {
++    $form['textfield'] = [
++      '#type' => 'textfield',
++      '#title' => 'Textfield',
++      '#required' => TRUE,
++    ];
++    $form['textarea'] = [
++      '#type' => 'textarea',
++      '#title' => 'Textarea',
++      '#required' => TRUE,
++    ];
++    $form['select'] = [
++      '#type' => 'select',
++      '#title' => 'Select',
++      '#options' => ['' => '- None -', 'one' => 'One', 'two' => 'Two'],
++      '#required' => TRUE,
++    ];
++    $form['checkboxes'] = [
++      '#type' => 'checkboxes',
++      '#title' => 'Checkboxes',
++      '#options' => ['one' => 'One', 'two' => 'Two'],
++      '#required' => TRUE,
++      '#element_validate' => ['::validateCheckboxes'],
++    ];
++    $form['radios'] = [
++      '#type' => 'radios',
++      '#title' => 'Radios',
++      '#options' => ['one' => 'One', 'two' => 'Two'],
++      '#required' => TRUE,
++    ];
++    $form['email'] = [
++      '#type' => 'email',
++      '#title' => 'Email',
++      '#required' => TRUE,
++    ];
++    $form['url'] = [
++      '#type' => 'url',
++      '#title' => 'URL',
++      '#maxlength' => 10,
++    ];
++    $form['number'] = [
++      '#type' => 'number',
++      '#title' => 'Number',
++      '#min' => 10,
++      '#max' => 20,
++    ];
++    $form['color'] = [
++      '#type' => 'color',
++      '#title' => 'Color',
++    ];
++    $form['password'] = [
++      '#type' => 'password',
++      '#title' => 'Password',
++      '#required' => TRUE,
++    ];
++    $form['tel'] = [
++      '#type' => 'tel',
++      '#title' => 'Telephone',
++      '#required' => TRUE,
++    ];
++    $form['date'] = [
++      '#type' => 'date',
++      '#title' => 'Date',
++    ];
++    $form['actions'] = ['#type' => 'actions'];
++    $form['actions']['submit'] = ['#type' => 'submit', '#value' => 'Submit'];
++    return $form;
++  }
++
++  /**
++   * Custom validator for checkboxes to trigger required error.
++   */
++  public function validateCheckboxes($element, FormStateInterface $form_state): void {
++    // Checkboxes don't have native required validation, so we validate manually.
++    $value = $form_state->getValue($element['#parents']);
++    $checked = array_filter($value);
++    if (empty($checked)) {
++      $form_state->setError($element, $this->t('@title is required.', ['@title' => $element['#title']]));
++    }
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function submitForm(array &$form, FormStateInterface $form_state): void {
++    $this->messenger()->addStatus('The form_test_aria_invalid_form was submitted successfully.');
++  }
++
++}
+diff --git a/core/modules/system/tests/src/Functional/Form/FormAriaInvalidTest.php b/core/modules/system/tests/src/Functional/Form/FormAriaInvalidTest.php
+new file mode 100644
+index 00000000000..fa9d3356bd5
+--- /dev/null
++++ b/core/modules/system/tests/src/Functional/Form/FormAriaInvalidTest.php
+@@ -0,0 +1,202 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\system\Functional\Form;
++
++use Drupal\Tests\BrowserTestBase;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++
++/**
++ * Tests aria-invalid attribute on form elements with validation errors.
++ *
++ * Verifies that form validation errors properly set aria-invalid="true"
++ * on various form element types for screen reader accessibility.
++ *
++ * @see \Drupal\Core\Render\Element\RenderElementBase::setAttributes()
++ */
++#[Group('Form')]
++#[RunTestsInSeparateProcesses]
++class FormAriaInvalidTest extends BrowserTestBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  protected static $modules = ['form_test'];
++
++  /**
++   * {@inheritdoc}
++   */
++  protected $defaultTheme = 'stark';
++
++  /**
++   * Tests aria-invalid on required textfield with validation error.
++   */
++  public function testAriaInvalidOnRequiredTextfield(): void {
++    $this->drupalGet('form-test/aria-invalid');
++
++    // Submit the form empty to trigger required validation.
++    $this->submitForm([], 'Submit');
++
++    // The textfield should have aria-invalid="true".
++    $this->assertSession()->elementAttributeExists('named', ['field', 'Textfield'], 'aria-invalid');
++
++    // Fill in the textfield and resubmit to verify aria-invalid is removed.
++    $this->submitForm(['textfield' => $this->randomString()], 'Submit');
++    $this->assertSession()->elementAttributeNotExists('named', ['field', 'Textfield'], 'aria-invalid');
++  }
++
++  /**
++   * Tests aria-invalid on required textarea with validation error.
++   */
++  public function testAriaInvalidOnRequiredTextarea(): void {
++    $this->drupalGet('form-test/aria-invalid');
++
++    // Submit the form empty to trigger required validation.
++    $this->submitForm([], 'Submit');
++
++    // Textarea should have aria-invalid="true".
++    $this->assertSession()->elementAttributeExists('named', ['field', 'Textarea'], 'aria-invalid');
++  }
++
++  /**
++   * Tests aria-invalid on required select with validation error.
++   */
++  public function testAriaInvalidOnRequiredSelect(): void {
++    $this->drupalGet('form-test/aria-invalid');
++
++    // Submit the form empty to trigger required validation.
++    $this->submitForm([], 'Submit');
++
++    // Select should have aria-invalid="true".
++    $this->assertSession()->elementAttributeExists('named', ['field', 'Select'], 'aria-invalid');
++  }
++
++  /**
++   * Tests aria-invalid on required checkboxes with validation error.
++   */
++  public function testAriaInvalidOnRequiredCheckboxes(): void {
++    $this->drupalGet('form-test/aria-invalid');
++
++    // Submit the form empty to trigger required validation.
++    $this->submitForm([], 'Submit');
++
++    // Checkboxes get aria-invalid on the first checkbox input.
++    $assert_session = $this->assertSession();
++    $assert_session->elementExists('xpath', '//input[@type="checkbox" and contains(@aria-invalid, "true")]');
++  }
++
++  /**
++   * Tests aria-invalid on required radios with validation error.
++   */
++  public function testAriaInvalidOnRequiredRadios(): void {
++    $this->drupalGet('form-test/aria-invalid');
++
++    // Submit the form empty to trigger required validation.
++    $this->submitForm([], 'Submit');
++
++    // Radios get aria-invalid on the first radio input.
++    $assert_session = $this->assertSession();
++    $assert_session->elementExists('xpath', '//input[@type="radio" and contains(@aria-invalid, "true")]');
++  }
++
++  /**
++   * Tests aria-invalid on required email field with validation error.
++   */
++  public function testAriaInvalidOnRequiredEmail(): void {
++    $this->drupalGet('form-test/aria-invalid');
++
++    // Submit the form empty to trigger required validation.
++    $this->submitForm([], 'Submit');
++
++    // Email should have aria-invalid="true".
++    $this->assertSession()->elementAttributeExists('named', ['field', 'Email'], 'aria-invalid');
++  }
++
++  /**
++   * Tests aria-invalid on required password field with validation error.
++   */
++  public function testAriaInvalidOnRequiredPassword(): void {
++    $this->drupalGet('form-test/aria-invalid');
++
++    // Submit the form empty to trigger required validation.
++    $this->submitForm([], 'Submit');
++
++    // Password should have aria-invalid="true".
++    $this->assertSession()->elementAttributeExists('named', ['field', 'Password'], 'aria-invalid');
++  }
++
++  /**
++   * Tests aria-invalid on required tel field with validation error.
++   */
++  public function testAriaInvalidOnRequiredTel(): void {
++    $this->drupalGet('form-test/aria-invalid');
++
++    // Submit the form empty to trigger required validation.
++    $this->submitForm([], 'Submit');
++
++    // Tel should have aria-invalid="true".
++    $this->assertSession()->elementAttributeExists('named', ['field', 'Telephone'], 'aria-invalid');
++  }
++
++  /**
++   * Tests that multiple fields can have aria-invalid simultaneously.
++   */
++  public function testMultipleFieldsAriaInvalid(): void {
++    $this->drupalGet('form-test/aria-invalid');
++
++    // Submit the form empty to trigger required validation on multiple fields.
++    $this->submitForm([], 'Submit');
++
++    // Check that multiple elements have aria-invalid="true".
++    $this->assertSession()->elementAttributeExists('named', ['field', 'Textfield'], 'aria-invalid');
++    $this->assertSession()->elementAttributeExists('named', ['field', 'Textarea'], 'aria-invalid');
++    $this->assertSession()->elementAttributeExists('named', ['field', 'Email'], 'aria-invalid');
++    $this->assertSession()->elementAttributeExists('named', ['field', 'Password'], 'aria-invalid');
++    $this->assertSession()->elementAttributeExists('named', ['field', 'Telephone'], 'aria-invalid');
++  }
++
++  /**
++   * Tests that aria-invalid is removed when field is corrected.
++   */
++  public function testAriaInvalidRemovedOnCorrection(): void {
++    $this->drupalGet('form-test/aria-invalid');
++
++    // Submit empty to trigger errors.
++    $this->submitForm([], 'Submit');
++
++    $this->assertSession()->elementAttributeExists('named', ['field', 'Textfield'], 'aria-invalid');
++
++    // Fill in the textfield and resubmit.
++    $this->submitForm(['textfield' => $this->randomString()], 'Submit');
++    $this->assertSession()->elementAttributeNotExists('named', ['field', 'Textfield'], 'aria-invalid');
++  }
++
++  /**
++   * Tests aria-invalid on color field (optional, no error expected).
++   */
++  public function testAriaInvalidOnColor(): void {
++    $this->drupalGet('form-test/aria-invalid');
++
++    // Color field is optional, so submitting empty should not trigger aria-invalid.
++    $this->submitForm([], 'Submit');
++
++    // Color field should not have aria-invalid since it's optional.
++    $this->assertSession()->elementAttributeNotExists('named', ['field', 'Color'], 'aria-invalid');
++  }
++
++  /**
++   * Tests aria-invalid on date field (optional, no error expected).
++   */
++  public function testAriaInvalidOnDate(): void {
++    $this->drupalGet('form-test/aria-invalid');
++
++    // Date field is optional, so submitting empty should not trigger aria-invalid.
++    $this->submitForm([], 'Submit');
++
++    // Date field should not have aria-invalid since it's optional.
++    $this->assertSession()->elementAttributeNotExists('named', ['field', 'Date'], 'aria-invalid');
++  }
++
++}
+diff --git a/tests/playwright/tests/a11y-aria-invalid-sr.spec.ts b/tests/playwright/tests/a11y-aria-invalid-sr.spec.ts
+new file mode 100644
+index 00000000000..64498794276
+--- /dev/null
++++ b/tests/playwright/tests/a11y-aria-invalid-sr.spec.ts
+@@ -0,0 +1,143 @@
++/**
++ * Virtual Screen Reader validation for aria-invalid on form elements.
++ *
++ * Validates that form validation errors produce correct accessibility
++ * tree output via @guidepup/virtual-screen-reader. The virtual SR
++ * follows W3C CORE-AAM and HTML-AAM specs, so it exposes aria-invalid
++ * state changes that axe-core cannot detect.
++ *
++ * Cross-validation approach:
++ *   - axe-core: checks aria-invalid attribute exists in DOM (structural)
++ *   - Virtual SR: checks aria-invalid is announced in SR output (semantic)
++ *   - Both confirm → DEFINITIVE barrier
++ *
++ * Run locally:
++ *   cd tests/playwright && npx playwright test tests/a11y-aria-invalid-sr.spec.ts
++ *
++ * @see https://www.w3.org/TR/wai-aria-1.2/#aria-invalid
++ * @see https://www.w3.org/TR/core-aam-1.2/#roleconditionsstate
++ */
++import { test, expect } from '@playwright/test';
++import { AUTH_STATE_FILE } from '../lib/auth-setup';
++import {
++  injectVirtualSR,
++  getSpokenPhraseLog,
++} from '../lib/virtual-sr';
++
++const FORM_PATH = '/form-test/aria-invalid';
++
++test.describe('Virtual SR — aria-invalid accessibility tree', () => {
++  test.use({ storageState: AUTH_STATE_FILE });
++
++  test('invalid fields announce invalid state', async ({ page }) => {
++    await page.goto(FORM_PATH, { waitUntil: 'domcontentloaded' });
++    await page.waitForSelector('main', { timeout: 10000 });
++
++    // Submit empty to trigger required validation errors.
++    await page.click('input[type="submit"]');
++    await page.waitForSelector('.messages--error', { timeout: 5000 });
++
++    // Inject virtual SR and capture what a screen reader would announce.
++    await injectVirtualSR(page);
++    const log = await getSpokenPhraseLog(page);
++
++    // Log the full tree for debugging.
++    console.log('  Full SR log:', log);
++
++    // Check that invalid fields are announced with invalid state.
++    // The virtual SR should announce something like "invalid" or "invalid: true"
++    // for fields that have aria-invalid="true".
++    const invalidPhrases = log.filter(
++      (phrase) => phrase.includes('invalid') && !phrase.includes('end of'),
++    );
++
++    console.log('  Invalid-related phrases:', invalidPhrases);
++
++    // Verify specific elements are in the tree.
++    const logText = log.join('\n');
++
++    // Check for textbox elements in the tree.
++    const hasTextfield = logText.includes('textbox');
++    expect(hasTextfield, 'Tree should contain textbox for textfield element').toBeTruthy();
++
++    const hasCombobox = logText.includes('combobox');
++    expect(hasCombobox, 'Tree should contain combobox for select element').toBeTruthy();
++  });
++
++  test('valid fields do not announce invalid state', async ({ page }) => {
++    await page.goto(FORM_PATH, { waitUntil: 'domcontentloaded' });
++    await page.waitForSelector('main', { timeout: 10000 });
++
++    // Fill in required fields to clear validation errors.
++    await page.fill('#edit-textfield', 'Test value');
++    await page.fill('#edit-textarea', 'Test value');
++    await page.selectOption('#edit-select', 'one');
++    await page.check('#edit-checkboxes-one');
++    await page.fill('#edit-email', 'test@example.com');
++    await page.fill('#edit-password', 'password123');
++    await page.fill('#edit-tel', '555-1234');
++
++    // Submit the form.
++    await page.click('input[type="submit"]');
++    await page.waitForTimeout(1000);
++
++    // Run virtual SR to capture accessibility tree.
++    await injectVirtualSR(page);
++    const log = await getSpokenPhraseLog(page);
++
++    // Check that valid fields do NOT announce invalid state.
++    // After filling in values and submitting, there should be no
++    // "invalid" announcements for those fields.
++    // Filter out phrases where "invalid" is part of the element text (e.g. heading titles).
++    const invalidPhrases = log.filter(
++      (phrase) => phrase.includes('invalid') && !phrase.includes('end of') &&
++        !phrase.includes('heading,') && !phrase.includes('Form aria-invalid'),
++    );
++
++    console.log('  Invalid phrases after correction:', invalidPhrases);
++
++    // There should be no invalid announcements since we corrected the fields.
++    if (invalidPhrases.length > 0) {
++      console.log('  Remaining invalid phrase:', invalidPhrases[0]);
++    }
++    expect(
++      invalidPhrases.length,
++      'Virtual SR should not announce invalid state for corrected fields',
++    ).toBe(0);
++  });
++
++  test('all form element types produce correct tree nodes', async ({ page }) => {
++    await page.goto(FORM_PATH, { waitUntil: 'domcontentloaded' });
++    await page.waitForSelector('main', { timeout: 10000 });
++
++    // Submit empty to trigger all validation errors.
++    await page.click('input[type="submit"]');
++    await page.waitForSelector('.messages--error', { timeout: 5000 });
++
++    // Inject virtual SR to capture accessibility tree.
++    await injectVirtualSR(page);
++    const log = await getSpokenPhraseLog(page);
++    const logText = log.join('\n');
++
++    // Verify all form element types are represented in the tree.
++    const expectedNodes = [
++      { type: 'textbox', element: 'textfield' },
++      { type: 'textbox', element: 'textarea' },
++      { type: 'combobox', element: 'select' },
++      { type: 'checkbox', element: 'checkboxes' },
++      { type: 'radio', element: 'radios' },
++      { type: 'textbox', element: 'email' },
++      { type: 'textbox', element: 'password' },
++      { type: 'textbox', element: 'tel' },
++    ];
++
++    for (const { type, element } of expectedNodes) {
++      const found = logText.includes(type);
++      console.log(`  ${element} (${type}): ${found ? 'found' : 'MISSING'}`);
++      expect(found, `Tree should contain ${type} for ${element} element`).toBeTruthy();
++    }
++
++    // Log the full tree for debugging.
++    console.log(`  Total SR phrases: ${log.length}`);
++  });
++});

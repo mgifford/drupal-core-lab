@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Changes to the Drupal Accessibility Review Guide</title>
+</head>
+<body>
+	<main>
+		<h1>Changes to the Drupal Accessibility Review Guide</h1>
+
+		<p>This document explains the redraft of <a href="https://www.drupal.org/docs/getting-started/accessibility/how-to-do-an-accessibility-review">How to do an accessibility review</a>. The original page was last updated on April 15, 2026. The revision aligns the review process with the proposed accessibility gate, contribution guidance, and coding standards.</p>
+
+		<h2>Summary</h2>
+
+      <p>The revised page is organized as an eight-step review workflow. It begins with people, tasks, proportionate scope, and test conditions. Automated results are treated as evidence from limited rules. Manual testing, assistive-technology testing, and disabled-user testing are separate evidence sources. The final sections require accessible artifacts and classify what blocks approval, what requires review, and what remains aspirational.</p>
+
+      <p>The original body contained approximately 2,559 words. The revised body contains 2,257 words, a decrease of 11.8 percent. Product lists, outdated tutorials, duplicated standards, and inaccurate requirements were removed while the review workflow and evidence requirements were expanded.</p>
+
+		<p>The revision:</p>
+
+		<ul>
+			<li>Defines the difference between a contribution review and a conformance audit.</li>
+			<li>Starts with the affected people and task instead of an automated tool.</li>
+			<li>Separates accessibility barriers, requirements, test rules, and deterministic automated gates.</li>
+        <li>Adds proportionate scope, environment, state, baseline, and evidence requirements.</li>
+			<li>Updates manual checks for WCAG 2.2.</li>
+			<li>Replaces unlimited assistive-technology testing with a documented, risk-based matrix.</li>
+        <li>Adds disabled-user testing with consent, privacy, representation, and approval-role boundaries.</li>
+        <li>Requires accessible review artifacts and disclosure of checks not performed.</li>
+        <li>Defines review outcomes and rationale for blockers, manual review, follow-ups, accepted exceptions, aspirational findings, and false positives.</li>
+		</ul>
+
+		<h2>Detailed changes</h2>
+
+		<table>
+			<caption>Changes grouped by original section or claim</caption>
+			<thead>
+				<tr>
+					<th scope="col">Original area</th>
+					<th scope="col">Change</th>
+					<th scope="col">Reason</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<th scope="row">Introduction</th>
+					<td>Replaced the general reassurance with a definition of an accessibility review and its limits.</td>
+					<td>The original page did not distinguish a review of a contribution from a scoped WCAG conformance evaluation.</td>
+				</tr>
+				<tr>
+					<th scope="row">Review scope</th>
+          <td>Added user tasks, workflows, versions, configuration, roles, content, states, viewports, preferences, browsers, assistive technologies, applicable checks, and explained exclusions.</td>
+          <td>A result cannot be reproduced or interpreted without knowing what was tested, under which conditions, and why the scope is proportionate.</td>
+				</tr>
+				<tr>
+					<th scope="row">Tugboat previews</th>
+					<td>Retained Tugboat as a useful way to provide a stable preview but reduced the implementation detail.</td>
+					<td>A preview supports testing. It is not itself an accessibility test and local environments remain valid.</td>
+				</tr>
+				<tr>
+					<th scope="row">“Start by running automated tooling”</th>
+					<td>Moved automated checks after scope definition and the evidence hierarchy.</td>
+					<td>Starting with a tool encourages reviewers to define accessibility by the tool’s available rules rather than by affected people, tasks, and requirements.</td>
+				</tr>
+				<tr>
+					<th scope="row">Tool list</th>
+					<td>Removed the fixed list of WAVE, Accessibility Insights, Lighthouse, Siteimprove, and Editoria11y.</td>
+					<td>The products serve different audiences and workflows, and the list will become stale. The guide now states what evidence a tool result must provide.</td>
+				</tr>
+				<tr>
+					<th scope="row">Automated findings</th>
+					<td>Separated deterministic failures from incomplete, needs-review, context-dependent, and best-practice results.</td>
+					<td>Tools test specific rules, not accessibility as a whole. Only a smaller reliable subset is appropriate for unattended build failures.</td>
+				</tr>
+				<tr>
+					<th scope="row">Rule suppression</th>
+          <td>Added requirements for narrow exceptions, written reasons, linked follow-up issues, and conditions for rechecking.</td>
+          <td>Current Drupal core Nightwatch tests use targeted disabled rules with issue references. Broad or indefinite suppression can hide regressions.</td>
+				</tr>
+				<tr>
+					<th scope="row">Keyboard navigation</th>
+					<td>Reorganized the repeated questions into checks for operation, order, visible focus, obscured focus, traps, temporary contexts, custom widgets, and hover or focus content.</td>
+					<td>The revised checklist is shorter, testable, and includes WCAG 2.2 Focus Not Obscured.</td>
+				</tr>
+				<tr>
+					<th scope="row">Dialog focus</th>
+					<td>Limited focus containment to modal dialogs and required a predictable close action.</td>
+					<td>Not every dialog is modal. Applying a focus trap to a non-modal interaction can create a barrier.</td>
+				</tr>
+				<tr>
+					<th scope="row">Pointer and touch</th>
+					<td>Added pointer gestures, cancellation, dragging alternatives, label in name, and target size.</td>
+					<td>The original page concentrated on keyboard and omitted several applicable input requirements, including WCAG 2.2 additions.</td>
+				</tr>
+				<tr>
+					<th scope="row">Responsive breakpoints</th>
+					<td>Retained responsive keyboard testing and placed it within zoom, reflow, and personalization testing.</td>
+					<td>Responsive states affect high-zoom users as well as mobile users, but the test must also address reflow, text spacing, and changed interaction patterns.</td>
+				</tr>
+				<tr>
+					<th scope="row">Screen magnification</th>
+					<td>Replaced product and keyboard-shortcut guidance with tests for 200 percent text resize and 400 percent reflow.</td>
+					<td>The original page described 200 percent as a best practice, contained typographical errors, and did not state the Level AA reflow test accurately.</td>
+				</tr>
+				<tr>
+					<th scope="row">Headings</th>
+					<td>Retained descriptive, hierarchical headings but stated that WCAG does not require exactly one <code>h1</code>. Removed the blanket claim that automated tools cover most heading issues.</td>
+					<td>One <code>h1</code> and unbroken levels can be useful conventions, but they are not universal WCAG conformance requirements. Tools cannot judge whether headings describe the structure well.</td>
+				</tr>
+				<tr>
+          <th scope="row">Rendered semantics</th>
+          <td>Added inspection of the final rendered document object model and accessibility tree when generated names, roles, states, properties, or relationships affect the result.</td>
+          <td>Source templates and screenshots do not establish what browsers and assistive technologies receive after rendering.</td>
+        </tr>
+        <tr>
+					<th scope="row">Color contrast</th>
+					<td>Added the large-text exception and non-text contrast for controls, focus indicators, states, and essential graphics.</td>
+					<td>The original statement that text should always meet 4.5:1 was incomplete.</td>
+				</tr>
+				<tr>
+					<th scope="row">Icons</th>
+					<td>Replaced the universal requirement for visible accompanying text with checks for understandable visible context, accessible names, and non-color cues.</td>
+					<td>Visible text is often preferable, but an icon can be accessible when its purpose is clear and exposed programmatically.</td>
+				</tr>
+				<tr>
+					<th scope="row">Forms and errors</th>
+					<td>Added a complete section covering labels, instructions, groups, input purpose, validation, error recovery, redundant entry, authentication, and error prevention.</td>
+					<td>The original page did not provide a usable form-review process despite the importance of forms in Drupal administration.</td>
+				</tr>
+				<tr>
+					<th scope="row">Sound and video</th>
+					<td>Replaced the media-type assertions with a requirement to apply the correct WCAG criterion based on whether media is live, prerecorded, audio-only, video-only, or synchronized.</td>
+					<td>Captions, transcripts, audio descriptions, and media alternatives are not interchangeable. The original page mixed Level A, AA, and AAA requirements.</td>
+				</tr>
+				<tr>
+					<th scope="row">Animation and autoplay</th>
+					<td>Replaced the simplified five-second advice with checks for autoplaying audio, moving and auto-updating content, time limits, flashing, and reduced motion.</td>
+					<td>WCAG applies different requirements to these behaviors. One duration rule does not cover them.</td>
+				</tr>
+				<tr>
+					<th scope="row">Authoring workflows</th>
+          <td>Added separate outcomes for disabled authors, support for producing accessible content, generated output, preservation of accessibility information, defaults, prompts, and repair options.</td>
+          <td>Drupal is an authoring tool. Reviewing only the editor or only public-facing output omits distinct ATAG Part A, ATAG Part B, and WCAG concerns.</td>
+				</tr>
+				<tr>
+					<th scope="row">Dynamic content</th>
+					<td>Removed the Drupal 8 API link and added visible state, semantics, focus, announcements, loading, completion, empty, and error states.</td>
+					<td>A screen reader alone does not determine whether a dynamic interaction is accessible. Review must cover every affected state and input method.</td>
+				</tr>
+				<tr>
+					<th scope="row">Screen-reader testing</th>
+					<td>Replaced the long introductory tutorials with a task-based test covering structure, controls, forms, dynamic changes, focus, and content.</td>
+					<td>The review guide should define what to test. Product tutorials and videos change and can be linked from separate learning resources.</td>
+				</tr>
+				<tr>
+					<th scope="row">Turning off the monitor</th>
+					<td>Removed the instruction and explicitly rejected it as a substitute for testing with blind users.</td>
+					<td>It is a poor simulation of blindness and can create false confidence in a sighted tester’s results.</td>
+				</tr>
+				<tr>
+					<th scope="row">“Test on as many as you can”</th>
+          <td>Replaced unlimited combinations with a documented matrix of exact browser, operating-system, assistive-technology, task, state, and date information based on project support, affected users, and technical risk.</td>
+          <td>Unbounded testing is not achievable or repeatable. A defined matrix produces evidence reviewers can compare without generalizing one combination.</td>
+				</tr>
+				<tr>
+					<th scope="row">Link purpose</th>
+					<td>Changed the check to link and button purpose in context.</td>
+					<td>WCAG Level A requires link purpose in context. Requiring every link to make sense independently applies the stricter Level AAA criterion.</td>
+				</tr>
+				<tr>
+					<th scope="row">Disabled-user testing</th>
+          <td>Added a separate section with scope, task, voluntary participation, privacy, diagnosis, approval-role, public-evidence, reporting, and generalization limits.</td>
+          <td>Disabled-user testing can find barriers missed by conformance evaluation. It does not establish conformance, turn participants into approvers, represent every disabled person, or justify publishing identifying details without permission.</td>
+        </tr>
+        <tr>
+          <th scope="row">Review artifacts</th>
+          <td>Requires descriptions for information in images and captions or transcripts for recordings needed to understand a result.</td>
+          <td>Reviewers should not need visual-only evidence to understand or reproduce an accessibility result.</td>
+				</tr>
+				<tr>
+					<th scope="row">Review outcome</th>
+          <td>Added explicit treatments and rationale for confirmed failures, deterministic regressions, review-needed results, pre-existing problems, accepted exceptions, aspirational findings, false positives, and barriers without a WCAG mapping.</td>
+          <td>A review process needs a decision model and a recheck condition for follow-ups or exceptions. A list of checks alone does not determine whether a change is ready.</td>
+        </tr>
+        <tr>
+          <th scope="row"><code>Needs accessibility review</code></th>
+          <td>Links to the core gate for the canonical issue-tag indicators and retains the Topic Maintainer signoff meaning.</td>
+          <td>The gate owns the escalation decision, while this page owns the review procedure and evidence. Linking avoids duplicated policy text that could drift.</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<h2>Content removed or consolidated</h2>
+
+		<ul>
+			<li><strong>Fixed evaluation-tool list:</strong> Removed because tool choice is secondary to review scope and evidence.</li>
+			<li><strong>ZoomText article and browser shortcut instructions:</strong> Removed because they do not define the required outcome and were platform-specific.</li>
+			<li><strong>“One H1” as a requirement:</strong> Removed because it is not a WCAG requirement.</li>
+			<li><strong>Old WCAG 2.0 and 2.1 links:</strong> Replaced with current WCAG 2.2 requirements.</li>
+			<li><strong>Drupal 8 <code>Drupal.announce()</code> documentation:</strong> Replaced by behavior-based review steps and the current coding standards.</li>
+			<li><strong>Protocol-relative and malformed ARIA links:</strong> Removed.</li>
+			<li><strong>Screen-reader tutorial videos:</strong> Removed from the procedure. They belong in learning resources, not the review checklist.</li>
+			<li><strong>Pronunciation always being out of scope:</strong> Removed as an unjustified blanket statement.</li>
+			<li><strong>Repeated explanations of disability groups:</strong> Consolidated into task and user-impact guidance.</li>
+		</ul>
+
+		<h2>Claims not added</h2>
+
+		<p>The revision does not claim that:</p>
+
+		<ul>
+			<li>An automated scan determines accessibility or WCAG conformance.</li>
+			<li>A rule result is identical to a user barrier.</li>
+			<li>Every tool rule is reliable enough to block a build.</li>
+			<li>One <code>h1</code> is required for WCAG conformance.</li>
+			<li>Every dialog must trap focus.</li>
+			<li>Every icon needs adjacent visible text.</li>
+			<li>A transcript satisfies every media requirement.</li>
+			<li>A sighted contributor using a screen reader reproduces the experience of a blind user.</li>
+			<li>One disabled participant represents a disability group.</li>
+			<li>User testing replaces standards-based evaluation.</li>
+		</ul>
+
+		<h2>Sources checked</h2>
+
+		<ul>
+			<li><a href="https://www.w3.org/TR/WCAG22/">Web Content Accessibility Guidelines (WCAG) 2.2</a></li>
+			<li><a href="https://www.w3.org/WAI/test-evaluate/tools/selecting/">W3C guidance for selecting accessibility evaluation tools</a></li>
+			<li><a href="https://www.w3.org/WAI/test-evaluate/involving-users/">W3C guidance for involving disabled users in evaluation</a></li>
+			<li><a href="https://www.w3.org/WAI/test-evaluate/conformance/wcag-em/">WCAG Evaluation Methodology overview</a></li>
+			<li><a href="https://www.w3.org/TR/act-rules-format/">Accessibility Conformance Testing Rules Format 1.1</a></li>
+			<li><a href="https://www.drupal.org/docs/getting-started/accessibility/accessibility-coding-standards">Current Drupal Accessibility Coding Standards</a></li>
+        <li><a href="https://www.drupal.org/about/core/policies/core-change-policies/core-gates/accessibility">Current Drupal core accessibility gate</a></li>
+        <li><a href="https://www.drupal.org/docs/develop/issues/fields-and-other-parts-of-an-issue/issue-tags-special-tags">Drupal issue tags: special tags</a></li>
+			<li><a href="https://github.com/drupal/core/blob/11.x/tests/Drupal/Nightwatch/Tests/a11yTestDefault.js">Default-theme axe-core Nightwatch tests</a></li>
+			<li><a href="https://github.com/drupal/core/blob/11.x/tests/Drupal/Nightwatch/Tests/a11yTestAdmin.js">Administration-theme axe-core Nightwatch tests</a></li>
+		</ul>
+	</main>
+</body>
+</html>

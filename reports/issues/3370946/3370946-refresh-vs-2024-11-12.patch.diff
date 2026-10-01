@@ -1,0 +1,2230 @@
+--- 3370946-page-title-backport-10-2-10.patch	2026-08-23 19:20:16
++++ 3370946-page-title-refresh-main.patch	2026-08-23 19:20:15
+@@ -1,92 +1,74 @@
++core/core.services.yml                             |   8 +
++ .../Core/Block/Plugin/Block/PageTitleBlock.php     | 139 +++++++++++++++-
++ .../Core/Controller/BaseRouteTitleResolver.php     |  68 ++++++++
++ core/lib/Drupal/Core/Menu/LocalTaskManager.php     | 133 ++++++++++------
++ .../Drupal/Core/Menu/LocalTaskManagerInterface.php |  11 ++
++ core/lib/Drupal/Core/Routing/RequestGenerator.php  |  77 +++++++++
++ core/lib/Drupal/Core/Theme/ThemePreprocess.php     |  28 +++-
++ core/modules/block/block.post_update.php           |  19 +++
++ .../tests/src/Functional/PageTitleBlockTest.php    | 177 +++++++++++++++++++++
++ .../src/Functional/Update/BlockTitleUpdateTest.php |  44 +++++
++ .../tests/src/Functional/BlockContentListTest.php  |   2 +-
++ .../src/Functional/BlockContentListViewsTest.php   |   2 +-
++ .../tests/src/Functional/FieldUIRouteTest.php      |  10 +-
++ .../tests/src/Functional/LayoutBuilderTest.php     |   6 +-
++ .../modules/system/config/schema/system.schema.yml |   8 +
++ .../tests/src/Functional/Module/UninstallTest.php  |   4 +-
++ .../install/block.block.umami_page_title.yml       |   1 +
++ .../install/block.block.stark_page_title.yml       |   1 +
++ ...ck.testing_theme_optional_blocks_page_title.yml |   1 +
++ .../KernelTests/Config/Schema/MappingTest.php      |   3 +
++ .../Tests/Core/Routing/RequestGeneratorTest.php    | 161 +++++++++++++++++++
++ .../optional/block.block.claro_page_title.yml      |   1 +
++ .../optional/block.block.olivero_page_title.yml    |   1 +
++ 23 files changed, 833 insertions(+), 72 deletions(-)
++
+ diff --git a/core/core.services.yml b/core/core.services.yml
+-index 746bed44..24900bce 100644
++index e9ab1793d49..47b7e885c06 100644
+ --- a/core/core.services.yml
+ +++ b/core/core.services.yml
+-@@ -1045,6 +1045,14 @@ services:
++@@ -1164,6 +1164,14 @@ services:
+      class: Drupal\Core\Utility\LinkGenerator
+      arguments: ['@url_generator', '@module_handler', '@renderer']
+    Drupal\Core\Utility\LinkGeneratorInterface: '@link_generator'
+ +  request_generator:
+-+    class: Drupal\Core\Utility\RequestGenerator
+++    class: Drupal\Core\Routing\RequestGenerator
+ +    arguments: ['@path_processor_manager', '@path.current', '@router']
+-+  Drupal\Core\Utility\RequestGenerator: '@request_generator'
+++  Drupal\Core\Routing\RequestGenerator: '@request_generator'
+ +  base_route_title_resolver:
+ +    class: Drupal\Core\Controller\BaseRouteTitleResolver
+ +    arguments: ['@url_generator', '@title_resolver', '@plugin.manager.menu.local_task', '@router.route_provider', '@request_generator']
+-+  Drupal\Core\Utility\BaseRouteTitleResolver: '@base_route_title_resolver'
+++  Drupal\Core\Controller\BaseRouteTitleResolver: '@base_route_title_resolver'
+    router:
+      class: Drupal\Core\Routing\AccessAwareRouter
+      arguments: ['@router.no_access_checks', '@access_manager', '@current_user']
+-diff --git a/core/includes/theme.inc b/core/includes/theme.inc
+-index 15efa045..fe01f8c6 100644
+---- a/core/includes/theme.inc
+-+++ b/core/includes/theme.inc
+-@@ -1320,11 +1320,30 @@ function template_preprocess_html(&$variables) {
+-     $variables['page']['#title'] = (string) \Drupal::service('renderer')->render($variables['page']['#title']);
+-   }
+-   if (!empty($variables['page']['#title'])) {
+--    $head_title = [
+--      // Marking the title as safe since it has had the tags stripped.
+--      'title' => Markup::create(trim(strip_tags($variables['page']['#title']))),
+--      'name' => $site_config->get('name'),
+--    ];
+-+    $head_title = [];
+-+
+-+    // Marking the title as safe since it has had the tags stripped.
+-+    $head_title['title'] = Markup::create(trim(strip_tags($variables['page']['#title'])));
+-+
+-+    $maintenance_mode = defined('MAINTENANCE_MODE') || \Drupal::state()->get('system.maintenance_mode');
+-+    if (!$maintenance_mode) {
+-+      $base_route_title = \Drupal::service('base_route_title_resolver')->getTitle(\Drupal::requestStack()->getCurrentRequest(), \Drupal::routeMatch()->getRouteObject());
+-+      if (is_array($base_route_title)) {
+-+        $base_route_title = (string) \Drupal::service('renderer')->render($base_route_title);
+-+      }
+-+      if ($base_route_title) {
+-+        // Marking the title as safe since it has had the tags stripped.
+-+        $base_route_title = Markup::create(trim(strip_tags($base_route_title)));
+-+
+-+        // If the base route title is not the same as the current title, append it
+-+        // to the head title.
+-+        if ((string) $base_route_title !== (string) $head_title['title']) {
+-+          $head_title['base_route_title'] = $base_route_title;
+-+        }
+-+      }
+-+    }
+-+
+-+    $head_title['name'] = $site_config->get('name');
+-   }
+-   // @todo Remove once views is not bypassing the view subscriber anymore.
+-   //   @see https://www.drupal.org/node/2068471
+ diff --git a/core/lib/Drupal/Core/Block/Plugin/Block/PageTitleBlock.php b/core/lib/Drupal/Core/Block/Plugin/Block/PageTitleBlock.php
+-index 2689acae..8eb7bac4 100644
++index 54ce18cce61..e6dfa03a788 100644
+ --- a/core/lib/Drupal/Core/Block/Plugin/Block/PageTitleBlock.php
+ +++ b/core/lib/Drupal/Core/Block/Plugin/Block/PageTitleBlock.php
+-@@ -2,9 +2,15 @@
+- 
+- namespace Drupal\Core\Block\Plugin\Block;
+- 
+-+use Symfony\Component\DependencyInjection\ContainerInterface;
++@@ -5,7 +5,12 @@
+  use Drupal\Core\Block\Attribute\Block;
+  use Drupal\Core\Block\BlockBase;
+  use Drupal\Core\Block\TitleBlockPluginInterface;
+ +use Drupal\Core\Controller\TitleResolverInterface;
+-+use Drupal\Core\Form\FormStateInterface;
+ +use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+ +use Drupal\Core\Routing\RouteMatchInterface;
+-+use Symfony\Component\HttpFoundation\RequestStack;
+  use Drupal\Core\StringTranslation\TranslatableMarkup;
+++use Symfony\Component\DependencyInjection\ContainerInterface;
+++use Symfony\Component\HttpFoundation\RequestStack;
+  
+  /**
+-@@ -17,7 +23,7 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
+-     'settings_tray' => FALSE,
+-   ]
++  * Provides a block to display the page title.
++@@ -14,7 +19,7 @@
++   id: "page_title_block",
++   admin_label: new TranslatableMarkup("Page title"),
+  )]
+ -class PageTitleBlock extends BlockBase implements TitleBlockPluginInterface {
+ +class PageTitleBlock extends BlockBase implements TitleBlockPluginInterface, ContainerFactoryPluginInterface {
+  
+    /**
+     * The page title: a string (plain title) or a render array (formatted title).
+-@@ -26,6 +32,58 @@ class PageTitleBlock extends BlockBase implements TitleBlockPluginInterface {
++@@ -23,6 +28,51 @@ class PageTitleBlock extends BlockBase implements TitleBlockPluginInterface {
+     */
+    protected $title = '';
+  
+@@ -112,25 +94,18 @@
+ +    array $configuration,
+ +    $plugin_id,
+ +    $plugin_definition,
+-+    protected ?TitleResolverInterface $titleResolver,
+-+    protected ?RouteMatchInterface $routeMatch,
+-+    protected ?RequestStack $requestStack,
+-+    protected ?TitleResolverInterface $baseRouteTitleResolver,
+++    protected TitleResolverInterface $titleResolver,
+++    protected RouteMatchInterface $routeMatch,
+++    protected RequestStack $requestStack,
+++    protected TitleResolverInterface $baseRouteTitleResolver,
+ +  ) {
+ +    parent::__construct($configuration, $plugin_id, $plugin_definition);
+-+    if (!$this->titleResolver || !$this->routeMatch || !$this->requestStack || !$this->baseRouteTitleResolver) {
+-+      @trigger_error('Calling PathBasedBreadcrumbBuilder::__construct() without the $titleResolver, $routeMatch, $requestStack, and $baseRouteTitleResolver arguments is deprecated in drupal:10.2.0 and will be required in drupal:11.0.0. See https://www.drupal.org/node/3397210', E_USER_DEPRECATED);
+-+      $this->titleResolver = \Drupal::service('title_resolver');
+-+      $this->routeMatch = \Drupal::service('current_route_match');
+-+      $this->requestStack = \Drupal::service('request_stack');
+-+      $this->baseRouteTitleResolver = \Drupal::service('base_route_title_resolver');
+-+    }
+ +  }
+ +
+ +  /**
+ +   * {@inheritdoc}
+ +   */
+-+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+++  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): static {
+ +    return new static(
+ +      $configuration,
+ +      $plugin_id,
+@@ -145,11 +120,11 @@
+    /**
+     * {@inheritdoc}
+     */
+-@@ -38,17 +96,98 @@ class PageTitleBlock extends BlockBase implements TitleBlockPluginInterface {
++@@ -35,17 +85,100 @@ public function setTitle($title) {
+     * {@inheritdoc}
+     */
+    public function defaultConfiguration() {
+--    return ['label_display' => FALSE];
++-    return ['label_display' => '0'];
+ +    return [
+ +      'label_display' => FALSE,
+ +      'base_route_title' => FALSE,
+@@ -177,7 +152,7 @@
+ +  /**
+ +   * {@inheritdoc}
+ +   */
+-+  public function blockForm($form, FormStateInterface $form_state) {
+++  public function blockForm($form, FormStateInterface $form_state) : array {
+ +    $form['base_route_title'] = [
+ +      '#type' => 'radios',
+ +      '#title' => $this->t('Title to be displayed'),
+@@ -194,7 +169,7 @@
+ +  /**
+ +   * {@inheritdoc}
+ +   */
+-+  public function blockSubmit($form, FormStateInterface $form_state) {
+++  public function blockSubmit($form, FormStateInterface $form_state) : void {
+ +    $this->configuration['base_route_title'] = (bool) $form_state->getValue('base_route_title');
+ +  }
+ +
+@@ -207,22 +182,24 @@
+ +  private function getTitleBasedOnBaseRoute(): array|string|null|\Stringable {
+ +    $controller_title = $this->titleResolver->getTitle($this->requestStack->getCurrentRequest(), $this->routeMatch->getRouteObject());
+ +
+++    $rendered_title = $this->renderTitle($this->title);
+ +    // Controller render arrays using `#title` take precedent over the title
+ +    // resolvers.
+-+    if ((string) $this->titleToString($controller_title) !== (string) $this->titleToString($this->title)) {
+++    if ((string) $this->renderTitle($controller_title) !== (string) $rendered_title) {
+ +      return $this->title;
+ +    }
+ +
+ +    $base_route_title = $this->baseRouteTitleResolver->getTitle($this->requestStack->getCurrentRequest(), $this->routeMatch->getRouteObject());
+ +    if (!is_null($base_route_title)) {
+++      $rendered_base_route_title = $this->renderTitle($base_route_title);
+ +      // If the titles are equal, return the original title.
+-+      if ((string) $this->titleToString($base_route_title) === (string) $this->titleToString($this->title)) {
+++      if ((string) $rendered_base_route_title === (string) $rendered_title) {
+ +        return $this->title;
+ +      }
+ +
+ +      return $this->t('@section_title<span class="visually-hidden">: @current_title</span>', [
+-+        '@section_title' => $this->titleToString($base_route_title),
+-+        '@current_title' => $this->titleToString($this->title),
+++        '@section_title' => $rendered_base_route_title,
+++        '@current_title' => $rendered_title,
+ +      ]);
+ +    }
+ +
+@@ -230,14 +207,14 @@
+ +  }
+ +
+ +  /**
+-+   * Converts title to string.
+++   * Renders the title.
+ +   *
+ +   * @param array|string|null|\Stringable $title
+ +   *   A title that could be an array, string or stringable object.
+ +   *
+ +   * @return string|\Stringable
+ +   */
+-+  private function titleToString(array|string|null|\Stringable $title): string|\Stringable {
+++  private function renderTitle(array|string|null|\Stringable $title): string|\Stringable {
+ +    if (is_array($title)) {
+ +      $title = \Drupal::service('renderer')->render($title);
+ +    }
+@@ -248,7 +225,7 @@
+  }
+ diff --git a/core/lib/Drupal/Core/Controller/BaseRouteTitleResolver.php b/core/lib/Drupal/Core/Controller/BaseRouteTitleResolver.php
+ new file mode 100644
+-index 00000000..56f0b7e8
++index 00000000000..8ba63f415c6
+ --- /dev/null
+ +++ b/core/lib/Drupal/Core/Controller/BaseRouteTitleResolver.php
+ @@ -0,0 +1,68 @@
+@@ -260,19 +237,19 @@
+ +use Drupal\Core\Routing\RouteMatch;
+ +use Drupal\Core\Routing\RouteProviderInterface;
+ +use Drupal\Core\Routing\UrlGeneratorInterface;
+-+use Drupal\Core\Utility\RequestGenerator;
+++use Drupal\Core\Routing\RequestGenerator;
+ +use Symfony\Component\HttpFoundation\Request;
+ +use Symfony\Component\Routing\Exception\InvalidParameterException;
+ +use Symfony\Component\Routing\Exception\RouteNotFoundException;
+ +use Symfony\Component\Routing\Route;
+ +
+ +/**
+-+ * Provides a class which gets title based on base route.
+++ * Provides a class which gets the title from the current local-task base route.
+ + */
+ +class BaseRouteTitleResolver implements TitleResolverInterface {
+ +
+ +  /**
+-+   * Constructs a RequestGenerator object.
+++   * Constructs a BaseRouteTitleResolver object.
+ +   *
+ +   * @param \Drupal\Core\Routing\UrlGeneratorInterface $urlGenerator
+ +   *   The url generator.
+@@ -282,7 +259,7 @@
+ +   *   The local task manager.
+ +   * @param \Drupal\Core\Routing\RouteProviderInterface $routeProvider
+ +   *   The route provider.
+-+   * @param \Drupal\Core\Utility\RequestGenerator $requestGenerator
+++   * @param \Drupal\Core\Routing\RequestGenerator $requestGenerator
+ +   *   The request generator.
+ +   */
+ +  public function __construct(
+@@ -297,7 +274,7 @@
+ +  /**
+ +   * {@inheritdoc}
+ +   */
+-+  public function getTitle(Request $request, Route $route) {
+++  public function getTitle(Request $request, Route $route) : array|string|\Stringable|null {
+ +    $route_match = RouteMatch::createFromRequest($request);
+ +    $base_route_names = $this->localTaskManager->getBaseRouteNames($route_match->getRouteName());
+ +    $title = NULL;
+@@ -321,10 +298,10 @@
+ +
+ +}
+ diff --git a/core/lib/Drupal/Core/Menu/LocalTaskManager.php b/core/lib/Drupal/Core/Menu/LocalTaskManager.php
+-index 6fb8bdfe..ec49720e 100644
++index 12901258fbc..ab3d9cdbee6 100644
+ --- a/core/lib/Drupal/Core/Menu/LocalTaskManager.php
+ +++ b/core/lib/Drupal/Core/Menu/LocalTaskManager.php
+-@@ -197,58 +197,11 @@ class LocalTaskManager extends DefaultPluginManager implements LocalTaskManagerI
++@@ -152,58 +152,11 @@ public function getDefinitions() {
+    public function getLocalTasksForRoute($route_name) {
+      if (!isset($this->instances[$route_name])) {
+        $this->instances[$route_name] = [];
+@@ -354,8 +331,8 @@
+ -            }
+ -            // Tabs that link to the current route are viable parents
+ -            // and their parent and children should be visible also.
+--            // @todo - this only works for 2 levels of tabs.
+--            // instead need to iterate up.
++-            // @todo This only works for 2 levels of tabs instead
++-            //   need to iterate up.
+ -            $parents[$plugin_id] = TRUE;
+ -            if (!empty($task_info['parent_id'])) {
+ -              $parents[$task_info['parent_id']] = TRUE;
+@@ -388,7 +365,7 @@
+        // Create a plugin instance for each element of the hierarchy.
+        foreach ($base_routes as $base_route) {
+          // Convert the tree keyed by plugin IDs into a simple one with
+-@@ -411,4 +364,80 @@ class LocalTaskManager extends DefaultPluginManager implements LocalTaskManagerI
++@@ -389,4 +342,80 @@ protected function isRouteActive($current_route_name, $route_name, $route_parame
+      return $active;
+    }
+  
+@@ -438,8 +415,8 @@
+ +          }
+ +          // Tabs that link to the current route are viable parents
+ +          // and their parent and children should be visible also.
+-+          // @todo - this only works for 2 levels of tabs.
+-+          // instead need to iterate up.
+++          // @todo This only works for 2 levels of tabs instead need to iterate
+++          //   up.
+ +          $parents[$plugin_id] = TRUE;
+ +          if (!empty($task_info['parent_id'])) {
+ +            $parents[$task_info['parent_id']] = TRUE;
+@@ -470,10 +447,10 @@
+ +
+  }
+ diff --git a/core/lib/Drupal/Core/Menu/LocalTaskManagerInterface.php b/core/lib/Drupal/Core/Menu/LocalTaskManagerInterface.php
+-index 9352e401..dc0f2ea6 100644
++index 9352e4011bc..dc0f2ea6578 100644
+ --- a/core/lib/Drupal/Core/Menu/LocalTaskManagerInterface.php
+ +++ b/core/lib/Drupal/Core/Menu/LocalTaskManagerInterface.php
+-@@ -70,4 +70,15 @@ interface LocalTaskManagerInterface extends PluginManagerInterface {
++@@ -70,4 +70,15 @@ public function getTasksBuild($current_route_name, RefinableCacheableDependencyI
+     */
+    public function getLocalTasks($route_name, $level = 0);
+  
+@@ -489,36 +466,22 @@
+ +  public function getBaseRouteNames(string $route_name): array;
+ +
+  }
+-diff --git a/core/lib/Drupal/Core/Render/Element/Select.php b/core/lib/Drupal/Core/Render/Element/Select.php
+-index 596ad133..31370797 100644
+---- a/core/lib/Drupal/Core/Render/Element/Select.php
+-+++ b/core/lib/Drupal/Core/Render/Element/Select.php
+-@@ -40,7 +40,9 @@ use Drupal\Core\Render\Element;
+-  *   field and "- None -" for an optional field.
+-  * - #empty_value: (optional) The value for the first default option, which is
+-  *   used to determine whether the user submitted a value or not.
+-- *   - If #required is TRUE, this defaults to '' (an empty string).
+-+ *   - If #required is TRUE, this defaults to '' (an empty string). Warning: If
+-+ *     #empty_value is the same as a key in #options then that value in #options
+-+ *     is overridden with the value of #empty_option.
+-  *   - If #required is not TRUE and this value isn't set, then no extra option
+-  *     is added to the select control, leaving the control in a slightly
+-  *     illogical state, because there's no way for the user to select nothing,
+-diff --git a/core/lib/Drupal/Core/Utility/RequestGenerator.php b/core/lib/Drupal/Core/Utility/RequestGenerator.php
++diff --git a/core/lib/Drupal/Core/Routing/RequestGenerator.php b/core/lib/Drupal/Core/Routing/RequestGenerator.php
+ new file mode 100644
+-index 00000000..482affaf
++index 00000000000..04358c2f354
+ --- /dev/null
+-+++ b/core/lib/Drupal/Core/Utility/RequestGenerator.php
+-@@ -0,0 +1,76 @@
+++++ b/core/lib/Drupal/Core/Routing/RequestGenerator.php
++@@ -0,0 +1,77 @@
+ +<?php
+ +
+-+namespace Drupal\Core\Utility;
+++namespace Drupal\Core\Routing;
+ +
+ +use Drupal\Core\ParamConverter\ParamNotConvertedException;
+ +use Drupal\Core\Path\CurrentPathStack;
+ +use Drupal\Core\PathProcessor\InboundPathProcessorInterface;
+ +use Symfony\Component\HttpFoundation\Request;
+ +use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+++use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+ +use Symfony\Component\Routing\Exception\MethodNotAllowedException;
+ +use Symfony\Component\Routing\Exception\ResourceNotFoundException;
+ +use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
+@@ -580,68 +543,125 @@
+ +      $request->attributes->add($this->router->matchRequest($request));
+ +      return $request;
+ +    }
+-+    catch (ParamNotConvertedException | ResourceNotFoundException | MethodNotAllowedException | AccessDeniedHttpException) {
+++    catch (ParamNotConvertedException | ResourceNotFoundException | MethodNotAllowedException | AccessDeniedHttpException | NotFoundHttpException) {
+ +      return NULL;
+ +    }
+ +  }
+ +
+ +}
++diff --git a/core/lib/Drupal/Core/Theme/ThemePreprocess.php b/core/lib/Drupal/Core/Theme/ThemePreprocess.php
++index 7c2d595d644..aeb7de63a7d 100644
++--- a/core/lib/Drupal/Core/Theme/ThemePreprocess.php
+++++ b/core/lib/Drupal/Core/Theme/ThemePreprocess.php
++@@ -5,6 +5,7 @@
++ use Drupal\Component\Serialization\Json;
++ use Drupal\Component\Utility\Crypt;
++ use Drupal\Core\Config\ConfigFactoryInterface;
+++use Drupal\Core\Controller\BaseRouteTitleResolver;
++ use Drupal\Core\Extension\ThemeSettingsProvider;
++ use Drupal\Core\Installer\InstallerKernel;
++ use Drupal\Core\Language\LanguageManagerInterface;
++@@ -37,6 +38,7 @@ public function __construct(
++     protected RouteMatchInterface $routeMatch,
++     protected ThemeManagerInterface $themeManager,
++     protected ThemeSettingsProvider $themeSettingsProvider,
+++    protected BaseRouteTitleResolver $baseRouteTitleResolver,
++   ) {
++   }
++ 
++@@ -287,11 +289,27 @@ public function preprocessHtml(array &$variables): void {
++       $variables['page']['#title'] = (string) $this->renderer->render($variables['page']['#title']);
++     }
++     if (!empty($variables['page']['#title'])) {
++-      $head_title = [
++-        // Marking the title as safe since it has had the tags stripped.
++-        'title' => Markup::create(trim(strip_tags($variables['page']['#title']))),
++-        'name' => $site_config->get('name'),
++-      ];
+++      $head_title = [];
+++      // Marking the title as safe since it has had the tags stripped.
+++      $head_title['title'] = Markup::create(trim(strip_tags($variables['page']['#title'])));
+++
+++      $maintenance_mode = defined('MAINTENANCE_MODE') || \Drupal::state()->get('system.maintenance_mode');
+++      $is_admin_route = (bool) $this->routeMatch->getRouteObject()?->getOption('_admin_route');
+++      if (!$maintenance_mode && $is_admin_route) {
+++        $base_route_title = $this->baseRouteTitleResolver->getTitle(\Drupal::requestStack()->getCurrentRequest(), $this->routeMatch->getRouteObject());
+++        if (is_array($base_route_title)) {
+++          $base_route_title = (string) $this->renderer->render($base_route_title);
+++        }
+++        if (!empty($base_route_title)) {
+++          // Marking the title as safe since it has had the tags stripped.
+++          $base_route_title = Markup::create(trim(strip_tags((string) $base_route_title)));
+++          if ((string) $base_route_title !== (string) $head_title['title']) {
+++            $head_title['base_route_title'] = $base_route_title;
+++          }
+++        }
+++      }
+++
+++      $head_title['name'] = $site_config->get('name');
++     }
++     // @todo Remove once views is not bypassing the view subscriber anymore.
++     //   @see https://www.drupal.org/node/2068471
+ diff --git a/core/modules/block/block.post_update.php b/core/modules/block/block.post_update.php
+-index b14275c7..01590415 100644
++index 3416073d70e..14321ce8801 100644
+ --- a/core/modules/block/block.post_update.php
+ +++ b/core/modules/block/block.post_update.php
+-@@ -16,3 +16,29 @@ function block_removed_post_updates() {
+-     'block_post_update_replace_node_type_condition' => '10.0.0',
++@@ -5,6 +5,9 @@
++  * Post update functions for Block.
++  */
++ 
+++use Drupal\block\BlockInterface;
+++use Drupal\Core\Config\Entity\ConfigEntityUpdater;
+++
++ /**
++  * Implements hook_removed_post_updates().
++  */
++@@ -18,3 +21,19 @@ function block_removed_post_updates(): array {
++     'block_post_update_set_menu_block_depth_to_null_if_zero' => '12.0.0',
+    ];
+  }
+ +
+ +/**
+ + * Add 'base_route_title' setting for page title blocks.
+ + */
+-+function block_post_update_add_base_route_title_page_title() {
+-+  $config_factory = \Drupal::configFactory();
+-+  foreach ($config_factory->listAll('block.block.') as $block_config_name) {
+-+    if (!str_contains($block_config_name, 'page_title')) {
+-+      continue;
+-+    }
+-+    $block = $config_factory->getEditable($block_config_name);
+-+
+-+    $settings = $block->get('settings');
+-+    if (str_contains($block->getName(), 'claro')) {
+-+      $settings['base_route_title'] = TRUE;
+-+    }
+-+    else {
+-+      $settings['base_route_title'] = FALSE;
+-+    }
+-+    $block->set('settings', $settings);
+-+
+-+    // Mark the resulting configuration as trusted data. This avoids issues with
+-+    // future schema changes.
+-+    $block->save(TRUE);
+-+  }
+++function block_post_update_add_base_route_title_page_title(&$sandbox = NULL): void {
+++  \Drupal::classResolver(ConfigEntityUpdater::class)
+++    ->update($sandbox, 'block', function (BlockInterface $block) {
+++      if ($block->get('plugin') === 'page_title_block') {
+++        $settings = $block->get('settings');
+++        $settings['base_route_title'] = $block->get('theme') === 'claro';
+++        $block->set('settings', $settings);
+++        return TRUE;
+++      }
+++      return FALSE;
+++    });
+ +}
+ diff --git a/core/modules/block/tests/src/Functional/PageTitleBlockTest.php b/core/modules/block/tests/src/Functional/PageTitleBlockTest.php
+ new file mode 100644
+-index 00000000..66f9c72c
++index 00000000000..8c9ff63a4e2
+ --- /dev/null
+ +++ b/core/modules/block/tests/src/Functional/PageTitleBlockTest.php
+-@@ -0,0 +1,225 @@
++@@ -0,0 +1,177 @@
+ +<?php
+ +
+++declare(strict_types=1);
+++
+ +namespace Drupal\Tests\block\Functional;
+ +
+ +use Drupal\Tests\BrowserTestBase;
+++use Drupal\TestTools\Random;
+++use PHPUnit\Framework\Attributes\Group;
+++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+ +
+ +/**
+ + * Tests page title block.
+-+ *
+-+ * @group Block
+ + */
+++#[Group('block')]
+++#[RunTestsInSeparateProcesses]
+ +class PageTitleBlockTest extends BrowserTestBase {
+++
+ +  /**
+-+   * Modules to install.
+-+   *
+-+   * @var array
+++   * {@inheritdoc}
+ +   */
+ +  protected static $modules = ['block', 'update', 'node'];
+ +
+@@ -678,87 +698,35 @@
+ +      'delete any article content',
+ +    ]);
+ +    $this->drupalLogin($admin_user);
+-+  }
+-+
+-+  /**
+-+   * Data provider for testContextualizeTitle().
+-+   *
+-+   * @return array[][]
+-+   *   The test cases.
+-+   */
+-+  public function providerTestContextualizeTitle() {
+-+    $non_contextualized_title = 'Update';
+-+    $contextualized_title = 'Extend: Update';
+-+    $contextualized_title_visually_hidden_part = ': Update';
+-+    return [
+-+      'Stark theme' => [
+-+        $this->defaultTheme,
+-+        FALSE,
+-+        $non_contextualized_title,
+-+        $contextualized_title,
+-+        $contextualized_title_visually_hidden_part,
+-+      ],
+-+      // For Claro theme the base_route_title settings is enabled by default
+-+      // hence the title will always be contextualized.
+-+      'Claro theme' => [
+-+        'claro',
+-+        TRUE,
+-+        $contextualized_title,
+-+        $contextualized_title,
+-+        $contextualized_title_visually_hidden_part,
+-+      ],
+-+      'Olivero theme' => [
+-+        'olivero',
+-+        FALSE,
+-+        $non_contextualized_title,
+-+        $contextualized_title,
+-+        $contextualized_title_visually_hidden_part,
+-+      ],
+-+    ];
+ +  }
+ +
+ +  /**
+ +   * Check if the contextualized title is displayed.
+-+   *
+-+   * @dataProvider providerTestContextualizeTitle
+ +   */
+-+  public function testContextualizeTitle(string $theme, bool $base_route_title_enabled, string $non_contextualized_title, string $contextualized_title, string $contextualized_title_visually_hidden_part): void {
+-+    if ($theme !== $this->defaultTheme) {
+-+      $system_theme_config = $this->container->get('config.factory')
+-+        ->getEditable('system.theme');
+-+      $system_theme_config
+-+        ->set('default', $theme)
+-+        ->save();
+-+      \Drupal::service('theme_installer')->install([$theme]);
+-+    }
+-+    $edit['admin_theme'] = $theme;
+++  public function testContextualizeTitle(): void {
+++    $edit['admin_theme'] = $this->defaultTheme;
+ +    $this->drupalGet('admin/appearance');
+ +    $this->submitForm($edit, 'Save configuration');
+ +
+ +    // Make sure the title shown is non-contextualized.
+ +    $this->drupalGet('admin/modules/update');
+-+    $this->assertSession()->elementTextEquals('css', 'h1', $non_contextualized_title);
+++    $this->assertSession()->elementTextEquals('css', 'h1', 'Update');
+ +
+-+    // Checking if the title block is configured for showing contextualized
+-+    // title and if it's not then configure it.
+-+    $this->drupalGet('admin/structure/block/manage/' . $theme . '_page_title');
+-+    // If it's configured to show contextualized title then the value of the
+-+    // configuration will be 1 otherwise 0.
+++    // Checking if the title block is configured for showing
+++    // contextualized title and if it's not then configure it.
+++    $this->drupalGet('admin/structure/block/manage/' . $this->defaultTheme . '_page_title');
+++    // In stark theme it's not configured to show contextualized title
+++    // therefore the value of the configuration will be 1 otherwise 0.
+ +    // @see \Drupal\Core\Block\Plugin\Block\PageTitleBlock::blockForm()
+-+    if ($base_route_title_enabled) {
+-+      $this->assertSession()->fieldValueEquals('settings[base_route_title]', 1);
+-+    }
+-+    else {
+-+      $this->assertSession()->fieldValueEquals('settings[base_route_title]', 0);
+-+      $this->submitForm(['settings[base_route_title]' => 1], 'Save block');
+-+    }
+++    $this->assertSession()->fieldValueEquals('settings[base_route_title]', 0);
+++    $this->submitForm(['settings[base_route_title]' => 1], 'Save block');
+ +
+ +    // Make sure the title shown is contextualized.
+ +    $this->drupalGet('admin/modules/update');
+-+    $this->assertSession()->elementTextEquals('css', 'h1', $contextualized_title);
+++    $this->assertSession()->elementTextEquals('css', 'h1', 'Extend: Update');
+ +    $title = $this->assertSession()->elementExists('xpath', '//h1');
+ +    $this->assertSession()->elementExists('xpath', '/span[@class="visually-hidden"]', $title);
+-+    $this->assertSession()->elementTextEquals('xpath', '//h1/span', $contextualized_title_visually_hidden_part);
+++    $this->assertSession()->elementTextEquals('xpath', '//h1/span', ': Update');
+ +
+ +  }
+ +
+@@ -797,9 +765,9 @@
+ +   * @return array[][]
+ +   *   The test cases.
+ +   */
+-+  public function providerTestContextualizeTitleOnNodeOperationPages() {
+++  public static function providerTestContextualizeTitleOnNodeOperationPages() : array {
+ +    return [
+-+      'node with random title' => [$this->randomMachineName(8)],
+++      'node with random title' => [Random::machineName()],
+ +      'node with title set to 0' => ['0'],
+ +    ];
+ +  }
+@@ -853,12 +821,14 @@
+ +}
+ diff --git a/core/modules/block/tests/src/Functional/Update/BlockTitleUpdateTest.php b/core/modules/block/tests/src/Functional/Update/BlockTitleUpdateTest.php
+ new file mode 100644
+-index 00000000..52a9bfe0
++index 00000000000..a4f6ab8d934
+ --- /dev/null
+ +++ b/core/modules/block/tests/src/Functional/Update/BlockTitleUpdateTest.php
+-@@ -0,0 +1,92 @@
++@@ -0,0 +1,44 @@
+ +<?php
+ +
+++declare(strict_types=1);
+++
+ +namespace Drupal\Tests\block\Functional\Update;
+ +
+ +use Drupal\FunctionalTests\Update\UpdatePathTestBase;
+@@ -874,86 +844,36 @@
+ +  /**
+ +   * {@inheritdoc}
+ +   */
+-+  protected static $modules = ['block', 'language'];
+-+
+-+  /**
+-+   * {@inheritdoc}
+-+   */
+-+  protected function setUp(): void {
+-+    parent::setUp();
+-+
+-+    // Add the page title block to the page.
+-+    $this->drupalPlaceBlock('page_title_block', ['id' => 'stark_page_title']);
+-+
+-+    // Create administrative user.
+-+    $admin_user = $this->drupalCreateUser([
+-+      'administer blocks',
+-+      'administer themes',
+-+    ]);
+-+    $this->drupalLogin($admin_user);
+-+  }
+-+
+-+  /**
+-+   * {@inheritdoc}
+-+   */
+ +  protected function setDatabaseDumpFiles() {
+ +    $this->databaseDumpFiles = [
+-+      __DIR__ . '/../../../../../system/tests/fixtures/update/drupal-9.4.0.bare.standard.php.gz',
+-+    ];
+-+  }
+-+
+-+  /**
+-+   * Data provider for testPostUpdateAddContextualizePageTitle().
+-+   *
+-+   * @return array[][]
+-+   *   The test cases.
+-+   */
+-+  public function providerTestPostUpdateAddContextualizePageTitle() {
+-+    return [
+-+      'Stark theme' => ['stark', FALSE],
+-+      // For claro the 'contextual_title' configuration is enabled by default.
+-+      'Claro theme' => ['claro', TRUE],
+-+      'Olivero theme' => ['olivero', FALSE],
+++      __DIR__ . '/../../../../../system/tests/fixtures/update/drupal-10.3.0.filled.standard.php.gz',
+ +    ];
+ +  }
+ +
+ +  /**
+ +   * Tests that title block is configured properly after update.
+ +   *
+-+   * @dataProvider providerTestPostUpdateAddContextualizePageTitle
+++   * @testWith ["stark", false]
+++   *           ["claro", true]
+++   *           ["olivero", false]
+ +   */
+ +  public function testPostUpdateAddContextualizePageTitle(string $theme, bool $contextual_title_enabled): void {
+++    $block_settings = $this->config('block.block.' . $theme . '_page_title')->get('settings');
+++    $this->assertArrayNotHasKey('base_route_title', $block_settings);
+++
+ +    $this->runUpdates();
+ +
+-+    $system_theme_config = $this->container->get('config.factory')
+-+      ->getEditable('system.theme');
+-+    $system_theme_config
+-+      ->set('default', $theme)
+-+      ->save();
+-+    \Drupal::service('theme_installer')->install([$theme]);
+-+    $edit['admin_theme'] = $theme;
+-+    $this->drupalGet('admin/appearance');
+-+    $this->submitForm($edit, 'Save configuration');
+-+    $this->drupalGet('admin/structure/block');
+-+    $this->drupalGet('admin/structure/block/manage/' . $theme . '_page_title');
+-+
+-+    // If the title block is configured to show contextualized title then the value of the
+-+    // configuration will be 1 otherwise 0.
+-+    // @see \Drupal\Core\Block\Plugin\Block\PageTitleBlock::blockForm()
+-+    if ($contextual_title_enabled) {
+-+      $this->assertSession()->fieldValueEquals('settings[base_route_title]', 1);
+-+    }
+-+    else {
+-+      $this->assertSession()->fieldValueEquals('settings[base_route_title]', 0);
+-+    }
+++    $block_settings = $this->config('block.block.' . $theme . '_page_title')->get('settings');
+++    $this->assertArrayHasKey('base_route_title', $block_settings);
+++    $this->assertSame($block_settings['base_route_title'], $contextual_title_enabled);
+ +  }
+ +
+ +}
+ diff --git a/core/modules/block_content/tests/src/Functional/BlockContentListTest.php b/core/modules/block_content/tests/src/Functional/BlockContentListTest.php
+-index c4552647..e6a2991e 100644
++index 562532cf44e..8ec50d0fc34 100644
+ --- a/core/modules/block_content/tests/src/Functional/BlockContentListTest.php
+ +++ b/core/modules/block_content/tests/src/Functional/BlockContentListTest.php
+-@@ -136,7 +136,7 @@ class BlockContentListTest extends BlockContentTestBase {
++@@ -155,7 +155,7 @@ public function testListing(): void {
+      $this->assertSession()->linkByHrefExists('admin/content/block/' . $block->id() . '/delete');
+      $this->clickLink('Delete');
+      $this->assertSession()->statusCodeEquals(200);
+@@ -963,10 +883,10 @@
+  
+      // Verify that the text of the label and machine name does not appear in
+ diff --git a/core/modules/block_content/tests/src/Functional/BlockContentListViewsTest.php b/core/modules/block_content/tests/src/Functional/BlockContentListViewsTest.php
+-index 322bfdd5..5b3c1519 100644
++index fd025b47ea5..c9ba5e5a6a3 100644
+ --- a/core/modules/block_content/tests/src/Functional/BlockContentListViewsTest.php
+ +++ b/core/modules/block_content/tests/src/Functional/BlockContentListViewsTest.php
+-@@ -146,7 +146,7 @@ class BlockContentListViewsTest extends BlockContentTestBase {
++@@ -149,7 +149,7 @@ public function testListing(): void {
+      $this->assertSession()->linkByHrefExists('admin/content/block/' . $block->id() . '/delete');
+      $this->clickLink('Delete');
+      $this->assertSession()->statusCodeEquals(200);
+@@ -975,85 +895,11 @@
+      $this->submitForm([], 'Delete');
+  
+      // Verify that the text of the label and machine name does not appear in
+-diff --git a/core/modules/comment/tests/src/Functional/CommentInterfaceTest.php b/core/modules/comment/tests/src/Functional/CommentInterfaceTest.php
+-index dfc8a21d..0676953e 100644
+---- a/core/modules/comment/tests/src/Functional/CommentInterfaceTest.php
+-+++ b/core/modules/comment/tests/src/Functional/CommentInterfaceTest.php
+-@@ -8,7 +8,6 @@ use Drupal\comment\Plugin\Field\FieldType\CommentItemInterface;
+- use Drupal\comment\Entity\Comment;
+- use Drupal\Core\Entity\Entity\EntityViewDisplay;
+- use Drupal\Core\Entity\Entity\EntityViewMode;
+--use Drupal\field\Entity\FieldConfig;
+- use Drupal\user\RoleInterface;
+- use Drupal\filter\Entity\FilterFormat;
+- 
+-@@ -93,7 +92,8 @@ class CommentInterfaceTest extends CommentTestBase {
+-     $this->setCommentPreview(DRUPAL_OPTIONAL);
+- 
+-     $this->drupalGet('comment/' . $comment->id() . '/edit');
+--    $this->assertSession()->titleEquals('Edit comment ' . $comment->getSubject() . ' | Drupal');
+-+    $comment_subject = $comment->getSubject();
+-+    $this->assertSession()->titleEquals("Edit comment $comment_subject | $comment_subject | Drupal");
+- 
+-     // Test changing the comment author to "Anonymous".
+-     $comment = $this->postComment(NULL, $comment->comment_body->value, $comment->getSubject(), ['uid' => '']);
+-@@ -239,16 +239,6 @@ class CommentInterfaceTest extends CommentTestBase {
+-     $body_text2 = 'AQuickBrownFoxJumpedOverTheLazyDog';
+-     $comment2 = $this->postComment(NULL, $body_text2, '', TRUE);
+-     $this->assertEquals('AQuickBrownFoxJumpedOverTheL…', $comment2->getSubject());
+--
+--    // Make the body field non required.
+--    $comment_body_field = FieldConfig::loadByName('comment', 'comment', 'comment_body');
+--    $comment_body_field->setRequired(FALSE)->save();
+--    // Try to post a comment without any value in body and subject fields.
+--    $this->drupalGet('node/' . $this->node->id());
+--    // Ensure that there are no PHP errors or warnings when automatically
+--    // generating the subject. This occurs when the comment body is empty.
+--    $comment2 = $this->postComment(NULL, '', '', TRUE);
+--    $this->assertEquals('(No subject)', $comment2->getSubject());
+-   }
+- 
+-   /**
+-diff --git a/core/modules/comment/tests/src/Functional/CommentPreviewTest.php b/core/modules/comment/tests/src/Functional/CommentPreviewTest.php
+-index 8da3fe26..d6ce80a5 100644
+---- a/core/modules/comment/tests/src/Functional/CommentPreviewTest.php
+-+++ b/core/modules/comment/tests/src/Functional/CommentPreviewTest.php
+-@@ -160,7 +160,7 @@ class CommentPreviewTest extends CommentTestBase {
+-     $this->submitForm($edit, 'Preview');
+- 
+-     // Check that the preview is displaying the subject, comment, author and date correctly.
+--    $this->assertSession()->titleEquals('Preview comment | Drupal');
+-+    $this->assertSession()->titleEquals('Preview comment | ' . $edit['comment_body[0][value]'] . ' | Drupal');
+-     $this->assertSession()->pageTextContains($edit['subject[0][value]']);
+-     $this->assertSession()->pageTextContains($edit['comment_body[0][value]']);
+-     $this->assertSession()->pageTextContains($web_user->getAccountName());
+-diff --git a/core/modules/content_translation/tests/src/Functional/ContentTranslationLanguageChangeTest.php b/core/modules/content_translation/tests/src/Functional/ContentTranslationLanguageChangeTest.php
+-index 386102b6..513e2a3e 100644
+---- a/core/modules/content_translation/tests/src/Functional/ContentTranslationLanguageChangeTest.php
+-+++ b/core/modules/content_translation/tests/src/Functional/ContentTranslationLanguageChangeTest.php
+-@@ -131,7 +131,7 @@ class ContentTranslationLanguageChangeTest extends NodeTestBase {
+-     $node = $this->getNodeByTitle('english_title');
+-     $this->drupalGet('node/' . $node->id() . '/edit');
+-     // Test the expected title when loading the form.
+--    $this->assertSession()->titleEquals('Edit Article english_title | Drupal');
+-+    $this->assertSession()->titleEquals('Edit Article english_title | english_title | Drupal');
+-     // Upload and image after changing the node language.
+-     $images = $this->drupalGetTestFiles('image')[1];
+-     $edit = [
+-@@ -141,7 +141,7 @@ class ContentTranslationLanguageChangeTest extends NodeTestBase {
+-     $this->submitForm($edit, 'Upload');
+-     // Test the expected title after triggering an ajax call with a new
+-     // language selected.
+--    $this->assertSession()->titleEquals('Edit Article english_title | Drupal');
+-+    $this->assertSession()->titleEquals('Edit Article english_title | english_title | Drupal');
+-     $edit = [
+-       'langcode[0][value]' => 'en',
+-       'field_image_field[0][alt]' => 'alternative_text',
+ diff --git a/core/modules/field_ui/tests/src/Functional/FieldUIRouteTest.php b/core/modules/field_ui/tests/src/Functional/FieldUIRouteTest.php
+-index ea72a387..63abfc4a 100644
++index b41e0dcd89e..5aae3899551 100644
+ --- a/core/modules/field_ui/tests/src/Functional/FieldUIRouteTest.php
+ +++ b/core/modules/field_ui/tests/src/Functional/FieldUIRouteTest.php
+-@@ -43,7 +43,7 @@ class FieldUIRouteTest extends BrowserTestBase {
++@@ -56,7 +56,7 @@ public function testFieldUIRoutes(): void {
+      $this->assertSession()->pageTextContains('No fields are present yet.');
+  
+      $this->drupalGet('admin/config/people/accounts/fields');
+@@ -1062,7 +908,7 @@
+      $this->assertLocalTasks();
+  
+      // Test manage display tabs and titles.
+-@@ -51,13 +51,13 @@ class FieldUIRouteTest extends BrowserTestBase {
++@@ -64,14 +64,14 @@ public function testFieldUIRoutes(): void {
+      $this->assertSession()->statusCodeEquals(403);
+  
+      $this->drupalGet('admin/config/people/accounts/display');
+@@ -1070,15 +916,16 @@
+ +    $this->assertSession()->titleEquals('Manage display | Account settings | Drupal');
+      $this->assertLocalTasks();
+  
+-     $edit = ['display_modes_custom[compact]' => TRUE];
+-     $this->submitForm($edit, 'Save');
++     $xpath = "//tr[@id='display-mode-user-user-compact']//a[contains(., 'Enable')]";
++     $this->assertSession()->elementExists('xpath', $xpath);
++     $this->getSession()->getPage()->find('xpath', $xpath)->click();
+      $this->drupalGet('admin/config/people/accounts/display/compact');
+ -    $this->assertSession()->titleEquals('Manage display | Drupal');
+ +    $this->assertSession()->titleEquals('Manage display | Account settings | Drupal');
+      $this->assertLocalTasks();
+  
+      // Test manage form display tabs and titles.
+-@@ -65,14 +65,14 @@ class FieldUIRouteTest extends BrowserTestBase {
++@@ -79,14 +79,14 @@ public function testFieldUIRoutes(): void {
+      $this->assertSession()->statusCodeEquals(403);
+  
+      $this->drupalGet('admin/config/people/accounts/form-display');
+@@ -1095,361 +942,48 @@
+      $this->assertLocalTasks();
+      // Test that default secondary tab is in first position.
+      $this->assertSession()->elementsCount('xpath', "//ul/li[1]/a[contains(text(), 'Default')]", 1);
+-diff --git a/core/modules/forum/tests/src/Functional/ForumTest.php b/core/modules/forum/tests/src/Functional/ForumTest.php
+-index 0053d288..e92ddb46 100644
+---- a/core/modules/forum/tests/src/Functional/ForumTest.php
+-+++ b/core/modules/forum/tests/src/Functional/ForumTest.php
+-@@ -656,7 +656,8 @@ class ForumTest extends BrowserTestBase {
+-     $this->drupalGet('node/' . $node->id() . '/edit');
+-     $this->assertSession()->statusCodeEquals($response);
+-     if ($response == 200) {
+--      $this->assertSession()->titleEquals('Edit Forum topic ' . $node->label() . ' | Drupal');
+-+      $node_label = $node->label();
+-+      $this->assertSession()->titleEquals("Edit Forum topic $node_label | $node_label | Drupal");
+-     }
+- 
+-     if ($response == 200) {
+ diff --git a/core/modules/layout_builder/tests/src/Functional/LayoutBuilderTest.php b/core/modules/layout_builder/tests/src/Functional/LayoutBuilderTest.php
+-index c05f28b5..424195a0 100644
++index 4572625e587..946ffa9c1eb 100644
+ --- a/core/modules/layout_builder/tests/src/Functional/LayoutBuilderTest.php
+ +++ b/core/modules/layout_builder/tests/src/Functional/LayoutBuilderTest.php
+-@@ -527,8 +527,7 @@ class LayoutBuilderTest extends LayoutBuilderTestBase {
++@@ -529,10 +529,10 @@ public function testPendingRevision(): void {
++     // The original node title is available when viewing the node, but the
++     // pending title is visible within the Layout Builder UI.
+      $this->drupalGet('node/1');
+-     $assert_session->pageTextContains('The first node title');
++-    $assert_session->pageTextContains('The first node title');
+++    $assert_session->elementTextContains('css', 'body', 'The first node title');
+      $page->clickLink('Layout');
+ -    $assert_session->pageTextNotContains('The first node title');
+ -    $assert_session->pageTextContains('The pending title of the first node');
+-+    $assert_session->pageTextContains('The pending title of the first node | The first node title');
+++    $assert_session->elementTextNotContains('css', 'body', 'The first node title');
+++    $assert_session->elementTextContains('css', 'body', 'The pending title of the first node');
+    }
+  
+    /**
+-diff --git a/core/modules/layout_builder/tests/src/Functional/LayoutSectionTest.php b/core/modules/layout_builder/tests/src/Functional/LayoutSectionTest.php
+-index f04478f8..5bcf6e44 100644
+---- a/core/modules/layout_builder/tests/src/Functional/LayoutSectionTest.php
+-+++ b/core/modules/layout_builder/tests/src/Functional/LayoutSectionTest.php
+-@@ -216,7 +216,7 @@ class LayoutSectionTest extends BrowserTestBase {
+-     $node = $this->createSectionNode([]);
++diff --git a/core/modules/system/config/schema/system.schema.yml b/core/modules/system/config/schema/system.schema.yml
++index 58faf1bdc4f..d24b557c7dc 100644
++--- a/core/modules/system/config/schema/system.schema.yml
+++++ b/core/modules/system/config/schema/system.schema.yml
++@@ -421,6 +421,14 @@ system.advisories:
++       constraints:
++         PositiveOrZero: ~
+  
+-     $this->drupalGet($node->toUrl('canonical')->toString() . '/layout');
+--    $this->assertSession()->titleEquals('Edit layout for The node title | Drupal');
+-+    $this->assertSession()->titleEquals('Edit layout for The node title | The node title | Drupal');
+-     $this->assertEquals('Edit layout for The node title', $this->cssSelect('h1.page-title')[0]->getText());
+-   }
+- 
+-diff --git a/core/modules/search/src/Plugin/Derivative/SearchLocalTask.php b/core/modules/search/src/Plugin/Derivative/SearchLocalTask.php
+-index 9f62a375..12f3eaf6 100644
+---- a/core/modules/search/src/Plugin/Derivative/SearchLocalTask.php
+-+++ b/core/modules/search/src/Plugin/Derivative/SearchLocalTask.php
+-@@ -44,13 +44,13 @@ class SearchLocalTask extends DeriverBase implements ContainerDeriverInterface {
+-   public function getDerivativeDefinitions($base_plugin_definition) {
+-     $this->derivatives = [];
+- 
+--    if ($default = $this->searchPageRepository->getDefaultSearchPage()) {
+-+    if ($this->searchPageRepository->getDefaultSearchPage()) {
+-       $active_search_pages = $this->searchPageRepository->getActiveSearchPages();
+-       foreach ($this->searchPageRepository->sortSearchPages($active_search_pages) as $entity_id => $entity) {
+-         $this->derivatives[$entity_id] = [
+-           'title' => $entity->label(),
+-           'route_name' => 'search.view_' . $entity_id,
+--          'base_route' => 'search.plugins:' . $default,
+-+          'base_route' => 'search.view',
+-           'weight' => $entity->getWeight(),
+-         ];
+-       }
+-diff --git a/core/modules/search/tests/src/Functional/SearchPageTextTest.php b/core/modules/search/tests/src/Functional/SearchPageTextTest.php
+-index 8ed49d73..5e4be5d3 100644
+---- a/core/modules/search/tests/src/Functional/SearchPageTextTest.php
+-+++ b/core/modules/search/tests/src/Functional/SearchPageTextTest.php
+-@@ -81,7 +81,7 @@ class SearchPageTextTest extends BrowserTestBase {
+-     $this->submitForm($edit, 'Search');
+-     $this->assertSession()->pageTextContains('search yielded no results');
+-     $this->assertSession()->pageTextContains('Search');
+--    $this->assertSession()->titleEquals('Search for ' . Unicode::truncate($search_terms, 60, TRUE, TRUE) . ' | Drupal');
+-+    $this->assertSession()->titleEquals('Search for ' . Unicode::truncate($search_terms, 60, TRUE, TRUE) . ' | Search | Drupal');
+-     $this->assertSession()->pageTextNotContains('Node');
+-     $this->assertSession()->pageTextNotContains('Node');
+-     $this->assertSession()->pageTextContains('Content');
+-@@ -96,20 +96,20 @@ class SearchPageTextTest extends BrowserTestBase {
+-     $edit['keys'] = $search_terms;
+-     $this->drupalGet('search/node');
+-     $this->submitForm($edit, 'Search');
+--    $this->assertSession()->titleEquals('Search for Every word is like an unnecessary stain on silence and… | Drupal');
+-+    $this->assertSession()->titleEquals('Search for Every word is like an unnecessary stain on silence and… | Search | Drupal');
+- 
+-     // Search for a string with a lot of special characters.
+-     $search_terms = 'Hear nothing > "see nothing" `feel' . " '1982.";
+-     $edit['keys'] = $search_terms;
+-     $this->drupalGet('search/node');
+-     $this->submitForm($edit, 'Search');
+--    $this->assertSession()->titleEquals('Search for ' . Unicode::truncate($search_terms, 60, TRUE, TRUE) . ' | Drupal');
+-+    $this->assertSession()->titleEquals('Search for ' . Unicode::truncate($search_terms, 60, TRUE, TRUE) . ' | Search | Drupal');
+- 
+-     $edit['keys'] = $this->searchingUser->getAccountName();
+-     $this->drupalGet('search/user');
+-     $this->submitForm($edit, 'Search');
+-     $this->assertSession()->pageTextContains('Search');
+--    $this->assertSession()->titleEquals('Search for ' . Unicode::truncate($this->searchingUser->getAccountName(), 60, TRUE, TRUE) . ' | Drupal');
+-+    $this->assertSession()->titleEquals('Search for ' . Unicode::truncate($this->searchingUser->getAccountName(), 60, TRUE, TRUE) . ' | Search | Drupal');
+- 
+-     $this->clickLink('About searching');
+-     $this->assertSession()->pageTextContains('About searching');
+-diff --git a/core/modules/system/config/schema/system.schema.yml b/core/modules/system/config/schema/system.schema.yml
+-index f1db955e..ee3ba07e 100644
+---- a/core/modules/system/config/schema/system.schema.yml
+-+++ b/core/modules/system/config/schema/system.schema.yml
+-@@ -363,6 +363,14 @@ system.advisories:
+-       type: integer
+-       label: 'How often to check for security advisories, in hours'
+- 
+ +block.settings.page_title_block:
+ +  type: block_settings
+ +  label: 'Page title block'
+ +  mapping:
+ +    base_route_title:
+ +      type: boolean
+-+      label: 'Display base route title instead of current title'
+++      label: 'Display section title instead of current title'
+ +
+  block.settings.system_branding_block:
+    type: block_settings
+    label: 'Branding block'
+-diff --git a/core/modules/system/src/PathBasedBreadcrumbBuilder.php b/core/modules/system/src/PathBasedBreadcrumbBuilder.php
+-index 749dad24..0bcb4a85 100644
+---- a/core/modules/system/src/PathBasedBreadcrumbBuilder.php
+-+++ b/core/modules/system/src/PathBasedBreadcrumbBuilder.php
+-@@ -8,9 +8,8 @@ use Drupal\Core\Breadcrumb\Breadcrumb;
+- use Drupal\Core\Breadcrumb\BreadcrumbBuilderInterface;
+- use Drupal\Core\Config\ConfigFactoryInterface;
+- use Drupal\Core\Controller\TitleResolverInterface;
+-+use Drupal\Core\DependencyInjection\DeprecatedServicePropertyTrait;
+- use Drupal\Core\Link;
+--use Drupal\Core\ParamConverter\ParamNotConvertedException;
+--use Drupal\Core\Path\CurrentPathStack;
+- use Drupal\Core\Path\PathMatcherInterface;
+- use Drupal\Core\PathProcessor\InboundPathProcessorInterface;
+- use Drupal\Core\Routing\RequestContext;
+-@@ -19,11 +18,7 @@ use Drupal\Core\Routing\RouteMatchInterface;
+- use Drupal\Core\Session\AccountInterface;
+- use Drupal\Core\StringTranslation\StringTranslationTrait;
+- use Drupal\Core\Url;
+--use Symfony\Component\HttpFoundation\Request;
+--use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+--use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+--use Symfony\Component\Routing\Exception\MethodNotAllowedException;
+--use Symfony\Component\Routing\Exception\ResourceNotFoundException;
+-+use Drupal\Core\Utility\RequestGenerator;
+- use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
+- 
+- /**
+-@@ -32,7 +27,20 @@ use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
+-  * @see \Drupal\Core\Breadcrumb\BreadcrumbBuilderInterface
+-  */
+- class PathBasedBreadcrumbBuilder implements BreadcrumbBuilderInterface {
+-+
+-   use StringTranslationTrait;
+-+  use DeprecatedServicePropertyTrait;
+-+
+-+  /**
+-+   * Defines deprecated injected properties.
+-+   *
+-+   * @var array
+-+   */
+-+  protected array $deprecatedProperties = [
+-+    'router' => 'router',
+-+    'pathProcessor' => 'path_processor_manager',
+-+    'currentPath' => 'path.current',
+-+  ];
+- 
+-   /**
+-    * The router request context.
+-@@ -48,20 +56,6 @@ class PathBasedBreadcrumbBuilder implements BreadcrumbBuilderInterface {
+-    */
+-   protected $accessManager;
+- 
+--  /**
+--   * The dynamic router service.
+--   *
+--   * @var \Symfony\Component\Routing\Matcher\RequestMatcherInterface
+--   */
+--  protected $router;
+--
+--  /**
+--   * The inbound path processor.
+--   *
+--   * @var \Drupal\Core\PathProcessor\InboundPathProcessorInterface
+--   */
+--  protected $pathProcessor;
+--
+-   /**
+-    * Site config object.
+-    *
+-@@ -84,18 +78,18 @@ class PathBasedBreadcrumbBuilder implements BreadcrumbBuilderInterface {
+-   protected $currentUser;
+- 
+-   /**
+--   * The current path service.
+-+   * The patch matcher service.
+-    *
+--   * @var \Drupal\Core\Path\CurrentPathStack
+-+   * @var \Drupal\Core\Path\PathMatcherInterface
+-    */
+--  protected $currentPath;
+-+  protected $pathMatcher;
+- 
+-   /**
+--   * The patch matcher service.
+-+   * The request generator.
+-    *
+--   * @var \Drupal\Core\Path\PathMatcherInterface
+-+   * @var \Drupal\Core\Utility\RequestGenerator
+-    */
+--  protected $pathMatcher;
+-+  protected $requestGenerator;
+- 
+-   /**
+-    * Constructs the PathBasedBreadcrumbBuilder.
+-@@ -104,31 +98,44 @@ class PathBasedBreadcrumbBuilder implements BreadcrumbBuilderInterface {
+-    *   The router request context.
+-    * @param \Drupal\Core\Access\AccessManagerInterface $access_manager
+-    *   The access check service.
+--   * @param \Symfony\Component\Routing\Matcher\RequestMatcherInterface $router
+--   *   The dynamic router service.
+--   * @param \Drupal\Core\PathProcessor\InboundPathProcessorInterface $path_processor
+--   *   The inbound path processor.
+--   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+-+   * @param \Drupal\Core\Config\ConfigFactoryInterface|\Symfony\Component\Routing\Matcher\RequestMatcherInterface $config_factory
+-    *   The config factory service.
+--   * @param \Drupal\Core\Controller\TitleResolverInterface $title_resolver
+-+   * @param \Drupal\Core\Controller\TitleResolverInterface|\Drupal\Core\PathProcessor\InboundPathProcessorInterface $title_resolver
+-    *   The title resolver service.
+--   * @param \Drupal\Core\Session\AccountInterface $current_user
+-+   * @param \Drupal\Core\Session\AccountInterface|\Drupal\Core\Config\ConfigFactoryInterface $current_user
+-    *   The current user object.
+--   * @param \Drupal\Core\Path\CurrentPathStack $current_path
+--   *   The current path.
+--   * @param \Drupal\Core\Path\PathMatcherInterface $path_matcher
+-+   * @param \Drupal\Core\Path\PathMatcherInterface|\Drupal\Core\Controller\TitleResolverInterface $path_matcher
+-    *   The path matcher service.
+-+   * @param \Drupal\Core\Utility\RequestGenerator|\Drupal\Core\Session\AccountInterface $request_generator
+-+   *   The request generator.
+-    */
+--  public function __construct(RequestContext $context, AccessManagerInterface $access_manager, RequestMatcherInterface $router, InboundPathProcessorInterface $path_processor, ConfigFactoryInterface $config_factory, TitleResolverInterface $title_resolver, AccountInterface $current_user, CurrentPathStack $current_path, PathMatcherInterface $path_matcher = NULL) {
+-+  public function __construct(
+-+    RequestContext $context,
+-+    AccessManagerInterface $access_manager,
+-+    ConfigFactoryInterface|RequestMatcherInterface $config_factory,
+-+    TitleResolverInterface|InboundPathProcessorInterface $title_resolver,
+-+    AccountInterface|ConfigFactoryInterface $current_user,
+-+    PathMatcherInterface|TitleResolverInterface $path_matcher,
+-+    RequestGenerator|AccountInterface $request_generator,
+-+  ) {
+-     $this->context = $context;
+-     $this->accessManager = $access_manager;
+--    $this->router = $router;
+--    $this->pathProcessor = $path_processor;
+-+    if ($config_factory instanceof RequestMatcherInterface) {
+-+      @trigger_error('Calling PathBasedBreadcrumbBuilder::__construct() with the $router, $path_processor, $current_path arguments is deprecated in drupal:10.2.0 and is removed from drupal:11.0.0. See https://www.drupal.org/node/3397213', E_USER_DEPRECATED);
+-+      @trigger_error('Calling PathBasedBreadcrumbBuilder::__construct() without the $request_generator argument is deprecated in drupal:10.2.0 and will be required in drupal:11.0.0. See https://www.drupal.org/node/3397213', E_USER_DEPRECATED);
+-+      $config_factory = $current_user;
+-+      $this->titleResolver = $path_matcher;
+-+      $this->currentUser = $request_generator;
+-+      $this->requestGenerator = \Drupal::service('request_generator');
+-+      $this->pathMatcher = func_get_arg(8) ?: \Drupal::service('path.matcher');
+-+    }
+-+    else {
+-+      $this->titleResolver = $title_resolver;
+-+      $this->currentUser = $current_user;
+-+      $this->requestGenerator = $request_generator;
+-+      $this->pathMatcher = $path_matcher;
+-+    }
+-     $this->config = $config_factory->get('system.site');
+--    $this->titleResolver = $title_resolver;
+--    $this->currentUser = $current_user;
+--    $this->currentPath = $current_path;
+--    $this->pathMatcher = $path_matcher ?: \Drupal::service('path.matcher');
+-   }
+- 
+-   /**
+-@@ -169,7 +176,7 @@ class PathBasedBreadcrumbBuilder implements BreadcrumbBuilderInterface {
+-     while (count($path_elements) > 1) {
+-       array_pop($path_elements);
+-       // Copy the path elements for up-casting.
+--      $route_request = $this->getRequestForPath('/' . implode('/', $path_elements), $exclude);
+-+      $route_request = $this->requestGenerator->generateRequestForPath('/' . implode('/', $path_elements), $exclude);
+-       if ($route_request) {
+-         $route_match = RouteMatch::createFromRequest($route_request);
+-         $access = $this->accessManager->check($route_match, $this->currentUser, NULL, TRUE);
+-@@ -195,40 +202,4 @@ class PathBasedBreadcrumbBuilder implements BreadcrumbBuilderInterface {
+-     return $breadcrumb->setLinks(array_reverse($links));
+-   }
+- 
+--  /**
+--   * Matches a path in the router.
+--   *
+--   * @param string $path
+--   *   The request path with a leading slash.
+--   * @param array $exclude
+--   *   An array of paths or system paths to skip.
+--   *
+--   * @return \Symfony\Component\HttpFoundation\Request
+--   *   A populated request object or NULL if the path couldn't be matched.
+--   */
+--  protected function getRequestForPath($path, array $exclude) {
+--    if (!empty($exclude[$path])) {
+--      return NULL;
+--    }
+--    $request = Request::create($path);
+--    // Performance optimization: set a short accept header to reduce overhead in
+--    // AcceptHeaderMatcher when matching the request.
+--    $request->headers->set('Accept', 'text/html');
+--    // Find the system path by resolving aliases, language prefix, etc.
+--    $processed = $this->pathProcessor->processInbound($path, $request);
+--    if (empty($processed) || !empty($exclude[$processed])) {
+--      // This resolves to the front page, which we already add.
+--      return NULL;
+--    }
+--    $this->currentPath->setPath($processed, $request);
+--    // Attempt to match this path to provide a fully built request.
+--    try {
+--      $request->attributes->add($this->router->matchRequest($request));
+--      return $request;
+--    }
+--    catch (ParamNotConvertedException | ResourceNotFoundException | MethodNotAllowedException | AccessDeniedHttpException | NotFoundHttpException $e) {
+--      return NULL;
+--    }
+--  }
+--
+- }
+-diff --git a/core/modules/system/system.services.yml b/core/modules/system/system.services.yml
+-index 7754d143..be6607a8 100644
+---- a/core/modules/system/system.services.yml
+-+++ b/core/modules/system/system.services.yml
+-@@ -18,7 +18,7 @@ services:
+-   Drupal\system\SystemManager: '@system.manager'
+-   system.breadcrumb.default:
+-     class: Drupal\system\PathBasedBreadcrumbBuilder
+--    arguments: ['@router.request_context', '@access_manager', '@router', '@path_processor_manager', '@config.factory',  '@title_resolver', '@current_user', '@path.current', '@path.matcher']
+-+    arguments: ['@router.request_context', '@access_manager', '@config.factory',  '@title_resolver', '@current_user', '@path.matcher', '@request_generator']
+-     tags:
+-       - { name: breadcrumb_builder, priority: 0 }
+-   path_processor.files:
+-diff --git a/core/modules/system/templates/page-title.html.twig b/core/modules/system/templates/page-title.html.twig
+-index 1a066190..bd0940d9 100644
+---- a/core/modules/system/templates/page-title.html.twig
+-+++ b/core/modules/system/templates/page-title.html.twig
+-@@ -15,7 +15,7 @@
+-  */
+- #}
+- {{ title_prefix }}
+--{% if title %}
+-+{% if title is not empty %}
+-   <h1{{ title_attributes }}>{{ title }}</h1>
+- {% endif %}
+- {{ title_suffix }}
+ diff --git a/core/modules/system/tests/src/Functional/Module/UninstallTest.php b/core/modules/system/tests/src/Functional/Module/UninstallTest.php
+-index aca843ac..89e8b94a 100644
++index 38af57e0551..9c61efb7a03 100644
+ --- a/core/modules/system/tests/src/Functional/Module/UninstallTest.php
+ +++ b/core/modules/system/tests/src/Functional/Module/UninstallTest.php
+-@@ -70,7 +70,7 @@ class UninstallTest extends BrowserTestBase {
++@@ -80,7 +80,7 @@ public function testUninstallPage(): void {
+      $this->rebuildAll();
+  
+      $this->drupalGet('admin/modules/uninstall');
+@@ -1458,7 +992,7 @@
+  
+      // Check that the experimental module link was rendered correctly.
+      $this->assertSession()->elementExists('xpath', "//a[contains(@aria-label, 'View information on the Experimental status of the module Experimental Test')]");
+-@@ -175,7 +175,7 @@ class UninstallTest extends BrowserTestBase {
++@@ -192,7 +192,7 @@ public function testUninstallPage(): void {
+      // Make sure confirmation page is accessible only during uninstall process.
+      $this->drupalGet('admin/modules/uninstall/confirm');
+      $this->assertSession()->addressEquals('admin/modules/uninstall');
+@@ -1467,162 +1001,8 @@
+  
+      // Make sure the correct error is shown when no modules are selected.
+      $edit = [];
+-diff --git a/core/modules/system/tests/src/Unit/Breadcrumbs/PathBasedBreadcrumbBuilderTest.php b/core/modules/system/tests/src/Unit/Breadcrumbs/PathBasedBreadcrumbBuilderTest.php
+-index a27944c4..b6e14268 100644
+---- a/core/modules/system/tests/src/Unit/Breadcrumbs/PathBasedBreadcrumbBuilderTest.php
+-+++ b/core/modules/system/tests/src/Unit/Breadcrumbs/PathBasedBreadcrumbBuilderTest.php
+-@@ -12,6 +12,7 @@ use Drupal\Core\Path\PathMatcherInterface;
+- use Drupal\Core\StringTranslation\TranslationInterface;
+- use Drupal\Core\Url;
+- use Drupal\Core\Utility\LinkGeneratorInterface;
+-+use Drupal\Core\Utility\RequestGenerator;
+- use Drupal\system\PathBasedBreadcrumbBuilder;
+- use Drupal\Tests\UnitTestCase;
+- use Drupal\Core\Routing\RouteObjectInterface;
+-@@ -76,18 +77,18 @@ class PathBasedBreadcrumbBuilderTest extends UnitTestCase {
+-   protected $pathProcessor;
+- 
+-   /**
+--   * The mocked current path.
+-+   * The mocked path matcher service.
+-    *
+--   * @var \Drupal\Core\Path\CurrentPathStack|\PHPUnit\Framework\MockObject\MockObject
+-+   * @var \Drupal\Core\Path\PathMatcherInterface|\PHPUnit\Framework\MockObject\MockObject
+-    */
+--  protected $currentPath;
+-+  protected $pathMatcher;
+- 
+-   /**
+--   * The mocked path matcher service.
+-+   * The request generator service.
+-    *
+--   * @var \Drupal\Core\Path\PathMatcherInterface|\PHPUnit\Framework\MockObject\MockObject
+-+   * @var \Drupal\Core\Utility\RequestGenerator|\PHPUnit\Framework\MockObject\MockObject
+-    */
+--  protected $pathMatcher;
+-+  protected $requestGenerator;
+- 
+-   /**
+-    * {@inheritdoc}
+-@@ -107,22 +108,24 @@ class PathBasedBreadcrumbBuilderTest extends UnitTestCase {
+-     $this->accessManager = $this->createMock('\Drupal\Core\Access\AccessManagerInterface');
+-     $this->titleResolver = $this->createMock('\Drupal\Core\Controller\TitleResolverInterface');
+-     $this->currentUser = $this->createMock('Drupal\Core\Session\AccountInterface');
+--    $this->currentPath = $this->getMockBuilder('Drupal\Core\Path\CurrentPathStack')
+--      ->disableOriginalConstructor()
+--      ->getMock();
+- 
+-     $this->pathMatcher = $this->createMock(PathMatcherInterface::class);
+-+    $this->requestGenerator = new RequestGenerator(
+-+      $this->pathProcessor,
+-+      $this->getMockBuilder('Drupal\Core\Path\CurrentPathStack')
+-+        ->disableOriginalConstructor()
+-+        ->getMock(),
+-+      $this->requestMatcher
+-+    );
+- 
+-     $this->builder = new TestPathBasedBreadcrumbBuilder(
+-       $this->context,
+-       $this->accessManager,
+--      $this->requestMatcher,
+--      $this->pathProcessor,
+-       $config_factory,
+-       $this->titleResolver,
+-       $this->currentUser,
+--      $this->currentPath,
+--      $this->pathMatcher
+-+      $this->pathMatcher,
+-+      $this->requestGenerator,
+-     );
+- 
+-     $this->builder->setStringTranslation($this->getStringTranslationStub());
+-@@ -174,7 +177,6 @@ class PathBasedBreadcrumbBuilderTest extends UnitTestCase {
+-    * Tests the build method with two path elements.
+-    *
+-    * @covers ::build
+--   * @covers ::getRequestForPath
+-    */
+-   public function testBuildWithTwoPathElements() {
+-     $this->context->expects($this->once())
+-@@ -213,7 +215,6 @@ class PathBasedBreadcrumbBuilderTest extends UnitTestCase {
+-    * Tests the build method with three path elements.
+-    *
+-    * @covers ::build
+--   * @covers ::getRequestForPath
+-    */
+-   public function testBuildWithThreePathElements() {
+-     $this->context->expects($this->once())
+-@@ -269,7 +270,6 @@ class PathBasedBreadcrumbBuilderTest extends UnitTestCase {
+-    * Tests that exceptions during request matching are caught.
+-    *
+-    * @covers ::build
+--   * @covers ::getRequestForPath
+-    *
+-    * @dataProvider providerTestBuildWithException
+-    */
+-@@ -312,7 +312,6 @@ class PathBasedBreadcrumbBuilderTest extends UnitTestCase {
+-    * Tests the build method with a non processed path.
+-    *
+-    * @covers ::build
+--   * @covers ::getRequestForPath
+-    */
+-   public function testBuildWithNonProcessedPath() {
+-     $this->context->expects($this->once())
+-@@ -349,7 +348,6 @@ class PathBasedBreadcrumbBuilderTest extends UnitTestCase {
+-    * Tests the breadcrumb for a user path.
+-    *
+-    * @covers ::build
+--   * @covers ::getRequestForPath
+-    */
+-   public function testBuildWithUserPath() {
+-     $this->context->expects($this->once())
+-diff --git a/core/modules/views/tests/src/Functional/Plugin/DisplayPageWebTest.php b/core/modules/views/tests/src/Functional/Plugin/DisplayPageWebTest.php
+-index e68cf66b..91a38454 100644
+---- a/core/modules/views/tests/src/Functional/Plugin/DisplayPageWebTest.php
+-+++ b/core/modules/views/tests/src/Functional/Plugin/DisplayPageWebTest.php
+-@@ -63,13 +63,13 @@ class DisplayPageWebTest extends ViewTestBase {
+-     $this->assertSession()->statusCodeEquals(200);
+-     $this->assertCacheContexts(['languages:language_interface', 'route', 'theme', 'url']);
+-     $this->assertSession()->elementsCount('xpath', $xpath, 1);
+--    $this->assertSession()->elementTextEquals('xpath', $xpath, '1');
+-+    $this->assertSession()->elementTextEquals('xpath', $xpath, 1);
+- 
+-     // Ensure that just the filtered entry is returned.
+-     $this->drupalGet('test_route_with_suffix/1/suffix');
+-     $this->assertSession()->statusCodeEquals(200);
+-     $this->assertSession()->elementsCount('xpath', $xpath, 1);
+--    $this->assertSession()->elementTextEquals('xpath', $xpath, '1');
+-+    $this->assertSession()->elementTextEquals('xpath', $xpath, 1);
+- 
+-     // Ensure that no result is returned.
+-     $this->drupalGet('test_route_with_suffix_and_argument/1/suffix/2');
+-@@ -80,13 +80,13 @@ class DisplayPageWebTest extends ViewTestBase {
+-     $this->drupalGet('test_route_with_suffix_and_argument/1/suffix/1');
+-     $this->assertSession()->statusCodeEquals(200);
+-     $this->assertSession()->elementsCount('xpath', $xpath, 1);
+--    $this->assertSession()->elementTextEquals('xpath', $xpath, '1');
+-+    $this->assertSession()->elementTextEquals('xpath', $xpath, 1);
+- 
+-     // Ensure that just the filtered entry is returned.
+-     $this->drupalGet('test_route_with_long_argument/1');
+-     $this->assertSession()->statusCodeEquals(200);
+-     $this->assertSession()->elementsCount('xpath', $xpath, 1);
+--    $this->assertSession()->elementTextEquals('xpath', $xpath, '1');
+-+    $this->assertSession()->elementTextEquals('xpath', $xpath, 1);
+-   }
+- 
+-   /**
+-@@ -105,7 +105,7 @@ class DisplayPageWebTest extends ViewTestBase {
+-     $this->drupalGet('test_page_display_menu/local');
+-     $this->assertSession()->statusCodeEquals(200);
+-     $this->assertSession()->elementTextEquals('xpath', "//ul[contains(@class, 'tabs primary')]//a[contains(@class, 'is-active')]/child::text()", 'Test local tab');
+--    $this->assertSession()->titleEquals('Test local page | Drupal');
+-+    $this->assertSession()->titleEquals('Test local page | Test default page | Drupal');
+- 
+-     // Check an ordinary menu link.
+-     $admin_user = $this->drupalCreateUser(['administer menu']);
+ diff --git a/core/profiles/demo_umami/config/install/block.block.umami_page_title.yml b/core/profiles/demo_umami/config/install/block.block.umami_page_title.yml
+-index 048f9a69..b5ac4d81 100644
++index 048f9a69065..b5ac4d8191d 100644
+ --- a/core/profiles/demo_umami/config/install/block.block.umami_page_title.yml
+ +++ b/core/profiles/demo_umami/config/install/block.block.umami_page_title.yml
+ @@ -16,6 +16,7 @@ settings:
+@@ -1633,21 +1013,8 @@
+  visibility:
+    request_path:
+      id: request_path
+-diff --git a/core/profiles/demo_umami/themes/umami/templates/classy/content/page-title.html.twig b/core/profiles/demo_umami/themes/umami/templates/classy/content/page-title.html.twig
+-index e1de7266..fac0ad01 100644
+---- a/core/profiles/demo_umami/themes/umami/templates/classy/content/page-title.html.twig
+-+++ b/core/profiles/demo_umami/themes/umami/templates/classy/content/page-title.html.twig
+-@@ -13,7 +13,7 @@
+-  */
+- #}
+- {{ title_prefix }}
+--{% if title %}
+-+{% if title is not empty %}
+-   <h1{{ title_attributes.addClass('page-title') }}>{{ title }}</h1>
+- {% endif %}
+- {{ title_suffix }}
+ diff --git a/core/profiles/minimal/config/install/block.block.stark_page_title.yml b/core/profiles/minimal/config/install/block.block.stark_page_title.yml
+-index 7b7f098b..bb95d0b6 100644
++index 7b7f098bbd3..bb95d0b64a9 100644
+ --- a/core/profiles/minimal/config/install/block.block.stark_page_title.yml
+ +++ b/core/profiles/minimal/config/install/block.block.stark_page_title.yml
+ @@ -14,4 +14,5 @@ settings:
+@@ -1656,65 +1023,70 @@
+    provider: core
+ +  base_route_title: false
+  visibility: {  }
+-diff --git a/core/profiles/testing_themes_blocks/themes/testing_theme_optional_blocks/config/optional/block.block.testing_theme_optional_blocks_page_title.yml b/core/profiles/testing_themes_blocks/themes/testing_theme_optional_blocks/config/optional/block.block.testing_theme_optional_blocks_page_title.yml
+-index 1620400e..104e2726 100644
+---- a/core/profiles/testing_themes_blocks/themes/testing_theme_optional_blocks/config/optional/block.block.testing_theme_optional_blocks_page_title.yml
+-+++ b/core/profiles/testing_themes_blocks/themes/testing_theme_optional_blocks/config/optional/block.block.testing_theme_optional_blocks_page_title.yml
++diff --git a/core/profiles/tests/testing_themes_blocks/themes/testing_theme_optional_blocks/config/optional/block.block.testing_theme_optional_blocks_page_title.yml b/core/profiles/tests/testing_themes_blocks/themes/testing_theme_optional_blocks/config/optional/block.block.testing_theme_optional_blocks_page_title.yml
++index 1620400e448..104e2726cd1 100644
++--- a/core/profiles/tests/testing_themes_blocks/themes/testing_theme_optional_blocks/config/optional/block.block.testing_theme_optional_blocks_page_title.yml
+++++ b/core/profiles/tests/testing_themes_blocks/themes/testing_theme_optional_blocks/config/optional/block.block.testing_theme_optional_blocks_page_title.yml
+ @@ -14,4 +14,5 @@ settings:
+    label: 'Page title'
+    label_display: '0'
+    provider: core
+ +  base_route_title: false
+  visibility: {  }
+-diff --git a/core/tests/Drupal/KernelTests/Core/Entity/RouteProviderTest.php b/core/tests/Drupal/KernelTests/Core/Entity/RouteProviderTest.php
+-index 3cfc77d0..e4ebd066 100644
+---- a/core/tests/Drupal/KernelTests/Core/Entity/RouteProviderTest.php
+-+++ b/core/tests/Drupal/KernelTests/Core/Entity/RouteProviderTest.php
+-@@ -88,7 +88,7 @@ class RouteProviderTest extends KernelTestBase {
+-     $this->assertTitle('Test title | ');
+- 
+-     $this->setRawContent($this->httpKernelHandle($entity->toUrl('edit-form')->toString()));
+--    $this->assertTitle('Edit Test title | ');
+-+    $this->assertTitle('Edit Test title | Test title | ');
+- 
+-     $this->setRawContent($this->httpKernelHandle($entity->toUrl('delete-form')->toString()));
+-     $this->assertTitle('Are you sure you want to delete the test entity - data table Test title? | ');
+-diff --git a/core/tests/Drupal/Tests/Core/Utility/RequestGeneratorTest.php b/core/tests/Drupal/Tests/Core/Utility/RequestGeneratorTest.php
++diff --git a/core/tests/Drupal/KernelTests/Config/Schema/MappingTest.php b/core/tests/Drupal/KernelTests/Config/Schema/MappingTest.php
++index e74f650ac05..f316f86aa0d 100644
++--- a/core/tests/Drupal/KernelTests/Config/Schema/MappingTest.php
+++++ b/core/tests/Drupal/KernelTests/Config/Schema/MappingTest.php
++@@ -180,6 +180,9 @@ public static function providerMappingInterpretation(): \Generator {
++       'block.settings.extra_field_block:*:*:*' => [
++         'formatter',
++       ],
+++      'block.settings.page_title_block' => [
+++        'base_route_title',
+++      ],
++       'block.settings.system_branding_block' => [
++         'use_site_logo',
++         'use_site_name',
++diff --git a/core/tests/Drupal/Tests/Core/Routing/RequestGeneratorTest.php b/core/tests/Drupal/Tests/Core/Routing/RequestGeneratorTest.php
+ new file mode 100644
+-index 00000000..dfa5ad05
++index 00000000000..1ce35def975
+ --- /dev/null
+-+++ b/core/tests/Drupal/Tests/Core/Utility/RequestGeneratorTest.php
+-@@ -0,0 +1,159 @@
+++++ b/core/tests/Drupal/Tests/Core/Routing/RequestGeneratorTest.php
++@@ -0,0 +1,161 @@
+ +<?php
+ +
+-+namespace Drupal\Tests\Core\Utility;
+++declare(strict_types=1);
+ +
+++namespace Drupal\Tests\Core\Routing;
+++
+ +use Drupal\Core\ParamConverter\ParamNotConvertedException;
+ +use Drupal\Core\Path\CurrentPathStack;
+ +use Drupal\Core\PathProcessor\InboundPathProcessorInterface;
+ +use Drupal\Core\Routing\RouteObjectInterface;
+-+use Drupal\Core\Utility\RequestGenerator;
+++use Drupal\Core\Routing\RequestGenerator;
+ +use Drupal\Tests\UnitTestCase;
+++use PHPUnit\Framework\Attributes\DataProvider;
+ +use Prophecy\Argument;
+ +use Prophecy\Prophecy\ObjectProphecy;
+ +use Symfony\Component\HttpFoundation\InputBag;
+ +use Symfony\Component\HttpFoundation\Request;
+ +use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+++use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+ +use Symfony\Component\Routing\Exception\MethodNotAllowedException;
+ +use Symfony\Component\Routing\Exception\ResourceNotFoundException;
+ +use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
+ +use Symfony\Component\Routing\Route;
+ +
+ +/**
+-+ * @coversDefaultClass \Drupal\Core\Utility\RequestGenerator
+-+ * @group Utility
+++ * @coversDefaultClass \Drupal\Core\Routing\RequestGenerator
+++ * @group Routing
+ + */
+ +class RequestGeneratorTest extends UnitTestCase {
+ +
+ +  /**
+ +   * The request generator.
+ +   *
+-+   * @var \Drupal\Core\Utility\RequestGenerator
+++   * @var \Drupal\Core\Routing\RequestGenerator
+ +   */
+ +  protected RequestGenerator $requestGenerator;
+ +
+@@ -1761,27 +1133,24 @@
+ +   * @return \Generator
+ +   *   The test cases.
+ +   */
+-+  public function providerTestGenerateRequestForPath(): \Generator {
+++  public static function providerTestGenerateRequestForPath(): \Generator {
+ +    $path = '/any/path';
+ +
+ +    yield 'request for a path with no paths to skip' => [
+ +      $path,
+ +      [],
+-+      ['processInbound' => 1, 'matchRequest' => 1],
+ +      TRUE,
+ +    ];
+ +
+ +    yield 'request for a path which needs to be skipped' => [
+ +      $path,
+ +      [$path => TRUE],
+-+      ['processInbound' => 0, 'matchRequest' => 0],
+ +      FALSE,
+ +    ];
+ +
+ +    yield 'request for a path with other path which needs to be skipped' => [
+ +      $path,
+ +      ['/other/path' => TRUE],
+-+      ['processInbound' => 1, 'matchRequest' => 1],
+ +      TRUE,
+ +    ];
+ +  }
+@@ -1789,10 +1158,10 @@
+ +  /**
+ +   * Tests generateRequestForPath().
+ +   *
+-+   * @dataProvider providerTestGenerateRequestForPath
+ +   * @covers ::generateRequestForPath
+ +   */
+-+  public function testGenerateRequestForPath($path, $exclude, $methods_called, $request_generated): void {
+++  #[DataProvider('providerTestGenerateRequestForPath')]
+++  public function testGenerateRequestForPath($path, $exclude, $request_generated): void {
+ +    $route = new Route($path);
+ +    $this->pathProcessor->processInbound($path, Argument::type(Request::class))->willReturnArgument();
+ +    $this->requestMatcher->matchRequest(Argument::type(Request::class))->will(function ($arguments) use ($route, $path) {
+@@ -1818,22 +1187,23 @@
+ +  /**
+ +   * Data provider for testGenerateRequestForPathWithException().
+ +   *
+-+   * @return array
+++   * @return \Generator
+ +   *   The test cases.
+ +   */
+-+  public function providerTestGenerateRequestForPathWithException() {
+++  public static function providerTestGenerateRequestForPathWithException(): \Generator {
+ +    yield 'ParamNotConvertedException' => [ParamNotConvertedException::class, ''];
+ +    yield 'ResourceNotFoundException' => [ResourceNotFoundException::class, ''];
+ +    yield 'MethodNotAllowedException' => [MethodNotAllowedException::class, []];
+ +    yield 'AccessDeniedHttpException' => [AccessDeniedHttpException::class, ''];
+++    yield 'NotFoundHttpException' => [NotFoundHttpException::class, ''];
+ +  }
+ +
+ +  /**
+ +   * Tests generateRequestForPath() with exceptions during request matching.
+ +   *
+-+   * @dataProvider providerTestGenerateRequestForPathWithException
+ +   * @covers ::generateRequestForPath
+ +   */
+++  #[DataProvider('providerTestGenerateRequestForPathWithException')]
+ +  public function testGenerateRequestForPathWithException($exception_class, $exception_argument): void {
+ +    $path = '/example';
+ +    $exclude = [];
+@@ -1844,11 +1214,8 @@
+ +  }
+ +
+ +}
+-diff --git a/core/tests/fixtures/config_install/multilingual.tar.gz b/core/tests/fixtures/config_install/multilingual.tar.gz
+-index ad1315d6..6371ae4d 100644
+-Binary files a/core/tests/fixtures/config_install/multilingual.tar.gz and b/core/tests/fixtures/config_install/multilingual.tar.gz differ
+ diff --git a/core/themes/claro/config/optional/block.block.claro_page_title.yml b/core/themes/claro/config/optional/block.block.claro_page_title.yml
+-index 8ee18548..ed6acbc2 100644
++index 8ee18548b0a..ed6acbc259a 100644
+ --- a/core/themes/claro/config/optional/block.block.claro_page_title.yml
+ +++ b/core/themes/claro/config/optional/block.block.claro_page_title.yml
+ @@ -14,4 +14,5 @@ settings:
+@@ -1857,21 +1224,8 @@
+    provider: core
+ +  base_route_title: true
+  visibility: {  }
+-diff --git a/core/themes/claro/templates/classy/content/page-title.html.twig b/core/themes/claro/templates/classy/content/page-title.html.twig
+-index e1de7266..fac0ad01 100644
+---- a/core/themes/claro/templates/classy/content/page-title.html.twig
+-+++ b/core/themes/claro/templates/classy/content/page-title.html.twig
+-@@ -13,7 +13,7 @@
+-  */
+- #}
+- {{ title_prefix }}
+--{% if title %}
+-+{% if title is not empty %}
+-   <h1{{ title_attributes.addClass('page-title') }}>{{ title }}</h1>
+- {% endif %}
+- {{ title_suffix }}
+ diff --git a/core/themes/olivero/config/optional/block.block.olivero_page_title.yml b/core/themes/olivero/config/optional/block.block.olivero_page_title.yml
+-index 9caf4dba..7ca0de24 100644
++index 9caf4dba2e9..7ca0de24176 100644
+ --- a/core/themes/olivero/config/optional/block.block.olivero_page_title.yml
+ +++ b/core/themes/olivero/config/optional/block.block.olivero_page_title.yml
+ @@ -14,4 +14,5 @@ settings:
+@@ -1880,29 +1234,516 @@
+    provider: core
+ +  base_route_title: false
+  visibility: {  }
+-diff --git a/core/themes/olivero/templates/content/page-title.html.twig b/core/themes/olivero/templates/content/page-title.html.twig
+-index d95cde84..05a6b443 100644
+---- a/core/themes/olivero/templates/content/page-title.html.twig
+-+++ b/core/themes/olivero/templates/content/page-title.html.twig
+-@@ -20,7 +20,7 @@
+- %}
+- 
+- {{ title_prefix }}
+--{% if (title|render|striptags|trim is not empty) %}
+-+{% if (title is not empty)|render|striptags|trim %}
+-   <h1{{ title_attributes.addClass(classes) }}>{{ title }}</h1>
+- {% endif %}
+- {{ title_suffix }}
+-diff --git a/core/themes/starterkit_theme/templates/content/page-title.html.twig b/core/themes/starterkit_theme/templates/content/page-title.html.twig
+-index e1de7266..fac0ad01 100644
+---- a/core/themes/starterkit_theme/templates/content/page-title.html.twig
+-+++ b/core/themes/starterkit_theme/templates/content/page-title.html.twig
+-@@ -13,7 +13,7 @@
+-  */
+- #}
+- {{ title_prefix }}
+--{% if title %}
+-+{% if title is not empty %}
+-   <h1{{ title_attributes.addClass('page-title') }}>{{ title }}</h1>
+- {% endif %}
+- {{ title_suffix }}
++
++Changes:
++
++core/core.services.yml
++  @@ -1164,6 +1164,14 @@ services:
++  +  request_generator:
++  +    class: Drupal\Core\Routing\RequestGenerator
++  +    arguments: ['@path_processor_manager', '@path.current', '@router']
++  +  Drupal\Core\Routing\RequestGenerator: '@request_generator'
++  +  base_route_title_resolver:
++  +    class: Drupal\Core\Controller\BaseRouteTitleResolver
++  +    arguments: ['@url_generator', '@title_resolver', '@plugin.manager.menu.local_task', '@router.route_provider', '@request_generator']
++  +  Drupal\Core\Controller\BaseRouteTitleResolver: '@base_route_title_resolver'
++     router:
++       class: Drupal\Core\Routing\AccessAwareRouter
++       arguments: ['@router.no_access_checks', '@access_manager', '@current_user']
++  +8 -0
++
++core/lib/Drupal/Core/Block/Plugin/Block/PageTitleBlock.php
++  @@ -5,7 +5,12 @@
++  +use Drupal\Core\Controller\TitleResolverInterface;
++  +use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
++  +use Drupal\Core\Routing\RouteMatchInterface;
++   use Drupal\Core\StringTranslation\TranslatableMarkup;
++  +use Symfony\Component\DependencyInjection\ContainerInterface;
++  +use Symfony\Component\HttpFoundation\RequestStack;
++   
++   /**
++    * Provides a block to display the page title.
++  @@ -14,7 +19,7 @@
++  -class PageTitleBlock extends BlockBase implements TitleBlockPluginInterface {
++  +class PageTitleBlock extends BlockBase implements TitleBlockPluginInterface, ContainerFactoryPluginInterface {
++   
++     /**
++      * The page title: a string (plain title) or a render array (formatted title).
++  @@ -23,6 +28,51 @@ class PageTitleBlock extends BlockBase implements TitleBlockPluginInterface {
++  +  /**
++  +   * Constructs a new PageTitleBlock.
++  +   *
++  +   * @param array $configuration
++  +   *   A configuration array containing information about the plugin instance.
++  +   * @param string $plugin_id
++  +   *   The plugin ID for the plugin instance.
++  +   * @param mixed $plugin_definition
++  +   *   The plugin implementation definition.
++  +   * @param \Drupal\Core\Controller\TitleResolverInterface|null $titleResolver
++  +   *   The title resolver.
++  +   * @param \Drupal\Core\Routing\RouteMatchInterface|null $routeMatch
++  +   *   The route match.
++  +   * @param \Symfony\Component\HttpFoundation\RequestStack|null $requestStack
++  +   *   The request stack.
++  +   * @param \Drupal\Core\Controller\TitleResolverInterface|null $baseRouteTitleResolver
++  +   *   The base route title resolver.
++  +   */
++  +  public function __construct(
++  +    array $configuration,
++  +    $plugin_id,
++  +    $plugin_definition,
++  +    protected TitleResolverInterface $titleResolver,
++  +    protected RouteMatchInterface $routeMatch,
++  +    protected RequestStack $requestStack,
++  +    protected TitleResolverInterface $baseRouteTitleResolver,
++  +  ) {
++  +    parent::__construct($configuration, $plugin_id, $plugin_definition);
++  +  }
++  +
++  +  /**
++  +   * {@inheritdoc}
++  +   */
++  +  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): static {
++  +    return new static(
++  +      $configuration,
++  +      $plugin_id,
++  +      $plugin_definition,
++  +      $container->get('title_resolver'),
++  +      $container->get('current_route_match'),
++  +      $container->get('request_stack'),
++  +      $container->get('base_route_title_resolver'),
++  +    );
++  +  }
++  +
++     /**
++      * {@inheritdoc}
++      */
++  @@ -35,17 +85,100 @@ public function setTitle($title) {
++  -    return ['label_display' => '0'];
++  +    return [
++  +      'label_display' => FALSE,
++  +      'base_route_title' => FALSE,
++  +    ];
++     }
++   
++     /**
++      * {@inheritdoc}
++      */
++     public function build() {
++  +    $title = $this->title;
++  +    if ($this->configuration['base_route_title']) {
++  +      $base_route_title = $this->getTitleBasedOnBaseRoute();
++  +      if (!is_null($base_route_title)) {
++  +        $title = $base_route_title;
++  +      }
++  +    }
++       return [
++         '#type' => 'page_title',
++  -      '#title' => $this->title,
++  +      '#title' => $title,
++  +    ];
++  +  }
++  +
++  +  /**
++  +   * {@inheritdoc}
++  +   */
++  +  public function blockForm($form, FormStateInterface $form_state) : array {
++  +    $form['base_route_title'] = [
++  +      '#type' => 'radios',
++  +      '#title' => $this->t('Title to be displayed'),
++  +      '#options' => [
++  +        0 => $this->t('Current page title'),
++  +        1 => $this->t('Section page title'),
++  +      ],
++  +      '#default_value' => (int) $this->configuration['base_route_title'],
++  +      '#description' => $this->t('Choose whether to display the title of the current page or the current section. The section page title is preferred if the title is displayed before local tasks and if it is displayed after local tasks then the current page title is preferred.'),
++       ];
++  +    return $form;
++  +  }
++  +
++  +  /**
++  +   * {@inheritdoc}
++  +   */
++  +  public function blockSubmit($form, FormStateInterface $form_state) : void {
++  +    $this->configuration['base_route_title'] = (bool) $form_state->getValue('base_route_title');
++  +  }
++  +
++  +  /**
++  +   * Gets title based on base route.
++  +   *
++  +   * @return array|string|null|\Stringable
++  +   *   The title based on base route.
++  +   */
++  +  private function getTitleBasedOnBaseRoute(): array|string|null|\Stringable {
++  +    $controller_title = $this->titleResolver->getTitle($this->requestStack->getCurrentRequest(), $this->routeMatch->getRouteObject());
++  +
++  +    $rendered_title = $this->renderTitle($this->title);
++  +    // Controller render arrays using `#title` take precedent over the title
++  +    // resolvers.
++  +    if ((string) $this->renderTitle($controller_title) !== (string) $rendered_title) {
++  +      return $this->title;
++  +    }
++  +
++  +    $base_route_title = $this->baseRouteTitleResolver->getTitle($this->requestStack->getCurrentRequest(), $this->routeMatch->getRouteObject());
++  +    if (!is_null($base_route_title)) {
++  +      $rendered_base_route_title = $this->renderTitle($base_route_title);
++  +      // If the titles are equal, return the original title.
++  +      if ((string) $rendered_base_route_title === (string) $rendered_title) {
++  +        return $this->title;
++  +      }
++  +
++  +      return $this->t('@section_title<span class="visually-hidden">: @current_title</span>', [
++  +        '@section_title' => $rendered_base_route_title,
++  +        '@current_title' => $rendered_title,
++  +      ]);
++  +    }
++  +
++  +    return $this->title;
++  +  }
++  +
++  +  /**
++  +   * Renders the title.
++  +   *
++  +   * @param array|string|null|\Stringable $title
++  +   *   A title that could be an array, string or stringable object.
++  +   *
++  +   * @return string|\Stringable
++  +   */
++  +  private function renderTitle(array|string|null|\Stringable $title): string|\Stringable {
++  +    if (is_array($title)) {
++  +      $title = \Drupal::service('renderer')->render($title);
++  +    }
++  +
++  +    return $title ?? '';
++     }
++   
++   }
++  +136 -3
++
++core/lib/Drupal/Core/Controller/BaseRouteTitleResolver.php
++  @@ -0,0 +1,68 @@
++  +<?php
++  +
++  +namespace Drupal\Core\Controller;
++  +
++  +use Drupal\Core\Menu\LocalTaskManager;
++  +use Drupal\Core\Routing\RouteMatch;
++  +use Drupal\Core\Routing\RouteProviderInterface;
++  +use Drupal\Core\Routing\UrlGeneratorInterface;
++  +use Drupal\Core\Routing\RequestGenerator;
++  +use Symfony\Component\HttpFoundation\Request;
++  +use Symfony\Component\Routing\Exception\InvalidParameterException;
++  +use Symfony\Component\Routing\Exception\RouteNotFoundException;
++  +use Symfony\Component\Routing\Route;
++  +
++  +/**
++  + * Provides a class which gets the title from the current local-task base route.
++  + */
++  +class BaseRouteTitleResolver implements TitleResolverInterface {
++  +
++  +  /**
++  +   * Constructs a BaseRouteTitleResolver object.
++  +   *
++  +   * @param \Drupal\Core\Routing\UrlGeneratorInterface $urlGenerator
++  +   *   The url generator.
++  +   * @param \Drupal\Core\Controller\TitleResolverInterface $titleResolver
++  +   *   The title resolver.
++  +   * @param \Drupal\Core\Menu\LocalTaskManager $localTaskManager
++  +   *   The local task manager.
++  +   * @param \Drupal\Core\Routing\RouteProviderInterface $routeProvider
++  +   *   The route provider.
++  +   * @param \Drupal\Core\Routing\RequestGenerator $requestGenerator
++  +   *   The request generator.
++  +   */
++  +  public function __construct(
++  +    protected UrlGeneratorInterface $urlGenerator,
++  +    protected TitleResolverInterface $titleResolver,
++  +    protected LocalTaskManager $localTaskManager,
++  +    protected RouteProviderInterface $routeProvider,
++  +    protected RequestGenerator $requestGenerator,
++  +  ) {
++  +  }
++  +
++  +  /**
++  +   * {@inheritdoc}
++  +   */
++  +  public function getTitle(Request $request, Route $route) : array|string|\Stringable|null {
++  +    $route_match = RouteMatch::createFromRequest($request);
++  +    $base_route_names = $this->localTaskManager->getBaseRouteNames($route_match->getRouteName());
++  +    $title = NULL;
++  +    if ($base_route_names) {
++  +      $base_route_name = reset($base_route_names);
++  +      if ($base_route_name !== $route_match->getRouteName()) {
++  +        try {
++  +          $path = $this->urlGenerator->getPathFromRoute($base_route_name, $route_match->getRawParameters()->all());
++  +        }
++  +        catch (RouteNotFoundException | InvalidParameterException) {
++  +          return NULL;
++  +        }
++  +        $route_request = $this->requestGenerator->generateRequestForPath($path, []);
++  +        if ($route_request) {
++  +          $title = $this->titleResolver->getTitle($route_request, $this->routeProvider->getRouteByName($base_route_name));
++  +        }
++  +      }
++  +    }
++  +    return $title;
++  +  }
++  +
++  +}
++  +68 -0
++
++core/lib/Drupal/Core/Menu/LocalTaskManager.php
++  @@ -152,58 +152,11 @@ public function getDefinitions() {
++  -      if ($cache = $this->cacheBackend->get($this->cacheKey . ':' . $route_name)) {
++  -        $base_routes = $cache->data['base_routes'];
++  -        $parents = $cache->data['parents'];
++  -        $children = $cache->data['children'];
++  -      }
++  -      else {
++  -        $definitions = $this->getDefinitions();
++  -        // We build the hierarchy by finding all tabs that should
++  -        // appear on the current route.
++  -        $base_routes = [];
++  -        $parents = [];
++  -        $children = [];
++  -        foreach ($definitions as $plugin_id => $task_info) {
++  -          // Fill in the base_route from the parent to insure consistency.
++  -          if (!empty($task_info['parent_id']) && !empty($definitions[$task_info['parent_id']])) {
++  -            $task_info['base_route'] = $definitions[$task_info['parent_id']]['base_route'];
++  -            // Populate the definitions we use in the next loop. Using a
++  -            // reference like &$task_info causes bugs.
++  -            $definitions[$plugin_id]['base_route'] = $definitions[$task_info['parent_id']]['base_route'];
++  -          }
++  -          if ($route_name == $task_info['route_name']) {
++  -            if (!empty($task_info['base_route'])) {
++  -              $base_routes[$task_info['base_route']] = $task_info['base_route'];
++  -            }
++  -            // Tabs that link to the current route are viable parents
++  -            // and their parent and children should be visible also.
++  -            // @todo This only works for 2 levels of tabs instead
++  -            //   need to iterate up.
++  -            $parents[$plugin_id] = TRUE;
++  -            if (!empty($task_info['parent_id'])) {
++  -              $parents[$task_info['parent_id']] = TRUE;
++  -            }
++  -          }
++  -        }
++  -        if ($base_routes) {
++  -          // Find all the plugins with the same root and that are at the top
++  -          // level or that have a visible parent.
++  -          foreach ($definitions as $plugin_id => $task_info) {
++  -            if (!empty($base_routes[$task_info['base_route']]) && (empty($task_info['parent_id']) || !empty($parents[$task_info['parent_id']]))) {
++  -              // Concat '> ' with root ID for the parent of top-level tabs.
++  -              $parent = empty($task_info['parent_id']) ? '> ' . $task_info['base_route'] : $task_info['parent_id'];
++  -              $children[$parent][$plugin_id] = $task_info;
++  -            }
++  -          }
++  -        }
++  -        $data = [
++  -          'base_routes' => $base_routes,
++  -          'parents' => $parents,
++  -          'children' => $children,
++  -        ];
++  -        $this->cacheBackend->set($this->cacheKey . ':' . $route_name, $data, Cache::PERMANENT, $this->cacheTags);
++  -      }
++  +      $data = $this->getLocalTasksDataForRoute($route_name);
++  +      $base_routes = $data['base_routes'];
++  +      $children = $data['children'];
++  +      $parents = $data['parents'];
++  +
++         // Create a plugin instance for each element of the hierarchy.
++         foreach ($base_routes as $base_route) {
++           // Convert the tree keyed by plugin IDs into a simple one with
++  @@ -389,4 +342,80 @@ protected function isRouteActive($current_route_name, $route_name, $route_parame
++  +  /**
++  +   * {@inheritdoc}
++  +   */
++  +  public function getBaseRouteNames(string $route_name): array {
++  +    $data = $this->getLocalTasksDataForRoute($route_name);
++  +    return $data['base_routes'] ?? [];
++  +  }
++  +
++  +  /**
++  +   * Gets the local task data for the given route.
++  +   *
++  +   * @param string $route_name
++  +   *   The route name.
++  +   *
++  +   * @return array
++  +   *   The local task data with the following keys:
++  +   *   - base_routes: An array of base route names of the given route.
++  +   *   - children: An array of the route's child local task definitions keyed by
++  +   *     local task ID.
++  +   *   - parents: An array of the route's parent local task definitions.
++  +   */
++  +  protected function getLocalTasksDataForRoute(string $route_name): array {
++  +    if ($cache = $this->cacheBackend->get($this->cacheKey . ':' . $route_name)) {
++  +      $data = $cache->data;
++  +    }
++  +    else {
++  +      $definitions = $this->getDefinitions();
++  +      // We build the hierarchy by finding all tabs that should
++  +      // appear on the current route.
++  +      $base_routes = [];
++  +      $parents = [];
++  +      $children = [];
++  +      foreach ($definitions as $plugin_id => $task_info) {
++  +        // Fill in the base_route from the parent to insure consistency.
++  +        if (!empty($task_info['parent_id']) && !empty($definitions[$task_info['parent_id']])) {
++  +          $task_info['base_route'] = $definitions[$task_info['parent_id']]['base_route'];
++  +          // Populate the definitions we use in the next loop. Using a
++  +          // reference like &$task_info causes bugs.
++  +          $definitions[$plugin_id]['base_route'] = $definitions[$task_info['parent_id']]['base_route'];
++  +        }
++  +        if ($route_name == $task_info['route_name']) {
++  +          if (!empty($task_info['base_route'])) {
++  +            $base_routes[$task_info['base_route']] = $task_info['base_route'];
++  +          }
++  +          // Tabs that link to the current route are viable parents
++  +          // and their parent and children should be visible also.
++  +          // @todo This only works for 2 levels of tabs instead need to iterate
++  +          //   up.
++  +          $parents[$plugin_id] = TRUE;
++  +          if (!empty($task_info['parent_id'])) {
++  +            $parents[$task_info['parent_id']] = TRUE;
++  +          }
++  +        }
++  +      }
++  +      if ($base_routes) {
++  +        // Find all the plugins with the same root and that are at the top
++  +        // level or that have a visible parent.
++  +        foreach ($definitions as $plugin_id => $task_info) {
++  +          if (!empty($base_routes[$task_info['base_route']]) && (empty($task_info['parent_id']) || !empty($parents[$task_info['parent_id']]))) {
++  +            // Concat '> ' with root ID for the parent of top-level tabs.
++  +            $parent = empty($task_info['parent_id']) ? '> ' . $task_info['base_route'] : $task_info['parent_id'];
++  +            $children[$parent][$plugin_id] = $task_info;
++  +          }
++  +        }
++  +      }
++  +      $data = [
++  +        'base_routes' => $base_routes,
++  +        'parents' => $parents,
++  +        'children' => $children,
++  +      ];
++  +      $this->cacheBackend->set($this->cacheKey . ':' . $route_name, $data, Cache::PERMANENT, $this->cacheTags);
++  +    }
++  +
++  +    return $data;
++  +  }
++  +
++   }
++  +81 -52
++
++core/lib/Drupal/Core/Menu/LocalTaskManagerInterface.php
++  @@ -70,4 +70,15 @@ public function getTasksBuild($current_route_name, RefinableCacheableDependencyI
++  +  /**
++  +   * Gets base route names for the given route.
++  +   *
++  +   * @param string $route_name
++  +   *   The route name.
++  +   *
++  +   * @return string[]
++  +   *   The base route names.
++  +   */
++  +  public function getBaseRouteNames(string $route_name): array;
++  +
++   }
++  +11 -0
++
++core/lib/Drupal/Core/Routing/RequestGenerator.php
++  @@ -0,0 +1,77 @@
++  +<?php
++  +
++  +namespace Drupal\Core\Routing;
++  +
++  +use Drupal\Core\ParamConverter\ParamNotConvertedException;
++  +use Drupal\Core\Path\CurrentPathStack;
++  +use Drupal\Core\PathProcessor\InboundPathProcessorInterface;
++  +use Symfony\Component\HttpFoundation\Request;
++  +use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
++  +use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
++  +use Symfony\Component\Routing\Exception\MethodNotAllowedException;
++  +use Symfony\Component\Routing\Exception\ResourceNotFoundException;
++  +use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
++  +
++  +/**
++  + * Provides a class which generates a request.
++  + *
++  + * @internal
++  + */
++  +final class RequestGenerator {
++  +
++  +  /**
++  +   * Constructs a RequestGenerator object.
++  +   *
++  +   * @param \Drupal\Core\PathProcessor\InboundPathProcessorInterface $pathProcessor
++  +   *   The inbound path processor.
++  +   * @param \Drupal\Core\Path\CurrentPathStack $currentPath
++  +   *   The current path.
++  +   * @param \Symfony\Component\Routing\Matcher\RequestMatcherInterface $router
++  +   *   The dynamic router service.
++  +   */
++  +  public function __construct(
++  +    protected InboundPathProcessorInterface $pathProcessor,
++  +    protected CurrentPathStack $currentPath,
++  +    protected RequestMatcherInterface $router,
++  +  ) {
++  +  }
++  +
++  +  /**
++  +   * Generates a request by matching a path in the router.
++  +   *
++  +   * @param string $path
++  +   *   The request path with a leading slash.
++  +   * @param array $exclude
++  +   *   An array of paths or system paths to skip.
++  +   *
++  +   * @return \Symfony\Component\HttpFoundation\Request|null
++  +   *   A populated request object or NULL if the path couldn't be matched.
++  +   */
++  +  public function generateRequestForPath(string $path, array $exclude): ?Request {
++  +    if (!empty($exclude[$path])) {
++  +      return NULL;
++  +    }
++  +
++  +    $request = Request::create($path);
++  +    // Performance optimization: set a short accept header to reduce overhead in
++  +    // AcceptHeaderMatcher when matching the request.
++  +    $request->headers->set('Accept', 'text/html');
++  +    // Find the system path by resolving aliases, language prefix, etc.
++  +    $processed = $this->pathProcessor->processInbound($path, $request);
++  +    if (empty($processed) || !empty($exclude[$processed])) {
++  +      // This resolves to the front page, which we already add.
++  +      return NULL;
++  +    }
++  +    $this->currentPath->setPath($processed, $request);
++  +
++  +    // Attempt to match this path to provide a fully built request.
++  +    try {
++  +      $request->attributes->add($this->router->matchRequest($request));
++  +      return $request;
++  +    }
++  +    catch (ParamNotConvertedException | ResourceNotFoundException | MethodNotAllowedException | AccessDeniedHttpException | NotFoundHttpException) {
++  +      return NULL;
++  +    }
++  +  }
++  +
++  +}
++  +77 -0
++
++core/lib/Drupal/Core/Theme/ThemePreprocess.php
++  @@ -5,6 +5,7 @@
++  +use Drupal\Core\Controller\BaseRouteTitleResolver;
++   use Drupal\Core\Extension\ThemeSettingsProvider;
++   use Drupal\Core\Installer\InstallerKernel;
++   use Drupal\Core\Language\LanguageManagerInterface;
++  @@ -37,6 +38,7 @@ public function __construct(
++  +    protected BaseRouteTitleResolver $baseRouteTitleResolver,
++     ) {
++     }
++   
++  @@ -287,11 +289,27 @@ public function preprocessHtml(array &$variables): void {
++
++... (more changes truncated)
++  +2 -0
++[full diff: rtk git diff --no-compact]

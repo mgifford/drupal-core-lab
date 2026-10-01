@@ -1,0 +1,191 @@
+<p>Hiding content changes who can perceive or operate it. Choose a technique based on whether the content should be available visually, to assistive technologies, to keyboard users, or to nobody in the current state.</p>
+
+<p>Do not treat CSS or ARIA as access control. If a person is not authorized to receive content, do not render or send it to the browser.</p>
+
+<h2>Choose the intended result</h2>
+
+<table>
+  <caption>Effects of common content-hiding techniques</caption>
+  <thead>
+    <tr>
+      <th scope="col">Technique</th>
+      <th scope="col">Visually rendered</th>
+      <th scope="col">In the accessibility tree</th>
+      <th scope="col">Keyboard operable</th>
+      <th scope="col">Typical use</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row">Do not render the content</th>
+      <td>No</td>
+      <td>No</td>
+      <td>No</td>
+      <td>Content that is unauthorized, irrelevant, or unnecessary.</td>
+    </tr>
+    <tr>
+      <th scope="row"><code>hidden</code>, <code>.hidden</code>, or <code>display: none</code></th>
+      <td>No</td>
+      <td>No</td>
+      <td>No</td>
+      <td>Content that is not relevant in the current interface state.</td>
+    </tr>
+    <tr>
+      <th scope="row"><code>.invisible</code> or <code>visibility: hidden</code></th>
+      <td>No, but its layout space remains</td>
+      <td>No</td>
+      <td>No</td>
+      <td>Rare cases where hidden content must continue to occupy space.</td>
+    </tr>
+    <tr>
+      <th scope="row"><code>.visually-hidden</code></th>
+      <td>No</td>
+      <td>Yes</td>
+      <td>Only if the element is normally focusable</td>
+      <td>Concise text needed by assistive technologies but not visually.</td>
+    </tr>
+    <tr>
+      <th scope="row"><code>.visually-hidden.focusable</code></th>
+      <td>When focused</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Skip links and similar controls that appear on keyboard focus.</td>
+    </tr>
+    <tr>
+      <th scope="row"><code>aria-hidden="true"</code></th>
+      <td>Yes</td>
+      <td>No</td>
+      <td>Potentially, which is dangerous</td>
+      <td>Decorative or redundant visible content with no interactive descendants.</td>
+    </tr>
+    <tr>
+      <th scope="row"><code>inert</code></th>
+      <td>Yes, unless separately obscured</td>
+      <td>No</td>
+      <td>No</td>
+      <td>A temporarily inactive subtree that is also visually shown as inactive.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The table describes normal browser behavior. Test the rendered component because CSS overrides, scripting, shadow DOM, and third-party code can change the result.</p>
+
+<h2>Use Drupal's hiding utilities</h2>
+
+<p>Drupal core provides the <code>.hidden</code>, <code>.visually-hidden</code>, <code>.visually-hidden.focusable</code>, and <code>.invisible</code> classes in the System module's base styles. Use these classes instead of copying their CSS into a theme or module. A copied implementation can become inconsistent with core.</p>
+
+<p>When configuring an entity display, the field label options distinguish <em>Hidden</em> from <em>Visually Hidden</em>. Use <em>Hidden</em> only when the label is not needed to identify or understand the field. Use <em>Visually Hidden</em> when the label should remain in the rendered content for assistive technologies.</p>
+
+<p>Visible labels and headings usually benefit more people than visually hidden ones. Do not hide them merely to simplify a layout. Placeholder text is not a replacement for a form label.</p>
+
+<h2>Hide content visually but retain it for assistive technologies</h2>
+
+<p>Use <code>.visually-hidden</code> for concise text that supplies necessary context without being displayed. This content remains available to screen readers and other assistive technologies that use the accessibility tree.</p>
+
+<pre><code>&lt;button type="button"&gt;
+  &lt;svg aria-hidden="true" focusable="false"&gt;
+    &lt;!-- Decorative close icon. --&gt;
+  &lt;/svg&gt;
+  &lt;span class="visually-hidden"&gt;Close dialog&lt;/span&gt;
+&lt;/button&gt;</code></pre>
+
+<p>Keep visually hidden text short and specific. It becomes part of the person's reading and navigation experience even though it is absent from the visual layout. Avoid adding instructions only for one assistive technology when the same information would help everyone.</p>
+
+<p>Do not normally apply <code>.visually-hidden</code> directly to an interactive control. The control can remain in the keyboard order without a visible focus indicator or visible target. If a native input is visually hidden as part of a custom-styled control, its visible label or replacement surface must expose the input's focus, checked, disabled, error, and other relevant states. Prefer styling the native control when possible.</p>
+
+<h2>Reveal controls when they receive keyboard focus</h2>
+
+<p>Use <code>.visually-hidden.focusable</code> for a control that should be visually hidden until it or one of its descendants receives focus. The standard example is a skip link:</p>
+
+<pre><code>&lt;a class="visually-hidden focusable" href="#main-content"&gt;
+  Skip to main content
+&lt;/a&gt;</code></pre>
+
+<p>The revealed control must be clearly visible, unobscured, and usable at high zoom. Test focus as well as pointer activation. Do not use this technique to conceal controls from pointer users or to compensate for an interaction that otherwise requires a mouse.</p>
+
+<h2>Hide content from everyone</h2>
+
+<p>Use the HTML <code>hidden</code> attribute when content is not relevant in the current page state. Drupal's <code>.hidden</code> class and CSS <code>display: none</code> have a similar rendered result. They remove the element and its descendants from visual layout, the accessibility tree, and keyboard navigation.</p>
+
+<pre><code>&lt;section id="additional-settings" hidden&gt;
+  ...
+&lt;/section&gt;</code></pre>
+
+<p><code>display: none</code> is not inherently an accessibility problem. It becomes a problem when it removes information, labels, instructions, errors, or controls that people still need.</p>
+
+<p>When JavaScript changes visibility:</p>
+
+<ul>
+  <li>Update the <code>hidden</code> property or class and the controlling element's state together.</li>
+  <li>For a disclosure button, keep <code>aria-expanded</code> synchronized with the visible state.</li>
+  <li>Do not move focus into content while it is hidden.</li>
+  <li>Before hiding a subtree that contains focus, move focus to a logical visible control.</li>
+  <li>Test initial load, Ajax replacement, and repeated behavior attachment.</li>
+</ul>
+
+<p>Use Drupal's established components or native HTML such as <code>details</code> and <code>summary</code> before creating a custom disclosure. See <a href="/docs/getting-started/accessibility/accessible-javascript-and-interactive-components">Accessible JavaScript and interactive components</a>.</p>
+
+<h2>Preserve layout without exposing content</h2>
+
+<p>Drupal's <code>.invisible</code> class uses <code>visibility: hidden</code>. The element is not visible, exposed through the accessibility tree, or keyboard operable, but its layout space remains. This is rarely the best choice. Use it only when preserving that space is intentional and does not create a confusing blank area.</p>
+
+<p>Opacity, clipping, off-screen positioning, transforms, and matching foreground and background colors do not reliably hide content from assistive technologies or keyboard navigation. Do not use them when the intent is to hide content from everyone.</p>
+
+<h2>Hide decorative or redundant content from assistive technologies</h2>
+
+<p>Use <code>aria-hidden="true"</code> only when visible content is decorative or redundant and equivalent meaning remains available. Common examples include a decorative icon next to a text label or a duplicate visual glyph inside a named button.</p>
+
+<p><code>aria-hidden</code> is not an alternative to <code>hidden</code>. It removes an element and its descendants from the accessibility tree without visually hiding them. It does not reliably remove descendants from keyboard navigation.</p>
+
+<ul>
+  <li>Do not put <code>aria-hidden="true"</code> on a focusable element.</li>
+  <li>Do not put it on an ancestor of links, buttons, form controls, elements with <code>tabindex</code>, or other interactive content.</li>
+  <li><code>aria-hidden="false"</code> on a descendant does not undo <code>aria-hidden="true"</code> on an ancestor.</li>
+  <li>Do not hide visible words that a voice-control user may need to identify the control.</li>
+  <li>Do not hide information or functionality unless an equivalent remains available.</li>
+</ul>
+
+<p>For a decorative image, prefer the native empty alternative text required by the image guidance rather than adding ARIA without need. See <a href="/docs/getting-started/accessibility/accessible-images-and-media">Accessible images and media</a>.</p>
+
+<h2>Make a temporarily inactive region inert</h2>
+
+<p>The HTML <code>inert</code> attribute makes a subtree unavailable to pointer interaction, text selection, focus, find-in-page, and accessibility APIs. It is useful when a complete region is temporarily inactive.</p>
+
+<p><code>inert</code> does not provide a visual treatment. Make the inactive state visually clear or obscure the inactive region. Do not make essential content inert unless the active part of the interface provides the information and controls people need. Prefer the native <code>disabled</code> attribute for an individual form control.</p>
+
+<p>A modal dialog opened with the native <code>showModal()</code> method makes the rest of the document inert automatically. Do not add a second, conflicting focus-management system without a demonstrated need.</p>
+
+<h2>Use hidden text for accessible names and descriptions carefully</h2>
+
+<p>Content directly referenced with <code>aria-labelledby</code> or <code>aria-describedby</code> can contribute to an accessible name or description even when the referenced element is hidden. This is defined by the Accessible Name and Description Computation specification.</p>
+
+<p>That does not make the hidden text generally available for reading or navigation. Use a visible description when everyone needs the information. Use <code>.visually-hidden</code> when the text should remain available in the accessibility tree independently of a reference. Test the computed name and description in the browser's accessibility inspector and with supported assistive technologies.</p>
+
+<h2>Test hidden content and state changes</h2>
+
+<ul>
+  <li>Inspect the rendered DOM, computed CSS, accessibility tree, and keyboard order.</li>
+  <li>Confirm that visually hidden content is concise, useful, and announced in the intended context.</li>
+  <li>Confirm that fully hidden content cannot receive focus or remain operable.</li>
+  <li>Search for focusable descendants inside <code>aria-hidden="true"</code> regions.</li>
+  <li>Test show-and-hide controls with keyboard, screen reader, voice control, touch, zoom, and forced colors.</li>
+  <li>Confirm that focus moves before its current container is hidden or made inert.</li>
+  <li>Test JavaScript failure, Ajax updates, loading, validation, and error states.</li>
+  <li>Check that no confidential or unauthorized content is merely hidden in the browser.</li>
+</ul>
+
+<p>Automated tools can identify some focusable content inside <code>aria-hidden</code> regions and some incorrectly named controls. They cannot decide whether hidden content is necessary, whether equivalent information is available, or whether a state change is understandable. Complete the manual review.</p>
+
+<h2>Related guidance</h2>
+
+<ul>
+  <li><a href="/docs/getting-started/accessibility/creating-accessible-themes">Creating accessible themes</a></li>
+  <li><a href="/docs/getting-started/accessibility/accessible-javascript-and-interactive-components">Accessible JavaScript and interactive components</a></li>
+  <li><a href="/docs/getting-started/accessibility/building-accessible-forms">Building accessible forms</a></li>
+  <li><a href="https://api.drupal.org/api/drupal/core%21modules%21system%21css%21components%21hidden.module.css/11.x">Drupal 11 hidden-content utility classes</a></li>
+  <li><a href="https://html.spec.whatwg.org/multipage/interaction.html#the-hidden-attribute">HTML Standard: The hidden attribute</a></li>
+  <li><a href="https://html.spec.whatwg.org/multipage/interaction.html#the-inert-attribute">HTML Standard: The inert attribute</a></li>
+  <li><a href="https://www.w3.org/TR/wai-aria-1.2/#aria-hidden">WAI-ARIA: aria-hidden</a></li>
+  <li><a href="https://www.w3.org/TR/accname-1.2/">Accessible Name and Description Computation</a></li>
+  <li><a href="https://www.w3.org/WAI/standards-guidelines/act/rules/6cfa84/">ACT Rule: Element with aria-hidden has no content in sequential focus navigation</a></li>
+</ul>

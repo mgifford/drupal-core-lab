@@ -1,0 +1,58 @@
+diff --git b/core/lib/Drupal/Core/Render/Element/Details.php a/core/lib/Drupal/Core/Render/Element/Details.php
+index 28e7396887..e164480550 100644
+--- b/core/lib/Drupal/Core/Render/Element/Details.php
++++ a/core/lib/Drupal/Core/Render/Element/Details.php
+@@ -46,6 +46,7 @@ public function getInfo() {
+       '#open' => FALSE,
+       '#summary_attributes' => [],
+       '#value' => NULL,
++      '#title' => $this->t('Details'),
+       '#process' => [
+         [static::class, 'processGroup'],
+         [static::class, 'processAjaxForm'],
+diff --git b/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupDetailsForm.php a/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupDetailsForm.php
+index ba026485df..eb9068f633 100644
+--- b/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupDetailsForm.php
++++ a/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupDetailsForm.php
+@@ -79,6 +79,13 @@ public function buildForm(array $form, FormStateInterface $form_state, $required
+       '#description' => 'I am an invisible description',
+       '#description_display' => 'invisible',
+     ];
++    $form['default_title'] = [
++      '#type' => 'details',
++    ];
++    $form['default_title']['child'] = [
++      '#type' => 'textfield',
++      '#title' => 'Default title child',
++    ];
+     return $form;
+   }
+ 
+diff --git b/core/modules/system/tests/src/Functional/Form/ElementTest.php a/core/modules/system/tests/src/Functional/Form/ElementTest.php
+index 43367aa54b..76313f0f8e 100644
+--- b/core/modules/system/tests/src/Functional/Form/ElementTest.php
++++ a/core/modules/system/tests/src/Functional/Form/ElementTest.php
+@@ -41,6 +41,7 @@ public function testFormElements(): void {
+     $this->testFormAutocomplete();
+     $this->testFormElementErrors();
+     $this->testDetailsSummaryAttributes();
++    $this->testDetailsDefaultTitle();
+     $this->testDetailsDescriptionAttributes();
+   }
+ 
+@@ -247,6 +248,15 @@ protected function testDetailsSummaryAttributes(): void {
+     $this->assertSession()->elementNotExists('css', 'summary[data-summary-attribute="test"][role]');
+   }
+ 
++  /**
++   * Tests that details render a summary when #title is omitted.
++   */
++  protected function testDetailsDefaultTitle(): void {
++    $this->drupalGet('form-test/group-details');
++    $this->assertSession()->elementExists('xpath', '//details[@id="edit-default-title"]/summary[normalize-space()="Details"]');
++    $this->assertSession()->elementExists('css', 'details#edit-default-title > summary[aria-expanded="false"]');
++  }
++
+   /**
+    * Tests description attributes of details.
+    */

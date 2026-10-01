@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Default Admin Color Report - Focus Only</title>
+  <style>
+    :root {
+      --text: #1a1a1a;
+      --text-secondary: #595959;
+      --muted: #7c8698;
+      --border: #d4d4d4;
+      --bg-body: #ffffff;
+      --card-bg: #f5f7fa;
+      --pass-bg: #e9f7ee;
+      --fail-bg: #fdecea;
+      --link: #0050d8;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --text: #f0f0f0;
+        --text-secondary: #c0c0c0;
+        --muted: #8b92a9;
+        --border: #4a4a4a;
+        --bg-body: #1a1a1a;
+        --card-bg: #2a2a2a;
+        --pass-bg: #164b35;
+        --fail-bg: #5a1e1e;
+        --link: #54a6ff;
+      }
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html {
+      scroll-behavior: smooth;
+      color-scheme: light dark;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      line-height: 1.6;
+      color: var(--text);
+      background: var(--bg-body);
+    }
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    h1 {
+      margin: 2rem 0 1rem;
+      font-size: 1.8rem;
+      line-height: 1.2;
+    }
+    h2 {
+      margin: 2rem 0 0.75rem;
+      font-size: 1.35rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+      position: relative;
+    }
+    p {
+      margin: 0.5rem 0 1rem;
+    }
+    a {
+      color: var(--link);
+      text-decoration: underline;
+    }
+    .lede {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      margin: 1.5rem 0 2rem;
+    }
+    .hint {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+      font-style: italic;
+    }
+    code {
+      background: var(--card-bg);
+      padding: 0.2rem 0.4rem;
+      border-radius: 0.25rem;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+    .card {
+      background: var(--card-bg);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border);
+    }
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 2rem 0;
+      font-size: 0.9rem;
+    }
+    .meta strong {
+      display: block;
+      margin-bottom: 0.35rem;
+      color: var(--text-secondary);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.75rem;
+      text-align: left;
+    }
+    th {
+      background: var(--card-bg);
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+    }
+    .matrix-cell {
+      text-align: center;
+      vertical-align: middle;
+    }
+    .matrix-cell.pass {
+      background: var(--pass-bg);
+    }
+    .matrix-cell.fail {
+      background: var(--fail-bg);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Default Admin Color Report - Focus Only</h1>
+    <p class="lede">This page focuses exclusively on focus indicator visibility. Each cell measures focus-to-unfocused-state contrast at the 3:1 threshold per WCAG 2.2 SC 2.4.11.</p>
+    <section class="meta">
+      <div class="card"><strong>Generated</strong><br>2026-05-05T20:56:36.736Z</div>
+      <div class="card"><strong>Focus</strong><br>Focus indicators only</div>
+      <div class="card"><strong>Threshold</strong><br>3:1 minimum</div>
+    </section>
+    <section id="focus-grid">
+      <h2>Focus Combination Grid</h2>
+      <p class="hint">These combinations isolate focus visibility. Focus indicator visibility must meet 3:1 contrast against the unfocused state.</p>
+      <table class="focus-grid">
+    <thead><tr><th scope="col">Focus preset</th><th scope="col">Light / Increase Contrast Off</th><th scope="col">Dark / Increase Contrast Off</th><th scope="col">Dark / Increase Contrast On</th><th scope="col">Light / Increase Contrast On</th></tr></thead>
+    <tbody><tr>
+      <th scope="row">
+        <div class="preset-info">
+          <span>Default Admin Focus color (Default)</span>
+          <code>Preset: rgb(0, 125, 250)</code>
+          <code>Light: #007DFA</code>
+          <code>Dark: #51A8FF</code>
+        </div>
+      </th>
+      <td>
+        <div class="metric-detailed">
+          <strong>2.22:1</strong>
+          <span class="badge fail">Fail</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></div>
+            <div class="color-swatch" style="background:rgb(250, 250, 255);" title="#FAFAFF"></div>
+          </div>
+          <code class="color-code">#007DFA on #FAFAFF</code>
+        </div>
+      </td><td>
+        <div class="metric-detailed">
+          <strong>6.87:1</strong>
+          <span class="badge aa">AA</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgb(81, 168, 255);" title="#51A8FF"></div>
+            <div class="color-swatch" style="background:rgb(27, 27, 29);" title="#1B1B1D"></div>
+          </div>
+          <code class="color-code">#51A8FF on #1B1B1D</code>
+        </div>
+      </td><td>
+        <div class="metric-detailed">
+          <strong>13.08:1</strong>
+          <span class="badge aa">AA</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(255, 255, 255, 0.8);" title="#FFFFFF"></div>
+            <div class="color-swatch" style="background:rgb(0, 0, 0);" title="#000000"></div>
+          </div>
+          <code class="color-code">#FFFFFF on #000000</code>
+        </div>
+      </td><td>
+        <div class="metric-detailed">
+          <strong>10.10:1</strong>
+          <span class="badge aa">AA</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(0, 0, 0, 0.8);" title="#000000"></div>
+            <div class="color-swatch" style="background:rgb(217, 219, 222);" title="#D9DBDE"></div>
+          </div>
+          <code class="color-code">#000000 on #D9DBDE</code>
+        </div>
+      </td>
+    </tr><tr>
+      <th scope="row">
+        <div class="preset-info">
+          <span>Green</span>
+          <code>Preset: rgb(8, 163, 144)</code>
+          <code>Light: #08A38F</code>
+          <code>Dark: #08A38F</code>
+        </div>
+      </th>
+      <td>
+        <div class="metric-detailed">
+          <strong>1.94:1</strong>
+          <span class="badge fail">Fail</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(8, 163, 143, 0.6);" title="#08A38F"></div>
+            <div class="color-swatch" style="background:rgb(250, 250, 255);" title="#FAFAFF"></div>
+          </div>
+          <code class="color-code">#08A38F on #FAFAFF</code>
+        </div>
+      </td><td>
+        <div class="metric-detailed">
+          <strong>2.76:1</strong>
+          <span class="badge fail">Fail</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(8, 163, 143, 0.6);" title="#08A38F"></div>
+            <div class="color-swatch" style="background:rgb(27, 27, 29);" title="#1B1B1D"></div>
+          </div>
+          <code class="color-code">#08A38F on #1B1B1D</code>
+        </div>
+      </td><td>
+        <div class="metric-detailed">
+          <strong>13.08:1</strong>
+          <span class="badge aa">AA</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(255, 255, 255, 0.8);" title="#FFFFFF"></div>
+            <div class="color-swatch" style="background:rgb(0, 0, 0);" title="#000000"></div>
+          </div>
+          <code class="color-code">#FFFFFF on #000000</code>
+        </div>
+      </td><td>
+        <div class="metric-detailed">
+          <strong>10.10:1</strong>
+          <span class="badge aa">AA</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(0, 0, 0, 0.8);" title="#000000"></div>
+            <div class="color-swatch" style="background:rgb(217, 219, 222);" title="#D9DBDE"></div>
+          </div>
+          <code class="color-code">#000000 on #D9DBDE</code>
+        </div>
+      </td>
+    </tr><tr>
+      <th scope="row">
+        <div class="preset-info">
+          <span>Claro Green</span>
+          <code>Preset: rgb(38, 167, 105)</code>
+          <code>Light: #26A769</code>
+          <code>Dark: #26A769</code>
+        </div>
+      </th>
+      <td>
+        <div class="metric-detailed">
+          <strong>1.89:1</strong>
+          <span class="badge fail">Fail</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(38, 167, 105, 0.6);" title="#26A769"></div>
+            <div class="color-swatch" style="background:rgb(250, 250, 255);" title="#FAFAFF"></div>
+          </div>
+          <code class="color-code">#26A769 on #FAFAFF</code>
+        </div>
+      </td><td>
+        <div class="metric-detailed">
+          <strong>2.82:1</strong>
+          <span class="badge fail">Fail</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(38, 167, 105, 0.6);" title="#26A769"></div>
+            <div class="color-swatch" style="background:rgb(27, 27, 29);" title="#1B1B1D"></div>
+          </div>
+          <code class="color-code">#26A769 on #1B1B1D</code>
+        </div>
+      </td><td>
+        <div class="metric-detailed">
+          <strong>13.08:1</strong>
+          <span class="badge aa">AA</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(255, 255, 255, 0.8);" title="#FFFFFF"></div>
+            <div class="color-swatch" style="background:rgb(0, 0, 0);" title="#000000"></div>
+          </div>
+          <code class="color-code">#FFFFFF on #000000</code>
+        </div>
+      </td><td>
+        <div class="metric-detailed">
+          <strong>10.10:1</strong>
+          <span class="badge aa">AA</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(0, 0, 0, 0.8);" title="#000000"></div>
+            <div class="color-swatch" style="background:rgb(217, 219, 222);" title="#D9DBDE"></div>
+          </div>
+          <code class="color-code">#000000 on #D9DBDE</code>
+        </div>
+      </td>
+    </tr><tr>
+      <th scope="row">
+        <div class="preset-info">
+          <span>Orange</span>
+          <code>Preset: rgb(236, 124, 87)</code>
+          <code>Light: #ED7B57</code>
+          <code>Dark: #ED7B57</code>
+        </div>
+      </th>
+      <td>
+        <div class="metric-detailed">
+          <strong>1.79:1</strong>
+          <span class="badge fail">Fail</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(237, 123, 87, 0.6);" title="#ED7B57"></div>
+            <div class="color-swatch" style="background:rgb(250, 250, 255);" title="#FAFAFF"></div>
+          </div>
+          <code class="color-code">#ED7B57 on #FAFAFF</code>
+        </div>
+      </td><td>
+        <div class="metric-detailed">
+          <strong>3.04:1</strong>
+          <span class="badge aa">AA</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(237, 123, 87, 0.6);" title="#ED7B57"></div>
+            <div class="color-swatch" style="background:rgb(27, 27, 29);" title="#1B1B1D"></div>
+          </div>
+          <code class="color-code">#ED7B57 on #1B1B1D</code>
+        </div>
+      </td><td>
+        <div class="metric-detailed">
+          <strong>13.08:1</strong>
+          <span class="badge aa">AA</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(255, 255, 255, 0.8);" title="#FFFFFF"></div>
+            <div class="color-swatch" style="background:rgb(0, 0, 0);" title="#000000"></div>
+          </div>
+          <code class="color-code">#FFFFFF on #000000</code>
+        </div>
+      </td><td>
+        <div class="metric-detailed">
+          <strong>10.10:1</strong>
+          <span class="badge aa">AA</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(0, 0, 0, 0.8);" title="#000000"></div>
+            <div class="color-swatch" style="background:rgb(217, 219, 222);" title="#D9DBDE"></div>
+          </div>
+          <code class="color-code">#000000 on #D9DBDE</code>
+        </div>
+      </td>
+    </tr><tr>
+      <th scope="row">
+        <div class="preset-info">
+          <span>Neutral</span>
+          <code>Preset: rgb(0, 0, 0)</code>
+          <code>Light: #000000</code>
+          <code>Dark: #FFFFFF</code>
+        </div>
+      </th>
+      <td>
+        <div class="metric-detailed">
+          <strong>2.83:1</strong>
+          <span class="badge fail">Fail</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(0, 0, 0, 0.4);" title="#000000"></div>
+            <div class="color-swatch" style="background:rgb(250, 250, 255);" title="#FAFAFF"></div>
+          </div>
+          <code class="color-code">#000000 on #FAFAFF</code>
+        </div>
+      </td><td>
+        <div class="metric-detailed">
+          <strong>11.31:1</strong>
+          <span class="badge aa">AA</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(255, 255, 255, 0.8);" title="#FFFFFF"></div>
+            <div class="color-swatch" style="background:rgb(27, 27, 29);" title="#1B1B1D"></div>
+          </div>
+          <code class="color-code">#FFFFFF on #1B1B1D</code>
+        </div>
+      </td><td>
+        <div class="metric-detailed">
+          <strong>13.08:1</strong>
+          <span class="badge aa">AA</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(255, 255, 255, 0.8);" title="#FFFFFF"></div>
+            <div class="color-swatch" style="background:rgb(0, 0, 0);" title="#000000"></div>
+          </div>
+          <code class="color-code">#FFFFFF on #000000</code>
+        </div>
+      </td><td>
+        <div class="metric-detailed">
+          <strong>10.10:1</strong>
+          <span class="badge aa">AA</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(0, 0, 0, 0.8);" title="#000000"></div>
+            <div class="color-swatch" style="background:rgb(217, 219, 222);" title="#D9DBDE"></div>
+          </div>
+          <code class="color-code">#000000 on #D9DBDE</code>
+        </div>
+      </td>
+    </tr><tr>
+      <th scope="row">
+        <div class="preset-info">
+          <span>Same as Accent color</span>
+          <code>Preset: auto</code>
+          <code>Light: #000000</code>
+          <code>Dark: #FFFFFF</code>
+        </div>
+      </th>
+      <td>
+        <div class="metric-detailed">
+          <strong>20.18:1</strong>
+          <span class="badge aa">AA</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgb(0, 0, 0);" title="#000000"></div>
+            <div class="color-swatch" style="background:rgb(250, 250, 255);" title="#FAFAFF"></div>
+          </div>
+          <code class="color-code">#000000 on #FAFAFF</code>
+        </div>
+      </td><td>
+        <div class="metric-detailed">
+          <strong>17.20:1</strong>
+          <span class="badge aa">AA</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgb(255, 255, 255);" title="#FFFFFF"></div>
+            <div class="color-swatch" style="background:rgb(27, 27, 29);" title="#1B1B1D"></div>
+          </div>
+          <code class="color-code">#FFFFFF on #1B1B1D</code>
+        </div>
+      </td><td>
+        <div class="metric-detailed">
+          <strong>13.08:1</strong>
+          <span class="badge aa">AA</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(255, 255, 255, 0.8);" title="#FFFFFF"></div>
+            <div class="color-swatch" style="background:rgb(0, 0, 0);" title="#000000"></div>
+          </div>
+          <code class="color-code">#FFFFFF on #000000</code>
+        </div>
+      </td><td>
+        <div class="metric-detailed">
+          <strong>10.10:1</strong>
+          <span class="badge aa">AA</span>
+          <div class="color-pair">
+            <div class="color-swatch" style="background:rgba(0, 0, 0, 0.8);" title="#000000"></div>
+            <div class="color-swatch" style="background:rgb(217, 219, 222);" title="#D9DBDE"></div>
+          </div>
+          <code class="color-code">#000000 on #D9DBDE</code>
+        </div>
+      </td>
+    </tr></tbody>
+  </table>
+    </section>
+    <section id="tokens">
+      <h2>Focus Token Grids</h2>
+      <section id="token-matrix-focus-only">
+    <h3>Matrix: Focus Tokens</h3>
+    <p class="hint">Rows are foreground tokens. Columns are background tokens. Each cell shows worst-case observed contrast across sampled states/presets.</p>
+    <table class="token-matrix">
+      <thead>
+        <tr>
+          <th scope="col">Foreground  Background</th>
+          <th scope="col"><code>var(--gin-bg-app)</code></th><th scope="col"><code>var(--gin-bg-layer)</code></th><th scope="col"><code>var(--button-bg-color--primary)</code></th><th scope="col"><code>var(--gin-color-primary)</code></th><th scope="col"><code>var(--gin-color-primary-light)</code></th><th scope="col"><code>var(--accent-base)</code></th><th scope="col"><code>var(--accent-color-500)</code></th><th scope="col"><code>var(--accent-color-030)</code></th>
+        </tr>
+      </thead>
+      <tbody><tr>
+      <th scope="row"><code>var(--gin-color-focus)</code></th>
+      <td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Orange | #ED7B57 on #FAFAFF">
+        <div class="matrix-value contrast-chip" style="color:rgba(237, 123, 87, 0.6); background:rgb(250, 250, 255);">1.79:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(237, 123, 87, 0.6);" title="#ED7B57"></span>
+            <span class="color-swatch" style="background:rgb(250, 250, 255);" title="#FAFAFF"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #ED7B57</code>
+          <code class="color-code">BG #FAFAFF</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Orange | #ED7B57 on #FFFFFF">
+        <div class="matrix-value contrast-chip" style="color:rgba(237, 123, 87, 0.6); background:rgb(255, 255, 255);">1.82:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(237, 123, 87, 0.6);" title="#ED7B57"></span>
+            <span class="color-swatch" style="background:rgb(255, 255, 255);" title="#FFFFFF"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #ED7B57</code>
+          <code class="color-code">BG #FFFFFF</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #007DFA on #015EFE">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 125, 250, 0.6); background:rgb(1, 94, 254);">1.18:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254);" title="#015EFE"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #007DFA</code>
+          <code class="color-code">BG #015EFE</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #007DFA on #015EFE">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 125, 250, 0.6); background:rgb(1, 94, 254);">1.18:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254);" title="#015EFE"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #007DFA</code>
+          <code class="color-code">BG #015EFE</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #007DFA on #005EFF">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 125, 250, 0.6); background:rgba(0, 94, 255, 0.149);">1.17:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgba(0, 94, 255, 0.149);" title="#005EFF"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #007DFA</code>
+          <code class="color-code">BG #005EFF</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #007DFA on #015EFE">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 125, 250, 0.6); background:rgb(1, 94, 254);">1.18:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254);" title="#015EFE"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #007DFA</code>
+          <code class="color-code">BG #015EFE</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #007DFA on #015EFE">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 125, 250, 0.6); background:rgb(1, 94, 254);">1.18:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254);" title="#015EFE"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #007DFA</code>
+          <code class="color-code">BG #015EFE</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #007DFA on #005EFF">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 125, 250, 0.6); background:rgba(0, 94, 255, 0.149);">1.17:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgba(0, 94, 255, 0.149);" title="#005EFF"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #007DFA</code>
+          <code class="color-code">BG #005EFF</code>
+        </div>
+      </td>
+    </tr><tr>
+      <th scope="row"><code>var(--gin-color-focus-border)</code></th>
+      <td class="matrix-cell fail" title="Worst: Dark / Increase Contrast On / Focus: Default Admin Focus color (Default) | #000000 on #000000">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 0, 0, 0.8); background:rgb(0, 0, 0);">1.00:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 0, 0, 0.8);" title="#000000"></span>
+            <span class="color-swatch" style="background:rgb(0, 0, 0);" title="#000000"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #000000</code>
+          <code class="color-code">BG #000000</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Dark / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #000000 on #2A2A2D">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 0, 0, 0.8); background:rgb(42, 42, 45);">1.40:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 0, 0, 0.8);" title="#000000"></span>
+            <span class="color-swatch" style="background:rgb(42, 42, 45);" title="#2A2A2D"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #000000</code>
+          <code class="color-code">BG #2A2A2D</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #000000 on #015EFE">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 0, 0, 0.2); background:rgb(1, 94, 254);">1.40:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 0, 0, 0.2);" title="#000000"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254);" title="#015EFE"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #000000</code>
+          <code class="color-code">BG #015EFE</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #000000 on #015EFE">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 0, 0, 0.2); background:rgb(1, 94, 254);">1.40:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 0, 0, 0.2);" title="#000000"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254);" title="#015EFE"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #000000</code>
+          <code class="color-code">BG #015EFE</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #000000 on #005EFF">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 0, 0, 0.2); background:rgba(0, 94, 255, 0.149);">1.40:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 0, 0, 0.2);" title="#000000"></span>
+            <span class="color-swatch" style="background:rgba(0, 94, 255, 0.149);" title="#005EFF"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #000000</code>
+          <code class="color-code">BG #005EFF</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #000000 on #015EFE">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 0, 0, 0.2); background:rgb(1, 94, 254);">1.40:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 0, 0, 0.2);" title="#000000"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254);" title="#015EFE"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #000000</code>
+          <code class="color-code">BG #015EFE</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #000000 on #015EFE">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 0, 0, 0.2); background:rgb(1, 94, 254);">1.40:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 0, 0, 0.2);" title="#000000"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254);" title="#015EFE"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #000000</code>
+          <code class="color-code">BG #015EFE</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #000000 on #005EFF">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 0, 0, 0.2); background:rgba(0, 94, 255, 0.149);">1.40:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 0, 0, 0.2);" title="#000000"></span>
+            <span class="color-swatch" style="background:rgba(0, 94, 255, 0.149);" title="#005EFF"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #000000</code>
+          <code class="color-code">BG #005EFF</code>
+        </div>
+      </td>
+    </tr><tr>
+      <th scope="row"><code>var(--color-focus)</code></th>
+      <td class="matrix-cell fail" title="Worst: Light / Increase Contrast On / Focus: Orange | #ED7B57 on #D9DBDE">
+        <div class="matrix-value contrast-chip" style="color:rgba(237, 123, 87, 0.6); background:rgb(217, 219, 222);">1.54:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(237, 123, 87, 0.6);" title="#ED7B57"></span>
+            <span class="color-swatch" style="background:rgb(217, 219, 222);" title="#D9DBDE"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #ED7B57</code>
+          <code class="color-code">BG #D9DBDE</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Orange | #ED7B57 on #FFFFFF">
+        <div class="matrix-value contrast-chip" style="color:rgba(237, 123, 87, 0.6); background:rgb(255, 255, 255);">1.82:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(237, 123, 87, 0.6);" title="#ED7B57"></span>
+            <span class="color-swatch" style="background:rgb(255, 255, 255);" title="#FFFFFF"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #ED7B57</code>
+          <code class="color-code">BG #FFFFFF</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #007DFA on #015EFE">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 125, 250, 0.6); background:rgb(1, 94, 254);">1.18:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254);" title="#015EFE"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #007DFA</code>
+          <code class="color-code">BG #015EFE</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #007DFA on #015EFE">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 125, 250, 0.6); background:rgb(1, 94, 254);">1.18:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254);" title="#015EFE"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #007DFA</code>
+          <code class="color-code">BG #015EFE</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #007DFA on #005EFF">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 125, 250, 0.6); background:rgba(0, 94, 255, 0.149);">1.17:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgba(0, 94, 255, 0.149);" title="#005EFF"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #007DFA</code>
+          <code class="color-code">BG #005EFF</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #007DFA on #015EFE">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 125, 250, 0.6); background:rgb(1, 94, 254);">1.18:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254);" title="#015EFE"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #007DFA</code>
+          <code class="color-code">BG #015EFE</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #007DFA on #015EFE">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 125, 250, 0.6); background:rgb(1, 94, 254);">1.18:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254);" title="#015EFE"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #007DFA</code>
+          <code class="color-code">BG #015EFE</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #007DFA on #005EFF">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 125, 250, 0.6); background:rgba(0, 94, 255, 0.149);">1.17:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgba(0, 94, 255, 0.149);" title="#005EFF"></span>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #007DFA</code>
+          <code class="color-code">BG #005EFF</code>
+        </div>
+      </td>
+    </tr><tr>
+      <th scope="row"><code>var(--focus-ring) [color extracted]</code></th>
+      <td class="matrix-cell fail" title="Worst: Dark / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #1B1B1D on #1B1B1D">
+        <div class="matrix-value contrast-chip" style="color:rgb(27, 27, 29); background:rgb(27, 27, 29);">1.00:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgb(27, 27, 29); box-shadow:rgb(27, 27, 29) 0px 0px 0px 1px, rgb(81, 168, 255) 0px 0px 0px 4px;" title="#1B1B1D"></span>
+            <span class="color-swatch" style="background:rgb(27, 27, 29);" title="#1B1B1D"></span>
+          </div>
+          <div class="focus-contrast-preview matrix-focus-preview" style="background:rgb(27, 27, 29);">
+            <div class="focus-contrast-target" style="background:rgb(27, 27, 29); box-shadow:rgb(27, 27, 29) 0px 0px 0px 1px, rgb(81, 168, 255) 0px 0px 0px 4px;"></div>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #1B1B1D</code>
+          <code class="color-code">BG #1B1B1D</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Dark / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #1B1B1D on #2A2A2D">
+        <div class="matrix-value contrast-chip" style="color:rgb(27, 27, 29); background:rgb(42, 42, 45);">1.20:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgb(27, 27, 29); box-shadow:rgb(27, 27, 29) 0px 0px 0px 1px, rgb(81, 168, 255) 0px 0px 0px 4px;" title="#1B1B1D"></span>
+            <span class="color-swatch" style="background:rgb(42, 42, 45);" title="#2A2A2D"></span>
+          </div>
+          <div class="focus-contrast-preview matrix-focus-preview" style="background:rgb(42, 42, 45);">
+            <div class="focus-contrast-target" style="background:rgb(42, 42, 45); box-shadow:rgb(27, 27, 29) 0px 0px 0px 1px, rgb(81, 168, 255) 0px 0px 0px 4px;"></div>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #1B1B1D</code>
+          <code class="color-code">BG #2A2A2D</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #007DFA on #015EFE">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 125, 250, 0.6); background:rgb(1, 94, 254);">1.18:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6); box-shadow:lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px;" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254);" title="#015EFE"></span>
+          </div>
+          <div class="focus-contrast-preview matrix-focus-preview" style="background:rgb(1, 94, 254);">
+            <div class="focus-contrast-target" style="background:rgb(1, 94, 254); box-shadow:lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px;"></div>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #007DFA</code>
+          <code class="color-code">BG #015EFE</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #007DFA on #015EFE">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 125, 250, 0.6); background:rgb(1, 94, 254);">1.18:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6); box-shadow:lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px;" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254);" title="#015EFE"></span>
+          </div>
+          <div class="focus-contrast-preview matrix-focus-preview" style="background:rgb(1, 94, 254);">
+            <div class="focus-contrast-target" style="background:rgb(1, 94, 254); box-shadow:lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px;"></div>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #007DFA</code>
+          <code class="color-code">BG #015EFE</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #007DFA on #005EFF">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 125, 250, 0.6); background:rgba(0, 94, 255, 0.149);">1.17:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6); box-shadow:lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px;" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgba(0, 94, 255, 0.149);" title="#005EFF"></span>
+          </div>
+          <div class="focus-contrast-preview matrix-focus-preview" style="background:rgba(0, 94, 255, 0.149);">
+            <div class="focus-contrast-target" style="background:rgba(0, 94, 255, 0.149); box-shadow:lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px;"></div>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #007DFA</code>
+          <code class="color-code">BG #005EFF</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #007DFA on #015EFE">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 125, 250, 0.6); background:rgb(1, 94, 254);">1.18:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6); box-shadow:lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px;" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254);" title="#015EFE"></span>
+          </div>
+          <div class="focus-contrast-preview matrix-focus-preview" style="background:rgb(1, 94, 254);">
+            <div class="focus-contrast-target" style="background:rgb(1, 94, 254); box-shadow:lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px;"></div>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #007DFA</code>
+          <code class="color-code">BG #015EFE</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #007DFA on #015EFE">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 125, 250, 0.6); background:rgb(1, 94, 254);">1.18:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6); box-shadow:lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px;" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254);" title="#015EFE"></span>
+          </div>
+          <div class="focus-contrast-preview matrix-focus-preview" style="background:rgb(1, 94, 254);">
+            <div class="focus-contrast-target" style="background:rgb(1, 94, 254); box-shadow:lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px;"></div>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #007DFA</code>
+          <code class="color-code">BG #015EFE</code>
+        </div>
+      </td><td class="matrix-cell fail" title="Worst: Light / Increase Contrast Off / Focus: Default Admin Focus color (Default) | #007DFA on #005EFF">
+        <div class="matrix-value contrast-chip" style="color:rgba(0, 125, 250, 0.6); background:rgba(0, 94, 255, 0.149);">1.17:1</div>
+        <span class="badge fail">Fail</span>
+        <div class="matrix-swatches">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6); box-shadow:lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px;" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgba(0, 94, 255, 0.149);" title="#005EFF"></span>
+          </div>
+          <div class="focus-contrast-preview matrix-focus-preview" style="background:rgba(0, 94, 255, 0.149);">
+            <div class="focus-contrast-target" style="background:rgba(0, 94, 255, 0.149); box-shadow:lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px;"></div>
+          </div>
+        <div class="matrix-color-codes">
+          <code class="color-code">FG #007DFA</code>
+          <code class="color-code">BG #005EFF</code>
+        </div>
+      </td>
+    </tr></tbody>
+    </table>
+  </section>
+      <section>
+    <h3>Focus Token Combinations (3:1 minimum)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Foreground token</th>
+          <th scope="col">Background token</th>
+          <th scope="col">Worst observed ratio</th>
+          <th scope="col">Threshold 3.0:1</th>
+          <th scope="col">Worst-case sample</th>
+        </tr>
+      </thead>
+      <tbody><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--gin-color-focus)</code>
+    <small>Intended role: focus</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--gin-bg-app)</code>
+    <small>Intended role: background</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.79:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(237, 123, 87, 0.6);" title="#ED7B57"></span>
+            <span class="color-swatch" style="background:rgb(250, 250, 255)" title="#FAFAFF"></span>
+          </div>
+            <code class="color-code">#ED7B57 on #FAFAFF</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Orange</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--gin-color-focus)</code>
+    <small>Intended role: focus</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--gin-bg-layer)</code>
+    <small>Intended role: background</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.82:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(237, 123, 87, 0.6);" title="#ED7B57"></span>
+            <span class="color-swatch" style="background:rgb(255, 255, 255)" title="#FFFFFF"></span>
+          </div>
+            <code class="color-code">#ED7B57 on #FFFFFF</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Orange</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--gin-color-focus)</code>
+    <small>Intended role: focus</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--button-bg-color--primary)</code>
+    <small>Intended role: background</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.18:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254)" title="#015EFE"></span>
+          </div>
+            <code class="color-code">#007DFA on #015EFE</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--gin-color-focus)</code>
+    <small>Intended role: focus</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--gin-color-primary)</code>
+    <small>Intended role: accent</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.18:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254)" title="#015EFE"></span>
+          </div>
+            <code class="color-code">#007DFA on #015EFE</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--gin-color-focus)</code>
+    <small>Intended role: focus</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--gin-color-primary-light)</code>
+    <small>Intended role: accent</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.17:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgba(0, 94, 255, 0.149)" title="#005EFF"></span>
+          </div>
+            <code class="color-code">#007DFA on #005EFF</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--gin-color-focus)</code>
+    <small>Intended role: focus</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--accent-base)</code>
+    <small>Intended role: accent base</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.18:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254)" title="#015EFE"></span>
+          </div>
+            <code class="color-code">#007DFA on #015EFE</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--gin-color-focus)</code>
+    <small>Intended role: focus</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--accent-color-500)</code>
+    <small>Intended role: accent</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.18:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254)" title="#015EFE"></span>
+          </div>
+            <code class="color-code">#007DFA on #015EFE</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--gin-color-focus)</code>
+    <small>Intended role: focus</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--accent-color-030)</code>
+    <small>Intended role: accent tint</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.17:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgba(0, 94, 255, 0.149)" title="#005EFF"></span>
+          </div>
+            <code class="color-code">#007DFA on #005EFF</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--gin-color-focus-border)</code>
+    <small>Intended role: focus border</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--gin-bg-app)</code>
+    <small>Intended role: background</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.00:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 0, 0, 0.8);" title="#000000"></span>
+            <span class="color-swatch" style="background:rgb(0, 0, 0)" title="#000000"></span>
+          </div>
+            <code class="color-code">#000000 on #000000</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Dark / Increase Contrast On / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--gin-color-focus-border)</code>
+    <small>Intended role: focus border</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--gin-bg-layer)</code>
+    <small>Intended role: background</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.40:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 0, 0, 0.8);" title="#000000"></span>
+            <span class="color-swatch" style="background:rgb(42, 42, 45)" title="#2A2A2D"></span>
+          </div>
+            <code class="color-code">#000000 on #2A2A2D</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Dark / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--gin-color-focus-border)</code>
+    <small>Intended role: focus border</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--button-bg-color--primary)</code>
+    <small>Intended role: background</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.40:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 0, 0, 0.2);" title="#000000"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254)" title="#015EFE"></span>
+          </div>
+            <code class="color-code">#000000 on #015EFE</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--gin-color-focus-border)</code>
+    <small>Intended role: focus border</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--gin-color-primary)</code>
+    <small>Intended role: accent</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.40:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 0, 0, 0.2);" title="#000000"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254)" title="#015EFE"></span>
+          </div>
+            <code class="color-code">#000000 on #015EFE</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--gin-color-focus-border)</code>
+    <small>Intended role: focus border</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--gin-color-primary-light)</code>
+    <small>Intended role: accent</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.40:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 0, 0, 0.2);" title="#000000"></span>
+            <span class="color-swatch" style="background:rgba(0, 94, 255, 0.149)" title="#005EFF"></span>
+          </div>
+            <code class="color-code">#000000 on #005EFF</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--gin-color-focus-border)</code>
+    <small>Intended role: focus border</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--accent-base)</code>
+    <small>Intended role: accent base</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.40:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 0, 0, 0.2);" title="#000000"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254)" title="#015EFE"></span>
+          </div>
+            <code class="color-code">#000000 on #015EFE</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--gin-color-focus-border)</code>
+    <small>Intended role: focus border</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--accent-color-500)</code>
+    <small>Intended role: accent</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.40:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 0, 0, 0.2);" title="#000000"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254)" title="#015EFE"></span>
+          </div>
+            <code class="color-code">#000000 on #015EFE</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--gin-color-focus-border)</code>
+    <small>Intended role: focus border</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--accent-color-030)</code>
+    <small>Intended role: accent tint</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.40:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 0, 0, 0.2);" title="#000000"></span>
+            <span class="color-swatch" style="background:rgba(0, 94, 255, 0.149)" title="#005EFF"></span>
+          </div>
+            <code class="color-code">#000000 on #005EFF</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--color-focus)</code>
+    <small>Intended role: focus</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--gin-bg-app)</code>
+    <small>Intended role: background</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.54:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(237, 123, 87, 0.6);" title="#ED7B57"></span>
+            <span class="color-swatch" style="background:rgb(217, 219, 222)" title="#D9DBDE"></span>
+          </div>
+            <code class="color-code">#ED7B57 on #D9DBDE</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast On / Focus: Orange</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--color-focus)</code>
+    <small>Intended role: focus</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--gin-bg-layer)</code>
+    <small>Intended role: background</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.82:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(237, 123, 87, 0.6);" title="#ED7B57"></span>
+            <span class="color-swatch" style="background:rgb(255, 255, 255)" title="#FFFFFF"></span>
+          </div>
+            <code class="color-code">#ED7B57 on #FFFFFF</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Orange</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--color-focus)</code>
+    <small>Intended role: focus</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--button-bg-color--primary)</code>
+    <small>Intended role: background</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.18:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254)" title="#015EFE"></span>
+          </div>
+            <code class="color-code">#007DFA on #015EFE</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--color-focus)</code>
+    <small>Intended role: focus</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--gin-color-primary)</code>
+    <small>Intended role: accent</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.18:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254)" title="#015EFE"></span>
+          </div>
+            <code class="color-code">#007DFA on #015EFE</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--color-focus)</code>
+    <small>Intended role: focus</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--gin-color-primary-light)</code>
+    <small>Intended role: accent</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.17:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgba(0, 94, 255, 0.149)" title="#005EFF"></span>
+          </div>
+            <code class="color-code">#007DFA on #005EFF</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--color-focus)</code>
+    <small>Intended role: focus</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--accent-base)</code>
+    <small>Intended role: accent base</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.18:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254)" title="#015EFE"></span>
+          </div>
+            <code class="color-code">#007DFA on #015EFE</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--color-focus)</code>
+    <small>Intended role: focus</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--accent-color-500)</code>
+    <small>Intended role: accent</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.18:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgb(1, 94, 254)" title="#015EFE"></span>
+          </div>
+            <code class="color-code">#007DFA on #015EFE</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--color-focus)</code>
+    <small>Intended role: focus</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--accent-color-030)</code>
+    <small>Intended role: accent tint</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.17:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="color-pair">
+            <span class="color-swatch" style="background:rgba(0, 125, 250, 0.6);" title="#007DFA"></span>
+            <span class="color-swatch" style="background:rgba(0, 94, 255, 0.149)" title="#005EFF"></span>
+          </div>
+            <code class="color-code">#007DFA on #005EFF</code>
+            
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--focus-ring) [color extracted]</code>
+    <small>Intended role: focus effect</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--gin-bg-app)</code>
+    <small>Intended role: background</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.00:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="focus-contrast-preview" style="background:rgb(27, 27, 29);">
+            <div class="focus-contrast-target" style="background:rgb(27, 27, 29); box-shadow:rgb(27, 27, 29) 0px 0px 0px 1px, rgb(81, 168, 255) 0px 0px 0px 4px;"></div>
+          </div>
+            <code class="color-code">#1B1B1D on #1B1B1D</code>
+            <code class="color-code">ring effect: rgb(27, 27, 29) 0px 0px 0px 1px, rgb(81, 168, 255) 0px 0px 0px 4px</code>
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Dark / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--focus-ring) [color extracted]</code>
+    <small>Intended role: focus effect</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--gin-bg-layer)</code>
+    <small>Intended role: background</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.20:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="focus-contrast-preview" style="background:rgb(42, 42, 45);">
+            <div class="focus-contrast-target" style="background:rgb(42, 42, 45); box-shadow:rgb(27, 27, 29) 0px 0px 0px 1px, rgb(81, 168, 255) 0px 0px 0px 4px;"></div>
+          </div>
+            <code class="color-code">#1B1B1D on #2A2A2D</code>
+            <code class="color-code">ring effect: rgb(27, 27, 29) 0px 0px 0px 1px, rgb(81, 168, 255) 0px 0px 0px 4px</code>
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Dark / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--focus-ring) [color extracted]</code>
+    <small>Intended role: focus effect</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--button-bg-color--primary)</code>
+    <small>Intended role: background</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.18:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="focus-contrast-preview" style="background:rgb(1, 94, 254);">
+            <div class="focus-contrast-target" style="background:rgb(1, 94, 254); box-shadow:lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px;"></div>
+          </div>
+            <code class="color-code">#007DFA on #015EFE</code>
+            <code class="color-code">ring effect: lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px</code>
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--focus-ring) [color extracted]</code>
+    <small>Intended role: focus effect</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--gin-color-primary)</code>
+    <small>Intended role: accent</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.18:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="focus-contrast-preview" style="background:rgb(1, 94, 254);">
+            <div class="focus-contrast-target" style="background:rgb(1, 94, 254); box-shadow:lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px;"></div>
+          </div>
+            <code class="color-code">#007DFA on #015EFE</code>
+            <code class="color-code">ring effect: lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px</code>
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--focus-ring) [color extracted]</code>
+    <small>Intended role: focus effect</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--gin-color-primary-light)</code>
+    <small>Intended role: accent</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.17:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="focus-contrast-preview" style="background:rgba(0, 94, 255, 0.149);">
+            <div class="focus-contrast-target" style="background:rgba(0, 94, 255, 0.149); box-shadow:lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px;"></div>
+          </div>
+            <code class="color-code">#007DFA on #005EFF</code>
+            <code class="color-code">ring effect: lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px</code>
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--focus-ring) [color extracted]</code>
+    <small>Intended role: focus effect</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--accent-base)</code>
+    <small>Intended role: accent base</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.18:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="focus-contrast-preview" style="background:rgb(1, 94, 254);">
+            <div class="focus-contrast-target" style="background:rgb(1, 94, 254); box-shadow:lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px;"></div>
+          </div>
+            <code class="color-code">#007DFA on #015EFE</code>
+            <code class="color-code">ring effect: lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px</code>
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--focus-ring) [color extracted]</code>
+    <small>Intended role: focus effect</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--accent-color-500)</code>
+    <small>Intended role: accent</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.18:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="focus-contrast-preview" style="background:rgb(1, 94, 254);">
+            <div class="focus-contrast-target" style="background:rgb(1, 94, 254); box-shadow:lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px;"></div>
+          </div>
+            <code class="color-code">#007DFA on #015EFE</code>
+            <code class="color-code">ring effect: lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px</code>
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr><tr>
+        <th scope="row"><div class="token-label">
+    <code>var(--focus-ring) [color extracted]</code>
+    <small>Intended role: focus effect</small>
+  </div></th>
+        <td><div class="token-label">
+    <code>var(--accent-color-030)</code>
+    <small>Intended role: accent tint</small>
+  </div></td>
+        <td>
+          <div class="metric-detailed">
+            <strong>1.17:1</strong>
+            <span class="badge fail">Fail</span>
+            <div class="focus-contrast-preview" style="background:rgba(0, 94, 255, 0.149);">
+            <div class="focus-contrast-target" style="background:rgba(0, 94, 255, 0.149); box-shadow:lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px;"></div>
+          </div>
+            <code class="color-code">#007DFA on #005EFF</code>
+            <code class="color-code">ring effect: lch(98.3275 2.7667 288.155) 0px 0px 0px 1px, rgba(0, 125, 250, 0.6) 0px 0px 0px 4px</code>
+          </div>
+        </td>
+        <td><span class="badge fail">Fail</span></td>
+        <td>Light / Increase Contrast Off / Focus: Default Admin Focus color (Default)</td>
+      </tr></tbody>
+    </table>
+  </section>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,1749 @@
+core/core.services.yml                             |   8 +
+ .../Core/Block/Plugin/Block/PageTitleBlock.php     | 139 +++++++++++++++-
+ .../Core/Controller/BaseRouteTitleResolver.php     |  68 ++++++++
+ core/lib/Drupal/Core/Menu/LocalTaskManager.php     | 133 ++++++++++------
+ .../Drupal/Core/Menu/LocalTaskManagerInterface.php |  11 ++
+ core/lib/Drupal/Core/Routing/RequestGenerator.php  |  77 +++++++++
+ core/lib/Drupal/Core/Theme/ThemePreprocess.php     |  28 +++-
+ core/modules/block/block.post_update.php           |  19 +++
+ .../tests/src/Functional/PageTitleBlockTest.php    | 177 +++++++++++++++++++++
+ .../src/Functional/Update/BlockTitleUpdateTest.php |  44 +++++
+ .../tests/src/Functional/BlockContentListTest.php  |   2 +-
+ .../src/Functional/BlockContentListViewsTest.php   |   2 +-
+ .../tests/src/Functional/FieldUIRouteTest.php      |  10 +-
+ .../tests/src/Functional/LayoutBuilderTest.php     |   6 +-
+ .../modules/system/config/schema/system.schema.yml |   8 +
+ .../tests/src/Functional/Module/UninstallTest.php  |   4 +-
+ .../install/block.block.umami_page_title.yml       |   1 +
+ .../install/block.block.stark_page_title.yml       |   1 +
+ ...ck.testing_theme_optional_blocks_page_title.yml |   1 +
+ .../KernelTests/Config/Schema/MappingTest.php      |   3 +
+ .../Tests/Core/Routing/RequestGeneratorTest.php    | 161 +++++++++++++++++++
+ .../optional/block.block.claro_page_title.yml      |   1 +
+ .../optional/block.block.olivero_page_title.yml    |   1 +
+ 23 files changed, 833 insertions(+), 72 deletions(-)
+
+diff --git a/core/core.services.yml b/core/core.services.yml
+index e9ab1793d49..47b7e885c06 100644
+--- a/core/core.services.yml
++++ b/core/core.services.yml
+@@ -1164,6 +1164,14 @@ services:
+     class: Drupal\Core\Utility\LinkGenerator
+     arguments: ['@url_generator', '@module_handler', '@renderer']
+   Drupal\Core\Utility\LinkGeneratorInterface: '@link_generator'
++  request_generator:
++    class: Drupal\Core\Routing\RequestGenerator
++    arguments: ['@path_processor_manager', '@path.current', '@router']
++  Drupal\Core\Routing\RequestGenerator: '@request_generator'
++  base_route_title_resolver:
++    class: Drupal\Core\Controller\BaseRouteTitleResolver
++    arguments: ['@url_generator', '@title_resolver', '@plugin.manager.menu.local_task', '@router.route_provider', '@request_generator']
++  Drupal\Core\Controller\BaseRouteTitleResolver: '@base_route_title_resolver'
+   router:
+     class: Drupal\Core\Routing\AccessAwareRouter
+     arguments: ['@router.no_access_checks', '@access_manager', '@current_user']
+diff --git a/core/lib/Drupal/Core/Block/Plugin/Block/PageTitleBlock.php b/core/lib/Drupal/Core/Block/Plugin/Block/PageTitleBlock.php
+index 54ce18cce61..e6dfa03a788 100644
+--- a/core/lib/Drupal/Core/Block/Plugin/Block/PageTitleBlock.php
++++ b/core/lib/Drupal/Core/Block/Plugin/Block/PageTitleBlock.php
+@@ -5,7 +5,12 @@
+ use Drupal\Core\Block\Attribute\Block;
+ use Drupal\Core\Block\BlockBase;
+ use Drupal\Core\Block\TitleBlockPluginInterface;
++use Drupal\Core\Controller\TitleResolverInterface;
++use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
++use Drupal\Core\Routing\RouteMatchInterface;
+ use Drupal\Core\StringTranslation\TranslatableMarkup;
++use Symfony\Component\DependencyInjection\ContainerInterface;
++use Symfony\Component\HttpFoundation\RequestStack;
+ 
+ /**
+  * Provides a block to display the page title.
+@@ -14,7 +19,7 @@
+   id: "page_title_block",
+   admin_label: new TranslatableMarkup("Page title"),
+ )]
+-class PageTitleBlock extends BlockBase implements TitleBlockPluginInterface {
++class PageTitleBlock extends BlockBase implements TitleBlockPluginInterface, ContainerFactoryPluginInterface {
+ 
+   /**
+    * The page title: a string (plain title) or a render array (formatted title).
+@@ -23,6 +28,51 @@ class PageTitleBlock extends BlockBase implements TitleBlockPluginInterface {
+    */
+   protected $title = '';
+ 
++  /**
++   * Constructs a new PageTitleBlock.
++   *
++   * @param array $configuration
++   *   A configuration array containing information about the plugin instance.
++   * @param string $plugin_id
++   *   The plugin ID for the plugin instance.
++   * @param mixed $plugin_definition
++   *   The plugin implementation definition.
++   * @param \Drupal\Core\Controller\TitleResolverInterface|null $titleResolver
++   *   The title resolver.
++   * @param \Drupal\Core\Routing\RouteMatchInterface|null $routeMatch
++   *   The route match.
++   * @param \Symfony\Component\HttpFoundation\RequestStack|null $requestStack
++   *   The request stack.
++   * @param \Drupal\Core\Controller\TitleResolverInterface|null $baseRouteTitleResolver
++   *   The base route title resolver.
++   */
++  public function __construct(
++    array $configuration,
++    $plugin_id,
++    $plugin_definition,
++    protected TitleResolverInterface $titleResolver,
++    protected RouteMatchInterface $routeMatch,
++    protected RequestStack $requestStack,
++    protected TitleResolverInterface $baseRouteTitleResolver,
++  ) {
++    parent::__construct($configuration, $plugin_id, $plugin_definition);
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): static {
++    return new static(
++      $configuration,
++      $plugin_id,
++      $plugin_definition,
++      $container->get('title_resolver'),
++      $container->get('current_route_match'),
++      $container->get('request_stack'),
++      $container->get('base_route_title_resolver'),
++    );
++  }
++
+   /**
+    * {@inheritdoc}
+    */
+@@ -35,17 +85,100 @@ public function setTitle($title) {
+    * {@inheritdoc}
+    */
+   public function defaultConfiguration() {
+-    return ['label_display' => '0'];
++    return [
++      'label_display' => FALSE,
++      'base_route_title' => FALSE,
++    ];
+   }
+ 
+   /**
+    * {@inheritdoc}
+    */
+   public function build() {
++    $title = $this->title;
++    if ($this->configuration['base_route_title']) {
++      $base_route_title = $this->getTitleBasedOnBaseRoute();
++      if (!is_null($base_route_title)) {
++        $title = $base_route_title;
++      }
++    }
+     return [
+       '#type' => 'page_title',
+-      '#title' => $this->title,
++      '#title' => $title,
++    ];
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function blockForm($form, FormStateInterface $form_state) : array {
++    $form['base_route_title'] = [
++      '#type' => 'radios',
++      '#title' => $this->t('Title to be displayed'),
++      '#options' => [
++        0 => $this->t('Current page title'),
++        1 => $this->t('Section page title'),
++      ],
++      '#default_value' => (int) $this->configuration['base_route_title'],
++      '#description' => $this->t('Choose whether to display the title of the current page or the current section. The section page title is preferred if the title is displayed before local tasks and if it is displayed after local tasks then the current page title is preferred.'),
+     ];
++    return $form;
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function blockSubmit($form, FormStateInterface $form_state) : void {
++    $this->configuration['base_route_title'] = (bool) $form_state->getValue('base_route_title');
++  }
++
++  /**
++   * Gets title based on base route.
++   *
++   * @return array|string|null|\Stringable
++   *   The title based on base route.
++   */
++  private function getTitleBasedOnBaseRoute(): array|string|null|\Stringable {
++    $controller_title = $this->titleResolver->getTitle($this->requestStack->getCurrentRequest(), $this->routeMatch->getRouteObject());
++
++    $rendered_title = $this->renderTitle($this->title);
++    // Controller render arrays using `#title` take precedent over the title
++    // resolvers.
++    if ((string) $this->renderTitle($controller_title) !== (string) $rendered_title) {
++      return $this->title;
++    }
++
++    $base_route_title = $this->baseRouteTitleResolver->getTitle($this->requestStack->getCurrentRequest(), $this->routeMatch->getRouteObject());
++    if (!is_null($base_route_title)) {
++      $rendered_base_route_title = $this->renderTitle($base_route_title);
++      // If the titles are equal, return the original title.
++      if ((string) $rendered_base_route_title === (string) $rendered_title) {
++        return $this->title;
++      }
++
++      return $this->t('@section_title<span class="visually-hidden">: @current_title</span>', [
++        '@section_title' => $rendered_base_route_title,
++        '@current_title' => $rendered_title,
++      ]);
++    }
++
++    return $this->title;
++  }
++
++  /**
++   * Renders the title.
++   *
++   * @param array|string|null|\Stringable $title
++   *   A title that could be an array, string or stringable object.
++   *
++   * @return string|\Stringable
++   */
++  private function renderTitle(array|string|null|\Stringable $title): string|\Stringable {
++    if (is_array($title)) {
++      $title = \Drupal::service('renderer')->render($title);
++    }
++
++    return $title ?? '';
+   }
+ 
+ }
+diff --git a/core/lib/Drupal/Core/Controller/BaseRouteTitleResolver.php b/core/lib/Drupal/Core/Controller/BaseRouteTitleResolver.php
+new file mode 100644
+index 00000000000..8ba63f415c6
+--- /dev/null
++++ b/core/lib/Drupal/Core/Controller/BaseRouteTitleResolver.php
+@@ -0,0 +1,68 @@
++<?php
++
++namespace Drupal\Core\Controller;
++
++use Drupal\Core\Menu\LocalTaskManager;
++use Drupal\Core\Routing\RouteMatch;
++use Drupal\Core\Routing\RouteProviderInterface;
++use Drupal\Core\Routing\UrlGeneratorInterface;
++use Drupal\Core\Routing\RequestGenerator;
++use Symfony\Component\HttpFoundation\Request;
++use Symfony\Component\Routing\Exception\InvalidParameterException;
++use Symfony\Component\Routing\Exception\RouteNotFoundException;
++use Symfony\Component\Routing\Route;
++
++/**
++ * Provides a class which gets the title from the current local-task base route.
++ */
++class BaseRouteTitleResolver implements TitleResolverInterface {
++
++  /**
++   * Constructs a BaseRouteTitleResolver object.
++   *
++   * @param \Drupal\Core\Routing\UrlGeneratorInterface $urlGenerator
++   *   The url generator.
++   * @param \Drupal\Core\Controller\TitleResolverInterface $titleResolver
++   *   The title resolver.
++   * @param \Drupal\Core\Menu\LocalTaskManager $localTaskManager
++   *   The local task manager.
++   * @param \Drupal\Core\Routing\RouteProviderInterface $routeProvider
++   *   The route provider.
++   * @param \Drupal\Core\Routing\RequestGenerator $requestGenerator
++   *   The request generator.
++   */
++  public function __construct(
++    protected UrlGeneratorInterface $urlGenerator,
++    protected TitleResolverInterface $titleResolver,
++    protected LocalTaskManager $localTaskManager,
++    protected RouteProviderInterface $routeProvider,
++    protected RequestGenerator $requestGenerator,
++  ) {
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function getTitle(Request $request, Route $route) : array|string|\Stringable|null {
++    $route_match = RouteMatch::createFromRequest($request);
++    $base_route_names = $this->localTaskManager->getBaseRouteNames($route_match->getRouteName());
++    $title = NULL;
++    if ($base_route_names) {
++      $base_route_name = reset($base_route_names);
++      if ($base_route_name !== $route_match->getRouteName()) {
++        try {
++          $path = $this->urlGenerator->getPathFromRoute($base_route_name, $route_match->getRawParameters()->all());
++        }
++        catch (RouteNotFoundException | InvalidParameterException) {
++          return NULL;
++        }
++        $route_request = $this->requestGenerator->generateRequestForPath($path, []);
++        if ($route_request) {
++          $title = $this->titleResolver->getTitle($route_request, $this->routeProvider->getRouteByName($base_route_name));
++        }
++      }
++    }
++    return $title;
++  }
++
++}
+diff --git a/core/lib/Drupal/Core/Menu/LocalTaskManager.php b/core/lib/Drupal/Core/Menu/LocalTaskManager.php
+index 12901258fbc..ab3d9cdbee6 100644
+--- a/core/lib/Drupal/Core/Menu/LocalTaskManager.php
++++ b/core/lib/Drupal/Core/Menu/LocalTaskManager.php
+@@ -152,58 +152,11 @@ public function getDefinitions() {
+   public function getLocalTasksForRoute($route_name) {
+     if (!isset($this->instances[$route_name])) {
+       $this->instances[$route_name] = [];
+-      if ($cache = $this->cacheBackend->get($this->cacheKey . ':' . $route_name)) {
+-        $base_routes = $cache->data['base_routes'];
+-        $parents = $cache->data['parents'];
+-        $children = $cache->data['children'];
+-      }
+-      else {
+-        $definitions = $this->getDefinitions();
+-        // We build the hierarchy by finding all tabs that should
+-        // appear on the current route.
+-        $base_routes = [];
+-        $parents = [];
+-        $children = [];
+-        foreach ($definitions as $plugin_id => $task_info) {
+-          // Fill in the base_route from the parent to insure consistency.
+-          if (!empty($task_info['parent_id']) && !empty($definitions[$task_info['parent_id']])) {
+-            $task_info['base_route'] = $definitions[$task_info['parent_id']]['base_route'];
+-            // Populate the definitions we use in the next loop. Using a
+-            // reference like &$task_info causes bugs.
+-            $definitions[$plugin_id]['base_route'] = $definitions[$task_info['parent_id']]['base_route'];
+-          }
+-          if ($route_name == $task_info['route_name']) {
+-            if (!empty($task_info['base_route'])) {
+-              $base_routes[$task_info['base_route']] = $task_info['base_route'];
+-            }
+-            // Tabs that link to the current route are viable parents
+-            // and their parent and children should be visible also.
+-            // @todo This only works for 2 levels of tabs instead
+-            //   need to iterate up.
+-            $parents[$plugin_id] = TRUE;
+-            if (!empty($task_info['parent_id'])) {
+-              $parents[$task_info['parent_id']] = TRUE;
+-            }
+-          }
+-        }
+-        if ($base_routes) {
+-          // Find all the plugins with the same root and that are at the top
+-          // level or that have a visible parent.
+-          foreach ($definitions as $plugin_id => $task_info) {
+-            if (!empty($base_routes[$task_info['base_route']]) && (empty($task_info['parent_id']) || !empty($parents[$task_info['parent_id']]))) {
+-              // Concat '> ' with root ID for the parent of top-level tabs.
+-              $parent = empty($task_info['parent_id']) ? '> ' . $task_info['base_route'] : $task_info['parent_id'];
+-              $children[$parent][$plugin_id] = $task_info;
+-            }
+-          }
+-        }
+-        $data = [
+-          'base_routes' => $base_routes,
+-          'parents' => $parents,
+-          'children' => $children,
+-        ];
+-        $this->cacheBackend->set($this->cacheKey . ':' . $route_name, $data, Cache::PERMANENT, $this->cacheTags);
+-      }
++      $data = $this->getLocalTasksDataForRoute($route_name);
++      $base_routes = $data['base_routes'];
++      $children = $data['children'];
++      $parents = $data['parents'];
++
+       // Create a plugin instance for each element of the hierarchy.
+       foreach ($base_routes as $base_route) {
+         // Convert the tree keyed by plugin IDs into a simple one with
+@@ -389,4 +342,80 @@ protected function isRouteActive($current_route_name, $route_name, $route_parame
+     return $active;
+   }
+ 
++  /**
++   * {@inheritdoc}
++   */
++  public function getBaseRouteNames(string $route_name): array {
++    $data = $this->getLocalTasksDataForRoute($route_name);
++    return $data['base_routes'] ?? [];
++  }
++
++  /**
++   * Gets the local task data for the given route.
++   *
++   * @param string $route_name
++   *   The route name.
++   *
++   * @return array
++   *   The local task data with the following keys:
++   *   - base_routes: An array of base route names of the given route.
++   *   - children: An array of the route's child local task definitions keyed by
++   *     local task ID.
++   *   - parents: An array of the route's parent local task definitions.
++   */
++  protected function getLocalTasksDataForRoute(string $route_name): array {
++    if ($cache = $this->cacheBackend->get($this->cacheKey . ':' . $route_name)) {
++      $data = $cache->data;
++    }
++    else {
++      $definitions = $this->getDefinitions();
++      // We build the hierarchy by finding all tabs that should
++      // appear on the current route.
++      $base_routes = [];
++      $parents = [];
++      $children = [];
++      foreach ($definitions as $plugin_id => $task_info) {
++        // Fill in the base_route from the parent to insure consistency.
++        if (!empty($task_info['parent_id']) && !empty($definitions[$task_info['parent_id']])) {
++          $task_info['base_route'] = $definitions[$task_info['parent_id']]['base_route'];
++          // Populate the definitions we use in the next loop. Using a
++          // reference like &$task_info causes bugs.
++          $definitions[$plugin_id]['base_route'] = $definitions[$task_info['parent_id']]['base_route'];
++        }
++        if ($route_name == $task_info['route_name']) {
++          if (!empty($task_info['base_route'])) {
++            $base_routes[$task_info['base_route']] = $task_info['base_route'];
++          }
++          // Tabs that link to the current route are viable parents
++          // and their parent and children should be visible also.
++          // @todo This only works for 2 levels of tabs instead need to iterate
++          //   up.
++          $parents[$plugin_id] = TRUE;
++          if (!empty($task_info['parent_id'])) {
++            $parents[$task_info['parent_id']] = TRUE;
++          }
++        }
++      }
++      if ($base_routes) {
++        // Find all the plugins with the same root and that are at the top
++        // level or that have a visible parent.
++        foreach ($definitions as $plugin_id => $task_info) {
++          if (!empty($base_routes[$task_info['base_route']]) && (empty($task_info['parent_id']) || !empty($parents[$task_info['parent_id']]))) {
++            // Concat '> ' with root ID for the parent of top-level tabs.
++            $parent = empty($task_info['parent_id']) ? '> ' . $task_info['base_route'] : $task_info['parent_id'];
++            $children[$parent][$plugin_id] = $task_info;
++          }
++        }
++      }
++      $data = [
++        'base_routes' => $base_routes,
++        'parents' => $parents,
++        'children' => $children,
++      ];
++      $this->cacheBackend->set($this->cacheKey . ':' . $route_name, $data, Cache::PERMANENT, $this->cacheTags);
++    }
++
++    return $data;
++  }
++
+ }
+diff --git a/core/lib/Drupal/Core/Menu/LocalTaskManagerInterface.php b/core/lib/Drupal/Core/Menu/LocalTaskManagerInterface.php
+index 9352e4011bc..dc0f2ea6578 100644
+--- a/core/lib/Drupal/Core/Menu/LocalTaskManagerInterface.php
++++ b/core/lib/Drupal/Core/Menu/LocalTaskManagerInterface.php
+@@ -70,4 +70,15 @@ public function getTasksBuild($current_route_name, RefinableCacheableDependencyI
+    */
+   public function getLocalTasks($route_name, $level = 0);
+ 
++  /**
++   * Gets base route names for the given route.
++   *
++   * @param string $route_name
++   *   The route name.
++   *
++   * @return string[]
++   *   The base route names.
++   */
++  public function getBaseRouteNames(string $route_name): array;
++
+ }
+diff --git a/core/lib/Drupal/Core/Routing/RequestGenerator.php b/core/lib/Drupal/Core/Routing/RequestGenerator.php
+new file mode 100644
+index 00000000000..04358c2f354
+--- /dev/null
++++ b/core/lib/Drupal/Core/Routing/RequestGenerator.php
+@@ -0,0 +1,77 @@
++<?php
++
++namespace Drupal\Core\Routing;
++
++use Drupal\Core\ParamConverter\ParamNotConvertedException;
++use Drupal\Core\Path\CurrentPathStack;
++use Drupal\Core\PathProcessor\InboundPathProcessorInterface;
++use Symfony\Component\HttpFoundation\Request;
++use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
++use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
++use Symfony\Component\Routing\Exception\MethodNotAllowedException;
++use Symfony\Component\Routing\Exception\ResourceNotFoundException;
++use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
++
++/**
++ * Provides a class which generates a request.
++ *
++ * @internal
++ */
++final class RequestGenerator {
++
++  /**
++   * Constructs a RequestGenerator object.
++   *
++   * @param \Drupal\Core\PathProcessor\InboundPathProcessorInterface $pathProcessor
++   *   The inbound path processor.
++   * @param \Drupal\Core\Path\CurrentPathStack $currentPath
++   *   The current path.
++   * @param \Symfony\Component\Routing\Matcher\RequestMatcherInterface $router
++   *   The dynamic router service.
++   */
++  public function __construct(
++    protected InboundPathProcessorInterface $pathProcessor,
++    protected CurrentPathStack $currentPath,
++    protected RequestMatcherInterface $router,
++  ) {
++  }
++
++  /**
++   * Generates a request by matching a path in the router.
++   *
++   * @param string $path
++   *   The request path with a leading slash.
++   * @param array $exclude
++   *   An array of paths or system paths to skip.
++   *
++   * @return \Symfony\Component\HttpFoundation\Request|null
++   *   A populated request object or NULL if the path couldn't be matched.
++   */
++  public function generateRequestForPath(string $path, array $exclude): ?Request {
++    if (!empty($exclude[$path])) {
++      return NULL;
++    }
++
++    $request = Request::create($path);
++    // Performance optimization: set a short accept header to reduce overhead in
++    // AcceptHeaderMatcher when matching the request.
++    $request->headers->set('Accept', 'text/html');
++    // Find the system path by resolving aliases, language prefix, etc.
++    $processed = $this->pathProcessor->processInbound($path, $request);
++    if (empty($processed) || !empty($exclude[$processed])) {
++      // This resolves to the front page, which we already add.
++      return NULL;
++    }
++    $this->currentPath->setPath($processed, $request);
++
++    // Attempt to match this path to provide a fully built request.
++    try {
++      $request->attributes->add($this->router->matchRequest($request));
++      return $request;
++    }
++    catch (ParamNotConvertedException | ResourceNotFoundException | MethodNotAllowedException | AccessDeniedHttpException | NotFoundHttpException) {
++      return NULL;
++    }
++  }
++
++}
+diff --git a/core/lib/Drupal/Core/Theme/ThemePreprocess.php b/core/lib/Drupal/Core/Theme/ThemePreprocess.php
+index 7c2d595d644..aeb7de63a7d 100644
+--- a/core/lib/Drupal/Core/Theme/ThemePreprocess.php
++++ b/core/lib/Drupal/Core/Theme/ThemePreprocess.php
+@@ -5,6 +5,7 @@
+ use Drupal\Component\Serialization\Json;
+ use Drupal\Component\Utility\Crypt;
+ use Drupal\Core\Config\ConfigFactoryInterface;
++use Drupal\Core\Controller\BaseRouteTitleResolver;
+ use Drupal\Core\Extension\ThemeSettingsProvider;
+ use Drupal\Core\Installer\InstallerKernel;
+ use Drupal\Core\Language\LanguageManagerInterface;
+@@ -37,6 +38,7 @@ public function __construct(
+     protected RouteMatchInterface $routeMatch,
+     protected ThemeManagerInterface $themeManager,
+     protected ThemeSettingsProvider $themeSettingsProvider,
++    protected BaseRouteTitleResolver $baseRouteTitleResolver,
+   ) {
+   }
+ 
+@@ -287,11 +289,27 @@ public function preprocessHtml(array &$variables): void {
+       $variables['page']['#title'] = (string) $this->renderer->render($variables['page']['#title']);
+     }
+     if (!empty($variables['page']['#title'])) {
+-      $head_title = [
+-        // Marking the title as safe since it has had the tags stripped.
+-        'title' => Markup::create(trim(strip_tags($variables['page']['#title']))),
+-        'name' => $site_config->get('name'),
+-      ];
++      $head_title = [];
++      // Marking the title as safe since it has had the tags stripped.
++      $head_title['title'] = Markup::create(trim(strip_tags($variables['page']['#title'])));
++
++      $maintenance_mode = defined('MAINTENANCE_MODE') || \Drupal::state()->get('system.maintenance_mode');
++      $is_admin_route = (bool) $this->routeMatch->getRouteObject()?->getOption('_admin_route');
++      if (!$maintenance_mode && $is_admin_route) {
++        $base_route_title = $this->baseRouteTitleResolver->getTitle(\Drupal::requestStack()->getCurrentRequest(), $this->routeMatch->getRouteObject());
++        if (is_array($base_route_title)) {
++          $base_route_title = (string) $this->renderer->render($base_route_title);
++        }
++        if (!empty($base_route_title)) {
++          // Marking the title as safe since it has had the tags stripped.
++          $base_route_title = Markup::create(trim(strip_tags((string) $base_route_title)));
++          if ((string) $base_route_title !== (string) $head_title['title']) {
++            $head_title['base_route_title'] = $base_route_title;
++          }
++        }
++      }
++
++      $head_title['name'] = $site_config->get('name');
+     }
+     // @todo Remove once views is not bypassing the view subscriber anymore.
+     //   @see https://www.drupal.org/node/2068471
+diff --git a/core/modules/block/block.post_update.php b/core/modules/block/block.post_update.php
+index 3416073d70e..14321ce8801 100644
+--- a/core/modules/block/block.post_update.php
++++ b/core/modules/block/block.post_update.php
+@@ -5,6 +5,9 @@
+  * Post update functions for Block.
+  */
+ 
++use Drupal\block\BlockInterface;
++use Drupal\Core\Config\Entity\ConfigEntityUpdater;
++
+ /**
+  * Implements hook_removed_post_updates().
+  */
+@@ -18,3 +21,19 @@ function block_removed_post_updates(): array {
+     'block_post_update_set_menu_block_depth_to_null_if_zero' => '12.0.0',
+   ];
+ }
++
++/**
++ * Add 'base_route_title' setting for page title blocks.
++ */
++function block_post_update_add_base_route_title_page_title(&$sandbox = NULL): void {
++  \Drupal::classResolver(ConfigEntityUpdater::class)
++    ->update($sandbox, 'block', function (BlockInterface $block) {
++      if ($block->get('plugin') === 'page_title_block') {
++        $settings = $block->get('settings');
++        $settings['base_route_title'] = $block->get('theme') === 'claro';
++        $block->set('settings', $settings);
++        return TRUE;
++      }
++      return FALSE;
++    });
++}
+diff --git a/core/modules/block/tests/src/Functional/PageTitleBlockTest.php b/core/modules/block/tests/src/Functional/PageTitleBlockTest.php
+new file mode 100644
+index 00000000000..8c9ff63a4e2
+--- /dev/null
++++ b/core/modules/block/tests/src/Functional/PageTitleBlockTest.php
+@@ -0,0 +1,177 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\block\Functional;
++
++use Drupal\Tests\BrowserTestBase;
++use Drupal\TestTools\Random;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++
++/**
++ * Tests page title block.
++ */
++#[Group('block')]
++#[RunTestsInSeparateProcesses]
++class PageTitleBlockTest extends BrowserTestBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  protected static $modules = ['block', 'update', 'node'];
++
++  /**
++   * {@inheritdoc}
++   */
++  protected $defaultTheme = 'stark';
++
++  /**
++   * {@inheritdoc}
++   */
++  protected function setUp(): void {
++    parent::setUp();
++
++    // Add the page title block to the page.
++    $this->drupalPlaceBlock('page_title_block', ['id' => 'stark_page_title']);
++
++    // Create node type.
++    $this->drupalCreateContentType([
++      'type' => 'article',
++      'name' => 'Article',
++    ]);
++
++    // Create administrative user.
++    $admin_user = $this->drupalCreateUser([
++      'administer blocks',
++      'administer themes',
++      'administer software updates',
++      'administer nodes',
++      'administer modules',
++      'create article content',
++      'edit any article content',
++      'delete any article content',
++      'delete any article content',
++    ]);
++    $this->drupalLogin($admin_user);
++  }
++
++  /**
++   * Check if the contextualized title is displayed.
++   */
++  public function testContextualizeTitle(): void {
++    $edit['admin_theme'] = $this->defaultTheme;
++    $this->drupalGet('admin/appearance');
++    $this->submitForm($edit, 'Save configuration');
++
++    // Make sure the title shown is non-contextualized.
++    $this->drupalGet('admin/modules/update');
++    $this->assertSession()->elementTextEquals('css', 'h1', 'Update');
++
++    // Checking if the title block is configured for showing
++    // contextualized title and if it's not then configure it.
++    $this->drupalGet('admin/structure/block/manage/' . $this->defaultTheme . '_page_title');
++    // In stark theme it's not configured to show contextualized title
++    // therefore the value of the configuration will be 1 otherwise 0.
++    // @see \Drupal\Core\Block\Plugin\Block\PageTitleBlock::blockForm()
++    $this->assertSession()->fieldValueEquals('settings[base_route_title]', 0);
++    $this->submitForm(['settings[base_route_title]' => 1], 'Save block');
++
++    // Make sure the title shown is contextualized.
++    $this->drupalGet('admin/modules/update');
++    $this->assertSession()->elementTextEquals('css', 'h1', 'Extend: Update');
++    $title = $this->assertSession()->elementExists('xpath', '//h1');
++    $this->assertSession()->elementExists('xpath', '/span[@class="visually-hidden"]', $title);
++    $this->assertSession()->elementTextEquals('xpath', '//h1/span', ': Update');
++
++  }
++
++  /**
++   * Tests the contextualized title if base route is not accessible.
++   */
++  public function testContextualizeTitleWhenBaseRouteIsNotAccessible(): void {
++    // Create administrative user with access to 'admin/modules/update' but no
++    // access to base route 'admin/modules'.
++    $admin_user = $this->drupalCreateUser([
++      'administer blocks',
++      'administer software updates',
++    ]);
++    $this->drupalLogin($admin_user);
++
++    $non_contextualized_title = 'Update';
++    // Make sure the title shown is non-contextualized.
++    $this->drupalGet('admin/modules/update');
++    $this->assertSession()->elementTextEquals('css', 'h1', $non_contextualized_title);
++
++    // Configure title block to show contextualized title.
++    $this->drupalGet('admin/structure/block/manage/' . $this->defaultTheme . '_page_title');
++    $this->assertSession()->fieldValueEquals('settings[base_route_title]', 0);
++    $this->submitForm(['settings[base_route_title]' => 1], 'Save block');
++
++    // Make sure the title shown is non-contextualized because the base route is
++    // not accessible.
++    // @see \Drupal\Core\Block\Plugin\Block\PageTitleBlock::getTitleBasedOnBaseRoute()
++    $this->drupalGet('admin/modules/update');
++    $this->assertSession()->elementTextEquals('css', 'h1', $non_contextualized_title);
++  }
++
++  /**
++   * Data provider for testContextualizeTitleOnNodeOperationPages().
++   *
++   * @return array[][]
++   *   The test cases.
++   */
++  public static function providerTestContextualizeTitleOnNodeOperationPages() : array {
++    return [
++      'node with random title' => [Random::machineName()],
++      'node with title set to 0' => ['0'],
++    ];
++  }
++
++  /**
++   * Tests if contextualized title displayed on all node operation pages.
++   *
++   * @dataProvider providerTestContextualizeTitleOnNodeOperationPages
++   */
++  public function testContextualizeTitleOnNodeOperationPages($node_title): void {
++    $settings = [
++      'type' => 'article',
++      'title' => $node_title,
++    ];
++    $node = $this->drupalCreateNode($settings);
++
++    // Make sure the non-contextualized title is shown on all node operation
++    // pages.
++    $this->drupalGet('node/' . $node->id());
++    $this->assertSession()->elementTextEquals('xpath', '//h1', $node_title);
++
++    $this->drupalGet('node/' . $node->id() . '/edit');
++    $this->assertSession()->elementTextEquals('xpath', '//h1', "Edit Article $node_title");
++
++    $this->drupalGet('node/' . $node->id() . '/delete');
++    $this->assertSession()->elementTextEquals('xpath', '//h1', "Are you sure you want to delete the content item $node_title?");
++
++    $this->drupalGet('node/' . $node->id() . '/revisions');
++    $this->assertSession()->elementTextEquals('xpath', '//h1', "Revisions for $node_title");
++
++    // Configure title block to show contextualized title.
++    $this->drupalGet('admin/structure/block/manage/' . $this->defaultTheme . '_page_title');
++    $this->submitForm(['settings[base_route_title]' => 1], 'Save block');
++
++    // Make sure the contextualized title is shown on all node operation pages. On all pages the title is same as before
++    // because we don't change the title if it's already overridden.
++    // @see \Drupal\Core\Block\Plugin\Block\PageTitleBlock::getTitleBasedOnBaseRoute()
++    $this->drupalGet('node/' . $node->id());
++    $this->assertSession()->elementTextEquals('xpath', '//h1', $node_title);
++
++    $this->drupalGet('node/' . $node->id() . '/edit');
++    $this->assertSession()->elementTextEquals('xpath', '//h1', "Edit Article $node_title");
++
++    $this->drupalGet('node/' . $node->id() . '/delete');
++    $this->assertSession()->elementTextEquals('xpath', '//h1', "Are you sure you want to delete the content item $node_title?");
++
++    $this->drupalGet('node/' . $node->id() . '/revisions');
++    $this->assertSession()->elementTextEquals('xpath', '//h1', "Revisions for $node_title");
++  }
++
++}
+diff --git a/core/modules/block/tests/src/Functional/Update/BlockTitleUpdateTest.php b/core/modules/block/tests/src/Functional/Update/BlockTitleUpdateTest.php
+new file mode 100644
+index 00000000000..a4f6ab8d934
+--- /dev/null
++++ b/core/modules/block/tests/src/Functional/Update/BlockTitleUpdateTest.php
+@@ -0,0 +1,44 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\block\Functional\Update;
++
++use Drupal\FunctionalTests\Update\UpdatePathTestBase;
++
++/**
++ * Tests the update path for block title.
++ *
++ * @group Update
++ * @group legacy
++ */
++class BlockTitleUpdateTest extends UpdatePathTestBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  protected function setDatabaseDumpFiles() {
++    $this->databaseDumpFiles = [
++      __DIR__ . '/../../../../../system/tests/fixtures/update/drupal-10.3.0.filled.standard.php.gz',
++    ];
++  }
++
++  /**
++   * Tests that title block is configured properly after update.
++   *
++   * @testWith ["stark", false]
++   *           ["claro", true]
++   *           ["olivero", false]
++   */
++  public function testPostUpdateAddContextualizePageTitle(string $theme, bool $contextual_title_enabled): void {
++    $block_settings = $this->config('block.block.' . $theme . '_page_title')->get('settings');
++    $this->assertArrayNotHasKey('base_route_title', $block_settings);
++
++    $this->runUpdates();
++
++    $block_settings = $this->config('block.block.' . $theme . '_page_title')->get('settings');
++    $this->assertArrayHasKey('base_route_title', $block_settings);
++    $this->assertSame($block_settings['base_route_title'], $contextual_title_enabled);
++  }
++
++}
+diff --git a/core/modules/block_content/tests/src/Functional/BlockContentListTest.php b/core/modules/block_content/tests/src/Functional/BlockContentListTest.php
+index 562532cf44e..8ec50d0fc34 100644
+--- a/core/modules/block_content/tests/src/Functional/BlockContentListTest.php
++++ b/core/modules/block_content/tests/src/Functional/BlockContentListTest.php
+@@ -155,7 +155,7 @@ public function testListing(): void {
+     $this->assertSession()->linkByHrefExists('admin/content/block/' . $block->id() . '/delete');
+     $this->clickLink('Delete');
+     $this->assertSession()->statusCodeEquals(200);
+-    $this->assertSession()->titleEquals("Are you sure you want to delete the content block $new_label? | Drupal");
++    $this->assertSession()->titleEquals("Are you sure you want to delete the content block $new_label? | $new_label | Drupal");
+     $this->submitForm([], 'Delete');
+ 
+     // Verify that the text of the label and machine name does not appear in
+diff --git a/core/modules/block_content/tests/src/Functional/BlockContentListViewsTest.php b/core/modules/block_content/tests/src/Functional/BlockContentListViewsTest.php
+index fd025b47ea5..c9ba5e5a6a3 100644
+--- a/core/modules/block_content/tests/src/Functional/BlockContentListViewsTest.php
++++ b/core/modules/block_content/tests/src/Functional/BlockContentListViewsTest.php
+@@ -149,7 +149,7 @@ public function testListing(): void {
+     $this->assertSession()->linkByHrefExists('admin/content/block/' . $block->id() . '/delete');
+     $this->clickLink('Delete');
+     $this->assertSession()->statusCodeEquals(200);
+-    $this->assertSession()->titleEquals("Are you sure you want to delete the content block $new_label? | Drupal");
++    $this->assertSession()->titleEquals("Are you sure you want to delete the content block $new_label? | $new_label | Drupal");
+     $this->submitForm([], 'Delete');
+ 
+     // Verify that the text of the label and machine name does not appear in
+diff --git a/core/modules/field_ui/tests/src/Functional/FieldUIRouteTest.php b/core/modules/field_ui/tests/src/Functional/FieldUIRouteTest.php
+index b41e0dcd89e..5aae3899551 100644
+--- a/core/modules/field_ui/tests/src/Functional/FieldUIRouteTest.php
++++ b/core/modules/field_ui/tests/src/Functional/FieldUIRouteTest.php
+@@ -56,7 +56,7 @@ public function testFieldUIRoutes(): void {
+     $this->assertSession()->pageTextContains('No fields are present yet.');
+ 
+     $this->drupalGet('admin/config/people/accounts/fields');
+-    $this->assertSession()->titleEquals('Manage fields | Drupal');
++    $this->assertSession()->titleEquals('Manage fields | Account settings | Drupal');
+     $this->assertLocalTasks();
+ 
+     // Test manage display tabs and titles.
+@@ -64,14 +64,14 @@ public function testFieldUIRoutes(): void {
+     $this->assertSession()->statusCodeEquals(403);
+ 
+     $this->drupalGet('admin/config/people/accounts/display');
+-    $this->assertSession()->titleEquals('Manage display | Drupal');
++    $this->assertSession()->titleEquals('Manage display | Account settings | Drupal');
+     $this->assertLocalTasks();
+ 
+     $xpath = "//tr[@id='display-mode-user-user-compact']//a[contains(., 'Enable')]";
+     $this->assertSession()->elementExists('xpath', $xpath);
+     $this->getSession()->getPage()->find('xpath', $xpath)->click();
+     $this->drupalGet('admin/config/people/accounts/display/compact');
+-    $this->assertSession()->titleEquals('Manage display | Drupal');
++    $this->assertSession()->titleEquals('Manage display | Account settings | Drupal');
+     $this->assertLocalTasks();
+ 
+     // Test manage form display tabs and titles.
+@@ -79,14 +79,14 @@ public function testFieldUIRoutes(): void {
+     $this->assertSession()->statusCodeEquals(403);
+ 
+     $this->drupalGet('admin/config/people/accounts/form-display');
+-    $this->assertSession()->titleEquals('Manage form display | Drupal');
++    $this->assertSession()->titleEquals('Manage form display | Account settings | Drupal');
+     $this->assertLocalTasks();
+ 
+     $edit = ['display_modes_custom[register]' => TRUE];
+     $this->submitForm($edit, 'Save');
+     $this->assertSession()->statusCodeEquals(200);
+     $this->drupalGet('admin/config/people/accounts/form-display/register');
+-    $this->assertSession()->titleEquals('Manage form display | Drupal');
++    $this->assertSession()->titleEquals('Manage form display | Account settings | Drupal');
+     $this->assertLocalTasks();
+     // Test that default secondary tab is in first position.
+     $this->assertSession()->elementsCount('xpath', "//ul/li[1]/a[contains(text(), 'Default')]", 1);
+diff --git a/core/modules/layout_builder/tests/src/Functional/LayoutBuilderTest.php b/core/modules/layout_builder/tests/src/Functional/LayoutBuilderTest.php
+index 4572625e587..946ffa9c1eb 100644
+--- a/core/modules/layout_builder/tests/src/Functional/LayoutBuilderTest.php
++++ b/core/modules/layout_builder/tests/src/Functional/LayoutBuilderTest.php
+@@ -529,10 +529,10 @@ public function testPendingRevision(): void {
+     // The original node title is available when viewing the node, but the
+     // pending title is visible within the Layout Builder UI.
+     $this->drupalGet('node/1');
+-    $assert_session->pageTextContains('The first node title');
++    $assert_session->elementTextContains('css', 'body', 'The first node title');
+     $page->clickLink('Layout');
+-    $assert_session->pageTextNotContains('The first node title');
+-    $assert_session->pageTextContains('The pending title of the first node');
++    $assert_session->elementTextNotContains('css', 'body', 'The first node title');
++    $assert_session->elementTextContains('css', 'body', 'The pending title of the first node');
+   }
+ 
+   /**
+diff --git a/core/modules/system/config/schema/system.schema.yml b/core/modules/system/config/schema/system.schema.yml
+index 58faf1bdc4f..d24b557c7dc 100644
+--- a/core/modules/system/config/schema/system.schema.yml
++++ b/core/modules/system/config/schema/system.schema.yml
+@@ -421,6 +421,14 @@ system.advisories:
+       constraints:
+         PositiveOrZero: ~
+ 
++block.settings.page_title_block:
++  type: block_settings
++  label: 'Page title block'
++  mapping:
++    base_route_title:
++      type: boolean
++      label: 'Display section title instead of current title'
++
+ block.settings.system_branding_block:
+   type: block_settings
+   label: 'Branding block'
+diff --git a/core/modules/system/tests/src/Functional/Module/UninstallTest.php b/core/modules/system/tests/src/Functional/Module/UninstallTest.php
+index 38af57e0551..9c61efb7a03 100644
+--- a/core/modules/system/tests/src/Functional/Module/UninstallTest.php
++++ b/core/modules/system/tests/src/Functional/Module/UninstallTest.php
+@@ -80,7 +80,7 @@ public function testUninstallPage(): void {
+     $this->rebuildAll();
+ 
+     $this->drupalGet('admin/modules/uninstall');
+-    $this->assertSession()->titleEquals('Uninstall | Drupal');
++    $this->assertSession()->titleEquals('Uninstall | Extend | Drupal');
+ 
+     // Check that the experimental module link was rendered correctly.
+     $this->assertSession()->elementExists('xpath', "//a[contains(@aria-label, 'View information on the Experimental status of the module Experimental Test')]");
+@@ -192,7 +192,7 @@ public function testUninstallPage(): void {
+     // Make sure confirmation page is accessible only during uninstall process.
+     $this->drupalGet('admin/modules/uninstall/confirm');
+     $this->assertSession()->addressEquals('admin/modules/uninstall');
+-    $this->assertSession()->titleEquals('Uninstall | Drupal');
++    $this->assertSession()->titleEquals('Uninstall | Extend | Drupal');
+ 
+     // Make sure the correct error is shown when no modules are selected.
+     $edit = [];
+diff --git a/core/profiles/demo_umami/config/install/block.block.umami_page_title.yml b/core/profiles/demo_umami/config/install/block.block.umami_page_title.yml
+index 048f9a69065..b5ac4d8191d 100644
+--- a/core/profiles/demo_umami/config/install/block.block.umami_page_title.yml
++++ b/core/profiles/demo_umami/config/install/block.block.umami_page_title.yml
+@@ -16,6 +16,7 @@ settings:
+   label: 'Page title'
+   label_display: '0'
+   provider: core
++  base_route_title: false
+ visibility:
+   request_path:
+     id: request_path
+diff --git a/core/profiles/minimal/config/install/block.block.stark_page_title.yml b/core/profiles/minimal/config/install/block.block.stark_page_title.yml
+index 7b7f098bbd3..bb95d0b64a9 100644
+--- a/core/profiles/minimal/config/install/block.block.stark_page_title.yml
++++ b/core/profiles/minimal/config/install/block.block.stark_page_title.yml
+@@ -14,4 +14,5 @@ settings:
+   label: 'Page title'
+   label_display: '0'
+   provider: core
++  base_route_title: false
+ visibility: {  }
+diff --git a/core/profiles/tests/testing_themes_blocks/themes/testing_theme_optional_blocks/config/optional/block.block.testing_theme_optional_blocks_page_title.yml b/core/profiles/tests/testing_themes_blocks/themes/testing_theme_optional_blocks/config/optional/block.block.testing_theme_optional_blocks_page_title.yml
+index 1620400e448..104e2726cd1 100644
+--- a/core/profiles/tests/testing_themes_blocks/themes/testing_theme_optional_blocks/config/optional/block.block.testing_theme_optional_blocks_page_title.yml
++++ b/core/profiles/tests/testing_themes_blocks/themes/testing_theme_optional_blocks/config/optional/block.block.testing_theme_optional_blocks_page_title.yml
+@@ -14,4 +14,5 @@ settings:
+   label: 'Page title'
+   label_display: '0'
+   provider: core
++  base_route_title: false
+ visibility: {  }
+diff --git a/core/tests/Drupal/KernelTests/Config/Schema/MappingTest.php b/core/tests/Drupal/KernelTests/Config/Schema/MappingTest.php
+index e74f650ac05..f316f86aa0d 100644
+--- a/core/tests/Drupal/KernelTests/Config/Schema/MappingTest.php
++++ b/core/tests/Drupal/KernelTests/Config/Schema/MappingTest.php
+@@ -180,6 +180,9 @@ public static function providerMappingInterpretation(): \Generator {
+       'block.settings.extra_field_block:*:*:*' => [
+         'formatter',
+       ],
++      'block.settings.page_title_block' => [
++        'base_route_title',
++      ],
+       'block.settings.system_branding_block' => [
+         'use_site_logo',
+         'use_site_name',
+diff --git a/core/tests/Drupal/Tests/Core/Routing/RequestGeneratorTest.php b/core/tests/Drupal/Tests/Core/Routing/RequestGeneratorTest.php
+new file mode 100644
+index 00000000000..1ce35def975
+--- /dev/null
++++ b/core/tests/Drupal/Tests/Core/Routing/RequestGeneratorTest.php
+@@ -0,0 +1,161 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\Core\Routing;
++
++use Drupal\Core\ParamConverter\ParamNotConvertedException;
++use Drupal\Core\Path\CurrentPathStack;
++use Drupal\Core\PathProcessor\InboundPathProcessorInterface;
++use Drupal\Core\Routing\RouteObjectInterface;
++use Drupal\Core\Routing\RequestGenerator;
++use Drupal\Tests\UnitTestCase;
++use PHPUnit\Framework\Attributes\DataProvider;
++use Prophecy\Argument;
++use Prophecy\Prophecy\ObjectProphecy;
++use Symfony\Component\HttpFoundation\InputBag;
++use Symfony\Component\HttpFoundation\Request;
++use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
++use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
++use Symfony\Component\Routing\Exception\MethodNotAllowedException;
++use Symfony\Component\Routing\Exception\ResourceNotFoundException;
++use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
++use Symfony\Component\Routing\Route;
++
++/**
++ * @coversDefaultClass \Drupal\Core\Routing\RequestGenerator
++ * @group Routing
++ */
++class RequestGeneratorTest extends UnitTestCase {
++
++  /**
++   * The request generator.
++   *
++   * @var \Drupal\Core\Routing\RequestGenerator
++   */
++  protected RequestGenerator $requestGenerator;
++
++  /**
++   * The mocked path processor.
++   *
++   * @var \Drupal\Core\PathProcessor\InboundPathProcessorInterface
++   */
++  protected InboundPathProcessorInterface|ObjectProphecy $pathProcessor;
++
++  /**
++   * The mocked current path.
++   *
++   * @var \Drupal\Core\Path\CurrentPathStack
++   */
++  protected CurrentPathStack|ObjectProphecy $currentPath;
++
++  /**
++   * The request matching mock object.
++   *
++   * @var \Symfony\Component\Routing\Matcher\RequestMatcherInterface
++   */
++  protected RequestMatcherInterface|ObjectProphecy $requestMatcher;
++
++  /**
++   * {@inheritdoc}
++   */
++  protected function setUp(): void {
++    parent::setUp();
++
++    $this->pathProcessor = $this->prophesize(InboundPathProcessorInterface::class);
++    $this->currentPath = $this->prophesize(CurrentPathStack::class);
++    $this->requestMatcher = $this->prophesize(RequestMatcherInterface::class);
++    $this->requestGenerator = new RequestGenerator(
++      $this->pathProcessor->reveal(),
++      $this->currentPath->reveal(),
++      $this->requestMatcher->reveal(),
++    );
++  }
++
++  /**
++   * Data provider for testGenerateRequestForPath().
++   *
++   * @return \Generator
++   *   The test cases.
++   */
++  public static function providerTestGenerateRequestForPath(): \Generator {
++    $path = '/any/path';
++
++    yield 'request for a path with no paths to skip' => [
++      $path,
++      [],
++      TRUE,
++    ];
++
++    yield 'request for a path which needs to be skipped' => [
++      $path,
++      [$path => TRUE],
++      FALSE,
++    ];
++
++    yield 'request for a path with other path which needs to be skipped' => [
++      $path,
++      ['/other/path' => TRUE],
++      TRUE,
++    ];
++  }
++
++  /**
++   * Tests generateRequestForPath().
++   *
++   * @covers ::generateRequestForPath
++   */
++  #[DataProvider('providerTestGenerateRequestForPath')]
++  public function testGenerateRequestForPath($path, $exclude, $request_generated): void {
++    $route = new Route($path);
++    $this->pathProcessor->processInbound($path, Argument::type(Request::class))->willReturnArgument();
++    $this->requestMatcher->matchRequest(Argument::type(Request::class))->will(function ($arguments) use ($route, $path) {
++      [$request] = $arguments;
++      if ($request->getPathInfo() == $path) {
++        return [
++          RouteObjectInterface::ROUTE_NAME => 'User Example',
++          RouteObjectInterface::ROUTE_OBJECT => $route,
++          '_raw_variables' => new InputBag([]),
++        ];
++      }
++    });
++    $request = $this->requestGenerator->generateRequestForPath($path, $exclude);
++    if ($request_generated) {
++      $this->assertNotNull($request);
++      $this->assertSame($request->getPathInfo(), $path);
++    }
++    else {
++      $this->assertNull($request);
++    }
++  }
++
++  /**
++   * Data provider for testGenerateRequestForPathWithException().
++   *
++   * @return \Generator
++   *   The test cases.
++   */
++  public static function providerTestGenerateRequestForPathWithException(): \Generator {
++    yield 'ParamNotConvertedException' => [ParamNotConvertedException::class, ''];
++    yield 'ResourceNotFoundException' => [ResourceNotFoundException::class, ''];
++    yield 'MethodNotAllowedException' => [MethodNotAllowedException::class, []];
++    yield 'AccessDeniedHttpException' => [AccessDeniedHttpException::class, ''];
++    yield 'NotFoundHttpException' => [NotFoundHttpException::class, ''];
++  }
++
++  /**
++   * Tests generateRequestForPath() with exceptions during request matching.
++   *
++   * @covers ::generateRequestForPath
++   */
++  #[DataProvider('providerTestGenerateRequestForPathWithException')]
++  public function testGenerateRequestForPathWithException($exception_class, $exception_argument): void {
++    $path = '/example';
++    $exclude = [];
++    $this->pathProcessor->processInbound($path, Argument::type(Request::class))->willReturnArgument();
++    $this->requestMatcher->matchRequest(Argument::type(Request::class))->willThrow(new $exception_class($exception_argument));
++    $request = $this->requestGenerator->generateRequestForPath($path, $exclude);
++    $this->assertNull($request);
++  }
++
++}
+diff --git a/core/themes/claro/config/optional/block.block.claro_page_title.yml b/core/themes/claro/config/optional/block.block.claro_page_title.yml
+index 8ee18548b0a..ed6acbc259a 100644
+--- a/core/themes/claro/config/optional/block.block.claro_page_title.yml
++++ b/core/themes/claro/config/optional/block.block.claro_page_title.yml
+@@ -14,4 +14,5 @@ settings:
+   label: 'Page title'
+   label_display: '0'
+   provider: core
++  base_route_title: true
+ visibility: {  }
+diff --git a/core/themes/olivero/config/optional/block.block.olivero_page_title.yml b/core/themes/olivero/config/optional/block.block.olivero_page_title.yml
+index 9caf4dba2e9..7ca0de24176 100644
+--- a/core/themes/olivero/config/optional/block.block.olivero_page_title.yml
++++ b/core/themes/olivero/config/optional/block.block.olivero_page_title.yml
+@@ -14,4 +14,5 @@ settings:
+   label: 'Page title'
+   label_display: '0'
+   provider: core
++  base_route_title: false
+ visibility: {  }
+
+Changes:
+
+core/core.services.yml
+  @@ -1164,6 +1164,14 @@ services:
+  +  request_generator:
+  +    class: Drupal\Core\Routing\RequestGenerator
+  +    arguments: ['@path_processor_manager', '@path.current', '@router']
+  +  Drupal\Core\Routing\RequestGenerator: '@request_generator'
+  +  base_route_title_resolver:
+  +    class: Drupal\Core\Controller\BaseRouteTitleResolver
+  +    arguments: ['@url_generator', '@title_resolver', '@plugin.manager.menu.local_task', '@router.route_provider', '@request_generator']
+  +  Drupal\Core\Controller\BaseRouteTitleResolver: '@base_route_title_resolver'
+     router:
+       class: Drupal\Core\Routing\AccessAwareRouter
+       arguments: ['@router.no_access_checks', '@access_manager', '@current_user']
+  +8 -0
+
+core/lib/Drupal/Core/Block/Plugin/Block/PageTitleBlock.php
+  @@ -5,7 +5,12 @@
+  +use Drupal\Core\Controller\TitleResolverInterface;
+  +use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+  +use Drupal\Core\Routing\RouteMatchInterface;
+   use Drupal\Core\StringTranslation\TranslatableMarkup;
+  +use Symfony\Component\DependencyInjection\ContainerInterface;
+  +use Symfony\Component\HttpFoundation\RequestStack;
+   
+   /**
+    * Provides a block to display the page title.
+  @@ -14,7 +19,7 @@
+  -class PageTitleBlock extends BlockBase implements TitleBlockPluginInterface {
+  +class PageTitleBlock extends BlockBase implements TitleBlockPluginInterface, ContainerFactoryPluginInterface {
+   
+     /**
+      * The page title: a string (plain title) or a render array (formatted title).
+  @@ -23,6 +28,51 @@ class PageTitleBlock extends BlockBase implements TitleBlockPluginInterface {
+  +  /**
+  +   * Constructs a new PageTitleBlock.
+  +   *
+  +   * @param array $configuration
+  +   *   A configuration array containing information about the plugin instance.
+  +   * @param string $plugin_id
+  +   *   The plugin ID for the plugin instance.
+  +   * @param mixed $plugin_definition
+  +   *   The plugin implementation definition.
+  +   * @param \Drupal\Core\Controller\TitleResolverInterface|null $titleResolver
+  +   *   The title resolver.
+  +   * @param \Drupal\Core\Routing\RouteMatchInterface|null $routeMatch
+  +   *   The route match.
+  +   * @param \Symfony\Component\HttpFoundation\RequestStack|null $requestStack
+  +   *   The request stack.
+  +   * @param \Drupal\Core\Controller\TitleResolverInterface|null $baseRouteTitleResolver
+  +   *   The base route title resolver.
+  +   */
+  +  public function __construct(
+  +    array $configuration,
+  +    $plugin_id,
+  +    $plugin_definition,
+  +    protected TitleResolverInterface $titleResolver,
+  +    protected RouteMatchInterface $routeMatch,
+  +    protected RequestStack $requestStack,
+  +    protected TitleResolverInterface $baseRouteTitleResolver,
+  +  ) {
+  +    parent::__construct($configuration, $plugin_id, $plugin_definition);
+  +  }
+  +
+  +  /**
+  +   * {@inheritdoc}
+  +   */
+  +  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): static {
+  +    return new static(
+  +      $configuration,
+  +      $plugin_id,
+  +      $plugin_definition,
+  +      $container->get('title_resolver'),
+  +      $container->get('current_route_match'),
+  +      $container->get('request_stack'),
+  +      $container->get('base_route_title_resolver'),
+  +    );
+  +  }
+  +
+     /**
+      * {@inheritdoc}
+      */
+  @@ -35,17 +85,100 @@ public function setTitle($title) {
+  -    return ['label_display' => '0'];
+  +    return [
+  +      'label_display' => FALSE,
+  +      'base_route_title' => FALSE,
+  +    ];
+     }
+   
+     /**
+      * {@inheritdoc}
+      */
+     public function build() {
+  +    $title = $this->title;
+  +    if ($this->configuration['base_route_title']) {
+  +      $base_route_title = $this->getTitleBasedOnBaseRoute();
+  +      if (!is_null($base_route_title)) {
+  +        $title = $base_route_title;
+  +      }
+  +    }
+       return [
+         '#type' => 'page_title',
+  -      '#title' => $this->title,
+  +      '#title' => $title,
+  +    ];
+  +  }
+  +
+  +  /**
+  +   * {@inheritdoc}
+  +   */
+  +  public function blockForm($form, FormStateInterface $form_state) : array {
+  +    $form['base_route_title'] = [
+  +      '#type' => 'radios',
+  +      '#title' => $this->t('Title to be displayed'),
+  +      '#options' => [
+  +        0 => $this->t('Current page title'),
+  +        1 => $this->t('Section page title'),
+  +      ],
+  +      '#default_value' => (int) $this->configuration['base_route_title'],
+  +      '#description' => $this->t('Choose whether to display the title of the current page or the current section. The section page title is preferred if the title is displayed before local tasks and if it is displayed after local tasks then the current page title is preferred.'),
+       ];
+  +    return $form;
+  +  }
+  +
+  +  /**
+  +   * {@inheritdoc}
+  +   */
+  +  public function blockSubmit($form, FormStateInterface $form_state) : void {
+  +    $this->configuration['base_route_title'] = (bool) $form_state->getValue('base_route_title');
+  +  }
+  +
+  +  /**
+  +   * Gets title based on base route.
+  +   *
+  +   * @return array|string|null|\Stringable
+  +   *   The title based on base route.
+  +   */
+  +  private function getTitleBasedOnBaseRoute(): array|string|null|\Stringable {
+  +    $controller_title = $this->titleResolver->getTitle($this->requestStack->getCurrentRequest(), $this->routeMatch->getRouteObject());
+  +
+  +    $rendered_title = $this->renderTitle($this->title);
+  +    // Controller render arrays using `#title` take precedent over the title
+  +    // resolvers.
+  +    if ((string) $this->renderTitle($controller_title) !== (string) $rendered_title) {
+  +      return $this->title;
+  +    }
+  +
+  +    $base_route_title = $this->baseRouteTitleResolver->getTitle($this->requestStack->getCurrentRequest(), $this->routeMatch->getRouteObject());
+  +    if (!is_null($base_route_title)) {
+  +      $rendered_base_route_title = $this->renderTitle($base_route_title);
+  +      // If the titles are equal, return the original title.
+  +      if ((string) $rendered_base_route_title === (string) $rendered_title) {
+  +        return $this->title;
+  +      }
+  +
+  +      return $this->t('@section_title<span class="visually-hidden">: @current_title</span>', [
+  +        '@section_title' => $rendered_base_route_title,
+  +        '@current_title' => $rendered_title,
+  +      ]);
+  +    }
+  +
+  +    return $this->title;
+  +  }
+  +
+  +  /**
+  +   * Renders the title.
+  +   *
+  +   * @param array|string|null|\Stringable $title
+  +   *   A title that could be an array, string or stringable object.
+  +   *
+  +   * @return string|\Stringable
+  +   */
+  +  private function renderTitle(array|string|null|\Stringable $title): string|\Stringable {
+  +    if (is_array($title)) {
+  +      $title = \Drupal::service('renderer')->render($title);
+  +    }
+  +
+  +    return $title ?? '';
+     }
+   
+   }
+  +136 -3
+
+core/lib/Drupal/Core/Controller/BaseRouteTitleResolver.php
+  @@ -0,0 +1,68 @@
+  +<?php
+  +
+  +namespace Drupal\Core\Controller;
+  +
+  +use Drupal\Core\Menu\LocalTaskManager;
+  +use Drupal\Core\Routing\RouteMatch;
+  +use Drupal\Core\Routing\RouteProviderInterface;
+  +use Drupal\Core\Routing\UrlGeneratorInterface;
+  +use Drupal\Core\Routing\RequestGenerator;
+  +use Symfony\Component\HttpFoundation\Request;
+  +use Symfony\Component\Routing\Exception\InvalidParameterException;
+  +use Symfony\Component\Routing\Exception\RouteNotFoundException;
+  +use Symfony\Component\Routing\Route;
+  +
+  +/**
+  + * Provides a class which gets the title from the current local-task base route.
+  + */
+  +class BaseRouteTitleResolver implements TitleResolverInterface {
+  +
+  +  /**
+  +   * Constructs a BaseRouteTitleResolver object.
+  +   *
+  +   * @param \Drupal\Core\Routing\UrlGeneratorInterface $urlGenerator
+  +   *   The url generator.
+  +   * @param \Drupal\Core\Controller\TitleResolverInterface $titleResolver
+  +   *   The title resolver.
+  +   * @param \Drupal\Core\Menu\LocalTaskManager $localTaskManager
+  +   *   The local task manager.
+  +   * @param \Drupal\Core\Routing\RouteProviderInterface $routeProvider
+  +   *   The route provider.
+  +   * @param \Drupal\Core\Routing\RequestGenerator $requestGenerator
+  +   *   The request generator.
+  +   */
+  +  public function __construct(
+  +    protected UrlGeneratorInterface $urlGenerator,
+  +    protected TitleResolverInterface $titleResolver,
+  +    protected LocalTaskManager $localTaskManager,
+  +    protected RouteProviderInterface $routeProvider,
+  +    protected RequestGenerator $requestGenerator,
+  +  ) {
+  +  }
+  +
+  +  /**
+  +   * {@inheritdoc}
+  +   */
+  +  public function getTitle(Request $request, Route $route) : array|string|\Stringable|null {
+  +    $route_match = RouteMatch::createFromRequest($request);
+  +    $base_route_names = $this->localTaskManager->getBaseRouteNames($route_match->getRouteName());
+  +    $title = NULL;
+  +    if ($base_route_names) {
+  +      $base_route_name = reset($base_route_names);
+  +      if ($base_route_name !== $route_match->getRouteName()) {
+  +        try {
+  +          $path = $this->urlGenerator->getPathFromRoute($base_route_name, $route_match->getRawParameters()->all());
+  +        }
+  +        catch (RouteNotFoundException | InvalidParameterException) {
+  +          return NULL;
+  +        }
+  +        $route_request = $this->requestGenerator->generateRequestForPath($path, []);
+  +        if ($route_request) {
+  +          $title = $this->titleResolver->getTitle($route_request, $this->routeProvider->getRouteByName($base_route_name));
+  +        }
+  +      }
+  +    }
+  +    return $title;
+  +  }
+  +
+  +}
+  +68 -0
+
+core/lib/Drupal/Core/Menu/LocalTaskManager.php
+  @@ -152,58 +152,11 @@ public function getDefinitions() {
+  -      if ($cache = $this->cacheBackend->get($this->cacheKey . ':' . $route_name)) {
+  -        $base_routes = $cache->data['base_routes'];
+  -        $parents = $cache->data['parents'];
+  -        $children = $cache->data['children'];
+  -      }
+  -      else {
+  -        $definitions = $this->getDefinitions();
+  -        // We build the hierarchy by finding all tabs that should
+  -        // appear on the current route.
+  -        $base_routes = [];
+  -        $parents = [];
+  -        $children = [];
+  -        foreach ($definitions as $plugin_id => $task_info) {
+  -          // Fill in the base_route from the parent to insure consistency.
+  -          if (!empty($task_info['parent_id']) && !empty($definitions[$task_info['parent_id']])) {
+  -            $task_info['base_route'] = $definitions[$task_info['parent_id']]['base_route'];
+  -            // Populate the definitions we use in the next loop. Using a
+  -            // reference like &$task_info causes bugs.
+  -            $definitions[$plugin_id]['base_route'] = $definitions[$task_info['parent_id']]['base_route'];
+  -          }
+  -          if ($route_name == $task_info['route_name']) {
+  -            if (!empty($task_info['base_route'])) {
+  -              $base_routes[$task_info['base_route']] = $task_info['base_route'];
+  -            }
+  -            // Tabs that link to the current route are viable parents
+  -            // and their parent and children should be visible also.
+  -            // @todo This only works for 2 levels of tabs instead
+  -            //   need to iterate up.
+  -            $parents[$plugin_id] = TRUE;
+  -            if (!empty($task_info['parent_id'])) {
+  -              $parents[$task_info['parent_id']] = TRUE;
+  -            }
+  -          }
+  -        }
+  -        if ($base_routes) {
+  -          // Find all the plugins with the same root and that are at the top
+  -          // level or that have a visible parent.
+  -          foreach ($definitions as $plugin_id => $task_info) {
+  -            if (!empty($base_routes[$task_info['base_route']]) && (empty($task_info['parent_id']) || !empty($parents[$task_info['parent_id']]))) {
+  -              // Concat '> ' with root ID for the parent of top-level tabs.
+  -              $parent = empty($task_info['parent_id']) ? '> ' . $task_info['base_route'] : $task_info['parent_id'];
+  -              $children[$parent][$plugin_id] = $task_info;
+  -            }
+  -          }
+  -        }
+  -        $data = [
+  -          'base_routes' => $base_routes,
+  -          'parents' => $parents,
+  -          'children' => $children,
+  -        ];
+  -        $this->cacheBackend->set($this->cacheKey . ':' . $route_name, $data, Cache::PERMANENT, $this->cacheTags);
+  -      }
+  +      $data = $this->getLocalTasksDataForRoute($route_name);
+  +      $base_routes = $data['base_routes'];
+  +      $children = $data['children'];
+  +      $parents = $data['parents'];
+  +
+         // Create a plugin instance for each element of the hierarchy.
+         foreach ($base_routes as $base_route) {
+           // Convert the tree keyed by plugin IDs into a simple one with
+  @@ -389,4 +342,80 @@ protected function isRouteActive($current_route_name, $route_name, $route_parame
+  +  /**
+  +   * {@inheritdoc}
+  +   */
+  +  public function getBaseRouteNames(string $route_name): array {
+  +    $data = $this->getLocalTasksDataForRoute($route_name);
+  +    return $data['base_routes'] ?? [];
+  +  }
+  +
+  +  /**
+  +   * Gets the local task data for the given route.
+  +   *
+  +   * @param string $route_name
+  +   *   The route name.
+  +   *
+  +   * @return array
+  +   *   The local task data with the following keys:
+  +   *   - base_routes: An array of base route names of the given route.
+  +   *   - children: An array of the route's child local task definitions keyed by
+  +   *     local task ID.
+  +   *   - parents: An array of the route's parent local task definitions.
+  +   */
+  +  protected function getLocalTasksDataForRoute(string $route_name): array {
+  +    if ($cache = $this->cacheBackend->get($this->cacheKey . ':' . $route_name)) {
+  +      $data = $cache->data;
+  +    }
+  +    else {
+  +      $definitions = $this->getDefinitions();
+  +      // We build the hierarchy by finding all tabs that should
+  +      // appear on the current route.
+  +      $base_routes = [];
+  +      $parents = [];
+  +      $children = [];
+  +      foreach ($definitions as $plugin_id => $task_info) {
+  +        // Fill in the base_route from the parent to insure consistency.
+  +        if (!empty($task_info['parent_id']) && !empty($definitions[$task_info['parent_id']])) {
+  +          $task_info['base_route'] = $definitions[$task_info['parent_id']]['base_route'];
+  +          // Populate the definitions we use in the next loop. Using a
+  +          // reference like &$task_info causes bugs.
+  +          $definitions[$plugin_id]['base_route'] = $definitions[$task_info['parent_id']]['base_route'];
+  +        }
+  +        if ($route_name == $task_info['route_name']) {
+  +          if (!empty($task_info['base_route'])) {
+  +            $base_routes[$task_info['base_route']] = $task_info['base_route'];
+  +          }
+  +          // Tabs that link to the current route are viable parents
+  +          // and their parent and children should be visible also.
+  +          // @todo This only works for 2 levels of tabs instead need to iterate
+  +          //   up.
+  +          $parents[$plugin_id] = TRUE;
+  +          if (!empty($task_info['parent_id'])) {
+  +            $parents[$task_info['parent_id']] = TRUE;
+  +          }
+  +        }
+  +      }
+  +      if ($base_routes) {
+  +        // Find all the plugins with the same root and that are at the top
+  +        // level or that have a visible parent.
+  +        foreach ($definitions as $plugin_id => $task_info) {
+  +          if (!empty($base_routes[$task_info['base_route']]) && (empty($task_info['parent_id']) || !empty($parents[$task_info['parent_id']]))) {
+  +            // Concat '> ' with root ID for the parent of top-level tabs.
+  +            $parent = empty($task_info['parent_id']) ? '> ' . $task_info['base_route'] : $task_info['parent_id'];
+  +            $children[$parent][$plugin_id] = $task_info;
+  +          }
+  +        }
+  +      }
+  +      $data = [
+  +        'base_routes' => $base_routes,
+  +        'parents' => $parents,
+  +        'children' => $children,
+  +      ];
+  +      $this->cacheBackend->set($this->cacheKey . ':' . $route_name, $data, Cache::PERMANENT, $this->cacheTags);
+  +    }
+  +
+  +    return $data;
+  +  }
+  +
+   }
+  +81 -52
+
+core/lib/Drupal/Core/Menu/LocalTaskManagerInterface.php
+  @@ -70,4 +70,15 @@ public function getTasksBuild($current_route_name, RefinableCacheableDependencyI
+  +  /**
+  +   * Gets base route names for the given route.
+  +   *
+  +   * @param string $route_name
+  +   *   The route name.
+  +   *
+  +   * @return string[]
+  +   *   The base route names.
+  +   */
+  +  public function getBaseRouteNames(string $route_name): array;
+  +
+   }
+  +11 -0
+
+core/lib/Drupal/Core/Routing/RequestGenerator.php
+  @@ -0,0 +1,77 @@
+  +<?php
+  +
+  +namespace Drupal\Core\Routing;
+  +
+  +use Drupal\Core\ParamConverter\ParamNotConvertedException;
+  +use Drupal\Core\Path\CurrentPathStack;
+  +use Drupal\Core\PathProcessor\InboundPathProcessorInterface;
+  +use Symfony\Component\HttpFoundation\Request;
+  +use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+  +use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+  +use Symfony\Component\Routing\Exception\MethodNotAllowedException;
+  +use Symfony\Component\Routing\Exception\ResourceNotFoundException;
+  +use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
+  +
+  +/**
+  + * Provides a class which generates a request.
+  + *
+  + * @internal
+  + */
+  +final class RequestGenerator {
+  +
+  +  /**
+  +   * Constructs a RequestGenerator object.
+  +   *
+  +   * @param \Drupal\Core\PathProcessor\InboundPathProcessorInterface $pathProcessor
+  +   *   The inbound path processor.
+  +   * @param \Drupal\Core\Path\CurrentPathStack $currentPath
+  +   *   The current path.
+  +   * @param \Symfony\Component\Routing\Matcher\RequestMatcherInterface $router
+  +   *   The dynamic router service.
+  +   */
+  +  public function __construct(
+  +    protected InboundPathProcessorInterface $pathProcessor,
+  +    protected CurrentPathStack $currentPath,
+  +    protected RequestMatcherInterface $router,
+  +  ) {
+  +  }
+  +
+  +  /**
+  +   * Generates a request by matching a path in the router.
+  +   *
+  +   * @param string $path
+  +   *   The request path with a leading slash.
+  +   * @param array $exclude
+  +   *   An array of paths or system paths to skip.
+  +   *
+  +   * @return \Symfony\Component\HttpFoundation\Request|null
+  +   *   A populated request object or NULL if the path couldn't be matched.
+  +   */
+  +  public function generateRequestForPath(string $path, array $exclude): ?Request {
+  +    if (!empty($exclude[$path])) {
+  +      return NULL;
+  +    }
+  +
+  +    $request = Request::create($path);
+  +    // Performance optimization: set a short accept header to reduce overhead in
+  +    // AcceptHeaderMatcher when matching the request.
+  +    $request->headers->set('Accept', 'text/html');
+  +    // Find the system path by resolving aliases, language prefix, etc.
+  +    $processed = $this->pathProcessor->processInbound($path, $request);
+  +    if (empty($processed) || !empty($exclude[$processed])) {
+  +      // This resolves to the front page, which we already add.
+  +      return NULL;
+  +    }
+  +    $this->currentPath->setPath($processed, $request);
+  +
+  +    // Attempt to match this path to provide a fully built request.
+  +    try {
+  +      $request->attributes->add($this->router->matchRequest($request));
+  +      return $request;
+  +    }
+  +    catch (ParamNotConvertedException | ResourceNotFoundException | MethodNotAllowedException | AccessDeniedHttpException | NotFoundHttpException) {
+  +      return NULL;
+  +    }
+  +  }
+  +
+  +}
+  +77 -0
+
+core/lib/Drupal/Core/Theme/ThemePreprocess.php
+  @@ -5,6 +5,7 @@
+  +use Drupal\Core\Controller\BaseRouteTitleResolver;
+   use Drupal\Core\Extension\ThemeSettingsProvider;
+   use Drupal\Core\Installer\InstallerKernel;
+   use Drupal\Core\Language\LanguageManagerInterface;
+  @@ -37,6 +38,7 @@ public function __construct(
+  +    protected BaseRouteTitleResolver $baseRouteTitleResolver,
+     ) {
+     }
+   
+  @@ -287,11 +289,27 @@ public function preprocessHtml(array &$variables): void {
+
+... (more changes truncated)
+  +2 -0
+[full diff: rtk git diff --no-compact]

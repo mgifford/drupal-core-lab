@@ -1,0 +1,109 @@
+diff --git a/core/themes/default_admin/css/_variables/variables-components.css b/core/themes/default_admin/css/_variables/variables-components.css
+index a93ae0d8..9af08c7a 100644
+--- a/core/themes/default_admin/css/_variables/variables-components.css
++++ b/core/themes/default_admin/css/_variables/variables-components.css
+@@ -35,8 +35,8 @@
+   --input--error-color: var(--admin-color-error);
+   --input--error-border-color: var(--admin-color-error);
+   --input--disabled-fg-color: light-dark(var(--admin-color-gray-800), var(--admin-color-gray-400));
+-  --input--disabled-bg-color: #f2f2f3; /* Light gray with 0.3 opacity on white bg. */
+-  --input--disabled-border-color: #bababf; /* Old silver with 0.5 opacity on white bg. */
++  --input--disabled-bg-color: var(--admin-color-bg-disabled);
++  --input--disabled-border-color: var(--admin-color-border-disabled);
+   --input-border-radius-size: var(--admin-radius-2xs);
+   --input-border-size: 1px; /* (1/16)em ~ 1px */
+   --input--error-border-size: 2px;
+diff --git a/core/themes/default_admin/css/_variables/variables-components.pcss.css b/core/themes/default_admin/css/_variables/variables-components.pcss.css
+index c30539ef..40e67ec1 100644
+--- a/core/themes/default_admin/css/_variables/variables-components.pcss.css
++++ b/core/themes/default_admin/css/_variables/variables-components.pcss.css
+@@ -28,8 +28,8 @@
+   --input--error-color: var(--admin-color-error);
+   --input--error-border-color: var(--admin-color-error);
+   --input--disabled-fg-color: light-dark(var(--admin-color-gray-800), var(--admin-color-gray-400));
+-  --input--disabled-bg-color: #f2f2f3; /* Light gray with 0.3 opacity on white bg. */
+-  --input--disabled-border-color: #bababf; /* Old silver with 0.5 opacity on white bg. */
++  --input--disabled-bg-color: var(--admin-color-bg-disabled);
++  --input--disabled-border-color: var(--admin-color-border-disabled);
+   --input-border-radius-size: var(--admin-radius-2xs);
+   --input-border-size: 1px; /* (1/16)em ~ 1px */
+   --input--error-border-size: 2px;
+diff --git a/core/themes/default_admin/tests/src/Nightwatch/Tests/disabledFormControlsTest.js b/core/themes/default_admin/tests/src/Nightwatch/Tests/disabledFormControlsTest.js
+new file mode 100644
+index 00000000..cd39adc9
+--- /dev/null
++++ b/core/themes/default_admin/tests/src/Nightwatch/Tests/disabledFormControlsTest.js
+@@ -0,0 +1,73 @@
++const selectors = {
++  disabledCheckbox: '.module-list__checkbox .form-checkbox:disabled',
++  enabledCheckbox: '.module-list__checkbox .form-checkbox:not(:disabled)',
++};
++
++const schemes = {
++  light: {
++    disabledBackground: 'rgb(234, 234, 234)',
++    disabledBorder: 'rgb(194, 194, 194)',
++    enabledBackground: 'rgb(255, 255, 255)',
++    enabledBorder: 'rgb(142, 146, 156)',
++  },
++  dark: {
++    disabledBackground: 'rgb(71, 71, 76)',
++    disabledBorder: 'rgb(100, 100, 100)',
++    enabledBackground: 'rgb(59, 59, 63)',
++    enabledBorder: 'rgb(118, 119, 123)',
++  },
++};
++
++module.exports = {
++  '@tags': ['core', 'default_admin'],
++  before(browser) {
++    browser
++      .drupalInstall()
++      .drupalEnableTheme('default_admin', true)
++      .drupalLoginAsAdmin(() => {
++        browser
++          .drupalRelativeURL('/admin/modules/uninstall')
++          .waitForElementVisible(selectors.disabledCheckbox)
++          .waitForElementVisible(selectors.enabledCheckbox);
++      });
++  },
++  after(browser) {
++    browser.drupalUninstall();
++  },
++  'Disabled checkboxes are distinguishable in light mode': (browser) => {
++    browser.execute(() => {
++      document.documentElement.classList.remove('gin--dark-mode');
++    });
++
++    browser.expect
++      .element(selectors.disabledCheckbox)
++      .to.have.css('backgroundColor', schemes.light.disabledBackground);
++    browser.expect
++      .element(selectors.disabledCheckbox)
++      .to.have.css('borderTopColor', schemes.light.disabledBorder);
++    browser.expect
++      .element(selectors.enabledCheckbox)
++      .to.have.css('backgroundColor', schemes.light.enabledBackground);
++    browser.expect
++      .element(selectors.enabledCheckbox)
++      .to.have.css('borderTopColor', schemes.light.enabledBorder);
++  },
++  'Disabled checkboxes are distinguishable in dark mode': (browser) => {
++    browser.execute(() => {
++      document.documentElement.classList.add('gin--dark-mode');
++    });
++
++    browser.expect
++      .element(selectors.disabledCheckbox)
++      .to.have.css('backgroundColor', schemes.dark.disabledBackground);
++    browser.expect
++      .element(selectors.disabledCheckbox)
++      .to.have.css('borderTopColor', schemes.dark.disabledBorder);
++    browser.expect
++      .element(selectors.enabledCheckbox)
++      .to.have.css('backgroundColor', schemes.dark.enabledBackground);
++    browser.expect
++      .element(selectors.enabledCheckbox)
++      .to.have.css('borderTopColor', schemes.dark.enabledBorder);
++  },
++};

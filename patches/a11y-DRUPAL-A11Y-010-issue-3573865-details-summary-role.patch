@@ -1,0 +1,25 @@
+diff --git b/core/lib/Drupal/Core/Form/FormPreprocess.php a/core/lib/Drupal/Core/Form/FormPreprocess.php
+index fb5c96e200..b581917a4e 100644
+--- b/core/lib/Drupal/Core/Form/FormPreprocess.php
++++ a/core/lib/Drupal/Core/Form/FormPreprocess.php
+@@ -351,7 +351,6 @@ public function preprocessDetails(array &$variables): void {
+     $variables['attributes'] = $element['#attributes'];
+     $variables['summary_attributes'] = new Attribute($element['#summary_attributes']);
+     if (!empty($element['#title'])) {
+-      $variables['summary_attributes']['role'] = 'button';
+       if (!empty($element['#attributes']['id'])) {
+         $variables['summary_attributes']['aria-controls'] = $element['#attributes']['id'];
+       }
+diff --git b/core/modules/system/tests/src/Functional/Form/ElementTest.php a/core/modules/system/tests/src/Functional/Form/ElementTest.php
+index d4b8a000c3..76313f0f8e 100644
+--- b/core/modules/system/tests/src/Functional/Form/ElementTest.php
++++ a/core/modules/system/tests/src/Functional/Form/ElementTest.php
+@@ -244,6 +244,8 @@ protected function testFormElementErrors(): void {
+   protected function testDetailsSummaryAttributes(): void {
+     $this->drupalGet('form-test/group-details');
+     $this->assertSession()->elementExists('css', 'summary[data-summary-attribute="test"]');
++    $this->assertSession()->elementExists('css', 'summary[data-summary-attribute="test"][aria-expanded="false"]');
++    $this->assertSession()->elementNotExists('css', 'summary[data-summary-attribute="test"][role]');
+   }
+ 
+   /**

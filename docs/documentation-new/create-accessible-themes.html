@@ -1,0 +1,118 @@
+<p>Drupal themes control much of the structure, presentation, and interaction that people experience. A theme can preserve Drupal’s accessible defaults, improve them, or introduce new barriers. Using Drupal core or an accessible base theme does not make the completed site accessible.</p>
+
+<p>Plan accessibility before changing templates, styles, scripts, or components. It is usually easier to preserve appropriate semantics and behavior than to repair a finished theme.</p>
+
+<h2>Understand the theme’s responsibility</h2>
+
+<p>Accessibility is shared across Drupal core, contributed projects, themes, site configuration, and content. Theme developers are responsible for the output and behavior they add or change.</p>
+
+<p>A theme may affect:</p>
+
+<ul>
+	<li>Page regions, landmarks, headings, navigation, forms, tables, images, and other rendered markup.</li>
+	<li>Reading order, focus order, responsive layouts, text presentation, contrast, motion, and visible focus.</li>
+	<li>Keyboard behavior, dynamic updates, dialogs, menus, disclosures, and other interactive components.</li>
+	<li>Authoring interfaces, previews, layout tools, and the accessibility of generated content.</li>
+</ul>
+
+<p>Test the theme with representative content and configuration. A template may be correct with one view mode or menu depth and fail with another.</p>
+
+<h2>Use the relevant standards</h2>
+
+<p>Drupal themes should target <a href="https://www.w3.org/TR/WCAG22/">Web Content Accessibility Guidelines (WCAG) 2.2 Level AA</a> for rendered content and user interfaces. Apply all relevant Level A and AA success criteria to complete user tasks, not only individual pages or components.</p>
+
+<p>When a theme changes an authoring interface or the content it produces, also apply the <a href="https://www.w3.org/TR/ATAG20/">Authoring Tool Accessibility Guidelines (ATAG) 2.0</a>. Part A addresses accessibility for authors with disabilities. Part B addresses support for producing accessible content.</p>
+
+<p>Level AAA success criteria and advisory techniques are aspirational under a Level AA target. Other laws, policies, or project requirements may set additional obligations.</p>
+
+<h2>Start with accessible design decisions</h2>
+
+<p>Define the people, tasks, content, components, and interface states the theme must support. Include public pages, administration pages affected by the theme, empty and error states, long and translated content, and layouts at different viewport sizes.</p>
+
+<p>During design:</p>
+
+<ul>
+	<li>Use a clear content hierarchy and predictable navigation.</li>
+	<li>Choose layouts that support zoom, text resizing, reflow, text-spacing overrides, and different display orientations.</li>
+	<li>Meet contrast requirements for text, controls, focus indicators, states, and essential graphics.</li>
+	<li>Do not use color, position, shape, sound, or motion as the only way to communicate meaning.</li>
+	<li>Keep controls large enough to operate and allow enough space between adjacent targets.</li>
+	<li>Provide alternatives to dragging, complex gestures, motion, and time-limited interactions when required.</li>
+</ul>
+
+<p>Do not treat an accessibility toolbar, alternate style sheet, or overlay as remediation. Optional presentation controls may support user preferences, but every default interface and every available variation must remain accessible.</p>
+
+<h2>Preserve semantic HTML and Drupal output</h2>
+
+<p>Use the native HTML element that matches the content or control. Native elements provide semantics and behavior that custom elements must otherwise reproduce. Use Accessible Rich Internet Applications (ARIA) only when HTML does not provide the required semantics.</p>
+
+<p>When overriding Twig templates or preprocess logic:</p>
+
+<ul>
+	<li>Preserve Drupal attributes, IDs, classes, labels, descriptions, relationships, and states unless the replacement provides an equivalent result.</li>
+	<li>Keep the source order consistent with the reading and interaction order, even when CSS changes the visual arrangement.</li>
+	<li>Use headings to identify sections. Choose heading levels from the content hierarchy, not their visual appearance.</li>
+	<li>Provide appropriate landmarks and accessible names for repeated regions.</li>
+	<li>Keep form labels, instructions, required states, errors, and status messages programmatically associated with the relevant controls.</li>
+	<li>Use empty alternative text for decorative images and purposeful alternatives for meaningful images.</li>
+	<li>Use the appropriate Drupal utility when content must be hidden visually, hidden from everyone, or displayed when it receives focus.</li>
+</ul>
+
+<p>See <a href="https://www.drupal.org/docs/develop/theming-drupal">Theming Drupal</a> for current Twig, asset, attribute, breakpoint, and theme-development documentation. Drupal’s <a href="https://www.drupal.org/docs/develop/theming-drupal/using-single-directory-components">Single-Directory Components</a> can provide maintainable boundaries for reusable HTML, CSS, and JavaScript. A component system does not guarantee accessibility. Each component still needs documented semantics, states, keyboard behavior, and tests.</p>
+
+<h2>Make interactions work with different input methods</h2>
+
+<p>Every action available with a pointer must also be available by keyboard unless the task fundamentally depends on path-based movement. Do not use a link as a button or add interaction to a generic element when a native control fits the task.</p>
+
+<p>For interactive components:</p>
+
+<ul>
+	<li>Define the accessible name, role, state, value, description, and expected keyboard behavior.</li>
+	<li>Keep focus visible and prevent sticky content, overlays, or animation from obscuring it.</li>
+	<li>Manage focus when a dialog or other temporary context opens and closes.</li>
+	<li>Provide a non-dragging way to complete drag interactions.</li>
+	<li>Make content shown on hover also available on keyboard focus and dismissible when required.</li>
+	<li>Communicate meaningful Ajax and JavaScript updates without announcing every document change.</li>
+	<li>Respect reduced-motion and forced-colors settings when the component is affected by them.</li>
+</ul>
+
+<p>Test the finished behavior in Drupal. Copying an ARIA pattern or using an established component library does not establish that the implementation is accessible.</p>
+
+<h2>Support accessible authoring</h2>
+
+<p>A theme can affect both the interface used by authors and the content presented to site visitors. When the theme provides layout tools, previews, component options, or content templates:</p>
+
+<ul>
+	<li>Make every authoring action available to disabled authors.</li>
+	<li>Generate accessible markup by default.</li>
+	<li>Preserve headings, language, alternative text, table structure, and other accessibility information when content is transformed or displayed.</li>
+	<li>Do not offer configuration choices that create an inaccessible result without a clear warning or constraint.</li>
+	<li>Test authored content in its published context, not only inside the editor or preview.</li>
+</ul>
+
+<h2>Test the complete theme</h2>
+
+<p>Test representative pages, components, roles, languages, content lengths, responsive layouts, and interaction states. Review both public-facing and administration interfaces when the theme changes them.</p>
+
+<p>Testing should include, when relevant:</p>
+
+<ul>
+	<li>Complete keyboard operation, focus order, visible focus, and focus restoration.</li>
+	<li>Text resizing, zoom, reflow, text spacing, orientation, forced colors, and reduced motion.</li>
+	<li>Page titles, landmarks, headings, lists, tables, links, forms, errors, and status messages.</li>
+	<li>Dynamic content, loading, empty, error, expanded, selected, disabled, and completed states.</li>
+	<li>Screen readers and other assistive technologies selected for the affected behavior and supported platforms.</li>
+	<li>Testing with disabled users for new, complex, unfamiliar, or high-impact patterns when possible.</li>
+</ul>
+
+<p>Automated tools can find some barriers by applying rules to limited testable conditions. They cannot determine accessibility or WCAG conformance. Use deterministic rules for unattended build failures. Send context-dependent or incomplete results to human review.</p>
+
+<p>Follow <a href="https://www.drupal.org/docs/getting-started/accessibility/how-to-do-an-accessibility-review">How to do an accessibility review</a> and record enough evidence for another contributor to repeat the test.</p>
+
+<h2>Maintain accessibility</h2>
+
+<p>Document the theme’s supported browsers, assistive technologies, components, known barriers, and testing approach. Add regression tests for stable component behavior where practical. Review accessibility when dependencies, templates, components, or supported platforms change.</p>
+
+<p>Report barriers in the relevant project issue queue. Describe the affected people and task, the expected and actual behavior, the configuration and theme, and the steps required to reproduce the problem.</p>
+
+<p>See Drupal’s <a href="https://www.drupal.org/docs/getting-started/accessibility/accessibility-coding-standards">Accessibility Coding Standards</a> and <a href="https://www.drupal.org/docs/getting-started/accessibility/how-to-ensure-your-contribution-is-accessible">How to Ensure Your Contribution is Accessible</a> for implementation and contribution requirements.</p>

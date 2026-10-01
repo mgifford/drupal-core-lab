@@ -1,0 +1,133 @@
+<p>Forms must allow people to understand what information is requested, enter and review it, correct mistakes, and complete the task. Test the complete workflow, including instructions, validation, errors, confirmation, time limits, and dynamic changes.</p>
+
+<p>Use Drupal’s <a href="https://www.drupal.org/docs/develop/drupal-apis/form-api">Form API</a> for forms and user-input processing. It provides consistent structures for labels, descriptions, required fields, validation, and submission. Changing a form in a module or theme can remove these relationships, so test the rendered result.</p>
+
+<h2>Keep forms focused and predictable</h2>
+
+<p>Ask only for information needed to complete the task. Organize controls in a logical order and use headings or groups to divide long forms. Place general instructions before they are needed and explain unusual formats, constraints, required information, and time limits.</p>
+
+<p>Use a multi-step form when it reduces complexity. Identify the current step and total progress. Preserve entered information when people move between steps or correct errors, unless doing so would create a security or privacy risk.</p>
+
+<h2>Use native controls and Drupal Form API properties</h2>
+
+<p>Choose the Form API element that matches the information or action. Native HTML controls provide expected semantics, keyboard behavior, mobile input, and assistive-technology support. Do not replace a button, checkbox, radio button, select element, or text field with a generic element only to achieve a visual design.</p>
+
+<p>Use Form API properties instead of recreating accessible relationships manually. For example:</p>
+
+<pre><code class="language-php">$form['email'] = [
+  '#type' =&gt; 'email',
+  '#title' =&gt; $this-&gt;t('Email address'),
+  '#description' =&gt; $this-&gt;t('Used only for account notifications.'),
+  '#required' =&gt; TRUE,
+  '#attributes' =&gt; [
+    'autocomplete' =&gt; 'email',
+  ],
+];</code></pre>
+
+<p>Use the correct input type and valid <a href="https://www.w3.org/TR/WCAG22/#input-purposes">autocomplete token</a> when a field collects information about the user and the input purpose is covered by WCAG. Do not use autocomplete tokens for unrelated information.</p>
+
+<h2>Provide persistent labels and instructions</h2>
+
+<p>Every form control needs an accessible name that describes its purpose. Prefer a persistent visible label. Visible labels help people with cognitive disabilities, people using magnification, and people using speech input as well as screen-reader users.</p>
+
+<ul>
+	<li>Use <code>#title</code> to provide the label for a Form API control.</li>
+	<li>Keep the visible label and accessible name consistent. The accessible name should include the visible label.</li>
+	<li>Do not use placeholder text as a label. Placeholder text disappears during input and may be difficult to perceive.</li>
+	<li>Do not use the <code>title</code> attribute as a routine replacement for a label.</li>
+	<li>Use <code>#title_display</code> set to <code>invisible</code> only when the visible context still identifies the control. Test the result with screen readers, speech input, and magnification.</li>
+	<li>Use <code>#description</code> for formats, limits, consequences, or other help associated with the control.</li>
+	<li>Keep labels and instructions visually close to their controls, including after zoom, reflow, and text-spacing changes.</li>
+</ul>
+
+<p>Instructions must be available before a person submits invalid data. Do not rely only on examples inside a field, color, an icon, or an error shown after submission.</p>
+
+<h2>Group related controls</h2>
+
+<p>Use a <code>fieldset</code> and <code>legend</code>, or the equivalent Form API structure, when several controls need a shared question or instruction. Common examples include radio buttons, related checkboxes, and groups of address or date fields.</p>
+
+<p>Write the legend and individual labels so they make sense together without unnecessary repetition. A visual border is not a programmatic group, and visual proximity alone does not establish the relationship.</p>
+
+<h2>Identify required and optional information</h2>
+
+<p>Use <code>#required</code> for required Form API controls. Do not replace it with a manually added asterisk or <code>aria-required</code>. Drupal should generate the required state and indicator consistently.</p>
+
+<p>Explain how required or optional fields are identified when the form could otherwise be unclear. Do not communicate the state through color alone. If most fields are required, marking the smaller number of optional fields may reduce clutter, but the programmatic required state must remain correct.</p>
+
+<h2>Design validation and errors as part of the form</h2>
+
+<p>Validate input as specifically as the task requires. Client-side validation can provide early feedback, but server-side validation is still required. Test how browser validation, custom JavaScript, Ajax, and Drupal validation work together.</p>
+
+<p>When validation fails:</p>
+
+<ul>
+	<li>Identify each error in text. Do not rely only on color, position, or an icon.</li>
+	<li>Explain what went wrong and how to correct it.</li>
+	<li>Associate the message programmatically with the affected control.</li>
+	<li>Keep the person’s valid entries unless retaining them would create a security or privacy risk.</li>
+	<li>Provide an error summary or notification that is easy to find.</li>
+	<li>Link summary items to the affected controls when practical.</li>
+	<li>Place focus predictably when moving it is necessary to make the errors apparent.</li>
+	<li>Confirm that error text, controls, and focus indicators remain visible at high zoom and in responsive layouts.</li>
+</ul>
+
+<p>The core <a href="https://www.drupal.org/docs/8/core/modules/inline-form-errors/inline-form-errors-module-overview">Inline Form Errors module</a> can place messages near affected controls and provide an error summary. Enabling it does not resolve every form requirement. Test valid and invalid submissions through the complete workflow.</p>
+
+<h2>Communicate dynamic changes</h2>
+
+<p>Conditional fields, Ajax updates, autocomplete suggestions, and calculated values must remain understandable and operable. When a change is not apparent from focus or the surrounding content, provide an appropriate status message.</p>
+
+<ul>
+	<li>Keep names, descriptions, required states, and validation rules synchronized with the visible interface.</li>
+	<li>Do not reveal a required field without making its requirement available programmatically.</li>
+	<li>Move focus only when the user’s action or task requires it.</li>
+	<li>Do not announce every document update. Announce the result a person needs to continue.</li>
+	<li>Provide loading, completion, empty, and error states for asynchronous operations.</li>
+	<li>Validate conditional requirements on the server as well as in the browser.</li>
+</ul>
+
+<h2>Prevent avoidable effort and serious mistakes</h2>
+
+<p>Do not require people to enter the same information twice in one process when Drupal can provide or select it, unless a WCAG exception applies. Allow people to review, correct, and confirm submissions that create legal commitments, financial transactions, data changes, or other serious consequences.</p>
+
+<p>Support password managers and copying and pasting. Do not require a cognitive-function test, such as recalling or transcribing a password, when WCAG requires an accessible authentication alternative.</p>
+
+<p>Avoid time limits where possible. When a time limit is required, provide the warnings and options to extend, adjust, or disable it that the applicable WCAG success criteria require. Preserve entered data after re-authentication when possible.</p>
+
+<h2>Use custom controls only when necessary</h2>
+
+<p>A styled native control is usually more reliable than a custom widget. If a native control cannot support the task, document and test the custom control’s:</p>
+
+<ul>
+	<li>Accessible name, role, state, value, and description.</li>
+	<li>Keyboard commands and focus behavior.</li>
+	<li>Pointer, touch, speech-input, and magnification use.</li>
+	<li>Expanded, selected, disabled, invalid, loading, and empty states.</li>
+	<li>Behavior at high zoom and with text-spacing overrides.</li>
+</ul>
+
+<p>Do not assume that an ARIA role or a component-library example provides the required behavior. Test the rendered control in the Drupal form and workflow.</p>
+
+<h2>Support disabled authors</h2>
+
+<p>Forms used to create or manage content are authoring interfaces. Apply the <a href="https://www.w3.org/TR/ATAG20/">Authoring Tool Accessibility Guidelines (ATAG) 2.0</a> as well as WCAG.</p>
+
+<p>Disabled authors must be able to complete the same tasks, receive the same validation and help, and review the same previews. Forms should also help every author produce accessible content by preserving accessibility information and prompting for decisions Drupal cannot make automatically.</p>
+
+<h2>Test the complete workflow</h2>
+
+<p>Test forms with representative roles, permissions, languages, content, valid and invalid input, and saved or restored state. Include, when relevant:</p>
+
+<ul>
+	<li>Keyboard-only completion in both forward and reverse focus order.</li>
+	<li>Visible labels, control names, instructions, groups, required states, and descriptions.</li>
+	<li>Browser autofill, password managers, copying and pasting, and appropriate virtual keyboards.</li>
+	<li>Text resizing, zoom, reflow, text spacing, forced colors, and target sizes.</li>
+	<li>Client-side, Ajax, browser, and server-side validation.</li>
+	<li>Error summaries, inline errors, focus placement, and correction of several errors.</li>
+	<li>Timeouts, re-authentication, confirmation, cancellation, and recovery.</li>
+	<li>Screen readers and other assistive technologies required by the project or affected behavior.</li>
+	<li>Testing with disabled users for complex, unfamiliar, or high-impact forms when possible.</li>
+</ul>
+
+<p>Automated tools can identify some missing labels, invalid relationships, or state problems. They cannot determine whether instructions are understandable, an error is useful, or a person can complete the process. Follow <a href="https://www.drupal.org/docs/getting-started/accessibility/how-to-do-an-accessibility-review">How to do an accessibility review</a> and the <a href="https://www.w3.org/WAI/tutorials/forms/">W3C Forms Tutorial</a>.</p>

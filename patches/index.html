@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drupal Core Patch Evaluations</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #003da5 0%, #0066cc 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+        
+        .meta {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            flex-wrap: wrap;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.2);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .summary-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #0066cc;
+        }
+        
+        .summary-card h3 {
+            margin-bottom: 0.5rem;
+            color: #0066cc;
+        }
+        
+        .summary-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #003da5;
+        }
+        
+        .section {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .section h2 {
+            color: #003da5;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #0066cc;
+        }
+        
+        .patch-group {
+            margin-bottom: 2rem;
+        }
+        
+        .patch-group h3 {
+            background: #f0f4ff;
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            color: #003da5;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .patch-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        
+        .patch-card {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 1rem;
+            transition: all 0.2s;
+            background: #fafafa;
+        }
+        
+        .patch-card:hover {
+            border-color: #0066cc;
+            box-shadow: 0 2px 8px rgba(0,102,204,0.15);
+            background: white;
+        }
+        
+        .patch-card h4 {
+            color: #003da5;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .patch-card p {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+        
+        .patch-links {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .patch-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.4rem 0.8rem;
+            background: #0066cc;
+            color: white;
+            text-decoration: none;
+            border-radius: 3px;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+        
+        .patch-link:hover {
+            background: #0052a3;
+        }
+        
+        .patch-link.json {
+            background: #6f42c1;
+        }
+        
+        .patch-link.json:hover {
+            background: #5a32a3;
+        }
+        
+        .patch-link.html {
+            background: #28a745;
+        }
+        
+        .patch-link.html:hover {
+            background: #218838;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        
+        .status-fail {
+            background: #fee;
+            color: #c33;
+        }
+        
+        .status-pass {
+            background: #efe;
+            color: #3c3;
+        }
+        
+        .icon {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            margin-right: 0.25rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+        
+        th {
+            background: #f0f4ff;
+            color: #003da5;
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 2px solid #0066cc;
+        }
+        
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        tr:hover {
+            background: #fafafa;
+        }
+        
+        .priority-1 {
+            border-left-color: #dc3545;
+        }
+        
+        .priority-2 {
+            border-left-color: #ffc107;
+        }
+        
+        .priority-3 {
+            border-left-color: #17a2b8;
+        }
+        
+        footer {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+            color: #666;
+            margin-top: 2rem;
+            font-size: 0.95rem;
+        }
+        
+        footer a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .patch-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Drupal Core Patch Evaluations</h1>
+            <p>Comprehensive accessibility testing of proposed patches</p>
+            <div class="meta">
+                <div class="meta-item">
+                    <span class="badge">WCAG 2.2 AA</span>
+                </div>
+                <div class="meta-item">
+                    <span class="badge">axe-core 4.x</span>
+                </div>
+                <div class="meta-item">
+                    <span class="badge">10 Patches Evaluated</span>
+                </div>
+            </div>
+        </header>
+        
+        <div class="summary">
+            <div class="summary-card">
+                <h3>Patches Evaluated</h3>
+                <div class="number">10</div>
+                <p style="color: #666; font-size: 0.9rem;">Complete evaluation coverage</p>
+            </div>
+            <div class="summary-card" style="border-left-color: #dc3545;">
+                <h3>Priority 1</h3>
+                <div class="number">3</div>
+                <p style="color: #666; font-size: 0.9rem;">Critical accessibility fixes</p>
+            </div>
+            <div class="summary-card" style="border-left-color: #ffc107;">
+                <h3>Priority 2</h3>
+                <div class="number">2</div>
+                <p style="color: #666; font-size: 0.9rem;">Important improvements</p>
+            </div>
+            <div class="summary-card" style="border-left-color: #17a2b8;">
+                <h3>Priority 3</h3>
+                <div class="number">5</div>
+                <p style="color: #666; font-size: 0.9rem;">Extended functionality</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>📋 Evaluation Results</h2>
+            
+            <div class="patch-group">
+                <h3>🔴 Priority 1 - Critical Fixes</h3>
+                <div class="patch-list">
+                    <div class="patch-card priority-1">
+                        <h4>a11y-DRUPAL-A11Y-001</h4>
+                        <p><strong>File Widget Display Labels</strong></p>
+                        <p>File upload button and checkboxes lack accessible labels</p>
+                        <div class="patch-links">
+                            <a href="patches/a11y-DRUPAL-A11Y-001-file-widget-display-labels-evaluation.md" class="patch-link">Markdown</a>
+                            <a href="patches/a11y-DRUPAL-A11Y-001-file-widget-display-labels-evaluation.json" class="patch-link json">JSON</a>
+                            <a href="patches/a11y-DRUPAL-A11Y-001-file-widget-display-labels-evaluation.html" class="patch-link html">Report</a>
+                        </div>
+                    </div>
+                    <div class="patch-card priority-1">
+                        <h4>a11y-DRUPAL-A11Y-002</h4>
+                        <p><strong>Submit Button Contrast</strong></p>
+                        <p>Primary action buttons fail color contrast requirements</p>
+                        <div class="patch-links">
+                            <a href="patches/a11y-DRUPAL-A11Y-002-submit-button-contrast-evaluation.md" class="patch-link">Markdown</a>
+                            <a href="patches/a11y-DRUPAL-A11Y-002-submit-button-contrast-evaluation.json" class="patch-link json">JSON</a>
+                            <a href="patches/a11y-DRUPAL-A11Y-002-submit-button-contrast-evaluation.html" class="patch-link html">Report</a>
+                        </div>
+                    </div>
+                    <div class="patch-card priority-1">
+                        <h4>a11y-DRUPAL-A11Y-005</h4>
+                        <p><strong>Language Switcher Contrast</strong></p>
+                        <p>Language switcher links have insufficient contrast</p>
+                        <div class="patch-links">
+                            <a href="patches/a11y-DRUPAL-A11Y-005-language-switcher-contrast-evaluation.md" class="patch-link">Markdown</a>
+                            <a href="patches/a11y-DRUPAL-A11Y-005-language-switcher-contrast-evaluation.json" class="patch-link json">JSON</a>
+                            <a href="patches/a11y-DRUPAL-A11Y-005-language-switcher-contrast-evaluation.html" class="patch-link html">Report</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="patch-group">
+                <h3>🟡 Priority 2 - Important Fixes</h3>
+                <div class="patch-list">
+                    <div class="patch-card priority-2">
+                        <h4>a11y-DRUPAL-A11Y-006</h4>
+                        <p><strong>Theme Switcher Landmark</strong></p>
+                        <p>Theme switcher lacks proper landmark/region role</p>
+                        <div class="patch-links">
+                            <a href="patches/a11y-DRUPAL-A11Y-006-theme-switcher-landmark-evaluation.md" class="patch-link">Markdown</a>
+                            <a href="patches/a11y-DRUPAL-A11Y-006-theme-switcher-landmark-evaluation.json" class="patch-link json">JSON</a>
+                            <a href="patches/a11y-DRUPAL-A11Y-006-theme-switcher-landmark-evaluation.html" class="patch-link html">Report</a>
+                        </div>
+                    </div>
+                    <div class="patch-card priority-2">
+                        <h4>a11y-DRUPAL-A11Y-007</h4>
+                        <p><strong>Messages Landmark Role</strong></p>
+                        <p>Messages container lacks ARIA status landmark</p>
+                        <div class="patch-links">
+                            <a href="patches/a11y-DRUPAL-A11Y-007-messages-landmark-role-evaluation.md" class="patch-link">Markdown</a>
+                            <a href="patches/a11y-DRUPAL-A11Y-007-messages-landmark-role-evaluation.json" class="patch-link json">JSON</a>
+                            <a href="patches/a11y-DRUPAL-A11Y-007-messages-landmark-role-evaluation.html" class="patch-link html">Report</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="patch-group">
+                <h3>🔵 Priority 3 - Extended Fixes</h3>
+                <div class="patch-list">
+                    <div class="patch-card priority-3">
+                        <h4>a11y-DRUPAL-A11Y-003</h4>
+                        <p><strong>Select-All Checkbox Labels</strong></p>
+                        <p>Select-all checkboxes in views lack labels</p>
+                        <div class="patch-links">
+                            <a href="patches/a11y-DRUPAL-A11Y-003-select-all-checkbox-label-evaluation.md" class="patch-link">Markdown</a>
+                            <a href="patches/a11y-DRUPAL-A11Y-003-select-all-checkbox-label-evaluation.json" class="patch-link json">JSON</a>
+                            <a href="patches/a11y-DRUPAL-A11Y-003-select-all-checkbox-label-evaluation.html" class="patch-link html">Report</a>
+                        </div>
+                    </div>
+                    <div class="patch-card priority-3">
+                        <h4>a11y-DRUPAL-A11Y-004</h4>
+                        <p><strong>Tabindex on Buttons</strong></p>
+                        <p>Button elements incorrectly use tabindex</p>
+                        <div class="patch-links">
+                            <a href="patches/a11y-DRUPAL-A11Y-004-tabindex-buttons-test-form-evaluation.md" class="patch-link">Markdown</a>
+                            <a href="patches/a11y-DRUPAL-A11Y-004-tabindex-buttons-test-form-evaluation.json" class="patch-link json">JSON</a>
+                            <a href="patches/a11y-DRUPAL-A11Y-004-tabindex-buttons-test-form-evaluation.html" class="patch-link html">Report</a>
+                        </div>
+                    </div>
+                    <div class="patch-card priority-3">
+                        <h4>a11y-DRUPAL-A11Y-008</h4>
+                        <p><strong>Empty Table Headers</strong></p>
+                        <p>Table headers lack proper scope attributes</p>
+                        <div class="patch-links">
+                            <a href="patches/a11y-DRUPAL-A11Y-008-empty-table-headers-evaluation.md" class="patch-link">Markdown</a>
+                            <a href="patches/a11y-DRUPAL-A11Y-008-empty-table-headers-evaluation.json" class="patch-link json">JSON</a>
+                            <a href="patches/a11y-DRUPAL-A11Y-008-empty-table-headers-evaluation.html" class="patch-link html">Report</a>
+                        </div>
+                    </div>
+                    <div class="patch-card priority-3">
+                        <h4>a11y-DRUPAL-A11Y-009</h4>
+                        <p><strong>Module Summary Names</strong></p>
+                        <p>Module install summary lacks accessible names</p>
+                        <div class="patch-links">
+                            <a href="patches/a11y-DRUPAL-A11Y-009-module-summary-names-evaluation.md" class="patch-link">Markdown</a>
+                            <a href="patches/a11y-DRUPAL-A11Y-009-module-summary-names-evaluation.json" class="patch-link json">JSON</a>
+                            <a href="patches/a11y-DRUPAL-A11Y-009-module-summary-names-evaluation.html" class="patch-link html">Report</a>
+                        </div>
+                    </div>
+                    <div class="patch-card priority-3">
+                        <h4>a11y-LABEL-IN-NAME-004</h4>
+                        <p><strong>Filter Format ARIA Label</strong></p>
+                        <p>Filter selector uses aria-label instead of visible label</p>
+                        <div class="patch-links">
+                            <a href="patches/a11y-LABEL-IN-NAME-004-filter-format-aria-label-evaluation.md" class="patch-link">Markdown</a>
+                            <a href="patches/a11y-LABEL-IN-NAME-004-filter-format-aria-label-evaluation.json" class="patch-link json">JSON</a>
+                            <a href="patches/a11y-LABEL-IN-NAME-004-filter-format-aria-label-evaluation.html" class="patch-link html">Report</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>📚 Documentation</h2>
+            <table>
+                <tr>
+                    <th>Document</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td><a href="PATCH-EVALUATIONS.md" style="color: #0066cc; text-decoration: none;">PATCH-EVALUATIONS.md</a></td>
+                    <td>Complete analysis with findings and recommendations</td>
+                </tr>
+                <tr>
+                    <td><a href="patches/EVALUATIONS-INDEX.md" style="color: #0066cc; text-decoration: none;">patches/EVALUATIONS-INDEX.md</a></td>
+                    <td>Quick navigation guide for all patch evaluations</td>
+                </tr>
+                <tr>
+                    <td><a href="patches/README.md" style="color: #0066cc; text-decoration: none;">patches/README.md</a></td>
+                    <td>Patch infrastructure documentation</td>
+                </tr>
+                <tr>
+                    <td><a href="ACCESSIBILITY.md" style="color: #0066cc; text-decoration: none;">ACCESSIBILITY.md</a></td>
+                    <td>Core accessibility policy and requirements</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2>⚙️ Evaluation Methodology</h2>
+            <p><strong>Baseline Compliance:</strong> WCAG 2.2 Level AA</p>
+            <p><strong>Scanning Tool:</strong> axe-core 4.x</p>
+            <p><strong>Browser:</strong> Chromium (via Playwright)</p>
+            
+            <p style="margin-top: 1rem;"><strong>Process:</strong></p>
+            <ol style="margin-left: 1rem; margin-top: 0.5rem;">
+                <li>Capture baseline accessibility state (patch not applied)</li>
+                <li>Apply patch using <code>git apply</code></li>
+                <li>Clear Drupal cache and rescan</li>
+                <li>Compare results and identify impact</li>
+                <li>Generate reports in multiple formats</li>
+            </ol>
+        </div>
+        
+        <footer>
+            <p>📍 <strong>Drupal Core Repository:</strong> <a href="https://github.com/mgifford/drupal-core">github.com/mgifford/drupal-core</a></p>
+            <p style="margin-top: 1rem; font-size: 0.85rem;">Generated: May 6, 2026 | Evaluations automated with Playwright + axe-core</p>
+        </footer>
+    </div>
+</body>
+</html>

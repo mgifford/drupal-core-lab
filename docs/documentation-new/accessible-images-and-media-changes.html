@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Replacement record: Accessible images and media</title>
+</head>
+<body>
+  <main>
+    <h1>Replacement record: Accessible images and media</h1>
+
+    <p>This record explains how two Drupal 7 theming pages were consolidated into the proposed current documentation page, <a href="https://www.drupal.org/docs/getting-started/accessibility/accessible-images-and-media">Accessible images and media</a>. It also provides a short archival notice for each Drupal 7 page.</p>
+
+    <h2>Pages replaced</h2>
+
+    <table>
+      <caption>Drupal 7 source pages consolidated into the current page</caption>
+      <thead>
+        <tr>
+          <th scope="col">Drupal 7 page</th>
+          <th scope="col">Disposition</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://www.drupal.org/docs/7/creating-accessible-themes/managing-images-and-media-for-accessibility">Managing images and media for accessibility</a></td>
+          <td>Image categories, alternative text, complex images, captions, transcripts, media controls, and autoplay guidance were retained and updated.</td>
+        </tr>
+        <tr>
+          <td><a href="https://www.drupal.org/docs/7/creating-accessible-themes/providing-useful-alternative-text-for-images">Providing Useful Alternative Text for Images</a></td>
+          <td>The useful external-resource pointer was replaced with direct, maintainable guidance and current authoritative sources.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>What was retained</h2>
+
+    <ul>
+      <li>Alternative text depends on the image's purpose and context.</li>
+      <li>Decorative images need an empty alternative attribute.</li>
+      <li>Functional images need text that names the link destination or action.</li>
+      <li>Complex images need a short alternative and a detailed text equivalent.</li>
+      <li>Images of text should generally be avoided.</li>
+      <li>Captions, transcripts, and usable media controls are necessary parts of accessible media.</li>
+      <li>Important content should not be provided only through CSS background images.</li>
+    </ul>
+
+    <h2>What was updated or added</h2>
+
+    <h3>Verified Drupal 11 behavior</h3>
+
+    <p>The current page uses Drupal-specific statements only where they were confirmed in Drupal 11 core:</p>
+
+    <ul>
+      <li>The image field enables the alternative text field and makes it required by default.</li>
+      <li>The image title field is disabled by default. Core's configuration description says enabling it is not recommended because it can cause screen reader problems.</li>
+      <li><code>image.html.twig</code> outputs <code>&lt;img{{ attributes }} /&gt;</code>. Theme overrides must preserve the attribute object rather than reconstructing selected attributes.</li>
+      <li>The Responsive Image module renders one controlling <code>img</code> inside <code>picture</code>. Alternative text stays on the <code>img</code>, not the <code>source</code> elements.</li>
+    </ul>
+
+    <h3>Content-model limitation</h3>
+
+    <p>The replacement documents a conflict that the old pages missed. Requiring text in Drupal's alternative text field is suitable for informative images, but a decorative image requires the field to produce <code>alt=""</code>. A space or filler phrase is not an acceptable workaround. Sites that allow author-selected decorative images need a content model and rendering path that can record and output that decision.</p>
+
+    <h3>Alternative text by purpose</h3>
+
+    <p>The replacement gives maintainable guidance for informative, decorative, functional, textual, and complex images. It distinguishes alternative text from captions and states that there is no WCAG 125-character limit.</p>
+
+    <h3>Current image formats and responsive output</h3>
+
+    <p>The new page adds CSS background images, SVG, responsive images, and reuse of media items. SVG guidance remains deliberately general because correct implementation depends on whether the SVG is an image source, inline content, a control, or decoration. The page requires testing rather than prescribing one brittle SVG pattern.</p>
+
+    <h3>Media alternatives mapped to purpose</h3>
+
+    <p>The old media section grouped captions, transcripts, and descriptions without explaining when each is required. The replacement distinguishes:</p>
+
+    <ul>
+      <li>captions for meaningful audio in prerecorded synchronized media at WCAG Level A;</li>
+      <li>captions for meaningful audio in live synchronized media at WCAG Level AA;</li>
+      <li>transcripts for prerecorded audio-only content at Level A;</li>
+      <li>audio description for important visual information in prerecorded synchronized media at Level AA; and</li>
+      <li>descriptive transcripts as broader support for people who cannot use either audio or visual information, with the prerecorded synchronized-media alternative identified as aspirational under an AA target because WCAG places it at Level AAA.</li>
+    </ul>
+
+    <p>This prevents the common error of presenting captions, transcripts, and audio description as interchangeable.</p>
+
+    <h3>Media player and motion coverage</h3>
+
+    <p>The replacement adds keyboard operation, accessible names and states, focus visibility, zoom and reflow, touch and dragging alternatives, captions and audio-description controls, autoplay conditions, moving content, and flashing content. It also makes clear that using a third-party embed does not remove the site's responsibility to test it.</p>
+
+    <h3>Repeatable testing</h3>
+
+    <p>The new test list separates checks that tools can perform from judgments that require a person. A tool may detect a missing <code>alt</code> attribute. It cannot determine whether the text communicates the image's purpose or whether a transcript includes the important visual information.</p>
+
+    <h2>What was removed or corrected</h2>
+
+    <table>
+      <caption>Material removed or corrected and the reason</caption>
+      <thead>
+        <tr>
+          <th scope="col">Old material</th>
+          <th scope="col">Change and reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Alternative text framed partly as an SEO technique</td>
+          <td>Rewritten. The primary purpose is to provide an equivalent for people who cannot use the image. Search behavior is not the accessibility requirement.</td>
+        </tr>
+        <tr>
+          <td><code>alt=" "</code> presented as equivalent to <code>alt=""</code></td>
+          <td>Corrected. Decorative images need an empty string with no space. Whitespace is not the intentional empty alternative.</td>
+        </tr>
+        <tr>
+          <td>A 125-character threshold for moving descriptions outside <code>alt</code></td>
+          <td>Removed. WCAG sets no such limit. Alternative text should be concise and appropriate to purpose. Complex information usually belongs in a separate structured description.</td>
+        </tr>
+        <tr>
+          <td>The telephone-description test as the main way to write alternative text</td>
+          <td>Removed. It can prompt excessive visual description and does not reliably identify the image's purpose in context. The replacement asks what information or function would otherwise be lost.</td>
+        </tr>
+        <tr>
+          <td><code>longdesc</code> compatibility and deprecation discussion</td>
+          <td>Removed. The replacement gives current, visible approaches for structured descriptions and associated links without requiring authors to understand the history of an obsolete attribute.</td>
+        </tr>
+        <tr>
+          <td>Old examples using a 2009 annual report, a PDF icon, file size, and a <code>mailto:</code> link</td>
+          <td>Removed. They distract from the durable principle that adjacent image and text labels must not create a duplicated or misleading accessible name.</td>
+        </tr>
+        <tr>
+          <td>The claim that HTML5 audio and video controls were not interpreted by many assistive technologies</td>
+          <td>Removed. That compatibility statement is obsolete. Player accessibility must be tested in the selected current implementation.</td>
+        </tr>
+        <tr>
+          <td>Adobe Flash requirements and links</td>
+          <td>Removed. Flash is obsolete and unsupported.</td>
+        </tr>
+        <tr>
+          <td>An absolute instruction not to use autoplay</td>
+          <td>Refined. Avoiding autoplay remains the best default. The replacement also states the applicable requirements when audio or moving content starts automatically.</td>
+        </tr>
+        <tr>
+          <td>"Keyboard-only users, mouse-only users, screenreading users, and many others"</td>
+          <td>Rewritten. The replacement describes the operations and barriers to test rather than assigning people to one device or technology.</td>
+        </tr>
+        <tr>
+          <td>A short link list as the complete alternative-text page</td>
+          <td>Replaced. Several links were old, duplicated, or aimed at static HTML rather than Drupal workflows. The current page contains the essential guidance directly and points to maintained W3C resources.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Content mapping</h2>
+
+    <table>
+      <caption>Where the source material appears in the consolidated page</caption>
+      <thead>
+        <tr>
+          <th scope="col">Current section</th>
+          <th scope="col">Primary source material</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Configure Drupal image fields carefully</td>
+          <td>New Drupal 11 guidance addressing the content-authoring workflow that the old pages only mentioned generally.</td>
+        </tr>
+        <tr>
+          <td>Preserve image attributes in Twig</td>
+          <td>New Drupal 11 theme guidance replacing Drupal 7-era assumptions.</td>
+        </tr>
+        <tr>
+          <td>Write alternative text for the image's purpose</td>
+          <td>Both source pages, consolidated and corrected.</td>
+        </tr>
+        <tr>
+          <td>Handle CSS images and SVG</td>
+          <td>CSS guidance from Managing images and media, expanded for current SVG and responsive-image use.</td>
+        </tr>
+        <tr>
+          <td>Provide accessible audio and video</td>
+          <td>Audio, video, and interactive media section, corrected against current W3C media guidance.</td>
+        </tr>
+        <tr>
+          <td>Use an accessible media player</td>
+          <td>Media-control guidance, expanded for current input, focus, responsive, and third-party player risks.</td>
+        </tr>
+        <tr>
+          <td>Test the rendered content</td>
+          <td>New repeatable review covering images, alternatives, media content, and player behavior.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Copy-ready archival notices</h2>
+
+    <h3>Managing images and media for accessibility</h3>
+
+    <pre><code>&lt;p&gt;&lt;strong&gt;This Drupal 7 page is no longer supported.&lt;/strong&gt; See &lt;a href="/docs/getting-started/accessibility/accessible-images-and-media"&gt;Accessible images and media&lt;/a&gt; for current guidance. Drupal 7 reached end of life on 5 January 2025. See &lt;a href="/about/drupal-7/d7eol/partners"&gt;Drupal 7 support options&lt;/a&gt; if you still maintain a Drupal 7 site.&lt;/p&gt;</code></pre>
+
+    <h3>Providing Useful Alternative Text for Images</h3>
+
+    <pre><code>&lt;p&gt;&lt;strong&gt;This Drupal 7 page is no longer supported.&lt;/strong&gt; See &lt;a href="/docs/getting-started/accessibility/accessible-images-and-media"&gt;Accessible images and media&lt;/a&gt; for current guidance. Drupal 7 reached end of life on 5 January 2025. See &lt;a href="/about/drupal-7/d7eol/partners"&gt;Drupal 7 support options&lt;/a&gt; if you still maintain a Drupal 7 site.&lt;/p&gt;</code></pre>
+
+    <h2>Sources checked</h2>
+
+    <ul>
+      <li><a href="https://api.drupal.org/api/drupal/core%21modules%21image%21src%21Plugin%21Field%21FieldType%21ImageItem.php/11.x">Drupal 11 core: ImageItem</a></li>
+      <li><a href="https://api.drupal.org/api/drupal/core%21modules%21system%21templates%21image.html.twig/11.x">Drupal 11 core: image.html.twig</a></li>
+      <li><a href="https://api.drupal.org/api/drupal/core%21modules%21responsive_image%21templates%21responsive-image.html.twig/11.x">Drupal 11 core: responsive-image.html.twig</a></li>
+      <li><a href="https://www.w3.org/WAI/tutorials/images/">W3C: Images Tutorial</a></li>
+      <li><a href="https://www.w3.org/WAI/tutorials/images/decision-tree/">W3C: Alternative text decision tree</a></li>
+      <li><a href="https://www.w3.org/WAI/tutorials/images/complex/">W3C: Complex Images</a></li>
+      <li><a href="https://www.w3.org/WAI/media/av/">W3C: Making Audio and Video Media Accessible</a></li>
+      <li><a href="https://www.w3.org/WAI/media/av/captions/">W3C: Captions and Subtitles</a></li>
+      <li><a href="https://www.w3.org/WAI/media/av/transcripts/">W3C: Transcripts</a></li>
+      <li><a href="https://www.w3.org/WAI/media/av/description/">W3C: Description of Visual Information</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/audio-control.html">W3C: Understanding Audio Control</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/pause-stop-hide.html">W3C: Understanding Pause, Stop, Hide</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/three-flashes-or-below-threshold.html">W3C: Understanding Three Flashes or Below Threshold</a></li>
+    </ul>
+  </main>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<p>Clear page structure and predictable navigation help people understand where they are, find content, and move through a site. Drupal provides accessible defaults, but themes and modules can weaken them by changing templates, markup, CSS, or JavaScript.</p>
+
+<p>Use this guidance when creating or reviewing a theme. Test the rendered page, not only the Twig template.</p>
+
+<h2>Start with semantic HTML</h2>
+
+<p>Use HTML elements according to their purpose. Semantic HTML gives browsers and assistive technologies useful information without additional code.</p>
+
+<ul>
+  <li>Use headings for section titles.</li>
+  <li>Use lists when the content is a list.</li>
+  <li>Use <code>nav</code> for major navigation regions.</li>
+  <li>Use one <code>main</code> element for the page's main content.</li>
+  <li>Use <code>header</code>, <code>footer</code>, and <code>aside</code> where their meanings apply.</li>
+  <li>Use tables for tabular data, not visual layout.</li>
+  <li>Use a button for an action and a link for navigation.</li>
+</ul>
+
+<p>Prefer native HTML over ARIA. Add ARIA only when HTML does not provide the required semantics or state. Do not add a redundant role to a native element unless testing demonstrates a specific compatibility need.</p>
+
+<p>When overriding a Drupal Twig template, preserve the template's <code>attributes</code> variables and other attributes added by Drupal. Removing them can discard identifiers, classes, language information, ARIA attributes, or JavaScript behavior supplied by core or a module.</p>
+
+<h2>Provide a useful page title and language</h2>
+
+<p>Each page needs a concise, descriptive, and reasonably unique <code>title</code>. Drupal assembles this through the <code>head_title</code> variable in <code>html.html.twig</code>. Keep the most specific part of the title easy to identify.</p>
+
+<p>Drupal adds the page language to the <code>html</code> element. Mark passages in another language when correct pronunciation or interpretation depends on it. Do not remove <code>html_attributes</code> when overriding <code>html.html.twig</code>.</p>
+
+<h2>Identify page regions</h2>
+
+<p>HTML regions help screen reader users move directly to major parts of a page. A typical page may include a site header, one or more navigation regions, the main content, complementary content, and a footer.</p>
+
+<ul>
+  <li>Use one <code>main</code> element for content unique to the page.</li>
+  <li>Use <code>nav</code> for major groups of navigation links, not every group of links.</li>
+  <li>Give multiple navigation regions distinct accessible names, such as "Primary", "Secondary", or "Footer". Use a visible heading when it helps everyone. Otherwise, use <code>aria-label</code> or <code>aria-labelledby</code>.</li>
+  <li>Keep region names and purposes consistent across pages and responsive layouts.</li>
+</ul>
+
+<p>Landmarks do not replace headings or a skip link. They provide another way to navigate the page.</p>
+
+<h2>Create a useful heading structure</h2>
+
+<p>Headings describe the page's organization. Their text should identify the section that follows. Choose heading levels from the document structure, not from the desired visual size.</p>
+
+<ul>
+  <li>Provide a clear heading for the main content.</li>
+  <li>Nest headings logically. Avoid skipping levels when practical because unexpected jumps can make the structure harder to understand.</li>
+  <li>After closing a subsection, return to the appropriate higher level.</li>
+  <li>For repeated site regions, a consistent heading level across pages can be more useful than changing the level to match each page's content.</li>
+  <li>Do not use an empty heading or a heading only to produce visual formatting.</li>
+</ul>
+
+<p>WCAG does not require exactly one <code>h1</code>, and a skipped heading level is not automatically a WCAG failure. The goal is a structure that people can understand and use. Do not add visually hidden headings by default to compensate for unclear landmarks. Add them when they provide a useful name or structure.</p>
+
+<h2>Preserve Drupal's skip link</h2>
+
+<p>A skip link lets keyboard users bypass repeated content and move to the main content. Drupal 11 core includes a translated skip link in <code>html.html.twig</code>:</p>
+
+<pre><code class="language-twig">&lt;a href="#main-content" class="visually-hidden focusable"&gt;
+  {{ 'Skip to main content'|t }}
+&lt;/a&gt;</code></pre>
+
+<p>The default <code>page.html.twig</code> provides its target inside the <code>main</code> element:</p>
+
+<pre><code class="language-twig">&lt;main&gt;
+  &lt;a id="main-content" tabindex="-1"&gt;&lt;/a&gt;{# link is in html.html.twig #}
+  ...
+&lt;/main&gt;</code></pre>
+
+<p>If a theme overrides either template, preserve both parts or provide equivalent behavior. The link must be one of the first focusable elements. Its destination must exist on every page. The <code>focusable</code> class makes Drupal's visually hidden link visible when it receives keyboard focus.</p>
+
+<p>Test that activating the link moves focus and the viewport to the main content. The destination must not be hidden behind a sticky header. Do not replace the current pattern with a named anchor, an empty link, custom off-screen positioning copied from old documentation, or text hidden by matching its color to the background.</p>
+
+<h2>Build predictable navigation</h2>
+
+<p>Navigation should remain consistent and usable with a keyboard, touch, speech input, magnification, and screen readers.</p>
+
+<ul>
+  <li>Use descriptive names for navigation regions.</li>
+  <li>Use list markup when the navigation items form a list.</li>
+  <li>Indicate the current page visually and, where appropriate, with <code>aria-current="page"</code>.</li>
+  <li>Keep repeated navigation in a consistent relative order.</li>
+  <li>Make all controls reachable and operable with a keyboard.</li>
+  <li>Do not use a positive <code>tabindex</code> to force focus order.</li>
+</ul>
+
+<p>An ordinary website navigation list is not an application menu. Do not add <code>role="menu"</code>, <code>role="menuitem"</code>, or desktop-application keyboard behavior unless the component actually implements the complete ARIA menu pattern.</p>
+
+<p>For expandable navigation, use a button to control each disclosure. Communicate its state with <code>aria-expanded</code> and associate it with the controlled content when practical. If a top-level item must both navigate and expand a submenu, provide separate link and button controls. Make the collapsed and expanded states understandable at every supported breakpoint.</p>
+
+<h2>Write useful links</h2>
+
+<p>Link text should describe the destination or purpose in its surrounding context. Avoid using a <code>title</code> attribute to repair vague text because it is not consistently available to all users.</p>
+
+<ul>
+  <li>Keep the visible link text and accessible name consistent.</li>
+  <li>Distinguish links that perform different actions.</li>
+  <li>Identify an unexpected file type, download, or new window in the link text or adjacent programmatically associated text.</li>
+  <li>Make links visually identifiable and provide a sufficiently large pointer target or enough spacing to avoid accidental activation.</li>
+</ul>
+
+<h2>Keep reading order and focus order meaningful</h2>
+
+<p>The source order should make sense without CSS. Visual order, reading order, and keyboard focus order should describe the same sequence. Be especially careful when using CSS Grid, Flexbox, absolute positioning, or breakpoint-specific layouts to reorder content.</p>
+
+<p>At high zoom and narrow viewport widths, content should reflow without losing information or controls. If navigation changes into a disclosure or drawer, test opening, closing, focus movement, focus visibility, and return of focus. Do not remove important navigation at a breakpoint without an equivalent way to reach it.</p>
+
+<p>Keyboard focus must be clearly visible and must not be entirely hidden by sticky headers, dialogs, or other author-created content. Do not remove the browser focus indicator unless it is replaced with a visible alternative.</p>
+
+<h2>Mark up data tables</h2>
+
+<p>Use a table only when rows and columns have relationships. Provide a concise <code>caption</code> when it helps identify the table. Mark header cells with <code>th</code> and use <code>scope</code> for simple row or column headers. For a complex table, simplify it where possible. If it must remain complex, associate data cells with their headers using appropriate markup and test the result with a screen reader.</p>
+
+<p>Do not use the obsolete <code>summary</code> attribute. Put essential context in a visible caption or nearby text. When a table needs horizontal scrolling at narrow widths, preserve the header relationships and make sure keyboard users can reach any interactive content. Avoid making a non-interactive wrapper a tab stop without a demonstrated need.</p>
+
+<h2>Test the rendered page</h2>
+
+<p>Automated tools can detect some markup and attribute errors. They cannot determine whether the structure is understandable or whether the navigation works in every state.</p>
+
+<ul>
+  <li>Use only the keyboard to move through the page and operate navigation.</li>
+  <li>Activate the skip link and verify its focus and scroll destination.</li>
+  <li>Review the headings and landmarks with a screen reader.</li>
+  <li>Check link names and the current-page indication.</li>
+  <li>Test navigation at supported breakpoints, 200% zoom, and 400% zoom.</li>
+  <li>Check that focus remains visible and is not obscured.</li>
+  <li>Read representative data tables with a screen reader.</li>
+  <li>Run an automated accessibility checker, then review the results and complete the manual checks.</li>
+</ul>
+
+<h2>Related guidance</h2>
+
+<ul>
+  <li><a href="/docs/getting-started/accessibility/creating-accessible-themes">Creating accessible themes</a></li>
+  <li><a href="/docs/getting-started/accessibility/hide-content-properly">Hide content properly</a></li>
+  <li><a href="/docs/getting-started/accessibility/building-accessible-forms">Building accessible forms</a></li>
+  <li><a href="https://www.w3.org/WAI/tutorials/page-structure/">W3C: Page Structure Tutorial</a></li>
+  <li><a href="https://www.w3.org/WAI/tutorials/menus/">W3C: Menus Tutorial</a></li>
+  <li><a href="https://www.w3.org/WAI/tutorials/tables/">W3C: Tables Tutorial</a></li>
+  <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/bypass-blocks.html">Understanding Success Criterion 2.4.1: Bypass Blocks</a></li>
+</ul>

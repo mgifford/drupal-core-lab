@@ -1,0 +1,45 @@
+<p><strong>Proposal status:</strong> This draft would replace the current Drupal core accessibility gate. Until Drupal approves and publishes the replacement, the current gate remains authoritative.</p>
+
+<p>The accessibility gate applies to Drupal core changes that affect a user interface, rendered output, or the content-authoring experience. It helps contributors and reviewers determine whether a proposed change introduces an accessibility barrier or makes an existing barrier worse.</p>
+
+<p>Passing this gate means that the issue provides enough evidence to evaluate the change and that the change introduces or worsens no known unresolved requirement failure or task-blocking accessibility barrier within the recorded scope. It is not a claim that Drupal core, a feature, or a completed site fully conforms to an accessibility standard.</p>
+
+<h2>Gate checks</h2>
+
+<ol>
+  <li>
+    <h3>Determine applicability and scope</h3>
+    <p>Apply the gate when a change can directly or indirectly affect a public-facing or administration interface, rendered markup or content, styling or visual states, forms or dynamic behavior, or an authoring workflow. In the issue, identify the affected user task, surfaces, and states, and record whether the gate applies to all or part of the change, or is not applicable.</p>
+    <p>Scope can make evaluation proportionate, but it cannot exclude a surface, complete task, or state known to be affected by the change. Resolve a disputed applicability decision before passing the gate. A change with no effect on user-facing output or interaction can record that the gate is not applicable.</p>
+  </li>
+  <li>
+    <h3>Apply the relevant requirements and patterns</h3>
+    <p>Drupal core targets <a href="https://www.w3.org/TR/WCAG22/">Web Content Accessibility Guidelines (WCAG) 2.2 Level AA</a>. For authoring functionality, it also targets <a href="https://www.w3.org/TR/ATAG20/">Authoring Tool Accessibility Guidelines (ATAG) 2.0</a> Level AA. ATAG Part A addresses accessibility for authors with disabilities. Part B addresses support for producing accessible content. Level AAA success criteria and advisory techniques are encouraged, but are not gate requirements unless another core policy or established pattern requires them.</p>
+    <p>Follow Drupal’s <a href="https://www.drupal.org/docs/getting-started/accessibility/accessibility-coding-standards">Accessibility Coding Standards</a>. Use an established core pattern when it fits the task and has no known accessibility problem that affects the change. An existing barrier does not justify a new regression or allow the change to make that barrier worse.</p>
+  </li>
+  <li>
+    <h3>Test the affected task and output</h3>
+    <p>Test the completed interface, final rendered output, and every state affected by the change, not only source code or the default state. Select manual, automated, input-method, browser, and assistive-technology checks based on the task and risk. Automated tools can identify some deterministic failures, but cannot determine conformance or replace manual testing.</p>
+    <p>For authoring functionality, record separate outcomes for whether disabled authors can complete the task (ATAG Part A) and whether the feature preserves accessibility information and helps authors produce accessible output (ATAG Part B). Test the published or otherwise consumed output against the relevant WCAG target. Follow the step-by-step guide to <a href="https://www.drupal.org/docs/getting-started/accessibility/how-to-do-an-accessibility-review">performing an accessibility review</a> for the detailed test procedure.</p>
+  </li>
+  <li>
+    <h3>Record reproducible evidence</h3>
+    <p>Record the revision or baseline, affected task and states, repeatable steps, expected and actual results, relevant test environment, checks performed, checks not performed and why, known limitations, and follow-up issues. Compare the relevant behavior before and after the change. If no comparable baseline exists, explain why and define the expected result.</p>
+    <p>Make review artifacts accessible. Describe information in images in text, and provide captions or a transcript for recordings needed to understand the result. Keep automated-rule exceptions narrow, document the reason and follow-up issue, and state when the exception should be rechecked.</p>
+  </li>
+  <li>
+    <h3>Resolve barriers and request review</h3>
+    <p>The gate passes when the applicable checks are complete, the evidence and gate rationale are recorded, and the change introduces or worsens no known unresolved failure of an applicable WCAG 2.2 or ATAG 2.0 Level A or AA requirement, or a task-blocking accessibility barrier, within the recorded scope. A follow-up issue is acceptable for a pre-existing or out-of-scope problem only when the proposed change does not make it worse. Postpone a change that introduces a regression, omits an accessible way to complete the task, hides relevant failures, or lacks enough evidence to review a complex or high-risk interaction.</p>
+    <p>For an issue that significantly affects, or could significantly affect, accessibility, add the <a href="https://www.drupal.org/docs/develop/issues/fields-and-other-parts-of-an-issue/issue-tags-special-tags"><code>Needs accessibility review</code> issue tag</a> early. Indicators include a new or substantially revised pattern; a custom control, dialog, popover, drag interaction, focus behavior, semantic structure, dynamic status or error, or authoring workflow; a change that could prevent disabled people with a particular access need from completing the task; or an unresolved accessibility question.</p>
+    <p>The tag alerts Accessibility Topic Maintainers and signals that their signoff is needed. Routine changes using established patterns still need applicable gate evidence, but do not automatically require the tag. A specialist review does not transfer responsibility for accessibility to the reviewer.</p>
+  </li>
+</ol>
+
+<h2>Related guidance</h2>
+
+<ul>
+  <li><a href="https://www.drupal.org/docs/getting-started/accessibility/accessibility-coding-standards">Accessibility Coding Standards</a></li>
+  <li><a href="https://www.drupal.org/docs/getting-started/accessibility/how-to-ensure-your-contribution-is-accessible">How to ensure your contribution is accessible</a></li>
+  <li><a href="https://www.drupal.org/docs/getting-started/accessibility/how-to-do-an-accessibility-review">How to perform an accessibility review</a></li>
+  <li><a href="https://www.drupal.org/about/features/accessibility">Accessibility in Drupal</a></li>
+</ul>

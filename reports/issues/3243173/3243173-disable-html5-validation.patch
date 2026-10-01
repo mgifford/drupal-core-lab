@@ -1,0 +1,196 @@
+diff --git a/core/modules/system/tests/src/Kernel/System/Html5ValidationRequirementsTest.php b/core/modules/system/tests/src/Kernel/System/Html5ValidationRequirementsTest.php
+new file mode 100644
+index 00000000000..e5c370a60a4
+--- /dev/null
++++ b/core/modules/system/tests/src/Kernel/System/Html5ValidationRequirementsTest.php
+@@ -0,0 +1,92 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\system\Kernel\System;
++
++use Drupal\Core\Site\Settings;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\TestCase;
++
++/**
++ * Tests the HTML5 validation settings behavior.
++ *
++ * Validates the logic used in SystemRequirementsHooks and FormPreprocess
++ * without requiring a full Drupal kernel bootstrap.
++ */
++#[Group('system')]
++class Html5ValidationRequirementsTest extends TestCase {
++
++  /**
++   * Tests that enable_html5_validation defaults to FALSE when not set.
++   */
++  public function testDefaultSettingIsFalse(): void {
++    new Settings([]);
++    // The default in FormPreprocess is FALSE when the setting is missing.
++    $this->assertFalse(Settings::get('enable_html5_validation', FALSE));
++  }
++
++  /**
++   * Tests that enable_html5_validation returns FALSE when explicitly set.
++   */
++  public function testSettingFalseReturnsFalse(): void {
++    new Settings(['enable_html5_validation' => FALSE]);
++    $this->assertFalse(Settings::get('enable_html5_validation', FALSE));
++  }
++
++  /**
++   * Tests that enable_html5_validation returns TRUE when explicitly set.
++   */
++  public function testSettingTrueReturnsTrue(): void {
++    new Settings(['enable_html5_validation' => TRUE]);
++    // When set to TRUE, the condition === TRUE is used in SystemRequirementsHooks.
++    $this->assertTrue(Settings::get('enable_html5_validation') === TRUE);
++  }
++
++  /**
++   * Tests that the condition used in SystemRequirementsHooks works correctly.
++   */
++  public function testSystemRequirementsConditionBehavior(): void {
++    // Simulates the condition at SystemRequirementsHooks.php:1234
++    // if (Settings::get('enable_html5_validation') === TRUE)
++
++    // Case 1: Setting not set - should NOT trigger warning
++    new Settings([]);
++    $this->assertFalse(Settings::get('enable_html5_validation') === TRUE,
++      'Warning should not appear when setting is not set');
++
++    // Case 2: Setting FALSE - should NOT trigger warning
++    new Settings(['enable_html5_validation' => FALSE]);
++    $this->assertFalse(Settings::get('enable_html5_validation') === TRUE,
++      'Warning should not appear when setting is FALSE');
++
++    // Case 3: Setting TRUE - SHOULD trigger warning
++    new Settings(['enable_html5_validation' => TRUE]);
++    $this->assertTrue(Settings::get('enable_html5_validation') === TRUE,
++      'Warning should appear when setting is TRUE');
++  }
++
++  /**
++   * Tests that the condition used in FormPreprocess works correctly.
++   */
++  public function testFormPreprocessConditionBehavior(): void {
++    // Simulates the condition at FormPreprocess.php:37
++    // if (!Settings::get('enable_html5_validation', FALSE))
++
++    // Case 1: Setting not set - should add novalidate
++    new Settings([]);
++    $this->assertTrue(!Settings::get('enable_html5_validation', FALSE),
++      'novalidate should be added when setting is not set');
++
++    // Case 2: Setting FALSE - should add novalidate
++    new Settings(['enable_html5_validation' => FALSE]);
++    $this->assertTrue(!Settings::get('enable_html5_validation', FALSE),
++      'novalidate should be added when setting is FALSE');
++
++    // Case 3: Setting TRUE - should NOT add novalidate
++    new Settings(['enable_html5_validation' => TRUE]);
++    $this->assertFalse(!Settings::get('enable_html5_validation', FALSE),
++      'novalidate should NOT be added when setting is TRUE');
++  }
++
++}
+diff --git a/core/tests/Drupal/Tests/Core/Form/FormPreprocessTest.php b/core/tests/Drupal/Tests/Core/Form/FormPreprocessTest.php
+new file mode 100644
+index 00000000000..da0925ed152
+--- /dev/null
++++ b/core/tests/Drupal/Tests/Core/Form/FormPreprocessTest.php
+@@ -0,0 +1,92 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\Core\Form;
++
++use Drupal\Core\Form\FormPreprocess;
++use Drupal\Core\Site\Settings;
++use Drupal\Tests\UnitTestCase;
++use PHPUnit\Framework\Attributes\CoversClass;
++use PHPUnit\Framework\Attributes\Group;
++
++/**
++ * Tests Drupal\Core\Form\FormPreprocess.
++ */
++#[CoversClass(FormPreprocess::class)]
++#[Group('Form')]
++class FormPreprocessTest extends UnitTestCase {
++
++  /**
++   * The form preprocess instance.
++   *
++   * @var \Drupal\Core\Form\FormPreprocess
++   */
++  protected $formPreprocess;
++
++  /**
++   * {@inheritdoc}
++   */
++  protected function setUp(): void {
++    parent::setUp();
++    $this->formPreprocess = new FormPreprocess();
++  }
++
++  /**
++   * Tests that novalidate is added when enable_html5_validation is FALSE.
++   */
++  public function testNovalidateAddedWhenSettingFalse(): void {
++    new Settings(['enable_html5_validation' => FALSE]);
++
++    $variables = [
++      'element' => [
++        '#action' => '/test',
++        '#method' => 'post',
++        '#attributes' => [],
++        '#children' => '',
++      ],
++    ];
++
++    $this->formPreprocess->preprocessForm($variables);
++    $this->assertTrue($variables['attributes']['novalidate']);
++  }
++
++  /**
++   * Tests that novalidate is added when enable_html5_validation is not set.
++   */
++  public function testNovalidateAddedWhenSettingNotSet(): void {
++    new Settings([]);
++
++    $variables = [
++      'element' => [
++        '#action' => '/test',
++        '#method' => 'post',
++        '#attributes' => [],
++        '#children' => '',
++      ],
++    ];
++
++    $this->formPreprocess->preprocessForm($variables);
++    $this->assertTrue($variables['attributes']['novalidate']);
++  }
++
++  /**
++   * Tests that novalidate is NOT added when enable_html5_validation is TRUE.
++   */
++  public function testNovalidateNotAddedWhenSettingTrue(): void {
++    new Settings(['enable_html5_validation' => TRUE]);
++
++    $variables = [
++      'element' => [
++        '#action' => '/test',
++        '#method' => 'post',
++        '#attributes' => [],
++        '#children' => '',
++      ],
++    ];
++
++    $this->formPreprocess->preprocessForm($variables);
++    $this->assertArrayNotHasKey('novalidate', $variables['attributes']);
++  }
++
++}

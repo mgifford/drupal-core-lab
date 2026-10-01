@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Issue #6: Fix unlabeled controls in core test fixtures and example forms</title>
+<style>
+ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; line-height:1.5; max-width:860px; margin:2rem auto; padding:0 1rem; color:#222; }
+ h1 { font-size:1.5rem; border-bottom:2px solid #ccc; padding-bottom:.4rem; }
+ h2 { font-size:1.1rem; margin-top:2rem; color:#1a1a1a; }
+ table.fields { border-collapse:collapse; width:100%; margin:1rem 0; }
+ table.fields th, table.fields td { border:1px solid #ddd; padding:.5rem .7rem; text-align:left; vertical-align:top; }
+ table.fields th { background:#f4f4f4; width:34%; }
+ pre { background:#f6f8fa; border:1px solid #ddd; padding:.7rem; overflow:auto; }
+ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.85rem; }
+ ul { margin:.4rem 0; }
+ .sev { font-weight:bold; }
+ .status { background:#fff8e1; border-left:4px solid #f0a020; padding:.6rem .8rem; }
+</style>
+</head>
+<body>
+<h1>Accessibility Issue #6: Fix unlabeled controls in core test fixtures and example forms</h1>
+
+<h2>Required fields</h2>
+<table class="fields">
+<tr><th>Bug ID</th><td>DRU-933004-06</td></tr>
+<tr><th>Parent issue</th><td>Drupal.org #933004 (meta: Accessible titles)</td></tr>
+<tr><th>Issue URL</th><td>https://www.drupal.org/project/drupal/issues/933004  (child URL assigned on filing)</td></tr>
+<tr><th>Code location / XPath</th><td>core/modules/system/tests/modules/form_test/</td></tr>
+<tr><th>Full code path</th><td>core/modules/*/tests/modules/*/src/Form/*TestForm.php</td></tr>
+<tr><th>HTML / code snippet</th><td><pre><code>&lt;!-- test/example forms used as fixtures must themselves pass the title rules
+     so they do not mask real regressions --&gt;</code></pre></td></tr>
+<tr><th>WCAG 2.2 SC</th><td>1.1.1 Non-text Content (A); 4.1.2 Name, Role, Value (A)</td></tr>
+<tr><th>Tool / rule ID</th><td>label (axe-core)</td></tr>
+<tr><th>Severity</th><td>Medium</td></tr>
+<tr><th>Frequency</th><td>Test modules only; affects CI signal quality.</td></tr>
+</table>
+
+<h2>Summary</h2>
+<p>Core test/example forms contain unlabeled controls; fix them so the baseline reflects real product code, not test scaffolding.</p>
+
+<h2>Description</h2>
+<p>Test fixtures with unlabeled controls pollute the baseline and can hide real regressions. Clean them up so the guard is trustworthy.</p>
+
+<h2>Steps to reproduce</h2>
+<ol><li>Grep test modules for &#x27;#type&#x27; without &#x27;#title&#x27;</li>
+<li>Fix fixtures</li>
+<li>Re-run baseline test</li></ol>
+
+<h2>Expected result</h2>
+<p>Test fixtures are clean; baseline counts only product-code elements.</p>
+
+<h2>Actual result</h2>
+<p>Some fixtures contribute to the baseline noise.</p>
+
+<h2>Testing environment</h2>
+<ul><li>Drupal 11.x</li>
+<li>PHPUnit</li>
+<li>commit-code-check.sh</li></ul>
+
+<h2>Impact</h2>
+<p>Cleaner, more trustworthy regression signal.</p>
+
+<h2>Suggested fix</h2>
+<p>Add #title to test/example form controls or mark them explicitly excluded.</p>
+
+<h2>Scope</h2>
+<ul><li>form_test</li>
+<li>other test module forms</li></ul>
+
+<h2>Out of scope</h2>
+<ul><li>Product code (covered by other parts)</li></ul>
+
+<h2>Open questions</h2>
+<ul><li>Should fixtures be excluded or fixed?</li></ul>
+
+<h2>Depends on / blocks</h2>
+<p>Part 1. Blocks: nothing.</p>
+
+<h2>Status</h2>
+<p class="status">Drafted (not implemented).</p>
+
+<p><small>AI-assisted: yes. Tool: opencode (hy3). External code copied: no. External sources consulted: Drupal.org #933004, MR !7659, axe-core rule docs. Copyright concern: none known.</small></p>
+</body>
+</html>

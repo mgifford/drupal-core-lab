@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Drupal 7 page replaced by Building accessible forms</title>
+</head>
+<body>
+	<main>
+		<h1>Drupal 7 page replaced by Building accessible forms</h1>
+
+		<p>This document records how the new <a href="https://www.drupal.org/docs/getting-started/accessibility/building-accessible-forms">Building accessible forms</a> page replaces the Drupal 7 page of the same name. It identifies retained concepts, corrected guidance, new coverage, and the archival text for the Drupal 7 page.</p>
+
+		<h2>Page replaced</h2>
+
+		<table>
+			<caption>Drupal 7 source and current destination</caption>
+			<thead>
+				<tr>
+					<th scope="col">Drupal 7 source</th>
+					<th scope="col">Current destination</th>
+					<th scope="col">Treatment</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/docs/7/creating-accessible-themes/building-accessible-forms">Building accessible forms</a></th>
+					<td><a href="https://www.drupal.org/docs/getting-started/accessibility/building-accessible-forms">Building accessible forms</a></td>
+					<td>Rewritten for supported Drupal versions, Drupal Form API, WCAG 2.2, ATAG 2.0, current browser behavior, and complete-workflow testing.</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<h2>Detailed changes</h2>
+
+		<table>
+			<caption>Treatment of guidance from the Drupal 7 page</caption>
+			<thead>
+				<tr>
+					<th scope="col">Drupal 7 guidance</th>
+					<th scope="col">Change</th>
+					<th scope="col">Reason</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<th scope="row">Place important information and instructions at the top of the form.</th>
+					<td>Retained and made more specific.</td>
+					<td>The replacement distinguishes general instructions from control-specific help and requires instructions before they are needed.</td>
+				</tr>
+				<tr>
+					<th scope="row">Indicate required fields with a red asterisk or an icon with alternative text.</th>
+					<td>Replaced with Drupal’s <code>#required</code> property and consistent text and programmatic state.</td>
+					<td>A color, symbol, or icon is not sufficient by itself. Form API should generate the required state instead of theme-specific markup.</td>
+				</tr>
+				<tr>
+					<th scope="row">Associate each label using matching <code>for</code> and <code>id</code> attributes.</th>
+					<td>Retained through Drupal Form API.</td>
+					<td>The relationship remains correct, but module and theme developers should normally use <code>#title</code> rather than constructing labels and IDs manually.</td>
+				</tr>
+				<tr>
+					<th scope="row">Use a <code>title</code> attribute if there is no room for a visible label.</th>
+					<td>Removed.</td>
+					<td>The title attribute is an unreliable replacement for a persistent label and is unavailable to many keyboard, touch, speech-input, and magnification users.</td>
+				</tr>
+				<tr>
+					<th scope="row">Move labels off-screen when the design has no room.</th>
+					<td>Narrowed to exceptional cases using <code>#title_display</code> set to <code>invisible</code>.</td>
+					<td>Visible labels are generally more usable. A visually hidden label is appropriate only when the rendered context still identifies the control and the result is tested.</td>
+				</tr>
+				<tr>
+					<th scope="row">Place labels close to their controls.</th>
+					<td>Retained and expanded.</td>
+					<td>The replacement requires the relationship to remain clear after zoom, reflow, and text-spacing changes.</td>
+				</tr>
+				<tr>
+					<th scope="row">Include the required-field indicator inside the label.</th>
+					<td>Handled through Form API output.</td>
+					<td>The current page avoids prescribing hand-written indicator markup that may conflict with Drupal’s generated label and state.</td>
+				</tr>
+				<tr>
+					<th scope="row">Place help text between the label and field.</th>
+					<td>Reframed around timing, proximity, and programmatic association.</td>
+					<td>Exact visual placement depends on the control and layout. The important outcome is that instructions are available before input and associated with the control.</td>
+				</tr>
+				<tr>
+					<th scope="row">Allow people to hide or show help text.</th>
+					<td>Removed as a general requirement.</td>
+					<td>Disclosure may be useful for lengthy optional help, but hiding required instructions can create a barrier. The decision depends on the form.</td>
+				</tr>
+				<tr>
+					<th scope="row">Use <code>fieldset</code> and <code>legend</code> for related controls.</th>
+					<td>Retained.</td>
+					<td>The replacement explains the programmatic grouping purpose and warns that visual borders or proximity are not equivalent.</td>
+				</tr>
+				<tr>
+					<th scope="row">Write legends and labels to avoid excessive repetition.</th>
+					<td>Retained in concise form.</td>
+					<td>Legends and labels must make sense together while remaining understandable individually.</td>
+				</tr>
+				<tr>
+					<th scope="row">Divide lengthy forms into pages or sections.</th>
+					<td>Retained and expanded.</td>
+					<td>The replacement adds progress information, state preservation, back navigation, privacy, and security considerations.</td>
+				</tr>
+				<tr>
+					<th scope="row">Summarize errors, link to affected fields, and highlight them.</th>
+					<td>Retained and expanded.</td>
+					<td>The replacement covers text identification, correction guidance, programmatic relationships, value preservation, focus, Ajax, and responsive layouts.</td>
+				</tr>
+				<tr>
+					<th scope="row">Allow confirmation or undo for important actions.</th>
+					<td>Retained and tied to applicable WCAG error-prevention requirements.</td>
+					<td>The original advice was correct but too general to guide legal, financial, data-changing, or other serious submissions.</td>
+				</tr>
+				<tr>
+					<th scope="row">General WebAIM forms link.</th>
+					<td>Replaced by the current W3C Forms Tutorial and Drupal Form API documentation.</td>
+					<td>The replacement prioritizes current primary and Drupal-specific sources.</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<h2>Coverage added</h2>
+
+		<p>The current page adds:</p>
+
+		<ul>
+			<li>Drupal Form API properties and a current example.</li>
+			<li>Native HTML controls and valid input types.</li>
+			<li>WCAG autocomplete tokens and input-purpose identification.</li>
+			<li>Persistent labels, placeholders, visible-label consistency, and speech input.</li>
+			<li>Browser, client-side, Ajax, and server-side validation working together.</li>
+			<li>Inline Form Errors module scope and limitations.</li>
+			<li>Conditional fields, loading states, status messages, and dynamic requirements.</li>
+			<li>Redundant-entry, accessible-authentication, password-manager, and copy-and-paste requirements.</li>
+			<li>Timeouts, re-authentication, and data preservation.</li>
+			<li>Custom-control semantics, states, keyboard behavior, and testing.</li>
+			<li>ATAG responsibilities for authoring forms and their output.</li>
+			<li>Complete-workflow testing with keyboard, zoom, reflow, autofill, invalid input, assistive technology, and disabled users.</li>
+			<li>The limits of automated form testing.</li>
+		</ul>
+
+		<h2>Suggested archival text</h2>
+
+		<p>Replace the body of the Drupal 7 <a href="https://www.drupal.org/docs/7/creating-accessible-themes/building-accessible-forms">Building accessible forms</a> page with:</p>
+
+		<pre><code class="language-html">&lt;p&gt;&lt;strong&gt;This Drupal 7 page is archived and no longer maintained.&lt;/strong&gt; See &lt;a href="https://www.drupal.org/docs/getting-started/accessibility/building-accessible-forms"&gt;Building accessible forms&lt;/a&gt; for current guidance covering Drupal Form API, labels, instructions, validation, errors, dynamic forms, and testing. Drupal 7 reached end of life on January 5, 2025. See &lt;a href="https://www.drupal.org/about/drupal-7/d7eol/partners"&gt;Drupal 7 End of Life&lt;/a&gt; for migration resources and extended-support options.&lt;/p&gt;</code></pre>
+
+		<h2>Sources checked</h2>
+
+		<ul>
+			<li><a href="https://www.drupal.org/docs/7/creating-accessible-themes/building-accessible-forms">Building accessible forms, Drupal 7</a></li>
+			<li><a href="https://www.drupal.org/docs/develop/drupal-apis/form-api">Drupal Form API</a></li>
+			<li><a href="https://www.drupal.org/docs/8/core/modules/inline-form-errors/inline-form-errors-module-overview">Inline Form Errors module overview</a></li>
+			<li><a href="https://www.w3.org/TR/WCAG22/">Web Content Accessibility Guidelines 2.2</a></li>
+			<li><a href="https://www.w3.org/TR/ATAG20/">Authoring Tool Accessibility Guidelines 2.0</a></li>
+			<li><a href="https://www.w3.org/WAI/tutorials/forms/">W3C Forms Tutorial</a></li>
+			<li><a href="https://www.w3.org/WAI/tutorials/forms/labels/">W3C Labeling Controls</a></li>
+			<li><a href="https://www.w3.org/WAI/tutorials/forms/instructions/">W3C Form Instructions</a></li>
+			<li><a href="https://www.w3.org/WAI/tutorials/forms/validation/">W3C Validating Input</a></li>
+			<li><a href="https://www.w3.org/WAI/WCAG22/Understanding/error-identification.html">Understanding Error Identification</a></li>
+			<li><a href="https://www.w3.org/WAI/WCAG22/Understanding/redundant-entry.html">Understanding Redundant Entry</a></li>
+		</ul>
+	</main>
+</body>
+</html>

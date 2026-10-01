@@ -1,0 +1,428 @@
+diff --git a/core/lib/Drupal/Core/Form/FormErrorHandler.php b/core/lib/Drupal/Core/Form/FormErrorHandler.php
+index a414439f8fd..6269abc374f 100644
+--- a/core/lib/Drupal/Core/Form/FormErrorHandler.php
++++ b/core/lib/Drupal/Core/Form/FormErrorHandler.php
+@@ -13,6 +13,31 @@ class FormErrorHandler implements FormErrorHandlerInterface {
+ 
+   use MessengerTrait;
+ 
++  /**
++   * Resolves the error message ID for a form element.
++   *
++   * The ID is used for:
++   * - The `id` attribute on the error message container.
++   * - The `aria-errormessage` attribute on the form control.
++   * - The first token in the `aria-describedby` attribute when present.
++   *
++   * @param array $element
++   *   The form element array.
++   *
++   * @return string
++   *   The error message ID.
++   */
++  public static function getErrorId(array $element): string {
++    if (!empty($element['#error_id'])) {
++      return $element['#error_id'];
++    }
++    if (!empty($element['#id'])) {
++      return $element['#id'] . '--error-message';
++    }
++    // Fallback for elements without an ID.
++    return 'form-error-' . substr(md5(serialize($element['#array_parents'] ?? [])), 0, 12);
++  }
++
+   /**
+    * {@inheritdoc}
+    */
+@@ -49,7 +74,7 @@ protected function displayErrorMessages(array $form, FormStateInterface $form_st
+   /**
+    * Stores errors and a list of child element errors directly on each element.
+    *
+-   * Grouping elements like containers, details, fieldgroups and fieldsets may
++   * Grouping elements like containers, details and fieldsets may
+    * need error info from their child elements to be able to accessibly show
+    * form error messages to a user. For example, a details element should be
+    * opened when child elements have errors.
+diff --git a/core/lib/Drupal/Core/Form/FormPreprocess.php b/core/lib/Drupal/Core/Form/FormPreprocess.php
+index 2a22d44e4a7..8c82c80d8ac 100644
+--- a/core/lib/Drupal/Core/Form/FormPreprocess.php
++++ b/core/lib/Drupal/Core/Form/FormPreprocess.php
+@@ -34,7 +34,7 @@ public function preprocessForm(array &$variables): void {
+     if (empty($element['#attributes']['accept-charset'])) {
+       $element['#attributes']['accept-charset'] = "UTF-8";
+     }
+-    if (!Settings::get('enable_html5_validation', TRUE)) {
++    if (!Settings::get('enable_html5_validation', FALSE)) {
+       // Prevent client-side HTML5 validation for usability and accessibility.
+       // @see https://www.drupal.org/node/3537128
+       $element['#attributes']['novalidate'] = TRUE;
+@@ -119,6 +119,7 @@ public function preprocessFormElement(array &$variables): void {
+ 
+     // Suppress error messages.
+     $variables['errors'] = NULL;
++    $variables['error_id'] = NULL;
+ 
+     // If #title is not set, we don't display any label.
+     if (!isset($element['#title'])) {
+@@ -333,6 +334,7 @@ public function preprocessFieldset(array &$variables): void {
+ 
+     // Suppress error messages.
+     $variables['errors'] = NULL;
++    $variables['error_id'] = NULL;
+   }
+ 
+   /**
+@@ -370,6 +372,7 @@ public function preprocessDetails(array &$variables): void {
+ 
+     // Suppress error messages.
+     $variables['errors'] = NULL;
++    $variables['error_id'] = NULL;
+   }
+ 
+   /**
+diff --git a/core/modules/inline_form_errors/src/FormErrorHandler.php b/core/modules/inline_form_errors/src/FormErrorHandler.php
+index 2a449ab89da..6fe6fd9bec1 100644
+--- a/core/modules/inline_form_errors/src/FormErrorHandler.php
++++ b/core/modules/inline_form_errors/src/FormErrorHandler.php
+@@ -50,6 +50,113 @@ public function __construct(TranslationInterface $string_translation, RendererIn
+     $this->messenger = $messenger;
+   }
+ 
++  /**
++   * {@inheritdoc}
++   */
++  public function handleFormErrors(array &$form, FormStateInterface $form_state): static {
++    parent::handleFormErrors($form, $form_state);
++
++    if (!empty($form_state->getErrors()) && empty($form['#disable_inline_form_errors'])) {
++      $this->setElementInlineErrors($form);
++    }
++    return $this;
++  }
++
++  /**
++   * Sets inline errors on form elements.
++   *
++   * This method sets ARIA attributes on all form elements with errors,
++   * including table and tableselect elements. It ensures proper
++   * programmatic association of error messages with form controls.
++   *
++   * @param array $elements
++   *   An associative array of form elements.
++   */
++  protected function setElementInlineErrors(array &$elements): void {
++    foreach ($elements as &$element) {
++      if (!is_array($element)) {
++        continue;
++      }
++
++      // Recurse into children first.
++      $this->setElementInlineErrors($element);
++
++      // Process this element if it has errors and is not suppressed.
++      if (!empty($element['#errors']) && empty($element['#error_no_message'])) {
++        $error_id = static::getErrorId($element);
++
++        // Set aria-invalid on the element.
++        $element['#attributes']['aria-invalid'] = 'true';
++
++        // Set aria-errormessage to point to the error container.
++        $element['#attributes']['aria-errormessage'] = $error_id;
++
++        // Update aria-describedby to include the error ID as the first token.
++        $this->prependErrorToDescribedby($element, $error_id);
++      }
++    }
++  }
++
++  /**
++   * Sets inline errors on table and tableselect elements.
++   *
++   * The parent FormErrorHandler does not set inline errors on table and
++   * tableselect elements because they are compound elements. This method
++   * ensures they display inline errors via aria-describedby.
++   *
++   * @param array $elements
++   *   An associative array of form elements.
++   */
++  protected function setTableElementInlineErrors(array &$elements): void {
++    foreach ($elements as &$element) {
++      if (!is_array($element)) {
++        continue;
++      }
++
++      if (in_array($element['#type'] ?? NULL, ['table', 'tableselect'], TRUE)
++        && !empty($element['#errors'])
++        && empty($element['#error_no_message'])
++      ) {
++        $error_id = static::getErrorId($element);
++        $existing_prefix = (string) ($element['#prefix'] ?? '');
++
++        $error_markup = '<div id="' . $error_id . '" class="form-item--error-message">' . $element['#errors'] . '</div>';
++        $element['#prefix'] = $error_markup . $existing_prefix;
++
++        if (empty($element['#attributes']['aria-describedby'])) {
++          $element['#attributes']['aria-describedby'] = $error_id;
++        }
++        else {
++          $element['#attributes']['aria-describedby'] .= ' ' . $error_id;
++        }
++      }
++      else {
++        $this->setTableElementInlineErrors($element);
++      }
++    }
++  }
++
++  /**
++   * Prepends the error ID to aria-describedby.
++   *
++   * This method ensures the error ID is the first token in the
++   * aria-describedby attribute, preserving any existing description IDs.
++   *
++   * @param array &$element
++   *   The form element to update.
++   * @param string $error_id
++   *   The error message ID to prepend.
++   */
++  protected function prependErrorToDescribedby(array &$element, string $error_id): void {
++    $existing = $element['#attributes']['aria-describedby'] ?? '';
++    $tokens = preg_split('/\s+/', trim($existing));
++    $tokens = array_filter($tokens, function ($token) use ($error_id) {
++      return $token !== $error_id;
++    });
++    array_unshift($tokens, $error_id);
++    $element['#attributes']['aria-describedby'] = trim(implode(' ', $tokens));
++  }
++
+   /**
+    * Loops through and displays all form errors.
+    *
+diff --git a/core/modules/inline_form_errors/src/Hook/InlineFormErrorsThemeHooks.php b/core/modules/inline_form_errors/src/Hook/InlineFormErrorsThemeHooks.php
+index a15dae146fb..e82eb9258a7 100644
+--- a/core/modules/inline_form_errors/src/Hook/InlineFormErrorsThemeHooks.php
++++ b/core/modules/inline_form_errors/src/Hook/InlineFormErrorsThemeHooks.php
+@@ -2,15 +2,13 @@
+ 
+ namespace Drupal\inline_form_errors\Hook;
+ 
++use Drupal\Core\Form\FormErrorHandler;
+ use Drupal\Core\Hook\Attribute\Hook;
+ 
+ /**
+  * Hook implementations for inline_form_errors.
+  */
+ class InlineFormErrorsThemeHooks {
+-  /**
+-   * @file
+-   */
+ 
+   /**
+    * Implements hook_preprocess_HOOK() for form element templates.
+@@ -51,6 +49,7 @@ protected function setErrors(&$variables): void {
+     $element = $variables['element'];
+     if (!empty($element['#errors']) && empty($element['#error_no_message'])) {
+       $variables['errors'] = $element['#errors'];
++      $variables['error_id'] = FormErrorHandler::getErrorId($element);
+     }
+   }
+ 
+diff --git a/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php b/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php
+index d5d3dfad846..30da93aa7c7 100644
+--- a/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php
++++ b/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php
+@@ -11,6 +11,7 @@
+ use Drupal\Tests\UnitTestCase;
+ use PHPUnit\Framework\Attributes\CoversClass;
+ use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\MockObject\MockObject;
+ 
+ /**
+  * Tests Drupal\inline_form_errors\FormErrorHandler.
+@@ -28,24 +29,13 @@ class FormErrorHandlerTest extends UnitTestCase {
+ 
+   /**
+    * The messenger.
+-   *
+-   * @var \Drupal\Core\Messenger\MessengerInterface|\PHPUnit\Framework\MockObject\MockObject
+    */
+-  protected $messenger;
++  protected MessengerInterface&MockObject $messenger;
+ 
+   /**
+    * The renderer.
+-   *
+-   * @var \Drupal\Core\Render\RendererInterface|\PHPUnit\Framework\MockObject\MockObject
+    */
+-  protected $renderer;
+-
+-  /**
+-   * The link generator.
+-   *
+-   * @var \Drupal\Core\Utility\LinkGeneratorInterface|\PHPUnit\Framework\MockObject\MockObject
+-   */
+-  protected $linkGenerator;
++  protected RendererInterface&MockObject $renderer;
+ 
+   /**
+    * Form for testing.
+@@ -115,6 +105,16 @@ protected function setUp(): void {
+       '#array_parents' => ['test6'],
+       '#id' => 'edit-test6',
+     ];
++    $this->testForm['tableselect'] = [
++      '#type' => 'tableselect',
++      '#title' => 'Tableselect test',
++      '#parents' => ['tableselect'],
++      '#array_parents' => ['tableselect'],
++      '#id' => 'edit-tableselect',
++      '#options' => [],
++      '#header' => [],
++      '#attributes' => [],
++    ];
+   }
+ 
+   /**
+@@ -143,7 +143,7 @@ public function testErrorMessagesInline(): void {
+ 
+     $this->renderer->expects($this->once())
+       ->method('renderInIsolation')
+-      ->willReturnCallback(function ($render_array) {
++      ->willReturnCallback(function ($render_array): string {
+         $links = [];
+         foreach ($render_array[1]['#items'] as $item) {
+           $links[] = htmlspecialchars($item['#title']);
+@@ -220,4 +220,94 @@ public function testErrorMessagesNotInline(): void {
+     $this->assertSame('element is invisible', $this->testForm['test6']['#errors']);
+   }
+ 
++  /**
++   * Tests that ARIA attributes are set correctly on elements with errors.
++   */
++  public function testAriaAttributesSetCorrectly(): void {
++    $form_state = new FormState();
++    $form_state->setErrorByName('test1', 'invalid');
++    $this->formErrorHandler->handleFormErrors($this->testForm, $form_state);
++
++    // Assert aria-invalid is set.
++    $this->assertSame('true', $this->testForm['test1']['#attributes']['aria-invalid']);
++    // Assert aria-errormessage is set.
++    $this->assertSame('edit-test1--error-message', $this->testForm['test1']['#attributes']['aria-errormessage']);
++    // Assert aria-describedby contains the error ID as the first token.
++    $this->assertSame('edit-test1--error-message', $this->testForm['test1']['#attributes']['aria-describedby']);
++  }
++
++  /**
++   * Tests that aria-describedby preserves existing descriptions.
++   */
++  public function testAriaDescribedbyPreservesExistingDescriptions(): void {
++    $this->testForm['test1']['#description'] = 'Help text for test1';
++    $this->testForm['test1']['#attributes']['aria-describedby'] = 'edit-test1--description';
++
++    $form_state = new FormState();
++    $form_state->setErrorByName('test1', 'invalid');
++    $this->formErrorHandler->handleFormErrors($this->testForm, $form_state);
++
++    // Assert aria-describedby has error ID first, then description ID.
++    $this->assertSame('edit-test1--error-message edit-test1--description', $this->testForm['test1']['#attributes']['aria-describedby']);
++  }
++
++  /**
++   * Tests that error_no_message suppresses ARIA attributes.
++   */
++  public function testErrorNoMessageSuppressesAriaAttributes(): void {
++    $form_state = new FormState();
++    $form_state->setErrorByName('test4', 'no error message');
++    $this->formErrorHandler->handleFormErrors($this->testForm, $form_state);
++
++    // Assert ARIA attributes are NOT set when error_no_message is TRUE.
++    $this->assertArrayNotHasKey('aria-invalid', $this->testForm['test4']['#attributes'] ?? []);
++    $this->assertArrayNotHasKey('aria-errormessage', $this->testForm['test4']['#attributes'] ?? []);
++    $this->assertArrayNotHasKey('aria-describedby', $this->testForm['test4']['#attributes'] ?? []);
++  }
++
++  /**
++   * Tests that custom #error_id is respected.
++   */
++  public function testCustomErrorId(): void {
++    $this->testForm['test1']['#error_id'] = 'custom-error-id';
++
++    $form_state = new FormState();
++    $form_state->setErrorByName('test1', 'invalid');
++    $this->formErrorHandler->handleFormErrors($this->testForm, $form_state);
++
++    // Assert custom error ID is used.
++    $this->assertSame('custom-error-id', $this->testForm['test1']['#attributes']['aria-errormessage']);
++    $this->assertSame('custom-error-id', $this->testForm['test1']['#attributes']['aria-describedby']);
++  }
++
++  /**
++   * Tests that no ARIA attributes are set when there are no errors.
++   */
++  public function testNoAriaAttributesWhenNoErrors(): void {
++    $form_state = new FormState();
++    $this->formErrorHandler->handleFormErrors($this->testForm, $form_state);
++
++    // Assert ARIA attributes are NOT set when there are no errors.
++    $this->assertArrayNotHasKey('aria-invalid', $this->testForm['test1']['#attributes'] ?? []);
++    $this->assertArrayNotHasKey('aria-errormessage', $this->testForm['test1']['#attributes'] ?? []);
++  }
++
++  /**
++   * Tests getErrorId helper method.
++   */
++  public function testGetErrorId(): void {
++    // Test with element that has #id.
++    $element = ['#id' => 'edit-name'];
++    $this->assertSame('edit-name--error-message', FormErrorHandler::getErrorId($element));
++
++    // Test with custom #error_id.
++    $element = ['#id' => 'edit-name', '#error_id' => 'custom-id'];
++    $this->assertSame('custom-id', FormErrorHandler::getErrorId($element));
++
++    // Test with element without #id.
++    $element = ['#array_parents' => ['name']];
++    $error_id = FormErrorHandler::getErrorId($element);
++    $this->assertStringStartsWith('form-error-', $error_id);
++  }
++
+ }
+diff --git a/core/modules/system/templates/details.html.twig b/core/modules/system/templates/details.html.twig
+index 1e235a07efe..516a39e0181 100644
+--- a/core/modules/system/templates/details.html.twig
++++ b/core/modules/system/templates/details.html.twig
+@@ -29,7 +29,7 @@
+   {%- endif -%}
+ 
+   {% if errors %}
+-    <div>
++    <div{% if error_id %} id="{{ error_id }}"{% endif %} class="form-item--error-message">
+       {{ errors }}
+     </div>
+   {% endif %}
+diff --git a/core/modules/system/templates/fieldset.html.twig b/core/modules/system/templates/fieldset.html.twig
+index 19c970f3207..363a2ddb4ab 100644
+--- a/core/modules/system/templates/fieldset.html.twig
++++ b/core/modules/system/templates/fieldset.html.twig
+@@ -53,7 +53,7 @@
+       <div{{ description.attributes.addClass('description') }}>{{ description.content }}</div>
+     {% endif %}
+     {% if errors %}
+-      <div>
++      <div{% if error_id %} id="{{ error_id }}"{% endif %} class="form-item--error-message">
+         {{ errors }}
+       </div>
+     {% endif %}
+diff --git a/core/modules/system/templates/form-element.html.twig b/core/modules/system/templates/form-element.html.twig
+index 7b94a519d48..4d18d4f2f32 100644
+--- a/core/modules/system/templates/form-element.html.twig
++++ b/core/modules/system/templates/form-element.html.twig
+@@ -85,7 +85,7 @@
+     {{ label }}
+   {% endif %}
+   {% if errors %}
+-    <div class="form-item--error-message">
++    <div{% if error_id %} id="{{ error_id }}"{% endif %} class="form-item--error-message">
+       {{ errors }}
+     </div>
+   {% endif %}

@@ -1,0 +1,34 @@
+{
+  "finding_id": "a11y_claro_article_edit_reflow",
+  "fingerprint": "ef650d1a6a171714fdf319e8743e3ecfc52bb2936e4793c4852f27257f70561b",
+  "source": "320 CSS pixel rendered-geometry and horizontal-start/end screenshot review of the Claro Article edit form",
+  "wcag_or_apg": "WCAG 2.2 SC 1.4.10 Reflow",
+  "section_508_fpc_context": "not in scope",
+  "severity": "MAJOR",
+  "perspective_alarms": {
+    "screen_reader_semantic": "LOW",
+    "keyboard_motor": "MEDIUM",
+    "magnification_reflow": "HIGH",
+    "cognitive_neurodivergent": "LOW",
+    "vestibular_motion": "NONE",
+    "environmental_contrast": "LOW",
+    "auditory_access": "NONE"
+  },
+  "evidence": [
+    "EVID-VISUAL-S-STR-010-REFLOW-320: retained 320 CSS pixel full-page screenshot.",
+    "EVID-REFLOW-S-STR-010: document scroll width is 345 CSS pixels in a 320 CSS pixel viewport; .top-bar__actions extends to x=345.375."
+  ],
+  "reproduction_steps": [
+    "Authenticate as the content author in the frozen local build.",
+    "Open /node/2/edit.",
+    "Set the viewport to 320 CSS pixels wide.",
+    "Observe the document scroll width and use horizontal scrolling to reach the More actions control."
+  ],
+  "expected_behavior": "Content and functionality reflow at 320 CSS pixels without requiring horizontal scrolling, except for content that inherently requires two-dimensional layout.",
+  "actual_behavior": "The document is 345 CSS pixels wide in a 320 CSS pixel viewport because .top-bar__actions and its More actions button extend to x=345.375; the authoring form is not an inherently two-dimensional layout.",
+  "evaluation_context": {
+    "evaluation_id": "AS-OACR-001",
+    "sample_id": "S-STR-010",
+    "state_id": "ST-003"
+  }
+}

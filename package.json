@@ -1,0 +1,24 @@
+{
+  "scripts": {
+    "test:accessibility-workflows": "playwright test core/tests/playwright/accessibility-workflows.spec.js",
+    "test:a11y-headed": "playwright test core/tests/playwright/accessibility-workflows.spec.js --headed",
+    "test:a11y-debug": "playwright test core/tests/playwright/accessibility-workflows.spec.js --debug",
+    "a11y:evaluate-patch": "node core/tests/playwright/scripts/evaluate-patch.js",
+    "a11y:evaluate-all-patches": "node core/tests/playwright/scripts/evaluate-all-patches.js",
+    "a11y:coverage": "node core/tests/playwright/scripts/generate-coverage-matrix.js",
+    "a11y:sustainability": "node core/tests/playwright/scripts/analyze-sustainability.js",
+    "a11y:known-issues": "node core/tests/playwright/scripts/sync-known-issues.js",
+    "a11y:discover-modules": "node core/tests/playwright/scripts/discover-modules.js",
+    "a11y:test-module": "node core/tests/playwright/scripts/test-module-accessibility.js",
+    "a11y:analyze-modules": "node core/tests/playwright/scripts/analyze-module-impact.js",
+    "a11y:triage-modules": "node core/tests/playwright/scripts/triage-module-impact.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@tgwf/co2": "^0.19.0",
+    "axe-core": "^4.11.4",
+    "axe-playwright": "^2.2.2",
+    "js-yaml": "^4.3.1",
+    "marked": "^18.0.3"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "finding_id": "a11y_claro_bulk_button_contrast",
+  "fingerprint": "11dd54564bf43f0220d0ac98776461ed439771c79b145bb725877ac11b0fa40a",
+  "source": "axe-core candidate confirmed by rendered-style and screenshot review on the Claro content, people, and Views UI samples",
+  "wcag_or_apg": "WCAG 2.2 SC 1.4.3 Contrast (Minimum)",
+  "section_508_fpc_context": "not in scope",
+  "severity": "MINOR",
+  "perspective_alarms": {
+    "screen_reader_semantic": "NONE",
+    "keyboard_motor": "LOW",
+    "magnification_reflow": "LOW",
+    "cognitive_neurodivergent": "LOW",
+    "vestibular_motion": "NONE",
+    "environmental_contrast": "HIGH",
+    "auditory_access": "NONE"
+  },
+  "evidence": [
+    "EVID-AXE-S-STR-008-DEFAULT-DESKTOP and EVID-AXE-S-STR-008-DEFAULT-NARROW: 4.24:1 white text on #3371ff.",
+    "EVID-AXE-S-STR-013-DEFAULT-DESKTOP and EVID-AXE-S-STR-013-DEFAULT-NARROW: the same Claro button component measures 4.24:1.",
+    "EVID-AXE-S-STR-020-DEFAULT-DESKTOP and EVID-AXE-S-STR-020-DEFAULT-NARROW: the same Claro button component measures 4.24:1."
+  ],
+  "reproduction_steps": [
+    "Authenticate as the content author or administrator in the frozen local build.",
+    "Open /admin/content, /admin/people, or /admin/structure/views/view/content/edit/page_1.",
+    "Locate the small primary Apply to selected items submit control.",
+    "Measure the white text against its rendered blue background in the default state."
+  ],
+  "expected_behavior": "Normal-sized control text has a contrast ratio of at least 4.5:1 against its background.",
+  "actual_behavior": "The 12.64 CSS pixel bold white label renders at 4.24:1 against #3371ff on all three sampled administrative surfaces and both sampled viewport widths.",
+  "evaluation_context": {
+    "evaluation_id": "AS-OACR-001",
+    "sample_id": "S-STR-008",
+    "state_id": "ST-015"
+  }
+}

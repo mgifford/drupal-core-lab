@@ -1,0 +1,28 @@
+diff --git b/core/modules/file/src/Plugin/Field/FieldWidget/FileWidget.php a/core/modules/file/src/Plugin/Field/FieldWidget/FileWidget.php
+index bd409e434d..705ef130a7 100644
+--- b/core/modules/file/src/Plugin/Field/FieldWidget/FileWidget.php
++++ a/core/modules/file/src/Plugin/Field/FieldWidget/FileWidget.php
+@@ -400,7 +400,10 @@ public static function process($element, FormStateInterface $form_state, $form)
+       $element['display'] = [
+         '#type' => empty($item['fids']) ? 'hidden' : 'checkbox',
+         '#title' => new TranslatableMarkup('Include file in display'),
+-        '#attributes' => ['class' => ['file-display']],
++        '#attributes' => [
++          'class' => ['file-display'],
++          'aria-label' => (string) new TranslatableMarkup('Include file in display'),
++        ],
+       ];
+       if (isset($item['display'])) {
+         $element['display']['#value'] = $item['display'] ? '1' : '';
+diff --git b/core/modules/file/tests/src/Functional/FileFieldDisplayTest.php a/core/modules/file/tests/src/Functional/FileFieldDisplayTest.php
+index c6cfbc7610..e31c0ae3bc 100644
+--- b/core/modules/file/tests/src/Functional/FileFieldDisplayTest.php
++++ a/core/modules/file/tests/src/Functional/FileFieldDisplayTest.php
+@@ -142,6 +142,7 @@ protected function assertFileDisplayCheckboxHasLabel(string $field_name, int $de
+     $label = $this->assertSession()->elementExists('xpath', '//label[@for="' . $display_checkbox->getAttribute('id') . '"]');
+     $this->assertSame('Include file in display', $label->getText());
+     $this->assertStringContainsString('visually-hidden', $label->getAttribute('class'));
++    $this->assertSame('Include file in display', $display_checkbox->getAttribute('aria-label'));
+   }
+ 
+   /**

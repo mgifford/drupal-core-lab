@@ -1,0 +1,62 @@
+# Weekly upstream sync for the mgifford/drupal-core fork.
+# Pulls Drupal core's `main` from GitLab's canonical repo (git.drupalcode.org)
+# and fast-forwards this fork's `main` (which is upstream/main + a thin fork
+# tooling layer; see AGENTS.md). Upstream advances only files the thin layer
+# does not modify, so this is normally a clean fast-forward.
+# - Runs weekly (Mon 05:00 UTC) and on manual dispatch.
+# - If a merge is NOT a clean fast-forward (upstream touched a thin-layer
+#   path?), it opens a sync-PR instead of force-pushing so a human reviews.
+name: Re-sync fork main from GitLab upstream (weekly)
+
+on:
+  schedule:
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Fetch GitLab upstream main (public over https, no creds needed)
+        run: |
+          git remote add gitlab-upstream https://git.drupalcode.org/project/drupal.git
+          git fetch gitlab-upstream main:refs/remotes/gitlab-upstream/main
+          git config user.name "mgifford (native via weekly sync)"
+          git config user.email "mgifford@users.noreply.github.com"
+
+      - name: Fast-forward main to upstream
+        id: ff
+        run: |
+          PREV=$(git rev-parse HEAD)
+          if git merge-base --is-ancestor HEAD gitlab-upstream/main; then
+            git merge --ff-only gitlab-upstream/main
+            git push origin main
+            echo "synced=yes"
+            echo "prev=$PREV"
+            echo "new=$(git rev-parse HEAD)"
+          else
+            # Upstream diverged from the thin layer: never force-push. Hand
+            # it to a human via a sync-PR.
+            git checkout -b upstream-merge/$(date +%Y%m%d)
+            git merge gitlab-upstream/main --no-edit || true
+            git push origin HEAD
+            gh pr create --base main --head "$(git branch --show-current)" \
+              --title "Weekly upstream sync needs review ($(date +%Y-%m-%d))" \
+              --body "Upstream **main** has diverged from the fork layer. Review the merge resolution before main advances." || true
+            echo "synced=pr"
+          fi
+
+      - name: Report result
+        run: |
+          echo "Fast-forward result: ${{ steps.ff.outputs.synced }}"
+          [ -n "${{ steps.ff.outputs.prev }}" ] && \
+            echo "advanced ${{ steps.ff.outputs.prev }} -> ${{ steps.ff.outputs.new }}"

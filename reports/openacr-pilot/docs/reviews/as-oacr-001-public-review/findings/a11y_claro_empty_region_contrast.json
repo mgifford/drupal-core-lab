@@ -1,0 +1,34 @@
+{
+  "finding_id": "a11y_claro_empty_region_contrast",
+  "fingerprint": "ed164876556fcf32becf6b1b25a18cc9b57dd99d053316bc697e3df67fb7a75a",
+  "source": "axe-core candidate confirmed by rendered screenshot and Claro source-token review on Block layout",
+  "wcag_or_apg": "WCAG 2.2 SC 1.4.3 Contrast (Minimum)",
+  "section_508_fpc_context": "not in scope",
+  "severity": "MINOR",
+  "perspective_alarms": {
+    "screen_reader_semantic": "NONE",
+    "keyboard_motor": "NONE",
+    "magnification_reflow": "LOW",
+    "cognitive_neurodivergent": "LOW",
+    "vestibular_motion": "NONE",
+    "environmental_contrast": "HIGH",
+    "auditory_access": "NONE"
+  },
+  "evidence": [
+    "EVID-AXE-S-STR-016-DEFAULT-DESKTOP and EVID-AXE-S-STR-016-DEFAULT-NARROW: five empty-region messages measure 3.78:1 (#828388 on #ffffff).",
+    "EVID-DOM-S-STR-016-DEFAULT: retained DOM inventory for the sampled Block layout surface."
+  ],
+  "reproduction_steps": [
+    "Authenticate as the administrator in the frozen local build.",
+    "Open /admin/structure/block on the Olivero tab.",
+    "Locate an empty region row displaying No blocks in this region.",
+    "Measure the italic gray text against the white row background."
+  ],
+  "expected_behavior": "Normal-sized informational text has a contrast ratio of at least 4.5:1 against its background.",
+  "actual_behavior": "The 16 CSS pixel normal-weight empty-region text renders at 3.78:1 (#828388 on #ffffff) in five sampled empty region rows at both viewport widths.",
+  "evaluation_context": {
+    "evaluation_id": "AS-OACR-001",
+    "sample_id": "S-STR-016",
+    "state_id": "ST-015"
+  }
+}

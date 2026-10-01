@@ -1,0 +1,164 @@
+<p>JavaScript can improve an interface, but every interaction must preserve the semantics, keyboard operation, focus behavior, and status information people need. Test the rendered component in every state. The presence of JavaScript, ARIA, or an automated test result does not establish that an interaction is accessible.</p>
+
+<h2>Start with native HTML</h2>
+
+<p>Use the native element that matches the interaction whenever possible. Buttons, links, form controls, <code>details</code> and <code>summary</code>, and dialogs provide semantics and browser behavior that a generic <code>div</code> or <code>span</code> does not.</p>
+
+<ul>
+  <li>Use a <code>button</code> for an action and a link for navigation.</li>
+  <li>Use standard form controls instead of recreating them with ARIA.</li>
+  <li>Use HTML attributes such as <code>disabled</code>, <code>required</code>, and <code>checked</code> when the native element supports them.</li>
+  <li>Enhance a meaningful HTML structure instead of creating the complete interface only after JavaScript runs.</li>
+</ul>
+
+<p>Not every application feature has to work without JavaScript. However, the initial page and failure state must remain understandable. Do not leave an empty container, an inoperable control, or instructions for an interface that was not created.</p>
+
+<p>ARIA can expose a role, name, property, or state. It does not add keyboard behavior, focus management, or event handling. A custom ARIA control is only complete when its full interaction pattern is implemented and tested.</p>
+
+<h2>Attach Drupal JavaScript correctly</h2>
+
+<p>Use <code>Drupal.behaviors</code> so an enhancement runs on the initial page and after content is added by Ajax or BigPipe. Use <code>once()</code> when each matching element should be processed only once.</p>
+
+<pre><code>(function (Drupal, once) {
+  Drupal.behaviors.example = {
+    attach: function (context) {
+      once('example', '[data-example]', context).forEach(function (element) {
+        // Enhance each matching element once.
+      });
+    }
+  };
+})(Drupal, once);</code></pre>
+
+<p>Declare <code>core/drupal</code> and <code>core/once</code> as library dependencies. Add jQuery only when the implementation actually needs it. Code that runs only on the first document-ready event can miss content added later. Code that does not use <code>once()</code> where needed can add duplicate handlers, announcements, or controls.</p>
+
+<p>If a behavior adds global event listeners, timers, or other state that must be removed, implement the behavior's <code>detach</code> function as well. Test repeated attachment and removal, not only the initial page load.</p>
+
+<h2>Keep names, roles, and states accurate</h2>
+
+<p>Every interactive element needs an accessible name that describes its purpose. Prefer visible text associated with the native control. When an ARIA label is necessary, keep it consistent with the visible label.</p>
+
+<p>Update programmatic states at the same time as the visible interface. Depending on the component, this can include <code>aria-expanded</code>, <code>aria-selected</code>, <code>aria-pressed</code>, <code>aria-checked</code>, <code>aria-current</code>, or <code>aria-busy</code>. Use only properties that apply to the element's role and interaction pattern.</p>
+
+<p>Do not expose an element as a control before it is operable. Do not leave a stale expanded, selected, busy, or invalid state after the visual state changes.</p>
+
+<h2>Provide complete keyboard operation</h2>
+
+<p>People must be able to reach and operate every interactive component with a keyboard. Native controls already provide expected keyboard behavior. Custom components must reproduce the applicable interaction pattern.</p>
+
+<ul>
+  <li>Use <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> to move between components.</li>
+  <li>Use arrow keys inside composite components only where the established pattern calls for them.</li>
+  <li>Support <kbd>Enter</kbd>, <kbd>Space</kbd>, <kbd>Escape</kbd>, and other keys required by the component pattern.</li>
+  <li>Do not create a keyboard trap. A modal dialog is a controlled focus context, but it must provide a predictable way to close it.</li>
+  <li>Do not use a positive <code>tabindex</code> to repair an illogical source order.</li>
+  <li>Keep the focus indicator visible and do not obscure it with sticky content or overlays.</li>
+</ul>
+
+<p>Test keyboard behavior against the relevant <a href="https://www.w3.org/WAI/ARIA/apg/patterns/">ARIA Authoring Practices Guide pattern</a>. Treat its example code as a pattern demonstration, not as a Drupal component that can be copied without integration and testing.</p>
+
+<h2>Manage focus when context changes</h2>
+
+<p>Do not move focus merely because content changed. Move it when an action creates a new context or when the focused element no longer exists.</p>
+
+<ul>
+  <li>When a modal dialog opens, move focus to an appropriate element inside it.</li>
+  <li>When a dialog closes, return focus to the control that opened it unless another destination is more logical.</li>
+  <li>After deleting the focused item, move focus to a predictable adjacent item or to the containing interface.</li>
+  <li>When validation fails, move focus only when doing so helps the person find and understand the errors.</li>
+  <li>When content is inserted or replaced, preserve the person's position unless the task requires a deliberate transition.</li>
+</ul>
+
+<p>Do not use focus as a substitute for a status message. Focus movement changes the person's location and can interrupt their task.</p>
+
+<h2>Communicate dynamic updates</h2>
+
+<p>A visual change is not necessarily announced by assistive technology. Use native states and relationships first. Use a status message when important information is added without moving focus.</p>
+
+<p>Drupal provides <code>Drupal.announce()</code> for messages that need to be exposed through an ARIA live region:</p>
+
+<pre><code>Drupal.announce(Drupal.t('The results have been updated.'));</code></pre>
+
+<p>The default <code>polite</code> priority waits for the current announcement to finish. Use the <code>assertive</code> priority only for urgent information that must interrupt it. Announce the concise result of the action, not the whole updated region. Translate user-facing messages with <code>Drupal.t()</code>.</p>
+
+<p>Do not announce every loading step, keystroke, or visual change. Repeated or redundant messages make an interface harder to use. If a region is being updated, <code>aria-busy="true"</code> can indicate that its changes are not complete, but it does not replace a useful completion message.</p>
+
+<h2>Use established components and patterns</h2>
+
+<p>Use Drupal core components and established interaction patterns before building a custom widget. A component must remain accessible in every state, not only when it is closed or at rest.</p>
+
+<h3>Dialogs</h3>
+
+<p>A modal dialog needs an accessible name, focus inside it when opened, keyboard containment while open, an operable close mechanism, and predictable focus restoration. Content behind a modal dialog must not remain available to keyboard or assistive-technology navigation. Prefer Drupal's dialog facilities to a new implementation, then test the rendered result in its actual theme and context.</p>
+
+<h3>Disclosures</h3>
+
+<p>Use a button to show or hide content. Keep its <code>aria-expanded</code> value synchronized with the visible state. Associate it with the controlled content when that relationship is useful. Opening a disclosure does not usually require moving focus.</p>
+
+<h3>Content on hover or focus</h3>
+
+<p>Tooltips, menus, and other content that appears on hover or focus must be dismissible without moving pointer or keyboard focus, remain available when the pointer moves over the added content, and persist until dismissed, no longer relevant, or invalid. Do not make information available only on hover.</p>
+
+<h2>Handle Ajax and form updates</h2>
+
+<p>Ajax must not remove the structure and feedback a form needs. Preserve values, labels, instructions, errors, and focus as the form changes. Identify invalid fields programmatically and provide a useful error summary when several errors occur. Announce progress or completion when it is important and is not otherwise communicated.</p>
+
+<p>Loading indicators must have a text alternative or an equivalent status message. A spinner alone does not tell a screen-reader user what is happening. See <a href="/docs/getting-started/accessibility/building-accessible-forms">Building accessible forms</a> for form-specific guidance.</p>
+
+<h2>Support pointer and touch operation</h2>
+
+<p>Do not require precise pointer movement, hover, or dragging as the only way to complete an action.</p>
+
+<ul>
+  <li>When an action uses dragging, provide a simple pointer alternative such as move buttons or a menu. Keyboard access is also required, but a keyboard-only alternative does not by itself satisfy the WCAG dragging requirement.</li>
+  <li>Make pointer targets at least 24 by 24 CSS pixels or provide sufficient spacing or another applicable WCAG exception.</li>
+  <li>Review target-size exceptions manually. A tool can measure a target but cannot reliably decide whether inline, spacing, user-agent, equivalent-target, or essential exceptions apply.</li>
+  <li>Do not trigger an irreversible action on pointer-down. Let people cancel or move away before the action completes.</li>
+</ul>
+
+<h2>Limit motion and flashing</h2>
+
+<p>Provide a way to pause, stop, or hide moving, blinking, scrolling, or automatically updating information when WCAG requires it. Do not start decorative motion that continues alongside other content without a control.</p>
+
+<p>Respect <code>prefers-reduced-motion</code>. Reduce or replace non-essential transitions, parallax effects, zooming, and motion triggered by interaction. Preserve necessary state changes and feedback instead of hiding them. WCAG's Animation from Interactions success criterion is Level AAA, so it is aspirational for a project targeting AA unless the project adopts it as an additional requirement.</p>
+
+<p>Do not create content that flashes more than three times in any one-second period unless it is below the WCAG flash thresholds. Avoid flashing content rather than relying on threshold calculations.</p>
+
+<h2>Review third-party widgets</h2>
+
+<p>An external library, embedded service, or contributed module does not transfer responsibility for accessibility to its maintainer. Review its output, keyboard behavior, focus, announcements, zoom behavior, touch operation, reduced-motion support, and high-contrast presentation. Test updates before deployment and track unresolved barriers like other defects.</p>
+
+<p>A conformance claim in a vendor document is not evidence that the configured widget works in the Drupal page where it is used.</p>
+
+<h2>Test interactive components</h2>
+
+<ul>
+  <li>Operate every action with a keyboard alone, including opening, closing, selecting, sorting, dragging alternatives, and error recovery.</li>
+  <li>Check focus order, visible focus, focus restoration, and behavior when the focused element is removed.</li>
+  <li>Use a screen reader to verify names, roles, states, relationships, instructions, and dynamic messages.</li>
+  <li>Test initial load, Ajax updates, BigPipe content, repeated behavior attachment, and component removal.</li>
+  <li>Test at 200% text size and 400% browser zoom, with touch input where supported.</li>
+  <li>Test forced colors, user styles, and reduced-motion settings.</li>
+  <li>Test validation, empty results, loading, success, failure, disabled, expanded, and selected states.</li>
+  <li>Disable or interrupt JavaScript and confirm that the page fails clearly rather than presenting misleading controls or empty content.</li>
+  <li>Run automated tests, then complete manual keyboard, assistive-technology, visual, and interaction review.</li>
+</ul>
+
+<p>Automated tools can detect some missing names, invalid ARIA relationships, focusable hidden content, and other deterministic failures. They cannot determine whether a custom interaction is understandable, whether focus moves appropriately, whether an announcement is useful, or whether every state is operable. Barriers affect people, WCAG success criteria define requirements, and tools test only a limited set of rules. Only a smaller high-confidence subset is suitable for an automated gate.</p>
+
+<h2>Related guidance</h2>
+
+<ul>
+  <li><a href="/docs/getting-started/accessibility/creating-accessible-themes">Creating accessible themes</a></li>
+  <li><a href="/docs/getting-started/accessibility/building-accessible-forms">Building accessible forms</a></li>
+  <li><a href="/docs/getting-started/accessibility/page-structure-and-navigation">Page structure and navigation</a></li>
+  <li><a href="https://www.drupal.org/docs/drupal-apis/javascript-api/javascript-api-overview">Drupal JavaScript API overview</a></li>
+  <li><a href="https://www.drupal.org/docs/drupal-apis/javascript-api/accessibility-tools-for-javascript-in-drupal">Accessibility tools for JavaScript in Drupal</a></li>
+  <li><a href="https://www.w3.org/WAI/ARIA/apg/patterns/">W3C ARIA Authoring Practices Guide patterns</a></li>
+  <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html">Understanding Status Messages</a></li>
+  <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements.html">Understanding Dragging Movements</a></li>
+  <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html">Understanding Target Size (Minimum)</a></li>
+  <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html">Understanding Content on Hover or Focus</a></li>
+  <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/pause-stop-hide.html">Understanding Pause, Stop, Hide</a></li>
+  <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html">Understanding Animation from Interactions</a></li>
+  <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/three-flashes-or-below-threshold.html">Understanding Three Flashes or Below Threshold</a></li>
+</ul>

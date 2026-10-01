@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Changes to Contributed Modules for Extending Accessibility in Drupal</title>
+</head>
+<body>
+	<main>
+		<h1>Changes to Contributed Modules for Extending Accessibility in Drupal</h1>
+
+		<p>This document explains the redraft of <a href="https://www.drupal.org/docs/getting-started/accessibility/contributed-modules-for-extending-accessibility-in-drupal">Contributed Modules for Extending Accessibility in Drupal</a>. Project status was checked on July 28, 2026.</p>
+
+		<h2>Summary</h2>
+
+		<p>The original page mixed active modules, unsupported projects, generic HTML filters, commercial products, editorial checks, and end-user widgets. It also repeated project-page marketing language without consistently explaining limitations.</p>
+
+		<p>The revision:</p>
+
+		<ul>
+			<li>Uses a clear selection policy based on accessibility purpose, supported releases, security advisory coverage, maintenance, and accurate claims.</li>
+			<li>Groups modules by the job they perform.</li>
+			<li>Explains that installing a module does not establish accessibility or WCAG conformance.</li>
+			<li>Distinguishes accessibility barriers, WCAG requirements, automated test rules, and conformance decisions.</li>
+			<li>States that only a smaller deterministic subset of automated rules is suitable for unattended build gates.</li>
+			<li>Requires human judgment for alternative text and other contextual findings.</li>
+			<li>Labels the Siteimprove integration as commercial.</li>
+			<li>Treats presentation controls as optional preferences, not remediation.</li>
+			<li>Removes unsupported projects, promotional scanners, a commercial overlay, generic HTML sanitizers, and modules without a clear current accessibility function.</li>
+			<li>Adds a July 2026 review date while directing readers to project pages for current status.</li>
+		</ul>
+
+		<h2>Detailed project decisions</h2>
+
+		<table>
+			<caption>Modules on the original page and their treatment in the revision</caption>
+			<thead>
+				<tr>
+					<th scope="col">Project</th>
+					<th scope="col">Decision</th>
+					<th scope="col">Reason</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/a11y_form_helpers">A11Y: Form helpers</a></th>
+					<td>Retained and revised.</td>
+					<td>It has a supported stable release, security advisory coverage, and a clear form-accessibility purpose. The new description adds testing limits.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/ableplayer">Able Player</a></th>
+					<td>Retained and revised.</td>
+					<td>It is current and security-covered. The new text explains that an accessible player does not replace captions, transcripts, audio descriptions, or other required alternatives.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/block_aria_landmark_roles">Block ARIA Landmark Roles</a></th>
+					<td>Retained and revised.</td>
+					<td>It has a supported stable release and security coverage. The new text prioritizes native HTML and warns against redundant roles, duplicate labels, and inaccurate landmark structure.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/ckeditor_abbreviation">CKEditor Abbreviation</a></th>
+					<td>Removed.</td>
+					<td>The project is minimally maintained. Adding an abbreviation element and title does not by itself provide a clear accessibility improvement, and the feature is too narrow for this curated list.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/disclosure_menu">Disclosure Menu</a></th>
+					<td>Retained and revised.</td>
+					<td>It has a supported stable release, security coverage, and a specific keyboard-navigation purpose. The new text requires testing in the finished theme.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/ai_image_alt_text">AI Image Alt Text</a></th>
+					<td>Retained with stronger limits.</td>
+					<td>The module includes an editor approval workflow. The revision describes generated text as a proposal and adds checks for image purpose, human review, privacy, licensing, data handling, and cost.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/alt_text_validation">Alt Text Validation</a></th>
+					<td>Retained and revised.</td>
+					<td>It has a supported stable release, security coverage, and a clear editorial function. The new text explains that rule compliance cannot determine whether alternative text is appropriate.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/analyze">Analyze</a></th>
+					<td>Removed.</td>
+					<td>The current project provides a generic content-analysis API and plugins for content statistics, links, search, marketing, sentiment, and security. Its project category is not sufficient evidence of an accessibility check, and the current module list does not identify a specific accessibility analyzer.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/auto_alter">Automatic Alternative Text</a></th>
+					<td>Removed.</td>
+					<td>Automatically filling an empty alternative-text field can hide the need for an author to decide whether an image is informative, functional, complex, or decorative. The retained AI Image Alt Text module has an explicit human approval step.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/editoria11y">Editoria11y Accessibility Checker</a></th>
+					<td>Retained and revised.</td>
+					<td>It is actively used, current, security-covered, and designed for editorial feedback. The new description avoids implying that its automated checks form a complete audit.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/htmlawed">htmLawed</a></th>
+					<td>Removed.</td>
+					<td>It is an HTML policy and security filter, not an accessibility evaluation or remediation module. Its project page also warns that the bundled upstream library might not be current.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/htmlpurifier">HTML Purifier</a></th>
+					<td>Removed.</td>
+					<td>It is a minimally maintained security filter. Valid or sanitized HTML can still contain accessibility barriers, so its inclusion could confuse markup policy with accessibility.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/node_link_report">Node Link Report</a></th>
+					<td>Retained and revised.</td>
+					<td>It has a supported stable release and security coverage. The new text describes its accessibility checks as limited and requires contextual review.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/siteimprove">Siteimprove</a></th>
+					<td>Retained and labelled commercial.</td>
+					<td>The maintained integration can bring results into the editorial workflow, but it requires a separate commercial service. The revision states that automated results do not establish conformance.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/accessibility_menu">Accessibility menu</a></th>
+					<td>Retained and revised.</td>
+					<td>It has a supported stable release and security coverage. The new text requires testing the control and every available presentation combination.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/all_in_one_accessibility">All in One Accessibility</a></th>
+					<td>Removed.</td>
+					<td>This commercial overlay loads third-party code, promotes automated enhancements and legal or standards alignment, and includes subscription, agency, and affiliate offers. Its own limitations say it is not a replacement for manual remediation. A Drupal documentation shortlist should not present an overlay as a route to accessibility.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/civic_accessibility_toolbar">Civic Accessibility Toolbar</a></th>
+					<td>Removed from the shortlist.</td>
+					<td>The project is in maintenance-fixes-only status. Its contrast and font controls overlap with the retained, currently developed presentation-control options.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/fluidui">Fluidproject UI Options</a></th>
+					<td>Retained and revised.</td>
+					<td>It has a current stable release and security coverage. The new text adds theme-integration testing and a cookie privacy consideration.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/high_contrast">High Contrast</a></th>
+					<td>Removed.</td>
+					<td>The project has no supported stable release and does not list support for Drupal 11.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/styleswitcher">Style Switcher</a></th>
+					<td>Removed from the shortlist.</td>
+					<td>The project is minimally maintained. Its function overlaps with the retained presentation-control options.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/text_resize">Text Resize</a></th>
+					<td>Removed from the shortlist.</td>
+					<td>The project is in maintenance-fixes-only status. Modern sites must support browser text resizing, zoom, and reflow without requiring a site-specific control.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/skynet_accessibility_scanner">SkynetAccessibility Scanner</a></th>
+					<td>Removed.</td>
+					<td>The project is not covered by Drupal’s security advisory policy. Its project page makes broad standards and legal-compliance claims and promotes a time-limited commercial trial and affiliate program.</td>
+				</tr>
+				<tr>
+					<th scope="row"><a href="https://www.drupal.org/project/accessibility_scanner">Accessibility Scanner</a></th>
+					<td>Removed.</td>
+					<td>The project is not covered by Drupal’s security advisory policy and is marked “No further development.”</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<h2>Structural and language changes</h2>
+
+		<table>
+			<caption>Changes to the page as a whole</caption>
+			<thead>
+				<tr>
+					<th scope="col">Area</th>
+					<th scope="col">Change</th>
+					<th scope="col">Reason</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<th scope="row">Introduction</th>
+					<td>Replaced the general outdated-project note with concrete checks for support, maintenance, security, dependencies, and testing.</td>
+					<td>Readers need actionable selection criteria. A blanket warning does not explain how to choose a module responsibly.</td>
+				</tr>
+				<tr>
+					<th scope="row">Project status</th>
+					<td>Added a review date and made project pages authoritative for current status.</td>
+					<td>Release and maintenance information changes more often than documentation pages.</td>
+				</tr>
+				<tr>
+					<th scope="row">Organization</th>
+					<td>Replaced “Core Improvements,” “Quality Assurance,” “End-user Personalization,” and “Experimental” with task-based sections.</td>
+					<td>“Core Improvements” could be confused with Drupal core, while “Experimental” mixed project maturity with unsupported and commercial products.</td>
+				</tr>
+				<tr>
+					<th scope="row">Automated checks</th>
+					<td>Added the relationship between barriers, WCAG requirements, tool rules, and conformance decisions.</td>
+					<td>A scanner tests only selected conditions. A smaller deterministic subset can run unattended without an unacceptable risk of false positives. Other findings need human judgment.</td>
+				</tr>
+				<tr>
+					<th scope="row">Artificial intelligence</th>
+					<td>Reframed generated alternative text as an editor-reviewed proposal and added vendor checks.</td>
+					<td>A model cannot determine the author’s intended meaning from pixels alone. External processing can also introduce privacy, licensing, data-handling, and cost concerns.</td>
+				</tr>
+				<tr>
+					<th scope="row">Presentation controls</th>
+					<td>Reduced the list and added a warning that controls are optional preferences rather than remediation.</td>
+					<td>Every version of the interface still needs accessible design, content, and code. Browser zoom, reflow, forced colors, and user style sheets must continue to work.</td>
+				</tr>
+				<tr>
+					<th scope="row">Maintenance guidance</th>
+					<td>Added criteria for adding and removing projects from the page.</td>
+					<td>A maintained policy is more durable than an unqualified accumulation of project links.</td>
+				</tr>
+				<tr>
+					<th scope="row">Voice</th>
+					<td>Rewrote descriptions in clear, direct Drupal.org language instead of copying promotional project text.</td>
+					<td>Drupal’s content style guide calls for simple, concise, honest, approachable language and specific naming of modules.</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<h2>Claims not made</h2>
+
+		<p>The revision does not claim that:</p>
+
+		<ul>
+			<li>Installing a module makes a site accessible or WCAG-conformant.</li>
+			<li>Inclusion on the page is an endorsement by the Drupal project.</li>
+			<li>Valid or sanitized HTML is necessarily accessible.</li>
+			<li>A toolbar, overlay, or alternate presentation repairs underlying barriers.</li>
+			<li>Artificial intelligence can determine appropriate alternative text without an author’s judgment.</li>
+			<li>An automated scanner can identify every barrier or decide conformance.</li>
+			<li>Every automated rule is reliable enough for an unattended build gate.</li>
+			<li>A commercial service replaces a defined accessibility review process.</li>
+		</ul>
+
+		<h2>Sources checked</h2>
+
+		<ul>
+			<li><a href="https://www.drupal.org/docs/getting-started/accessibility/contributed-modules-for-extending-accessibility-in-drupal">Current Drupal documentation page</a></li>
+			<li><a href="https://www.drupal.org/drupalorg/style-guide/content">Drupal.org content style guide</a></li>
+			<li><a href="https://www.drupal.org/drupal-security-team/security-advisory-process-and-permissions-policy">Drupal security advisory process and permissions policy</a></li>
+			<li><a href="https://www.drupal.org/docs/getting-started/accessibility/how-to-do-an-accessibility-review">How to do an accessibility review</a></li>
+			<li><a href="https://www.w3.org/WAI/test-evaluate/tools/selecting/">W3C: Selecting Web Accessibility Evaluation Tools</a></li>
+			<li><a href="https://www.w3.org/WAI/tutorials/images/decision-tree/">W3C: An alt decision tree</a></li>
+			<li><a href="https://overlayfactsheet.com/en/">Overlay Fact Sheet</a></li>
+			<li>Each Drupal project page linked in the detailed project decisions table.</li>
+		</ul>
+	</main>
+</body>
+</html>

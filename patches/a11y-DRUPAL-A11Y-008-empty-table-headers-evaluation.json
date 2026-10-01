@@ -1,0 +1,663 @@
+{
+  "patch": "a11y-DRUPAL-A11Y-008-empty-table-headers",
+  "config": {
+    "description": "Ensure all table headers have discernible text",
+    "wcag": [
+      "1.3.1 (A)"
+    ],
+    "rules": [
+      "empty-table-header"
+    ],
+    "patternIds": [
+      "DRU-EDB3860D"
+    ],
+    "maxPathsPerPattern": 2,
+    "testCases": [
+      {
+        "url": "/a11y-empty-headers",
+        "selectors": [
+          "table th",
+          "thead th"
+        ],
+        "expectedFix": "Table headers should have visible or accessible text",
+        "viewport": {
+          "width": 1280,
+          "height": 1024
+        }
+      }
+    ]
+  },
+  "timestamp": "2026-07-18T22:14:22.388Z",
+  "runContext": {
+    "baseUrl": "http://drupal-core.ddev.site",
+    "variantId": "default",
+    "testCaseSource": "pattern-report",
+    "requestedColorMode": "light",
+    "requestedDirection": "ltr",
+    "patchApplicability": {
+      "success": true,
+      "error": null,
+      "kind": "applicable",
+      "targetFile": null,
+      "line": null,
+      "details": null
+    },
+    "requestedViewport": null,
+    "requestedDevice": null,
+    "requestedOrientation": null,
+    "deterministicThemeSetup": {
+      "requested": {
+        "default": "olivero",
+        "admin": "claro"
+      },
+      "commands": [
+        "ddev drush cset system.theme default olivero -y",
+        "ddev drush cset system.theme admin claro -y",
+        "ddev drush cache-rebuild",
+        "ddev drush cget system.theme --format=json"
+      ],
+      "detected": {
+        "_core": {
+          "default_config_hash": "eJ529VM1gSIA_vgTy2PdiDvJuG0xhSxfQjCyl5WKlv4"
+        },
+        "admin": "claro",
+        "default": "olivero"
+      },
+      "success": true,
+      "error": null
+    },
+    "drupalInitialState": {
+      "capturedAt": "2026-07-18T22:14:12.677Z",
+      "success": true,
+      "commands": [
+        {
+          "name": "enabled-modules",
+          "command": "ddev drush pm:list --type=module --status=enabled --format=json",
+          "success": true
+        },
+        {
+          "name": "system-theme",
+          "command": "ddev drush cget system.theme --format=json",
+          "success": true
+        },
+        {
+          "name": "core-extension",
+          "command": "ddev drush cget core.extension --format=json",
+          "success": true
+        },
+        {
+          "name": "drush-status",
+          "command": "ddev drush status --format=json",
+          "success": true
+        }
+      ],
+      "errors": [],
+      "themes": {
+        "requested": {
+          "default": "olivero",
+          "admin": "claro"
+        },
+        "detected": {
+          "_core": {
+            "default_config_hash": "eJ529VM1gSIA_vgTy2PdiDvJuG0xhSxfQjCyl5WKlv4"
+          },
+          "admin": "claro",
+          "default": "olivero"
+        },
+        "systemThemeConfig": {
+          "_core": {
+            "default_config_hash": "eJ529VM1gSIA_vgTy2PdiDvJuG0xhSxfQjCyl5WKlv4"
+          },
+          "admin": "claro",
+          "default": "olivero"
+        }
+      },
+      "enabledModules": [
+        "a11y_test_routes",
+        "actionlink",
+        "announcements_feed",
+        "autocomplete",
+        "automated_cron",
+        "big_pipe",
+        "block",
+        "block_content",
+        "breakpoint",
+        "ckeditor5",
+        "config",
+        "contextual",
+        "datetime",
+        "dblog",
+        "dynamic_page_cache",
+        "editor",
+        "field",
+        "field_ui",
+        "file",
+        "filter",
+        "form_style",
+        "help",
+        "image",
+        "layout_builder",
+        "layout_discovery",
+        "link",
+        "menu_link_content",
+        "menu_ui",
+        "mysql",
+        "navigation",
+        "node",
+        "options",
+        "page_cache",
+        "path",
+        "path_alias",
+        "search",
+        "system",
+        "taxonomy",
+        "test_multifield_desc",
+        "text",
+        "theming_tools",
+        "update",
+        "user",
+        "views",
+        "views_ui"
+      ],
+      "enabledModuleCount": 45,
+      "enabledModuleHash": "93861e900fb087fa20408946f236688feaac6b4726845e8ee70dfc7b73caf4e9",
+      "environment": {
+        "drushStatus": {
+          "drupal-version": "12.0-dev",
+          "uri": "http://drupal-core.ddev.site",
+          "db-driver": "mysql",
+          "db-hostname": "db",
+          "db-port": 3306,
+          "db-username": "db",
+          "db-password": "db",
+          "db-name": "db",
+          "db-status": "Connected",
+          "bootstrap": "Successful",
+          "theme": "olivero",
+          "admin-theme": "claro",
+          "php-bin": "/usr/bin/php8.5",
+          "php-conf": [
+            "/etc/php/8.5/cli/php.ini"
+          ],
+          "php-os": "Linux",
+          "php-version": "8.5.7",
+          "drush-script": "/var/www/html/vendor/bin/drush.php",
+          "drush-version": "14.9999999.9999999.9999999-dev",
+          "drush-temp": "/tmp",
+          "drush-conf": [],
+          "drush-alias-files": [],
+          "alias-searchpaths": [],
+          "install-profile": "standard",
+          "root": "/var/www/html",
+          "drupal-settings-file": "sites/default/settings.php",
+          "site": "sites/default",
+          "themes": "sites/all/themes",
+          "modules": "sites/all/modules",
+          "files": "sites/default/files",
+          "temp": "/tmp",
+          "config-sync": "sites/default/files/sync",
+          "config": "sites/default/files/sync",
+          "%paths": {
+            "%root": "/var/www/html",
+            "%site": "sites/default",
+            "%modules": "sites/all/modules",
+            "%themes": "sites/all/themes",
+            "%config-sync": "sites/default/files/sync",
+            "%config": "sites/default/files/sync",
+            "%files": "sites/default/files",
+            "%temp": "/tmp"
+          }
+        }
+      },
+      "fingerprints": {
+        "coreExtensionHash": "4972863d3552dc4475c3453886cab6ba2cb69c93e53c35dd5d9fb646765d7a0d",
+        "coreExtensionModulesHash": "31108b91acada94f2d8a50c9dee0956211b7218c5aada5f96ac3d2034099b00c",
+        "coreExtensionThemesHash": "30fb50fc341bcb258551ff29e9614194623fb4bbacb6032385a72afe815686ef"
+      }
+    },
+    "authSetup": {
+      "attempted": true,
+      "success": true,
+      "method": "uli",
+      "uli": "http://drupal-core.ddev.site/user/reset/1/1784412863/[REDACTED]/login",
+      "finalUrl": "http://drupal-core.ddev.site/user/1/edit?pass-reset-token=[REDACTED]&check_logged_in=1",
+      "authState": {
+        "loggedInClass": true,
+        "logoutLink": true,
+        "loginForm": true,
+        "uid": 1,
+        "authenticated": true
+      },
+      "credentialAttempted": false,
+      "error": null
+    },
+    "note": "Evaluator applies deterministic theme setup and explicit runtime condition overrides for each test.",
+    "caseGeneration": {
+      "selectedCaseCount": 1,
+      "usedFallbackConfigCases": true,
+      "diagnostics": {
+        "usePatternReportCases": true,
+        "configuredTestCases": 1,
+        "configuredPatternIds": [
+          "DRU-EDB3860D"
+        ],
+        "reportPatternCount": 79,
+        "matchedPatternIds": [],
+        "fallbackReason": "no-pattern-ids-matched-in-report"
+      }
+    }
+  },
+  "testCases": [
+    {
+      "url": "/a11y-empty-headers",
+      "selectors": [
+        "table th",
+        "thead th"
+      ],
+      "expected_targets": [
+        {
+          "instance_id": "DRU-0143a522",
+          "pattern_id": "DRU-EDB3860D",
+          "screen_type": "desktop",
+          "orientation": "landscape",
+          "color_mode": "light",
+          "color_scheme_detected": "light",
+          "direction": "ltr",
+          "theme": "unknown",
+          "viewport": {
+            "width": 1280,
+            "height": 1024
+          },
+          "language": "en",
+          "page_path": "/a11y-empty-headers",
+          "selector": "table th",
+          "rule_id": "empty-table-header"
+        },
+        {
+          "instance_id": "DRU-97010fac",
+          "pattern_id": "DRU-EDB3860D",
+          "screen_type": "desktop",
+          "orientation": "landscape",
+          "color_mode": "light",
+          "color_scheme_detected": "light",
+          "direction": "ltr",
+          "theme": "unknown",
+          "viewport": {
+            "width": 1280,
+            "height": 1024
+          },
+          "language": "en",
+          "page_path": "/a11y-empty-headers",
+          "selector": "thead th",
+          "rule_id": "empty-table-header"
+        }
+      ],
+      "before": {
+        "screenshots": [
+          {
+            "success": true,
+            "path": "/Users/mike.gifford/drupal-core/reports/artifacts/a11y-DRUPAL-A11Y-008-empty-table-headers/default/screenshots/before--a11y-empty-headers-1784412867662.png"
+          },
+          {
+            "success": true,
+            "path": "/Users/mike.gifford/drupal-core/reports/artifacts/a11y-DRUPAL-A11Y-008-empty-table-headers/default/screenshots/before--a11y-empty-headers-1784412867689.png"
+          }
+        ],
+        "html": [
+          {
+            "selector": "table th",
+            "success": true,
+            "html": "<tr>\n              <th></th>\n              <th scope=\"col\">Name</th>\n            </tr>"
+          },
+          {
+            "selector": "thead th",
+            "success": true,
+            "html": "<tr>\n              <th></th>\n              <th scope=\"col\">Name</th>\n            </tr>"
+          }
+        ],
+        "axe": {
+          "total": 1,
+          "byRule": {
+            "empty-table-header": 1
+          },
+          "violations": [
+            {
+              "id": "empty-table-header",
+              "impact": "minor",
+              "tags": [
+                "cat.name-role-value",
+                "best-practice"
+              ],
+              "description": "Ensure table headers have discernible text",
+              "help": "Table header text should not be empty",
+              "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/empty-table-header?application=axeAPI",
+              "nodes": [
+                {
+                  "any": [
+                    {
+                      "id": "has-visible-text",
+                      "data": null,
+                      "relatedNodes": [],
+                      "impact": "minor",
+                      "message": "Element does not have text that is visible to screen readers"
+                    }
+                  ],
+                  "all": [],
+                  "none": [],
+                  "impact": "minor",
+                  "html": "<th></th>",
+                  "target": [
+                    "th:nth-child(1)"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element does not have text that is visible to screen readers"
+                }
+              ]
+            }
+          ]
+        },
+        "selectorCounts": {
+          "table th": 2,
+          "thead th": 2
+        },
+        "annotated_violations": [
+          {
+            "instance_id": "DRU-a39c0d24",
+            "pattern_id": "DRU-6423f34d",
+            "screen_type": "desktop",
+            "orientation": "landscape",
+            "color_mode": "light",
+            "color_scheme_detected": "light",
+            "direction": "ltr",
+            "theme": "unknown",
+            "viewport": {
+              "width": 1280,
+              "height": 1024
+            },
+            "language": "en",
+            "page_path": "/a11y-empty-headers",
+            "selector": "th:nth-child(1)",
+            "rule_id": "empty-table-header",
+            "impact": "minor",
+            "html_snippet": "<th></th>"
+          }
+        ]
+      },
+      "after": {
+        "screenshots": [],
+        "html": [],
+        "axe": {}
+      },
+      "auth": {
+        "beforeCase": {
+          "ensured": true,
+          "neededRelogin": false,
+          "before": {
+            "loggedInClass": true,
+            "logoutLink": true,
+            "loginForm": true,
+            "uid": 1,
+            "authenticated": true
+          },
+          "after": {
+            "loggedInClass": true,
+            "logoutLink": true,
+            "loginForm": true,
+            "uid": 1,
+            "authenticated": true
+          },
+          "loginAttempt": null
+        }
+      },
+      "conditions": {
+        "requested": {
+          "screenType": "desktop",
+          "orientation": "landscape",
+          "colorMode": "light",
+          "direction": "ltr",
+          "viewport": {
+            "width": 1280,
+            "height": 1024
+          }
+        },
+        "before": {
+          "screenType": "desktop",
+          "orientation": "landscape",
+          "viewport": {
+            "width": 1280,
+            "height": 1024
+          },
+          "colorMode": "light",
+          "direction": "ltr",
+          "language": "en",
+          "colorSchemeDetected": "light",
+          "prefersContrast": "no-preference",
+          "forcedColors": "none",
+          "theme": "unknown",
+          "bodyClasses": [
+            "user-logged-in",
+            "path-a11y-empty-headers"
+          ]
+        },
+        "after": null
+      },
+      "navigation": {
+        "before": {
+          "requestedUrl": "http://drupal-core.ddev.site/a11y-empty-headers",
+          "finalUrl": "http://drupal-core.ddev.site/a11y-empty-headers",
+          "httpStatus": 200,
+          "redirected": false,
+          "title": "Empty headers | Drush Site-Install",
+          "authState": {
+            "loggedInClass": true,
+            "logoutLink": true,
+            "loginForm": false,
+            "uid": 1,
+            "authenticated": true
+          },
+          "selectorCounts": {}
+        },
+        "after": null
+      },
+      "skipped": true,
+      "skipReason": "baseline-target-not-observed",
+      "skipDiagnostics": {
+        "requestedRules": [
+          "empty-table-header"
+        ],
+        "requiredConditions": {
+          "authRequired": false,
+          "requested": {
+            "screenType": "desktop",
+            "orientation": "landscape",
+            "colorMode": "light",
+            "direction": "ltr",
+            "viewport": {
+              "width": 1280,
+              "height": 1024
+            }
+          },
+          "observedBefore": {
+            "screenType": "desktop",
+            "orientation": "landscape",
+            "viewport": {
+              "width": 1280,
+              "height": 1024
+            },
+            "colorMode": "light",
+            "direction": "ltr",
+            "language": "en",
+            "colorSchemeDetected": "light",
+            "prefersContrast": "no-preference",
+            "forcedColors": "none",
+            "theme": "unknown",
+            "bodyClasses": [
+              "user-logged-in",
+              "path-a11y-empty-headers"
+            ]
+          }
+        },
+        "matchingRuleViolationsBefore": {
+          "empty-table-header": 1
+        },
+        "selectorCountsBefore": {
+          "table th": 2,
+          "thead th": 2
+        },
+        "navigationBefore": {
+          "requestedUrl": "http://drupal-core.ddev.site/a11y-empty-headers",
+          "finalUrl": "http://drupal-core.ddev.site/a11y-empty-headers",
+          "httpStatus": 200,
+          "redirected": false,
+          "title": "Empty headers | Drush Site-Install",
+          "authState": {
+            "loggedInClass": true,
+            "logoutLink": true,
+            "loginForm": false,
+            "uid": 1,
+            "authenticated": true
+          },
+          "selectorCounts": {}
+        },
+        "reproductionCandidates": [
+          {
+            "patternId": "DRU-1D23B830",
+            "ruleId": "empty-table-header",
+            "path": "/table",
+            "selector": "#edit-table-empty > thead > tr > .select-all",
+            "preferred": false
+          }
+        ],
+        "authSetup": {
+          "attempted": true,
+          "success": true,
+          "method": "uli",
+          "uli": "http://drupal-core.ddev.site/user/reset/1/1784412863/[REDACTED]/login",
+          "finalUrl": "http://drupal-core.ddev.site/user/1/edit?pass-reset-token=[REDACTED]&check_logged_in=1",
+          "authState": {
+            "loggedInClass": true,
+            "logoutLink": true,
+            "loginForm": true,
+            "uid": 1,
+            "authenticated": true
+          },
+          "credentialAttempted": false,
+          "error": null
+        },
+        "authBeforeCase": {
+          "ensured": true,
+          "neededRelogin": false,
+          "before": {
+            "loggedInClass": true,
+            "logoutLink": true,
+            "loginForm": true,
+            "uid": 1,
+            "authenticated": true
+          },
+          "after": {
+            "loggedInClass": true,
+            "logoutLink": true,
+            "loginForm": true,
+            "uid": 1,
+            "authenticated": true
+          },
+          "loginAttempt": null
+        }
+      }
+    }
+  ],
+  "summary": {
+    "before": {
+      "total": 1,
+      "byRule": {
+        "empty-table-header": 1
+      }
+    },
+    "after": {
+      "total": 0,
+      "byRule": {}
+    },
+    "fixed": [],
+    "new": [],
+    "resolved": false,
+    "outcome": "inconclusive",
+    "outcomeReason": "no-baseline-instances-observed",
+    "eligibleForPatchRecommendation": false
+  },
+  "patternReport": {
+    "source": "/Users/mike.gifford/drupal-core/reports/pattern-report-2026-07-05.json",
+    "matchedPatterns": [],
+    "summary": {
+      "targeted": 0,
+      "observedBefore": 0,
+      "fullyFixed": 0,
+      "partiallyFixed": 0,
+      "unchanged": 0
+    },
+    "markdownSource": "/Users/mike.gifford/drupal-core/reports/pattern-report-2026-07-05.md",
+    "sourceDiagnostics": {
+      "selectedExists": true,
+      "selectedMtimeIso": "2026-07-13T20:45:12.596Z",
+      "selectedAgeHours": 121.49,
+      "candidates": [
+        {
+          "path": "/Users/mike.gifford/drupal-core/reports/pattern-report-2026-07-05.json",
+          "mtimeIso": "2026-07-13T20:45:12.596Z"
+        }
+      ]
+    },
+    "targetPatternIds": [
+      "DRU-EDB3860D"
+    ]
+  },
+  "instanceReport": {
+    "summary": {
+      "targeted": 0,
+      "observedBefore": 0,
+      "fixed": 0,
+      "remaining": 0,
+      "notObserved": 0
+    },
+    "entries": []
+  },
+  "idValidation": {
+    "patternIdsSeen": 2,
+    "instanceIdsSeen": 3,
+    "inconsistentPatternIds": [
+      {
+        "id": "DRU-EDB3860D",
+        "signatures": [
+          "empty-table-header|table th|desktop|landscape|light|ltr|unknown",
+          "empty-table-header|thead th|desktop|landscape|light|ltr|unknown"
+        ]
+      }
+    ],
+    "inconsistentInstanceIds": []
+  },
+  "validationEvidence": {
+    "targetedInstances": 0,
+    "baselineObservedInstances": 0,
+    "patternObservedBeforePatchAttempt": false,
+    "fixedInstances": 0,
+    "remainingInstances": 0,
+    "notObservedInstances": 0,
+    "hasCaseErrors": false,
+    "introducedNewViolations": 0
+  },
+  "replication": {
+    "variantId": "default",
+    "patchFile": "/Users/mike.gifford/drupal-core/patches/a11y-DRUPAL-A11Y-008-empty-table-headers.patch",
+    "setupSteps": [
+      "ddev drush cset system.theme default olivero -y",
+      "ddev drush cset system.theme admin claro -y",
+      "ddev drush cache-rebuild"
+    ],
+    "testFlow": [
+      "Navigate to each test case URL under requested conditions and capture baseline evidence.",
+      "Apply patch with: git apply \"/Users/mike.gifford/drupal-core/patches/a11y-DRUPAL-A11Y-008-empty-table-headers.patch\"",
+      "Clear Drupal cache with: ddev drush cache-rebuild",
+      "Revisit same URL + conditions and capture post-patch evidence.",
+      "Revert patch with: git apply -R \"/Users/mike.gifford/drupal-core/patches/a11y-DRUPAL-A11Y-008-empty-table-headers.patch\""
+    ],
+    "expectedProof": "Problem must be observed before patch and not observed after patch under the same recorded conditions."
+  }
+}

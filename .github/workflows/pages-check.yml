@@ -1,0 +1,29 @@
+name: Check GitHub Pages Health
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+# Allow only one concurrent run of this workflow per branch/PR
+concurrency:
+  group: pages-check-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check-pages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Pages Integrity and Health Check
+        run: |
+          chmod +x .github/scripts/check-pages.sh
+          ./.github/scripts/check-pages.sh

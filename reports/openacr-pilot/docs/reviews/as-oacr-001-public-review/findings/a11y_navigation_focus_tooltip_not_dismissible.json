@@ -1,0 +1,35 @@
+{
+  "finding_id": "a11y_navigation_focus_tooltip_not_dismissible",
+  "fingerprint": "e1cb98be0dc9252b79759d6dc7488d68e3857ea49f289e9e4bb4a9560c947e94",
+  "source": "Playwright focus, Escape, rendered-visibility, geometry, and element-under-overlay checks on the collapsed Navigation toolbar in Views UI",
+  "wcag_or_apg": "WCAG 2.2 SC 1.4.13 Content on Hover or Focus",
+  "section_508_fpc_context": "not in scope",
+  "severity": "MINOR",
+  "perspective_alarms": {
+    "screen_reader_semantic": "MEDIUM",
+    "keyboard_motor": "HIGH",
+    "magnification_reflow": "MEDIUM",
+    "cognitive_neurodivergent": "LOW",
+    "vestibular_motion": "NONE",
+    "environmental_contrast": "LOW",
+    "auditory_access": "NONE"
+  },
+  "evidence": [
+    "EVID-INTERACTION-S-STR-020-HOVER-FOCUS: focusing the collapsed Navigation Blocks link displays a 71.25 by 34 CSS pixel author-controlled tooltip over the main content.",
+    "EVID-INTERACTION-S-STR-020-HOVER-FOCUS: pressing Escape while focus remains on the trigger does not dismiss the tooltip."
+  ],
+  "reproduction_steps": [
+    "Enable the core Navigation module and use its collapsed desktop toolbar.",
+    "Authenticate as an administrator and open /admin/structure/views/view/content/edit/page_1.",
+    "Move keyboard focus to the Blocks link in the collapsed Navigation toolbar.",
+    "Confirm that the Blocks tooltip appears over the main page content.",
+    "Press Escape without moving focus and confirm that the tooltip remains visible."
+  ],
+  "expected_behavior": "Additional content shown on focus can be dismissed without moving focus when it obscures other content.",
+  "actual_behavior": "The focus-triggered Navigation tooltip overlays the main content and remains visible after Escape; the implementation has no dismissal mechanism that preserves focus on the trigger.",
+  "evaluation_context": {
+    "evaluation_id": "AS-OACR-001",
+    "sample_id": "S-STR-020",
+    "state_id": "ST-001"
+  }
+}

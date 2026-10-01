@@ -1,0 +1,113 @@
+<p>Discussion: <a href="http://groups.drupal.org/node/158759">Defining the Drupal 8 accessibility gate</a></p>
+
+<h2>Conforms to WCAG 2.1 and ATAG 2.0</h2>
+
+<h5>When is this needed?</h5>
+
+<p>When changing the UI. Common accessibility issues and tests are listed below.</p>
+
+<h5>Details</h5>
+
+<p>The goal for Drupal core is Level AA conformance with WCAG and ATAG 2.0. Use existing UI patterns to minimize the opportunity for accessibility or usability problems. Tag issues that introduce new patterns with "needs accessibility review."</p>
+
+<h5>Resources</h5>
+
+<p><a href="http://www.w3.org/TR/WCAG20/">WCAG 2.0</a>, <a href="http://www.w3.org/TR/ATAG20/">ATAG 2.0</a>, <a href="http://drupal.org/about/accessibility">Drupal Accessibility Statement</a>, and <a href="#gatev3-conformance-patterns">More about Drupal core conformance and UI patterns</a></p>
+
+<h2>HTML structure meets WCAG 2.1</h2>
+
+<h5>When is this needed?</h5>
+
+<p>When introducing new HTML structure or semantics, such as when changing templates or theme functions.</p>
+
+<h5>Details</h5>
+
+<p>Run an automated checking tool like the <a href="https://wave.webaim.org/">WAVE Toolbar</a>. Test before and after a patch to verify that the patch does not introduce new errors.</p>
+
+<h5>Resources</h5>
+
+<p><a href="https://wave.webaim.org/">WAVE Toolbar</a> and <a href="#gatev3-automated-checking">More about Automated Checking</a></p>
+
+<h2>Test color has sufficient contrast</h2>
+
+<h5>When is this needed?</h5>
+
+<p>When introducing new foreground and background combinations, such as when changing CSS.</p>
+
+<h5>Details</h5>
+
+<p>The WAVE Toolbar &amp; axe both do a great job catching many color contrast issues, but can't catch them all. You may need to use a color contrast tool like <a href="https://contrast-ratio.com/">Contrast Ratio</a>, or the <a href="https://chrome.google.com/webstore/detail/accessible-color-picker/bgfhbflmeekopanooidljpnmnljdihld">Accessible Color Picker Chrome extension</a>&nbsp;to check. The <a href="https://contrast-finder.tanaguru.com/">Tanaguru Contrast Finder</a> can provide some alternate&nbsp;color combinations which are easier for everyone to see. Visual presentations should meet WCAG 2.1 Level AA contrast conformance.</p>
+
+<h5>Resources</h5>
+
+<p><a href="https://contrast-ratio.com/">Contrast Ratio</a>&nbsp;and <a href="#gatev3-contrast">More about Contrast</a>.</p>
+
+<h2>Form fields are labeled</h2>
+
+<h5>When is this needed?</h5>
+
+<p>When adding forms or changing fields, such as when using Form API.</p>
+
+<h5>Details</h5>
+
+<p>Every form field needs a correctly associated label. Run a test using the WAVE Toolbar (see above) on any new or changed forms and fix any incorrect labels.</p>
+
+<h5>Resources</h5>
+
+<p><a href="#gatev3-titles">More about #title and #title_display</a></p>
+
+<h2>JavaScript is keyboard-usable</h2>
+
+<h5>When is this needed?</h5>
+
+<p>When developing new JavaScript UI interactions or Ajax widgets.</p>
+
+<h5>Details</h5>
+
+<p>Test using only your keyboard (unplug your mouse). Verify that the UI can be fully operated using only a keyboard.</p>
+
+<h5>Resources</h5>
+
+<p><a href="#gatev3-javascript">More about JavaScript accessibility</a></p>
+
+<h3 id="gatev3-conformance-patterns">More about Drupal core conformance and UI patterns</h3>
+
+<p>The accessibility goal for Drupal core is WCAG 2.1 and ATAG 2.0 Level AA. We want to reduce barriers to ensure that sites are Perceivable, Operable, Understandable, and Robust (POUR), and provide for the use of a variety of assistive technologies. It is important to think about accessibility when developing new user interfaces and to become familiar with successful and conforming implementations.</p>
+
+<h3>UI Patterns.</h3>
+
+<p>Following existing user interface patterns already used in Drupal core will reduce the opportunity for accessibility or usability problems. New user interface patterns will likely require review by the accessibility and usability teams.</p>
+
+<h3>Problem Patterns.</h3>
+
+<p>There are known patterns in core that are highly likely to cause accessibility problems, for example modal dialogs or interactive jQuery calls. If your patch includes one of these known patterns please check with accessibility team by tagging the issue with "needs accessibility review".</p>
+
+<p>Testing is very important when introducing or redeveloping a UI pattern. If you are still unsure after running through the basic testing procedures, please check with accessibility team by tagging the issue with "needs accessibility review." The earlier a new or changed pattern is checked for accessibility, the easier it can be corrected.</p>
+
+<h3 id="gatev3-automated-checking">More about Automated Checking</h3>
+
+<p>Automated checkers do not guarantee accessibility and do not check all WCAG 2.1 criteria. Some criteria require human review and problems may be raised in the issue queue.</p>
+
+<p>The <a href="http://wave.webaim.org/">WAVE Toolbar</a> is a recommended checker. Other popular checkers include:&nbsp;<a href="https://www.deque.com/axe/">axe</a>,&nbsp;<a href="http://fae.cita.uiuc.edu/">FAE</a>, and its <a href="https://addons.mozilla.org/en-US/firefox/addon/wave-accessibility-tool/">Firefox add-on</a>.</p>
+
+<p>Running the automated check before and after applying a proposed patch is important. Some parts of Drupal core cause errors or warnings in WAVE and other tools. New patches should not introduce additional errors.</p>
+
+<h3 id="gatev3-contrast">More about Contrast</h3>
+
+<p>See <a href="https://drupal.org/node/464500">http://drupal.org/node/464500</a> for background information and other color contrast tools.</p>
+
+<h3 id="gatev3-titles">More about #title and #title_display</h3>
+
+<p>In the Drupal Form API, the new #title_display property allows you to choose the proper location for a form label to be displayed. It prints the label in the chosen location or makes it invisible off-screen while still preserving its accessibility.</p>
+
+<p>See the Form API documentation for <a href="http://api.drupal.org/api/drupal/developer--topics--forms_api_reference.html#title_display">#title_display</a>.</p>
+
+<p>It is not accessible to remove the label by emptying the #title property: <code class="language-php">unset($element['#title'])</code> ... or by using CSS <code class="language-php">display: none</code>. Both of those techniques were used in Drupal 6 and earlier when there was no built-in support for locating form labels off-screen or as tool-tips.</p>
+
+<h3 id="gatev3-javascript">More about JavaScript Accessibility</h3>
+
+<p>Keyboard accessibility is a major concern when creating Javascript-based widgets, UI interactions, and Ajax functionality. "Keyboard only" is when you only use the keyboard to interact with the user interface. Many disabled users cannot use a mouse or other pointing device. Try using each feature of a new interface without using a mouse or trackpad. Problems with keyboard only operations will quickly identify areas to focus on.</p>
+
+<p>Another kind of JavaScript accessibility problem is the visibility of content that is dynamically loaded or updated by Ajax calls. Using existing UI patterns is encouraged to avoid accessibility problems. New user interfaces of this type will likely require design and collaboration with the accessibility and usability teams. Contributors are encouraged to seek design assistance as early in the design cycle as possible by tagging any issue with "needs accessibility review."</p>
+
+<p>Drupal core includes numerous examples of UI patterns that have been made accessible with JavaScript and/or ARIA markup. These include: drag-n-drop tables, vertical tabs, the password strength checker, and auto-complete fields.</p>

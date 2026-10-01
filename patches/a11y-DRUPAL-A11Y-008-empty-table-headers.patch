@@ -1,0 +1,17 @@
+diff --git a/core/modules/system/templates/table.html.twig b/core/modules/system/templates/table.html.twig
+index 1234567..abcdefg 100644
+--- a/core/modules/system/templates/table.html.twig
++++ b/core/modules/system/templates/table.html.twig
+@@ -66,7 +66,11 @@
+       <tr>
+         {% for cell in header %}
+           <{{ cell.tag }}{{ cell.attributes }}>
+-            {{- cell.content -}}
++            {% if cell.tag == 'th' and cell.content is empty %}
++              <span class="visually-hidden">{{ 'Column'|t }}</span>
++            {% else %}
++              {{- cell.content -}}
++            {% endif %}
+           </{{ cell.tag }}>
+         {% endfor %}
+       </tr>

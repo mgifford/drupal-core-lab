@@ -1,0 +1,150 @@
+<p>Images, audio, video, and other media can communicate information that is not available in text. They can also create barriers when people cannot see, hear, understand, or operate the content.</p>
+
+<p>Plan accessible alternatives before producing or publishing media. Retrofitting captions, descriptions, transcripts, and accessible controls is slower and usually produces a worse result.</p>
+
+<h2>Configure Drupal image fields carefully</h2>
+
+<p><a href="https://api.drupal.org/api/drupal/core%21modules%21image%21src%21Plugin%21Field%21FieldType%21ImageItem.php/11.x">Drupal 11 image fields</a> enable the alternative text field and make it required by default. Keep the alternative text field enabled for images that may convey information. Drupal also disables the image title field by default and describes enabling it as not recommended because it can cause problems for screen reader users.</p>
+
+<p>A required alternative text field is useful for informative images, but it prevents an author from saving the intentional empty value required for a decorative image. Do not tell authors to enter a space, filename, or filler such as "decorative image." Instead, design the content model for the images it accepts:</p>
+
+<ul>
+  <li>Require meaningful alternative text when the field is only for informative images.</li>
+  <li>Keep decorative graphics in the theme when practical.</li>
+  <li>If authors can choose decorative images, provide a clear, tested way to record that decision and render <code>alt=""</code>. This may require site-specific field design or validation.</li>
+</ul>
+
+<p>The same image can serve different purposes in different contexts. Reusing a media item does not guarantee that its stored alternative text is correct everywhere it appears. Review the rendered result in context.</p>
+
+<h2>Preserve image attributes in Twig</h2>
+
+<p>Drupal 11 core's <a href="https://api.drupal.org/api/drupal/core%21modules%21system%21templates%21image.html.twig/11.x"><code>image.html.twig</code> template</a> renders the attributes prepared by Drupal:</p>
+
+<pre><code class="language-twig">&lt;img{{ attributes }} /&gt;</code></pre>
+
+<p>Preserve <code>attributes</code> when overriding this template. Rebuilding the element from selected variables can remove its alternative text, dimensions, loading behavior, classes, or other attributes.</p>
+
+<p>Drupal's <a href="https://api.drupal.org/api/drupal/core%21modules%21responsive_image%21templates%21responsive-image.html.twig/11.x">Responsive Image template</a> uses a <code>picture</code> element with one controlling <code>img</code> element. Keep the alternative text on that <code>img</code>. The <code>source</code> elements select image resources and do not need separate alternative text.</p>
+
+<h2>Write alternative text for the image's purpose</h2>
+
+<p>Alternative text replaces the purpose or information of an image in its current context. It is not a visual inventory and it is not primarily an SEO field. Ask what a person would miss if the image were unavailable.</p>
+
+<h3>Informative images</h3>
+
+<p>Describe the information needed to understand the surrounding content. Keep the text concise, but include enough to serve the same purpose as the image.</p>
+
+<pre><code class="language-html">&lt;img src="library-entrance.jpg"
+  alt="Main library entrance with a ramp to the left of the stairs"&gt;</code></pre>
+
+<p>There is no WCAG rule that limits alternative text to 125 characters. Length depends on purpose and context. A complex image usually needs a short alternative and a separate structured description rather than an extremely long <code>alt</code> value.</p>
+
+<h3>Decorative or redundant images</h3>
+
+<p>Use an empty alternative attribute when an image adds no information or repeats information already available next to it:</p>
+
+<pre><code class="language-html">&lt;img src="divider.svg" alt=""&gt;</code></pre>
+
+<p>Use exactly <code>alt=""</code>, with no space. Omitting the attribute can cause some screen readers to announce the filename. Do not use <code>aria-label="decorative"</code> or alternative text such as "image" or "spacer."</p>
+
+<h3>Functional images</h3>
+
+<p>When an image is the only content of a link or button, the alternative text should name the destination or action, not describe the picture.</p>
+
+<pre><code class="language-html">&lt;a href="/search"&gt;
+  &lt;img src="search.svg" alt="Search"&gt;
+&lt;/a&gt;</code></pre>
+
+<p>If visible text already names the control, use <code>alt=""</code> on an adjacent icon to avoid repetition.</p>
+
+<h3>Images of text</h3>
+
+<p>Use real text instead of an image of text when possible. Real text can reflow, resize, translate, and adapt to user preferences. When an image of text is necessary, such as a logo, provide the essential words in the alternative text unless the same words are already available next to it.</p>
+
+<h3>Complex images</h3>
+
+<p>Charts, diagrams, maps, and other complex images need the essential information in text. Provide:</p>
+
+<ul>
+  <li>a concise alternative that identifies the image and its purpose; and</li>
+  <li>a visible, structured description containing the important values, relationships, sequence, or conclusion.</li>
+</ul>
+
+<p>Place the description near the image or provide a clearly associated link. Use headings, lists, and data tables when they communicate the information better than a paragraph. Do not rely on <code>aria-describedby</code> for a description whose headings or table structure must remain navigable.</p>
+
+<p>A caption and alternative text have different purposes. A caption may identify the source or explain context. Alternative text replaces information supplied by the image. Do not automatically copy one into the other.</p>
+
+<h2>Handle CSS images and SVG</h2>
+
+<p>Use CSS background images only for presentation or when the same information is available as real text. Important information must not disappear when background images, custom styles, or high-contrast settings are unavailable.</p>
+
+<p>For an SVG used as the source of an <code>img</code>, provide alternative text on the <code>img</code>. For inline SVG that conveys information or provides a control, give it an accessible name and expose only the semantics people need. Hide decorative inline SVG from assistive technology. SVG accessibility depends on its markup and context, so test the rendered result with browsers and screen readers rather than relying on one generic pattern.</p>
+
+<h2>Provide accessible audio and video</h2>
+
+<p>Choose the required alternatives from the information the media contains. Captions, transcripts, and audio description solve different barriers and are not interchangeable.</p>
+
+<h3>Captions</h3>
+
+<ul>
+  <li>Provide accurate captions for prerecorded video with meaningful audio.</li>
+  <li>Provide accurate live captions for live video with meaningful audio when meeting WCAG 2.2 AA.</li>
+  <li>Include relevant speech, speaker identification, and non-speech sounds needed to understand the content.</li>
+  <li>Review and correct automatically generated captions before publication. Unreviewed automatic captions are not sufficient.</li>
+</ul>
+
+<h3>Transcripts</h3>
+
+<p>Provide a transcript for prerecorded audio-only content. Make it easy to find next to the media. Identify speakers and include meaningful non-speech audio.</p>
+
+<p>A transcript of synchronized video is useful but does not replace captions for people who watch the video. A descriptive transcript also includes important visual information and supports people who cannot use either the audio or the visuals. WCAG places the media alternative for prerecorded synchronized media at Level AAA. Treat it as aspirational in a project targeting AA, while recognizing the users who need it.</p>
+
+<h3>Description of visual information</h3>
+
+<p>Provide audio description for important visual information in prerecorded video when that information is not already available in the main audio. This includes actions, scene changes, charts, demonstrations, and text displayed on screen.</p>
+
+<p>For new instructional or presentation video, plan integrated description. Speakers can state names, read essential on-screen text, and describe what they demonstrate as part of the main narration. This often avoids a separate audio-description track while producing a clearer video.</p>
+
+<h2>Use an accessible media player</h2>
+
+<p>Drupal can store and display media, but accessibility also depends on the player, embed provider, configuration, and content. A third-party player does not transfer responsibility to the provider.</p>
+
+<p>Test that the player:</p>
+
+<ul>
+  <li>works with a keyboard and does not trap focus;</li>
+  <li>provides visible focus indicators;</li>
+  <li>gives every control an understandable name, role, state, and value;</li>
+  <li>supports play, pause, stop, volume, seeking, captions, and audio description where those features apply;</li>
+  <li>keeps controls available at zoomed and narrow viewport sizes;</li>
+  <li>does not require hover, dragging, or a precise pointer movement as the only method of operation; and</li>
+  <li>does not obscure captions or other content with controls.</li>
+</ul>
+
+<p>Avoid autoplay. If audio starts automatically and continues for more than three seconds, provide a way to pause or stop it, or control its volume independently from the system volume. Provide a way to pause, stop, or hide automatically moving content when WCAG requires it.</p>
+
+<p>Do not publish content that flashes in a way that can trigger seizures. Avoid rapid flashing rather than trying to calculate the threshold after production.</p>
+
+<h2>Test the rendered content</h2>
+
+<ul>
+  <li>Inspect every rendered <code>img</code> for an appropriate <code>alt</code> attribute.</li>
+  <li>Compare alternative text with the image's purpose in context.</li>
+  <li>Confirm that decorative images are ignored by a screen reader.</li>
+  <li>Check complex images against their visible descriptions.</li>
+  <li>Review captions for accuracy, timing, speaker identification, and important sounds.</li>
+  <li>Check transcripts and descriptions against the complete media.</li>
+  <li>Operate the media player with a keyboard and a screen reader.</li>
+  <li>Test the player at supported breakpoints and at 200% and 400% zoom.</li>
+  <li>Run an automated accessibility checker, then complete the manual checks. Automated tools cannot judge whether an alternative conveys the correct meaning.</li>
+</ul>
+
+<h2>Related guidance</h2>
+
+<ul>
+  <li><a href="/docs/getting-started/accessibility/creating-accessible-themes">Creating accessible themes</a></li>
+  <li><a href="/docs/getting-started/accessibility/page-structure-and-navigation">Page structure and navigation</a></li>
+  <li><a href="https://www.w3.org/WAI/tutorials/images/">W3C: Images Tutorial</a></li>
+  <li><a href="https://www.w3.org/WAI/tutorials/images/decision-tree/">W3C: Alternative text decision tree</a></li>
+  <li><a href="https://www.w3.org/WAI/media/av/">W3C: Making Audio and Video Media Accessible</a></li>
+</ul>

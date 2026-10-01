@@ -1,0 +1,4376 @@
+{
+  "evaluation_id": "AS-OACR-001",
+  "disposition": "TEST DRAFT — NOT FOR RELEASE",
+  "methodology": "WCAG-EM 2.0",
+  "target": "WCAG 2.2 AA",
+  "catalog": "2.5-edition-wcag-2.2-508-en",
+  "frozen_build_digest": "68ba978ba1f82fce0afcf8485627f3819c500d1ab20747c23af865c948e381bf",
+  "evaluator": "TBD — internal-test override; not release eligible",
+  "commissioner": "TBD — internal-test override; not release eligible",
+  "collection_window": {
+    "timezone": "America/New_York",
+    "started_at": "2026-08-23T15:58:16-04:00",
+    "completed_at": "2026-08-23T17:51:48-04:00"
+  },
+  "baseline": {
+    "host": "macOS 26.5.2 build 25F84 arm64",
+    "browser_automation": "Chrome 151.0.7922.172 with Playwright 1.62.1 and axe-core 4.13.0",
+    "screen_reader": "Safari 26.5.2 plus native VoiceOver 10 sampled on the invalid-login error path",
+    "voice_control": "Native macOS Voice Control sampled with a successful spoken Click Main Menu activation",
+    "unavailable_combinations": [
+      "Windows NVDA/JAWS",
+      "iOS VoiceOver",
+      "Android TalkBack",
+      "switch access",
+      "actual Windows forced colors"
+    ],
+    "runtime": "DDEV 1.25.3; PHP 8.3.31; nginx 1.26.3; MariaDB 11.8.8"
+  },
+  "samples": [
+    {
+      "id": "S-STR-001",
+      "role": "anonymous",
+      "theme": "olivero",
+      "path": "/node",
+      "route": "view.frontpage.page_1",
+      "family": "view:/node",
+      "rationale": "Public front/listing template, global navigation, skip link, empty/non-empty listing behavior, Olivero shared components.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-004",
+        "ST-005",
+        "ST-008",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-STR-002",
+      "role": "anonymous",
+      "theme": "olivero",
+      "path": "/node/1",
+      "route": "entity.node.canonical",
+      "family": "entity:/node/{parameter}",
+      "rationale": "Published Basic page content detail and body markup in the public theme.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-004",
+        "ST-005",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-STR-003",
+      "role": "anonymous",
+      "theme": "olivero",
+      "path": "/node/2",
+      "route": "entity.node.canonical",
+      "family": "entity:/node/{parameter}",
+      "rationale": "Published Article variation with local image and alternative text.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-004",
+        "ST-005",
+        "ST-010",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-STR-004",
+      "role": "anonymous",
+      "theme": "olivero",
+      "path": "/user/login",
+      "route": "user.login",
+      "family": "user:/user/login",
+      "rationale": "Authentication form, failure and success messages, autocomplete, focus transition, and session entry.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-005",
+        "ST-006",
+        "ST-007",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-STR-005",
+      "role": "anonymous",
+      "theme": "olivero",
+      "path": "/user/password",
+      "route": "user.pass",
+      "family": "user:/user/password",
+      "rationale": "Password-recovery instructions and validation without sending external mail.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-005",
+        "ST-006",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-STR-006",
+      "role": "authenticated",
+      "theme": "olivero",
+      "path": "/user/2",
+      "route": "entity.user.canonical",
+      "family": "entity:/user/{parameter}",
+      "rationale": "Authenticated profile view and account navigation.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-004",
+        "ST-005",
+        "ST-008",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-STR-007",
+      "role": "authenticated",
+      "theme": "claro",
+      "path": "/user/2/edit",
+      "route": "entity.user.edit_form",
+      "family": "entity:/user/{parameter}/edit",
+      "rationale": "Authenticated self-service account form, details disclosure, validation, and save status.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-005",
+        "ST-006",
+        "ST-007",
+        "ST-009",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-STR-008",
+      "role": "author",
+      "theme": "claro",
+      "path": "/admin/content",
+      "route": "system.admin_content",
+      "family": "system:/admin/content",
+      "rationale": "Author-facing administration navigation, filters, table, bulk controls, and unpublished content.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-005",
+        "ST-008",
+        "ST-012",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-STR-009",
+      "role": "author",
+      "theme": "claro",
+      "path": "/node/add/article",
+      "route": "node.add",
+      "family": "node:/node/add/{parameter}",
+      "rationale": "Primary authoring process with CKEditor, image upload, disclosures, validation, preview/save, and status messages.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-005",
+        "ST-006",
+        "ST-007",
+        "ST-009",
+        "ST-010",
+        "ST-011",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-STR-010",
+      "role": "author",
+      "theme": "claro",
+      "path": "/node/2/edit",
+      "route": "entity.node.edit_form",
+      "family": "entity:/node/{parameter}/edit",
+      "rationale": "Existing-content edit path and focus/status behavior after save.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-005",
+        "ST-006",
+        "ST-007",
+        "ST-009",
+        "ST-010",
+        "ST-011",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-STR-011",
+      "role": "anonymous",
+      "theme": "claro",
+      "path": "/node/add",
+      "route": "node.add_page",
+      "family": "node:/node/add",
+      "rationale": "Permission-denied response on an administrative route for a public user.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-013",
+        "ST-002",
+        "ST-003",
+        "ST-005",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-STR-012",
+      "role": "admin",
+      "theme": "claro",
+      "path": "/admin",
+      "route": "system.admin",
+      "family": "system:/admin",
+      "rationale": "Administration landing page and shared Navigation sidebar behavior.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-005",
+        "ST-008",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-STR-013",
+      "role": "admin",
+      "theme": "claro",
+      "path": "/admin/people",
+      "route": "entity.user.collection",
+      "family": "entity:/admin/people",
+      "rationale": "Entity listing with table, exposed filters, checkboxes, actions, paging boundary, and user rows.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-005",
+        "ST-008",
+        "ST-012",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-STR-014",
+      "role": "admin",
+      "theme": "claro",
+      "path": "/admin/people/permissions",
+      "route": "user.admin_permissions",
+      "family": "user:/admin/people/permissions",
+      "rationale": "Very large permission matrix and sticky/dense table behavior.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-005",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-STR-015",
+      "role": "admin",
+      "theme": "claro",
+      "path": "/admin/structure/types/manage/article/fields",
+      "route": "entity.node.field_ui_fields",
+      "family": "entity:/admin/structure/types",
+      "rationale": "Field UI table, operations controls, local tasks, and entity configuration family.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-005",
+        "ST-008",
+        "ST-012",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-STR-016",
+      "role": "admin",
+      "theme": "claro",
+      "path": "/admin/structure/block",
+      "route": "block.admin_display",
+      "family": "block:/admin/structure/block",
+      "rationale": "Block layout, region groupings, operations, placement controls, and responsive administration layout.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-005",
+        "ST-008",
+        "ST-009",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-STR-017",
+      "role": "admin",
+      "theme": "claro",
+      "path": "/admin/config/content/formats/manage/basic_html",
+      "route": "entity.filter_format.edit_form",
+      "family": "entity:/admin/config/content",
+      "rationale": "Complex text-format/CKEditor configuration, nested controls, orderable UI, and warning content.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-005",
+        "ST-006",
+        "ST-009",
+        "ST-011",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-STR-018",
+      "role": "admin",
+      "theme": "claro",
+      "path": "/admin/config/system/site-information",
+      "route": "system.site_information_settings",
+      "family": "system:/admin/config/system",
+      "rationale": "Representative configuration form with required fields, validation, and reversible save process.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-005",
+        "ST-006",
+        "ST-007",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-STR-019",
+      "role": "admin",
+      "theme": "claro",
+      "path": "/admin/reports/status",
+      "route": "system.status",
+      "family": "system:/admin/reports/status",
+      "rationale": "Status report with severity presentation, details disclosures, and diagnostic table-like content.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-005",
+        "ST-009",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-STR-020",
+      "role": "admin",
+      "theme": "claro",
+      "path": "/admin/structure/views/view/content/edit/page_1",
+      "route": "entity.view.edit_display_form",
+      "family": "entity:/admin/structure/views",
+      "rationale": "Views UI as the densest JavaScript-enhanced administration builder and overlay/dialog risk surface.",
+      "selection": "structured",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-005",
+        "ST-008",
+        "ST-009",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-RND-001",
+      "role": "admin",
+      "theme": "claro",
+      "path": "/admin/people/create",
+      "route": "user.admin_create",
+      "family": "user:/admin/people/create",
+      "rationale": "Deterministic WCAG-EM Step 3.2 selection from eligible rank 1; digest 00de3528c1d259288e77d8ceef54716306e4dcb86260807497a496b0c9777877.",
+      "rank_digest": "00de3528c1d259288e77d8ceef54716306e4dcb86260807497a496b0c9777877",
+      "selection": "random",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-005",
+        "ST-014",
+        "ST-015"
+      ]
+    },
+    {
+      "id": "S-RND-002",
+      "role": "admin",
+      "theme": "claro",
+      "path": "/admin/content/block",
+      "route": "entity.block_content.collection",
+      "family": "entity:/admin/content/block",
+      "rationale": "Deterministic WCAG-EM Step 3.2 selection from eligible rank 2; digest 0105980936b2974d7973765104bcc9e8daf44b3c5db4c4c03e591e78d7d03ae0.",
+      "rank_digest": "0105980936b2974d7973765104bcc9e8daf44b3c5db4c4c03e591e78d7d03ae0",
+      "selection": "random",
+      "state_ids": [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-005",
+        "ST-014",
+        "ST-015"
+      ]
+    }
+  ],
+  "processes": [
+    {
+      "id": "P-01",
+      "role": "anonymous",
+      "steps": [
+        "Use bypass and local content navigation",
+        "Read the Basic page and Article",
+        "Operate narrow Main Menu"
+      ],
+      "critical_branches": [
+        "bypass focus",
+        "local navigation",
+        "image alternative",
+        "expanded/collapsed navigation"
+      ]
+    },
+    {
+      "id": "P-02",
+      "role": "authenticated",
+      "steps": [
+        "Submit empty and invalid login states",
+        "Authenticate and open profile/edit",
+        "Log out"
+      ],
+      "critical_branches": [
+        "required errors",
+        "invalid credential error",
+        "account disclosure",
+        "anonymous destination"
+      ]
+    },
+    {
+      "id": "P-03",
+      "role": "author",
+      "steps": [
+        "Submit empty Article",
+        "Operate CKEditor and add local image alternative",
+        "Create Article and save reversible text edit"
+      ],
+      "critical_branches": [
+        "validation",
+        "CKEditor toolbar",
+        "local upload",
+        "success status"
+      ]
+    },
+    {
+      "id": "P-04",
+      "role": "admin",
+      "steps": [
+        "Inventory admin families",
+        "Create invalid site-setting state",
+        "Save and restore synthetic slogan marker"
+      ],
+      "critical_branches": [
+        "required error",
+        "success status",
+        "persisted marker",
+        "restored configuration"
+      ]
+    },
+    {
+      "id": "P-05",
+      "role": "admin",
+      "steps": [
+        "Submit empty account form",
+        "Create blocked synthetic local account",
+        "Verify notification suppression and result"
+      ],
+      "critical_branches": [
+        "required errors",
+        "password fields",
+        "blocked status",
+        "notification disabled"
+      ]
+    }
+  ],
+  "criteria": [
+    {
+      "id": "1.1.1",
+      "level": "A",
+      "name": "Non-text Content",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-003",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-AXE-S-STR-003-DEFAULT-DESKTOP",
+            "EVID-DOM-S-STR-003-DEFAULT",
+            "EVID-PROCESS-P-01"
+          ],
+          "finding_ids": [],
+          "reason": "The sampled informative image loaded with a non-empty alternative; automated, DOM, and complete-process evidence also covered shared decorative/icon alternatives."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-AXE-S-STR-003-DEFAULT-DESKTOP",
+        "EVID-DOM-S-STR-003-DEFAULT",
+        "EVID-PROCESS-P-01"
+      ],
+      "finding_ids": [],
+      "reason": "The sampled informative image loaded with a non-empty alternative; automated, DOM, and complete-process evidence also covered shared decorative/icon alternatives."
+    },
+    {
+      "id": "1.2.1",
+      "level": "A",
+      "name": "Audio-only and Video-only (Prerecorded)",
+      "applicability": "inapplicable",
+      "aggregate_outcome": "inapplicable",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-003",
+          "state_id": "ST-001",
+          "outcome": "inapplicable",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-003-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Exploration and all 22 rendered DOM inventories found no prerecorded audio-only or video-only content."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-003-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "Exploration and all 22 rendered DOM inventories found no prerecorded audio-only or video-only content."
+    },
+    {
+      "id": "1.2.2",
+      "level": "A",
+      "name": "Captions (Prerecorded)",
+      "applicability": "inapplicable",
+      "aggregate_outcome": "inapplicable",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-003",
+          "state_id": "ST-001",
+          "outcome": "inapplicable",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-003-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "No prerecorded synchronized media was present in the frozen core-only installation."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-003-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "No prerecorded synchronized media was present in the frozen core-only installation."
+    },
+    {
+      "id": "1.2.3",
+      "level": "A",
+      "name": "Audio Description or Media Alternative (Prerecorded)",
+      "applicability": "inapplicable",
+      "aggregate_outcome": "inapplicable",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-003",
+          "state_id": "ST-001",
+          "outcome": "inapplicable",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-003-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "No prerecorded synchronized media was present."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-003-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "No prerecorded synchronized media was present."
+    },
+    {
+      "id": "1.2.4",
+      "level": "AA",
+      "name": "Captions (Live)",
+      "applicability": "inapplicable",
+      "aggregate_outcome": "inapplicable",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-003",
+          "state_id": "ST-001",
+          "outcome": "inapplicable",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-003-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "No live synchronized media was present."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-003-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "No live synchronized media was present."
+    },
+    {
+      "id": "1.2.5",
+      "level": "AA",
+      "name": "Audio Description (Prerecorded)",
+      "applicability": "inapplicable",
+      "aggregate_outcome": "inapplicable",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-003",
+          "state_id": "ST-001",
+          "outcome": "inapplicable",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-003-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "No prerecorded video was present."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-003-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "No prerecorded video was present."
+    },
+    {
+      "id": "1.3.1",
+      "level": "A",
+      "name": "Info and Relationships",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-009",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-AXE-S-STR-009-DEFAULT-DESKTOP",
+            "EVID-DOM-S-STR-014-DEFAULT",
+            "EVID-AXTREE-S-STR-020-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Rendered headings, landmarks, form labels, tables, relationships, and accessibility trees were checked on representative Olivero/Claro forms and dense admin surfaces; no sampled failure was confirmed."
+        },
+        {
+          "sample_id": "S-STR-014",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-AXE-S-STR-009-DEFAULT-DESKTOP",
+            "EVID-DOM-S-STR-014-DEFAULT",
+            "EVID-AXTREE-S-STR-020-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Rendered headings, landmarks, form labels, tables, relationships, and accessibility trees were checked on representative Olivero/Claro forms and dense admin surfaces; no sampled failure was confirmed."
+        },
+        {
+          "sample_id": "S-STR-020",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-AXE-S-STR-009-DEFAULT-DESKTOP",
+            "EVID-DOM-S-STR-014-DEFAULT",
+            "EVID-AXTREE-S-STR-020-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Rendered headings, landmarks, form labels, tables, relationships, and accessibility trees were checked on representative Olivero/Claro forms and dense admin surfaces; no sampled failure was confirmed."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-AXE-S-STR-009-DEFAULT-DESKTOP",
+        "EVID-DOM-S-STR-014-DEFAULT",
+        "EVID-AXTREE-S-STR-020-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "Rendered headings, landmarks, form labels, tables, relationships, and accessibility trees were checked on representative Olivero/Claro forms and dense admin surfaces; no sampled failure was confirmed."
+    },
+    {
+      "id": "1.3.2",
+      "level": "A",
+      "name": "Meaningful Sequence",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-001",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT",
+            "EVID-AXTREE-S-STR-009-DEFAULT",
+            "EVID-AXTREE-S-STR-020-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "DOM order and accessibility-tree order remained meaningful on representative public, authoring, and Views UI pages."
+        },
+        {
+          "sample_id": "S-STR-009",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT",
+            "EVID-AXTREE-S-STR-009-DEFAULT",
+            "EVID-AXTREE-S-STR-020-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "DOM order and accessibility-tree order remained meaningful on representative public, authoring, and Views UI pages."
+        },
+        {
+          "sample_id": "S-STR-020",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT",
+            "EVID-AXTREE-S-STR-009-DEFAULT",
+            "EVID-AXTREE-S-STR-020-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "DOM order and accessibility-tree order remained meaningful on representative public, authoring, and Views UI pages."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-001-DEFAULT",
+        "EVID-AXTREE-S-STR-009-DEFAULT",
+        "EVID-AXTREE-S-STR-020-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "DOM order and accessibility-tree order remained meaningful on representative public, authoring, and Views UI pages."
+    },
+    {
+      "id": "1.3.3",
+      "level": "A",
+      "name": "Sensory Characteristics",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-001",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT",
+            "EVID-DOM-S-STR-018-DEFAULT",
+            "EVID-PROCESS-P-04"
+          ],
+          "finding_ids": [],
+          "reason": "Sampled instructions used textual labels and did not rely solely on shape, location, orientation, or sound."
+        },
+        {
+          "sample_id": "S-STR-018",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT",
+            "EVID-DOM-S-STR-018-DEFAULT",
+            "EVID-PROCESS-P-04"
+          ],
+          "finding_ids": [],
+          "reason": "Sampled instructions used textual labels and did not rely solely on shape, location, orientation, or sound."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-001-DEFAULT",
+        "EVID-DOM-S-STR-018-DEFAULT",
+        "EVID-PROCESS-P-04"
+      ],
+      "finding_ids": [],
+      "reason": "Sampled instructions used textual labels and did not rely solely on shape, location, orientation, or sound."
+    },
+    {
+      "id": "1.3.4",
+      "level": "AA",
+      "name": "Orientation",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-001",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-VISUAL-S-STR-001-REFLOW-320",
+            "EVID-VISUAL-S-STR-018-REFLOW-320"
+          ],
+          "finding_ids": [],
+          "reason": "Wide and narrow layouts rendered without an enforced display orientation."
+        },
+        {
+          "sample_id": "S-STR-018",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-VISUAL-S-STR-001-REFLOW-320",
+            "EVID-VISUAL-S-STR-018-REFLOW-320"
+          ],
+          "finding_ids": [],
+          "reason": "Wide and narrow layouts rendered without an enforced display orientation."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-VISUAL-S-STR-001-REFLOW-320",
+        "EVID-VISUAL-S-STR-018-REFLOW-320"
+      ],
+      "finding_ids": [],
+      "reason": "Wide and narrow layouts rendered without an enforced display orientation."
+    },
+    {
+      "id": "1.3.5",
+      "level": "AA",
+      "name": "Identify Input Purpose",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-004",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-AXE-S-STR-004-DEFAULT-DESKTOP",
+            "EVID-DOM-S-STR-007-DEFAULT",
+            "EVID-AXE-S-RND-001-DEFAULT-DESKTOP"
+          ],
+          "finding_ids": [],
+          "reason": "Authentication and account fields exposed expected purpose/autocomplete semantics in the sampled forms."
+        },
+        {
+          "sample_id": "S-STR-007",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-AXE-S-STR-004-DEFAULT-DESKTOP",
+            "EVID-DOM-S-STR-007-DEFAULT",
+            "EVID-AXE-S-RND-001-DEFAULT-DESKTOP"
+          ],
+          "finding_ids": [],
+          "reason": "Authentication and account fields exposed expected purpose/autocomplete semantics in the sampled forms."
+        },
+        {
+          "sample_id": "S-RND-001",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-AXE-S-STR-004-DEFAULT-DESKTOP",
+            "EVID-DOM-S-STR-007-DEFAULT",
+            "EVID-AXE-S-RND-001-DEFAULT-DESKTOP"
+          ],
+          "finding_ids": [],
+          "reason": "Authentication and account fields exposed expected purpose/autocomplete semantics in the sampled forms."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-AXE-S-STR-004-DEFAULT-DESKTOP",
+        "EVID-DOM-S-STR-007-DEFAULT",
+        "EVID-AXE-S-RND-001-DEFAULT-DESKTOP"
+      ],
+      "finding_ids": [],
+      "reason": "Authentication and account fields exposed expected purpose/autocomplete semantics in the sampled forms."
+    },
+    {
+      "id": "1.4.1",
+      "level": "A",
+      "name": "Use of Color",
+      "applicability": "applicable",
+      "aggregate_outcome": "failed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-004",
+          "state_id": "ST-001",
+          "outcome": "failed",
+          "evidence_ids": [
+            "EVID-FULL-SUITE-RESOLUTIONS"
+          ],
+          "finding_ids": [
+            "a11y_olivero_tabs_trigger_focus_indicator"
+          ],
+          "reason": "At the mobile breakpoint, the Olivero local-tabs trigger indicates keyboard focus only by changing its existing 1 CSS pixel border from gray to blue; the state-color difference is below 3:1, so color is the only visual cue."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-FULL-SUITE-RESOLUTIONS"
+      ],
+      "finding_ids": [
+        "a11y_olivero_tabs_trigger_focus_indicator"
+      ],
+      "reason": "At the mobile breakpoint, the Olivero local-tabs trigger indicates keyboard focus only by changing its existing 1 CSS pixel border from gray to blue; the state-color difference is below 3:1, so color is the only visual cue."
+    },
+    {
+      "id": "1.4.2",
+      "level": "A",
+      "name": "Audio Control",
+      "applicability": "inapplicable",
+      "aggregate_outcome": "inapplicable",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-003",
+          "state_id": "ST-001",
+          "outcome": "inapplicable",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-003-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "No automatically playing audio was present."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-003-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "No automatically playing audio was present."
+    },
+    {
+      "id": "1.4.3",
+      "level": "AA",
+      "name": "Contrast (Minimum)",
+      "applicability": "applicable",
+      "aggregate_outcome": "failed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-008",
+          "state_id": "ST-015",
+          "outcome": "failed",
+          "evidence_ids": [
+            "EVID-AXE-S-STR-008-DEFAULT-DESKTOP",
+            "EVID-AXE-S-STR-013-DEFAULT-DESKTOP",
+            "EVID-AXE-S-STR-016-DEFAULT-DESKTOP",
+            "EVID-AXE-S-STR-020-DEFAULT-DESKTOP"
+          ],
+          "finding_ids": [
+            "a11y_claro_bulk_button_contrast",
+            "a11y_claro_empty_region_contrast"
+          ],
+          "reason": "Confirmed 4.24:1 small primary-button text on three admin surfaces and 3.78:1 empty-region text on Block layout."
+        },
+        {
+          "sample_id": "S-STR-013",
+          "state_id": "ST-015",
+          "outcome": "failed",
+          "evidence_ids": [
+            "EVID-AXE-S-STR-008-DEFAULT-DESKTOP",
+            "EVID-AXE-S-STR-013-DEFAULT-DESKTOP",
+            "EVID-AXE-S-STR-016-DEFAULT-DESKTOP",
+            "EVID-AXE-S-STR-020-DEFAULT-DESKTOP"
+          ],
+          "finding_ids": [
+            "a11y_claro_bulk_button_contrast",
+            "a11y_claro_empty_region_contrast"
+          ],
+          "reason": "Confirmed 4.24:1 small primary-button text on three admin surfaces and 3.78:1 empty-region text on Block layout."
+        },
+        {
+          "sample_id": "S-STR-016",
+          "state_id": "ST-015",
+          "outcome": "failed",
+          "evidence_ids": [
+            "EVID-AXE-S-STR-008-DEFAULT-DESKTOP",
+            "EVID-AXE-S-STR-013-DEFAULT-DESKTOP",
+            "EVID-AXE-S-STR-016-DEFAULT-DESKTOP",
+            "EVID-AXE-S-STR-020-DEFAULT-DESKTOP"
+          ],
+          "finding_ids": [
+            "a11y_claro_bulk_button_contrast",
+            "a11y_claro_empty_region_contrast"
+          ],
+          "reason": "Confirmed 4.24:1 small primary-button text on three admin surfaces and 3.78:1 empty-region text on Block layout."
+        },
+        {
+          "sample_id": "S-STR-020",
+          "state_id": "ST-015",
+          "outcome": "failed",
+          "evidence_ids": [
+            "EVID-AXE-S-STR-008-DEFAULT-DESKTOP",
+            "EVID-AXE-S-STR-013-DEFAULT-DESKTOP",
+            "EVID-AXE-S-STR-016-DEFAULT-DESKTOP",
+            "EVID-AXE-S-STR-020-DEFAULT-DESKTOP"
+          ],
+          "finding_ids": [
+            "a11y_claro_bulk_button_contrast",
+            "a11y_claro_empty_region_contrast"
+          ],
+          "reason": "Confirmed 4.24:1 small primary-button text on three admin surfaces and 3.78:1 empty-region text on Block layout."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-AXE-S-STR-008-DEFAULT-DESKTOP",
+        "EVID-AXE-S-STR-013-DEFAULT-DESKTOP",
+        "EVID-AXE-S-STR-016-DEFAULT-DESKTOP",
+        "EVID-AXE-S-STR-020-DEFAULT-DESKTOP"
+      ],
+      "finding_ids": [
+        "a11y_claro_bulk_button_contrast",
+        "a11y_claro_empty_region_contrast"
+      ],
+      "reason": "Confirmed 4.24:1 small primary-button text on three admin surfaces and 3.78:1 empty-region text on Block layout."
+    },
+    {
+      "id": "1.4.4",
+      "level": "AA",
+      "name": "Resize Text",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-001",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-STR-002",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-STR-003",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-STR-004",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-STR-005",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-STR-006",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-STR-007",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-STR-008",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-STR-009",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-STR-010",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-STR-011",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-STR-012",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-STR-013",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-STR-014",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-STR-015",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-STR-016",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-STR-017",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-STR-018",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-STR-019",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-STR-020",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-RND-001",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        },
+        {
+          "sample_id": "S-RND-002",
+          "state_id": "ST-004",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+          ],
+          "finding_ids": [],
+          "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+      ],
+      "finding_ids": [],
+      "reason": "All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout."
+    },
+    {
+      "id": "1.4.5",
+      "level": "AA",
+      "name": "Images of Text",
+      "applicability": "inapplicable",
+      "aggregate_outcome": "inapplicable",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-003",
+          "state_id": "ST-001",
+          "outcome": "inapplicable",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-003-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "No image of text was used to convey required information; the synthetic image label was test-fixture decoration with a text alternative."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-003-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "No image of text was used to convey required information; the synthetic image label was test-fixture decoration with a text alternative."
+    },
+    {
+      "id": "1.4.10",
+      "level": "AA",
+      "name": "Reflow",
+      "applicability": "applicable",
+      "aggregate_outcome": "failed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-010",
+          "state_id": "ST-003",
+          "outcome": "failed",
+          "evidence_ids": [
+            "EVID-REFLOW-S-STR-010",
+            "EVID-REFLOW-S-STR-019"
+          ],
+          "finding_ids": [
+            "a11y_claro_article_edit_reflow",
+            "a11y_claro_status_report_reflow"
+          ],
+          "reason": "The Article edit form and Status report required horizontal scrolling at 320 CSS pixels outside the two-dimensional content exception."
+        },
+        {
+          "sample_id": "S-STR-019",
+          "state_id": "ST-003",
+          "outcome": "failed",
+          "evidence_ids": [
+            "EVID-REFLOW-S-STR-010",
+            "EVID-REFLOW-S-STR-019"
+          ],
+          "finding_ids": [
+            "a11y_claro_article_edit_reflow",
+            "a11y_claro_status_report_reflow"
+          ],
+          "reason": "The Article edit form and Status report required horizontal scrolling at 320 CSS pixels outside the two-dimensional content exception."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-REFLOW-S-STR-010",
+        "EVID-REFLOW-S-STR-019"
+      ],
+      "finding_ids": [
+        "a11y_claro_article_edit_reflow",
+        "a11y_claro_status_report_reflow"
+      ],
+      "reason": "The Article edit form and Status report required horizontal scrolling at 320 CSS pixels outside the two-dimensional content exception."
+    },
+    {
+      "id": "1.4.11",
+      "level": "AA",
+      "name": "Non-text Contrast",
+      "applicability": "applicable",
+      "aggregate_outcome": "failed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-004",
+          "state_id": "ST-002",
+          "outcome": "failed",
+          "evidence_ids": [
+            "EVID-FULL-SUITE-RESOLUTIONS"
+          ],
+          "finding_ids": [
+            "a11y_olivero_tabs_trigger_focus_indicator"
+          ],
+          "reason": "The focused Olivero mobile local-tabs trigger uses a blue border with a measured 2.902:1 contrast against its adjacent background, below the required 3:1 for visual component/state information."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-FULL-SUITE-RESOLUTIONS"
+      ],
+      "finding_ids": [
+        "a11y_olivero_tabs_trigger_focus_indicator"
+      ],
+      "reason": "The focused Olivero mobile local-tabs trigger uses a blue border with a measured 2.902:1 contrast against its adjacent background, below the required 3:1 for visual component/state information."
+    },
+    {
+      "id": "1.4.12",
+      "level": "AA",
+      "name": "Text Spacing",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-009",
+          "state_id": "ST-005",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-TEXTSPACING-S-STR-009",
+            "EVID-TEXTSPACING-S-STR-010",
+            "EVID-TEXTSPACING-S-STR-019",
+            "EVID-TEXTSPACING-S-STR-020"
+          ],
+          "finding_ids": [],
+          "reason": "Exact WCAG text-spacing overrides produced no confirmed text-spacing-specific clipping or overlap in targeted public/form/status/Views UI checks; the independent reflow failures remain recorded under 1.4.10."
+        },
+        {
+          "sample_id": "S-STR-010",
+          "state_id": "ST-005",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-TEXTSPACING-S-STR-009",
+            "EVID-TEXTSPACING-S-STR-010",
+            "EVID-TEXTSPACING-S-STR-019",
+            "EVID-TEXTSPACING-S-STR-020"
+          ],
+          "finding_ids": [],
+          "reason": "Exact WCAG text-spacing overrides produced no confirmed text-spacing-specific clipping or overlap in targeted public/form/status/Views UI checks; the independent reflow failures remain recorded under 1.4.10."
+        },
+        {
+          "sample_id": "S-STR-019",
+          "state_id": "ST-005",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-TEXTSPACING-S-STR-009",
+            "EVID-TEXTSPACING-S-STR-010",
+            "EVID-TEXTSPACING-S-STR-019",
+            "EVID-TEXTSPACING-S-STR-020"
+          ],
+          "finding_ids": [],
+          "reason": "Exact WCAG text-spacing overrides produced no confirmed text-spacing-specific clipping or overlap in targeted public/form/status/Views UI checks; the independent reflow failures remain recorded under 1.4.10."
+        },
+        {
+          "sample_id": "S-STR-020",
+          "state_id": "ST-005",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-TEXTSPACING-S-STR-009",
+            "EVID-TEXTSPACING-S-STR-010",
+            "EVID-TEXTSPACING-S-STR-019",
+            "EVID-TEXTSPACING-S-STR-020"
+          ],
+          "finding_ids": [],
+          "reason": "Exact WCAG text-spacing overrides produced no confirmed text-spacing-specific clipping or overlap in targeted public/form/status/Views UI checks; the independent reflow failures remain recorded under 1.4.10."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-TEXTSPACING-S-STR-009",
+        "EVID-TEXTSPACING-S-STR-010",
+        "EVID-TEXTSPACING-S-STR-019",
+        "EVID-TEXTSPACING-S-STR-020"
+      ],
+      "finding_ids": [],
+      "reason": "Exact WCAG text-spacing overrides produced no confirmed text-spacing-specific clipping or overlap in targeted public/form/status/Views UI checks; the independent reflow failures remain recorded under 1.4.10."
+    },
+    {
+      "id": "1.4.13",
+      "level": "AA",
+      "name": "Content on Hover or Focus",
+      "applicability": "applicable",
+      "aggregate_outcome": "failed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-020",
+          "state_id": "ST-001",
+          "outcome": "failed",
+          "evidence_ids": [
+            "EVID-INTERACTION-S-STR-020-HOVER-FOCUS"
+          ],
+          "finding_ids": [
+            "a11y_navigation_focus_tooltip_not_dismissible"
+          ],
+          "reason": "The collapsed Navigation toolbar exposes a focus-triggered tooltip over main content that remains visible after Escape, so the sampled additional content is not dismissible without moving focus."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-INTERACTION-S-STR-020-HOVER-FOCUS"
+      ],
+      "finding_ids": [
+        "a11y_navigation_focus_tooltip_not_dismissible"
+      ],
+      "reason": "The collapsed Navigation toolbar exposes a focus-triggered tooltip over main content that remains visible after Escape, so the sampled additional content is not dismissible without moving focus."
+    },
+    {
+      "id": "2.1.1",
+      "level": "A",
+      "name": "Keyboard",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-001",
+          "state_id": "ST-002",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-PROCESS-P-01",
+            "EVID-PROCESS-P-02",
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-04",
+            "EVID-PROCESS-P-05"
+          ],
+          "finding_ids": [],
+          "reason": "Real keyboard events completed the five representative processes, including CKEditor toolbar entry/navigation/exit."
+        },
+        {
+          "sample_id": "S-STR-004",
+          "state_id": "ST-002",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-PROCESS-P-01",
+            "EVID-PROCESS-P-02",
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-04",
+            "EVID-PROCESS-P-05"
+          ],
+          "finding_ids": [],
+          "reason": "Real keyboard events completed the five representative processes, including CKEditor toolbar entry/navigation/exit."
+        },
+        {
+          "sample_id": "S-STR-009",
+          "state_id": "ST-002",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-PROCESS-P-01",
+            "EVID-PROCESS-P-02",
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-04",
+            "EVID-PROCESS-P-05"
+          ],
+          "finding_ids": [],
+          "reason": "Real keyboard events completed the five representative processes, including CKEditor toolbar entry/navigation/exit."
+        },
+        {
+          "sample_id": "S-STR-018",
+          "state_id": "ST-002",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-PROCESS-P-01",
+            "EVID-PROCESS-P-02",
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-04",
+            "EVID-PROCESS-P-05"
+          ],
+          "finding_ids": [],
+          "reason": "Real keyboard events completed the five representative processes, including CKEditor toolbar entry/navigation/exit."
+        },
+        {
+          "sample_id": "S-RND-001",
+          "state_id": "ST-002",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-PROCESS-P-01",
+            "EVID-PROCESS-P-02",
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-04",
+            "EVID-PROCESS-P-05"
+          ],
+          "finding_ids": [],
+          "reason": "Real keyboard events completed the five representative processes, including CKEditor toolbar entry/navigation/exit."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-PROCESS-P-01",
+        "EVID-PROCESS-P-02",
+        "EVID-PROCESS-P-03",
+        "EVID-PROCESS-P-04",
+        "EVID-PROCESS-P-05"
+      ],
+      "finding_ids": [],
+      "reason": "Real keyboard events completed the five representative processes, including CKEditor toolbar entry/navigation/exit."
+    },
+    {
+      "id": "2.1.2",
+      "level": "A",
+      "name": "No Keyboard Trap",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-001",
+          "state_id": "ST-002",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-KEYBOARD-S-STR-001-DEFAULT",
+            "EVID-KEYBOARD-S-STR-009-DEFAULT",
+            "EVID-KEYBOARD-S-STR-020-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Forward and reverse traces plus complete processes did not trap focus in the sampled interfaces."
+        },
+        {
+          "sample_id": "S-STR-009",
+          "state_id": "ST-002",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-KEYBOARD-S-STR-001-DEFAULT",
+            "EVID-KEYBOARD-S-STR-009-DEFAULT",
+            "EVID-KEYBOARD-S-STR-020-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Forward and reverse traces plus complete processes did not trap focus in the sampled interfaces."
+        },
+        {
+          "sample_id": "S-STR-020",
+          "state_id": "ST-002",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-KEYBOARD-S-STR-001-DEFAULT",
+            "EVID-KEYBOARD-S-STR-009-DEFAULT",
+            "EVID-KEYBOARD-S-STR-020-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Forward and reverse traces plus complete processes did not trap focus in the sampled interfaces."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-KEYBOARD-S-STR-001-DEFAULT",
+        "EVID-KEYBOARD-S-STR-009-DEFAULT",
+        "EVID-KEYBOARD-S-STR-020-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "Forward and reverse traces plus complete processes did not trap focus in the sampled interfaces."
+    },
+    {
+      "id": "2.1.4",
+      "level": "A",
+      "name": "Character Key Shortcuts",
+      "applicability": "inapplicable",
+      "aggregate_outcome": "inapplicable",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-009",
+          "state_id": "ST-001",
+          "outcome": "inapplicable",
+          "evidence_ids": [
+            "EVID-PROCESS-P-03"
+          ],
+          "finding_ids": [],
+          "reason": "No single-character keyboard shortcut was exposed; observed CKEditor shortcuts required modifiers."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-PROCESS-P-03"
+      ],
+      "finding_ids": [],
+      "reason": "No single-character keyboard shortcut was exposed; observed CKEditor shortcuts required modifiers."
+    },
+    {
+      "id": "2.2.1",
+      "level": "A",
+      "name": "Timing Adjustable",
+      "applicability": "inapplicable",
+      "aggregate_outcome": "inapplicable",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-001",
+          "state_id": "ST-001",
+          "outcome": "inapplicable",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "No user task in the sampled local installation imposed a time limit."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-001-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "No user task in the sampled local installation imposed a time limit."
+    },
+    {
+      "id": "2.2.2",
+      "level": "A",
+      "name": "Pause, Stop, Hide",
+      "applicability": "inapplicable",
+      "aggregate_outcome": "inapplicable",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-001",
+          "state_id": "ST-001",
+          "outcome": "inapplicable",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "No moving, blinking, scrolling, or auto-updating content meeting the criterion thresholds was present."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-001-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "No moving, blinking, scrolling, or auto-updating content meeting the criterion thresholds was present."
+    },
+    {
+      "id": "2.3.1",
+      "level": "A",
+      "name": "Three Flashes or Below Threshold",
+      "applicability": "inapplicable",
+      "aggregate_outcome": "inapplicable",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-001",
+          "state_id": "ST-001",
+          "outcome": "inapplicable",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "No flashing content was present."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-001-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "No flashing content was present."
+    },
+    {
+      "id": "2.4.1",
+      "level": "A",
+      "name": "Bypass Blocks",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-001",
+          "state_id": "ST-002",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-PROCESS-P-01"
+          ],
+          "finding_ids": [],
+          "reason": "A real Tab then Enter activation of the bypass link moved focus to main content."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-PROCESS-P-01"
+      ],
+      "finding_ids": [],
+      "reason": "A real Tab then Enter activation of the bypass link moved focus to main content."
+    },
+    {
+      "id": "2.4.2",
+      "level": "A",
+      "name": "Page Titled",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-001",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT",
+            "EVID-DOM-S-STR-009-DEFAULT",
+            "EVID-DOM-S-STR-019-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Representative public, authoring, and administration pages had descriptive document titles."
+        },
+        {
+          "sample_id": "S-STR-009",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT",
+            "EVID-DOM-S-STR-009-DEFAULT",
+            "EVID-DOM-S-STR-019-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Representative public, authoring, and administration pages had descriptive document titles."
+        },
+        {
+          "sample_id": "S-STR-019",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT",
+            "EVID-DOM-S-STR-009-DEFAULT",
+            "EVID-DOM-S-STR-019-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Representative public, authoring, and administration pages had descriptive document titles."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-001-DEFAULT",
+        "EVID-DOM-S-STR-009-DEFAULT",
+        "EVID-DOM-S-STR-019-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "Representative public, authoring, and administration pages had descriptive document titles."
+    },
+    {
+      "id": "2.4.3",
+      "level": "A",
+      "name": "Focus Order",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-001",
+          "state_id": "ST-002",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-KEYBOARD-S-STR-001-DEFAULT",
+            "EVID-KEYBOARD-S-STR-009-DEFAULT",
+            "EVID-KEYBOARD-S-STR-018-DEFAULT",
+            "EVID-KEYBOARD-S-RND-001-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Recorded forward/reverse sequences and task traces followed the rendered interaction order; no sampled order failure was confirmed."
+        },
+        {
+          "sample_id": "S-STR-009",
+          "state_id": "ST-002",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-KEYBOARD-S-STR-001-DEFAULT",
+            "EVID-KEYBOARD-S-STR-009-DEFAULT",
+            "EVID-KEYBOARD-S-STR-018-DEFAULT",
+            "EVID-KEYBOARD-S-RND-001-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Recorded forward/reverse sequences and task traces followed the rendered interaction order; no sampled order failure was confirmed."
+        },
+        {
+          "sample_id": "S-STR-018",
+          "state_id": "ST-002",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-KEYBOARD-S-STR-001-DEFAULT",
+            "EVID-KEYBOARD-S-STR-009-DEFAULT",
+            "EVID-KEYBOARD-S-STR-018-DEFAULT",
+            "EVID-KEYBOARD-S-RND-001-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Recorded forward/reverse sequences and task traces followed the rendered interaction order; no sampled order failure was confirmed."
+        },
+        {
+          "sample_id": "S-RND-001",
+          "state_id": "ST-002",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-KEYBOARD-S-STR-001-DEFAULT",
+            "EVID-KEYBOARD-S-STR-009-DEFAULT",
+            "EVID-KEYBOARD-S-STR-018-DEFAULT",
+            "EVID-KEYBOARD-S-RND-001-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Recorded forward/reverse sequences and task traces followed the rendered interaction order; no sampled order failure was confirmed."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-KEYBOARD-S-STR-001-DEFAULT",
+        "EVID-KEYBOARD-S-STR-009-DEFAULT",
+        "EVID-KEYBOARD-S-STR-018-DEFAULT",
+        "EVID-KEYBOARD-S-RND-001-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "Recorded forward/reverse sequences and task traces followed the rendered interaction order; no sampled order failure was confirmed."
+    },
+    {
+      "id": "2.4.4",
+      "level": "A",
+      "name": "Link Purpose (In Context)",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-001",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT",
+            "EVID-DOM-S-STR-019-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Sampled link text and surrounding context identified destinations or actions."
+        },
+        {
+          "sample_id": "S-STR-019",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT",
+            "EVID-DOM-S-STR-019-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Sampled link text and surrounding context identified destinations or actions."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-001-DEFAULT",
+        "EVID-DOM-S-STR-019-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "Sampled link text and surrounding context identified destinations or actions."
+    },
+    {
+      "id": "2.4.5",
+      "level": "AA",
+      "name": "Multiple Ways",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-002",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-002-DEFAULT",
+            "EVID-DOM-S-STR-019-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Repeated site/admin navigation and breadcrumbs provided multiple routes to sampled pages within their page sets."
+        },
+        {
+          "sample_id": "S-STR-019",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-002-DEFAULT",
+            "EVID-DOM-S-STR-019-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Repeated site/admin navigation and breadcrumbs provided multiple routes to sampled pages within their page sets."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-002-DEFAULT",
+        "EVID-DOM-S-STR-019-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "Repeated site/admin navigation and breadcrumbs provided multiple routes to sampled pages within their page sets."
+    },
+    {
+      "id": "2.4.6",
+      "level": "AA",
+      "name": "Headings and Labels",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-009",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-009-DEFAULT",
+            "EVID-DOM-S-STR-019-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Representative form and status-report headings and labels described their topics and purpose."
+        },
+        {
+          "sample_id": "S-STR-019",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-009-DEFAULT",
+            "EVID-DOM-S-STR-019-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Representative form and status-report headings and labels described their topics and purpose."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-009-DEFAULT",
+        "EVID-DOM-S-STR-019-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "Representative form and status-report headings and labels described their topics and purpose."
+    },
+    {
+      "id": "2.4.7",
+      "level": "AA",
+      "name": "Focus Visible",
+      "applicability": "applicable",
+      "aggregate_outcome": "failed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-008",
+          "state_id": "ST-002",
+          "outcome": "failed",
+          "evidence_ids": [
+            "EVID-FULL-SUITE-SUMMARY",
+            "EVID-FULL-SUITE-RESOLUTIONS"
+          ],
+          "finding_ids": [
+            "a11y_navigation_logo_focus_not_visible"
+          ],
+          "reason": "Real Tab traversal reached the Navigation Home logo, but its focused and unfocused element screenshots were byte-identical and computed styles exposed no outline, border, or shadow change."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-FULL-SUITE-SUMMARY",
+        "EVID-FULL-SUITE-RESOLUTIONS"
+      ],
+      "finding_ids": [
+        "a11y_navigation_logo_focus_not_visible"
+      ],
+      "reason": "Real Tab traversal reached the Navigation Home logo, but its focused and unfocused element screenshots were byte-identical and computed styles exposed no outline, border, or shadow change."
+    },
+    {
+      "id": "2.4.11",
+      "level": "AA",
+      "name": "Focus Not Obscured (Minimum)",
+      "applicability": "applicable",
+      "aggregate_outcome": "failed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-010",
+          "state_id": "ST-002",
+          "outcome": "failed",
+          "evidence_ids": [
+            "EVID-FULL-SUITE-SUMMARY",
+            "EVID-FULL-SUITE-RESOLUTIONS"
+          ],
+          "finding_ids": [
+            "a11y_navigation_breadcrumb_focus_obscured"
+          ],
+          "reason": "After a complete forward focus cycle, reverse keyboard traversal placed focus on the Article and Home breadcrumb links while the fixed Navigation top bar completely covered them; 25 sampled points per link had zero visible overlap with the focused link."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-FULL-SUITE-SUMMARY",
+        "EVID-FULL-SUITE-RESOLUTIONS"
+      ],
+      "finding_ids": [
+        "a11y_navigation_breadcrumb_focus_obscured"
+      ],
+      "reason": "After a complete forward focus cycle, reverse keyboard traversal placed focus on the Article and Home breadcrumb links while the fixed Navigation top bar completely covered them; 25 sampled points per link had zero visible overlap with the focused link."
+    },
+    {
+      "id": "2.5.1",
+      "level": "A",
+      "name": "Pointer Gestures",
+      "applicability": "inapplicable",
+      "aggregate_outcome": "inapplicable",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-016",
+          "state_id": "ST-001",
+          "outcome": "inapplicable",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-016-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "No multipoint or path-based pointer gesture was required by the sampled interfaces."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-016-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "No multipoint or path-based pointer gesture was required by the sampled interfaces."
+    },
+    {
+      "id": "2.5.2",
+      "level": "A",
+      "name": "Pointer Cancellation",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-016",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-INTERACTION-S-STR-016-POINTER-CANCELLATION"
+          ],
+          "finding_ids": [],
+          "reason": "Real pointer sequences confirmed that down-events alone did not complete ordinary-control or tabledrag actions; the tabledrag change could be undone with the visible weight control before saving, and reload confirmed no persisted configuration change."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-INTERACTION-S-STR-016-POINTER-CANCELLATION"
+      ],
+      "finding_ids": [],
+      "reason": "Real pointer sequences confirmed that down-events alone did not complete ordinary-control or tabledrag actions; the tabledrag change could be undone with the visible weight control before saving, and reload confirmed no persisted configuration change."
+    },
+    {
+      "id": "2.5.3",
+      "level": "A",
+      "name": "Label in Name",
+      "applicability": "applicable",
+      "aggregate_outcome": "failed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-016",
+          "state_id": "ST-001",
+          "outcome": "failed",
+          "evidence_ids": [
+            "EVID-FULL-SUITE-SUMMARY"
+          ],
+          "finding_ids": [
+            "a11y_claro_configure_label_not_in_name"
+          ],
+          "reason": "Twelve Block layout links visibly labeled Configure had accessible names such as Edit Site branding that did not contain the visible label, preventing reliable activation by the presented label."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-FULL-SUITE-SUMMARY"
+      ],
+      "finding_ids": [
+        "a11y_claro_configure_label_not_in_name"
+      ],
+      "reason": "Twelve Block layout links visibly labeled Configure had accessible names such as Edit Site branding that did not contain the visible label, preventing reliable activation by the presented label."
+    },
+    {
+      "id": "2.5.4",
+      "level": "A",
+      "name": "Motion Actuation",
+      "applicability": "inapplicable",
+      "aggregate_outcome": "inapplicable",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-001",
+          "state_id": "ST-001",
+          "outcome": "inapplicable",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "No device-motion actuation was present."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-001-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "No device-motion actuation was present."
+    },
+    {
+      "id": "2.5.7",
+      "level": "AA",
+      "name": "Dragging Movements",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-016",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-016-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Block layout exposed select controls as non-drag alternatives for region assignment."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-016-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "Block layout exposed select controls as non-drag alternatives for region assignment."
+    },
+    {
+      "id": "2.5.8",
+      "level": "AA",
+      "name": "Target Size (Minimum)",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-020",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-AXE-S-STR-020-DEFAULT-DESKTOP",
+            "EVID-MANUAL-RESOLUTION-TARGET-SIZE",
+            "EVID-DOM-S-STR-020-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Retained selector-level geometry and DOM context confirmed that the 20 CSS pixel-high Views UI links are constrained by the parent and surrounding non-target text at a 20 CSS pixel line-height, so the second branch of the WCAG inline exception applied; no other sampled target-size candidate remained."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-AXE-S-STR-020-DEFAULT-DESKTOP",
+        "EVID-MANUAL-RESOLUTION-TARGET-SIZE",
+        "EVID-DOM-S-STR-020-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "Retained selector-level geometry and DOM context confirmed that the 20 CSS pixel-high Views UI links are constrained by the parent and surrounding non-target text at a 20 CSS pixel line-height, so the second branch of the WCAG inline exception applied; no other sampled target-size candidate remained."
+    },
+    {
+      "id": "3.1.1",
+      "level": "A",
+      "name": "Language of Page",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-001",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT",
+            "EVID-DOM-S-STR-009-DEFAULT",
+            "EVID-DOM-S-STR-019-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "The rendered html language was English across representative Olivero and Claro samples."
+        },
+        {
+          "sample_id": "S-STR-009",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT",
+            "EVID-DOM-S-STR-009-DEFAULT",
+            "EVID-DOM-S-STR-019-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "The rendered html language was English across representative Olivero and Claro samples."
+        },
+        {
+          "sample_id": "S-STR-019",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT",
+            "EVID-DOM-S-STR-009-DEFAULT",
+            "EVID-DOM-S-STR-019-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "The rendered html language was English across representative Olivero and Claro samples."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-001-DEFAULT",
+        "EVID-DOM-S-STR-009-DEFAULT",
+        "EVID-DOM-S-STR-019-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "The rendered html language was English across representative Olivero and Claro samples."
+    },
+    {
+      "id": "3.1.2",
+      "level": "AA",
+      "name": "Language of Parts",
+      "applicability": "inapplicable",
+      "aggregate_outcome": "inapplicable",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-001",
+          "state_id": "ST-001",
+          "outcome": "inapplicable",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Exploration found English-only content with no foreign-language passages requiring a language-of-parts declaration."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-001-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "Exploration found English-only content with no foreign-language passages requiring a language-of-parts declaration."
+    },
+    {
+      "id": "3.2.1",
+      "level": "A",
+      "name": "On Focus",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-001",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-KEYBOARD-S-STR-001-DEFAULT",
+            "EVID-KEYBOARD-S-STR-009-DEFAULT",
+            "EVID-KEYBOARD-S-STR-020-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Real focus traversal did not trigger an unexpected change of context."
+        },
+        {
+          "sample_id": "S-STR-009",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-KEYBOARD-S-STR-001-DEFAULT",
+            "EVID-KEYBOARD-S-STR-009-DEFAULT",
+            "EVID-KEYBOARD-S-STR-020-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Real focus traversal did not trigger an unexpected change of context."
+        },
+        {
+          "sample_id": "S-STR-020",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-KEYBOARD-S-STR-001-DEFAULT",
+            "EVID-KEYBOARD-S-STR-009-DEFAULT",
+            "EVID-KEYBOARD-S-STR-020-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Real focus traversal did not trigger an unexpected change of context."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-KEYBOARD-S-STR-001-DEFAULT",
+        "EVID-KEYBOARD-S-STR-009-DEFAULT",
+        "EVID-KEYBOARD-S-STR-020-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "Real focus traversal did not trigger an unexpected change of context."
+    },
+    {
+      "id": "3.2.2",
+      "level": "A",
+      "name": "On Input",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-004",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-PROCESS-P-02",
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-04",
+            "EVID-PROCESS-P-05"
+          ],
+          "finding_ids": [],
+          "reason": "Form input changes did not change context before explicit submit/activation."
+        },
+        {
+          "sample_id": "S-STR-009",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-PROCESS-P-02",
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-04",
+            "EVID-PROCESS-P-05"
+          ],
+          "finding_ids": [],
+          "reason": "Form input changes did not change context before explicit submit/activation."
+        },
+        {
+          "sample_id": "S-STR-018",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-PROCESS-P-02",
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-04",
+            "EVID-PROCESS-P-05"
+          ],
+          "finding_ids": [],
+          "reason": "Form input changes did not change context before explicit submit/activation."
+        },
+        {
+          "sample_id": "S-RND-001",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-PROCESS-P-02",
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-04",
+            "EVID-PROCESS-P-05"
+          ],
+          "finding_ids": [],
+          "reason": "Form input changes did not change context before explicit submit/activation."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-PROCESS-P-02",
+        "EVID-PROCESS-P-03",
+        "EVID-PROCESS-P-04",
+        "EVID-PROCESS-P-05"
+      ],
+      "finding_ids": [],
+      "reason": "Form input changes did not change context before explicit submit/activation."
+    },
+    {
+      "id": "3.2.3",
+      "level": "AA",
+      "name": "Consistent Navigation",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-001",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT",
+            "EVID-DOM-S-STR-002-DEFAULT",
+            "EVID-DOM-S-STR-012-DEFAULT",
+            "EVID-DOM-S-STR-019-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Repeated Olivero and Claro navigation mechanisms retained their relative order within each page set."
+        },
+        {
+          "sample_id": "S-STR-002",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT",
+            "EVID-DOM-S-STR-002-DEFAULT",
+            "EVID-DOM-S-STR-012-DEFAULT",
+            "EVID-DOM-S-STR-019-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Repeated Olivero and Claro navigation mechanisms retained their relative order within each page set."
+        },
+        {
+          "sample_id": "S-STR-012",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT",
+            "EVID-DOM-S-STR-002-DEFAULT",
+            "EVID-DOM-S-STR-012-DEFAULT",
+            "EVID-DOM-S-STR-019-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Repeated Olivero and Claro navigation mechanisms retained their relative order within each page set."
+        },
+        {
+          "sample_id": "S-STR-019",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-001-DEFAULT",
+            "EVID-DOM-S-STR-002-DEFAULT",
+            "EVID-DOM-S-STR-012-DEFAULT",
+            "EVID-DOM-S-STR-019-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Repeated Olivero and Claro navigation mechanisms retained their relative order within each page set."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-001-DEFAULT",
+        "EVID-DOM-S-STR-002-DEFAULT",
+        "EVID-DOM-S-STR-012-DEFAULT",
+        "EVID-DOM-S-STR-019-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "Repeated Olivero and Claro navigation mechanisms retained their relative order within each page set."
+    },
+    {
+      "id": "3.2.4",
+      "level": "AA",
+      "name": "Consistent Identification",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-008",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-008-DEFAULT",
+            "EVID-DOM-S-STR-013-DEFAULT",
+            "EVID-DOM-S-STR-020-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Repeated administrative components and actions were identified consistently across the sampled interfaces."
+        },
+        {
+          "sample_id": "S-STR-013",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-008-DEFAULT",
+            "EVID-DOM-S-STR-013-DEFAULT",
+            "EVID-DOM-S-STR-020-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Repeated administrative components and actions were identified consistently across the sampled interfaces."
+        },
+        {
+          "sample_id": "S-STR-020",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-008-DEFAULT",
+            "EVID-DOM-S-STR-013-DEFAULT",
+            "EVID-DOM-S-STR-020-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Repeated administrative components and actions were identified consistently across the sampled interfaces."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-008-DEFAULT",
+        "EVID-DOM-S-STR-013-DEFAULT",
+        "EVID-DOM-S-STR-020-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "Repeated administrative components and actions were identified consistently across the sampled interfaces."
+    },
+    {
+      "id": "3.2.6",
+      "level": "A",
+      "name": "Consistent Help",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-012",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-012-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "The repeated administrative Help mechanism consistently linked to /admin/help in the sampled administration page set."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-012-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "The repeated administrative Help mechanism consistently linked to /admin/help in the sampled administration page set."
+    },
+    {
+      "id": "3.3.1",
+      "level": "A",
+      "name": "Error Identification",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-004",
+          "state_id": "ST-006",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-FULL-SUITE-RESOLUTIONS",
+            "EVID-VOICEOVER-SAFARI-LOGIN-ERROR",
+            "EVID-PROCESS-P-02",
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-04",
+            "EVID-PROCESS-P-05"
+          ],
+          "finding_ids": [],
+          "reason": "Real keyboard submissions moved focus to the first invalid field and exposed browser-native Please fill out this field messages; native Safari plus VoiceOver also exposed the invalid-login error as a named region and allowed navigation to its text. The password-manager prompt interrupted observation of any automatic announcement."
+        },
+        {
+          "sample_id": "S-STR-009",
+          "state_id": "ST-006",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-FULL-SUITE-RESOLUTIONS",
+            "EVID-VOICEOVER-SAFARI-LOGIN-ERROR",
+            "EVID-PROCESS-P-02",
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-04",
+            "EVID-PROCESS-P-05"
+          ],
+          "finding_ids": [],
+          "reason": "Real keyboard submissions moved focus to the first invalid field and exposed browser-native Please fill out this field messages; native Safari plus VoiceOver also exposed the invalid-login error as a named region and allowed navigation to its text. The password-manager prompt interrupted observation of any automatic announcement."
+        },
+        {
+          "sample_id": "S-STR-018",
+          "state_id": "ST-006",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-FULL-SUITE-RESOLUTIONS",
+            "EVID-VOICEOVER-SAFARI-LOGIN-ERROR",
+            "EVID-PROCESS-P-02",
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-04",
+            "EVID-PROCESS-P-05"
+          ],
+          "finding_ids": [],
+          "reason": "Real keyboard submissions moved focus to the first invalid field and exposed browser-native Please fill out this field messages; native Safari plus VoiceOver also exposed the invalid-login error as a named region and allowed navigation to its text. The password-manager prompt interrupted observation of any automatic announcement."
+        },
+        {
+          "sample_id": "S-RND-001",
+          "state_id": "ST-006",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-FULL-SUITE-RESOLUTIONS",
+            "EVID-VOICEOVER-SAFARI-LOGIN-ERROR",
+            "EVID-PROCESS-P-02",
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-04",
+            "EVID-PROCESS-P-05"
+          ],
+          "finding_ids": [],
+          "reason": "Real keyboard submissions moved focus to the first invalid field and exposed browser-native Please fill out this field messages; native Safari plus VoiceOver also exposed the invalid-login error as a named region and allowed navigation to its text. The password-manager prompt interrupted observation of any automatic announcement."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-FULL-SUITE-RESOLUTIONS",
+        "EVID-VOICEOVER-SAFARI-LOGIN-ERROR",
+        "EVID-PROCESS-P-02",
+        "EVID-PROCESS-P-03",
+        "EVID-PROCESS-P-04",
+        "EVID-PROCESS-P-05"
+      ],
+      "finding_ids": [],
+      "reason": "Real keyboard submissions moved focus to the first invalid field and exposed browser-native Please fill out this field messages; native Safari plus VoiceOver also exposed the invalid-login error as a named region and allowed navigation to its text. The password-manager prompt interrupted observation of any automatic announcement."
+    },
+    {
+      "id": "3.3.2",
+      "level": "A",
+      "name": "Labels or Instructions",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-004",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-004-DEFAULT",
+            "EVID-DOM-S-STR-009-DEFAULT",
+            "EVID-DOM-S-RND-001-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Sampled form inputs had visible labels and applicable instructions/descriptions."
+        },
+        {
+          "sample_id": "S-STR-009",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-004-DEFAULT",
+            "EVID-DOM-S-STR-009-DEFAULT",
+            "EVID-DOM-S-RND-001-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Sampled form inputs had visible labels and applicable instructions/descriptions."
+        },
+        {
+          "sample_id": "S-RND-001",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-DOM-S-STR-004-DEFAULT",
+            "EVID-DOM-S-STR-009-DEFAULT",
+            "EVID-DOM-S-RND-001-DEFAULT"
+          ],
+          "finding_ids": [],
+          "reason": "Sampled form inputs had visible labels and applicable instructions/descriptions."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-DOM-S-STR-004-DEFAULT",
+        "EVID-DOM-S-STR-009-DEFAULT",
+        "EVID-DOM-S-RND-001-DEFAULT"
+      ],
+      "finding_ids": [],
+      "reason": "Sampled form inputs had visible labels and applicable instructions/descriptions."
+    },
+    {
+      "id": "3.3.3",
+      "level": "AA",
+      "name": "Error Suggestion",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-004",
+          "state_id": "ST-006",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-FULL-SUITE-RESOLUTIONS",
+            "EVID-VOICEOVER-SAFARI-LOGIN-ERROR",
+            "EVID-PROCESS-P-02",
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-04",
+            "EVID-PROCESS-P-05"
+          ],
+          "finding_ids": [],
+          "reason": "Where correction guidance was known, keyboard-submitted required fields exposed a specific browser-native suggestion and the invalid-login state supplied a specific credential error; no sampled security-sensitive field required disclosure of a more detailed suggestion."
+        },
+        {
+          "sample_id": "S-STR-009",
+          "state_id": "ST-006",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-FULL-SUITE-RESOLUTIONS",
+            "EVID-VOICEOVER-SAFARI-LOGIN-ERROR",
+            "EVID-PROCESS-P-02",
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-04",
+            "EVID-PROCESS-P-05"
+          ],
+          "finding_ids": [],
+          "reason": "Where correction guidance was known, keyboard-submitted required fields exposed a specific browser-native suggestion and the invalid-login state supplied a specific credential error; no sampled security-sensitive field required disclosure of a more detailed suggestion."
+        },
+        {
+          "sample_id": "S-STR-018",
+          "state_id": "ST-006",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-FULL-SUITE-RESOLUTIONS",
+            "EVID-VOICEOVER-SAFARI-LOGIN-ERROR",
+            "EVID-PROCESS-P-02",
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-04",
+            "EVID-PROCESS-P-05"
+          ],
+          "finding_ids": [],
+          "reason": "Where correction guidance was known, keyboard-submitted required fields exposed a specific browser-native suggestion and the invalid-login state supplied a specific credential error; no sampled security-sensitive field required disclosure of a more detailed suggestion."
+        },
+        {
+          "sample_id": "S-RND-001",
+          "state_id": "ST-006",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-FULL-SUITE-RESOLUTIONS",
+            "EVID-VOICEOVER-SAFARI-LOGIN-ERROR",
+            "EVID-PROCESS-P-02",
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-04",
+            "EVID-PROCESS-P-05"
+          ],
+          "finding_ids": [],
+          "reason": "Where correction guidance was known, keyboard-submitted required fields exposed a specific browser-native suggestion and the invalid-login state supplied a specific credential error; no sampled security-sensitive field required disclosure of a more detailed suggestion."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-FULL-SUITE-RESOLUTIONS",
+        "EVID-VOICEOVER-SAFARI-LOGIN-ERROR",
+        "EVID-PROCESS-P-02",
+        "EVID-PROCESS-P-03",
+        "EVID-PROCESS-P-04",
+        "EVID-PROCESS-P-05"
+      ],
+      "finding_ids": [],
+      "reason": "Where correction guidance was known, keyboard-submitted required fields exposed a specific browser-native suggestion and the invalid-login state supplied a specific credential error; no sampled security-sensitive field required disclosure of a more detailed suggestion."
+    },
+    {
+      "id": "3.3.4",
+      "level": "AA",
+      "name": "Error Prevention (Legal, Financial, Data)",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-009",
+          "state_id": "ST-007",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-04"
+          ],
+          "finding_ids": [],
+          "reason": "Sampled data changes were reversible: the Article remained editable and the configuration marker was restored; no legal or financial transaction was present."
+        },
+        {
+          "sample_id": "S-STR-018",
+          "state_id": "ST-007",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-04"
+          ],
+          "finding_ids": [],
+          "reason": "Sampled data changes were reversible: the Article remained editable and the configuration marker was restored; no legal or financial transaction was present."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-PROCESS-P-03",
+        "EVID-PROCESS-P-04"
+      ],
+      "finding_ids": [],
+      "reason": "Sampled data changes were reversible: the Article remained editable and the configuration marker was restored; no legal or financial transaction was present."
+    },
+    {
+      "id": "3.3.7",
+      "level": "A",
+      "name": "Redundant Entry",
+      "applicability": "inapplicable",
+      "aggregate_outcome": "inapplicable",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-009",
+          "state_id": "ST-001",
+          "outcome": "inapplicable",
+          "evidence_ids": [
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-05"
+          ],
+          "finding_ids": [],
+          "reason": "The sampled processes did not require re-entering previously supplied information in the same process."
+        },
+        {
+          "sample_id": "S-RND-001",
+          "state_id": "ST-001",
+          "outcome": "inapplicable",
+          "evidence_ids": [
+            "EVID-PROCESS-P-03",
+            "EVID-PROCESS-P-05"
+          ],
+          "finding_ids": [],
+          "reason": "The sampled processes did not require re-entering previously supplied information in the same process."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-PROCESS-P-03",
+        "EVID-PROCESS-P-05"
+      ],
+      "finding_ids": [],
+      "reason": "The sampled processes did not require re-entering previously supplied information in the same process."
+    },
+    {
+      "id": "3.3.8",
+      "level": "AA",
+      "name": "Accessible Authentication (Minimum)",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-004",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-PROCESS-P-02"
+          ],
+          "finding_ids": [],
+          "reason": "Authentication allowed entry, paste/autofill, and password-manager-compatible fields without a cognitive-function test."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-PROCESS-P-02"
+      ],
+      "finding_ids": [],
+      "reason": "Authentication allowed entry, paste/autofill, and password-manager-compatible fields without a cognitive-function test."
+    },
+    {
+      "id": "4.1.2",
+      "level": "A",
+      "name": "Name, Role, Value",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-001",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-AXE-S-STR-001-DEFAULT-DESKTOP",
+            "EVID-AXTREE-S-STR-009-DEFAULT",
+            "EVID-AXTREE-S-STR-020-DEFAULT",
+            "EVID-FULL-SUITE-RESOLUTIONS"
+          ],
+          "finding_ids": [],
+          "reason": "Rendered native/custom controls exposed names, roles, and states in DOM/accessibility-tree evidence. A transient expanded-state link-name candidate resolved to a stable Content link in the steady accessibility tree."
+        },
+        {
+          "sample_id": "S-STR-009",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-AXE-S-STR-001-DEFAULT-DESKTOP",
+            "EVID-AXTREE-S-STR-009-DEFAULT",
+            "EVID-AXTREE-S-STR-020-DEFAULT",
+            "EVID-FULL-SUITE-RESOLUTIONS"
+          ],
+          "finding_ids": [],
+          "reason": "Rendered native/custom controls exposed names, roles, and states in DOM/accessibility-tree evidence. A transient expanded-state link-name candidate resolved to a stable Content link in the steady accessibility tree."
+        },
+        {
+          "sample_id": "S-STR-020",
+          "state_id": "ST-001",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-AXE-S-STR-001-DEFAULT-DESKTOP",
+            "EVID-AXTREE-S-STR-009-DEFAULT",
+            "EVID-AXTREE-S-STR-020-DEFAULT",
+            "EVID-FULL-SUITE-RESOLUTIONS"
+          ],
+          "finding_ids": [],
+          "reason": "Rendered native/custom controls exposed names, roles, and states in DOM/accessibility-tree evidence. A transient expanded-state link-name candidate resolved to a stable Content link in the steady accessibility tree."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-AXE-S-STR-001-DEFAULT-DESKTOP",
+        "EVID-AXTREE-S-STR-009-DEFAULT",
+        "EVID-AXTREE-S-STR-020-DEFAULT",
+        "EVID-FULL-SUITE-RESOLUTIONS"
+      ],
+      "finding_ids": [],
+      "reason": "Rendered native/custom controls exposed names, roles, and states in DOM/accessibility-tree evidence. A transient expanded-state link-name candidate resolved to a stable Content link in the steady accessibility tree."
+    },
+    {
+      "id": "4.1.3",
+      "level": "AA",
+      "name": "Status Messages",
+      "applicability": "applicable",
+      "aggregate_outcome": "passed",
+      "sample_outcomes": [
+        {
+          "sample_id": "S-STR-008",
+          "state_id": "ST-007",
+          "outcome": "passed",
+          "evidence_ids": [
+            "EVID-KAT-DRIVEN-CONTENT-SELECTION-STATUS"
+          ],
+          "finding_ids": [],
+          "reason": "A driven keyboard session announced both 1 item selected and No items selected through the live-region simulator after real Space-key toggles on the Content administration page."
+        }
+      ],
+      "evidence_ids": [
+        "EVID-KAT-DRIVEN-CONTENT-SELECTION-STATUS"
+      ],
+      "finding_ids": [],
+      "reason": "A driven keyboard session announced both 1 item selected and No items selected through the live-region simulator after real Space-key toggles on the Content administration page."
+    }
+  ],
+  "conformance_requirements": {
+    "target_level": [
+      {
+        "subject_id": "S-STR-001",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-001-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-001-DEFAULT",
+          "EVID-KEYBOARD-S-STR-001-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-002",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-002-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-002-DEFAULT",
+          "EVID-KEYBOARD-S-STR-002-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-003",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-003-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-003-DEFAULT",
+          "EVID-KEYBOARD-S-STR-003-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-004",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "failed",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-004-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-004-DEFAULT",
+          "EVID-KEYBOARD-S-STR-004-DEFAULT"
+        ],
+        "reason": "The subject is affected by a11y_olivero_tabs_trigger_focus_indicator."
+      },
+      {
+        "subject_id": "S-STR-005",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-005-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-005-DEFAULT",
+          "EVID-KEYBOARD-S-STR-005-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-006",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-006-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-006-DEFAULT",
+          "EVID-KEYBOARD-S-STR-006-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-007",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-007-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-007-DEFAULT",
+          "EVID-KEYBOARD-S-STR-007-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-008",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "failed",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-008-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-008-DEFAULT",
+          "EVID-KEYBOARD-S-STR-008-DEFAULT"
+        ],
+        "reason": "The subject is affected by a11y_claro_bulk_button_contrast, a11y_navigation_logo_focus_not_visible."
+      },
+      {
+        "subject_id": "S-STR-009",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-009-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-009-DEFAULT",
+          "EVID-KEYBOARD-S-STR-009-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-010",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "failed",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-010-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-010-DEFAULT",
+          "EVID-KEYBOARD-S-STR-010-DEFAULT"
+        ],
+        "reason": "The subject is affected by a11y_claro_article_edit_reflow, a11y_navigation_breadcrumb_focus_obscured."
+      },
+      {
+        "subject_id": "S-STR-011",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-011-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-011-DEFAULT",
+          "EVID-KEYBOARD-S-STR-011-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-012",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-012-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-012-DEFAULT",
+          "EVID-KEYBOARD-S-STR-012-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-013",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "failed",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-013-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-013-DEFAULT",
+          "EVID-KEYBOARD-S-STR-013-DEFAULT"
+        ],
+        "reason": "The subject is affected by a11y_claro_bulk_button_contrast."
+      },
+      {
+        "subject_id": "S-STR-014",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-014-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-014-DEFAULT",
+          "EVID-KEYBOARD-S-STR-014-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-015",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-015-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-015-DEFAULT",
+          "EVID-KEYBOARD-S-STR-015-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-016",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "failed",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-016-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-016-DEFAULT",
+          "EVID-KEYBOARD-S-STR-016-DEFAULT"
+        ],
+        "reason": "The subject is affected by a11y_claro_empty_region_contrast, a11y_claro_configure_label_not_in_name."
+      },
+      {
+        "subject_id": "S-STR-017",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-017-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-017-DEFAULT",
+          "EVID-KEYBOARD-S-STR-017-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-018",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-018-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-018-DEFAULT",
+          "EVID-KEYBOARD-S-STR-018-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-019",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "failed",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-019-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-019-DEFAULT",
+          "EVID-KEYBOARD-S-STR-019-DEFAULT"
+        ],
+        "reason": "The subject is affected by a11y_claro_status_report_reflow."
+      },
+      {
+        "subject_id": "S-STR-020",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "failed",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-020-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-020-DEFAULT",
+          "EVID-KEYBOARD-S-STR-020-DEFAULT"
+        ],
+        "reason": "The subject is affected by a11y_claro_bulk_button_contrast, a11y_navigation_focus_tooltip_not_dismissible."
+      },
+      {
+        "subject_id": "S-RND-001",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-RND-001-DEFAULT-DESKTOP",
+          "EVID-DOM-S-RND-001-DEFAULT",
+          "EVID-KEYBOARD-S-RND-001-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-RND-002",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-RND-002-DEFAULT-DESKTOP",
+          "EVID-DOM-S-RND-002-DEFAULT",
+          "EVID-KEYBOARD-S-RND-002-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      }
+    ],
+    "full_pages": [
+      {
+        "subject_id": "S-STR-001",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-001-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-001-DEFAULT",
+          "EVID-KEYBOARD-S-STR-001-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-002",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-002-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-002-DEFAULT",
+          "EVID-KEYBOARD-S-STR-002-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-003",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-003-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-003-DEFAULT",
+          "EVID-KEYBOARD-S-STR-003-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-004",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "failed",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-004-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-004-DEFAULT",
+          "EVID-KEYBOARD-S-STR-004-DEFAULT"
+        ],
+        "reason": "The subject is affected by a11y_olivero_tabs_trigger_focus_indicator."
+      },
+      {
+        "subject_id": "S-STR-005",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-005-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-005-DEFAULT",
+          "EVID-KEYBOARD-S-STR-005-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-006",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-006-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-006-DEFAULT",
+          "EVID-KEYBOARD-S-STR-006-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-007",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-007-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-007-DEFAULT",
+          "EVID-KEYBOARD-S-STR-007-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-008",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "failed",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-008-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-008-DEFAULT",
+          "EVID-KEYBOARD-S-STR-008-DEFAULT"
+        ],
+        "reason": "The subject is affected by a11y_claro_bulk_button_contrast, a11y_navigation_logo_focus_not_visible."
+      },
+      {
+        "subject_id": "S-STR-009",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-009-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-009-DEFAULT",
+          "EVID-KEYBOARD-S-STR-009-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-010",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "failed",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-010-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-010-DEFAULT",
+          "EVID-KEYBOARD-S-STR-010-DEFAULT"
+        ],
+        "reason": "The subject is affected by a11y_claro_article_edit_reflow, a11y_navigation_breadcrumb_focus_obscured."
+      },
+      {
+        "subject_id": "S-STR-011",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-011-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-011-DEFAULT",
+          "EVID-KEYBOARD-S-STR-011-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-012",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-012-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-012-DEFAULT",
+          "EVID-KEYBOARD-S-STR-012-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-013",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "failed",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-013-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-013-DEFAULT",
+          "EVID-KEYBOARD-S-STR-013-DEFAULT"
+        ],
+        "reason": "The subject is affected by a11y_claro_bulk_button_contrast."
+      },
+      {
+        "subject_id": "S-STR-014",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-014-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-014-DEFAULT",
+          "EVID-KEYBOARD-S-STR-014-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-015",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-015-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-015-DEFAULT",
+          "EVID-KEYBOARD-S-STR-015-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-016",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "failed",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-016-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-016-DEFAULT",
+          "EVID-KEYBOARD-S-STR-016-DEFAULT"
+        ],
+        "reason": "The subject is affected by a11y_claro_empty_region_contrast, a11y_claro_configure_label_not_in_name."
+      },
+      {
+        "subject_id": "S-STR-017",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-017-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-017-DEFAULT",
+          "EVID-KEYBOARD-S-STR-017-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-018",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-018-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-018-DEFAULT",
+          "EVID-KEYBOARD-S-STR-018-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-019",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "failed",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-019-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-019-DEFAULT",
+          "EVID-KEYBOARD-S-STR-019-DEFAULT"
+        ],
+        "reason": "The subject is affected by a11y_claro_status_report_reflow."
+      },
+      {
+        "subject_id": "S-STR-020",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "failed",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-020-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-020-DEFAULT",
+          "EVID-KEYBOARD-S-STR-020-DEFAULT"
+        ],
+        "reason": "The subject is affected by a11y_claro_bulk_button_contrast, a11y_navigation_focus_tooltip_not_dismissible."
+      },
+      {
+        "subject_id": "S-RND-001",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-RND-001-DEFAULT-DESKTOP",
+          "EVID-DOM-S-RND-001-DEFAULT",
+          "EVID-KEYBOARD-S-RND-001-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-RND-002",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-RND-002-DEFAULT-DESKTOP",
+          "EVID-DOM-S-RND-002-DEFAULT",
+          "EVID-KEYBOARD-S-RND-002-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      }
+    ],
+    "complete_processes": [
+      {
+        "subject_id": "P-01",
+        "state_or_step": "all recorded process steps",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-PROCESS-P-01"
+        ],
+        "reason": "The process completed operationally, but native screen-reader and voice-control checks were sampled rather than repeated across every process step and technology combination."
+      },
+      {
+        "subject_id": "P-02",
+        "state_or_step": "all recorded process steps",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-PROCESS-P-02"
+        ],
+        "reason": "The process completed operationally, but native screen-reader and voice-control checks were sampled rather than repeated across every process step and technology combination."
+      },
+      {
+        "subject_id": "P-03",
+        "state_or_step": "all recorded process steps",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-PROCESS-P-03"
+        ],
+        "reason": "The process completed operationally, but native screen-reader and voice-control checks were sampled rather than repeated across every process step and technology combination."
+      },
+      {
+        "subject_id": "P-04",
+        "state_or_step": "all recorded process steps",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-PROCESS-P-04"
+        ],
+        "reason": "The process completed operationally, but native screen-reader and voice-control checks were sampled rather than repeated across every process step and technology combination."
+      },
+      {
+        "subject_id": "P-05",
+        "state_or_step": "all recorded process steps",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-PROCESS-P-05"
+        ],
+        "reason": "The process completed operationally, but native screen-reader and voice-control checks were sampled rather than repeated across every process step and technology combination."
+      }
+    ],
+    "accessibility_supported_technologies": [
+      {
+        "subject_id": "S-STR-001",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-001-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-001-DEFAULT",
+          "EVID-KEYBOARD-S-STR-001-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-002",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-002-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-002-DEFAULT",
+          "EVID-KEYBOARD-S-STR-002-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-003",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-003-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-003-DEFAULT",
+          "EVID-KEYBOARD-S-STR-003-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-004",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-004-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-004-DEFAULT",
+          "EVID-KEYBOARD-S-STR-004-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-005",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-005-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-005-DEFAULT",
+          "EVID-KEYBOARD-S-STR-005-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-006",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-006-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-006-DEFAULT",
+          "EVID-KEYBOARD-S-STR-006-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-007",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-007-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-007-DEFAULT",
+          "EVID-KEYBOARD-S-STR-007-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-008",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-008-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-008-DEFAULT",
+          "EVID-KEYBOARD-S-STR-008-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-009",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-009-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-009-DEFAULT",
+          "EVID-KEYBOARD-S-STR-009-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-010",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-010-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-010-DEFAULT",
+          "EVID-KEYBOARD-S-STR-010-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-011",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-011-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-011-DEFAULT",
+          "EVID-KEYBOARD-S-STR-011-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-012",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-012-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-012-DEFAULT",
+          "EVID-KEYBOARD-S-STR-012-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-013",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-013-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-013-DEFAULT",
+          "EVID-KEYBOARD-S-STR-013-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-014",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-014-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-014-DEFAULT",
+          "EVID-KEYBOARD-S-STR-014-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-015",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-015-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-015-DEFAULT",
+          "EVID-KEYBOARD-S-STR-015-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-016",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-016-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-016-DEFAULT",
+          "EVID-KEYBOARD-S-STR-016-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-017",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-017-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-017-DEFAULT",
+          "EVID-KEYBOARD-S-STR-017-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-018",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-018-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-018-DEFAULT",
+          "EVID-KEYBOARD-S-STR-018-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-019",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-019-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-019-DEFAULT",
+          "EVID-KEYBOARD-S-STR-019-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-STR-020",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-STR-020-DEFAULT-DESKTOP",
+          "EVID-DOM-S-STR-020-DEFAULT",
+          "EVID-KEYBOARD-S-STR-020-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-RND-001",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-RND-001-DEFAULT-DESKTOP",
+          "EVID-DOM-S-RND-001-DEFAULT",
+          "EVID-KEYBOARD-S-RND-001-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      },
+      {
+        "subject_id": "S-RND-002",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "cantTell",
+        "evidence_ids": [
+          "EVID-AXE-S-RND-002-DEFAULT-DESKTOP",
+          "EVID-DOM-S-RND-002-DEFAULT",
+          "EVID-KEYBOARD-S-RND-002-DEFAULT"
+        ],
+        "reason": "No failure was confirmed, but incomplete criterion and assistive-technology coverage prevents a conformance result."
+      }
+    ],
+    "non_interference": [
+      {
+        "subject_id": "P-01",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "passed",
+        "evidence_ids": [
+          "EVID-PROCESS-P-01"
+        ],
+        "reason": "No sampled keyboard trap, automatically playing audio, timed moving content, or flashing content interfered with use; this record is independent of other WCAG failures."
+      },
+      {
+        "subject_id": "P-02",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "passed",
+        "evidence_ids": [
+          "EVID-PROCESS-P-02"
+        ],
+        "reason": "No sampled keyboard trap, automatically playing audio, timed moving content, or flashing content interfered with use; this record is independent of other WCAG failures."
+      },
+      {
+        "subject_id": "P-03",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "passed",
+        "evidence_ids": [
+          "EVID-PROCESS-P-03"
+        ],
+        "reason": "No sampled keyboard trap, automatically playing audio, timed moving content, or flashing content interfered with use; this record is independent of other WCAG failures."
+      },
+      {
+        "subject_id": "P-04",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "passed",
+        "evidence_ids": [
+          "EVID-PROCESS-P-04"
+        ],
+        "reason": "No sampled keyboard trap, automatically playing audio, timed moving content, or flashing content interfered with use; this record is independent of other WCAG failures."
+      },
+      {
+        "subject_id": "P-05",
+        "state_or_step": "initial and material sampled page states",
+        "technologies": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "WAI-ARIA where rendered",
+          "Chrome 151 on macOS"
+        ],
+        "outcome": "passed",
+        "evidence_ids": [
+          "EVID-PROCESS-P-05"
+        ],
+        "reason": "No sampled keyboard trap, automatically playing audio, timed moving content, or flashing content interfered with use; this record is independent of other WCAG failures."
+      }
+    ]
+  },
+  "alternate_version": {
+    "disposition": "no alternate version configured or selected",
+    "evidence_ids": [
+      "EVID-DOM-S-STR-001-DEFAULT"
+    ],
+    "notes": "No conforming alternate version was configured, discovered, or selected."
+  },
+  "coverage_boundary": [
+    {
+      "id": "CB-001",
+      "combination_or_surface": "macOS Chrome automated, DOM, AX-tree, full keyboard, process, and visual evidence",
+      "status": "covered",
+      "reason": "All 22 samples completed the full Playwright suite; the independent keyboard matrix completed 44 desktop/mobile runs.",
+      "evidence_ids": [
+        "EVID-FULL-SUITE-SUMMARY",
+        "EVID-AXE-S-STR-001-DEFAULT-DESKTOP",
+        "EVID-KEYBOARD-S-STR-001-DEFAULT",
+        "EVID-PROCESS-P-01"
+      ]
+    },
+    {
+      "id": "CB-002",
+      "combination_or_surface": "macOS Safari plus VoiceOver 10",
+      "status": "covered-sampled",
+      "reason": "Native VoiceOver located and announced the invalid-login error through the rotor and caption panel; this was not a 22-page VoiceOver sweep.",
+      "evidence_ids": [
+        "EVID-VOICEOVER-SAFARI-LOGIN-ERROR"
+      ]
+    },
+    {
+      "id": "CB-003",
+      "combination_or_surface": "Windows with NVDA or JAWS",
+      "status": "unavailable",
+      "reason": "No Windows or supported screen-reader environment was available."
+    },
+    {
+      "id": "CB-004",
+      "combination_or_surface": "iOS VoiceOver and Android TalkBack",
+      "status": "unavailable",
+      "reason": "No mobile device/simulator screen-reader environment was available."
+    },
+    {
+      "id": "CB-005",
+      "combination_or_surface": "Native macOS Voice Control",
+      "status": "covered-sampled",
+      "reason": "A spoken Click Main Menu command activated the Olivero control and changed aria-expanded from false to true. Two additional spoken-label probes were inconclusive and are not reported as passes or failures.",
+      "evidence_ids": [
+        "EVID-VOICE-CONTROL-MACOS-MAIN-MENU"
+      ]
+    },
+    {
+      "id": "CB-006",
+      "combination_or_surface": "Switch access",
+      "status": "unavailable",
+      "reason": "No switch-access test environment was available."
+    },
+    {
+      "id": "CB-007",
+      "combination_or_surface": "Actual Windows forced-colors/high-contrast rendering",
+      "status": "unavailable",
+      "reason": "Chrome on macOS cannot establish actual Windows forced-colors behavior."
+    },
+    {
+      "id": "CB-008",
+      "combination_or_surface": "Chrome browser UI zoom at 200% across all 22 samples",
+      "status": "covered",
+      "reason": "Real Command+Plus input produced a verified 2.0 device-pixel-ratio change and 200% browser zoom on every sample.",
+      "evidence_ids": [
+        "EVID-ACTUAL-BROWSER-ZOOM-ALL-SAMPLES"
+      ]
+    },
+    {
+      "id": "CB-009",
+      "combination_or_surface": "Drupal.org public issue search",
+      "status": "covered-read-only",
+      "reason": "Public issue pages were searched for remediation context only; nothing was posted, and issue status was not used as conformance evidence."
+    },
+    {
+      "id": "CB-010",
+      "combination_or_surface": "Revised Section 508 chapters and functional performance criteria",
+      "status": "inapplicable",
+      "reason": "This internal test evaluated WCAG 2.2 A/AA only and did not declare a Section 508 evaluation."
+    }
+  ],
+  "report_linkage": {
+    "accepted_outcome_map_sha256": null,
+    "evaluation_report_sha256": null,
+    "whole_product_conformance_claim": false
+  }
+}

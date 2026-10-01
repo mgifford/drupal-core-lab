@@ -1,0 +1,346 @@
+diff --git a/core/lib/Drupal/Core/Render/Element/SystemCompactLink.php b/core/lib/Drupal/Core/Render/Element/SystemCompactLink.php
+index 109077b3a52..e305ef413fb 100644
+--- a/core/lib/Drupal/Core/Render/Element/SystemCompactLink.php
++++ b/core/lib/Drupal/Core/Render/Element/SystemCompactLink.php
+@@ -2,11 +2,11 @@
+ 
+ namespace Drupal\Core\Render\Element;
+ 
++use Drupal\Component\Utility\Html;
+ use Drupal\Core\Render\Attribute\RenderElement;
+-use Drupal\Core\Url;
+ 
+ /**
+- * Provides a link to show or hide help text on administration pages.
++ * Provides a switch to show or hide help text on administration pages.
+  *
+  * Usage example:
+  * @code
+@@ -16,7 +16,7 @@
+  * @endcode
+  */
+ #[RenderElement('system_compact_link')]
+-class SystemCompactLink extends Link {
++class SystemCompactLink extends RenderElementBase {
+ 
+   /**
+    * {@inheritdoc}
+@@ -25,7 +25,6 @@ public function getInfo() {
+     return [
+       '#pre_render' => [
+         [static::class, 'preRenderCompactLink'],
+-        [static::class, 'preRenderLink'],
+       ],
+       '#theme_wrappers' => [
+         'container' => [
+@@ -36,31 +35,40 @@ public function getInfo() {
+   }
+ 
+   /**
+-   * Pre-render callback: Renders a link into #markup.
+-   *
+-   * Doing so during pre_render gives modules a chance to alter the link parts.
++   * Pre-render callback: Renders the compact mode switch.
+    *
+    * @param array $element
+-   *   A structured array whose keys form the arguments to Drupal::l():
+-   *   - #title: The link text to pass as argument to Drupal::l().
+-   *   - One of the following:
+-   *     - #route_name and (optionally) a #route_parameters array; The route
+-   *       name and route parameters which will be passed into the link
+-   *       generator.
+-   *     - #href: The system path or URL to pass as argument to Drupal::l().
+-   *   - #options: (optional) An array of options to pass to Drupal::l() or the
+-   *     link generator.
++   *   A structured array containing the compact mode switch.
+    *
+    * @return array
+    *   The passed-in element containing the system compact link default values.
+    */
+   public static function preRenderCompactLink($element) {
+-    $element['#title'] = t('Hide descriptions');
+-    $element['#url'] = Url::fromUri('internal:#?');
+-    $element['#options'] = [
+-      'attributes' => [
+-        'title' => t('Compress layout by hiding descriptions.'),
+-        'data-admin-compact-toggle' => TRUE,
++    $id = !empty($element['#id'])
++      ? $element['#id']
++      : Html::getUniqueId('admin-compact-mode');
++    $attributes = $element['#attributes'] ?? [];
++    $attributes['class'] = array_merge(
++      ['compact-link__switch'],
++      (array) ($attributes['class'] ?? []),
++    );
++    $attributes['id'] = $id;
++    $attributes['type'] = 'checkbox';
++    $attributes['switch'] = TRUE;
++    $attributes['data-admin-compact-toggle'] = TRUE;
++
++    $element['toggle'] = [
++      '#type' => 'html_tag',
++      '#tag' => 'input',
++      '#attributes' => $attributes,
++    ];
++    $element['label'] = [
++      '#type' => 'html_tag',
++      '#tag' => 'label',
++      '#value' => t('Hide descriptions'),
++      '#attributes' => [
++        'for' => $id,
++        'class' => ['compact-link__label'],
+       ],
+     ];
+     $element['#attached']['library'][] = 'system/drupal.system.admin_compact';
+diff --git a/core/modules/system/css/system.admin_compact.css b/core/modules/system/css/system.admin_compact.css
+index e356454b96c..7acf312459f 100644
+--- a/core/modules/system/css/system.admin_compact.css
++++ b/core/modules/system/css/system.admin_compact.css
+@@ -6,3 +6,59 @@
+ :root[data-admin-compact-mode] [data-admin-compact-collapsible] {
+   display: none;
+ }
++
++.compact-link__switch {
++  position: relative;
++  box-sizing: border-box;
++  width: 2.5rem;
++  height: 1.5rem;
++  margin: 0 0.5rem 0 0;
++  padding: 0;
++  cursor: pointer;
++  vertical-align: middle;
++  color: currentColor;
++  border: 2px solid currentColor;
++  border-radius: 1rem;
++  background: transparent;
++  appearance: none;
++}
++
++.compact-link__switch::before {
++  position: absolute;
++  inset-block-start: 0.25rem;
++  inset-inline-start: 0.25rem;
++  width: 0.75rem;
++  height: 0.75rem;
++  content: "";
++  border-radius: 50%;
++  background: currentColor;
++}
++
++.compact-link__switch:checked {
++  background: currentColor;
++}
++
++.compact-link__switch:checked::before {
++  color: Canvas;
++  transform: translateX(1rem);
++}
++
++.compact-link__switch:checked:dir(rtl)::before {
++  transform: translateX(-1rem);
++}
++
++.compact-link__switch:focus-visible {
++  outline: 3px solid currentColor;
++  outline-offset: 2px;
++}
++
++.compact-link__label {
++  cursor: pointer;
++  vertical-align: middle;
++}
++
++@media (prefers-reduced-motion: no-preference) {
++  .compact-link__switch::before {
++    transition: transform 0.2s;
++  }
++}
+diff --git a/core/modules/system/js/system.admin_compact.js b/core/modules/system/js/system.admin_compact.js
+index 19b37027a26..b498b7bf3d0 100644
+--- a/core/modules/system/js/system.admin_compact.js
++++ b/core/modules/system/js/system.admin_compact.js
+@@ -13,46 +13,24 @@
+   }
+ 
+   /**
+-   * Toggles admin compact mode.
++   * Sets admin compact mode.
+    *
+-   * @return {boolean}
+-   *   The next state: true if contact mode is enabled, false otherwise.
++   * @param {boolean} compactMode
++   *   The new state: true if compact mode is enabled, false otherwise.
+    */
+-  function toggleCompactMode() {
+-    const nextState = !document.documentElement.hasAttribute(
+-      'data-admin-compact-mode',
+-    );
++  function setCompactMode(compactMode) {
+     document.documentElement.toggleAttribute(
+       'data-admin-compact-mode',
+-      nextState,
++      compactMode,
+     );
+     localStorage.setItem(
+       'Drupal.admin.compact_mode',
+-      nextState ? 'true' : 'false',
++      compactMode ? 'true' : 'false',
+     );
+-
+-    return nextState;
+-  }
+-
+-  /**
+-   * Update the toggle link element.
+-   *
+-   * @param {HTMLElement} element
+-   *   The toggle link element.
+-   * @param {boolean} compactMode
+-   *   The current state: true if contact mode is enabled, false otherwise.
+-   */
+-  function updateToggleElement(element, compactMode) {
+-    element.innerText = compactMode
+-      ? Drupal.t('Show descriptions')
+-      : Drupal.t('Hide descriptions');
+-    element.title = compactMode
+-      ? Drupal.t('Expand layout to include descriptions.')
+-      : Drupal.t('Compress layout by hiding descriptions.');
+   }
+ 
+   /**
+-   * Adds a click event listener to any [data-admin-compact-toggle] elements.
++   * Adds a change event listener to [data-admin-compact-toggle] elements.
+    *
+    * @type {Drupal~behavior}
+    */
+@@ -66,11 +44,9 @@
+         const initialMode = document.documentElement.hasAttribute(
+           'data-admin-compact-mode',
+         );
+-        updateToggleElement(toggle, initialMode);
+-        toggle.addEventListener('click', (event) => {
+-          const compactMode = toggleCompactMode();
+-          updateToggleElement(toggle, compactMode);
+-          event.preventDefault();
++        toggle.checked = initialMode;
++        toggle.addEventListener('change', () => {
++          setCompactMode(toggle.checked);
+         });
+       });
+     },
+diff --git a/core/modules/system/templates/admin-page.html.twig b/core/modules/system/templates/admin-page.html.twig
+index 90766a8aff5..85ba0bbd23b 100644
+--- a/core/modules/system/templates/admin-page.html.twig
++++ b/core/modules/system/templates/admin-page.html.twig
+@@ -4,7 +4,7 @@
+  * Default theme implementation for an administrative page.
+  *
+  * Available variables:
+- * - system_compact_link: Themed link to toggle compact view.
++ * - system_compact_link: Themed switch to toggle compact view.
+  * - containers: A list of administrative blocks keyed by position: left or
+  *   right. Contains:
+  *   - blocks: A list of blocks within a container.
+diff --git a/core/modules/system/templates/system-admin-index.html.twig b/core/modules/system/templates/system-admin-index.html.twig
+index 7370d283118..178003c43e0 100644
+--- a/core/modules/system/templates/system-admin-index.html.twig
++++ b/core/modules/system/templates/system-admin-index.html.twig
+@@ -4,7 +4,7 @@
+  * Default theme implementation for the admin index page.
+  *
+  * Available variables:
+- * - system_compact_link: Themed link to toggle compact view.
++ * - system_compact_link: Themed switch to toggle compact view.
+  * - containers: A list of administrative containers keyed by position: left or
+  *   right. Each container in the list contains:
+  *   - blocks: A list of administrative blocks, rendered
+diff --git a/core/modules/system/tests/src/FunctionalJavascript/AdminCompactModeTest.php b/core/modules/system/tests/src/FunctionalJavascript/AdminCompactModeTest.php
+index 1023a131110..156fc20d491 100644
+--- a/core/modules/system/tests/src/FunctionalJavascript/AdminCompactModeTest.php
++++ b/core/modules/system/tests/src/FunctionalJavascript/AdminCompactModeTest.php
+@@ -59,7 +59,10 @@ public function testAdminCompactMode(): void {
+     );
+     $this->assertEquals('block', $displayValue);
+ 
+-    $page->findLink('Hide descriptions')->click();
++    $toggle = $page->findField('Hide descriptions');
++    $this->assertFalse($toggle->isChecked());
++    $toggle->keyPress(32);
++    $this->assertTrue($toggle->isChecked());
+ 
+     // Document attribute is present.
+     $assertSession->elementAttributeExists('css', ':root', 'data-admin-compact-mode');
+@@ -76,6 +79,9 @@ public function testAdminCompactMode(): void {
+     $this->drupalGet('<front>');
+     $this->drupalGet('admin/people/permissions');
+ 
++    $toggle = $page->findField('Hide descriptions');
++    $this->assertTrue($toggle->isChecked());
++
+     // Document attribute is still present.
+     $assertSession->elementAttributeExists('css', ':root', 'data-admin-compact-mode');
+ 
+@@ -87,7 +93,8 @@ public function testAdminCompactMode(): void {
+     );
+     $this->assertEquals('none', $displayValue);
+ 
+-    $page->findLink('Show descriptions')->click();
++    $toggle->click();
++    $this->assertFalse($toggle->isChecked());
+ 
+     // Document attribute is absent.
+     $assertSession->elementAttributeNotExists('css', ':root', 'data-admin-compact-mode');
+diff --git a/core/tests/Drupal/KernelTests/Core/Render/Element/RenderElementTypesTest.php b/core/tests/Drupal/KernelTests/Core/Render/Element/RenderElementTypesTest.php
+index 2256042bb43..3bcbb5a02dd 100644
+--- a/core/tests/Drupal/KernelTests/Core/Render/Element/RenderElementTypesTest.php
++++ b/core/tests/Drupal/KernelTests/Core/Render/Element/RenderElementTypesTest.php
+@@ -199,11 +199,11 @@ public function testMoreLink(): void {
+   public function testSystemCompactLink(): void {
+     $elements = [
+       [
+-        'name' => "#type 'system_compact_link' when admin compact mode is off",
++        'name' => "#type 'system_compact_link'",
+         'value' => [
+           '#type' => 'system_compact_link',
+         ],
+-        'expected' => '//div[@class="compact-link"]/a[contains(@href, "#") and @data-admin-compact-toggle and text()="Hide descriptions"]',
++        'expected' => '//div[@class="compact-link"]/input[@type="checkbox" and @switch and @data-admin-compact-toggle]/following-sibling::label[@for = preceding-sibling::input/@id and text()="Hide descriptions"]',
+       ],
+       [
+         'name' => "#type 'system_compact_link' when adding extra attributes",
+@@ -213,7 +213,7 @@ public function testSystemCompactLink(): void {
+             'class' => ['kittens-rule'],
+           ],
+         ],
+-        'expected' => '//div[@class="compact-link"]/a[contains(@href, "#") and @data-admin-compact-toggle and @class="kittens-rule" and text()="Hide descriptions"]',
++        'expected' => '//div[@class="compact-link"]/input[@type="checkbox" and @switch and @data-admin-compact-toggle and contains(concat(" ", normalize-space(@class), " "), " kittens-rule ")]/following-sibling::label[@for = preceding-sibling::input/@id and text()="Hide descriptions"]',
+       ],
+     ];
+ 
+diff --git a/core/themes/claro/templates/admin/admin-page.html.twig b/core/themes/claro/templates/admin/admin-page.html.twig
+index 6bf77bc1020..350d9261477 100644
+--- a/core/themes/claro/templates/admin/admin-page.html.twig
++++ b/core/themes/claro/templates/admin/admin-page.html.twig
+@@ -4,7 +4,7 @@
+  * Theme override for an administrative page.
+  *
+  * Available variables:
+- * - system_compact_link: Themed link to toggle compact view.
++ * - system_compact_link: Themed switch to toggle compact view.
+  * - containers: An list of administrative blocks keyed by position: left or
+  *   right. Contains:
+  *   - blocks: A list of blocks within a container.
+diff --git a/core/themes/default_admin/templates/admin/admin-page.html.twig b/core/themes/default_admin/templates/admin/admin-page.html.twig
+index e15de5c0eeb..5437bc6da19 100644
+--- a/core/themes/default_admin/templates/admin/admin-page.html.twig
++++ b/core/themes/default_admin/templates/admin/admin-page.html.twig
+@@ -4,7 +4,7 @@
+  * Theme override for an administrative page.
+  *
+  * Available variables:
+- * - system_compact_link: Themed link to toggle compact view.
++ * - system_compact_link: Themed switch to toggle compact view.
+  * - containers: An list of administrative blocks keyed by position: left or
+  *   right. Contains:
+  *   - blocks: A list of blocks within a container.

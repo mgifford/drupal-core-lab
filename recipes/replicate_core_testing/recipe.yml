@@ -1,0 +1,28 @@
+name: 'Replicate core testing environment'
+description: 'Rich, reproducible baseline for testing Drupal core patches: the standard profile plus comments, taxonomy, all media types, editorial workflow, multiple text formats, user pictures, responsive images, and the Default Admin theme set as the administration theme. Exposes site elements for robust UI/form testing.'
+type: 'Site'
+install:
+  - default_admin
+recipes:
+  - article_content_type
+  - page_content_type
+  - comment_base
+  - tags_taxonomy
+  - editorial_workflow
+  - image_media_type
+  - audio_media_type
+  - document_media_type
+  - remote_video_media_type
+  - local_video_media_type
+  - user_picture
+  - basic_html_format_editor
+  - full_html_format_editor
+  - restricted_html_format
+  - basic_block_type
+  - standard_responsive_images
+config:
+  strict: false
+  actions:
+    system.theme:
+      simpleConfigUpdate:
+        admin: default_admin

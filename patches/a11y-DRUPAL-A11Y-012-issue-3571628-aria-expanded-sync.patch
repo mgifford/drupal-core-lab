@@ -1,0 +1,35 @@
+diff --git b/core/misc/details-aria.js a/core/misc/details-aria.js
+index c629719a3f..cf715b8f81 100644
+--- b/core/misc/details-aria.js
++++ a/core/misc/details-aria.js
+@@ -16,10 +16,7 @@
+         'summary',
+         (event) => {
+           const $summary = $(event.currentTarget);
+-          const open =
+-            $(event.currentTarget.parentNode).attr('open') === 'open'
+-              ? 'false'
+-              : 'true';
++          const open = event.currentTarget.parentNode.open ? 'false' : 'true';
+ 
+           $summary.attr({
+             'aria-expanded': open,
+diff --git b/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php a/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php
+index a5239d3bc3..728195cb1d 100644
+--- b/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php
++++ a/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php
+@@ -134,7 +134,13 @@ public function testDetailsChildVisibility(): void {
+     // Find the summary belonging to the closest details element.
+     $summary = $page->find('css', '#edit-meta > summary');
+ 
+-    // Assert that both aria-expanded and aria-pressed are true.
++    // Assert aria-expanded is true on open details.
++    $this->assertEquals('true', $summary->getAttribute('aria-expanded'));
++
++    // Close and reopen to ensure aria-expanded keeps synchronizing.
++    $summary->click();
++    $this->assertEquals('false', $summary->getAttribute('aria-expanded'));
++    $summary->click();
+     $this->assertEquals('true', $summary->getAttribute('aria-expanded'));
+   }
+ 

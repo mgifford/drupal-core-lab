@@ -1,0 +1,51 @@
+{
+  "generatedAt": "2026-04-29T18:00:08.808Z",
+  "summary": {
+    "total": 4,
+    "passed": 3,
+    "failed": 1
+  },
+  "results": [
+    {
+      "id": "LABEL-IN-NAME-001",
+      "route": "/admin/form_style",
+      "title": "Month select label appears in accessible name",
+      "selector": "#edit-test-datelist-month",
+      "expectedLabel": "Month",
+      "observedAriaLabel": "",
+      "status": "pass",
+      "wcag": "2.5.3"
+    },
+    {
+      "id": "LABEL-IN-NAME-002",
+      "route": "/admin/form_style",
+      "title": "Day select label appears in accessible name",
+      "selector": "#edit-test-datelist-day",
+      "expectedLabel": "Day",
+      "observedAriaLabel": "",
+      "status": "pass",
+      "wcag": "2.5.3"
+    },
+    {
+      "id": "LABEL-IN-NAME-003",
+      "route": "/admin/structure/types/add",
+      "title": "Details summary visible text appears in accessible name",
+      "selector": "summary:has-text(\"Submission form settings\")",
+      "expectedLabel": "Submission form settings",
+      "observedAriaLabel": "",
+      "status": "pass",
+      "wcag": "2.5.3"
+    },
+    {
+      "id": "LABEL-IN-NAME-004",
+      "route": "/admin/config/content/formats",
+      "title": "Configure action visible text appears in accessible name",
+      "selector": "table tbody tr:has-text(\"Basic HTML\") a:has-text(\"Configure\")",
+      "expectedLabel": "Configure",
+      "observedAriaLabel": "Edit Basic HTML",
+      "status": "fail",
+      "wcag": "2.5.3",
+      "error": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAccessibleName\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('table tbody tr').filter({ hasText: 'Basic HTML' }).first().locator('a:has-text(\"Configure\")').first()\nExpected pattern: \u001b[32m/Configure/i\u001b[39m\nReceived string:  \u001b[31m\"Edit Basic HTML\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAccessibleName\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('table tbody tr').filter({ hasText: 'Basic HTML' }).first().locator('a:has-text(\"Configure\")').first()\u001b[22m\n\u001b[2m    9 × locator resolved to <a aria-label=\"Edit Basic HTML\" href=\"/admin/config/content/formats/manage/basic_html?destination=/admin/config/content/formats\">Configure</a>\u001b[22m\n\u001b[2m      - unexpected value \"Edit Basic HTML\"\u001b[22m\n"
+    }
+  ]
+}

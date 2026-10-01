@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Changes to the Drupal Accessibility Page</title>
+</head>
+<body>
+	<main>
+		<h1>Changes to the Drupal Accessibility Page</h1>
+
+		<p>This document explains the redraft of <a href="https://www.drupal.org/about/features/accessibility">Accessibility</a> on Drupal.org. The revision follows the <a href="https://www.drupal.org/drupalorg/style-guide/content">Drupal.org content style guide</a>. It also applies lessons from the WP Accessibility Knowledge Base and the ACCESSIBILITY.md approach to scope, evidence, and testing.</p>
+
+		<h2>Summary</h2>
+
+		<p>The redraft retains the original page’s purpose, structure, history, and community voice. It makes the claims more precise and gives readers clearer routes to documentation, issue queues, testing guidance, and contribution.</p>
+
+		<p>The most important change is a clear separation among:</p>
+
+		<ul>
+			<li>Accessibility targets and practices for Drupal core</li>
+			<li>Accessibility of a completed site built with Drupal</li>
+			<li>Accessibility of contributed modules and themes</li>
+			<li>Accessibility of Drupal.org and related community sites</li>
+		</ul>
+
+		<p>The original page blurred these scopes. That made some statements sound like product-wide conformance claims.</p>
+
+		<h2>Editorial Approach</h2>
+
+		<ul>
+			<li>Used clear, direct, and approachable language.</li>
+			<li>Shortened sentences and paragraphs where practical.</li>
+			<li>Used active voice and descriptive link text.</li>
+			<li>Expanded abbreviations on first use.</li>
+			<li>Used American English and Drupal.org terminology.</li>
+			<li>Kept the existing second-level heading structure, with limited renaming.</li>
+			<li>Retained a community-oriented invitation to contribute.</li>
+			<li>Avoided promotional language and unsupported claims.</li>
+		</ul>
+
+		<h2>Detailed Changes</h2>
+
+		<table>
+			<thead>
+				<tr>
+					<th scope="col">Area</th>
+					<th scope="col">Change</th>
+					<th scope="col">Reason</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<th scope="row">Introduction</th>
+					<td>Retained the inclusive community framing. Added a statement that Drupal core provides foundations and defaults, while a completed site is not automatically accessible.</td>
+					<td>This prevents readers from treating use of Drupal as evidence of site conformance. Content, configuration, contributed projects, and custom code all affect the result.</td>
+				</tr>
+				<tr>
+					<th scope="row">Goals</th>
+					<td>Changed “all features align” to a WCAG 2.2 AA target. Described ATAG 2.0 as guidance for the authoring experience.</td>
+					<td>“All features align” is an unqualified conformance claim. The available documentation does not provide the scope and evidence needed to support it. Drupal should still state its standards clearly.</td>
+				</tr>
+				<tr>
+					<th scope="row">History</th>
+					<td>Kept the Drupal 7, Drupal 8, and GAAD Pledge history. Reduced repetition and linked the pledge to the current Accessibility Coding Standards URL.</td>
+					<td>The history explains how accessibility became part of Drupal governance. The old coding standards URL redirects and should be replaced.</td>
+				</tr>
+				<tr>
+					<th scope="row">Development process</th>
+					<td>Stated that Drupal treats accessibility barriers as bugs. Clarified what the accessibility quality gate does and does not establish.</td>
+					<td>The gate can stop a change, but passing it is not equivalent to testing all interfaces against every WCAG success criterion.</td>
+				</tr>
+				<tr>
+					<th scope="row">Stable-release fixes</th>
+					<td>Retained the explanation that critical barriers may be fixed after release. Added backward-compatibility and site-risk considerations.</td>
+					<td>This explains why a known problem may not always receive an immediate stable-release change without implying that accessibility is being deprioritized.</td>
+				</tr>
+				<tr>
+					<th scope="row">Testing</th>
+					<td>Renamed “Automated Testing” to “Testing.” Retained WAVE, axe DevTools, and Accessibility Insights. Added rendered-state, keyboard, reflow, semantics, and assistive-technology testing.</td>
+					<td>Automated testing is only one part of the process. The former heading placed too much emphasis on tools.</td>
+				</tr>
+				<tr>
+					<th scope="row">Automated results</th>
+					<td>Added that automated results are evidence, not proof of WCAG conformance.</td>
+					<td>Automated tools detect only a subset of barriers. This aligns the page with established accessibility-testing practice and avoids overstating tool coverage.</td>
+				</tr>
+				<tr>
+					<th scope="row">Conformance reports</th>
+					<td>Added a short section linking to Drupal’s Accessibility Conformance Report process. Defined the minimum scope information a useful assessment should provide.</td>
+					<td>The former page moved directly from testing tools to assistive technology. It did not explain how a general commitment differs from a scoped conformance assessment.</td>
+				</tr>
+				<tr>
+					<th scope="row">Disabled people</th>
+					<td>Strengthened the role of people with disabilities in testing and contribution. Replaced the narrower reference to blind developers with a wider range of roles and disabilities.</td>
+					<td>Screen-reader experience is important but does not represent all disability-related access needs.</td>
+				</tr>
+				<tr>
+					<th scope="row">Assistive technology</th>
+					<td>Retained NVDA and VoiceOver as common testing tools, but removed the implication that they form a defined or comprehensive test matrix.</td>
+					<td>Coverage varies by issue and contributor. The page does not provide evidence for a formally supported browser and assistive-technology matrix.</td>
+				</tr>
+				<tr>
+					<th scope="row">HTML and ARIA</th>
+					<td>Made the native-HTML-first rule explicit. Clarified that ARIA does not add keyboard behavior or correct invalid HTML.</td>
+					<td>This gives implementers a concise and technically accurate rule instead of only saying that Drupal tries to limit ARIA.</td>
+				</tr>
+				<tr>
+					<th scope="row">Core modules</th>
+					<td>Renamed the section “Core Modules and Configuration.” Retained Inline Form Errors and language-of-parts configuration. Added a reminder to test the actual Drupal version and configuration.</td>
+					<td>The original section suggested that core defaults alone determine accessibility. Configuration and release differences matter.</td>
+				</tr>
+				<tr>
+					<th scope="row">Contributed modules</th>
+					<td>Removed the claim that most contributed developers follow accessibility practices. Explained that contributed projects do not pass through the core accessibility gate. Retained Webform as a positive example.</td>
+					<td>The removed claim was not supported by evidence. Project accessibility varies by release, configuration, and use.</td>
+				</tr>
+				<tr>
+					<th scope="row">Module lists</th>
+					<td>Added that inclusion in the accessibility-related module list is not certification.</td>
+					<td>A recommendation or category listing should not be confused with an accessibility audit.</td>
+				</tr>
+				<tr>
+					<th scope="row">Core themes</th>
+					<td>Updated Olivero and Claro from historical Drupal 9 additions to their current public-facing and administration roles.</td>
+					<td>The former wording had aged and did not explain what each theme is for. Rachel Olivero’s contribution and the origin of the Olivero name remain.</td>
+				</tr>
+				<tr>
+					<th scope="row">Contributed themes</th>
+					<td>Removed the description of Olivero as a “base theme.” Explained that tested core patterns may reduce risk, but custom work can change the result. Added that Drupal.org does not certify contributed themes.</td>
+					<td>Olivero is a core theme, but “base theme” has a specific technical meaning in Drupal. The new wording also defines the boundary of Drupal’s current review process.</td>
+				</tr>
+				<tr>
+					<th scope="row">Legacy theming guide</th>
+					<td>Removed the Drupal 7 accessible theming guide. Linked the current coding standards and accessibility review guide instead.</td>
+					<td>The legacy guide may contain useful principles, but it is not a reliable primary guide for current Drupal theming.</td>
+				</tr>
+				<tr>
+					<th scope="row">Community sites</th>
+					<td>Explicitly separated Drupal.org and related services from Drupal core. Added the information needed for a useful barrier report.</td>
+					<td>A Drupal.org defect is not automatically a Drupal core defect. Reports need the affected task, observed result, expected result, reproduction steps, and relevant environment.</td>
+				</tr>
+				<tr>
+					<th scope="row">Accessibility team</th>
+					<td>Focused the section on the work contributors perform. Updated issue-search URLs and the office-hours link.</td>
+					<td>The original searches were tied to old Drupal version filters. The revised links are not limited to Drupal 8.</td>
+				</tr>
+				<tr>
+					<th scope="row">Contribution</th>
+					<td>Renamed “Our Community of Developers and Designers” to “Contribute.” Added lived-experience reporting and manual testing. Made every list item an action.</td>
+					<td>Accessibility work also needs writers, content specialists, site builders, and disabled users. The old heading excluded several of these groups.</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<h2>Content Removed or Altered</h2>
+
+		<ul>
+			<li><strong>“All features of Drupal core align”:</strong> Replaced with a target because no complete, versioned conformance assessment is linked.</li>
+			<li><strong>“Major releases have been delayed several times”:</strong> Removed because it is a historical assertion without a supporting source and does not help readers act.</li>
+			<li><strong>“Most developers follow community best practices”:</strong> Removed because it cannot be verified across contributed projects.</li>
+			<li><strong>“Most Drupal events include accessibility”:</strong> Removed because it is broad, time-sensitive, and not necessary to find the accessibility community.</li>
+			<li><strong>Drupal Groups as one of three primary community sites:</strong> Replaced with the broader phrase “related community properties.” This avoids freezing a changing service inventory into the page.</li>
+			<li><strong>The Drupal 7 theming guide:</strong> Removed as a primary resource because the page is for current Drupal users.</li>
+			<li><strong>Repeated requests to join Slack:</strong> Consolidated into one direct route to the relevant channel.</li>
+			<li><strong>Repeated statements about ongoing work:</strong> Consolidated so the page remains close to its original size.</li>
+		</ul>
+
+		<h2>Claims Not Added</h2>
+
+		<p>The revision does not add:</p>
+
+		<ul>
+			<li>A claim that Drupal core fully conforms to WCAG 2.2 AA</li>
+			<li>A claim that Drupal conforms to ATAG 2.0</li>
+			<li>A legal-compliance claim for sites built with Drupal</li>
+			<li>An accessibility certification for contributed modules or themes</li>
+			<li>A formal browser and assistive-technology support matrix</li>
+			<li>Audit results, response times, or release guarantees that are not documented</li>
+		</ul>
+
+		<p>Adding any of these claims would require defined scope, dated evidence, ownership, and a maintenance process.</p>
+
+		<h2>What Remains Consistent</h2>
+
+		<p>The redraft preserves the page’s central message: accessibility is part of Drupal’s values and development process, barriers are bugs, open standards guide the work, and community participation is necessary. It also preserves the original coverage of standards, testing, assistive technology, HTML and ARIA, modules, themes, community sites, and contribution.</p>
+	</main>
+</body>
+</html>

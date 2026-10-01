@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Accessibility Report: Olivero Theme</title>
+  <style>
+    :root {
+      --page-bg: #eef2f8;
+      --card-bg: #ffffff;
+      --surface-bg: #f7f9fc;
+      --text: #1c2431;
+      --muted: #546173;
+      --border: #d5dce7;
+      --link: #0e4fb5;
+      --accent: #b7ccf6;
+      --table-stripe: #f5f8ff;
+      --shadow: 0 12px 34px rgba(20, 35, 60, 0.08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --page-bg: #111722;
+        --card-bg: #1a2331;
+        --surface-bg: #131b27;
+        --text: #e8edf5;
+        --muted: #93a0b5;
+        --border: #2b3950;
+        --link: #8cb8ff;
+        --accent: #23395f;
+        --table-stripe: #162032;
+        --shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
+      }
+    }
+    * { box-sizing: border-box; }
+    html { color-scheme: light dark; scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      padding: 2rem 1rem 4rem;
+      font: 16px/1.7 Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+      background:
+        radial-gradient(circle at top left, rgba(14, 79, 181, 0.08), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 16%),
+        var(--page-bg);
+      color: var(--text);
+    }
+    a { color: var(--link); }
+    a:hover, a:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: grid;
+      gap: 1.25rem;
+    }
+    .hero,
+    .toc,
+    .content {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      box-shadow: var(--shadow);
+    }
+    .hero {
+      padding: 1.5rem;
+    }
+    .hero h1 {
+      margin: 0 0 0.5rem;
+      line-height: 1.15;
+      font-size: clamp(2rem, 4vw, 3rem);
+    }
+    .lede,
+    .meta {
+      color: var(--muted);
+      margin: 0.35rem 0 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .toc {
+      padding: 1rem 1.25rem;
+    }
+    .toc h2 {
+      margin: 0 0 0.65rem;
+      font-size: 1rem;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .toc ol {
+      margin: 0;
+      padding-left: 1.2rem;
+      display: grid;
+      gap: 0.4rem;
+    }
+    .toc li.level-3 {
+      margin-left: 1rem;
+      color: var(--muted);
+    }
+    .content {
+      padding: 1.5rem;
+      overflow: hidden;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      line-height: 1.25;
+      scroll-margin-top: 1rem;
+    }
+    h2, h3 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    h2 {
+      margin-top: 2.4rem;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h3 {
+      margin-top: 1.8rem;
+    }
+    .heading-anchor {
+      text-decoration: none;
+      opacity: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    h2:hover .heading-anchor,
+    h2:focus-within .heading-anchor,
+    h3:hover .heading-anchor,
+    h3:focus-within .heading-anchor {
+      opacity: 1;
+    }
+    p, ul, ol, blockquote, pre, .table-wrap, hr {
+      margin: 1rem 0;
+    }
+    ul, ol {
+      padding-left: 1.5rem;
+    }
+    li + li {
+      margin-top: 0.35rem;
+    }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    code {
+      background: rgba(127, 127, 127, 0.14);
+      padding: 0.1rem 0.35rem;
+      border-radius: 0.3rem;
+      font-size: 0.95em;
+    }
+    pre {
+      overflow-x: auto;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 0.85rem;
+      background: var(--surface-bg);
+    }
+    blockquote {
+      border-left: 4px solid var(--link);
+      padding: 0.25rem 0 0.25rem 1rem;
+      color: var(--muted);
+      margin-left: 0;
+      background: linear-gradient(90deg, rgba(14, 79, 181, 0.08), transparent 60%);
+    }
+    details {
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.5rem 1rem;
+      margin: 0.75rem 0;
+      background: var(--surface-bg);
+    }
+    details[open] {
+      padding-bottom: 0.75rem;
+    }
+    details summary {
+      cursor: pointer;
+      font-weight: 600;
+      padding: 0.25rem 0;
+      list-style: none;
+      color: var(--text);
+    }
+    details summary::-webkit-details-marker { display: none; }
+    details summary::before {
+      content: '▶ ';
+      font-size: 0.7em;
+      color: var(--muted);
+    }
+    details[open] summary::before { content: '▼ '; }
+    details table {
+      margin-top: 0.75rem;
+      min-width: 0;
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid var(--border);
+    }
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 0.85rem;
+      background: var(--surface-bg);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 680px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 0.7rem 0.85rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--accent);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.92rem;
+    }
+    tbody tr:nth-child(even) td {
+      background: var(--table-stripe);
+    }
+    @media (min-width: 900px) {
+      .page {
+        grid-template-columns: minmax(0, 1fr) 280px;
+        align-items: start;
+      }
+      .hero,
+      .content {
+        grid-column: 1;
+      }
+      .toc {
+        grid-column: 2;
+        position: sticky;
+        top: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <h1>Accessibility Report: Olivero Theme</h1>
+      <p class="lede">undefined</p>
+      <p class="meta">Source markdown: <code>themes/olivero-latest.md</code></p>
+    </header>
+    
+    <nav class="toc" aria-label="Table of contents">
+      <h2>Contents</h2>
+      <ol>
+        <li class="level-2"><a href="#about-olivero">About Olivero</a></li><li class="level-2"><a href="#summary-by-rule">Summary by Rule</a></li><li class="level-2"><a href="#rule-details">Rule Details</a></li><li class="level-3"><a href="#region-rule-region">`region` {#rule-region}</a></li><li class="level-3"><a href="#page-has-heading-one-rule-page-has-heading-one">`page-has-heading-one` {#rule-page-has-heading-one}</a></li><li class="level-2"><a href="#how-to-file-issues">How to File Issues</a></li>
+      </ol>
+    </nav>
+    <main class="content">
+      <h1 id="accessibility-report-olivero-theme">Accessibility Report: Olivero Theme</h1>
+<p>Generated: 2026-05-06   Crawl records for this theme group: <strong>56</strong></p>
+<hr>
+<h2 id="about-olivero">About Olivero<a class="heading-anchor" href="#about-olivero" aria-label="Link to About Olivero section">#</a></h2>
+<p>The <strong>Olivero front-end theme</strong> (<code>olivero</code>, <code>olivero-dark</code>) — ships with Drupal core as the default public-facing theme. Issues should be reported to the <a href="https://www.drupal.org/project/issues/search?text=olivero&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">Drupal core Accessibility queue</a>.</p>
+<p><strong>Issue queue:</strong> <a href="https://www.drupal.org/project/issues/search?text=olivero&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">Drupal core issue queue (Olivero + Accessibility)</a></p>
+<hr>
+<h2 id="summary-by-rule">Summary by Rule<a class="heading-anchor" href="#summary-by-rule" aria-label="Link to Summary by Rule section">#</a></h2>
+<p>Composite score = <code>impactWeight × log₂(1 + uniquePageCount)</code>. Higher = higher priority.</p>
+<div class="table-wrap"><table><thead><tr><th scope="col">Rank</th><th scope="col">Score</th><th scope="col">Rule</th><th scope="col">Impact</th><th scope="col">WCAG</th><th scope="col">Unique pages</th><th scope="col">Total nodes</th><th scope="col">Selectors</th></tr></thead><tbody><tr><td>1</td><td>6</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/region?application=playwright"><code>region</code></a></td><td>🟡 Moderate</td><td>1.3.6 (AAA)</td><td>7</td><td>72</td><td>2</td></tr><tr><td>2</td><td>2</td><td><a href="https://dequeuniversity.com/rules/axe/4.11/page-has-heading-one?application=playwright"><code>page-has-heading-one</code></a></td><td>🟡 Moderate</td><td>2.4.6 (AA)</td><td>1</td><td>8</td><td>1</td></tr></tbody></table></div>
+<hr>
+<h2 id="rule-details">Rule Details<a class="heading-anchor" href="#rule-details" aria-label="Link to Rule Details section">#</a></h2>
+<ol><li><a href="#rule-region"><code>region</code></a>  </li><li><a href="#rule-page-has-heading-one"><code>page-has-heading-one</code></a></li></ol>
+<hr>
+<h3 id="region-rule-region"><code>region</code> {#rule-region}<a class="heading-anchor" href="#region-rule-region" aria-label="Link to `region` {#rule-region} section">#</a></h3>
+<p><strong>Impact:</strong> 🟡 Moderate   <strong>WCAG:</strong> 1.3.6 — Identify Purpose (Level AAA)   <strong>Axe docs:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/region?application=playwright">https://dequeuniversity.com/rules/axe/4.11/region?application=playwright</a>   <strong>Unique pages affected:</strong> 7   <strong>Total violation nodes:</strong> 72   <strong>Composite score:</strong> 6  </p>
+<blockquote><p>Ensure all page content is contained by landmarks</p></blockquote>
+<h4 id="failing-selectors">Failing selectors<a class="heading-anchor" href="#failing-selectors" aria-label="Link to Failing selectors section">#</a></h4>
+<div class="table-wrap"><table><thead><tr><th scope="col">Selector</th><th scope="col">Themes</th><th scope="col">Pages affected</th><th scope="col">Nodes</th></tr></thead><tbody><tr><td><code>.themeswitcher-form__form-item</code></td><td>olivero, olivero-dark</td><td>7</td><td>56</td></tr><tr><td><code>#primary-tabs-title</code></td><td>olivero, olivero-dark</td><td>2</td><td>16</td></tr></tbody></table></div>
+<h4 id="details">Details<a class="heading-anchor" href="#details" aria-label="Link to Details section">#</a></h4>
+<p><strong>1. Selector:</strong> <code>.themeswitcher-form__form-item</code></p>
+<p>_Some page content is not contained by landmarks_</p>
+<pre><code class="language-html">&lt;div class=&quot;themeswitcher-form__form-item js-form-item form-item form-type-select js-form-type-select form-item-preferred-theme js-form-item-preferred-theme&quot;&gt;</code></pre>
+<p>Pages: <code>/</code>, <code>/action-link</code>, <code>/search/node</code>, <code>/this-page-does-not-exist</code>, <code>/user/login</code>, <code>/user/password</code>, <code>/user/register</code></p>
+<p><strong>2. Selector:</strong> <code>#primary-tabs-title</code></p>
+<p>_Some page content is not contained by landmarks_</p>
+<pre><code class="language-html">&lt;h2 id=&quot;primary-tabs-title&quot; class=&quot;visually-hidden&quot;&gt;Primary tabs&lt;/h2&gt;</code></pre>
+<p>Pages: <code>/user/login</code>, <code>/user/password</code></p>
+<p><strong>Search Drupal issue queue:</strong> <a href="https://www.drupal.org/project/issues/search?text=region&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">region + Accessibility</a></p>
+<hr>
+<h3 id="page-has-heading-one-rule-page-has-heading-one"><code>page-has-heading-one</code> {#rule-page-has-heading-one}<a class="heading-anchor" href="#page-has-heading-one-rule-page-has-heading-one" aria-label="Link to `page-has-heading-one` {#rule-page-has-heading-one} section">#</a></h3>
+<p><strong>Impact:</strong> 🟡 Moderate   <strong>WCAG:</strong> 2.4.6 — Headings and Labels (Level AA)   <strong>Axe docs:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/page-has-heading-one?application=playwright">https://dequeuniversity.com/rules/axe/4.11/page-has-heading-one?application=playwright</a>   <strong>Unique pages affected:</strong> 1   <strong>Total violation nodes:</strong> 8   <strong>Composite score:</strong> 2  </p>
+<blockquote><p>Ensure that the page, or at least one of its frames contains a level-one heading</p></blockquote>
+<h4 id="failing-selectors">Failing selectors<a class="heading-anchor" href="#failing-selectors" aria-label="Link to Failing selectors section">#</a></h4>
+<div class="table-wrap"><table><thead><tr><th scope="col">Selector</th><th scope="col">Themes</th><th scope="col">Pages affected</th><th scope="col">Nodes</th></tr></thead><tbody><tr><td><code>html</code></td><td>olivero, olivero-dark</td><td>1</td><td>8</td></tr></tbody></table></div>
+<h4 id="details">Details<a class="heading-anchor" href="#details" aria-label="Link to Details section">#</a></h4>
+<p><strong>1. Selector:</strong> <code>html</code></p>
+<p>_Page must have a level-one heading_</p>
+<pre><code class="language-html">&lt;html lang=&quot;en&quot; dir=&quot;ltr&quot; style=&quot;--color--primary-hue:202;--color--primary-saturation:79%;--color--primary-lightness:50&quot; class=&quot; js&quot;&gt;</code></pre>
+<p>Pages: <code>/</code></p>
+<p><strong>Search Drupal issue queue:</strong> <a href="https://www.drupal.org/project/issues/search?text=page-has-heading-one&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">page-has-heading-one + Accessibility</a></p>
+<hr>
+<h2 id="how-to-file-issues">How to File Issues<a class="heading-anchor" href="#how-to-file-issues" aria-label="Link to How to File Issues section">#</a></h2>
+<p>When filing accessibility issues for the Olivero theme, include:</p>
+<ol><li><strong>The axe rule ID</strong> (e.g. <code>color-contrast</code>, <code>label</code>)</li><li><strong>The WCAG Success Criterion</strong> — see the Summary table above</li><li><strong>The failing selector</strong> and <strong>HTML snippet</strong> from the Rule Details above</li><li><strong>Which pages are affected</strong> — listed per selector</li><li><strong>Steps to reproduce</strong> — load the page in Drupal, run <code>axe</code> in browser DevTools</li></ol>
+<p>File against: <a href="https://www.drupal.org/project/issues/search?text=olivero&amp;projects=drupal&amp;status[]=Open&amp;issue_tags=Accessibility">Drupal core issue queue (Olivero + Accessibility)</a></p>
+<p>Add the tag <code>Accessibility</code> and reference the WCAG criterion in the issue summary.</p>
+    </main>
+  </div>
+</body>
+</html>

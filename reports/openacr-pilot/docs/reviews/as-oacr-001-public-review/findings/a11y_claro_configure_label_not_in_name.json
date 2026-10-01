@@ -1,0 +1,35 @@
+{
+  "finding_id": "a11y_claro_configure_label_not_in_name",
+  "fingerprint": "003f0e41582a8c922a8963b92a766320b888276af0f37e529f9db15485a98812",
+  "source": "Default and expanded-state label-in-name inventories confirmed against Drupal core BlockListBuilder and EntityListBuilder source",
+  "wcag_or_apg": "WCAG 2.2 SC 2.5.3 Label in Name",
+  "section_508_fpc_context": "not in scope",
+  "severity": "MAJOR",
+  "perspective_alarms": {
+    "screen_reader_semantic": "MEDIUM",
+    "keyboard_motor": "MEDIUM",
+    "magnification_reflow": "LOW",
+    "cognitive_neurodivergent": "MEDIUM",
+    "vestibular_motion": "NONE",
+    "environmental_contrast": "LOW",
+    "auditory_access": "HIGH"
+  },
+  "evidence": [
+    "EVID-FULL-SUITE-SUMMARY: 12 distinct Block layout links visibly labeled Configure had accessible names such as Edit Site branding and Edit Main navigation in both default and expanded-state inventories.",
+    "BlockListBuilder changes the inherited operation title from Edit to Configure, but EntityListBuilder has already assigned an aria-label using Edit plus the entity label.",
+    "The visible word Configure is absent from each affected accessible name."
+  ],
+  "reproduction_steps": [
+    "Authenticate as an administrator and open /admin/structure/block.",
+    "Locate a visible Configure operation link, such as the Site branding row.",
+    "Inspect its accessible name or navigate to it with speech-input software.",
+    "Confirm that the visible label is Configure while the accessible name is Edit plus the block name."
+  ],
+  "expected_behavior": "The accessible name contains the visible label Configure, preferably at the start, so users can activate the control by its presented text.",
+  "actual_behavior": "The links visibly say Configure, but their accessible names begin with Edit and do not contain Configure.",
+  "evaluation_context": {
+    "evaluation_id": "AS-OACR-001",
+    "sample_id": "S-STR-016",
+    "state_id": "ST-001"
+  }
+}

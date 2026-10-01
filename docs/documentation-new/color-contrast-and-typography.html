@@ -1,0 +1,137 @@
+<p>Color and typography affect whether people can perceive, distinguish, and read content. A theme must remain usable for people with low vision, color vision differences, reading disabilities, and user-defined display settings.</p>
+
+<p>Test the rendered site in every supported theme and state. A palette, CSS variable, or automated result is not evidence that every actual color combination is accessible.</p>
+
+<h2>Meet minimum text contrast</h2>
+
+<p>For a site targeting WCAG 2.2 AA:</p>
+
+<ul>
+  <li>Normal text and images of text need a contrast ratio of at least 4.5:1 against their background.</li>
+  <li>Large-scale text needs a contrast ratio of at least 3:1. WCAG defines large-scale text as at least 18 point, or at least 14 point and bold. This is approximately 24 CSS pixels, or 18.5 CSS pixels and bold.</li>
+  <li>Do not round a failing value up. A ratio of 4.499:1 does not meet a 4.5:1 requirement.</li>
+</ul>
+
+<p>These requirements apply to text in all states, including links, placeholders, validation messages, disabled-looking controls that remain operable, hover content, and keyboard focus content. Evaluate text over gradients, images, transparency, and overlays against the least contrasting background it can cover.</p>
+
+<p>WCAG's enhanced contrast ratios are 7:1 for normal text and 4.5:1 for large-scale text at Level AAA. Treat these as aspirational when the project target is AA. They may become a product requirement when research shows that the audience or conditions need stronger contrast.</p>
+
+<h2>Provide non-text contrast</h2>
+
+<p>Visual information needed to identify or operate a user interface component must have at least 3:1 contrast against adjacent colors. This includes boundaries, icons, checkmarks, selected states, and focus indicators when those visual features are necessary to understand the component.</p>
+
+<p>Graphical objects and parts of graphics needed to understand the content also need at least 3:1 contrast against adjacent colors. This does not mean every color in an illustration must meet 3:1. It applies to the visual information people need.</p>
+
+<p>Do not rely on a faint border as the only indication of an input if the border does not meet non-text contrast. Native controls can provide useful platform behavior, but test them after applying theme styles.</p>
+
+<h2>Do not use color alone</h2>
+
+<p>Color can reinforce meaning but cannot be the only way to communicate it. Add text, an icon with an accessible name, a pattern, a border, or another visual difference.</p>
+
+<ul>
+  <li>Identify form errors with text, not only red borders.</li>
+  <li>Indicate required fields programmatically and visibly, not only by color.</li>
+  <li>Use labels, patterns, or direct values in charts rather than relying only on colored series.</li>
+  <li>Keep links distinguishable from surrounding text without requiring color perception. Underlines are the clearest default.</li>
+  <li>Give selected, expanded, active, and current states more than a color change.</li>
+</ul>
+
+<h2>Design complete color systems</h2>
+
+<p>Define colors by purpose, such as text, background, border, link, error, focus, and selected state. Reuse semantic CSS custom properties rather than repeating unrelated color values. This makes the system easier to review and change.</p>
+
+<p>Test every foreground and background combination that can actually occur. Include:</p>
+
+<ul>
+  <li>default, hover, focus, active, visited, selected, disabled, and error states;</li>
+  <li>content created through CKEditor and other authoring interfaces;</li>
+  <li>status messages and administrative elements rendered in the front-end theme;</li>
+  <li>components placed on alternate surfaces, images, and gradients; and</li>
+  <li>third-party modules and embedded widgets.</li>
+</ul>
+
+<p>Changing one shared color token can create failures in many components. Review token changes across the complete component set rather than approving a single sample.</p>
+
+<h2>Support light and dark color schemes</h2>
+
+<p>A dark theme is not an inverted light theme. Define and test each color pair and each component state in both schemes.</p>
+
+<p>Use <code>prefers-color-scheme</code> or the CSS <code>light-dark()</code> function to respect the user's system preference. The <code>light-dark()</code> function requires an appropriate <code>color-scheme</code> value. If the site offers its own theme control, make it a properly labelled control, retain the user's choice, and avoid overriding an explicit selection with a system preference.</p>
+
+<p>The CSS <code>contrast-color()</code> function can choose black or white based on a background. It does not remove the need for testing. Mid-tone backgrounds can still produce an inadequate result, and older browsers may not support the function. Use it as progressive enhancement with tested fallback values.</p>
+
+<p>Do not assume a light or dark palette meets WCAG because it is generated automatically. Test text, controls, focus indicators, icons, charts, syntax highlighting, and status colors in each scheme.</p>
+
+<h2>Respect forced colors and user styles</h2>
+
+<p>Forced colors mode replaces many author colors with a user-selected system palette. Let the browser make these substitutions. Use the <code>forced-colors</code> media feature only for small corrections when content or controls otherwise disappear.</p>
+
+<ul>
+  <li>Do not disable forced colors across a page or component.</li>
+  <li>Avoid <code>forced-color-adjust: none</code> unless the exception is narrow, necessary, and tested.</li>
+  <li>Use native HTML controls where possible because browsers apply system colors according to native semantics.</li>
+  <li>Do not depend only on background colors, background images, box shadows, or SVG fills that may be replaced or removed.</li>
+  <li>Test Windows High Contrast mode and other supported forced-color environments with actual content.</li>
+</ul>
+
+<h2>Choose legible typography</h2>
+
+<p>There is no single accessible font family. Choose typefaces with clear letterforms, adequate weight, and distinguishable characters. Test uppercase I, lowercase l, the number 1, uppercase O, and the number 0. Avoid thin weights and decorative typefaces for extended reading.</p>
+
+<p>Use real text rather than images of text. Real text can resize, reflow, translate, and adapt to user settings. See <a href="/docs/getting-started/accessibility/accessible-images-and-media">Accessible images and media</a> for the limited exceptions and alternative-text requirements.</p>
+
+<p>WCAG does not specify a minimum body-text size. Start with a comfortable default and use relative units such as <code>rem</code> where they support consistent scaling. Do not block browser zoom or text resizing. Test the result rather than treating a unit choice as compliance.</p>
+
+<p>Use a line height and paragraph spacing that support reading without separating related content. A unitless line height near 1.5 is a reasonable starting point for body text, not a universal requirement. Check the actual typeface, language, line length, and component.</p>
+
+<p>Avoid long passages in all capitals, italics, or unusually light weights. Do not use font weight as a substitute for adequate size and contrast.</p>
+
+<h2>Allow text-spacing overrides</h2>
+
+<p>People may override line height, paragraph spacing, letter spacing, and word spacing. Content must remain readable and operable when text spacing is changed to the WCAG test values:</p>
+
+<ul>
+  <li>line height of at least 1.5 times the font size;</li>
+  <li>paragraph spacing of at least 2 times the font size;</li>
+  <li>letter spacing of at least 0.12 times the font size; and</li>
+  <li>word spacing of at least 0.16 times the font size.</li>
+</ul>
+
+<p>These are test values, not required default design settings. Do not clip, overlap, hide, or truncate text when users apply them. Avoid fixed-height text containers and layouts that depend on a precise number of lines.</p>
+
+<h2>Support resizing and reflow</h2>
+
+<p>Text must resize to 200% without loss of content or functionality. At 400% browser zoom in a 1280 CSS-pixel-wide viewport, content should reflow to the equivalent of a 320 CSS-pixel-wide viewport without two-dimensional scrolling, except where a two-dimensional layout is necessary for meaning or use.</p>
+
+<p>Use flexible layouts, wrapping, and relative sizing. Check navigation, dialogs, tables, code, form controls, status messages, and content created by authors. Do not hide content at high zoom as a substitute for making it reflow.</p>
+
+<p>WCAG's Level AAA visual-presentation guidance includes limiting text width to 80 characters or glyphs, or 40 where the writing system uses Chinese, Japanese, or Korean glyphs, avoiding full justification, and allowing users to select foreground and background colors. These are aspirational under an AA target. For long-form content, a moderate line length and start-aligned text are usually more readable and easier to maintain.</p>
+
+<h2>Test color and typography</h2>
+
+<ul>
+  <li>Measure computed foreground and background colors for every component state.</li>
+  <li>Check text and non-text contrast without rounding borderline results.</li>
+  <li>Review the page without color to confirm that meaning remains available.</li>
+  <li>Test light, dark, and forced-color modes.</li>
+  <li>Apply the WCAG text-spacing overrides.</li>
+  <li>Resize text to 200% and test browser zoom and reflow at 400%.</li>
+  <li>Check content in each supported language and writing direction.</li>
+  <li>Review pages containing real author-created content, not only design-system examples.</li>
+  <li>Run automated contrast checks, then manually review gradients, images, transparency, focus states, and component interaction.</li>
+</ul>
+
+<p>Automated tools can calculate some contrast pairs and detect some fixed-layout failures. They cannot determine whether color is the only cue, whether typography is comfortable to read, or whether every dynamic state has been tested.</p>
+
+<h2>Related guidance</h2>
+
+<ul>
+  <li><a href="/docs/getting-started/accessibility/creating-accessible-themes">Creating accessible themes</a></li>
+  <li><a href="/docs/getting-started/accessibility/accessible-images-and-media">Accessible images and media</a></li>
+  <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html">Understanding Contrast (Minimum)</a></li>
+  <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html">Understanding Non-text Contrast</a></li>
+  <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html">Understanding Use of Color</a></li>
+  <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/text-spacing.html">Understanding Text Spacing</a></li>
+  <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/resize-text.html">Understanding Resize Text</a></li>
+  <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/reflow.html">Understanding Reflow</a></li>
+</ul>

@@ -1,0 +1,151 @@
+diff --git a/core/modules/inline_form_errors/src/FormErrorHandler.php b/core/modules/inline_form_errors/src/FormErrorHandler.php
+index 0c791732ed..70c480f540 100644
+--- a/core/modules/inline_form_errors/src/FormErrorHandler.php
++++ b/core/modules/inline_form_errors/src/FormErrorHandler.php
+@@ -54,7 +54,7 @@ public function __construct(TranslationInterface $string_translation, RendererIn
+   /**
+    * {@inheritdoc}
+    */
+-  public function handleFormErrors(array &$form, FormStateInterface $form_state) {
++  public function handleFormErrors(array &$form, FormStateInterface $form_state): static {
+     parent::handleFormErrors($form, $form_state);
+ 
+     if (!empty($form_state->getErrors()) && empty($form['#disable_inline_form_errors'])) {
+@@ -150,7 +150,10 @@ protected function setTableElementInlineErrors(array &$elements): void {
+ 
+       $element = &$elements[$key];
+ 
+-      if (($element['#type'] ?? NULL) === 'table' && !empty($element['#errors']) && empty($element['#error_no_message'])) {
++      if (in_array($element['#type'] ?? NULL, ['table', 'tableselect'], TRUE)
++        && !empty($element['#errors'])
++        && empty($element['#error_no_message'])
++      ) {
+         $error_id = ($element['#id'] ?? ('inline-form-errors-table-' . $key)) . '--error';
+         $existing_prefix = (string) ($element['#prefix'] ?? '');
+ 
+diff --git a/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php b/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php
+index 4bb6bee112..8a5f322f3d 100644
+--- a/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php
++++ b/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php
+@@ -9,8 +9,10 @@
+ use Drupal\Core\Render\RendererInterface;
+ use Drupal\inline_form_errors\FormErrorHandler;
+ use Drupal\Tests\UnitTestCase;
++use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+ use PHPUnit\Framework\Attributes\CoversClass;
+ use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\MockObject\MockObject;
+ 
+ /**
+  * Tests Drupal\inline_form_errors\FormErrorHandler.
+@@ -28,17 +30,13 @@ class FormErrorHandlerTest extends UnitTestCase {
+ 
+   /**
+    * The messenger.
+-   *
+-   * @var \Drupal\Core\Messenger\MessengerInterface|\PHPUnit\Framework\MockObject\MockObject
+    */
+-  protected $messenger;
++  protected MessengerInterface&MockObject $messenger;
+ 
+   /**
+    * The renderer.
+-   *
+-   * @var \Drupal\Core\Render\RendererInterface|\PHPUnit\Framework\MockObject\MockObject
+    */
+-  protected $renderer;
++  protected RendererInterface&MockObject $renderer;
+ 
+   /**
+    * Form for testing.
+@@ -116,6 +114,16 @@ protected function setUp(): void {
+       '#id' => 'edit-table',
+       '#attributes' => [],
+     ];
++    $this->testForm['tableselect'] = [
++      '#type' => 'tableselect',
++      '#title' => 'Tableselect test',
++      '#parents' => ['tableselect'],
++      '#array_parents' => ['tableselect'],
++      '#id' => 'edit-tableselect',
++      '#options' => [],
++      '#header' => [],
++      '#attributes' => [],
++    ];
+   }
+ 
+   /**
+@@ -130,7 +138,7 @@ public function testErrorMessagesInline(): void {
+       'no title given',
+       'element is invisible',
+       'this missing element is invalid',
+-      '4 errors have been found: <ul-comma-list-mock><li-mock>Test 1</li-mock><li-mock>Test 2 &amp; a half</li-mock><li-mock>Test 3</li-mock><li-mock>Table test</li-mock></ul-comma-list-mock>',
++      '3 errors have been found: <ul-comma-list-mock><li-mock>Test 1</li-mock><li-mock>Test 2 &amp; a half</li-mock><li-mock>Test 3</li-mock></ul-comma-list-mock>',
+     ];
+ 
+     $this->messenger->expects($this->exactly(count($messages)))
+@@ -160,7 +168,6 @@ public function testErrorMessagesInline(): void {
+     $form_state->setErrorByName('test4', 'no error message');
+     $form_state->setErrorByName('test5', 'no title given');
+     $form_state->setErrorByName('test6', 'element is invisible');
+-    $form_state->setErrorByName('table', 'No items selected.');
+     $form_state->setErrorByName('missing_element', 'this missing element is invalid');
+     $this->formErrorHandler->handleFormErrors($this->testForm, $form_state);
+ 
+@@ -171,9 +178,30 @@ public function testErrorMessagesInline(): void {
+     $this->assertSame('no error message', $this->testForm['test4']['#errors']);
+     $this->assertSame('no title given', $this->testForm['test5']['#errors']);
+     $this->assertSame('element is invisible', $this->testForm['test6']['#errors']);
+-    $this->assertSame('No items selected.', $this->testForm['table']['#errors']);
++  }
++
++  /**
++   * Tests that inline errors are shown for table and tableselect elements.
++   *
++   * @legacy-covers ::handleFormErrors
++   * @legacy-covers ::setTableElementInlineErrors
++   */
++  #[AllowMockObjectsWithoutExpectations]
++  public function testTableElementErrorsInline(): void {
++    $form_state = new FormState();
++    $form_state->setErrorByName('table', 'No items selected.');
++    $form_state->setErrorByName('tableselect', 'Please choose an option.');
++    $this->formErrorHandler->handleFormErrors($this->testForm, $form_state);
++
++    // The 'table' element shows the inline error message and is associated via
++    // aria-describedby.
+     $this->assertStringContainsString('No items selected.', $this->testForm['table']['#prefix']);
+     $this->assertStringContainsString('edit-table--error', $this->testForm['table']['#attributes']['aria-describedby']);
++
++    // The 'tableselect' element (a table form element) also shows the inline
++    // error message and is associated via aria-describedby.
++    $this->assertStringContainsString('Please choose an option.', $this->testForm['tableselect']['#prefix']);
++    $this->assertStringContainsString('edit-tableselect--error', $this->testForm['tableselect']['#attributes']['aria-describedby']);
+   }
+ 
+   /**
+@@ -188,7 +216,6 @@ public function testErrorMessagesNotInline(): void {
+       'no error message',
+       'no title given',
+       'element is invisible',
+-      'No items selected.',
+       'this missing element is invalid',
+     ];
+ 
+@@ -214,7 +241,6 @@ public function testErrorMessagesNotInline(): void {
+     $form_state->setErrorByName('test4', 'no error message');
+     $form_state->setErrorByName('test5', 'no title given');
+     $form_state->setErrorByName('test6', 'element is invisible');
+-    $form_state->setErrorByName('table', 'No items selected.');
+     $form_state->setErrorByName('missing_element', 'this missing element is invalid');
+     $this->formErrorHandler->handleFormErrors($this->testForm, $form_state);
+ 
+@@ -225,8 +251,6 @@ public function testErrorMessagesNotInline(): void {
+     $this->assertSame('no error message', $this->testForm['test4']['#errors']);
+     $this->assertSame('no title given', $this->testForm['test5']['#errors']);
+     $this->assertSame('element is invisible', $this->testForm['test6']['#errors']);
+-    $this->assertSame('No items selected.', $this->testForm['table']['#errors']);
+-    $this->assertArrayNotHasKey('#prefix', $this->testForm['table']);
+   }
+ 
+ }

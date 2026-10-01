@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Replacement record: Accessible JavaScript and interactive components</title>
+</head>
+<body>
+  <main>
+    <h1>Replacement record: Accessible JavaScript and interactive components</h1>
+
+    <p>This record explains how the Drupal 7 page <a href="https://www.drupal.org/docs/7/creating-accessible-themes/maintaining-accessibility-in-rich-internet-applications-and">Maintaining accessibility in rich Internet applications and Javascript/Ajax features</a> was replaced by the proposed current documentation page, <a href="https://www.drupal.org/docs/getting-started/accessibility/accessible-javascript-and-interactive-components">Accessible JavaScript and interactive components</a>. It also provides a short archival notice for the Drupal 7 page.</p>
+
+    <h2>Page replaced</h2>
+
+    <table>
+      <caption>Drupal 7 source page replaced by the current page</caption>
+      <thead>
+        <tr>
+          <th scope="col">Drupal 7 page</th>
+          <th scope="col">Disposition</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://www.drupal.org/docs/7/creating-accessible-themes/maintaining-accessibility-in-rich-internet-applications-and">Maintaining accessibility in rich Internet applications and Javascript/Ajax features</a></td>
+          <td>The durable guidance on progressive enhancement and communicating dynamic updates was retained. Drupal 7, old browser and screen-reader explanations, and obsolete references were removed. The subject was rebuilt around Drupal 11's JavaScript API and WCAG 2.2.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>What was retained</h2>
+
+    <ul>
+      <li>Build a meaningful HTML base before adding dynamic behavior.</li>
+      <li>Changes made without a page load may need to be communicated to assistive technology.</li>
+      <li>Use Drupal's announcement facility for concise status messages.</li>
+      <li>Research and test a component's accessibility before adopting it.</li>
+    </ul>
+
+    <h2>What was updated or added</h2>
+
+    <h3>Drupal 11 behavior attachment</h3>
+
+    <p>The replacement documents <code>Drupal.behaviors</code> and <code>once()</code>. This is necessary because Drupal attaches behaviors on initial load and after Ajax or BigPipe adds content. Repeated attachment can otherwise create duplicate controls, listeners, or announcements. The example follows Drupal's current JavaScript API pattern and uses no unnecessary jQuery dependency.</p>
+
+    <h3>Native HTML and ARIA limits</h3>
+
+    <p>The page now directs developers to native controls before custom widgets. It explicitly states that ARIA exposes semantics but does not add keyboard behavior, focus management, or event handling. This addresses a common source of barriers that the old page did not cover.</p>
+
+    <h3>Keyboard and focus behavior</h3>
+
+    <p>The replacement adds keyboard operation, established composite-widget conventions, visible focus, avoidance of positive <code>tabindex</code>, modal focus containment, focus restoration, and recovery when the focused element is removed. These are core requirements for dynamic interfaces and cannot be inferred from a general instruction to use progressive enhancement.</p>
+
+    <h3>Names, roles, states, and status messages</h3>
+
+    <p>The new page distinguishes changes that should update a component's programmatic state from changes that need a status message. It retains <code>Drupal.announce()</code>, adds <code>Drupal.t()</code>, explains polite and assertive priorities, and warns against redundant live-region output. This is more precise than announcing every Ajax update.</p>
+
+    <h3>Common interaction patterns</h3>
+
+    <p>The replacement adds maintainable requirements for dialogs, disclosures, content on hover or focus, Ajax forms, loading states, and third-party widgets. It recommends Drupal core components and established interaction patterns before custom implementations.</p>
+
+    <h3>WCAG 2.2 pointer requirements</h3>
+
+    <p>The page adds dragging alternatives and minimum target size. It keeps keyboard access and simple-pointer alternatives separate because a keyboard-only alternative does not by itself meet the dragging success criterion. It also requires manual review of target-size exceptions rather than treating every measured target below 24 by 24 CSS pixels as an automatic failure.</p>
+
+    <h3>Motion and flashing</h3>
+
+    <p>Motion guidance moved here from the retired Drupal 7 typography material. The replacement covers pausing or stopping moving content, reduced-motion preferences, interaction-triggered animation, and flash thresholds. Animation from Interactions is identified as Level AAA and therefore aspirational under an AA target unless the project adopts a stronger requirement.</p>
+
+    <h3>Repeatable testing</h3>
+
+    <p>The test list covers keyboard, screen readers, focus, Ajax, BigPipe, repeated behavior attachment, zoom, touch, forced colors, reduced motion, failure states, and interrupted JavaScript. Automated rules are described as a limited source of evidence, not as a substitute for review of the interaction.</p>
+
+    <h2>What was removed or corrected</h2>
+
+    <table>
+      <caption>Material removed or corrected and the reason</caption>
+      <thead>
+        <tr>
+          <th scope="col">Old material</th>
+          <th scope="col">Change and reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>"Rich Internet applications" as the organizing term</td>
+          <td>Removed. It is dated terminology and does not help developers identify the actual requirements. The replacement uses JavaScript and interactive components.</td>
+        </tr>
+        <tr>
+          <td>The statement that screen readers "parse JavaScript"</td>
+          <td>Corrected. Assistive technologies consume the semantics, states, relationships, text, and events exposed by the rendered interface and accessibility APIs. JavaScript is neither accessible nor inaccessible by itself.</td>
+        </tr>
+        <tr>
+          <td>A simplified explanation that screen readers create a virtual copy of a page and must refresh it after Ajax changes</td>
+          <td>Removed. Assistive-technology and browser architectures vary. The durable requirement is to expose accurate states, manage focus when context changes, and provide status messages when updates are otherwise unavailable.</td>
+        </tr>
+        <tr>
+          <td>The statement that accessible dynamic interaction was a relatively new area</td>
+          <td>Removed. It was already dated when the page was last updated in 2016 and gives no implementable guidance.</td>
+        </tr>
+        <tr>
+          <td>Drupal 8 described in future or transitional terms</td>
+          <td>Removed. The replacement is current guidance for supported Drupal releases and uses the present Drupal JavaScript API.</td>
+        </tr>
+        <tr>
+          <td>A general direction to add WAI-ARIA</td>
+          <td>Corrected. Native HTML is preferred, and ARIA is limited to valid roles, properties, and states for a complete interaction pattern. ARIA alone does not make a custom control accessible.</td>
+        </tr>
+        <tr>
+          <td>Old The Paciello Group and WebAIM JavaScript/Ajax articles</td>
+          <td>Removed. The links and terminology are dated. Current Drupal API documentation, WCAG 2.2 understanding documents, and the W3C ARIA Authoring Practices Guide are used instead.</td>
+        </tr>
+        <tr>
+          <td>Drupal 7 implementation context</td>
+          <td>Removed from the instructional page. Drupal 7 reached end of life on 5 January 2025, so the old page should receive an archival pointer rather than an in-place technical rewrite.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Content mapping</h2>
+
+    <table>
+      <caption>Where the source material appears in the replacement page</caption>
+      <thead>
+        <tr>
+          <th scope="col">Current section</th>
+          <th scope="col">Primary source or reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Start with native HTML</td>
+          <td>The old page's solid-base principle, updated with native-control and ARIA guidance.</td>
+        </tr>
+        <tr>
+          <td>Attach Drupal JavaScript correctly</td>
+          <td>Current Drupal JavaScript API behavior and <code>once()</code> requirements.</td>
+        </tr>
+        <tr>
+          <td>Keep names, roles, and states accurate</td>
+          <td>Current semantic requirements for component states.</td>
+        </tr>
+        <tr>
+          <td>Provide complete keyboard operation and Manage focus when context changes</td>
+          <td>Current WCAG requirements and W3C interaction patterns.</td>
+        </tr>
+        <tr>
+          <td>Communicate dynamic updates</td>
+          <td>The old Ajax-announcement intent, corrected and implemented with <code>Drupal.announce()</code>.</td>
+        </tr>
+        <tr>
+          <td>Use established components and patterns</td>
+          <td>Current dialog, disclosure, and hover-or-focus requirements.</td>
+        </tr>
+        <tr>
+          <td>Handle Ajax and form updates</td>
+          <td>The old Ajax subject expanded into testable form and loading-state guidance.</td>
+        </tr>
+        <tr>
+          <td>Support pointer and touch operation</td>
+          <td>WCAG 2.2 dragging and target-size requirements.</td>
+        </tr>
+        <tr>
+          <td>Limit motion and flashing</td>
+          <td>Motion material assigned from the old typography page and updated to WCAG 2.2.</td>
+        </tr>
+        <tr>
+          <td>Review third-party widgets and Test interactive components</td>
+          <td>The old research-and-test advice converted into a repeatable review scope.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Copy-ready archival notice</h2>
+
+    <pre><code>&lt;p&gt;&lt;strong&gt;This Drupal 7 page is no longer supported.&lt;/strong&gt; See &lt;a href="/docs/getting-started/accessibility/accessible-javascript-and-interactive-components"&gt;Accessible JavaScript and interactive components&lt;/a&gt; for current guidance. Drupal 7 reached end of life on 5 January 2025. See &lt;a href="/about/drupal-7/d7eol/partners"&gt;Drupal 7 support options&lt;/a&gt; if you still maintain a Drupal 7 site.&lt;/p&gt;</code></pre>
+
+    <h2>Sources checked</h2>
+
+    <ul>
+      <li><a href="https://www.drupal.org/docs/7/creating-accessible-themes/maintaining-accessibility-in-rich-internet-applications-and">Drupal 7 source page: Maintaining accessibility in rich Internet applications and Javascript/Ajax features</a></li>
+      <li><a href="https://www.drupal.org/docs/drupal-apis/javascript-api/javascript-api-overview">Drupal JavaScript API overview</a></li>
+      <li><a href="https://www.drupal.org/docs/drupal-apis/javascript-api/accessibility-tools-for-javascript-in-drupal">Accessibility tools for JavaScript in Drupal</a></li>
+      <li><a href="https://www.drupal.org/node/2014521">Drupal change record: Introduce Drupal.announce()</a></li>
+      <li><a href="https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/">W3C ARIA Authoring Practices Guide: Developing a Keyboard Interface</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html">W3C: Understanding Status Messages</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements.html">W3C: Understanding Dragging Movements</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html">W3C: Understanding Target Size (Minimum)</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html">W3C: Understanding Content on Hover or Focus</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/pause-stop-hide.html">W3C: Understanding Pause, Stop, Hide</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html">W3C: Understanding Animation from Interactions</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/three-flashes-or-below-threshold.html">W3C: Understanding Three Flashes or Below Threshold</a></li>
+    </ul>
+
+    <p>The Drupal page about accessibility tools for JavaScript is marked as needing review. It was used only for stable Drupal APIs that are also supported by Drupal's JavaScript API documentation or change records. Old Overlay and jQuery examples were not carried into the replacement.</p>
+  </main>
+</body>
+</html>

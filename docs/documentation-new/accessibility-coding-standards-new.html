@@ -1,0 +1,202 @@
+<p>These standards apply to user interfaces and rendered content produced by Drupal core and Drupal.org projects. Contributed projects should follow them and document any additional accessibility requirements.</p>
+
+<p>Accessibility is an outcome for people, not a property that a testing tool can certify. Use these standards while planning, implementing, reviewing, and testing a change.</p>
+
+<h2>Standards and scope</h2>
+
+<p>Drupal targets <a href="https://www.w3.org/TR/WCAG22/">Web Content Accessibility Guidelines (WCAG) 2.2 Level AA</a>. Apply all relevant Level A and AA success criteria to the complete user task, including public-facing and administration interfaces.</p>
+
+<p>Drupal is also an authoring tool. Drupal targets <a href="https://www.w3.org/TR/ATAG20/">Authoring Tool Accessibility Guidelines (ATAG) 2.0</a> Level AA for applicable authoring functionality. Part A addresses accessibility for authors with disabilities. Part B addresses support for producing accessible content.</p>
+
+<p>Level AAA success criteria and advisory techniques are aspirational under a Level AA target. They should be encouraged when they improve the experience, but reported separately from Level A and AA failures unless another project requirement makes them mandatory.</p>
+
+<h2>Start with barriers, not tool results</h2>
+
+<p>Accessibility standards and automated tools operate at different levels. Keep these levels distinct:</p>
+
+<ol>
+	<li><strong>Accessibility barriers</strong> affect people. Describe who is affected, what task they are trying to complete, and how the interface prevents or limits that task.</li>
+	<li><strong>Accessibility requirements</strong> define expected outcomes. WCAG success criteria, ATAG success criteria, and Drupal policies are requirements, not automated test cases.</li>
+	<li><strong>Test rules</strong> evaluate specific conditions. A rule may test part of one requirement, contribute evidence about several requirements, or test a best practice that is not required for WCAG conformance.</li>
+	<li><strong>Automated gates</strong> should use the smaller subset of tests that are deterministic in the project’s environment and can fail without routine false positives.</li>
+</ol>
+
+<p>Passing an automated rule does not establish that a WCAG success criterion is satisfied. Passing every rule available in a tool does not establish conformance. Some rules return an incomplete or needs-review result because human judgment is required. Treat those results as review evidence, not automatic failures.</p>
+
+<h2>Use semantic HTML first</h2>
+
+<p>Use the native HTML element that matches the content or control. Native elements provide semantics and behavior that custom elements must otherwise reproduce. A <code>div</code> or <code>span</code> is appropriate when no semantic element is required, but it must not replace a heading, link, button, list, table, or form control.</p>
+
+<ul>
+	<li>Use headings to identify sections and reflect their hierarchy. Choose levels by structure, not visual size.</li>
+	<li>Use lists for list content and data tables for tabular relationships.</li>
+	<li>Use landmarks and page regions consistently.</li>
+	<li>Keep the source order meaningful when CSS changes the visual layout.</li>
+	<li>Identify the page language and changes in language when required.</li>
+	<li>Provide text alternatives that communicate the purpose of meaningful non-text content. Use empty alternative text for decorative images.</li>
+</ul>
+
+<h3>Use ARIA only when needed</h3>
+
+<p><a href="https://www.w3.org/TR/wai-aria-1.2/">Accessible Rich Internet Applications (WAI-ARIA)</a> can expose names, roles, states, properties, and relationships that HTML does not provide. It does not add keyboard behavior, repair an unsuitable element, or make a custom widget accessible by itself.</p>
+
+<ul>
+	<li>Prefer native HTML when it provides the required semantics and behavior.</li>
+	<li>Do not override correct native semantics with an unnecessary or conflicting role.</li>
+	<li>Keep ARIA states and properties synchronized with the visible interface.</li>
+	<li>Reference elements with valid, unique IDs when using <code>aria-describedby</code>, <code>aria-labelledby</code>, or similar relationships.</li>
+	<li>Use accessible names that identify the same purpose as the visible label.</li>
+</ul>
+
+<p>When a Drupal render or Form API property provides the required output, use that property instead of adding ARIA manually. Use <code>#attributes</code> only when no appropriate API property or native HTML relationship is available.</p>
+
+<h2>Support keyboard and focus operation</h2>
+
+<p>Every action available with a pointer must also be available by keyboard unless the task fundamentally depends on a path-based movement. Provide a non-dragging way to complete drag interactions.</p>
+
+<ul>
+	<li>Use the expected keyboard behavior for the native element or established widget pattern.</li>
+	<li>Keep the focus order consistent with the reading and interaction order. Do not use positive <code>tabindex</code> values to repair source order.</li>
+	<li>Provide a visible focus indicator with sufficient contrast. Do not allow sticky headers, overlays, or other content to obscure the focused control.</li>
+	<li>Do not create a keyboard trap. Constrain focus only when the active pattern requires it and always provide a predictable way to close or leave the context.</li>
+	<li>Move focus only when the user action or task requires it. Restore focus to a logical location when a temporary context closes.</li>
+	<li>Make content shown on pointer hover also available on keyboard focus and dismissible when required.</li>
+	<li>Do not make static content focusable unless keyboard users must interact with or scroll it.</li>
+</ul>
+
+<p>The <a href="https://www.w3.org/WAI/ARIA/apg/patterns/">ARIA Authoring Practices Guide patterns</a> can help define expected interaction for complex widgets. Use them as design guidance, then test the implementation in Drupal’s actual context.</p>
+
+<p>Reuse an established Drupal component when it fits the task and has no known accessibility problem that affects the change. A pattern library, framework, or example does not guarantee an accessible result. A custom component needs documented keyboard behavior, focus behavior, names, roles, states, and regression coverage.</p>
+
+<h2>Provide accessible names and instructions</h2>
+
+<p>Every control must have an accessible name. Prefer a persistent visible label. A placeholder is not a label, and a title attribute is not a reliable replacement for visible instructions.</p>
+
+<ul>
+	<li>Make the accessible name include the visible label when both are present.</li>
+	<li>Write link and button text that identifies the action or destination in context.</li>
+	<li>Provide instructions before they are needed and associate them programmatically with the relevant control.</li>
+	<li>Do not rely only on position, shape, size, color, sound, or an icon to communicate meaning.</li>
+	<li>Keep hidden explanatory text concise and consistent with the visible interface.</li>
+</ul>
+
+<h2>Keep navigation and interaction predictable</h2>
+
+<ul>
+	<li>Give each page a descriptive title and provide headings that help people understand their location and the available tasks.</li>
+	<li>Provide a way to bypass repeated blocks, such as navigation and administration controls.</li>
+	<li>Keep repeated navigation, help, and controls in a consistent order and identify controls with the same function consistently.</li>
+	<li>Do not change context when a control receives focus. Do not submit, navigate, or substantially change the interface when a value changes unless the behavior is expected or explained in advance.</li>
+	<li>After an Ajax update, preserve the user’s position and provide a clear next step. Move focus only when leaving it in place would make the result difficult to find or use.</li>
+	<li>Allow users to review, correct, and confirm important submissions when WCAG requires error prevention.</li>
+</ul>
+
+<h2>Build accessible forms and errors</h2>
+
+<p>Use Drupal’s Form API properties so labels, descriptions, required states, validation, and error relationships are rendered consistently. For example:</p>
+
+<pre><code class="language-php">$form['email'] = [
+  '#type' =&gt; 'email',
+  '#title' =&gt; $this-&gt;t('Email address'),
+  '#description' =&gt; $this-&gt;t('Used only for account notifications.'),
+  '#required' =&gt; TRUE,
+];</code></pre>
+
+<p>Do not replace <code>#required</code> with a manually added <code>aria-required</code> attribute. Do not remove <code>#title</code> to hide a label. Use <code>#title_display</code> set to <code>invisible</code> when a visible label is not suitable, and verify that the visible context still identifies the field.</p>
+
+<ul>
+	<li>Group related controls with a <code>fieldset</code> and <code>legend</code>, or the equivalent Form API element.</li>
+	<li>Explain input formats and constraints before submission.</li>
+	<li>Identify each error in text, associate it with the affected control, and explain how to correct it.</li>
+	<li>Make an error summary available at a predictable location and move focus or provide another reliable notification when validation fails.</li>
+	<li>Preserve entered values when validation fails unless retaining the value would create a security or privacy risk.</li>
+	<li>Do not require users to enter the same information twice in one process when Drupal can provide or select it, subject to WCAG exceptions.</li>
+	<li>Support password managers and copying and pasting. Do not require a cognitive-function test where an accessible authentication method can be provided.</li>
+</ul>
+
+<p>The Inline Form Errors module places error messages next to affected controls and provides an error summary. It is included in Drupal core but is not enabled by the Standard installation profile. If a project enables or replaces it, test the complete validation workflow rather than assuming the module resolves every form requirement.</p>
+
+<h2>Communicate dynamic changes</h2>
+
+<p>When JavaScript or Ajax changes content without moving focus, make meaningful changes available to assistive-technology users. Do not announce every DOM update. Announce the result a user needs to continue the task.</p>
+
+<p>Drupal’s <a href="https://api.drupal.org/api/drupal/core%21misc%21announce.js/11.x"><code>Drupal.announce()</code> API</a> writes translated text to a shared ARIA live region:</p>
+
+<pre><code class="language-javascript">Drupal.announce(Drupal.t('Three results were added.'));</code></pre>
+
+<p>The default priority is polite. Use an assertive announcement only for urgent information because it may interrupt other speech. Keep announcements concise, avoid duplicating visible text that is already announced through focus, and update the visible interface before announcing its result.</p>
+
+<p>Use Drupal’s <a href="https://github.com/drupal/core/blob/11.x/misc/tabbingmanager.js"><code>TabbingManager</code> API</a> when an active context must temporarily restrict keyboard navigation:</p>
+
+<pre><code class="language-javascript">const tabbingContext = Drupal.tabbingManager.constrain(dialogElement, {
+  trapFocus: true,
+});
+
+// Release the constraint when the context closes.
+tabbingContext.release();</code></pre>
+
+<p><code>TabbingManager</code> does not make a component accessible. The component still needs correct semantics, expected keyboard commands, initial focus, a visible focus indicator, and logical focus restoration. Set <code>trapFocus</code> only when wrapping focus is required by the interaction.</p>
+
+<h2>Support visual presentation and user preferences</h2>
+
+<ul>
+	<li>Meet WCAG 2.2 Level AA contrast requirements for text, controls, states, and essential graphics.</li>
+	<li>Do not use color as the only way to convey status, selection, errors, or other information.</li>
+	<li>Support text resize and reflow without loss of content or functionality. Test responsive states at high zoom, including the equivalent of a 320 CSS-pixel viewport where applicable.</li>
+	<li>Do not prevent users from applying WCAG text-spacing adjustments.</li>
+	<li>Keep controls and their spacing large enough to meet the WCAG 2.2 target-size requirement, including its exceptions.</li>
+	<li>Test system settings such as forced colors and reduced motion when the change affects them.</li>
+	<li>Do not remove or weaken browser and operating-system accessibility features.</li>
+</ul>
+
+<p>Drupal’s <a href="https://www.drupal.org/docs/getting-started/accessibility/hide-content-properly">Hide Content Properly guide</a> explains the <code>hidden</code>, <code>visually-hidden</code>, <code>focusable</code>, and <code>invisible</code> utility classes. Choose the class based on who should receive the content and whether it should occupy layout space. Prefer one consistent experience to separate visible and non-visual instructions.</p>
+
+<h2>Use motion and media responsibly</h2>
+
+<ul>
+	<li>Provide captions, transcripts, and audio descriptions when the applicable WCAG success criteria require them.</li>
+	<li>Provide controls to pause, stop, hide, or adjust time-based content when required.</li>
+	<li>Do not create content that flashes more than the applicable threshold.</li>
+	<li>Avoid unnecessary motion. Respect <code>prefers-reduced-motion</code> and provide a static or reduced alternative when motion is not essential.</li>
+	<li>Do not start audio automatically unless the user can stop it as WCAG requires.</li>
+</ul>
+
+<h2>Support accessible authoring</h2>
+
+<p>For editors, layout tools, media tools, and other authoring features, test both the authoring interface and its output.</p>
+
+<ul>
+	<li>Make every authoring action available to disabled authors.</li>
+	<li>Generate accessible markup and content by default.</li>
+	<li>Preserve accessibility information when content is edited, transformed, saved, or reused.</li>
+	<li>Prompt authors for required accessibility information, such as text alternatives, without encouraging meaningless values.</li>
+	<li>Provide checks, repair guidance, and documentation where authors must make an accessibility decision.</li>
+	<li>Give accessibility options the same prominence and usability as comparable authoring options.</li>
+</ul>
+
+<h2>Test code and rendered behavior</h2>
+
+<p>Test the rendered interface in the pages, states, themes, configurations, and viewports affected by the change. Review source code, but do not assume correct source guarantees correct browser or assistive-technology behavior.</p>
+
+<h3>Automated testing</h3>
+
+<p>Drupal core uses axe-core in Nightwatch tests to catch regressions on representative pages and interaction states. Automated results are evidence. They are not a count of accessibility barriers and do not establish conformance.</p>
+
+<ul>
+	<li>Map a failed rule to the affected element, user task, and applicable requirement.</li>
+	<li>Use deterministic rules for automated build failures. Route context-dependent, incomplete, or unstable results to manual review.</li>
+	<li>Report WCAG 2.2 Level A and AA failures separately from Level AAA and best-practice results.</li>
+	<li>Add regression coverage for new or substantially changed interactive behavior where practical.</li>
+	<li>Run tests after relevant content or interaction states become available, not only on initial page load.</li>
+	<li>Keep every disabled rule narrow, explain why it is disabled, and link to an issue that tracks the underlying problem.</li>
+</ul>
+
+<p>Do not use a score or the absence of tool violations as an accessibility target. The target is that people can complete the task and that the applicable accessibility requirements are satisfied.</p>
+
+<p>When an automated result becomes an issue, record the rule and tool version, affected markup or component, page and interaction state, configuration, viewport, steps to reproduce, and expected user outcome. Tool output without this context is not a complete bug report.</p>
+
+<h3>Manual and user testing</h3>
+
+<p>Automated testing must be combined with relevant manual checks, including keyboard, focus, zoom, reflow, text spacing, contrast, forced colors, reduced motion, and assistive technology. New, complex, or high-impact patterns should be tested with disabled users when possible.</p>
+
+<p>Record enough evidence for another contributor to repeat the test. Follow the guide to <a href="https://www.drupal.org/docs/getting-started/accessibility/how-to-do-an-accessibility-review">performing an accessibility review</a> and the guidance on <a href="https://www.drupal.org/docs/getting-started/accessibility/how-to-ensure-your-contribution-is-accessible">ensuring a contribution is accessible</a>.</p>

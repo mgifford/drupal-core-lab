@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Accessibility Pattern Report</title>
+  <style>
+    :root {
+      --page-bg: #eef2f8;
+      --card-bg: #ffffff;
+      --surface-bg: #f7f9fc;
+      --text: #1c2431;
+      --muted: #546173;
+      --border: #d5dce7;
+      --link: #0e4fb5;
+      --accent: #b7ccf6;
+      --table-stripe: #f5f8ff;
+      --shadow: 0 12px 34px rgba(20, 35, 60, 0.08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --page-bg: #111722;
+        --card-bg: #1a2331;
+        --surface-bg: #131b27;
+        --text: #e8edf5;
+        --muted: #93a0b5;
+        --border: #2b3950;
+        --link: #8cb8ff;
+        --accent: #23395f;
+        --table-stripe: #162032;
+        --shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
+      }
+    }
+    * { box-sizing: border-box; }
+    html { color-scheme: light dark; scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      padding: 2rem 1rem 4rem;
+      font: 16px/1.7 Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+      background:
+        radial-gradient(circle at top left, rgba(14, 79, 181, 0.08), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 16%),
+        var(--page-bg);
+      color: var(--text);
+    }
+    a { color: var(--link); }
+    a:hover, a:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: grid;
+      gap: 1.25rem;
+    }
+    .hero,
+    .toc,
+    .content {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      box-shadow: var(--shadow);
+    }
+    .hero {
+      padding: 1.5rem;
+    }
+    .hero h1 {
+      margin: 0 0 0.5rem;
+      line-height: 1.15;
+      font-size: clamp(2rem, 4vw, 3rem);
+    }
+    .lede,
+    .meta {
+      color: var(--muted);
+      margin: 0.35rem 0 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .toc {
+      padding: 1rem 1.25rem;
+    }
+    .toc h2 {
+      margin: 0 0 0.65rem;
+      font-size: 1rem;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .toc ol {
+      margin: 0;
+      padding-left: 1.2rem;
+      display: grid;
+      gap: 0.4rem;
+    }
+    .toc li.level-3 {
+      margin-left: 1rem;
+      color: var(--muted);
+    }
+    .content {
+      padding: 1.5rem;
+      overflow: hidden;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      line-height: 1.25;
+      scroll-margin-top: 1rem;
+    }
+    h2, h3 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    h2 {
+      margin-top: 2.4rem;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h3 {
+      margin-top: 1.8rem;
+    }
+    .heading-anchor {
+      text-decoration: none;
+      opacity: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    h2:hover .heading-anchor,
+    h2:focus-within .heading-anchor,
+    h3:hover .heading-anchor,
+    h3:focus-within .heading-anchor {
+      opacity: 1;
+    }
+    p, ul, ol, blockquote, pre, .table-wrap, hr {
+      margin: 1rem 0;
+    }
+    ul, ol {
+      padding-left: 1.5rem;
+    }
+    li + li {
+      margin-top: 0.35rem;
+    }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    code {
+      background: rgba(127, 127, 127, 0.14);
+      padding: 0.1rem 0.35rem;
+      border-radius: 0.3rem;
+      font-size: 0.95em;
+    }
+    pre {
+      overflow-x: auto;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 0.85rem;
+      background: var(--surface-bg);
+    }
+    blockquote {
+      border-left: 4px solid var(--link);
+      padding: 0.25rem 0 0.25rem 1rem;
+      color: var(--muted);
+      margin-left: 0;
+      background: linear-gradient(90deg, rgba(14, 79, 181, 0.08), transparent 60%);
+    }
+    details {
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.5rem 1rem;
+      margin: 0.75rem 0;
+      background: var(--surface-bg);
+    }
+    details[open] {
+      padding-bottom: 0.75rem;
+    }
+    details summary {
+      cursor: pointer;
+      font-weight: 600;
+      padding: 0.25rem 0;
+      list-style: none;
+      color: var(--text);
+    }
+    details summary::-webkit-details-marker { display: none; }
+    details summary::before {
+      content: '▶ ';
+      font-size: 0.7em;
+      color: var(--muted);
+    }
+    details[open] summary::before { content: '▼ '; }
+    details table {
+      margin-top: 0.75rem;
+      min-width: 0;
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid var(--border);
+    }
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 0.85rem;
+      background: var(--surface-bg);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 680px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 0.7rem 0.85rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--accent);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.92rem;
+    }
+    tbody tr:nth-child(even) td {
+      background: var(--table-stripe);
+    }
+    @media (min-width: 900px) {
+      .page {
+        grid-template-columns: minmax(0, 1fr) 280px;
+        align-items: start;
+      }
+      .hero,
+      .content {
+        grid-column: 1;
+      }
+      .toc {
+        grid-column: 2;
+        position: sticky;
+        top: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <h1>Accessibility Pattern Report</h1>
+      <p class="lede">Clustered axe-core issue patterns grouped by rule, selector similarity, and affected routes.</p>
+      <p class="meta">Source markdown: <code>PATTERN-REPORT-latest.md</code></p>
+    </header>
+    
+    <nav class="toc" aria-label="Table of contents">
+      <h2>Contents</h2>
+      <ol>
+        <li class="level-2"><a href="#summary">Summary</a></li><li class="level-2"><a href="#validated-keyboard-promotion-findings">Validated Keyboard Promotion Findings</a></li><li class="level-3"><a href="#label-in-name-failures-action-required">❌ Label-in-Name Failures (Action Required)</a></li><li class="level-2"><a href="#aggregated-accessibility-issues-by-category">Aggregated Accessibility Issues by Category</a></li><li class="level-3"><a href="#form-interactions">Form Interactions</a></li><li class="level-3"><a href="#css-and-presentation">CSS and Presentation</a></li><li class="level-3"><a href="#input-modalities">Input Modalities</a></li><li class="level-3"><a href="#other-accessibility-issues">Other Accessibility Issues</a></li><li class="level-3"><a href="#semantic-structure">Semantic Structure</a></li><li class="level-3"><a href="#data-tables">Data Tables</a></li><li class="level-2"><a href="#reproducible-issue-details">Reproducible Issue Details</a></li><li class="level-3"><a href="#drupal-a11y-001-2026-05-06-label-ensure-every-form-element-has-a-label">DRUPAL-A11Y-001—2026-05-06: label: Ensure every form element has a label</a></li><li class="level-3"><a href="#drupal-a11y-002-2026-05-06-color-contrast-ensure-the-contrast-between-foreground-and-background-colors-meets-wcag-2-aa-min">DRUPAL-A11Y-002—2026-05-06: color-contrast: Ensure the contrast between foreground and background colors meets WCAG 2 AA min</a></li><li class="level-3"><a href="#drupal-a11y-003-2026-05-06-select-all-rows-checkbox-is-labeled-only-by-its-title-attribute">DRUPAL-A11Y-003—2026-05-06: &quot;Select all rows&quot; checkbox is labeled only by its title attribute</a></li><li class="level-3"><a href="#drupal-a11y-004-2026-05-06-tabindex-ensure-tabindex-attribute-values-are-not-greater-than-0">DRUPAL-A11Y-004—2026-05-06: tabindex: Ensure tabindex attribute values are not greater than 0</a></li><li class="level-3"><a href="#drupal-a11y-005-2026-05-06-summary-name-ensure-summary-elements-have-discernible-text">DRUPAL-A11Y-005—2026-05-06: summary-name: Ensure summary elements have discernible text</a></li><li class="level-3"><a href="#drupal-a11y-006-2026-05-06-region-ensure-all-page-content-is-contained-by-landmarks">DRUPAL-A11Y-006—2026-05-06: region: Ensure all page content is contained by landmarks</a></li><li class="level-3"><a href="#drupal-a11y-007-2026-05-06-landmark-contentinfo-is-top-level-ensure-the-contentinfo-landmark-is-at-top-level">DRUPAL-A11Y-007—2026-05-06: landmark-contentinfo-is-top-level: Ensure the contentinfo landmark is at top level</a></li><li class="level-3"><a href="#drupal-a11y-008-2026-05-06-status-messages-block-uses-role-contentinfo-duplicating-the-page-footer">DRUPAL-A11Y-008—2026-05-06: Status messages block uses role=&quot;contentinfo&quot;, duplicating the page &lt;footer&gt;</a></li><li class="level-3"><a href="#drupal-a11y-009-2026-05-06-homepage-has-no-h1-heading-screen-reader-users-cannot-identify-page-topic">DRUPAL-A11Y-009—2026-05-06: Homepage has no &lt;h1&gt; heading — screen reader users cannot identify page topic</a></li><li class="level-3"><a href="#drupal-a11y-010-2026-05-06-heading-order-ensure-the-order-of-headings-is-semantically-correct">DRUPAL-A11Y-010—2026-05-06: heading-order: Ensure the order of headings is semantically correct</a></li><li class="level-3"><a href="#drupal-a11y-011-2026-05-06-landmark-unique-ensure-landmarks-are-unique">DRUPAL-A11Y-011—2026-05-06: landmark-unique: Ensure landmarks are unique</a></li><li class="level-3"><a href="#drupal-a11y-012-2026-05-06-empty-heading-ensure-headings-have-discernible-text">DRUPAL-A11Y-012—2026-05-06: empty-heading: Ensure headings have discernible text</a></li><li class="level-3"><a href="#drupal-a11y-013-2026-05-06-empty-table-header-ensure-table-headers-have-discernible-text">DRUPAL-A11Y-013—2026-05-06: empty-table-header: Ensure table headers have discernible text</a></li><li class="level-2"><a href="#deduplication-pattern-grouping">Deduplication &amp; Pattern Grouping</a></li>
+      </ol>
+    </nav>
+    <main class="content">
+      <h1 id="drupal-core-accessibility-bug-report">Drupal Core Accessibility Bug Report</h1>
+<blockquote><p><strong>Generated:</strong> 2026-05-06T16:22:36.086Z<br><strong>Tool:</strong> axe-core via @axe-core/playwright | <strong>Browser:</strong> Chromium<br><strong>Standard:</strong> <a href="https://github.com/mgifford/ACCESSIBILITY.md/blob/main/examples/ACCESSIBILITY_BUG_REPORTING_BEST_PRACTICES.md">ACCESSIBILITY_BUG_REPORTING_BEST_PRACTICES.md</a></p></blockquote>
+<h2 id="summary">Summary<a class="heading-anchor" href="#summary" aria-label="Link to Summary section">#</a></h2>
+<div class="table-wrap"><table><thead><tr><th scope="col">Metric</th><th scope="col">Value</th></tr></thead><tbody><tr><td>Pages crawled</td><td>2193</td></tr><tr><td>Total violation instances</td><td>5550</td></tr><tr><td>Unique patterns</td><td>13</td></tr><tr><td>Template-level patterns (≥3 pages) 🔁</td><td>10</td></tr><tr><td>Critical</td><td>1</td></tr><tr><td>Serious</td><td>4</td></tr><tr><td>Moderate</td><td>6</td></tr><tr><td>Minor</td><td>2</td></tr></tbody></table></div>
+<p>Project queue: <a href="https://www.drupal.org/project/issues/search?text=&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility</a></p>
+<h2 id="validated-keyboard-promotion-findings">Validated Keyboard Promotion Findings<a class="heading-anchor" href="#validated-keyboard-promotion-findings" aria-label="Link to Validated Keyboard Promotion Findings section">#</a></h2>
+<div class="table-wrap"><table><thead><tr><th scope="col">Metric</th><th scope="col">Value</th></tr></thead><tbody><tr><td>Promotion candidates (WCAG 2.5.3)</td><td>2</td></tr><tr><td>Contract checks</td><td>4</td></tr><tr><td>❌ Failures</td><td>1</td></tr><tr><td>✅ Passes</td><td>3</td></tr><tr><td>Results generated</td><td>2026-04-29T18:00:08.808Z</td></tr></tbody></table></div>
+<h3 id="label-in-name-failures-action-required">❌ Label-in-Name Failures (Action Required)<a class="heading-anchor" href="#label-in-name-failures-action-required" aria-label="Link to ❌ Label-in-Name Failures (Action Required) section">#</a></h3>
+<blockquote><p><strong>WCAG 2.5.3</strong> — The accessible name of a control must contain the visible label text. Speech-input users who activate controls by speaking what they see will fail if these differ.</p></blockquote>
+<h4 id="label-in-name-004-configure-action-visible-text-appears-in-accessible-name">LABEL-IN-NAME-004: Configure action visible text appears in accessible name<a class="heading-anchor" href="#label-in-name-004-configure-action-visible-text-appears-in-accessible-name" aria-label="Link to LABEL-IN-NAME-004: Configure action visible text appears in accessible name section">#</a></h4>
+<ul><li><strong>Route:</strong> <code>/admin/config/content/formats</code></li><li><strong>Selector:</strong> <code>table tbody tr:has-text(&quot;Basic HTML&quot;) a:has-text(&quot;Configure&quot;)</code></li><li><strong>Visible label (expected in accessible name):</strong> <code>Configure</code></li><li><strong>Actual accessible name (aria-label):</strong> <code>Edit Basic HTML</code></li><li><strong>WCAG SC:</strong> 2.5.3 Label in Name (Level A)</li></ul>
+<p><strong>How to reproduce:</strong></p>
+<ol><li>Log into Drupal and navigate to <code>/admin/config/content/formats</code></li><li>Locate the element matching <code>table tbody tr:has-text(&quot;Basic HTML&quot;) a:has-text(&quot;Configure&quot;)</code></li><li>Inspect the element — the visible text reads <strong>&quot;Configure&quot;</strong></li><li>Check <code>aria-label</code> — it reads <strong>&quot;Edit Basic HTML&quot;</strong> which does not contain the visible text</li><li>A speech-input user saying <em>&quot;click Configure&quot;</em> cannot activate this control</li></ol>
+<p><strong>Fix:</strong> Update the <code>aria-label</code> to include the visible label text, or remove it if the visible text already provides a sufficient accessible name.</p>
+<details>
+<summary>✅ Passing label-in-name checks (3) — click to expand</summary>
+<table><thead><tr><th>Contract ID</th><th>Route</th><th>Selector</th><th>Expected Label</th></tr></thead><tbody>
+<tr><td>LABEL-IN-NAME-001</td><td><code>/admin/form_style</code></td><td><code>#edit-test-datelist-month</code></td><td>Month</td></tr>
+<tr><td>LABEL-IN-NAME-002</td><td><code>/admin/form_style</code></td><td><code>#edit-test-datelist-day</code></td><td>Day</td></tr>
+<tr><td>LABEL-IN-NAME-003</td><td><code>/admin/structure/types/add</code></td><td><code>summary:has-text("Submission form settings")</code></td><td>Submission form settings</td></tr>
+</tbody></table>
+</details>
+<details>
+<summary>✅ Promotion candidates that passed validation (2) — click to expand</summary>
+<table><thead><tr><th>Candidate ID</th><th>Route</th><th>Finding</th></tr></thead><tbody>
+<tr><td>PROMOTE-001</td><td><code>/admin/form_style</code></td><td>2 potential label-in-name mismatches in sampled focus steps.</td></tr>
+<tr><td>PROMOTE-002</td><td><code>/admin/structure/types/add</code></td><td>1 potential label-in-name mismatches in sampled focus steps.</td></tr>
+</tbody></table>
+</details>
+<h2 id="aggregated-accessibility-issues-by-category">Aggregated Accessibility Issues by Category<a class="heading-anchor" href="#aggregated-accessibility-issues-by-category" aria-label="Link to Aggregated Accessibility Issues by Category section">#</a></h2>
+<h3 id="form-interactions">Form Interactions<a class="heading-anchor" href="#form-interactions" aria-label="Link to Form Interactions section">#</a></h3>
+<ul><li><strong>Total unique patterns:</strong> 2</li><li><strong>Rules:</strong> <code>label</code>, <code>label-title-only</code></li></ul>
+<ul><li>label: Ensure every form element has a label</li><li>Affected routes (full list): /contact/imagefile_file</li><li>&quot;Select all rows&quot; checkbox is labeled only by its title attribute</li><li>Affected routes (full list): /admin/content, /admin/people, /table</li></ul>
+<h3 id="css-and-presentation">CSS and Presentation<a class="heading-anchor" href="#css-and-presentation" aria-label="Link to CSS and Presentation section">#</a></h3>
+<ul><li><strong>Total unique patterns:</strong> 1</li><li><strong>Rules:</strong> <code>color-contrast</code></li></ul>
+<ul><li>color-contrast: Ensure the contrast between foreground and background colors meets WCAG 2 AA min</li><li>Affected routes (full list): /action-link, /admin, /admin/appearance, /admin/content, /admin/form_style, /admin/modules, /admin/structure, /admin/structure/block, /admin/structure/taxonomy, /admin/structure/taxonomy/add, /admin/structure/types, /admin/structure/types/add, /node/add/article, /node/add/page, /search/node, /user/login, /user/password</li></ul>
+<h3 id="input-modalities">Input Modalities<a class="heading-anchor" href="#input-modalities" aria-label="Link to Input Modalities section">#</a></h3>
+<ul><li><strong>Total unique patterns:</strong> 1</li><li><strong>Rules:</strong> <code>tabindex</code></li></ul>
+<ul><li>tabindex: Ensure tabindex attribute values are not greater than 0</li><li>Affected routes (full list): /buttons</li></ul>
+<h3 id="other-accessibility-issues">Other Accessibility Issues<a class="heading-anchor" href="#other-accessibility-issues" aria-label="Link to Other Accessibility Issues section">#</a></h3>
+<ul><li><strong>Total unique patterns:</strong> 1</li><li><strong>Rules:</strong> <code>summary-name</code></li></ul>
+<ul><li>summary-name: Ensure summary elements have discernible text</li><li>Affected routes (full list): /admin/modules</li></ul>
+<h3 id="semantic-structure">Semantic Structure<a class="heading-anchor" href="#semantic-structure" aria-label="Link to Semantic Structure section">#</a></h3>
+<ul><li><strong>Total unique patterns:</strong> 7</li><li><strong>Rules:</strong> <code>region</code>, <code>landmark-contentinfo-is-top-level</code>, <code>landmark-no-duplicate-contentinfo</code>, <code>page-has-heading-one</code>, <code>heading-order</code>, <code>landmark-unique</code>, <code>empty-heading</code></li></ul>
+<ul><li>region: Ensure all page content is contained by landmarks</li><li>Affected routes (full list): /, /action-link, /admin, /admin/appearance, /admin/config, /admin/config/content/formats, /admin/config/content/formats/manage/restricted_html, /admin/config/system/site-information, /admin/content, /admin/form_style, /admin/modules, /admin/people, /admin/reports, /admin/structure, /admin/structure/block, /admin/structure/display-modes/form/add/contact_message, /admin/structure/taxonomy, /admin/structure/taxonomy/add, /admin/structure/types, /admin/structure/types/add, /admin/structure/types/manage/test_type/display/default, /autocomplete, /buttons, /cd-navigation/config, /contact/checkbox_radio, /contact/field_cardinality_test, /contact/imagefile_file, /contact/imagefile_image, /contact/presuf_formatted, /contact/presuf_number, /contact/presuf_text, /contact/select, /contact/textarea, /contact/textform, /dialog, /dropbutton, /fieldset, /message, /node/add/article, /node/add/cd, /node/add/page, /password, /progress, /search/node, /table, /tabledrag, /tabs, /tabs/format/plain_text, /this-page-does-not-exist, /user/1/edit, /user/login, /user/password, /user/register</li><li>landmark-contentinfo-is-top-level: Ensure the contentinfo landmark is at top level</li><li>Affected routes (full list): /admin/appearance, /admin/modules, /message</li><li>Status messages block uses role=&quot;contentinfo&quot;, duplicating the page &lt;footer&gt;</li><li>Affected routes (full list): /admin/appearance, /admin/modules</li><li>Homepage has no &lt;h1&gt; heading — screen reader users cannot identify page topic</li><li>Affected routes (full list): /</li><li>heading-order: Ensure the order of headings is semantically correct</li><li>Affected routes (full list): /admin/content</li><li>landmark-unique: Ensure landmarks are unique</li><li>Affected routes (full list): /message</li><li>empty-heading: Ensure headings have discernible text</li><li>Affected routes (full list): /dialog, /tabs</li></ul>
+<h3 id="data-tables">Data Tables<a class="heading-anchor" href="#data-tables" aria-label="Link to Data Tables section">#</a></h3>
+<ul><li><strong>Total unique patterns:</strong> 1</li><li><strong>Rules:</strong> <code>empty-table-header</code></li></ul>
+<ul><li>empty-table-header: Ensure table headers have discernible text</li><li>Affected routes (full list): /autocomplete</li></ul>
+<h2 id="reproducible-issue-details">Reproducible Issue Details<a class="heading-anchor" href="#reproducible-issue-details" aria-label="Link to Reproducible Issue Details section">#</a></h2>
+<h3 id="drupal-a11y-001-2026-05-06-label-ensure-every-form-element-has-a-label">DRUPAL-A11Y-001—2026-05-06: label: Ensure every form element has a label<a class="heading-anchor" href="#drupal-a11y-001-2026-05-06-label-ensure-every-form-element-has-a-label" aria-label="Link to DRUPAL-A11Y-001—2026-05-06: label: Ensure every form element has a label section">#</a></h3>
+<p><strong>Pattern ID:</strong> DRU-6CA3D5EB <strong>Rule:</strong> axe-core - label <strong>Axe Rule URL:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/label">https://dequeuniversity.com/rules/axe/4.11/label</a> <strong>Severity:</strong> Critical (axe impact: critical) <strong>WCAG SC:</strong> 1.3.1 - Info and Relationships (Level A) <strong>Frequency:</strong> 4 of 2193 pages (0%) <strong>Selector:</strong> #edit-imagefile-file-limited-N-display <strong>XPath:</strong> //*[@id=&quot;edit-imagefile-file-limited-0-display&quot;] <strong>Parent Context:</strong> N/A</p>
+<p><strong>Affected URLs (full list):</strong></p>
+<ul><li><a href="https://drupal-core.ddev.site/contact/imagefile_file">https://drupal-core.ddev.site/contact/imagefile_file</a></li></ul>
+<p><strong>Conditions:</strong></p>
+<ul><li><code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li></ul>
+<h4 id="html-snippet">HTML Snippet<a class="heading-anchor" href="#html-snippet" aria-label="Link to HTML Snippet section">#</a></h4>
+<pre><code class="language-html">&lt;input class=&quot;file-display form-checkbox form-boolean form-boolean--type-checkbox&quot; data-drupal-selector=&quot;edit-imagefile-file-limited-0-display&quot; type=&quot;checkbox&quot; id=&quot;edit-imagefile-file-limited-0-display&quot; name=&quot;imagefile_file_limited[0][display]&quot; value=&quot;1&quot; checked=&quot;checked&quot;&gt;</code></pre>
+<h4 id="description">Description<a class="heading-anchor" href="#description" aria-label="Link to Description section">#</a></h4>
+<p>Fix any of the following:   Element does not have an implicit (wrapped) &lt;label&gt;   Element does not have an explicit &lt;label&gt;   aria-label attribute does not exist or is empty   aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty   Element has no title attribute   Element has no placeholder attribute   Element&#39;s default semantics were not overridden with role=&quot;none&quot; or role=&quot;presentation&quot;</p>
+<h4 id="steps-to-reproduce">Steps to Reproduce<a class="heading-anchor" href="#steps-to-reproduce" aria-label="Link to Steps to Reproduce section">#</a></h4>
+<ol><li>Go to <a href="https://drupal-core.ddev.site/contact/imagefile_file">https://drupal-core.ddev.site/contact/imagefile_file</a></li><li>Use the matching context from Conditions: <code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li><li>Open browser DevTools and run axe.run() in the Console.</li><li>Confirm rule label on selector #edit-imagefile-file-limited-N-display.</li></ol>
+<h4 id="expected-behaviour">Expected Behaviour<a class="heading-anchor" href="#expected-behaviour" aria-label="Link to Expected Behaviour section">#</a></h4>
+<p>Element and interaction meet the mapped WCAG success criterion.</p>
+<h4 id="actual-behaviour">Actual Behaviour<a class="heading-anchor" href="#actual-behaviour" aria-label="Link to Actual Behaviour section">#</a></h4>
+<p>Fix any of the following:   Element does not have an implicit (wrapped) &lt;label&gt;   Element does not have an explicit &lt;label&gt;   aria-label attribute does not exist or is empty   aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty   Element has no title attribute   Element has no placeholder attribute   Element&#39;s default semantics were not overridden with role=&quot;none&quot; or role=&quot;presentation&quot;</p>
+<h4 id="impact">Impact<a class="heading-anchor" href="#impact" aria-label="Link to Impact section">#</a></h4>
+<p>blind, low-vision, voice-control</p>
+<h4 id="suggested-fix">Suggested Fix<a class="heading-anchor" href="#suggested-fix" aria-label="Link to Suggested Fix section">#</a></h4>
+<p>See axe documentation.</p>
+<h4 id="additional-references">Additional References<a class="heading-anchor" href="#additional-references" aria-label="Link to Additional References section">#</a></h4>
+<ul><li>Deque Axe Rule: <a href="https://dequeuniversity.com/rules/axe/4.11/label">https://dequeuniversity.com/rules/axe/4.11/label</a></li><li>WCAG Understanding: <a href="https://www.w3.org/WAI/WCAG22/Understanding/131.html">https://www.w3.org/WAI/WCAG22/Understanding/131.html</a></li><li>ACCESSIBILITY.md Trusted Sources: <a href="https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml">https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml</a></li><li>GOV.UK Design System - Labels: <a href="https://design-system.service.gov.uk/components/text-input/">https://design-system.service.gov.uk/components/text-input/</a></li><li>Search related Drupal accessibility issues (rule + selector/template): <a href="https://www.drupal.org/project/issues/search?text=label%20edit-imagefile-file-limited-N-display&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=label%20edit-imagefile-file-limited-N-display&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility</a></li><li>Purple AI mapped fix examples: <a href="https://github.com/GovTechSG/purple-ai/blob/main/results/label.json">https://github.com/GovTechSG/purple-ai/blob/main/results/label.json</a></li></ul>
+<h4 id="testing-environment">Testing Environment<a class="heading-anchor" href="#testing-environment" aria-label="Link to Testing Environment section">#</a></h4>
+<ul><li>Browser: Chromium (via Playwright)</li><li>OS: macOS</li><li>Tool: axe-core via @axe-core/playwright</li><li>Base URL: <a href="https://drupal-core.ddev.site">https://drupal-core.ddev.site</a></li></ul>
+<h4 id="tracking-ids">Tracking IDs<a class="heading-anchor" href="#tracking-ids" aria-label="Link to Tracking IDs section">#</a></h4>
+<ul><li>Pattern ID: DRU-6CA3D5EB</li><li>Instance IDs: INS-94BD37A1, INS-B2D7B1D7, INS-7B9BD2A8, INS-F76BAB53</li></ul>
+<h3 id="drupal-a11y-002-2026-05-06-color-contrast-ensure-the-contrast-between-foreground-and-background-colors-meets-wcag-2-aa-min">DRUPAL-A11Y-002—2026-05-06: color-contrast: Ensure the contrast between foreground and background colors meets WCAG 2 AA min<a class="heading-anchor" href="#drupal-a11y-002-2026-05-06-color-contrast-ensure-the-contrast-between-foreground-and-background-colors-meets-wcag-2-aa-min" aria-label="Link to DRUPAL-A11Y-002—2026-05-06: color-contrast: Ensure the contrast between foreground and background colors meets WCAG 2 AA min section">#</a></h3>
+<p><strong>Pattern ID:</strong> DRU-F75A07EF <strong>Rule:</strong> axe-core - color-contrast <strong>Axe Rule URL:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast">https://dequeuniversity.com/rules/axe/4.11/color-contrast</a> <strong>Severity:</strong> High (axe impact: serious) <strong>WCAG SC:</strong> 1.4.3 - Contrast (Minimum) (Level AA) <strong>Frequency:</strong> 176 of 2193 pages (8%) <strong>Selector:</strong> a[hreflang=&quot;he&quot;] <strong>XPath:</strong> //a[@hreflang=&quot;he&quot;] <strong>Parent Context:</strong> N/A</p>
+<p><strong>Affected URLs (full list):</strong></p>
+<ul><li><a href="https://drupal-core.ddev.site/action-link">https://drupal-core.ddev.site/action-link</a></li><li>/admin</li><li>/admin/appearance</li><li>/admin/content</li><li>/admin/form_style</li><li>/admin/modules</li><li>/admin/structure</li><li>/admin/structure/block</li><li>/admin/structure/taxonomy</li><li>/admin/structure/taxonomy/add</li><li>/admin/structure/types</li><li>/admin/structure/types/add</li><li>/node/add/article</li><li>/node/add/page</li><li>/search/node</li><li>/user/login</li><li>/user/password</li></ul>
+<p><strong>Conditions:</strong></p>
+<ul><li><code>admin</code> (light desktop, light mobile), <code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li></ul>
+<h4 id="html-snippet">HTML Snippet<a class="heading-anchor" href="#html-snippet" aria-label="Link to HTML Snippet section">#</a></h4>
+<pre><code class="language-html">&lt;a href=&quot;/he/action-link&quot; class=&quot;language-link&quot; hreflang=&quot;he&quot; data-drupal-link-system-path=&quot;action-link&quot;&gt;Hebrew&lt;/a&gt;</code></pre>
+<h4 id="description">Description<a class="heading-anchor" href="#description" aria-label="Link to Description section">#</a></h4>
+<p>Fix any of the following:   Element has insufficient color contrast of 4.38 (foreground color: #c55228, background color: #fefaf8, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1</p>
+<h4 id="steps-to-reproduce">Steps to Reproduce<a class="heading-anchor" href="#steps-to-reproduce" aria-label="Link to Steps to Reproduce section">#</a></h4>
+<ol><li>Go to <a href="https://drupal-core.ddev.site/action-link">https://drupal-core.ddev.site/action-link</a></li><li>Use the matching context from Conditions: <code>admin</code> (light desktop, light mobile), <code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li><li>Open browser DevTools and run axe.run() in the Console.</li><li>Confirm rule color-contrast on selector a[hreflang=&quot;he&quot;].</li></ol>
+<h4 id="expected-behaviour">Expected Behaviour<a class="heading-anchor" href="#expected-behaviour" aria-label="Link to Expected Behaviour section">#</a></h4>
+<p>Element and interaction meet the mapped WCAG success criterion.</p>
+<h4 id="actual-behaviour">Actual Behaviour<a class="heading-anchor" href="#actual-behaviour" aria-label="Link to Actual Behaviour section">#</a></h4>
+<p>Fix any of the following:   Element has insufficient color contrast of 4.38 (foreground color: #c55228, background color: #fefaf8, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1</p>
+<h4 id="impact">Impact<a class="heading-anchor" href="#impact" aria-label="Link to Impact section">#</a></h4>
+<p>low-vision</p>
+<h4 id="suggested-fix">Suggested Fix<a class="heading-anchor" href="#suggested-fix" aria-label="Link to Suggested Fix section">#</a></h4>
+<p>Check foreground/background color combinations. Ensure ratio ≥ 4.5:1 for normal text, ≥ 3:1 for large text (18pt or 14pt bold). Update the relevant CSS file.</p>
+<h4 id="additional-references">Additional References<a class="heading-anchor" href="#additional-references" aria-label="Link to Additional References section">#</a></h4>
+<ul><li>Deque Axe Rule: <a href="https://dequeuniversity.com/rules/axe/4.11/color-contrast">https://dequeuniversity.com/rules/axe/4.11/color-contrast</a></li><li>WCAG Understanding: <a href="https://www.w3.org/WAI/WCAG22/Understanding/143.html">https://www.w3.org/WAI/WCAG22/Understanding/143.html</a></li><li>ACCESSIBILITY.md Trusted Sources: <a href="https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml">https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml</a></li><li>DWP - Colour and contrast: <a href="https://accessibility-manual.dwp.gov.uk/tools-and-resources/colour-and-contrast">https://accessibility-manual.dwp.gov.uk/tools-and-resources/colour-and-contrast</a></li><li>Search related Drupal accessibility issues (rule + selector/template): <a href="https://www.drupal.org/project/issues/search?text=color-contrast%20hreflang&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=color-contrast%20hreflang&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility</a></li></ul>
+<h4 id="testing-environment">Testing Environment<a class="heading-anchor" href="#testing-environment" aria-label="Link to Testing Environment section">#</a></h4>
+<ul><li>Browser: Chromium (via Playwright)</li><li>OS: macOS</li><li>Tool: axe-core via @axe-core/playwright</li><li>Base URL: <a href="https://drupal-core.ddev.site">https://drupal-core.ddev.site</a></li></ul>
+<h4 id="tracking-ids">Tracking IDs<a class="heading-anchor" href="#tracking-ids" aria-label="Link to Tracking IDs section">#</a></h4>
+<ul><li>Pattern ID: DRU-F75A07EF</li><li>Instance IDs: INS-29E2F53F, INS-4AA931A8, INS-03A6B2E8, INS-2CF13380, INS-E925138B, INS-F3148027, INS-B6D6E5FD, INS-D8E038B2, INS-0FA30158, INS-E0123C22, INS-C97C5AC6, INS-E0554554, INS-96F36782, INS-6070AB73, INS-4EDE360C, INS-41D152FA, INS-3136A1CF, INS-F8FAB302, INS-D1ECA5AA, INS-C9A48EB0, INS-1D9EF825, INS-690A394F, INS-ADF181A8, INS-A7A50CC3, INS-02A89CF4, INS-C8DC340C, INS-A8B34B7A, INS-80DD6DF5, INS-D0F8880E, INS-26B55805, INS-9B4D547C, INS-8776467D, INS-F5FC6697, INS-35D28DF6, INS-FE0E292A, INS-8D8B3032, INS-60EC1C25, INS-3933FA66, INS-921582DE, INS-713E8717, INS-E5F0A65A, INS-353C4DCE, INS-3929AE17, INS-2D21799A, INS-5DFB8765, INS-74DBB51F, INS-04EA3C0B, INS-30F2F1D2, INS-D89BA286, INS-E1388273, INS-D0D22455, INS-B10AB0D3, INS-29F9CE92, INS-20634D44, INS-032E4A9B, INS-83FCB300, INS-06C9F677, INS-BD086751, INS-A3A87168, INS-92B5D341, INS-A804B62B, INS-7897A719, INS-91CB71DF, INS-F6420247, INS-40D8516F, INS-CABC793C, INS-C2424E0D, INS-C9B08842, INS-55688F77, INS-95C9D918, INS-9264C5AA, INS-0963AA36, INS-FF0DA1EB, INS-2484DC91, INS-9F6B9FBA, INS-D68C319E, INS-90B1B878, INS-0D02890F, INS-C1A3581E, INS-4A227943, INS-FB949FA8, INS-CFE2846E, INS-DDFA493D, INS-A2BCF4DC, INS-7E8C0640, INS-43704011, INS-D8E7D195, INS-DA189E5D, INS-0C5D645C, INS-B02E4CB5, INS-FE28ED00, INS-77B142DD, INS-A3388C0D, INS-FFD0CAF4, INS-4B7DC049, INS-E8E0BF63, INS-3DB3E042, INS-69FE894A, INS-8649CAF6, INS-953B728A, INS-64D58C92, INS-1E99EC03, INS-BD52BCB7, INS-A335A1C2, INS-A61F8F30, INS-4F6D7DE4, INS-6E755773, INS-7BCD623B, INS-69A32E17, INS-A1E20A6A, INS-D74EA267, INS-60B202C2, INS-B7DB2019, INS-6A799FA3, INS-9420EF8E, INS-15E330C3, INS-B2CCBE9D, INS-0071637C, INS-A62E76A6, INS-5F86E242, INS-FCA6A753, INS-A50881B3, INS-2050E688, INS-549FF1BD, INS-AE1C8171, INS-25EB4AC3, INS-F2051F47, INS-45841B52, INS-0455C23A, INS-4E299580, INS-F983153C, INS-B2B49D6C, INS-2DFFAA02, INS-CF471900, INS-EB86F88D, INS-95D40A24, INS-0A92AD32, INS-D40BE41F, INS-F393A65E, INS-79EDA871, INS-67649F98, INS-E6ACA364, INS-B5FDEBE5, INS-F59FF3FE, INS-804AE08E, INS-7E14A151, INS-85F2724D, INS-C645B25F, INS-BE832DAC, INS-32A7C8C3, INS-CC4E5B84, INS-4F001513, INS-E471FE7E, INS-E278710D, INS-57557F7B, INS-1E91D181, INS-F5A5CA2D, INS-282FDB74, INS-996DA672, INS-C4F40ED3, INS-EFBCBB92, INS-701590D6, INS-E4898A9D, INS-72C1BCC2, INS-CAE3FDE3, INS-3AA340AD, INS-10697389, INS-E61D3FEB, INS-018E006A, INS-A0871F17, INS-19470142, INS-C4C2D3AE, INS-E4C3D7C6, INS-C6066AD3, INS-B74E58E8, INS-1763A2E3</li></ul>
+<h3 id="drupal-a11y-003-2026-05-06-select-all-rows-checkbox-is-labeled-only-by-its-title-attribute">DRUPAL-A11Y-003—2026-05-06: &quot;Select all rows&quot; checkbox is labeled only by its title attribute<a class="heading-anchor" href="#drupal-a11y-003-2026-05-06-select-all-rows-checkbox-is-labeled-only-by-its-title-attribute" aria-label="Link to DRUPAL-A11Y-003—2026-05-06: &quot;Select all rows&quot; checkbox is labeled only by its title attribute section">#</a></h3>
+<p><strong>Pattern ID:</strong> DRU-987EB788 <strong>Rule:</strong> axe-core - label-title-only <strong>Axe Rule URL:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/label-title-only">https://dequeuniversity.com/rules/axe/4.11/label-title-only</a> <strong>Severity:</strong> High (axe impact: serious) <strong>WCAG SC:</strong> 1.3.1 - Info and Relationships (Level A) <strong>Frequency:</strong> 14 of 2193 pages (1%) <strong>Selector:</strong> input[title=&quot;Select all rows in this table&quot;] <strong>XPath:</strong> //input[@title=&quot;Select all rows in this table&quot;] <strong>Parent Context:</strong> N/A</p>
+<p><strong>Affected URLs (full list):</strong></p>
+<ul><li><a href="https://drupal-core.ddev.site/admin/content">https://drupal-core.ddev.site/admin/content</a></li><li>/admin/people</li><li>/table</li></ul>
+<p><strong>Conditions:</strong></p>
+<ul><li><code>admin</code> (light desktop, light mobile), <code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li></ul>
+<h4 id="html-snippet">HTML Snippet<a class="heading-anchor" href="#html-snippet" aria-label="Link to HTML Snippet section">#</a></h4>
+<pre><code class="language-html">&lt;input type=&quot;checkbox&quot; class=&quot;form-checkbox form-boolean form-boolean--type-checkbox&quot; title=&quot;Select all rows in this table&quot;&gt;</code></pre>
+<h4 id="description">Description<a class="heading-anchor" href="#description" aria-label="Link to Description section">#</a></h4>
+<p>Fix all of the following:   Only title used to generate label for form element</p>
+<h4 id="steps-to-reproduce">Steps to Reproduce<a class="heading-anchor" href="#steps-to-reproduce" aria-label="Link to Steps to Reproduce section">#</a></h4>
+<ol><li>Go to <a href="https://drupal-core.ddev.site/admin/content">https://drupal-core.ddev.site/admin/content</a></li><li>Use the matching context from Conditions: <code>admin</code> (light desktop, light mobile), <code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li><li>Open browser DevTools and run axe.run() in the Console.</li><li>Confirm rule label-title-only on selector input[title=&quot;Select all rows in this table&quot;].</li></ol>
+<h4 id="expected-behaviour">Expected Behaviour<a class="heading-anchor" href="#expected-behaviour" aria-label="Link to Expected Behaviour section">#</a></h4>
+<p>Checkbox has a visible or visually-hidden &lt;label&gt;, or aria-label</p>
+<h4 id="actual-behaviour">Actual Behaviour<a class="heading-anchor" href="#actual-behaviour" aria-label="Link to Actual Behaviour section">#</a></h4>
+<p>input[title=&quot;Select all rows in this table&quot;] — title is the sole label source</p>
+<h4 id="impact">Impact<a class="heading-anchor" href="#impact" aria-label="Link to Impact section">#</a></h4>
+<p>blind, low-vision, voice-control</p>
+<h4 id="suggested-fix">Suggested Fix<a class="heading-anchor" href="#suggested-fix" aria-label="Link to Suggested Fix section">#</a></h4>
+<p>Replace the title-only label with aria-label:</p>
+<p>&lt;!-- Before (broken) --&gt; &lt;input type=&quot;checkbox&quot; title=&quot;{{ &#39;Select all rows in this table&#39;|t }}&quot;&gt;</p>
+<p>&lt;!-- After (fixed) --&gt; &lt;input type=&quot;checkbox&quot;   aria-label=&quot;{{ &#39;Select all rows in this table&#39;|t }}&quot;&gt;</p>
+<h4 id="additional-references">Additional References<a class="heading-anchor" href="#additional-references" aria-label="Link to Additional References section">#</a></h4>
+<ul><li>Deque Axe Rule: <a href="https://dequeuniversity.com/rules/axe/4.11/label-title-only">https://dequeuniversity.com/rules/axe/4.11/label-title-only</a></li><li>WCAG Understanding: <a href="https://www.w3.org/WAI/WCAG22/Understanding/131.html">https://www.w3.org/WAI/WCAG22/Understanding/131.html</a></li><li>ACCESSIBILITY.md Trusted Sources: <a href="https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml">https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml</a></li><li>GOV.UK Design System - Checkboxes: <a href="https://design-system.service.gov.uk/components/checkboxes/">https://design-system.service.gov.uk/components/checkboxes/</a></li><li>Create new Drupal issue: <a href="https://www.drupal.org/project/drupal/issues/new">https://www.drupal.org/project/drupal/issues/new</a></li><li>Search related Drupal accessibility issues (rule + selector/template): <a href="https://www.drupal.org/project/issues/search?text=label-title-only%20title%20%22Select%20all%20rows%22%20checkbox%20is%20labeled%20only%20by%20its%20title%20attribute&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=label-title-only%20title%20%22Select%20all%20rows%22%20checkbox%20is%20labeled%20only%20by%20its%20title%20attribute&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility</a></li></ul>
+<h4 id="testing-environment">Testing Environment<a class="heading-anchor" href="#testing-environment" aria-label="Link to Testing Environment section">#</a></h4>
+<ul><li>Browser: Chromium (via Playwright)</li><li>OS: macOS</li><li>Tool: axe-core via @axe-core/playwright</li><li>Base URL: <a href="https://drupal-core.ddev.site">https://drupal-core.ddev.site</a></li></ul>
+<h4 id="tracking-ids">Tracking IDs<a class="heading-anchor" href="#tracking-ids" aria-label="Link to Tracking IDs section">#</a></h4>
+<ul><li>Pattern ID: DRU-987EB788</li><li>Instance IDs: INS-D6A47BCB, INS-D9AD9720, INS-631CA206, INS-5F43B594, INS-AFFA444F, INS-41328F01, INS-311ACB28, INS-70DF180C, INS-F4DA69C2, INS-098B09CD, INS-9D772808, INS-2C5FBD36, INS-CB68FC02, INS-50910191</li></ul>
+<h3 id="drupal-a11y-004-2026-05-06-tabindex-ensure-tabindex-attribute-values-are-not-greater-than-0">DRUPAL-A11Y-004—2026-05-06: tabindex: Ensure tabindex attribute values are not greater than 0<a class="heading-anchor" href="#drupal-a11y-004-2026-05-06-tabindex-ensure-tabindex-attribute-values-are-not-greater-than-0" aria-label="Link to DRUPAL-A11Y-004—2026-05-06: tabindex: Ensure tabindex attribute values are not greater than 0 section">#</a></h3>
+<p><strong>Pattern ID:</strong> DRU-CC36FB25 <strong>Rule:</strong> axe-core - tabindex <strong>Axe Rule URL:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/tabindex">https://dequeuniversity.com/rules/axe/4.11/tabindex</a> <strong>Severity:</strong> High (axe impact: serious) <strong>WCAG SC:</strong> 2.4.3 - Focus Order (Level A) <strong>Frequency:</strong> 12 of 2193 pages (1%) <strong>Selector:</strong> #edit-submit <strong>XPath:</strong> //*[@id=&quot;edit-submit&quot;] <strong>Parent Context:</strong> N/A</p>
+<p><strong>Affected URLs (full list):</strong></p>
+<ul><li><a href="https://drupal-core.ddev.site/buttons">https://drupal-core.ddev.site/buttons</a></li></ul>
+<p><strong>Conditions:</strong></p>
+<ul><li><code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li></ul>
+<h4 id="html-snippet">HTML Snippet<a class="heading-anchor" href="#html-snippet" aria-label="Link to HTML Snippet section">#</a></h4>
+<pre><code class="language-html">&lt;input class=&quot;button button--primary js-form-submit form-submit&quot; tabindex=&quot;1&quot; data-drupal-selector=&quot;edit-submit&quot; type=&quot;submit&quot; id=&quot;edit-submit&quot; name=&quot;op&quot; value=&quot;Primary&quot;&gt;</code></pre>
+<h4 id="description">Description<a class="heading-anchor" href="#description" aria-label="Link to Description section">#</a></h4>
+<p>Fix any of the following:   Element has a tabindex greater than 0</p>
+<h4 id="steps-to-reproduce">Steps to Reproduce<a class="heading-anchor" href="#steps-to-reproduce" aria-label="Link to Steps to Reproduce section">#</a></h4>
+<ol><li>Go to <a href="https://drupal-core.ddev.site/buttons">https://drupal-core.ddev.site/buttons</a></li><li>Use the matching context from Conditions: <code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li><li>Open browser DevTools and run axe.run() in the Console.</li><li>Confirm rule tabindex on selector #edit-submit.</li></ol>
+<h4 id="expected-behaviour">Expected Behaviour<a class="heading-anchor" href="#expected-behaviour" aria-label="Link to Expected Behaviour section">#</a></h4>
+<p>Element and interaction meet the mapped WCAG success criterion.</p>
+<h4 id="actual-behaviour">Actual Behaviour<a class="heading-anchor" href="#actual-behaviour" aria-label="Link to Actual Behaviour section">#</a></h4>
+<p>Fix any of the following:   Element has a tabindex greater than 0</p>
+<h4 id="impact">Impact<a class="heading-anchor" href="#impact" aria-label="Link to Impact section">#</a></h4>
+<p>users with disabilities</p>
+<h4 id="suggested-fix">Suggested Fix<a class="heading-anchor" href="#suggested-fix" aria-label="Link to Suggested Fix section">#</a></h4>
+<p>See axe documentation.</p>
+<h4 id="additional-references">Additional References<a class="heading-anchor" href="#additional-references" aria-label="Link to Additional References section">#</a></h4>
+<ul><li>Deque Axe Rule: <a href="https://dequeuniversity.com/rules/axe/4.11/tabindex">https://dequeuniversity.com/rules/axe/4.11/tabindex</a></li><li>WCAG Understanding: <a href="https://www.w3.org/WAI/WCAG22/Understanding/243.html">https://www.w3.org/WAI/WCAG22/Understanding/243.html</a></li><li>ACCESSIBILITY.md Trusted Sources: <a href="https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml">https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml</a></li><li>DWP - Keyboard-only usage: <a href="https://accessibility-manual.dwp.gov.uk/tools-and-resources/keyboard-only-usage">https://accessibility-manual.dwp.gov.uk/tools-and-resources/keyboard-only-usage</a></li><li>Search related Drupal accessibility issues (rule + selector/template): <a href="https://www.drupal.org/project/issues/search?text=tabindex%20edit-submit&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=tabindex%20edit-submit&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility</a></li></ul>
+<h4 id="testing-environment">Testing Environment<a class="heading-anchor" href="#testing-environment" aria-label="Link to Testing Environment section">#</a></h4>
+<ul><li>Browser: Chromium (via Playwright)</li><li>OS: macOS</li><li>Tool: axe-core via @axe-core/playwright</li><li>Base URL: <a href="https://drupal-core.ddev.site">https://drupal-core.ddev.site</a></li></ul>
+<h4 id="tracking-ids">Tracking IDs<a class="heading-anchor" href="#tracking-ids" aria-label="Link to Tracking IDs section">#</a></h4>
+<ul><li>Pattern ID: DRU-CC36FB25</li><li>Instance IDs: INS-8D919E9F, INS-CAB80BF0, INS-A357FA62, INS-1A8E3C8A, INS-4881B6B1, INS-156540A8, INS-00588EC7, INS-3F6254E0, INS-2C9CAF62, INS-C767C3EA, INS-4C49F093, INS-E7E947B6</li></ul>
+<h3 id="drupal-a11y-005-2026-05-06-summary-name-ensure-summary-elements-have-discernible-text">DRUPAL-A11Y-005—2026-05-06: summary-name: Ensure summary elements have discernible text<a class="heading-anchor" href="#drupal-a11y-005-2026-05-06-summary-name-ensure-summary-elements-have-discernible-text" aria-label="Link to DRUPAL-A11Y-005—2026-05-06: summary-name: Ensure summary elements have discernible text section">#</a></h3>
+<p><strong>Pattern ID:</strong> DRU-4422E904 <strong>Rule:</strong> axe-core - summary-name <strong>Axe Rule URL:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/summary-name">https://dequeuniversity.com/rules/axe/4.11/summary-name</a> <strong>Severity:</strong> High (axe impact: serious) <strong>WCAG SC:</strong> unknown - See axe docs (Level ?) <strong>Frequency:</strong> 1 of 2193 pages (0%) <strong>Selector:</strong> #edit-modules-nyan-cat-enable-description &gt; .module-list__module-summary <strong>XPath:</strong> //*[@id=&quot;edit-modules-nyan-cat-enable-description &gt; .module-list__module-summary&quot;] <strong>Parent Context:</strong> N/A</p>
+<p><strong>Affected URLs (full list):</strong></p>
+<ul><li><a href="https://drupal-core.ddev.site/admin/modules">https://drupal-core.ddev.site/admin/modules</a></li></ul>
+<p><strong>Conditions:</strong></p>
+<ul><li><code>admin</code> (light desktop), <code>claro</code> (dark desktop, light desktop)</li></ul>
+<h4 id="html-snippet">HTML Snippet<a class="heading-anchor" href="#html-snippet" aria-label="Link to HTML Snippet section">#</a></h4>
+<pre><code class="language-html">&lt;summary aria-controls=&quot;edit-modules-nyan-cat-enable-description&quot; role=&quot;button&quot; aria-expanded=&quot;false&quot; class=&quot;gin-details__summary module-list__module-summary&quot;&gt;&lt;span class=&quot;text module-description&quot;&gt;&lt;/span&gt;&lt;span class=&quot;gin-details__summary-summary&quot;&gt;&lt;/span&gt;&lt;/summary&gt;</code></pre>
+<h4 id="description">Description<a class="heading-anchor" href="#description" aria-label="Link to Description section">#</a></h4>
+<p>Fix any of the following:   Element does not have text that is visible to screen readers   aria-label attribute does not exist or is empty   aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty   Element has no title attribute</p>
+<h4 id="steps-to-reproduce">Steps to Reproduce<a class="heading-anchor" href="#steps-to-reproduce" aria-label="Link to Steps to Reproduce section">#</a></h4>
+<ol><li>Go to <a href="https://drupal-core.ddev.site/admin/modules">https://drupal-core.ddev.site/admin/modules</a></li><li>Use the matching context from Conditions: <code>admin</code> (light desktop), <code>claro</code> (dark desktop, light desktop)</li><li>Open browser DevTools and run axe.run() in the Console.</li><li>Confirm rule summary-name on selector #edit-modules-nyan-cat-enable-description &gt; .module-list__module-summary.</li></ol>
+<h4 id="expected-behaviour">Expected Behaviour<a class="heading-anchor" href="#expected-behaviour" aria-label="Link to Expected Behaviour section">#</a></h4>
+<p>Element and interaction meet the mapped WCAG success criterion.</p>
+<h4 id="actual-behaviour">Actual Behaviour<a class="heading-anchor" href="#actual-behaviour" aria-label="Link to Actual Behaviour section">#</a></h4>
+<p>Fix any of the following:   Element does not have text that is visible to screen readers   aria-label attribute does not exist or is empty   aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty   Element has no title attribute</p>
+<h4 id="impact">Impact<a class="heading-anchor" href="#impact" aria-label="Link to Impact section">#</a></h4>
+<p>users with disabilities</p>
+<h4 id="suggested-fix">Suggested Fix<a class="heading-anchor" href="#suggested-fix" aria-label="Link to Suggested Fix section">#</a></h4>
+<p>See axe documentation.</p>
+<h4 id="additional-references">Additional References<a class="heading-anchor" href="#additional-references" aria-label="Link to Additional References section">#</a></h4>
+<ul><li>Deque Axe Rule: <a href="https://dequeuniversity.com/rules/axe/4.11/summary-name">https://dequeuniversity.com/rules/axe/4.11/summary-name</a></li><li>ACCESSIBILITY.md Trusted Sources: <a href="https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml">https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml</a></li><li>Search related Drupal accessibility issues (rule + selector/template): <a href="https://www.drupal.org/project/issues/search?text=summary-name%20edit-modules-nyan-cat-enable-description&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=summary-name%20edit-modules-nyan-cat-enable-description&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility</a></li></ul>
+<h4 id="testing-environment">Testing Environment<a class="heading-anchor" href="#testing-environment" aria-label="Link to Testing Environment section">#</a></h4>
+<ul><li>Browser: Chromium (via Playwright)</li><li>OS: macOS</li><li>Tool: axe-core via @axe-core/playwright</li><li>Base URL: <a href="https://drupal-core.ddev.site">https://drupal-core.ddev.site</a></li></ul>
+<h4 id="tracking-ids">Tracking IDs<a class="heading-anchor" href="#tracking-ids" aria-label="Link to Tracking IDs section">#</a></h4>
+<ul><li>Pattern ID: DRU-4422E904</li><li>Instance IDs: INS-DFE4E5BD</li></ul>
+<h3 id="drupal-a11y-006-2026-05-06-region-ensure-all-page-content-is-contained-by-landmarks">DRUPAL-A11Y-006—2026-05-06: region: Ensure all page content is contained by landmarks<a class="heading-anchor" href="#drupal-a11y-006-2026-05-06-region-ensure-all-page-content-is-contained-by-landmarks" aria-label="Link to DRUPAL-A11Y-006—2026-05-06: region: Ensure all page content is contained by landmarks section">#</a></h3>
+<p><strong>Pattern ID:</strong> DRU-6BA9E02D <strong>Rule:</strong> axe-core - region <strong>Axe Rule URL:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/region">https://dequeuniversity.com/rules/axe/4.11/region</a> <strong>Severity:</strong> Medium (axe impact: moderate) <strong>WCAG SC:</strong> 1.3.6 - Identify Purpose (Level A) <strong>Frequency:</strong> 128 of 2193 pages (6%) <strong>Selector:</strong> .themeswitcher-form__form-item <strong>XPath:</strong> //*[contains(@class,&quot;themeswitcher-form__form-item&quot;)] <strong>Parent Context:</strong> N/A <strong>Likely Template:</strong> form-element.html.twig <strong>Template Hint:</strong> Form element template <strong>Drupal File:</strong> See likely_template above</p>
+<p><strong>Affected URLs (full list):</strong></p>
+<ul><li><a href="https://drupal-core.ddev.site/">https://drupal-core.ddev.site/</a></li><li>/action-link</li><li>/admin</li><li>/admin/appearance</li><li>/admin/config</li><li>/admin/config/content/formats</li><li>/admin/config/content/formats/manage/restricted_html</li><li>/admin/config/system/site-information</li><li>/admin/content</li><li>/admin/form_style</li><li>/admin/modules</li><li>/admin/people</li><li>/admin/reports</li><li>/admin/structure</li><li>/admin/structure/block</li><li>/admin/structure/display-modes/form/add/contact_message</li><li>/admin/structure/taxonomy</li><li>/admin/structure/taxonomy/add</li><li>/admin/structure/types</li><li>/admin/structure/types/add</li><li>/admin/structure/types/manage/test_type/display/default</li><li>/autocomplete</li><li>/buttons</li><li>/cd-navigation/config</li><li>/contact/checkbox_radio</li><li>/contact/field_cardinality_test</li><li>/contact/imagefile_file</li><li>/contact/imagefile_image</li><li>/contact/presuf_formatted</li><li>/contact/presuf_number</li><li>/contact/presuf_text</li><li>/contact/select</li><li>/contact/textarea</li><li>/contact/textform</li><li>/dialog</li><li>/dropbutton</li><li>/fieldset</li><li>/message</li><li>/node/add/article</li><li>/node/add/cd</li><li>/node/add/page</li><li>/password</li><li>/progress</li><li>/search/node</li><li>/table</li><li>/tabledrag</li><li>/tabs</li><li>/tabs/format/plain_text</li><li>/this-page-does-not-exist</li><li>/user/1/edit</li><li>/user/login</li><li>/user/password</li><li>/user/register</li></ul>
+<p><strong>Conditions:</strong></p>
+<ul><li><code>admin</code> (light desktop, light mobile), <code>claro</code> (dark desktop, dark mobile, light desktop, light mobile), <code>olivero</code> (dark desktop, dark mobile, light desktop, light mobile)</li></ul>
+<h4 id="html-snippet">HTML Snippet<a class="heading-anchor" href="#html-snippet" aria-label="Link to HTML Snippet section">#</a></h4>
+<pre><code class="language-html">&lt;div class=&quot;themeswitcher-form__form-item js-form-item form-item js-form-type-select form-type--select js-form-item-preferred-theme form-item--preferred-theme&quot;&gt;</code></pre>
+<h4 id="description">Description<a class="heading-anchor" href="#description" aria-label="Link to Description section">#</a></h4>
+<p>Fix any of the following:   Some page content is not contained by landmarks</p>
+<h4 id="steps-to-reproduce">Steps to Reproduce<a class="heading-anchor" href="#steps-to-reproduce" aria-label="Link to Steps to Reproduce section">#</a></h4>
+<ol><li>This issue may require opening a dialog/off-canvas panel before running axe.</li><li>Go to <a href="https://drupal-core.ddev.site/">https://drupal-core.ddev.site/</a></li><li>Use the matching context from Conditions: <code>admin</code> (light desktop, light mobile), <code>claro</code> (dark desktop, dark mobile, light desktop, light mobile), <code>olivero</code> (dark desktop, dark mobile, light desktop, light mobile)</li><li>Open browser DevTools and run axe.run() in the Console.</li><li>Confirm rule region on selector .themeswitcher-form__form-item.</li></ol>
+<h4 id="expected-behaviour">Expected Behaviour<a class="heading-anchor" href="#expected-behaviour" aria-label="Link to Expected Behaviour section">#</a></h4>
+<p>Element and interaction meet the mapped WCAG success criterion.</p>
+<h4 id="actual-behaviour">Actual Behaviour<a class="heading-anchor" href="#actual-behaviour" aria-label="Link to Actual Behaviour section">#</a></h4>
+<p>Fix any of the following:   Some page content is not contained by landmarks</p>
+<h4 id="impact">Impact<a class="heading-anchor" href="#impact" aria-label="Link to Impact section">#</a></h4>
+<p>blind, low-vision</p>
+<h4 id="suggested-fix">Suggested Fix<a class="heading-anchor" href="#suggested-fix" aria-label="Link to Suggested Fix section">#</a></h4>
+<p>Ensure all visible content is inside a landmark element (&lt;main&gt;, &lt;nav&gt;, &lt;aside&gt;, &lt;header&gt;, &lt;footer&gt;). Check page.html.twig and block placement.</p>
+<h4 id="additional-references">Additional References<a class="heading-anchor" href="#additional-references" aria-label="Link to Additional References section">#</a></h4>
+<ul><li>Deque Axe Rule: <a href="https://dequeuniversity.com/rules/axe/4.11/region">https://dequeuniversity.com/rules/axe/4.11/region</a></li><li>WCAG Understanding: <a href="https://www.w3.org/WAI/WCAG22/Understanding/136.html">https://www.w3.org/WAI/WCAG22/Understanding/136.html</a></li><li>ACCESSIBILITY.md Trusted Sources: <a href="https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml">https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml</a></li><li>WAI - Page structure and landmarks: <a href="https://www.w3.org/WAI/tutorials/page-structure/landmarks/">https://www.w3.org/WAI/tutorials/page-structure/landmarks/</a></li><li>Search related Drupal accessibility issues (rule + selector/template): <a href="https://www.drupal.org/project/issues/search?text=region%20form-element.html.twig%20themeswitcher-form__form-item&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=region%20form-element.html.twig%20themeswitcher-form__form-item&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility</a></li></ul>
+<h4 id="testing-environment">Testing Environment<a class="heading-anchor" href="#testing-environment" aria-label="Link to Testing Environment section">#</a></h4>
+<ul><li>Browser: Chromium (via Playwright)</li><li>OS: macOS</li><li>Tool: axe-core via @axe-core/playwright</li><li>Base URL: <a href="https://drupal-core.ddev.site">https://drupal-core.ddev.site</a></li></ul>
+<h4 id="tracking-ids">Tracking IDs<a class="heading-anchor" href="#tracking-ids" aria-label="Link to Tracking IDs section">#</a></h4>
+<ul><li>Pattern ID: DRU-6BA9E02D</li><li>Instance IDs: INS-BB8DE047, INS-DC077153, INS-343FB881, INS-6788C962, INS-C74D84C8, INS-FF2DB6B1, INS-2AE13BCB, INS-3AE351E7, INS-22C5B103, INS-88F5EE60, INS-C15EEB54, INS-BCB4F132, INS-E427825B, INS-6F951C47, INS-565D5E04, INS-E66D392C, INS-83E2F270, INS-A3BAFC54, INS-EB461FD0, INS-DEB0E01D, INS-203E1CD2, INS-FA09BF07, INS-760F267C, INS-2E5FC9E0, INS-001C27FA, INS-38000B83, INS-38B49EEF, INS-0769D6CD, INS-26112C87, INS-37EFF8DC, INS-51A7195E, INS-866D8A1F, INS-FBDFDDE1, INS-F6222FEA, INS-206E1DCE, INS-CCBE2A0F, INS-1F0E5C7A, INS-0420759A, INS-089837C7, INS-AD065F7B, INS-D8DE6AC1, INS-F0C4F2C1, INS-814B6CFE, INS-5882C95B, INS-FA2A20D1, INS-E20671AE, INS-CE3E0BFE, INS-613A665F, INS-924D863B, INS-B73E1074, INS-26CD137D, INS-494B15C6, INS-115ABFF8, INS-BAEE3A35, INS-F8D1D7E6, INS-F5AEF57A, INS-B5A36498, INS-C4CE338B, INS-C0A71F89, INS-DF4DA25A, INS-81C44978, INS-270738CF, INS-548386BA, INS-922195A3, INS-9118E488, INS-2E5F28D5, INS-868C8A7E, INS-3D2920D2, INS-D059761D, INS-077300B7, INS-6671D464, INS-EE92CDEF, INS-18ECCC55, INS-B8AF800F, INS-62B880CE, INS-71DFB250, INS-34D3B6E6, INS-3AE334AB, INS-7CFE618D, INS-E6B1F764, INS-D89718F7, INS-C8AC947D, INS-F7B8F881, INS-76E12963, INS-3B1ECF24, INS-762B0C83, INS-44C022F1, INS-B724274A, INS-30B71F0D, INS-57B6553C, INS-E4AA2E02, INS-DF13AB5A, INS-CF919880, INS-17F11137, INS-0D3ED81E, INS-F83D856B, INS-0C9A0403, INS-9BDAC1ED, INS-35D2713C, INS-7DC312DB, INS-0EF67DB9, INS-74810756, INS-F21125DF, INS-636E78C8, INS-63D59683, INS-20AC4120, INS-66F0411F, INS-95DE8A2C, INS-6261BD8B, INS-AD498A59, INS-5D29050A, INS-3E19E7EC, INS-7BFD0B73, INS-6F860D5F, INS-ED5789D1, INS-CA3F486A, INS-BC3B17C9, INS-4AA1B1B9, INS-94EA0EA1, INS-806AF88F, INS-F6796033, INS-8E336E32, INS-164962E7, INS-4D0090DA, INS-08C28518, INS-A833DA67, INS-F517503C, INS-CFCBB8DB</li></ul>
+<h3 id="drupal-a11y-007-2026-05-06-landmark-contentinfo-is-top-level-ensure-the-contentinfo-landmark-is-at-top-level">DRUPAL-A11Y-007—2026-05-06: landmark-contentinfo-is-top-level: Ensure the contentinfo landmark is at top level<a class="heading-anchor" href="#drupal-a11y-007-2026-05-06-landmark-contentinfo-is-top-level-ensure-the-contentinfo-landmark-is-at-top-level" aria-label="Link to DRUPAL-A11Y-007—2026-05-06: landmark-contentinfo-is-top-level: Ensure the contentinfo landmark is at top level section">#</a></h3>
+<p><strong>Pattern ID:</strong> DRU-2E022F2F <strong>Rule:</strong> axe-core - landmark-contentinfo-is-top-level <strong>Axe Rule URL:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/landmark-contentinfo-is-top-level">https://dequeuniversity.com/rules/axe/4.11/landmark-contentinfo-is-top-level</a> <strong>Severity:</strong> Medium (axe impact: moderate) <strong>WCAG SC:</strong> 1.3.6 - Identify Purpose (Level A) <strong>Frequency:</strong> 20 of 2193 pages (1%) <strong>Selector:</strong> .messages--error <strong>XPath:</strong> //*[contains(@class,&quot;messages--error&quot;)] <strong>Parent Context:</strong> N/A</p>
+<p><strong>Affected URLs (full list):</strong></p>
+<ul><li><a href="https://drupal-core.ddev.site/admin/appearance">https://drupal-core.ddev.site/admin/appearance</a></li><li>/admin/modules</li><li>/message</li></ul>
+<p><strong>Conditions:</strong></p>
+<ul><li><code>admin</code> (light desktop, light mobile), <code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li></ul>
+<h4 id="html-snippet">HTML Snippet<a class="heading-anchor" href="#html-snippet" aria-label="Link to HTML Snippet section">#</a></h4>
+<pre><code class="language-html">&lt;div role=&quot;contentinfo&quot; aria-labelledby=&quot;message-error-title&quot; class=&quot;messages-list__item messages messages--error&quot;&gt;</code></pre>
+<h4 id="description">Description<a class="heading-anchor" href="#description" aria-label="Link to Description section">#</a></h4>
+<p>Fix any of the following:   The contentinfo landmark is contained in another landmark.</p>
+<h4 id="steps-to-reproduce">Steps to Reproduce<a class="heading-anchor" href="#steps-to-reproduce" aria-label="Link to Steps to Reproduce section">#</a></h4>
+<ol><li>Go to <a href="https://drupal-core.ddev.site/admin/appearance">https://drupal-core.ddev.site/admin/appearance</a></li><li>Use the matching context from Conditions: <code>admin</code> (light desktop, light mobile), <code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li><li>Open browser DevTools and run axe.run() in the Console.</li><li>Confirm rule landmark-contentinfo-is-top-level on selector .messages--error.</li></ol>
+<h4 id="expected-behaviour">Expected Behaviour<a class="heading-anchor" href="#expected-behaviour" aria-label="Link to Expected Behaviour section">#</a></h4>
+<p>Element and interaction meet the mapped WCAG success criterion.</p>
+<h4 id="actual-behaviour">Actual Behaviour<a class="heading-anchor" href="#actual-behaviour" aria-label="Link to Actual Behaviour section">#</a></h4>
+<p>Fix any of the following:   The contentinfo landmark is contained in another landmark.</p>
+<h4 id="impact">Impact<a class="heading-anchor" href="#impact" aria-label="Link to Impact section">#</a></h4>
+<p>users with disabilities</p>
+<h4 id="suggested-fix">Suggested Fix<a class="heading-anchor" href="#suggested-fix" aria-label="Link to Suggested Fix section">#</a></h4>
+<p>See axe documentation.</p>
+<h4 id="additional-references">Additional References<a class="heading-anchor" href="#additional-references" aria-label="Link to Additional References section">#</a></h4>
+<ul><li>Deque Axe Rule: <a href="https://dequeuniversity.com/rules/axe/4.11/landmark-contentinfo-is-top-level">https://dequeuniversity.com/rules/axe/4.11/landmark-contentinfo-is-top-level</a></li><li>WCAG Understanding: <a href="https://www.w3.org/WAI/WCAG22/Understanding/136.html">https://www.w3.org/WAI/WCAG22/Understanding/136.html</a></li><li>ACCESSIBILITY.md Trusted Sources: <a href="https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml">https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml</a></li><li>WAI - Page structure and landmarks: <a href="https://www.w3.org/WAI/tutorials/page-structure/landmarks/">https://www.w3.org/WAI/tutorials/page-structure/landmarks/</a></li><li>Search related Drupal accessibility issues (rule + selector/template): <a href="https://www.drupal.org/project/issues/search?text=landmark-contentinfo-is-top-level%20messages--error&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=landmark-contentinfo-is-top-level%20messages--error&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility</a></li></ul>
+<h4 id="testing-environment">Testing Environment<a class="heading-anchor" href="#testing-environment" aria-label="Link to Testing Environment section">#</a></h4>
+<ul><li>Browser: Chromium (via Playwright)</li><li>OS: macOS</li><li>Tool: axe-core via @axe-core/playwright</li><li>Base URL: <a href="https://drupal-core.ddev.site">https://drupal-core.ddev.site</a></li></ul>
+<h4 id="tracking-ids">Tracking IDs<a class="heading-anchor" href="#tracking-ids" aria-label="Link to Tracking IDs section">#</a></h4>
+<ul><li>Pattern ID: DRU-2E022F2F</li><li>Instance IDs: INS-176AF555, INS-1E1F5949, INS-F35573C5, INS-90DB76B9, INS-C77800EB, INS-E1083638, INS-33B07066, INS-8F094E37, INS-35544EB1, INS-83F42AFC, INS-54574906, INS-20150FA9, INS-32AE2346, INS-6340BB49, INS-8EA427CF, INS-44531B14, INS-B015FF40, INS-91297A72, INS-EBE0F49A, INS-FF71DDFC</li></ul>
+<h3 id="drupal-a11y-008-2026-05-06-status-messages-block-uses-role-contentinfo-duplicating-the-page-footer">DRUPAL-A11Y-008—2026-05-06: Status messages block uses role=&quot;contentinfo&quot;, duplicating the page &lt;footer&gt;<a class="heading-anchor" href="#drupal-a11y-008-2026-05-06-status-messages-block-uses-role-contentinfo-duplicating-the-page-footer" aria-label="Link to DRUPAL-A11Y-008—2026-05-06: Status messages block uses role=&quot;contentinfo&quot;, duplicating the page &lt;footer&gt; section">#</a></h3>
+<p><strong>Pattern ID:</strong> DRU-1260AB7D <strong>Rule:</strong> axe-core - landmark-no-duplicate-contentinfo <strong>Axe Rule URL:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/landmark-no-duplicate-contentinfo">https://dequeuniversity.com/rules/axe/4.11/landmark-no-duplicate-contentinfo</a> <strong>Severity:</strong> Medium (axe impact: moderate) <strong>WCAG SC:</strong> 1.3.6 - Identify Purpose (Level A) <strong>Frequency:</strong> 6 of 2193 pages (0%) <strong>Selector:</strong> .messages--error <strong>XPath:</strong> //*[contains(@class,&quot;messages--error&quot;)] <strong>Parent Context:</strong> N/A</p>
+<p><strong>Affected URLs (full list):</strong></p>
+<ul><li><a href="https://drupal-core.ddev.site/admin/appearance">https://drupal-core.ddev.site/admin/appearance</a></li><li>/admin/modules</li></ul>
+<p><strong>Conditions:</strong></p>
+<ul><li><code>admin</code> (light desktop, light mobile), <code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li></ul>
+<h4 id="html-snippet">HTML Snippet<a class="heading-anchor" href="#html-snippet" aria-label="Link to HTML Snippet section">#</a></h4>
+<pre><code class="language-html">&lt;div role=&quot;contentinfo&quot; aria-labelledby=&quot;message-error-title&quot; class=&quot;messages-list__item messages messages--error&quot;&gt;</code></pre>
+<h4 id="description">Description<a class="heading-anchor" href="#description" aria-label="Link to Description section">#</a></h4>
+<p>Fix any of the following:   Document has more than one contentinfo landmark</p>
+<h4 id="steps-to-reproduce">Steps to Reproduce<a class="heading-anchor" href="#steps-to-reproduce" aria-label="Link to Steps to Reproduce section">#</a></h4>
+<ol><li>Go to <a href="https://drupal-core.ddev.site/admin/appearance">https://drupal-core.ddev.site/admin/appearance</a></li><li>Use the matching context from Conditions: <code>admin</code> (light desktop, light mobile), <code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li><li>Open browser DevTools and run axe.run() in the Console.</li><li>Confirm rule landmark-no-duplicate-contentinfo on selector .messages--error.</li></ol>
+<h4 id="expected-behaviour">Expected Behaviour<a class="heading-anchor" href="#expected-behaviour" aria-label="Link to Expected Behaviour section">#</a></h4>
+<p>Status messages use role=&quot;status&quot; (non-error) or role=&quot;alert&quot; (errors)</p>
+<h4 id="actual-behaviour">Actual Behaviour<a class="heading-anchor" href="#actual-behaviour" aria-label="Link to Actual Behaviour section">#</a></h4>
+<p>&lt;div role=&quot;contentinfo&quot; aria-labelledby=&quot;…&quot;&gt; — conflicts with the page footer landmark</p>
+<h4 id="impact">Impact<a class="heading-anchor" href="#impact" aria-label="Link to Impact section">#</a></h4>
+<p>blind, low-vision</p>
+<h4 id="suggested-fix">Suggested Fix<a class="heading-anchor" href="#suggested-fix" aria-label="Link to Suggested Fix section">#</a></h4>
+<p>Change the outer wrapper role based on message type:</p>
+<p>{# Before (broken) #} &lt;div role=&quot;contentinfo&quot; aria-labelledby=&quot;{{ title_ids[type] }}&quot;…&gt;</p>
+<p>{# After (fixed) #} {%- set msg_role = (type == &#39;error&#39;) ? &#39;alert&#39; : &#39;status&#39; -%} &lt;div role=&quot;{{ msg_role }}&quot; aria-labelledby=&quot;{{ title_ids[type] }}&quot;…&gt;</p>
+<h4 id="additional-references">Additional References<a class="heading-anchor" href="#additional-references" aria-label="Link to Additional References section">#</a></h4>
+<ul><li>Deque Axe Rule: <a href="https://dequeuniversity.com/rules/axe/4.11/landmark-no-duplicate-contentinfo">https://dequeuniversity.com/rules/axe/4.11/landmark-no-duplicate-contentinfo</a></li><li>WCAG Understanding: <a href="https://www.w3.org/WAI/WCAG22/Understanding/136.html">https://www.w3.org/WAI/WCAG22/Understanding/136.html</a></li><li>ACCESSIBILITY.md Trusted Sources: <a href="https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml">https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml</a></li><li>WAI - Page structure and landmarks: <a href="https://www.w3.org/WAI/tutorials/page-structure/landmarks/">https://www.w3.org/WAI/tutorials/page-structure/landmarks/</a></li><li>Create new Drupal issue: <a href="https://www.drupal.org/project/drupal/issues/new">https://www.drupal.org/project/drupal/issues/new</a></li><li>Search related Drupal accessibility issues (rule + selector/template): <a href="https://www.drupal.org/project/issues/search?text=landmark-no-duplicate-contentinfo%20messages--error%20Status%20messages%20block%20uses%20role%3D%22contentinfo%22%2C%20duplicating%20the%20page%20%3Cfooter%3E&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=landmark-no-duplicate-contentinfo%20messages--error%20Status%20messages%20block%20uses%20role%3D%22contentinfo%22%2C%20duplicating%20the%20page%20%3Cfooter%3E&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility</a></li></ul>
+<h4 id="testing-environment">Testing Environment<a class="heading-anchor" href="#testing-environment" aria-label="Link to Testing Environment section">#</a></h4>
+<ul><li>Browser: Chromium (via Playwright)</li><li>OS: macOS</li><li>Tool: axe-core via @axe-core/playwright</li><li>Base URL: <a href="https://drupal-core.ddev.site">https://drupal-core.ddev.site</a></li></ul>
+<h4 id="tracking-ids">Tracking IDs<a class="heading-anchor" href="#tracking-ids" aria-label="Link to Tracking IDs section">#</a></h4>
+<ul><li>Pattern ID: DRU-1260AB7D</li><li>Instance IDs: INS-0F387792, INS-594DA129, INS-D74E025B, INS-CD2D6DED, INS-217D3820, INS-1358DBF4</li></ul>
+<h3 id="drupal-a11y-009-2026-05-06-homepage-has-no-h1-heading-screen-reader-users-cannot-identify-page-topic">DRUPAL-A11Y-009—2026-05-06: Homepage has no &lt;h1&gt; heading — screen reader users cannot identify page topic<a class="heading-anchor" href="#drupal-a11y-009-2026-05-06-homepage-has-no-h1-heading-screen-reader-users-cannot-identify-page-topic" aria-label="Link to DRUPAL-A11Y-009—2026-05-06: Homepage has no &lt;h1&gt; heading — screen reader users cannot identify page topic section">#</a></h3>
+<p><strong>Pattern ID:</strong> DRU-ADD15A4D <strong>Rule:</strong> axe-core - page-has-heading-one <strong>Axe Rule URL:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/page-has-heading-one">https://dequeuniversity.com/rules/axe/4.11/page-has-heading-one</a> <strong>Severity:</strong> Medium (axe impact: moderate) <strong>WCAG SC:</strong> 1.3.1 - Info and Relationships (Level A) <strong>Frequency:</strong> 2 of 2193 pages (0%) <strong>Selector:</strong> html <strong>XPath:</strong> //html <strong>Parent Context:</strong> N/A</p>
+<p><strong>Affected URLs (full list):</strong></p>
+<ul><li><a href="https://drupal-core.ddev.site/">https://drupal-core.ddev.site/</a></li></ul>
+<p><strong>Conditions:</strong></p>
+<ul><li><code>olivero</code> (dark desktop, dark mobile, light desktop, light mobile)</li></ul>
+<h4 id="html-snippet">HTML Snippet<a class="heading-anchor" href="#html-snippet" aria-label="Link to HTML Snippet section">#</a></h4>
+<pre><code class="language-html">&lt;html lang=&quot;en&quot; dir=&quot;ltr&quot; style=&quot;--color--primary-hue:202;--color--primary-saturation:79%;--color--primary-lightness:50&quot; class=&quot; js&quot;&gt;</code></pre>
+<h4 id="description">Description<a class="heading-anchor" href="#description" aria-label="Link to Description section">#</a></h4>
+<p>Fix all of the following:   Page must have a level-one heading</p>
+<h4 id="steps-to-reproduce">Steps to Reproduce<a class="heading-anchor" href="#steps-to-reproduce" aria-label="Link to Steps to Reproduce section">#</a></h4>
+<ol><li>Go to <a href="https://drupal-core.ddev.site/">https://drupal-core.ddev.site/</a></li><li>Use the matching context from Conditions: <code>olivero</code> (dark desktop, dark mobile, light desktop, light mobile)</li><li>Open browser DevTools and run axe.run() in the Console.</li><li>Confirm rule page-has-heading-one on selector html.</li></ol>
+<h4 id="expected-behaviour">Expected Behaviour<a class="heading-anchor" href="#expected-behaviour" aria-label="Link to Expected Behaviour section">#</a></h4>
+<p>Every page contains exactly one &lt;h1&gt; that identifies the page</p>
+<h4 id="actual-behaviour">Actual Behaviour<a class="heading-anchor" href="#actual-behaviour" aria-label="Link to Actual Behaviour section">#</a></h4>
+<p>Olivero front page renders no &lt;h1&gt;; the site name in the header is not an &lt;h1&gt;</p>
+<h4 id="impact">Impact<a class="heading-anchor" href="#impact" aria-label="Link to Impact section">#</a></h4>
+<p>blind, low-vision</p>
+<h4 id="suggested-fix">Suggested Fix<a class="heading-anchor" href="#suggested-fix" aria-label="Link to Suggested Fix section">#</a></h4>
+<p>Option A — Make site name an h1 on the front page only:</p>
+<p>{# page--front.html.twig #} {% if is_front %}   &lt;h1 class=&quot;site-name&quot;&gt;{{ site_name }}&lt;/h1&gt; {% else %}   &lt;div class=&quot;site-name&quot;&gt;{{ site_name }}&lt;/div&gt; {% endif %}</p>
+<p>Option B — Ensure the promoted front page node has an h1 title rendered.</p>
+<h4 id="additional-references">Additional References<a class="heading-anchor" href="#additional-references" aria-label="Link to Additional References section">#</a></h4>
+<ul><li>Deque Axe Rule: <a href="https://dequeuniversity.com/rules/axe/4.11/page-has-heading-one">https://dequeuniversity.com/rules/axe/4.11/page-has-heading-one</a></li><li>WCAG Understanding: <a href="https://www.w3.org/WAI/WCAG22/Understanding/131.html">https://www.w3.org/WAI/WCAG22/Understanding/131.html</a></li><li>ACCESSIBILITY.md Trusted Sources: <a href="https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml">https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml</a></li><li>WAI - Headings tutorial: <a href="https://www.w3.org/WAI/tutorials/page-structure/headings/">https://www.w3.org/WAI/tutorials/page-structure/headings/</a></li><li>Create new Drupal issue: <a href="https://www.drupal.org/project/drupal/issues/new">https://www.drupal.org/project/drupal/issues/new</a></li><li>Search related Drupal accessibility issues (rule + selector/template): <a href="https://www.drupal.org/project/issues/search?text=page-has-heading-one%20html%20Homepage%20has%20no%20%3Ch1%3E%20heading%20%E2%80%94%20screen%20reader%20users%20cannot%20identify%20page%20topic&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=page-has-heading-one%20html%20Homepage%20has%20no%20%3Ch1%3E%20heading%20%E2%80%94%20screen%20reader%20users%20cannot%20identify%20page%20topic&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility</a></li></ul>
+<h4 id="testing-environment">Testing Environment<a class="heading-anchor" href="#testing-environment" aria-label="Link to Testing Environment section">#</a></h4>
+<ul><li>Browser: Chromium (via Playwright)</li><li>OS: macOS</li><li>Tool: axe-core via @axe-core/playwright</li><li>Base URL: <a href="https://drupal-core.ddev.site">https://drupal-core.ddev.site</a></li></ul>
+<h4 id="tracking-ids">Tracking IDs<a class="heading-anchor" href="#tracking-ids" aria-label="Link to Tracking IDs section">#</a></h4>
+<ul><li>Pattern ID: DRU-ADD15A4D</li><li>Instance IDs: INS-C56E21D1, INS-13EEEC14</li></ul>
+<h3 id="drupal-a11y-010-2026-05-06-heading-order-ensure-the-order-of-headings-is-semantically-correct">DRUPAL-A11Y-010—2026-05-06: heading-order: Ensure the order of headings is semantically correct<a class="heading-anchor" href="#drupal-a11y-010-2026-05-06-heading-order-ensure-the-order-of-headings-is-semantically-correct" aria-label="Link to DRUPAL-A11Y-010—2026-05-06: heading-order: Ensure the order of headings is semantically correct section">#</a></h3>
+<p><strong>Pattern ID:</strong> DRU-48A2246C <strong>Rule:</strong> axe-core - heading-order <strong>Axe Rule URL:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/heading-order">https://dequeuniversity.com/rules/axe/4.11/heading-order</a> <strong>Severity:</strong> Medium (axe impact: moderate) <strong>WCAG SC:</strong> 1.3.1 - Info and Relationships (Level A) <strong>Frequency:</strong> 20 of 2193 pages (1%) <strong>Selector:</strong> #pagination-heading <strong>XPath:</strong> //*[@id=&quot;pagination-heading&quot;] <strong>Parent Context:</strong> N/A</p>
+<p><strong>Affected URLs (full list):</strong></p>
+<ul><li><a href="https://drupal-core.ddev.site/admin/content">https://drupal-core.ddev.site/admin/content</a></li></ul>
+<p><strong>Conditions:</strong></p>
+<ul><li><code>admin</code> (light desktop, light mobile), <code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li></ul>
+<h4 id="html-snippet">HTML Snippet<a class="heading-anchor" href="#html-snippet" aria-label="Link to HTML Snippet section">#</a></h4>
+<pre><code class="language-html">&lt;h4 id=&quot;pagination-heading&quot; class=&quot;visually-hidden&quot;&gt;Pagination&lt;/h4&gt;</code></pre>
+<h4 id="description">Description<a class="heading-anchor" href="#description" aria-label="Link to Description section">#</a></h4>
+<p>Fix any of the following:   Heading order invalid</p>
+<h4 id="steps-to-reproduce">Steps to Reproduce<a class="heading-anchor" href="#steps-to-reproduce" aria-label="Link to Steps to Reproduce section">#</a></h4>
+<ol><li>Go to <a href="https://drupal-core.ddev.site/admin/content">https://drupal-core.ddev.site/admin/content</a></li><li>Use the matching context from Conditions: <code>admin</code> (light desktop, light mobile), <code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li><li>Open browser DevTools and run axe.run() in the Console.</li><li>Confirm rule heading-order on selector #pagination-heading.</li></ol>
+<h4 id="expected-behaviour">Expected Behaviour<a class="heading-anchor" href="#expected-behaviour" aria-label="Link to Expected Behaviour section">#</a></h4>
+<p>Element and interaction meet the mapped WCAG success criterion.</p>
+<h4 id="actual-behaviour">Actual Behaviour<a class="heading-anchor" href="#actual-behaviour" aria-label="Link to Actual Behaviour section">#</a></h4>
+<p>Fix any of the following:   Heading order invalid</p>
+<h4 id="impact">Impact<a class="heading-anchor" href="#impact" aria-label="Link to Impact section">#</a></h4>
+<p>blind, low-vision</p>
+<h4 id="suggested-fix">Suggested Fix<a class="heading-anchor" href="#suggested-fix" aria-label="Link to Suggested Fix section">#</a></h4>
+<p>Heading levels must not skip. Audit the page heading hierarchy and adjust template markup.</p>
+<h4 id="additional-references">Additional References<a class="heading-anchor" href="#additional-references" aria-label="Link to Additional References section">#</a></h4>
+<ul><li>Deque Axe Rule: <a href="https://dequeuniversity.com/rules/axe/4.11/heading-order">https://dequeuniversity.com/rules/axe/4.11/heading-order</a></li><li>WCAG Understanding: <a href="https://www.w3.org/WAI/WCAG22/Understanding/131.html">https://www.w3.org/WAI/WCAG22/Understanding/131.html</a></li><li>ACCESSIBILITY.md Trusted Sources: <a href="https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml">https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml</a></li><li>WAI - Headings tutorial: <a href="https://www.w3.org/WAI/tutorials/page-structure/headings/">https://www.w3.org/WAI/tutorials/page-structure/headings/</a></li><li>Search related Drupal accessibility issues (rule + selector/template): <a href="https://www.drupal.org/project/issues/search?text=heading-order%20pagination-heading&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=heading-order%20pagination-heading&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility</a></li></ul>
+<h4 id="testing-environment">Testing Environment<a class="heading-anchor" href="#testing-environment" aria-label="Link to Testing Environment section">#</a></h4>
+<ul><li>Browser: Chromium (via Playwright)</li><li>OS: macOS</li><li>Tool: axe-core via @axe-core/playwright</li><li>Base URL: <a href="https://drupal-core.ddev.site">https://drupal-core.ddev.site</a></li></ul>
+<h4 id="tracking-ids">Tracking IDs<a class="heading-anchor" href="#tracking-ids" aria-label="Link to Tracking IDs section">#</a></h4>
+<ul><li>Pattern ID: DRU-48A2246C</li><li>Instance IDs: INS-FD2C0F28, INS-622EF2AF, INS-F67227FA, INS-A876FF70, INS-F8772D3C, INS-B696306F, INS-6C963C7F, INS-B0239B5D, INS-79516607, INS-5A88424C, INS-E6A19988, INS-568F7E0B, INS-AB298E5F, INS-166D9CDA, INS-62CA3978, INS-2B45D5B7, INS-49F53FC9, INS-B2A30286, INS-1940F8CC, INS-9676EF18</li></ul>
+<h3 id="drupal-a11y-011-2026-05-06-landmark-unique-ensure-landmarks-are-unique">DRUPAL-A11Y-011—2026-05-06: landmark-unique: Ensure landmarks are unique<a class="heading-anchor" href="#drupal-a11y-011-2026-05-06-landmark-unique-ensure-landmarks-are-unique" aria-label="Link to DRUPAL-A11Y-011—2026-05-06: landmark-unique: Ensure landmarks are unique section">#</a></h3>
+<p><strong>Pattern ID:</strong> DRU-338C31F8 <strong>Rule:</strong> axe-core - landmark-unique <strong>Axe Rule URL:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/landmark-unique">https://dequeuniversity.com/rules/axe/4.11/landmark-unique</a> <strong>Severity:</strong> Medium (axe impact: moderate) <strong>WCAG SC:</strong> 1.3.6 - Identify Purpose (Level A) <strong>Frequency:</strong> 2 of 2193 pages (0%) <strong>Selector:</strong> .messages--info <strong>XPath:</strong> //*[contains(@class,&quot;messages--info&quot;)] <strong>Parent Context:</strong> N/A</p>
+<p><strong>Affected URLs (full list):</strong></p>
+<ul><li><a href="https://drupal-core.ddev.site/message">https://drupal-core.ddev.site/message</a></li></ul>
+<p><strong>Conditions:</strong></p>
+<ul><li><code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li></ul>
+<h4 id="html-snippet">HTML Snippet<a class="heading-anchor" href="#html-snippet" aria-label="Link to HTML Snippet section">#</a></h4>
+<pre><code class="language-html">&lt;div role=&quot;contentinfo&quot; aria-labelledby=&quot;message-info-title&quot; class=&quot;messages-list__item messages messages--info&quot;&gt;
+                            &lt;div class=&quot;messages__content&quot;&gt;
+                          An info message
+                      &lt;/div&gt;
+              &lt;/div&gt;</code></pre>
+<h4 id="description">Description<a class="heading-anchor" href="#description" aria-label="Link to Description section">#</a></h4>
+<p>Fix any of the following:   The landmark must have a unique aria-label, aria-labelledby, or title to make landmarks distinguishable</p>
+<h4 id="steps-to-reproduce">Steps to Reproduce<a class="heading-anchor" href="#steps-to-reproduce" aria-label="Link to Steps to Reproduce section">#</a></h4>
+<ol><li>Go to <a href="https://drupal-core.ddev.site/message">https://drupal-core.ddev.site/message</a></li><li>Use the matching context from Conditions: <code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li><li>Open browser DevTools and run axe.run() in the Console.</li><li>Confirm rule landmark-unique on selector .messages--info.</li></ol>
+<h4 id="expected-behaviour">Expected Behaviour<a class="heading-anchor" href="#expected-behaviour" aria-label="Link to Expected Behaviour section">#</a></h4>
+<p>Element and interaction meet the mapped WCAG success criterion.</p>
+<h4 id="actual-behaviour">Actual Behaviour<a class="heading-anchor" href="#actual-behaviour" aria-label="Link to Actual Behaviour section">#</a></h4>
+<p>Fix any of the following:   The landmark must have a unique aria-label, aria-labelledby, or title to make landmarks distinguishable</p>
+<h4 id="impact">Impact<a class="heading-anchor" href="#impact" aria-label="Link to Impact section">#</a></h4>
+<p>users with disabilities</p>
+<h4 id="suggested-fix">Suggested Fix<a class="heading-anchor" href="#suggested-fix" aria-label="Link to Suggested Fix section">#</a></h4>
+<p>See axe documentation.</p>
+<h4 id="additional-references">Additional References<a class="heading-anchor" href="#additional-references" aria-label="Link to Additional References section">#</a></h4>
+<ul><li>Deque Axe Rule: <a href="https://dequeuniversity.com/rules/axe/4.11/landmark-unique">https://dequeuniversity.com/rules/axe/4.11/landmark-unique</a></li><li>WCAG Understanding: <a href="https://www.w3.org/WAI/WCAG22/Understanding/136.html">https://www.w3.org/WAI/WCAG22/Understanding/136.html</a></li><li>ACCESSIBILITY.md Trusted Sources: <a href="https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml">https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml</a></li><li>WAI - Page structure and landmarks: <a href="https://www.w3.org/WAI/tutorials/page-structure/landmarks/">https://www.w3.org/WAI/tutorials/page-structure/landmarks/</a></li><li>Search related Drupal accessibility issues (rule + selector/template): <a href="https://www.drupal.org/project/issues/search?text=landmark-unique%20messages--info&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=landmark-unique%20messages--info&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility</a></li><li>Purple AI mapped fix examples: <a href="https://github.com/GovTechSG/purple-ai/blob/main/results/landmark-unique.json">https://github.com/GovTechSG/purple-ai/blob/main/results/landmark-unique.json</a></li></ul>
+<h4 id="testing-environment">Testing Environment<a class="heading-anchor" href="#testing-environment" aria-label="Link to Testing Environment section">#</a></h4>
+<ul><li>Browser: Chromium (via Playwright)</li><li>OS: macOS</li><li>Tool: axe-core via @axe-core/playwright</li><li>Base URL: <a href="https://drupal-core.ddev.site">https://drupal-core.ddev.site</a></li></ul>
+<h4 id="tracking-ids">Tracking IDs<a class="heading-anchor" href="#tracking-ids" aria-label="Link to Tracking IDs section">#</a></h4>
+<ul><li>Pattern ID: DRU-338C31F8</li><li>Instance IDs: INS-72820C3E, INS-C1AF88AE</li></ul>
+<h3 id="drupal-a11y-012-2026-05-06-empty-heading-ensure-headings-have-discernible-text">DRUPAL-A11Y-012—2026-05-06: empty-heading: Ensure headings have discernible text<a class="heading-anchor" href="#drupal-a11y-012-2026-05-06-empty-heading-ensure-headings-have-discernible-text" aria-label="Link to DRUPAL-A11Y-012—2026-05-06: empty-heading: Ensure headings have discernible text section">#</a></h3>
+<p><strong>Pattern ID:</strong> DRU-23F4C000 <strong>Rule:</strong> axe-core - empty-heading <strong>Axe Rule URL:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/empty-heading">https://dequeuniversity.com/rules/axe/4.11/empty-heading</a> <strong>Severity:</strong> Low (axe impact: minor) <strong>WCAG SC:</strong> unknown - See axe docs (Level ?) <strong>Frequency:</strong> 28 of 2193 pages (1%) <strong>Selector:</strong> h3:nth-child(3) <strong>XPath:</strong> //h3:nth-child(3) <strong>Parent Context:</strong> N/A</p>
+<p><strong>Affected URLs (full list):</strong></p>
+<ul><li><a href="https://drupal-core.ddev.site/dialog">https://drupal-core.ddev.site/dialog</a></li><li>/tabs</li></ul>
+<p><strong>Conditions:</strong></p>
+<ul><li><code>admin</code> (light desktop, light mobile), <code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li></ul>
+<h4 id="html-snippet">HTML Snippet<a class="heading-anchor" href="#html-snippet" aria-label="Link to HTML Snippet section">#</a></h4>
+<pre><code class="language-html">&lt;h3&gt;&lt;/h3&gt;</code></pre>
+<h4 id="description">Description<a class="heading-anchor" href="#description" aria-label="Link to Description section">#</a></h4>
+<p>Fix any of the following:   Element does not have text that is visible to screen readers   aria-label attribute does not exist or is empty   aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty   Element has no title attribute</p>
+<h4 id="steps-to-reproduce">Steps to Reproduce<a class="heading-anchor" href="#steps-to-reproduce" aria-label="Link to Steps to Reproduce section">#</a></h4>
+<ol><li>This issue may require opening a dialog/off-canvas panel before running axe.</li><li>Go to <a href="https://drupal-core.ddev.site/dialog">https://drupal-core.ddev.site/dialog</a></li><li>Use the matching context from Conditions: <code>admin</code> (light desktop, light mobile), <code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li><li>Open browser DevTools and run axe.run() in the Console.</li><li>Confirm rule empty-heading on selector h3:nth-child(3).</li></ol>
+<h4 id="expected-behaviour">Expected Behaviour<a class="heading-anchor" href="#expected-behaviour" aria-label="Link to Expected Behaviour section">#</a></h4>
+<p>Element and interaction meet the mapped WCAG success criterion.</p>
+<h4 id="actual-behaviour">Actual Behaviour<a class="heading-anchor" href="#actual-behaviour" aria-label="Link to Actual Behaviour section">#</a></h4>
+<p>Fix any of the following:   Element does not have text that is visible to screen readers   aria-label attribute does not exist or is empty   aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty   Element has no title attribute</p>
+<h4 id="impact">Impact<a class="heading-anchor" href="#impact" aria-label="Link to Impact section">#</a></h4>
+<p>users with disabilities</p>
+<h4 id="suggested-fix">Suggested Fix<a class="heading-anchor" href="#suggested-fix" aria-label="Link to Suggested Fix section">#</a></h4>
+<p>See axe documentation.</p>
+<h4 id="additional-references">Additional References<a class="heading-anchor" href="#additional-references" aria-label="Link to Additional References section">#</a></h4>
+<ul><li>Deque Axe Rule: <a href="https://dequeuniversity.com/rules/axe/4.11/empty-heading">https://dequeuniversity.com/rules/axe/4.11/empty-heading</a></li><li>ACCESSIBILITY.md Trusted Sources: <a href="https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml">https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml</a></li><li>WAI - Headings tutorial: <a href="https://www.w3.org/WAI/tutorials/page-structure/headings/">https://www.w3.org/WAI/tutorials/page-structure/headings/</a></li><li>Search related Drupal accessibility issues (rule + selector/template): <a href="https://www.drupal.org/project/issues/search?text=empty-heading%20h3&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=empty-heading%20h3&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility</a></li></ul>
+<h4 id="testing-environment">Testing Environment<a class="heading-anchor" href="#testing-environment" aria-label="Link to Testing Environment section">#</a></h4>
+<ul><li>Browser: Chromium (via Playwright)</li><li>OS: macOS</li><li>Tool: axe-core via @axe-core/playwright</li><li>Base URL: <a href="https://drupal-core.ddev.site">https://drupal-core.ddev.site</a></li></ul>
+<h4 id="tracking-ids">Tracking IDs<a class="heading-anchor" href="#tracking-ids" aria-label="Link to Tracking IDs section">#</a></h4>
+<ul><li>Pattern ID: DRU-23F4C000</li><li>Instance IDs: INS-EBD6D1DE, INS-FF513257, INS-7B033AB7, INS-77B617FF, INS-FD01376B, INS-5E2BEBF0, INS-5577EA5A, INS-C7957CDF, INS-DE731FB7, INS-CC6C10C4, INS-3C95FFB2, INS-A8CCBEE6, INS-7E1BB7BA, INS-2B805866, INS-BD7097D8, INS-1DD9AA40, INS-C4C1AE18, INS-8B44A1E8, INS-F632ECFD, INS-B71E15EB, INS-E71175CB, INS-F4F655E7, INS-423F682C, INS-E27B1D6C, INS-BFB35709, INS-A3011FB8, INS-A4B2A699, INS-33DF35E6</li></ul>
+<h3 id="drupal-a11y-013-2026-05-06-empty-table-header-ensure-table-headers-have-discernible-text">DRUPAL-A11Y-013—2026-05-06: empty-table-header: Ensure table headers have discernible text<a class="heading-anchor" href="#drupal-a11y-013-2026-05-06-empty-table-header-ensure-table-headers-have-discernible-text" aria-label="Link to DRUPAL-A11Y-013—2026-05-06: empty-table-header: Ensure table headers have discernible text section">#</a></h3>
+<p><strong>Pattern ID:</strong> DRU-EDB3860D <strong>Rule:</strong> axe-core - empty-table-header <strong>Axe Rule URL:</strong> <a href="https://dequeuniversity.com/rules/axe/4.11/empty-table-header">https://dequeuniversity.com/rules/axe/4.11/empty-table-header</a> <strong>Severity:</strong> Low (axe impact: minor) <strong>WCAG SC:</strong> unknown - See axe docs (Level ?) <strong>Frequency:</strong> 44 of 2193 pages (2%) <strong>Selector:</strong> th:nth-child(2) <strong>XPath:</strong> //th:nth-child(2) <strong>Parent Context:</strong> N/A</p>
+<p><strong>Affected URLs (full list):</strong></p>
+<ul><li><a href="https://drupal-core.ddev.site/autocomplete">https://drupal-core.ddev.site/autocomplete</a></li></ul>
+<p><strong>Conditions:</strong></p>
+<ul><li><code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li></ul>
+<h4 id="html-snippet">HTML Snippet<a class="heading-anchor" href="#html-snippet" aria-label="Link to HTML Snippet section">#</a></h4>
+<pre><code class="language-html">&lt;th&gt;&lt;/th&gt;</code></pre>
+<h4 id="description">Description<a class="heading-anchor" href="#description" aria-label="Link to Description section">#</a></h4>
+<p>Fix any of the following:   Element does not have text that is visible to screen readers</p>
+<h4 id="steps-to-reproduce">Steps to Reproduce<a class="heading-anchor" href="#steps-to-reproduce" aria-label="Link to Steps to Reproduce section">#</a></h4>
+<ol><li>This issue may require interaction state (typing/dragging/focus) to expose the failing element.</li><li>Go to <a href="https://drupal-core.ddev.site/autocomplete">https://drupal-core.ddev.site/autocomplete</a></li><li>Use the matching context from Conditions: <code>claro</code> (dark desktop, dark mobile, light desktop, light mobile)</li><li>Open browser DevTools and run axe.run() in the Console.</li><li>Confirm rule empty-table-header on selector th:nth-child(2).</li></ol>
+<h4 id="expected-behaviour">Expected Behaviour<a class="heading-anchor" href="#expected-behaviour" aria-label="Link to Expected Behaviour section">#</a></h4>
+<p>Element and interaction meet the mapped WCAG success criterion.</p>
+<h4 id="actual-behaviour">Actual Behaviour<a class="heading-anchor" href="#actual-behaviour" aria-label="Link to Actual Behaviour section">#</a></h4>
+<p>Fix any of the following:   Element does not have text that is visible to screen readers</p>
+<h4 id="impact">Impact<a class="heading-anchor" href="#impact" aria-label="Link to Impact section">#</a></h4>
+<p>users with disabilities</p>
+<h4 id="suggested-fix">Suggested Fix<a class="heading-anchor" href="#suggested-fix" aria-label="Link to Suggested Fix section">#</a></h4>
+<p>See axe documentation.</p>
+<h4 id="additional-references">Additional References<a class="heading-anchor" href="#additional-references" aria-label="Link to Additional References section">#</a></h4>
+<ul><li>Deque Axe Rule: <a href="https://dequeuniversity.com/rules/axe/4.11/empty-table-header">https://dequeuniversity.com/rules/axe/4.11/empty-table-header</a></li><li>ACCESSIBILITY.md Trusted Sources: <a href="https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml">https://mgifford.github.io/ACCESSIBILITY.md/examples/TRUSTED_SOURCES.yaml</a></li><li>WAI - Tables tutorial: <a href="https://www.w3.org/WAI/tutorials/tables/">https://www.w3.org/WAI/tutorials/tables/</a></li><li>Search related Drupal accessibility issues (rule + selector/template): <a href="https://www.drupal.org/project/issues/search?text=empty-table-header%20th&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility">https://www.drupal.org/project/issues/search?text=empty-table-header%20th&amp;projects=Drupal+core&amp;assigned=&amp;submitted=&amp;project_issue_followers=&amp;status%5B%5D=Open&amp;issue_tags_op=%3D&amp;issue_tags=Accessibility</a></li></ul>
+<h4 id="testing-environment">Testing Environment<a class="heading-anchor" href="#testing-environment" aria-label="Link to Testing Environment section">#</a></h4>
+<ul><li>Browser: Chromium (via Playwright)</li><li>OS: macOS</li><li>Tool: axe-core via @axe-core/playwright</li><li>Base URL: <a href="https://drupal-core.ddev.site">https://drupal-core.ddev.site</a></li></ul>
+<h4 id="tracking-ids">Tracking IDs<a class="heading-anchor" href="#tracking-ids" aria-label="Link to Tracking IDs section">#</a></h4>
+<ul><li>Pattern ID: DRU-EDB3860D</li><li>Instance IDs: INS-1C9FFF43, INS-23848B56, INS-721FFF91, INS-D0076929, INS-AF571ABF, INS-1617D470, INS-E6BDA351, INS-9D803FB2, INS-2FD4B698, INS-D76EB858, INS-2E3E0791, INS-238DF668, INS-3C7BA57A, INS-7872DF86, INS-03CA59E4, INS-53F8D1A9, INS-7B45D9CE, INS-2CFB581E, INS-0CF998D8, INS-755D74AA, INS-DB5550DA, INS-207C4875, INS-2A171D89, INS-1B6C288A, INS-06AE9FC8, INS-706CE780, INS-3615154C, INS-57BF05B0, INS-813BA53C, INS-476DADF5, INS-4D3CAB8C, INS-4274A02B, INS-69EC7EF3, INS-4DF72B52, INS-66AD5BE9, INS-4E9A279F, INS-C1FF2EA8, INS-24D788EB, INS-F6B7667A, INS-E8E2410F, INS-28589058, INS-1A2C59B9, INS-75B73110, INS-B21395D6</li></ul>
+<hr>
+<h2 id="deduplication-pattern-grouping">Deduplication &amp; Pattern Grouping<a class="heading-anchor" href="#deduplication-pattern-grouping" aria-label="Link to Deduplication &amp; Pattern Grouping section">#</a></h2>
+<ul><li>Patterns are merged by selector, parent context, and generalized route.</li><li>Similar selectors are merged using fuzzy logic.</li><li>Dynamic routes are collapsed (e.g., /node/1 → /node/[nid]).</li></ul>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,61 @@
+diff --git b/core/lib/Drupal/Core/Form/FormPreprocess.php a/core/lib/Drupal/Core/Form/FormPreprocess.php
+index fb5c96e200..b581917a4e 100644
+--- b/core/lib/Drupal/Core/Form/FormPreprocess.php
++++ a/core/lib/Drupal/Core/Form/FormPreprocess.php
+@@ -351,7 +351,6 @@ public function preprocessDetails(array &$variables): void {
+     $variables['attributes'] = $element['#attributes'];
+     $variables['summary_attributes'] = new Attribute($element['#summary_attributes']);
+     if (!empty($element['#title'])) {
+-      $variables['summary_attributes']['role'] = 'button';
+       if (!empty($element['#attributes']['id'])) {
+         $variables['summary_attributes']['aria-controls'] = $element['#attributes']['id'];
+       }
+diff --git b/core/modules/system/tests/src/Functional/Form/ElementTest.php a/core/modules/system/tests/src/Functional/Form/ElementTest.php
+index d4b8a000c3..76313f0f8e 100644
+--- b/core/modules/system/tests/src/Functional/Form/ElementTest.php
++++ a/core/modules/system/tests/src/Functional/Form/ElementTest.php
+@@ -244,6 +244,8 @@ protected function testFormElementErrors(): void {
+   protected function testDetailsSummaryAttributes(): void {
+     $this->drupalGet('form-test/group-details');
+     $this->assertSession()->elementExists('css', 'summary[data-summary-attribute="test"]');
++    $this->assertSession()->elementExists('css', 'summary[data-summary-attribute="test"][aria-expanded="false"]');
++    $this->assertSession()->elementNotExists('css', 'summary[data-summary-attribute="test"][role]');
+   }
+ 
+   /**
+diff --git b/core/modules/user/src/Hook/UserHooks.php a/core/modules/user/src/Hook/UserHooks.php
+index d029f4aa15..d7ce7ef532 100644
+--- b/core/modules/user/src/Hook/UserHooks.php
++++ a/core/modules/user/src/Hook/UserHooks.php
+@@ -144,7 +144,7 @@ public function userView(array &$build, UserInterface $account, EntityViewDispla
+     if ($account->isAuthenticated() && $display->getComponent('member_for')) {
+       $build['member_for'] = [
+         '#type' => 'item',
+-        '#markup' => '<h4 class="label">' . $this->t('Member for') . '</h4> ' . \Drupal::service('date.formatter')->formatTimeDiffSince($account->getCreatedTime()),
++        '#markup' => '<div class="label">' . $this->t('Member for') . '</div> ' . \Drupal::service('date.formatter')->formatTimeDiffSince($account->getCreatedTime()),
+       ];
+     }
+   }
+diff --git b/core/modules/user/tests/src/Functional/UserLoginTest.php a/core/modules/user/tests/src/Functional/UserLoginTest.php
+index 91921fc060..18f1abc9c2 100644
+--- b/core/modules/user/tests/src/Functional/UserLoginTest.php
++++ a/core/modules/user/tests/src/Functional/UserLoginTest.php
+@@ -140,6 +140,18 @@ public function testPerUserLoginFloodControl(): void {
+     $this->assertSession()->responseContains('Member for');
+   }
+ 
++  /**
++   * Tests that the "Member for" label is not rendered as a heading.
++   */
++  public function testMemberForUsesNonHeadingMarkup(): void {
++    $account = $this->drupalCreateUser([]);
++    $this->drupalLogin($account);
++    $this->drupalGet('user/' . $account->id());
++
++    $this->assertSession()->elementNotExists('xpath', '//h4[contains(@class, "label") and normalize-space() = "Member for"]');
++    $this->assertSession()->elementExists('xpath', '//div[contains(@class, "label") and contains(normalize-space(.), "Member for")]');
++  }
++
+   /**
+    * Tests user password is re-hashed upon login after changing $count_log2.
+    */

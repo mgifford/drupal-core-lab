@@ -1,0 +1,29 @@
+diff --git b/core/modules/system/templates/status-messages.html.twig a/core/modules/system/templates/status-messages.html.twig
+index be6711b270..d39df84c14 100644
+--- b/core/modules/system/templates/status-messages.html.twig
++++ a/core/modules/system/templates/status-messages.html.twig
+@@ -23,10 +23,10 @@
+ #}
+ <div data-drupal-messages>
+ {% for type, messages in message_list %}
+-  <div role="contentinfo" aria-label="{{ status_headings[type] }}"{{ attributes|without('role', 'aria-label') }}>
+-    {% if type == 'error' %}
+-      <div role="alert">
+-    {% endif %}
++  {%
++    set message_role = type == 'error' ? 'alert' : 'status'
++  %}
++  <div role="{{ message_role }}" aria-label="{{ status_headings[type] }}"{{ attributes|without('role', 'aria-label') }}>
+     {% if status_headings[type] %}
+       <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
+     {% endif %}
+@@ -39,9 +39,6 @@
+     {% else %}
+       {{ messages|first }}
+     {% endif %}
+-    {% if type == 'error' %}
+-      </div>
+-    {% endif %}
+   </div>
+ {% endfor %}
+ </div>

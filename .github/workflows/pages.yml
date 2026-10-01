@@ -1,0 +1,85 @@
+name: Publish reports to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  # Re-deploy nightly so the site recovers automatically if a push-triggered
+  # run was skipped (e.g. due to a race condition or GitHub Actions queue delay).
+  schedule:
+    - cron: '0 2 * * *'
+  # Re-deploy whenever GitHub's built-in pages-build-deployment workflow
+  # completes; this keeps both pipelines coordinated and avoids a window where
+  # the built-in workflow redeploys a stale artifact after a new push.
+  workflow_run:
+    workflows:
+      - pages-build-deployment
+    types:
+      - completed
+  workflow_dispatch:
+
+# Allow only one concurrent deployment; do not cancel in-progress runs.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare site root
+        run: |
+          # Create a directory for the Pages deployment
+          mkdir -p _site
+          # Disable Jekyll processing so Drupal .html.twig files are not
+          # rendered as Liquid templates (which would fail on Twig tags like
+          # {% set %}).
+          touch _site/.nojekyll
+          # Copy documentation-new to docs/ subdirectory
+          cp -r documentation-new/ _site/docs/
+          # Copy reports to root
+          cp -r reports/* _site/
+
+      - name: Verify site content integrity
+        run: |
+          # .nojekyll must exist in both repo root and _site/ to prevent
+          # Jekyll from rendering Drupal .html.twig templates as Liquid.
+          test -f .nojekyll || { echo "ERROR: root .nojekyll missing"; exit 1; }
+          test -f _site/.nojekyll || { echo "ERROR: _site/.nojekyll missing"; exit 1; }
+          # Ensure the _site/ directory was actually populated (reports + docs).
+          test -f _site/index.html || { echo "ERROR: _site/index.html missing"; exit 1; }
+          test -d _site/docs || { echo "ERROR: _site/docs/ directory missing"; exit 1; }
+          # Confirm a meaningful number of report files were copied.
+          REPORT_COUNT=$(find _site/ -maxdepth 1 -name '*.html' | wc -l)
+          if [ "$REPORT_COUNT" -lt 5 ]; then
+            echo "ERROR: only $REPORT_COUNT HTML report(s) found in _site/ — expected at least 5"
+            exit 1
+          fi
+          echo "Site integrity OK: $REPORT_COUNT HTML reports, index.html present, .nojekyll present."
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload combined artifact to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Deploy the combined _site/ directory
+          # Result: https://mgifford.github.io/drupal-core/ shows root content
+          # and docs are available at https://mgifford.github.io/drupal-core/docs/
+          path: _site/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

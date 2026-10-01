@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Drupal 11.4.4 Standard Reference Installation — AS-OACR-001 Public Review Draft</title>
+  <style>
+    body#openACR {
+      padding-left: 35px;
+    }
+
+    h2,
+    h3 {
+      position: relative;
+    }
+
+    h2 a.header-anchor,
+    h3 a.header-anchor {
+      position: absolute;
+      left: -2rem;
+    }
+
+    h2 a.header-anchor:hover svg,
+    h2 a.header-anchor:focus svg,
+    h2 a.header-anchor:focus-within svg,
+    h3 a.header-anchor:hover svg,
+    h3 a.header-anchor:focus svg,
+    h3 a.header-anchor:focus-within svg {
+      fill: #0000EE;
+      opacity: 1;
+    }
+
+    h2 a.header-anchor svg,
+    h3 a.header-anchor svg {
+      width: 28px;
+      height: 28px;
+      opacity: .3;
+    }
+
+    @media all and (max-width: 63.99em) {
+      h2 a.header-anchor,
+      h3 a.header-anchor {
+        position: relative;
+        opacity: 1;
+        left: 0;
+        vertical-align: top
+      }
+    }
+
+    a.header-anchor {
+      opacity: 0.4;
+      font-size: small;
+      text-decoration: none;
+      position: relative;
+      /* left: 20px; */
+      -webkit-transition: opacity 1s, font-size 1s;
+      -moz-transition: opacity 1s, font-size 1s;
+      -o-transition: opacity 1s, font-size 1s;
+      transition: opacity 1s, font-size 1s;
+    }
+
+    a.header-anchor:focus, a.header-anchor:hover {
+      text-decoration: underline;
+      font-size: large;
+      opacity: 1
+    }
+
+    .usa-sr-only,
+    .visuallyhidden {
+      border: 0;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      padding: 0;
+      position: absolute;
+      width: 1px;
+      white-space: nowrap;
+
+    &
+    .focusable {
+
+    &
+    :active,
+
+    &
+    :focus {
+      clip: auto;
+      clip-path: none;
+      height: auto;
+      margin: 0;
+      overflow: visible;
+      position: static;
+      width: auto;
+      white-space: inherit;
+    }
+
+    }
+    }
+    .applicable-standards-guidelines-table th:nth-child(1) {
+      width: 40%;
+    }
+
+    .applicable-standards-guidelines-table th:nth-child(2) {
+      width: 60%;
+    }
+
+    /* If only one level then hide the label. */
+    .component-level-count-1 .component-level-label {
+      display: none;
+    }
+
+    table {
+       border-collapse: collapse;
+       margin: 10px 0;
+     }
+    th, td {
+      border: 1px solid #000;
+    }
+  </style>
+</head>
+<body id="openACR">
+  <main>
+    <div class="grid-container">
+      <h1><span class="evaluation-title">Drupal 11.4.4 Standard Reference Installation — AS-OACR-001 Public Review Draft</span> Accessibility Conformance Report</h1>
+
+      <div class="catalog-section">Based on VPAT® 2.5 WCAG Edition</div>
+
+      <div class="product-section">
+        <h2 id="name-of-product-version">
+        Name of Product/Version
+        <a href="#name-of-product-version" class="header-anchor">
+          <span class="anchor-icon" aria-hidden="true">
+            <svg
+              focusable="false"
+              aria-hidden="true"
+              class="icon-link">
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+            </svg>
+          </span>
+          <span class="visuallyhidden">Anchor link</span>
+        </a>
+      </h2>
+        Drupal 11.4.4 Standard Reference Installation — AS-OACR-001 Test Build 11.4.4
+      </div>
+
+      <div class="report-dates-ver-section">
+        <h2 id="report-date">
+        Report Dates and Version
+        <a href="#report-date" class="header-anchor">
+          <span class="anchor-icon" aria-hidden="true">
+            <svg
+              focusable="false"
+              aria-hidden="true"
+              class="icon-link">
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+            </svg>
+          </span>
+          <span class="visuallyhidden">Anchor link</span>
+        </a>
+      </h2>
+        <ul>
+          <li>Report Date: 2026-08-23</li>
+          <li>Last Modified Date: 2026-08-24</li>
+          <li>Version: drupal 11.4.4 standard reference installation — as-oacr-001 test build-11.4.4-2</li>
+        </ul>
+      </div>
+
+        <div class="description-section">
+          <h2 id="product-description">
+        Product Description
+        <a href="#product-description" class="header-anchor">
+          <span class="anchor-icon" aria-hidden="true">
+            <svg
+              focusable="false"
+              aria-hidden="true"
+              class="icon-link">
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+            </svg>
+          </span>
+          <span class="visuallyhidden">Anchor link</span>
+        </a>
+      </h2>
+          <p>A reproducible, local, core-only Drupal 11.4.4 Standard profile reference installation evaluated as a methodology test and published for community review. This artifact does not describe Drupal generally or make a whole-product conformance claim.</p>
+
+        </div>
+
+      <div id="contact-section">
+        <h2 id="contact-information">
+        Contact Information
+        <a href="#contact-information" class="header-anchor">
+          <span class="anchor-icon" aria-hidden="true">
+            <svg
+              focusable="false"
+              aria-hidden="true"
+              class="icon-link">
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+            </svg>
+          </span>
+          <span class="visuallyhidden">Anchor link</span>
+        </a>
+      </h2>
+          <div class="author-section">
+            <h3 id="author">
+        Author Information
+        <a href="#author" class="header-anchor">
+          <span class="anchor-icon" aria-hidden="true">
+            <svg
+              focusable="false"
+              aria-hidden="true"
+              class="icon-link">
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+            </svg>
+          </span>
+          <span class="visuallyhidden">Anchor link</span>
+        </a>
+      </h3>
+            <ul>
+              <li>Name: TBD</li>
+              
+              
+              <li>Email: <a href="mailto:tbd@example.invalid">tbd@example.invalid</a></li>
+              
+              
+            </ul>
+          </div>
+      </div>
+
+        <div class="notes-section">
+          <h2 id="notes">
+        Notes
+        <a href="#notes" class="header-anchor">
+          <span class="anchor-icon" aria-hidden="true">
+            <svg
+              focusable="false"
+              aria-hidden="true"
+              class="icon-link">
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+            </svg>
+          </span>
+          <span class="visuallyhidden">Anchor link</span>
+        </a>
+      </h2>
+          <p>PUBLIC REVIEW DRAFT — METADATA INCOMPLETE; NOT ISSUED. All 55 WCAG 2.2 A/AA criteria have a sample-scoped outcome; confirmed failures prevent an AA conformance statement. Author identity, author contact, official report feedback ownership, issuer, and release approval remain unresolved. Alex Urevick-Ackelsberg maintains this independent pull-request review package. This review copy uses the repository documentation license; that choice is not a Drupal Association license or issuance decision. Catalog criterion 4.1.1 is omitted because it was removed from WCAG 2.2.</p>
+
+        </div>
+
+        <div class="eval-section">
+          <h2 id="evaluation-methods">
+        Evaluation Methods
+        <a href="#evaluation-methods" class="header-anchor">
+          <span class="anchor-icon" aria-hidden="true">
+            <svg
+              focusable="false"
+              aria-hidden="true"
+              class="icon-link">
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+            </svg>
+          </span>
+          <span class="visuallyhidden">Anchor link</span>
+        </a>
+      </h2>
+          <p>WCAG-EM 2.0 sample-scoped evaluation of 20 structured and 2 deterministic random page samples plus five complete processes. The full suite completed 22 of 22 Playwright page tests with 1,183 forward and 1,161 reverse keyboard stops, 44 default/expanded axe runs, 66 viewport and text-spacing checks, and 88 full-page screenshots. An independent keyboard matrix completed 44 desktop/mobile runs. Additional evidence includes driven live-region interaction, actual 200% Chrome browser zoom across all samples, native Safari plus VoiceOver, native macOS Voice Control, rendered DOM facts, Chrome accessibility trees, reflow checks, and retained manual resolution evidence. Windows screen readers, mobile screen readers, switch access, and actual Windows forced colors were unavailable.</p>
+
+        </div>
+
+      <div class="standards-section">
+        <h2 id="applicable-standards-guidelines">
+        Applicable Standards/Guidelines
+        <a href="#applicable-standards-guidelines" class="header-anchor">
+          <span class="anchor-icon" aria-hidden="true">
+            <svg
+              focusable="false"
+              aria-hidden="true"
+              class="icon-link">
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+            </svg>
+          </span>
+          <span class="visuallyhidden">Anchor link</span>
+        </a>
+      </h2>
+
+        <table class="usa-table applicable-standards-guidelines-table">
+          <caption>This report covers the degree of conformance for the following accessibility standard/guidelines:</caption>
+          <thead>
+            <tr>
+              <th>Standard/Guideline</th>
+              <th>Included In Report</th>
+            </tr>
+          </thead>
+          <tbody>
+              <tr>
+                <td><a href="https://www.w3.org/TR/WCAG22/" target="_blank">Web Content Accessibility Guidelines 2.2<span class="usa-sr-only"> (opens in a new window or tab)</span></a></td>
+                <td><ul><li>Table 1: Success Criteria, Level A</li><li>Table 2: Success Criteria, Level AA</li><li>Table 3: Success Criteria, Level AAA</li></ul></td>
+              </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="terms-section">
+        <h2 id="terms">
+        Terms
+        <a href="#terms" class="header-anchor">
+          <span class="anchor-icon" aria-hidden="true">
+            <svg
+              focusable="false"
+              aria-hidden="true"
+              class="icon-link">
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+            </svg>
+          </span>
+          <span class="visuallyhidden">Anchor link</span>
+        </a>
+      </h2>
+        The terms used in the Conformance Level information are defined as follows:
+        <ul>
+            <li><strong>Supports</strong>: The functionality of the product has at least one method that meets the criterion without known defects or meets with equivalent facilitation.</li>
+            <li><strong>Partially Supports</strong>: Some functionality of the product does not meet the criterion.</li>
+            <li><strong>Does Not Support</strong>: The majority of product functionality does not meet the criterion.</li>
+            <li><strong>Not Applicable</strong>: The criterion is not relevant to the product.</li>
+            <li><strong>Not Evaluated</strong>: The product has not been evaluated against the criterion. This can only be used in WCAG Level AAA criteria.</li>
+        </ul>
+      </div>
+
+        <h2 id="wcag-2.2">
+        WCAG 2.2 Report
+        <a href="#wcag-2.2" class="header-anchor">
+          <span class="anchor-icon" aria-hidden="true">
+            <svg
+              focusable="false"
+              aria-hidden="true"
+              class="icon-link">
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+            </svg>
+          </span>
+          <span class="visuallyhidden">Anchor link</span>
+        </a>
+      </h2>
+
+                <h3 id="success_criteria_level_a">
+        Table 1: Success Criteria, Level A
+        <a href="#success_criteria_level_a" class="header-anchor">
+          <span class="anchor-icon" aria-hidden="true">
+            <svg
+              focusable="false"
+              aria-hidden="true"
+              class="icon-link">
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+            </svg>
+          </span>
+          <span class="visuallyhidden">Anchor link</span>
+        </a>
+      </h3>
+
+                <div id="success_criteria_level_a-notes" class="chapter-notes-section">
+                  Notes: <p>Sample-scoped WCAG 2.2 Level A results. Every Level A criterion in the target catalog has a recorded outcome.</p>
+
+                </div>
+
+                <div id="success_criteria_level_a-summary">
+                  <table class="usa-table">
+                    <caption>
+                      Conformance to the 31 criteria listed below is distributed within each category as follows:
+                    </caption>
+                    <thead><tr><th>Conformance Level</th><th>Web</th></tr></thead><tr><td>Supports</td><td>18</td></tr><tr><td>Partially Supports</td><td>0</td></tr><tr><td>Does Not Support</td><td>2</td></tr><tr><td>Not Applicable</td><td>11</td></tr>
+                  </table>
+                </div>
+
+                <table class="usa-table">
+                  <thead>
+                  <tr>
+                    <th>Criteria</th>
+                    <th>Conformance Level</th>
+                    <th>Remarks and Explanations</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                      <tr id="1.1.1">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#non-text-content" target="_blank">
+                            1.1.1 Non-text Content<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-003. The sampled informative image loaded with a non-empty alternative; automated, DOM, and complete-process evidence also covered shared decorative/icon alternatives.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.2.1">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#audio-only-and-video-only-prerecorded" target="_blank">
+                            1.2.1 Audio-only and Video-only (Prerecorded)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Applicable</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not present: Exploration and all 22 rendered DOM inventories found no prerecorded audio-only or video-only content.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.2.2">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#captions-prerecorded" target="_blank">
+                            1.2.2 Captions (Prerecorded)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Applicable</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not present: No prerecorded synchronized media was present in the frozen core-only installation.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.2.3">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#audio-description-or-media-alternative-prerecorded" target="_blank">
+                            1.2.3 Audio Description or Media Alternative (Prerecorded)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Applicable</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not present: No prerecorded synchronized media was present.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.3.1">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#info-and-relationships" target="_blank">
+                            1.3.1 Info and Relationships<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-009, S-STR-014, S-STR-020. Rendered headings, landmarks, form labels, tables, relationships, and accessibility trees were checked on representative Olivero/Claro forms and dense admin surfaces; no sampled failure was confirmed.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.3.2">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#meaningful-sequence" target="_blank">
+                            1.3.2 Meaningful Sequence<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-001, S-STR-009, S-STR-020. DOM order and accessibility-tree order remained meaningful on representative public, authoring, and Views UI pages.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.3.3">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#sensory-characteristics" target="_blank">
+                            1.3.3 Sensory Characteristics<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-001, S-STR-018. Sampled instructions used textual labels and did not rely solely on shape, location, orientation, or sound.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.4.1">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#use-of-color" target="_blank">
+                            1.4.1 Use of Color<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Does Not Support</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: fails in S-STR-004 (WCAG-EM). Findings: a11y_olivero_tabs_trigger_focus_indicator. At the mobile breakpoint, the Olivero local-tabs trigger indicates keyboard focus only by changing its existing 1 CSS pixel border from gray to blue; the state-color difference is below 3:1, so color is the only visual cue.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.4.2">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#audio-control" target="_blank">
+                            1.4.2 Audio Control<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Applicable</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not present: No automatically playing audio was present.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.1.1">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#keyboard" target="_blank">
+                            2.1.1 Keyboard<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-001, S-STR-004, S-STR-009, S-STR-018, S-RND-001. Real keyboard events completed the five representative processes, including CKEditor toolbar entry/navigation/exit.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.1.2">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#no-keyboard-trap" target="_blank">
+                            2.1.2 No Keyboard Trap<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-001, S-STR-009, S-STR-020. Forward and reverse traces plus complete processes did not trap focus in the sampled interfaces.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.1.4">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#character-key-shortcuts" target="_blank">
+                            2.1.4 Character Key Shortcuts<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Applicable</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not present: No single-character keyboard shortcut was exposed; observed CKEditor shortcuts required modifiers.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.2.1">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#timing-adjustable" target="_blank">
+                            2.2.1 Timing Adjustable<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Applicable</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not present: No user task in the sampled local installation imposed a time limit.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.2.2">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#pause-stop-hide" target="_blank">
+                            2.2.2 Pause, Stop, Hide<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Applicable</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not present: No moving, blinking, scrolling, or auto-updating content meeting the criterion thresholds was present.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.3.1">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#three-flashes-or-below-threshold" target="_blank">
+                            2.3.1 Three Flashes or Below Threshold<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Applicable</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not present: No flashing content was present.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.4.1">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#bypass-blocks" target="_blank">
+                            2.4.1 Bypass Blocks<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-001. A real Tab then Enter activation of the bypass link moved focus to main content.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.4.2">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#page-titled" target="_blank">
+                            2.4.2 Page Titled<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-001, S-STR-009, S-STR-019. Representative public, authoring, and administration pages had descriptive document titles.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.4.3">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#focus-order" target="_blank">
+                            2.4.3 Focus Order<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-001, S-STR-009, S-STR-018, S-RND-001. Recorded forward/reverse sequences and task traces followed the rendered interaction order; no sampled order failure was confirmed.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.4.4">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#link-purpose-in-context" target="_blank">
+                            2.4.4 Link Purpose (In Context)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-001, S-STR-019. Sampled link text and surrounding context identified destinations or actions.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.5.1">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#pointer-gestures" target="_blank">
+                            2.5.1 Pointer Gestures<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Applicable</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not present: No multipoint or path-based pointer gesture was required by the sampled interfaces.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.5.2">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#pointer-cancellation" target="_blank">
+                            2.5.2 Pointer Cancellation<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-016. Real pointer sequences confirmed that down-events alone did not complete ordinary-control or tabledrag actions; the tabledrag change could be undone with the visible weight control before saving, and reload confirmed no persisted configuration change.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.5.3">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#label-in-name" target="_blank">
+                            2.5.3 Label in Name<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Does Not Support</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: fails in S-STR-016 (WCAG-EM). Findings: a11y_claro_configure_label_not_in_name. Twelve Block layout links visibly labeled Configure had accessible names such as Edit Site branding that did not contain the visible label, preventing reliable activation by the presented label.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.5.4">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#motion-actuation" target="_blank">
+                            2.5.4 Motion Actuation<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Applicable</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not present: No device-motion actuation was present.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.1.1">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#language-of-page" target="_blank">
+                            3.1.1 Language of Page<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-001, S-STR-009, S-STR-019. The rendered html language was English across representative Olivero and Claro samples.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.2.1">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#on-focus" target="_blank">
+                            3.2.1 On Focus<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-001, S-STR-009, S-STR-020. Real focus traversal did not trigger an unexpected change of context.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.2.2">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#on-input" target="_blank">
+                            3.2.2 On Input<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-004, S-STR-009, S-STR-018, S-RND-001. Form input changes did not change context before explicit submit/activation.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.2.6">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#consistent-help" target="_blank">
+                            3.2.6 Consistent Help<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-012. The repeated administrative Help mechanism consistently linked to /admin/help in the sampled administration page set.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.3.1">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#error-identification" target="_blank">
+                            3.3.1 Error Identification<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-004, S-STR-009, S-STR-018, S-RND-001. Real keyboard submissions moved focus to the first invalid field and exposed browser-native Please fill out this field messages; native Safari plus VoiceOver also exposed the invalid-login error as a named region and allowed navigation to its text. The password-manager prompt interrupted observation of any automatic announcement.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.3.2">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#labels-or-instructions" target="_blank">
+                            3.3.2 Labels or Instructions<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-004, S-STR-009, S-RND-001. Sampled form inputs had visible labels and applicable instructions/descriptions.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.3.7">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#redundant-entry" target="_blank">
+                            3.3.7 Redundant Entry<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Applicable</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not present: The sampled processes did not require re-entering previously supplied information in the same process.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="4.1.2">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#name-role-value" target="_blank">
+                            4.1.2 Name, Role, Value<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-001, S-STR-009, S-STR-020. Rendered native/custom controls exposed names, roles, and states in DOM/accessibility-tree evidence. A transient expanded-state link-name candidate resolved to a stable Content link in the steady accessibility tree.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                  </tbody>
+                </table>
+
+
+                <h3 id="success_criteria_level_aa">
+        Table 2: Success Criteria, Level AA
+        <a href="#success_criteria_level_aa" class="header-anchor">
+          <span class="anchor-icon" aria-hidden="true">
+            <svg
+              focusable="false"
+              aria-hidden="true"
+              class="icon-link">
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+            </svg>
+          </span>
+          <span class="visuallyhidden">Anchor link</span>
+        </a>
+      </h3>
+
+                <div id="success_criteria_level_aa-notes" class="chapter-notes-section">
+                  Notes: <p>Sample-scoped WCAG 2.2 Level AA results. Every Level AA criterion in the target catalog has a recorded outcome.</p>
+
+                </div>
+
+                <div id="success_criteria_level_aa-summary">
+                  <table class="usa-table">
+                    <caption>
+                      Conformance to the 24 criteria listed below is distributed within each category as follows:
+                    </caption>
+                    <thead><tr><th>Conformance Level</th><th>Web</th></tr></thead><tr><td>Supports</td><td>14</td></tr><tr><td>Partially Supports</td><td>0</td></tr><tr><td>Does Not Support</td><td>6</td></tr><tr><td>Not Applicable</td><td>4</td></tr>
+                  </table>
+                </div>
+
+                <table class="usa-table">
+                  <thead>
+                  <tr>
+                    <th>Criteria</th>
+                    <th>Conformance Level</th>
+                    <th>Remarks and Explanations</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                      <tr id="1.2.4">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#captions-live" target="_blank">
+                            1.2.4 Captions (Live)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Applicable</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not present: No live synchronized media was present.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.2.5">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#audio-description-prerecorded" target="_blank">
+                            1.2.5 Audio Description (Prerecorded)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Applicable</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not present: No prerecorded video was present.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.3.4">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#orientation" target="_blank">
+                            1.3.4 Orientation<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-001, S-STR-018. Wide and narrow layouts rendered without an enforced display orientation.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.3.5">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#identify-input-purpose" target="_blank">
+                            1.3.5 Identify Input Purpose<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-004, S-STR-007, S-RND-001. Authentication and account fields exposed expected purpose/autocomplete semantics in the sampled forms.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.4.3">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#visual-audio-contrast-contrast" target="_blank">
+                            1.4.3 Contrast (Minimum)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Does Not Support</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: fails in S-STR-008, S-STR-013, S-STR-016, S-STR-020 (WCAG-EM). Findings: a11y_claro_bulk_button_contrast, a11y_claro_empty_region_contrast. Confirmed 4.24:1 small primary-button text on three admin surfaces and 3.78:1 empty-region text on Block layout.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.4.4">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#visual-audio-contrast-scale" target="_blank">
+                            1.4.4 Resize text<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-001, S-STR-002, S-STR-003, S-STR-004, S-STR-005, S-STR-006, S-STR-007, S-STR-008, S-STR-009, S-STR-010, S-STR-011, S-STR-012, S-STR-013, S-STR-014, S-STR-015, S-STR-016, S-STR-017, S-STR-018, S-STR-019, S-STR-020, S-RND-001, S-RND-002. All 22 samples were exercised at verified 200% Chrome browser zoom using real Command+Plus input. No sampled non-table text or control became unavailable; the dense permissions table remained a two-dimensional layout.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.4.5">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#visual-audio-contrast-text-presentation" target="_blank">
+                            1.4.5 Images of Text<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Applicable</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not present: No image of text was used to convey required information; the synthetic image label was test-fixture decoration with a text alternative.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.4.10">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#reflow" target="_blank">
+                            1.4.10 Reflow<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Does Not Support</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: fails in S-STR-010, S-STR-019 (WCAG-EM). Findings: a11y_claro_article_edit_reflow, a11y_claro_status_report_reflow. The Article edit form and Status report required horizontal scrolling at 320 CSS pixels outside the two-dimensional content exception.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.4.11">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#non-text-contrast" target="_blank">
+                            1.4.11 Non-text Contrast<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Does Not Support</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: fails in S-STR-004 (WCAG-EM). Findings: a11y_olivero_tabs_trigger_focus_indicator. The focused Olivero mobile local-tabs trigger uses a blue border with a measured 2.902:1 contrast against its adjacent background, below the required 3:1 for visual component/state information.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.4.12">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#text-spacing" target="_blank">
+                            1.4.12 Text Spacing<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-009, S-STR-010, S-STR-019, S-STR-020. Exact WCAG text-spacing overrides produced no confirmed text-spacing-specific clipping or overlap in targeted public/form/status/Views UI checks; the independent reflow failures remain recorded under 1.4.10.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.4.13">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#content-on-hover-or-focus" target="_blank">
+                            1.4.13 Content on Hover or Focus<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Does Not Support</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: fails in S-STR-020 (WCAG-EM). Findings: a11y_navigation_focus_tooltip_not_dismissible. The collapsed Navigation toolbar exposes a focus-triggered tooltip over main content that remains visible after Escape, so the sampled additional content is not dismissible without moving focus.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.4.5">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#multiple-ways" target="_blank">
+                            2.4.5 Multiple Ways<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-002, S-STR-019. Repeated site/admin navigation and breadcrumbs provided multiple routes to sampled pages within their page sets.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.4.6">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#headings-and-labels" target="_blank">
+                            2.4.6 Headings and Labels<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-009, S-STR-019. Representative form and status-report headings and labels described their topics and purpose.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.4.7">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#focus-visible" target="_blank">
+                            2.4.7 Focus Visible<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Does Not Support</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: fails in S-STR-008 (WCAG-EM). Findings: a11y_navigation_logo_focus_not_visible. Real Tab traversal reached the Navigation Home logo, but its focused and unfocused element screenshots were byte-identical and computed styles exposed no outline, border, or shadow change.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.4.11">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#focus-not-obscured-minimum" target="_blank">
+                            2.4.11 Focus Not Obscured (Minimum)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Does Not Support</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: fails in S-STR-010 (WCAG-EM). Findings: a11y_navigation_breadcrumb_focus_obscured. After a complete forward focus cycle, reverse keyboard traversal placed focus on the Article and Home breadcrumb links while the fixed Navigation top bar completely covered them; 25 sampled points per link had zero visible overlap with the focused link.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.5.7">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#dragging-movements" target="_blank">
+                            2.5.7 Dragging Movements<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-016. Block layout exposed select controls as non-drag alternatives for region assignment.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.5.8">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#target-size-minimum" target="_blank">
+                            2.5.8 Target Size (Minimum)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-020. Retained selector-level geometry and DOM context confirmed that the 20 CSS pixel-high Views UI links are constrained by the parent and surrounding non-target text at a 20 CSS pixel line-height, so the second branch of the WCAG inline exception applied; no other sampled target-size candidate remained.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.1.2">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#language-of-parts" target="_blank">
+                            3.1.2 Language of Parts<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Applicable</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not present: Exploration found English-only content with no foreign-language passages requiring a language-of-parts declaration.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.2.3">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#consistent-navigation" target="_blank">
+                            3.2.3 Consistent Navigation<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-001, S-STR-002, S-STR-012, S-STR-019. Repeated Olivero and Claro navigation mechanisms retained their relative order within each page set.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.2.4">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#consistent-identification" target="_blank">
+                            3.2.4 Consistent Identification<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-008, S-STR-013, S-STR-020. Repeated administrative components and actions were identified consistently across the sampled interfaces.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.3.3">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#error-suggestion" target="_blank">
+                            3.3.3 Error Suggestion<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-004, S-STR-009, S-STR-018, S-RND-001. Where correction guidance was known, keyboard-submitted required fields exposed a specific browser-native suggestion and the invalid-login state supplied a specific credential error; no sampled security-sensitive field required disclosure of a more detailed suggestion.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.3.4">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#error-prevention-legal-financial-data" target="_blank">
+                            3.3.4 Error Prevention (Legal, Financial, Data)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-009, S-STR-018. Sampled data changes were reversible: the Article remained editable and the configuration marker was restored; no legal or financial transaction was present.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.3.8">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#accessible-authentication-minimum" target="_blank">
+                            3.3.8 Accessible Authentication (Minimum)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-004. Authentication allowed entry, paste/autofill, and password-manager-compatible fields without a cognitive-function test.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="4.1.3">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#status-messages" target="_blank">
+                            4.1.3 Status Messages<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Supports</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Sample-scoped: passes across 20 structured + 2 random samples (WCAG-EM). Criterion-specific retained evidence covers S-STR-008. A driven keyboard session announced both 1 item selected and No items selected through the live-region simulator after real Space-key toggles on the Content administration page.</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                  </tbody>
+                </table>
+
+
+                <h3 id="success_criteria_level_aaa">
+        Table 3: Success Criteria, Level AAA
+        <a href="#success_criteria_level_aaa" class="header-anchor">
+          <span class="anchor-icon" aria-hidden="true">
+            <svg
+              focusable="false"
+              aria-hidden="true"
+              class="icon-link">
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+            </svg>
+          </span>
+          <span class="visuallyhidden">Anchor link</span>
+        </a>
+      </h3>
+
+                <div id="success_criteria_level_aaa-notes" class="chapter-notes-section">
+                  Notes: <p>WCAG 2.2 Level AAA was outside this engagement's target.</p>
+
+                </div>
+
+                <div id="success_criteria_level_aaa-summary">
+                  <table class="usa-table">
+                    <caption>
+                      Conformance to the 31 criteria listed below is distributed within each category as follows:
+                    </caption>
+                    <thead><tr><th>Conformance Level</th><th>Web</th></tr></thead><tr><td>Supports</td><td>0</td></tr><tr><td>Partially Supports</td><td>0</td></tr><tr><td>Does Not Support</td><td>0</td></tr><tr><td>Not Applicable</td><td>0</td></tr>
+                  </table>
+                </div>
+
+                <table class="usa-table">
+                  <thead>
+                  <tr>
+                    <th>Criteria</th>
+                    <th>Conformance Level</th>
+                    <th>Remarks and Explanations</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                      <tr id="1.2.6">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#sign-language-prerecorded" target="_blank">
+                            1.2.6 Sign Language (Prerecorded)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.2.7">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#extended-audio-description-prerecorded" target="_blank">
+                            1.2.7 Extended Audio Description (Prerecorded)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.2.8">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#media-alternative-prerecorded" target="_blank">
+                            1.2.8 Media Alternative (Prerecorded)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.2.9">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#audio-only-live" target="_blank">
+                            1.2.9 Audio-only (Live)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.3.6">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#identify-purpose" target="_blank">
+                            1.3.6 Identify Purpose<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.4.6">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#contrast-enhanced" target="_blank">
+                            1.4.6 Contrast (Enhanced)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.4.7">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#low-or-no-background-audio" target="_blank">
+                            1.4.7 Low or No Background Audio<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.4.8">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#visual-presentation" target="_blank">
+                            1.4.8 Visual Presentation<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="1.4.9">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#images-of-text-no-exception" target="_blank">
+                            1.4.9 Images of Text (No Exception)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.1.3">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#keyboard-no-exception" target="_blank">
+                            2.1.3 Keyboard (No Exception)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.2.3">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#no-timing" target="_blank">
+                            2.2.3 No Timing<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.2.4">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#interruptions" target="_blank">
+                            2.2.4 Interruptions<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.2.5">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#re-authenticating" target="_blank">
+                            2.2.5 Re-authenticating<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.2.6">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#timeouts" target="_blank">
+                            2.2.6 Timeouts<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.3.2">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#three-flashes" target="_blank">
+                            2.3.2 Three Flashes<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.3.3">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#animation-from-interactions" target="_blank">
+                            2.3.3 Animation from Interactions<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.4.8">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#location" target="_blank">
+                            2.4.8 Location<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.4.9">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#link-purpose-link-only" target="_blank">
+                            2.4.9 Link Purpose (Link Only)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.4.10">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#section-headings" target="_blank">
+                            2.4.10 Section Headings<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.4.12">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#focus-not-obscured-enhanced" target="_blank">
+                            2.4.12 Focus Not Obscured (Enhanced)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.4.13">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#focus-appearance" target="_blank">
+                            2.4.13 Focus Appearance<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.5.5">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#target-size-enhanced" target="_blank">
+                            2.5.5 Target Size (Enhanced)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="2.5.6">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#concurrent-input-mechanisms" target="_blank">
+                            2.5.6 Concurrent Input Mechanisms<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.1.3">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#unusual-words" target="_blank">
+                            3.1.3 Unusual Words<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.1.4">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#abbreviations" target="_blank">
+                            3.1.4 Abbreviations<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.1.5">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#reading-level" target="_blank">
+                            3.1.5 Reading Level<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.1.6">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#pronunciation" target="_blank">
+                            3.1.6 Pronunciation<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.2.5">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#change-on-request" target="_blank">
+                            3.2.5 Change on Request<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.3.5">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#help" target="_blank">
+                            3.3.5 Help<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.3.6">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#error-prevention-all" target="_blank">
+                            3.3.6 Error Prevention (All)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                      <tr id="3.3.9">
+                        <td>
+                          <a href="https://www.w3.org/TR/WCAG22/#accessible-authentication-enhanced" target="_blank">
+                            3.3.9 Accessible Authentication (Enhanced)<span class="usa-sr-only"> (opens in a new window or tab)</span>
+                          </a>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not Evaluated</p></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="component-level-count-1">
+                                  <li><span class="component-level-label"><strong>Web</strong>: </span><p>Not evaluated at this engagement's conformance target (WCAG 2.2 AA).</p>
+</li>
+                            </ul>
+                        </td>
+                      </tr>
+                  </tbody>
+                </table>
+
+        <h2 id="legal-disclaimer">
+        Legal Disclaimer
+        <a href="#legal-disclaimer" class="header-anchor">
+          <span class="anchor-icon" aria-hidden="true">
+            <svg
+              focusable="false"
+              aria-hidden="true"
+              class="icon-link">
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+            </svg>
+          </span>
+          <span class="visuallyhidden">Anchor link</span>
+        </a>
+      </h2>
+        <p>PUBLIC REVIEW DRAFT — NOT ISSUED. This review copy is based on the frozen AS-OACR-001 sample and evidence boundary. It is not a Drupal Association position, Mike Gifford approval, release-readiness decision, Section 508 report, or whole-product conformance claim.</p>
+
+        <h2 id="repository">
+        Repository
+        <a href="#repository" class="header-anchor">
+          <span class="anchor-icon" aria-hidden="true">
+            <svg
+              focusable="false"
+              aria-hidden="true"
+              class="icon-link">
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+            </svg>
+          </span>
+          <span class="visuallyhidden">Anchor link</span>
+        </a>
+      </h2>
+        <a href="https://github.com/mgifford/drupal-core">https://github.com/mgifford/drupal-core</a>
+
+    </div>
+  </main>
+  <footer class="usa-footer usa-footer usa-footer--slim">
+    <div class="usa-footer__return-to-top">
+      <div class="grid-container">
+        <a href="#">Return to top</a>
+      </div>
+    </div>
+    <div class="usa-footer__secondary-section">
+      <div class="grid-container">
+        <div class="grid-row grid-gap">
+          <div class="grid-col">
+            <a href="https://github.com/GSA/openacr" target="_blank">OpenACR<span class="usa-sr-only"> (opens in a new window or tab)</span></a> is a format maintained by the <a href="https://gsa.gov/" target="_blank">GSA<span class="usa-sr-only"> (opens in a new window or tab)</span></a>. The content is the responsibility of the author.
+          </div>
+          <div class="grid-col">
+            This content is licensed under a <a href="https://creativecommons.org/licenses/by-sa/2.0/legalcode" target="_blank">Creative Commons Attribution Share Alike 2.0 Generic<span class="usa-sr-only"> (opens in a new window or tab)</span></a>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

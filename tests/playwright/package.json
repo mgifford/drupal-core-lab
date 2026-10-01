@@ -1,0 +1,25 @@
+{
+  "name": "drupal-guidepup-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Guidepup virtual screen reader tests for Drupal Core",
+  "scripts": {
+    "test": "playwright test",
+    "test:issue:2848307:baseline": "EXPECT_INLINE_ERROR=0 node scripts/issue-2848307-mcp-check.js",
+    "test:issue:2848307:patched": "EXPECT_INLINE_ERROR=1 node scripts/issue-2848307-mcp-check.js",
+    "test:virtual-sr": "playwright test --grep 'Virtual SR'",
+    "test:menu:devel": "playwright test tests/a11y-menu-devel-sr.spec.ts",
+    "test:menu:devel:headed": "playwright test tests/a11y-menu-devel-sr.spec.ts --headed",
+    "test:menu:devel:reorder-proof": "playwright test tests/a11y-menu-devel-reorder-proof.spec.ts",
+    "test:menu:devel:reorder-proof:headed": "playwright test tests/a11y-menu-devel-reorder-proof.spec.ts --headed",
+    "test:modal": "playwright test --grep 'Virtual SR.*modal'",
+    "test:multi-scanner:core-baseline": "A11Y_SCAN_MODE=core-baseline playwright test --grep 'Multi-Scanner Crawl'",
+    "test:multi-scanner:seeded-benchmark": "A11Y_SCAN_MODE=seeded-benchmark playwright test --grep 'Multi-Scanner Crawl'"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
+    "@guidepup/virtual-screen-reader": "^0.32.0",
+    "@playwright/test": "^1.48.0",
+    "accessibility-checker": "^4.0.29"
+  }
+}

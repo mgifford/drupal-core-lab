@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Replacement record: Page structure and navigation</title>
+</head>
+<body>
+  <main>
+    <h1>Replacement record: Page structure and navigation</h1>
+
+    <p>This record explains how four Drupal 7 theming pages were consolidated into the proposed current documentation page, <a href="https://www.drupal.org/docs/getting-started/accessibility/page-structure-and-navigation">Page structure and navigation</a>. It also provides a short archival notice for each Drupal 7 page.</p>
+
+    <h2>Pages replaced</h2>
+
+    <table>
+      <caption>Drupal 7 source pages consolidated into the current page</caption>
+      <thead>
+        <tr>
+          <th scope="col">Drupal 7 page</th>
+          <th scope="col">Disposition</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://www.drupal.org/docs/7/creating-accessible-themes/creating-accessible-site-and-page-navigation">Creating accessible site and page navigation</a></td>
+          <td>Navigation, link, keyboard, and current-location guidance retained and updated.</td>
+        </tr>
+        <tr>
+          <td><a href="https://www.drupal.org/docs/7/creating-accessible-themes/creating-accessible-structure-and-markup">Creating accessible structure and markup</a></td>
+          <td>Semantic structure, page titles, language, reading order, focus, and table guidance retained and updated.</td>
+        </tr>
+        <tr>
+          <td><a href="https://www.drupal.org/docs/7/creating-accessible-themes/providing-a-way-to-skip-navigation">Providing a way to skip navigation</a></td>
+          <td>The purpose of skip links was retained. Drupal 6 and Drupal 7 code was replaced with the verified Drupal 11 core implementation.</td>
+        </tr>
+        <tr>
+          <td><a href="https://www.drupal.org/docs/7/creating-accessible-themes/using-headings-to-improve-accessibility">Using headings to improve accessibility</a></td>
+          <td>Heading guidance retained and corrected to avoid overstating WCAG requirements.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>What was retained</h2>
+
+    <ul>
+      <li>Use semantic HTML to communicate page structure.</li>
+      <li>Provide descriptive page titles, headings, links, and navigation labels.</li>
+      <li>Keep source order meaningful and preserve visible keyboard focus.</li>
+      <li>Provide a way to bypass repeated content.</li>
+      <li>Use table headers and associations for tabular data.</li>
+      <li>Test navigation without a pointing device.</li>
+    </ul>
+
+    <h2>What was updated or added</h2>
+
+    <h3>Drupal 11 implementation</h3>
+
+    <p>The new page includes a Drupal-specific example only where current core provides a stable implementation. The skip link and its target were copied from Drupal 11 core's default <code>html.html.twig</code> and <code>page.html.twig</code> templates. The text explains that a theme overriding either template must preserve both parts or provide equivalent behavior.</p>
+
+    <p>The new page also identifies <code>head_title</code>, <code>html_attributes</code>, and template attribute preservation because these are current Twig mechanisms. It does not translate Drupal 7 PHPTemplate examples into speculative Twig.</p>
+
+    <h3>Landmarks and regions</h3>
+
+    <p>The four source pages predate widespread use of native HTML landmark elements. The replacement adds current guidance for <code>header</code>, <code>nav</code>, <code>main</code>, <code>aside</code>, and <code>footer</code>. It requires distinct names for multiple navigation regions and explains that landmarks complement, rather than replace, headings and skip links.</p>
+
+    <h3>Navigation components</h3>
+
+    <p>The replacement distinguishes ordinary website navigation from the ARIA application menu pattern. It adds disclosure-button behavior, <code>aria-expanded</code>, separate link and disclosure controls where necessary, <code>aria-current="page"</code>, responsive states, and breakpoint testing.</p>
+
+    <h3>Focus and responsive layouts</h3>
+
+    <p>The new page treats DOM reading order, visual order, and keyboard focus order as related requirements. It adds CSS Grid and Flexbox reordering, reflow, responsive navigation, focus return, and focus not obscured. These are common current implementation risks that the Drupal 7 pages do not cover.</p>
+
+    <h3>Repeatable testing</h3>
+
+    <p>The replacement provides a compact test list covering keyboard operation, skip-link behavior, headings, landmarks, links, responsive states, zoom, focus visibility, tables, and automated checks. Automated testing is presented as partial coverage, not proof that the page is accessible.</p>
+
+    <h2>What was removed or corrected</h2>
+
+    <table>
+      <caption>Material removed or corrected and the reason</caption>
+      <thead>
+        <tr>
+          <th scope="col">Old material</th>
+          <th scope="col">Change and reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Drupal 6 and Drupal 7 PHPTemplate examples, including <code>page.tpl.php</code>, <code>html.tpl.php</code>, <code>$primary_links</code>, and <code>$search_box</code></td>
+          <td>Removed. These APIs and templates are unsupported and should not be adapted for a current Drupal site.</td>
+        </tr>
+        <tr>
+          <td>Named anchors and lengthy dynamic PHP skip-link generation</td>
+          <td>Removed. Current core already provides a translated link to a stable ID and a programmatically focusable target.</td>
+        </tr>
+        <tr>
+          <td>IE7, WebKit, clipping, negative-positioning, and other historical skip-link workarounds</td>
+          <td>Removed. They solve obsolete browser problems and are harder to maintain than Drupal's current utility classes.</td>
+        </tr>
+        <tr>
+          <td>Suggestions to conceal a skip link by using the same text and background color</td>
+          <td>Removed. Concealing focusable content this way creates a barrier and may fail contrast and focus-visibility requirements.</td>
+        </tr>
+        <tr>
+          <td>A hidden <code>h2</code> presented as necessary for navigation because of old assistive-technology limitations</td>
+          <td>Corrected. A visible heading may help everyone, and an accessible name is required when multiple navigation landmarks need to be distinguished. Hidden headings are not a universal requirement.</td>
+        </tr>
+        <tr>
+          <td>The implication that every navigation group must use list markup for screen-reader support</td>
+          <td>Corrected. Lists are appropriate when the items form a list. Native <code>nav</code> supplies the landmark semantics.</td>
+        </tr>
+        <tr>
+          <td>The claim that every page must have exactly one <code>h1</code> and must never skip a heading level</td>
+          <td>Corrected. WCAG requires meaningful structure, not exactly one <code>h1</code>. Logical nesting is recommended, but a skipped level is not automatically a WCAG failure.</td>
+        </tr>
+        <tr>
+          <td><code>title</code> attributes as the repair for unclear link text</td>
+          <td>Removed. The attribute is not consistently exposed. The visible label and accessible name should communicate the purpose.</td>
+        </tr>
+        <tr>
+          <td>The table <code>summary</code> attribute</td>
+          <td>Removed. It is obsolete in HTML. Use a visible <code>caption</code> or nearby text for essential context.</td>
+        </tr>
+        <tr>
+          <td>XHTML examples and links to obsolete language-code references</td>
+          <td>Removed. Current HTML and Drupal's <code>html_attributes</code> mechanism provide the relevant implementation.</td>
+        </tr>
+        <tr>
+          <td>Audio CAPTCHA as the principal alternative to a visual CAPTCHA</td>
+          <td>Moved out of this page. CAPTCHA is a form and authentication issue, and an audio-only alternative does not address all users. Current guidance belongs in the forms documentation.</td>
+        </tr>
+        <tr>
+          <td>"Non-traditional navigation devices" and the suggestion that people with mobility disabilities may use solely the Tab key</td>
+          <td>Rewritten. Current testing covers keyboard, touch, speech input, magnification, and screen readers without reducing disability to one device or keystroke.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Content mapping</h2>
+
+    <table>
+      <caption>Where the source material appears in the consolidated page</caption>
+      <thead>
+        <tr>
+          <th scope="col">Current section</th>
+          <th scope="col">Primary source material</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Start with semantic HTML</td>
+          <td>Creating accessible structure and markup; navigation list guidance from Creating accessible site and page navigation.</td>
+        </tr>
+        <tr>
+          <td>Provide a useful page title and language</td>
+          <td>Creating accessible structure and markup, updated for current Drupal Twig.</td>
+        </tr>
+        <tr>
+          <td>Identify page regions</td>
+          <td>Navigation and structure concepts from two source pages, expanded using current HTML landmarks.</td>
+        </tr>
+        <tr>
+          <td>Create a useful heading structure</td>
+          <td>Using headings to improve accessibility, with WCAG claims corrected.</td>
+        </tr>
+        <tr>
+          <td>Preserve Drupal's skip link</td>
+          <td>Providing a way to skip navigation, with all old implementation code replaced by verified Drupal 11 core templates.</td>
+        </tr>
+        <tr>
+          <td>Build predictable navigation and Write useful links</td>
+          <td>Creating accessible site and page navigation plus related link guidance from Creating accessible structure and markup.</td>
+        </tr>
+        <tr>
+          <td>Keep reading order and focus order meaningful</td>
+          <td>Source-order and focus guidance from Creating accessible structure and markup, expanded for responsive CSS and WCAG 2.2.</td>
+        </tr>
+        <tr>
+          <td>Mark up data tables</td>
+          <td>Creating accessible structure and markup, with obsolete <code>summary</code> guidance removed.</td>
+        </tr>
+        <tr>
+          <td>Test the rendered page</td>
+          <td>Keyboard test from Creating accessible site and page navigation, expanded into a repeatable current review.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Copy-ready archival notices</h2>
+
+    <p>Each Drupal 7 page can use the same short notice. The distinct headings below make it clear which source page the notice belongs to.</p>
+
+    <h3>Creating accessible site and page navigation</h3>
+
+    <pre><code>&lt;p&gt;&lt;strong&gt;This Drupal 7 page is no longer supported.&lt;/strong&gt; See &lt;a href="/docs/getting-started/accessibility/page-structure-and-navigation"&gt;Page structure and navigation&lt;/a&gt; for current guidance. Drupal 7 reached end of life on 5 January 2025. See &lt;a href="/about/drupal-7/d7eol/partners"&gt;Drupal 7 support options&lt;/a&gt; if you still maintain a Drupal 7 site.&lt;/p&gt;</code></pre>
+
+    <h3>Creating accessible structure and markup</h3>
+
+    <pre><code>&lt;p&gt;&lt;strong&gt;This Drupal 7 page is no longer supported.&lt;/strong&gt; See &lt;a href="/docs/getting-started/accessibility/page-structure-and-navigation"&gt;Page structure and navigation&lt;/a&gt; for current guidance. Drupal 7 reached end of life on 5 January 2025. See &lt;a href="/about/drupal-7/d7eol/partners"&gt;Drupal 7 support options&lt;/a&gt; if you still maintain a Drupal 7 site.&lt;/p&gt;</code></pre>
+
+    <h3>Providing a way to skip navigation</h3>
+
+    <pre><code>&lt;p&gt;&lt;strong&gt;This Drupal 7 page is no longer supported.&lt;/strong&gt; See &lt;a href="/docs/getting-started/accessibility/page-structure-and-navigation"&gt;Page structure and navigation&lt;/a&gt; for current guidance. Drupal 7 reached end of life on 5 January 2025. See &lt;a href="/about/drupal-7/d7eol/partners"&gt;Drupal 7 support options&lt;/a&gt; if you still maintain a Drupal 7 site.&lt;/p&gt;</code></pre>
+
+    <h3>Using headings to improve accessibility</h3>
+
+    <pre><code>&lt;p&gt;&lt;strong&gt;This Drupal 7 page is no longer supported.&lt;/strong&gt; See &lt;a href="/docs/getting-started/accessibility/page-structure-and-navigation"&gt;Page structure and navigation&lt;/a&gt; for current guidance. Drupal 7 reached end of life on 5 January 2025. See &lt;a href="/about/drupal-7/d7eol/partners"&gt;Drupal 7 support options&lt;/a&gt; if you still maintain a Drupal 7 site.&lt;/p&gt;</code></pre>
+
+    <h2>Sources checked</h2>
+
+    <ul>
+      <li><a href="https://api.drupal.org/api/drupal/core%21modules%21system%21templates%21html.html.twig/11.x">Drupal 11 core: html.html.twig</a></li>
+      <li><a href="https://api.drupal.org/api/drupal/core%21modules%21system%21templates%21page.html.twig/11.x">Drupal 11 core: page.html.twig</a></li>
+      <li><a href="https://www.drupal.org/docs/develop/theming-drupal/using-attributes-in-templates">Drupal: Using attributes in templates</a></li>
+      <li><a href="https://www.drupal.org/docs/getting-started/accessibility/hide-content-properly">Drupal: Hide content properly</a></li>
+      <li><a href="https://www.w3.org/WAI/tutorials/page-structure/">W3C: Page Structure Tutorial</a></li>
+      <li><a href="https://www.w3.org/WAI/tutorials/page-structure/regions/">W3C: Page Regions</a></li>
+      <li><a href="https://www.w3.org/WAI/tutorials/page-structure/headings/">W3C: Headings</a></li>
+      <li><a href="https://www.w3.org/WAI/tutorials/menus/">W3C: Menus Tutorial</a></li>
+      <li><a href="https://www.w3.org/WAI/tutorials/tables/">W3C: Tables Tutorial</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/bypass-blocks.html">W3C: Understanding Bypass Blocks</a></li>
+      <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum.html">W3C: Understanding Focus Not Obscured (Minimum)</a></li>
+    </ul>
+  </main>
+</body>
+</html>

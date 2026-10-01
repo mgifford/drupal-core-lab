@@ -1,0 +1,87 @@
+diff --git a/core/themes/default_admin/default_admin.libraries.yml b/core/themes/default_admin/default_admin.libraries.yml
+index e0a47aa944a..ff3674fda72 100644
+--- a/core/themes/default_admin/default_admin.libraries.yml
++++ b/core/themes/default_admin/default_admin.libraries.yml
+@@ -437,7 +437,6 @@ sidebar:
+     migration/js/sidebar.js: { minified: false }
+   dependencies:
+     - core/once
+-    - core/jquery
+ 
+ settings:
+   js:
+diff --git a/core/themes/default_admin/migration/js/sidebar.js b/core/themes/default_admin/migration/js/sidebar.js
+index c687d0a34d4..44e9967ecdc 100644
+--- a/core/themes/default_admin/migration/js/sidebar.js
++++ b/core/themes/default_admin/migration/js/sidebar.js
+@@ -1,6 +1,6 @@
+ /* eslint-disable func-names, no-mutable-exports, comma-dangle, strict */
+ 
+-((Drupal, drupalSettings, once, $) => {
++((Drupal, drupalSettings, once) => {
+   const breakpoint = 1024;
+   const breakpointLarge = 1280;
+   const storageMobile = 'Drupal.defaultAdmin.sidebarExpanded.mobile';
+@@ -12,21 +12,17 @@
+   let startX, startWidth;
+ 
+   /**
+-   * Open parent details elements of a targeted page fragment.
++   * Opens the sidebar when a URL fragment points at an element inside it.
+    *
+-   * Opens all (nested) details element on a hash change or fragment link click
+-   * when the target is a child element, in order to make sure the targeted
+-   * element is visible. Aria attributes on the summary
+-   * are set by triggering the click event listener in details-aria.js.
++   * Error links from the Inline Form Errors module are fragment links, and the
++   * target field is hidden while the sidebar is closed.
+    *
+-   * @param {jQuery.Event} e
+-   *   The event triggered.
+-   * @param {jQuery} $target
+-   *   The targeted node as a jQuery object.
++   * @param {string} hash
++   *   The URL fragment, including the leading '#'.
+    */
+-  const handleFragmentLinkClickOrHashChange = (e, $target) => {
+-    // If $target is in the sidebar, open it.
+-    if ($target.parents('#default_admin_sidebar').length) {
++  const openSidebarForFragment = (hash) => {
++    const id = decodeURIComponent(hash.substring(1));
++    if (id && document.getElementById(id)?.closest('#default_admin_sidebar')) {
+       Drupal.adminSidebar.showSidebar();
+     }
+   };
+@@ -39,13 +35,19 @@
+ 
+   Drupal.adminSidebar = {
+     init: function (context) {
+-      /**
+-       * Binds a listener to handle fragment link clicks and URL hash changes.
+-       */
+-      $(once('adminSidebarFragments', 'body')).on(
+-        'formFragmentLinkClickOrHashChange.adminSidebar',
+-        handleFragmentLinkClickOrHashChange,
+-      );
++      // Clicking a link to the fragment already in the URL does not trigger
++      // a hash change, so listen for clicks as well.
++      once('adminSidebarFragments', 'body').forEach(() => {
++        window.addEventListener('hashchange', () =>
++          openSidebarForFragment(window.location.hash),
++        );
++        document.addEventListener('click', (e) => {
++          const link = e.target.closest('a[href*="#"]');
++          if (link && link.pathname === window.location.pathname) {
++            openSidebarForFragment(link.hash);
++          }
++        });
++      });
+ 
+       once('adminSidebarInit', '#default_admin_sidebar', context).forEach(
+         () => {
+@@ -246,4 +248,4 @@
+       }
+     },
+   };
+-})(Drupal, drupalSettings, once, jQuery);
++})(Drupal, drupalSettings, once);

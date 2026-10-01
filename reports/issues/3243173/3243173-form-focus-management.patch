@@ -1,0 +1,133 @@
+diff --git a/core/lib/Drupal/Core/Form/FormAjaxResponseBuilder.php b/core/lib/Drupal/Core/Form/FormAjaxResponseBuilder.php
+index 85e07719ccd..f2168d1c2bf 100644
+--- a/core/lib/Drupal/Core/Form/FormAjaxResponseBuilder.php
++++ b/core/lib/Drupal/Core/Form/FormAjaxResponseBuilder.php
+@@ -3,6 +3,7 @@
+ namespace Drupal\Core\Form;
+ 
+ use Drupal\Core\Ajax\AjaxResponse;
++use Drupal\Core\Ajax\FocusFirstCommand;
+ use Drupal\Core\Ajax\UpdateBuildIdCommand;
+ use Drupal\Core\Render\MainContent\MainContentRendererInterface;
+ use Drupal\Core\Routing\RouteMatchInterface;
+@@ -76,10 +77,54 @@ public function buildResponse(Request $request, array $form, FormStateInterface
+       $response = $this->ajaxRenderer->renderResponse($result, $request, $this->routeMatch);
+     }
+ 
++    // If there are validation errors, add a FocusFirstCommand to move focus
++    // to the first field with an error. This addresses WCAG 3.3.1.
++    if ($form_state->hasAnyErrors()) {
++      $first_error_id = $this->findFirstErrorElement($form);
++      if ($first_error_id) {
++        $response->addCommand(new FocusFirstCommand('#' . $first_error_id));
++      }
++    }
++
+     foreach ($commands as $command) {
+       $response->addCommand($command, TRUE);
+     }
+     return $response;
+   }
+ 
++  /**
++   * Finds the first form element with a validation error.
++   *
++   * Recursively traverses the form render array to find the first element
++   * that has a non-empty #errors property and a valid #id.
++   *
++   * @param array $elements
++   *   The form elements to search.
++   *
++   * @return string|null
++   *   The element ID if found, NULL otherwise.
++   */
++  protected function findFirstErrorElement(array $elements): ?string {
++    foreach ($elements as $element) {
++      if (!is_array($element)) {
++        continue;
++      }
++
++      // Check if this element has errors and an ID.
++      if (!empty($element['#errors']) && !empty($element['#id'])) {
++        return $element['#id'];
++      }
++
++      // Recurse into children.
++      if (!empty($element['#type'])) {
++        $result = $this->findFirstErrorElement($element);
++        if ($result !== NULL) {
++          return $result;
++        }
++      }
++    }
++
++    return NULL;
++  }
++
+ }
+diff --git a/core/misc/form.js b/core/misc/form.js
+index d69854780d0..55129d7c21b 100644
+--- a/core/misc/form.js
++++ b/core/misc/form.js
+@@ -331,4 +331,61 @@
+     'a[href*="#"]',
+     debouncedHandleFragmentLinkClickOrHashChange,
+   );
++
++  /**
++   * Moves focus to the first form field with a validation error.
++   *
++   * After server-side validation fails, this behavior finds the first
++   * error message, scrolls it into view, and focuses the associated
++   * input field. This addresses WCAG 3.3.1 (Error Identification).
++   *
++   * @type {Drupal~behavior}
++   *
++   * @prop {Drupal~behaviorAttach} attach
++   *   Attaches formErrorFocus behavior to find and focus first error.
++   */
++  Drupal.behaviors.formErrorFocus = {
++    attach(context) {
++      const $firstError = $(context).find('.form-item--error-message').first();
++      if ($firstError.length) {
++        // Scroll error message into view.
++        $firstError[0].scrollIntoView({
++          behavior: 'smooth',
++          block: 'center',
++        });
++
++        // Find the parent form item wrapper.
++        const $formItem = $firstError.closest(
++          '.form-item--error, .js-form-item',
++        );
++        // Find the input within the wrapper.
++        const $input = $formItem.find('input, select, textarea').first();
++
++        if ($input.length) {
++          // Focus the input with small delay for browser compatibility.
++          setTimeout(() => $input.trigger('focus'), 300);
++        }
++      }
++    },
++  };
++
++  /**
++   * Announces form validation errors to screen readers.
++   *
++   * Adds role="alert" to the first error message so screen readers
++   * announce it automatically. This addresses WCAG 4.1.3 (Status Messages).
++   *
++   * @type {Drupal~behavior}
++   *
++   * @prop {Drupal~behaviorAttach} attach
++   *   Attaches formErrorAnnouncement behavior to add ARIA alert role.
++   */
++  Drupal.behaviors.formErrorAnnouncement = {
++    attach(context) {
++      const $firstError = $(context).find('.form-item--error-message').first();
++      if ($firstError.length && !$firstError.attr('role')) {
++        $firstError.attr('role', 'alert');
++      }
++    },
++  };
+ })(jQuery, Drupal, Drupal.debounce);

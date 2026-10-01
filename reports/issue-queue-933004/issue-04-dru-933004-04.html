@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Issue #4: Add #title to field widgets (text, number, options, file)</title>
+<style>
+ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; line-height:1.5; max-width:860px; margin:2rem auto; padding:0 1rem; color:#222; }
+ h1 { font-size:1.5rem; border-bottom:2px solid #ccc; padding-bottom:.4rem; }
+ h2 { font-size:1.1rem; margin-top:2rem; color:#1a1a1a; }
+ table.fields { border-collapse:collapse; width:100%; margin:1rem 0; }
+ table.fields th, table.fields td { border:1px solid #ddd; padding:.5rem .7rem; text-align:left; vertical-align:top; }
+ table.fields th { background:#f4f4f4; width:34%; }
+ pre { background:#f6f8fa; border:1px solid #ddd; padding:.7rem; overflow:auto; }
+ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.85rem; }
+ ul { margin:.4rem 0; }
+ .sev { font-weight:bold; }
+ .status { background:#fff8e1; border-left:4px solid #f0a020; padding:.6rem .8rem; }
+</style>
+</head>
+<body>
+<h1>Accessibility Issue #4: Add #title to field widgets (text, number, options, file)</h1>
+
+<h2>Required fields</h2>
+<table class="fields">
+<tr><th>Bug ID</th><td>DRU-933004-04</td></tr>
+<tr><th>Parent issue</th><td>Drupal.org #933004 (meta: Accessible titles)</td></tr>
+<tr><th>Issue URL</th><td>https://www.drupal.org/project/drupal/issues/933004  (child URL assigned on filing)</td></tr>
+<tr><th>Code location / XPath</th><td>core/lib/Drupal/Core/Field/WidgetBase.php</td></tr>
+<tr><th>Full code path</th><td>core/modules/field/src/Plugin/field/widget/* and core/lib/Drupal/Core/Field/</td></tr>
+<tr><th>HTML / code snippet</th><td><pre><code>&lt;!-- widget form elements that render sub-elements (delta 0, add-more)
+     without #title need accessible names --&gt;</code></pre></td></tr>
+<tr><th>WCAG 2.2 SC</th><td>1.1.1 Non-text Content (A); 4.1.2 Name, Role, Value (A)</td></tr>
+<tr><th>Tool / rule ID</th><td>label (axe-core)</td></tr>
+<tr><th>Severity</th><td>High</td></tr>
+<tr><th>Frequency</th><td>Every field widget instance across all entity forms.</td></tr>
+</table>
+
+<h2>Summary</h2>
+<p>Field widgets build sub-elements (delta markers, add-more buttons, file upload controls) without #title; add them.</p>
+
+<h2>Description</h2>
+<p>Text/number/options/file widgets produce controls that lack accessible names, especially multi-value &#x27;add another&#x27; and file inputs.</p>
+
+<h2>Steps to reproduce</h2>
+<ol><li>Create a content type with multi-value fields</li>
+<li>Edit a node</li>
+<li>Run axe-core</li></ol>
+
+<h2>Expected result</h2>
+<p>All widget controls are labeled.</p>
+
+<h2>Actual result</h2>
+<p>Add-more buttons and file controls are unlabeled per the baseline.</p>
+
+<h2>Testing environment</h2>
+<ul><li>Drupal 11.x</li>
+<li>FunctionalJavascript + axe-core</li></ul>
+
+<h2>Impact</h2>
+<p>Content authors using AT cannot operate multi-value or file widgets.</p>
+
+<h2>Suggested fix</h2>
+<p>Provide #title / aria-label for add-more buttons and file inputs in each widget.</p>
+
+<h2>Scope</h2>
+<ul><li>text</li>
+<li>number</li>
+<li>options</li>
+<li>file widgets</li></ul>
+
+<h2>Out of scope</h2>
+<ul><li>Custom/contrib widgets (out of core scope)</li></ul>
+
+<h2>Open questions</h2>
+<ul><li>Standard label pattern for &#x27;Add another item&#x27;?</li></ul>
+
+<h2>Depends on / blocks</h2>
+<p>Part 1. Blocks: nothing.</p>
+
+<h2>Status</h2>
+<p class="status">Drafted (not implemented).</p>
+
+<p><small>AI-assisted: yes. Tool: opencode (hy3). External code copied: no. External sources consulted: Drupal.org #933004, MR !7659, axe-core rule docs. Copyright concern: none known.</small></p>
+</body>
+</html>

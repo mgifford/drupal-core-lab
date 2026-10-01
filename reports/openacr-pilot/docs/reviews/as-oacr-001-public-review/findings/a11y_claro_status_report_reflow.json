@@ -1,0 +1,34 @@
+{
+  "finding_id": "a11y_claro_status_report_reflow",
+  "fingerprint": "86763aafc456bcf8ba0069a633ce0471035d3c42f0f1f3dfb132444f43dbb8f4",
+  "source": "320 CSS pixel rendered-geometry and full-page horizontal-start/end screenshot review of the Claro Status report",
+  "wcag_or_apg": "WCAG 2.2 SC 1.4.10 Reflow",
+  "section_508_fpc_context": "not in scope",
+  "severity": "MAJOR",
+  "perspective_alarms": {
+    "screen_reader_semantic": "LOW",
+    "keyboard_motor": "LOW",
+    "magnification_reflow": "HIGH",
+    "cognitive_neurodivergent": "MEDIUM",
+    "vestibular_motion": "NONE",
+    "environmental_contrast": "LOW",
+    "auditory_access": "NONE"
+  },
+  "evidence": [
+    "EVID-VISUAL-S-STR-019-REFLOW-320: retained 320 CSS pixel full-page and horizontal-end screenshots.",
+    "EVID-REFLOW-S-STR-019: document scroll width is 357 CSS pixels in a 320 CSS pixel viewport; status content extends to x=356.86."
+  ],
+  "reproduction_steps": [
+    "Authenticate as the administrator in the frozen local build.",
+    "Open /admin/reports/status.",
+    "Set the viewport to 320 CSS pixels wide.",
+    "Expand or scroll through the status groups and observe the document width and status detail columns."
+  ],
+  "expected_behavior": "Status information reflows at 320 CSS pixels without requiring horizontal scrolling, because the prose/status values do not inherently require two-dimensional layout.",
+  "actual_behavior": "The document is 357 CSS pixels wide in a 320 CSS pixel viewport. Status-value and description content extends to x=356.86, requiring horizontal scrolling and squeezing prose into narrow side-by-side columns.",
+  "evaluation_context": {
+    "evaluation_id": "AS-OACR-001",
+    "sample_id": "S-STR-019",
+    "state_id": "ST-003"
+  }
+}

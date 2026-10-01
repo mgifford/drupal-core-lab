@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Changes to External Accessibility Resources</title>
+</head>
+<body>
+	<main>
+		<h1>Changes to External Accessibility Resources</h1>
+
+		<p>This document explains the redraft of <a href="https://www.drupal.org/docs/getting-started/accessibility/external-accessibility-resources">External Accessibility Resources</a>. The revision replaces a flat collection of links with a maintained hierarchy of standards, evaluation guidance, tools, practical guidance, policy sources, assistive-technology documentation, community support, and emerging work.</p>
+
+		<h2>Summary</h2>
+
+		<p>The revised page uses ideas from <a href="https://github.com/mgifford/ACCESSIBILITY.md/blob/main/examples/TRUSTED_SOURCES.yaml"><code>TRUSTED_SOURCES.yaml</code></a> without reproducing its machine-readable schema. Readers are asked to consider a source’s authority, intended use, status, ownership, review date, and jurisdiction. Each retained resource now has a short statement of purpose.</p>
+
+		<p>The revision:</p>
+
+		<ul>
+			<li>Places current W3C standards and official supporting material first.</li>
+			<li>Separates normative standards from informative techniques, examples, checklists, and product documentation.</li>
+			<li>Explains that automated rules test limited conditions and cannot determine accessibility or conformance.</li>
+			<li>Retains a short, varied set of testing tools while pointing readers to W3C’s maintained tool directory.</li>
+			<li>Adds established government guidance from Canada, the European Union, the United Kingdom, and the United States.</li>
+			<li>Adds official assistive-technology documentation instead of relying on third-party tutorials.</li>
+			<li>Replaces outdated community links with current Drupal Slack and office-hours pages.</li>
+			<li>Moves WCAG 3 and APCA into an explicitly non-normative emerging-work section.</li>
+		</ul>
+
+		<h2>Detailed changes</h2>
+
+		<table>
+			<caption>Changes grouped by original section or resource type</caption>
+			<thead>
+				<tr>
+					<th scope="col">Original area</th>
+					<th scope="col">Change</th>
+					<th scope="col">Reason</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<th scope="row">Page introduction</th>
+					<td>Added selection criteria covering authority, intended use, status, ownership, review date, and jurisdiction.</td>
+					<td>A link can be useful without being authoritative. Readers need to know whether they are consulting a standard, implementation guide, legal source, community checklist, or product document.</td>
+				</tr>
+				<tr>
+					<th scope="row">WCAG 2.2 and 2.1</th>
+					<td>Kept WCAG 2.2 and removed the separate WCAG 2.1 entry. Added Understanding WCAG 2.2 and WCAG 2.2 Techniques.</td>
+					<td>WCAG 2.2 includes the requirements from WCAG 2.0 and 2.1, apart from the obsolete Parsing criterion. Separate older-version links add clutter. The supporting documents help readers interpret and implement the current Recommendation.</td>
+				</tr>
+				<tr>
+					<th scope="row">ATAG 2.0</th>
+					<td>Retained ATAG and explained why it matters to Drupal.</td>
+					<td>Drupal is an authoring tool. Its editing interfaces and the content they produce are both relevant.</td>
+				</tr>
+				<tr>
+					<th scope="row">ARIA Authoring Practices Guide</th>
+					<td>Retained the guide with a warning to test patterns in their implementation context.</td>
+					<td>APG examples are useful implementation references, but copying an example does not establish WCAG conformance.</td>
+				</tr>
+				<tr>
+					<th scope="row">General checklist</th>
+					<td>Retained The A11Y Project checklist but labelled it as a community checklist.</td>
+					<td>A checklist is useful for orientation. WCAG remains the source for conformance requirements.</td>
+				</tr>
+				<tr>
+					<th scope="row">Courses list</th>
+					<td>Removed the GitHub accessibility-courses collection.</td>
+					<td>The page should direct readers to maintained standards, implementation guidance, and testing resources. A broad course directory adds maintenance work without supporting a specific Drupal task.</td>
+				</tr>
+				<tr>
+					<th scope="row">18F accessibility guide</th>
+					<td>Replaced the old 18F guide link with current U.S. Web Design System accessibility guidance.</td>
+					<td>The replacement is actively maintained, official United States government guidance with component, process, and testing material.</td>
+				</tr>
+				<tr>
+					<th scope="row">GDS accessibility blog</th>
+					<td>Replaced the blog-only reference with the DWP Accessibility Manual.</td>
+					<td>The manual provides a structured, maintained source for roles, testing, law, and delivery practices. A blog remains useful for news but is not the strongest general reference.</td>
+				</tr>
+				<tr>
+					<th scope="row">International guidance</th>
+					<td>Added the Government of Canada Digital Accessibility Toolkit and AccessibleEU.</td>
+					<td>The original list was weighted toward United States and United Kingdom sources. Drupal is an international project.</td>
+				</tr>
+				<tr>
+					<th scope="row">Law and policy</th>
+					<td>Added a distinct section with the W3C laws and policies index, Section508.gov, and Accessibility Standards Canada.</td>
+					<td>Legal and policy sources are jurisdiction-specific and should not be mixed with technical standards. The page now warns readers to confirm applicable requirements.</td>
+				</tr>
+				<tr>
+					<th scope="row">Community resources</th>
+					<td>Kept current Drupal Slack and office-hours links. Removed the W3C Slack link, legacy Drupal Groups searches, the meetup YouTube channel, and the Twitter people list.</td>
+					<td>The retained links provide current Drupal contribution routes. Search pages, platform-specific social lists, and loosely maintained directories decay quickly.</td>
+				</tr>
+				<tr>
+					<th scope="row">Accessibility tools</th>
+					<td>Added W3C guidance for selecting tools and its maintained tools directory. Retained a smaller cross-section of automated, guided, visual, command-line, and development-tool options.</td>
+					<td>The original product list gave no selection criteria or limits. The revised text states what each tool is for and directs readers to a maintained directory for broader comparison.</td>
+				</tr>
+				<tr>
+					<th scope="row">Tool results</th>
+					<td>Added the distinction between accessibility barriers, requirements, test rules, and conformance decisions.</td>
+					<td>Tools test a subset of conditions. Even fewer rules are deterministic enough for unattended build gates. Manual review is still required.</td>
+				</tr>
+				<tr>
+					<th scope="row">Simulators</th>
+					<td>Removed Funkify and the color-blindness simulator section.</td>
+					<td>Simulators do not reproduce disabled people’s experiences and can create false confidence. Disabled-user testing and appropriate technical checks provide better evidence.</td>
+				</tr>
+				<tr>
+					<th scope="row">Color contrast tools</th>
+					<td>Removed the isolated contrast-checker list. Contrast tools can be found through the W3C tools directory and the selected general evaluation tools.</td>
+					<td>A short list of calculators becomes stale and can imply that contrast alone determines visual accessibility.</td>
+				</tr>
+				<tr>
+					<th scope="row">APCA</th>
+					<td>Changed “New WCAG 3.0 Color Model APCA” to an emerging-research entry with an explicit limitation.</td>
+					<td>APCA is not WCAG 3 and WCAG 3 remains an early draft. Neither replaces Drupal’s current WCAG 2.x contrast requirements.</td>
+				</tr>
+				<tr>
+					<th scope="row">Screen readers</th>
+					<td>Replaced third-party overview links and the ChromeVox extension with official documentation for NVDA, VoiceOver, TalkBack, and JAWS.</td>
+					<td>Official product documentation is more likely to remain current. The selection covers major desktop and mobile platforms, free and commercial products, and an open-source screen reader.</td>
+				</tr>
+				<tr>
+					<th scope="row">Assistive-technology scope</th>
+					<td>Added guidance to choose combinations based on users, supported platforms, and risk.</td>
+					<td>Testing every possible combination is not practical. One result cannot be generalized to every browser, product, disability, or user.</td>
+				</tr>
+				<tr>
+					<th scope="row">Media guidance</th>
+					<td>Added W3C guidance for accessible audio and video.</td>
+					<td>Media requirements depend on whether content is live, prerecorded, audio-only, video-only, or synchronized. A dedicated authoritative source is more reliable than isolated tool links.</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<h2>Content removed or consolidated</h2>
+
+		<ul>
+			<li><strong>Duplicate WCAG versions:</strong> Consolidated under WCAG 2.2 because it contains the applicable WCAG 2.0 and 2.1 requirements.</li>
+			<li><strong>Accessibility course directory:</strong> Removed because it did not support a defined task and would require separate curation.</li>
+			<li><strong>Twitter people and company list:</strong> Removed because the platform reference and list are stale.</li>
+			<li><strong>Legacy Drupal Groups and meetup links:</strong> Replaced by active Drupal Slack and office-hours routes.</li>
+			<li><strong>Simulators:</strong> Removed because they are not substitutes for evaluation with disabled people.</li>
+			<li><strong>Standalone contrast-tool list:</strong> Consolidated under the maintained W3C evaluation-tools directory.</li>
+			<li><strong>ChromeVox extension:</strong> Removed from the recommended screen-reader set in favour of maintained product documentation for more widely used desktop and mobile screen readers.</li>
+			<li><strong>Fixed claims that tools “support Web Components”:</strong> Removed because support varies by tool, rule, browser, component implementation, and shadow DOM configuration.</li>
+		</ul>
+
+		<h2>Claims not added</h2>
+
+		<p>The revision does not claim that:</p>
+
+		<ul>
+			<li>Inclusion on the page is a Drupal endorsement.</li>
+			<li>A practical guide, checklist, technique, or APG example is a normative requirement.</li>
+			<li>An automated scan establishes accessibility or WCAG conformance.</li>
+			<li>Every automated rule is reliable enough to block a build.</li>
+			<li>A simulator reproduces a disabled person’s experience.</li>
+			<li>One assistive-technology result applies to every product or user.</li>
+			<li>WCAG 3 or APCA replaces current WCAG 2.2 requirements.</li>
+			<li>General policy links constitute legal advice.</li>
+		</ul>
+
+		<h2>Sources checked</h2>
+
+		<ul>
+			<li><a href="https://github.com/mgifford/ACCESSIBILITY.md/blob/main/examples/TRUSTED_SOURCES.yaml"><code>TRUSTED_SOURCES.yaml</code></a></li>
+			<li><a href="https://www.w3.org/WAI/standards-guidelines/">W3C Accessibility Standards Overview</a></li>
+			<li><a href="https://www.w3.org/TR/WCAG22/">Web Content Accessibility Guidelines (WCAG) 2.2</a></li>
+			<li><a href="https://www.w3.org/TR/ATAG20/">Authoring Tool Accessibility Guidelines (ATAG) 2.0</a></li>
+			<li><a href="https://www.w3.org/WAI/ARIA/apg/">ARIA Authoring Practices Guide</a></li>
+			<li><a href="https://www.w3.org/WAI/test-evaluate/tools/selecting/">Selecting Web Accessibility Evaluation Tools</a></li>
+			<li><a href="https://www.w3.org/WAI/test-evaluate/involving-users/">Involving Users in Evaluating Web Accessibility</a></li>
+			<li><a href="https://www.w3.org/WAI/test-evaluate/conformance/wcag-em/">WCAG Evaluation Methodology</a></li>
+			<li><a href="https://www.w3.org/WAI/standards-guidelines/wcag/wcag3-intro/">WCAG 3 Introduction</a></li>
+			<li><a href="https://accessibility-manual.dwp.gov.uk/">DWP Accessibility Manual</a></li>
+			<li><a href="https://designsystem.digital.gov/documentation/accessibility/">U.S. Web Design System accessibility guidance</a></li>
+			<li><a href="https://a11y.canada.ca/">Government of Canada Digital Accessibility Toolkit</a></li>
+			<li><a href="https://accessible-eu-centre.ec.europa.eu/">AccessibleEU</a></li>
+		</ul>
+	</main>
+</body>
+</html>

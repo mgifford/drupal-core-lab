@@ -1,0 +1,465 @@
+diff --git a/core/lib/Drupal/Core/Form/FormPreprocess.php b/core/lib/Drupal/Core/Form/FormPreprocess.php
+index 342f92f1ff2..23a1b063ffa 100644
+--- a/core/lib/Drupal/Core/Form/FormPreprocess.php
++++ b/core/lib/Drupal/Core/Form/FormPreprocess.php
+@@ -101,9 +101,14 @@ public function preprocessFormElement(array &$variables): void {
+     ];
+     $variables['attributes'] = $element['#wrapper_attributes'];
+ 
+-    // Add element #id for #type 'item'.
+-    if (isset($element['#markup']) && !empty($element['#id'])) {
+-      $variables['attributes']['id'] = $element['#id'];
++    // A non-labelable element exposes its #id on the wrapping div.
++    if (isset($element['#non_labelable']) && !empty($element['#id'])) {
++      $edit_id = $element['#id'];
++      $base_id = str_starts_with($edit_id, 'edit-')
++        ? substr($edit_id, 5)
++        : $edit_id;
++      $variables['attributes']['id'] = $base_id . '-wrapper';
++      $variables['attributes']['aria-describedby'] = $base_id . '-label';
+     }
+ 
+     // Pass elements #type and #name to template.
+@@ -144,7 +149,8 @@ public function preprocessFormElement(array &$variables): void {
+     // Add label_display and label variables to template.
+     $variables['label_display'] = $element['#title_display'];
+     $variables['label'] = ['#theme' => 'form_element_label'];
+-    $variables['label'] += array_intersect_key($element, array_flip(['#id', '#required', '#title', '#title_display']));
++    $properties = ['#id', '#non_labelable', '#required', '#title', '#title_display', '#title_tag'];
++    $variables['label'] += array_intersect_key($element, array_flip($properties));
+     $variables['label']['#attributes'] = $element['#label_attributes'];
+     if (!empty($element['#label_for'])) {
+       $variables['label']['#for'] = $element['#label_for'];
+@@ -188,11 +194,15 @@ public function preprocessFormElementLabel(array &$variables): void {
+       $variables['title'] = ['#markup' => $element['#title']];
+     }
+ 
++    // Pass non_labelable and tag variables to template.
++    $variables['non_labelable'] = !empty($element['#non_labelable']);
++    $variables['tag'] = $element['#title_tag'] ?? ($variables['non_labelable'] ? 'span' : 'label');
++
+     // Pass elements title_display to template.
+     $variables['title_display'] = $element['#title_display'];
+ 
+     // A #for property of a dedicated #type 'label' element as precedence.
+-    if (!empty($element['#for'])) {
++    if (!empty($element['#for']) && $variables['tag'] === 'label') {
+       $variables['attributes']['for'] = $element['#for'];
+       // A custom #id allows the referenced form input element to refer back to
+       // the label element; e.g., in the 'aria-labelledby' attribute.
+@@ -201,9 +211,18 @@ public function preprocessFormElementLabel(array &$variables): void {
+       }
+     }
+     // Otherwise, point to the #id of the form input element.
+-    elseif (!empty($element['#id'])) {
++    elseif (!empty($element['#id']) && $variables['tag'] === 'label') {
+       $variables['attributes']['for'] = $element['#id'];
+     }
++    // A non-labelable element renders its title in a non-label tag (default 'span'). Give it an id
++    // so the wrapping div can reference it with aria-describedby.
++    elseif ($variables['non_labelable'] && !empty($element['#id'])) {
++      $edit_id = $element['#id'];
++      $base_id = str_starts_with($edit_id, 'edit-')
++        ? substr($edit_id, 5)
++        : $edit_id;
++      $variables['attributes']['id'] = "$base_id-label";
++    }
+ 
+     // Pass elements required to template.
+     $variables['required'] = !empty($element['#required']) ? $element['#required'] : NULL;
+diff --git a/core/lib/Drupal/Core/Render/Element/Item.php b/core/lib/Drupal/Core/Render/Element/Item.php
+index 6d00dabcd69..6ec866a1e14 100644
+--- a/core/lib/Drupal/Core/Render/Element/Item.php
++++ b/core/lib/Drupal/Core/Render/Element/Item.php
+@@ -26,6 +26,9 @@ public function getInfo() {
+       // assigned by Form API based on the #default_value or #value properties.
+       '#input' => TRUE,
+       '#markup' => '',
++      // An item exposes its #id on the wrapping div, which is not a labelable
++      // element, so its title must not be rendered as a label element.
++      '#non_labelable' => TRUE,
+       '#theme_wrappers' => ['form_element'],
+     ];
+   }
+diff --git a/core/misc/cspell/dictionary.txt b/core/misc/cspell/dictionary.txt
+index 277c11a097a..7b222423fa1 100644
+--- a/core/misc/cspell/dictionary.txt
++++ b/core/misc/cspell/dictionary.txt
+@@ -238,6 +238,7 @@ justinrainbow
+ keypresses
+ kinberg
+ kolkata
++labelable
+ lamoids
+ libc
+ lified
+diff --git a/core/modules/config_translation/tests/src/Functional/ConfigTranslationUiTest.php b/core/modules/config_translation/tests/src/Functional/ConfigTranslationUiTest.php
+index 698c05ab813..9f266a79cea 100644
+--- a/core/modules/config_translation/tests/src/Functional/ConfigTranslationUiTest.php
++++ b/core/modules/config_translation/tests/src/Functional/ConfigTranslationUiTest.php
+@@ -138,10 +138,10 @@ public function testPluralConfigStringsSourceElements(): void {
+       // Check if the expected number of source elements are present.
+       foreach ($data['expected'] as $index => $expected) {
+         if ($expected) {
+-          $this->assertSession()->responseContains('edit-source-config-names-viewsviewfiles-display-default-display-options-fields-count-format-plural-string-' . $index);
++          $this->assertSession()->responseContains('source-config-names-viewsviewfiles-display-default-display-options-fields-count-format-plural-string-' . $index . '-wrapper');
+         }
+         else {
+-          $this->assertSession()->responseNotContains('edit-source-config-names-viewsviewfiles-display-default-display-options-fields-count-format-plural-string-' . $index);
++          $this->assertSession()->responseNotContains('source-config-names-viewsviewfiles-display-default-display-options-fields-count-format-plural-string-' . $index . '-wrapper');
+         }
+       }
+     }
+diff --git a/core/modules/content_moderation/tests/src/Functional/WorkspaceContentModerationIntegrationTest.php b/core/modules/content_moderation/tests/src/Functional/WorkspaceContentModerationIntegrationTest.php
+index ed17276db43..60cf22923a6 100644
+--- a/core/modules/content_moderation/tests/src/Functional/WorkspaceContentModerationIntegrationTest.php
++++ b/core/modules/content_moderation/tests/src/Functional/WorkspaceContentModerationIntegrationTest.php
+@@ -95,7 +95,7 @@ public function testModerationInWorkspace(): void {
+ 
+     // Take the first node through various moderation states.
+     $this->drupalGet('/node/1/edit');
+-    $this->assertEquals('Current state Published', $this->cssSelect('#edit-moderation-state-0-current')[0]->getText());
++    $this->assertEquals('Current state Published', $this->cssSelect('#moderation-state-0-current-wrapper')[0]->getText());
+ 
+     $this->submitForm([
+       'title[0][value]' => 'First article - draft',
+@@ -106,7 +106,7 @@ public function testModerationInWorkspace(): void {
+     $this->assertSession()->pageTextContains('First article - draft');
+ 
+     $this->drupalGet('/node/1/edit');
+-    $this->assertEquals('Current state Draft', $this->cssSelect('#edit-moderation-state-0-current')[0]->getText());
++    $this->assertEquals('Current state Draft', $this->cssSelect('#moderation-state-0-current-wrapper')[0]->getText());
+ 
+     $this->submitForm([
+       'title[0][value]' => 'First article - published',
+diff --git a/core/modules/image/tests/modules/image_module_test/src/Plugin/ImageEffect/AjaxTestImageEffect.php b/core/modules/image/tests/modules/image_module_test/src/Plugin/ImageEffect/AjaxTestImageEffect.php
+index 6c24d19fe1f..96465214d9b 100644
+--- a/core/modules/image/tests/modules/image_module_test/src/Plugin/ImageEffect/AjaxTestImageEffect.php
++++ b/core/modules/image/tests/modules/image_module_test/src/Plugin/ImageEffect/AjaxTestImageEffect.php
+@@ -64,7 +64,7 @@ public function ajaxCallback($form, FormStateInterface $form_state) {
+       '#markup' => microtime(),
+     ];
+     $response = new AjaxResponse();
+-    $response->addCommand(new HtmlCommand('#ajax-value', $item));
++    $response->addCommand(new HtmlCommand('#ajax-value-wrapper', $item));
+     return $response;
+   }
+ 
+diff --git a/core/modules/image/tests/src/FunctionalJavascript/ImageAdminStylesTest.php b/core/modules/image/tests/src/FunctionalJavascript/ImageAdminStylesTest.php
+index 5b581e81155..062a4514505 100644
+--- a/core/modules/image/tests/src/FunctionalJavascript/ImageAdminStylesTest.php
++++ b/core/modules/image/tests/src/FunctionalJavascript/ImageAdminStylesTest.php
+@@ -61,11 +61,11 @@ public function testAjaxEnabledEffectForm(): void {
+       $this->drupalGet($effect_path);
+       $this->assertSession()->fieldValueEquals('data[test_parameter]', '100');
+       $page->findField('data[test_parameter]')->setValue(111);
+-      $ajax_value = $page->find('css', '#ajax-value')->getText();
++      $ajax_value = $page->find('css', '#ajax-value-wrapper')->getText();
+       $this->assertSame('Ajax value bar', $ajax_value);
+       $this->getSession()->getPage()->pressButton('Ajax refresh');
+       $this->assertTrue($page->waitFor(10, function ($page): bool {
+-        $ajax_value = $page->find('css', '#ajax-value')->getText();
++        $ajax_value = $page->find('css', '#ajax-value-wrapper')->getText();
+         return (bool) preg_match('/^Ajax value [0-9.]+ [0-9.]+$/', $ajax_value);
+       }));
+       $page->pressButton('Update effect');
+diff --git a/core/modules/system/templates/form-element-label.html.twig b/core/modules/system/templates/form-element-label.html.twig
+index c3ba47b2433..57ddd7e5c9c 100644
+--- a/core/modules/system/templates/form-element-label.html.twig
++++ b/core/modules/system/templates/form-element-label.html.twig
+@@ -8,6 +8,10 @@
+  * - title_display: Elements title_display setting.
+  * - required: An indicator for whether the associated form element is required.
+  * - attributes: A list of HTML attributes for the label.
++ * - tag: The HTML element tag to use for rendering the title (defaults to
++ *   'label', or 'span' for non-labelable elements).
++ * - non_labelable: An indicator that the title does not apply to a labelable
++ *   element.
+  *
+  * @see \Drupal\Core\Form\FormPreprocess::preprocessFormElementLabel()
+  *
+@@ -23,5 +27,5 @@
+   ]
+ %}
+ {% if title is not empty or required -%}
+-  <label{{ attributes.addClass(classes) }}>{{ title }}</label>
++  <{{ tag }}{{ attributes.addClass(classes) }}>{{ title }}</{{ tag }}>
+ {%- endif %}
+diff --git a/core/modules/system/tests/modules/form_test/src/Form/FormTestLabelForm.php b/core/modules/system/tests/modules/form_test/src/Form/FormTestLabelForm.php
+index bbbf97247da..7fde70af74e 100644
+--- a/core/modules/system/tests/modules/form_test/src/Form/FormTestLabelForm.php
++++ b/core/modules/system/tests/modules/form_test/src/Form/FormTestLabelForm.php
+@@ -120,6 +120,13 @@ public function buildForm(array $form, FormStateInterface $form_state) {
+     $form['form_textfield_test_title_no_show'] = [
+       '#type' => 'textfield',
+     ];
++    // Item test. Do not use a label element since div is not a labelable
++    // element.
++    $form['form_item_test_no_label'] = [
++      '#type' => 'item',
++      '#title' => $this->t('Item test'),
++      '#markup' => $this->t('An item element should not use a label element.'),
++    ];
+     // Checkboxes & radios with title as attribute.
+     $form['form_checkboxes_title_attribute'] = [
+       '#type' => 'checkboxes',
+diff --git a/core/modules/system/tests/src/Kernel/Common/FormElementsRenderTest.php b/core/modules/system/tests/src/Kernel/Common/FormElementsRenderTest.php
+index 257c235f27c..f59e1686907 100644
+--- a/core/modules/system/tests/src/Kernel/Common/FormElementsRenderTest.php
++++ b/core/modules/system/tests/src/Kernel/Common/FormElementsRenderTest.php
+@@ -88,10 +88,10 @@ public function testDrupalRenderFormElements(): void {
+       '#title' => $this->randomMachineName(),
+       '#markup' => $this->randomMachineName(),
+     ];
+-    $this->assertRenderedElement($element, '//div[contains(@class, :class) and contains(., :markup)]/label[contains(., :label)]', [
++    $this->assertRenderedElement($element, '//div[contains(@class, :class) and contains(., :markup)]/span[contains(., :span)]', [
+       ':class' => 'js-form-type-item',
+       ':markup' => $element['#markup'],
+-      ':label' => $element['#title'],
++      ':span' => $element['#title'],
+     ]);
+ 
+     $element = [
+diff --git a/core/modules/system/tests/src/Kernel/Form/ElementsLabelsTest.php b/core/modules/system/tests/src/Kernel/Form/ElementsLabelsTest.php
+index 6fa0b835eeb..18dae640d60 100644
+--- a/core/modules/system/tests/src/Kernel/Form/ElementsLabelsTest.php
++++ b/core/modules/system/tests/src/Kernel/Form/ElementsLabelsTest.php
+@@ -88,6 +88,11 @@ protected function testFormLabels(): void {
+     // Verify that no label tag exists when title set not to display.
+     $this->assertSession()->elementNotExists('xpath', '//label[@for="edit-form-textfield-test-title-no-show"]');
+ 
++    // Verify that a #type 'item' renders with a span instead of a label
++    // element. The wrapping div uses aria-describedby to refer to the span.
++    $this->assertSession()->elementNotExists('xpath', '//div[@id="form-item-test-no-label-wrapper"]//label');
++    $this->assertSession()->elementExists('xpath', '//div[@id="form-item-test-no-label-wrapper" and @aria-describedby="form-item-test-no-label-label"]/span[@id="form-item-test-no-label-label"]');
++
+     // Verify that field class is form-no-label when there is no label.
+     $this->assertSession()->elementExists('xpath', '//div[contains(@class, "js-form-item-form-textfield-test-title-invisible") and contains(@class, "form-no-label")]');
+ 
+diff --git a/core/modules/taxonomy/tests/src/Functional/TermTest.php b/core/modules/taxonomy/tests/src/Functional/TermTest.php
+index 06b4a825ad6..cbe37a59fcf 100644
+--- a/core/modules/taxonomy/tests/src/Functional/TermTest.php
++++ b/core/modules/taxonomy/tests/src/Functional/TermTest.php
+@@ -348,7 +348,7 @@ public function testTermInterface(): void {
+     $this->submitForm(["status[value]" => 0], 'Save');
+     // Check that the term is now unpublished in the list.
+     $this->drupalGet('admin/structure/taxonomy/manage/' . $this->vocabulary->id() . '/overview');
+-    $this->assertSession()->elementTextContains('css', "#edit-terms-tid{$term->id()}0-status", 'Unpublished');
++    $this->assertSession()->elementTextContains('css', "#terms-tid{$term->id()}0-status-wrapper", 'Unpublished');
+ 
+     // Check the term link can be clicked through to the term page.
+     $this->clickLink($edit['name[0][value]']);
+diff --git a/core/profiles/demo_umami/themes/umami/templates/components/form/form-element-label.html.twig b/core/profiles/demo_umami/themes/umami/templates/components/form/form-element-label.html.twig
+index f1c55684554..3b7b0ad78b3 100644
+--- a/core/profiles/demo_umami/themes/umami/templates/components/form/form-element-label.html.twig
++++ b/core/profiles/demo_umami/themes/umami/templates/components/form/form-element-label.html.twig
+@@ -8,6 +8,10 @@
+  * - title_display: Elements title_display setting.
+  * - required: An indicator for whether the associated form element is required.
+  * - attributes: A list of HTML attributes for the label.
++ * - tag: The HTML element tag to use for rendering the title (defaults to
++ *   'label', or 'span' for non-labelable elements).
++ * - non_labelable: An indicator that the title does not apply to a labelable
++ *   element.
+  *
+  * @see \Drupal\Core\Form\FormPreprocess::preprocessFormElementLabel()
+  */
+@@ -22,5 +26,5 @@
+   ]
+ %}
+ {% if title is not empty or required -%}
+-  <label{{ attributes.addClass(classes) }}>{{ title }}</label>
++  <{{ tag }}{{ attributes.addClass(classes) }}>{{ title }}</{{ tag }}>
+ {%- endif %}
+diff --git a/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/JavascriptStatesTest.php b/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/JavascriptStatesTest.php
+index a7c004a90f5..fff62e4c857 100644
+--- a/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/JavascriptStatesTest.php
++++ b/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/JavascriptStatesTest.php
+@@ -448,7 +448,7 @@ protected function doSelectTriggerTests(): void {
+     // Find trigger and target elements.
+     $trigger = $page->findField('select_trigger');
+     $this->assertNotEmpty($trigger);
+-    $item_visible_value2 = $this->assertSession()->elementExists('css', '#edit-item-visible-when-select-trigger-has-value2');
++    $item_visible_value2 = $this->assertSession()->elementExists('css', '#item-visible-when-select-trigger-has-value2-wrapper');
+     $textfield_visible_value3 = $page->findField('textfield_visible_when_select_trigger_has_value3');
+     $this->assertNotEmpty($textfield_visible_value3);
+     $textfield_visible_value2_or_value3 = $page->findField('textfield_visible_when_select_trigger_has_value2_or_value3');
+@@ -488,8 +488,8 @@ protected function doMultipleSelectTriggerTests(): void {
+     // Find trigger and target elements.
+     $trigger = $page->findField('multiple_select_trigger[]');
+     $this->assertNotEmpty($trigger);
+-    $item_visible_value2 = $this->assertSession()->elementExists('css', '#edit-item-visible-when-multiple-select-trigger-has-value2');
+-    $item_visible_no_value = $this->assertSession()->elementExists('css', '#edit-item-visible-when-multiple-select-trigger-has-no-value');
++    $item_visible_value2 = $this->assertSession()->elementExists('css', '#item-visible-when-multiple-select-trigger-has-value2-wrapper');
++    $item_visible_no_value = $this->assertSession()->elementExists('css', '#item-visible-when-multiple-select-trigger-has-no-value-wrapper');
+     $textfield_visible_value3 = $page->findField('textfield_visible_when_multiple_select_trigger_has_value3');
+     $this->assertNotEmpty($textfield_visible_value3);
+     $textfield_visible_value2_or_value3 = $page->findField('textfield_visible_when_multiple_select_trigger_has_value2_or_value3');
+@@ -548,7 +548,7 @@ protected function doMultipleTriggerTests(): void {
+     $this->assertNotEmpty($select_trigger);
+     $textfield_trigger = $page->findField('textfield_trigger');
+     $this->assertNotEmpty($textfield_trigger);
+-    $item_visible_value2_and_textfield = $this->assertSession()->elementExists('css', '#edit-item-visible-when-select-trigger-has-value2-and-textfield-trigger-filled');
++    $item_visible_value2_and_textfield = $this->assertSession()->elementExists('css', '#item-visible-when-select-trigger-has-value2-and-textfield-trigger-filled-wrapper');
+ 
+     // Verify initial state.
+     $this->assertFalse($item_visible_value2_and_textfield->isVisible());
+diff --git a/core/tests/Drupal/KernelTests/Core/Theme/ClaroItemLabelTest.php b/core/tests/Drupal/KernelTests/Core/Theme/ClaroItemLabelTest.php
+new file mode 100644
+index 00000000000..fc6ee8414b7
+--- /dev/null
++++ b/core/tests/Drupal/KernelTests/Core/Theme/ClaroItemLabelTest.php
+@@ -0,0 +1,65 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\KernelTests\Core\Theme;
++
++use Drupal\Core\Form\FormState;
++use Drupal\KernelTests\KernelTestBase;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++
++/**
++ * Confirms that Claro renders a #type 'item' title without a label element.
++ */
++#[Group('Theme')]
++#[RunTestsInSeparateProcesses]
++class ClaroItemLabelTest extends KernelTestBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  protected static $modules = ['system'];
++
++  /**
++   * Confirms a #type 'item' renders its title in a span, not a label.
++   */
++  public function testItemLabel(): void {
++    // Enable the Claro theme.
++    \Drupal::service('theme_installer')->install(['claro']);
++    $this->config('system.theme')->set('default', 'claro')->save();
++
++    $form = [
++      '#parents' => ['parent'],
++      '#array_parents' => [],
++      '#tree' => TRUE,
++    ];
++    $form['item'] = [
++      '#type' => 'item',
++      '#title' => 'Item title',
++      '#markup' => 'Item markup.',
++    ];
++
++    /** @var \Drupal\Core\Form\FormBuilderInterface $form_builder */
++    $form_builder = $this->container->get('form_builder');
++    $form_state = new FormState();
++    $form_builder->doBuildForm('form', $form, $form_state);
++    $this->render($form);
++
++    // An item's #id is on the wrapping div, which is not a labelable element.
++    // The wrapper has a '-wrapper' id and references the title through
++    // aria-describedby, which points to a span with a '-label' id.
++    $wrappers = $this->cssSelect('div[aria-describedby]');
++    $this->assertCount(1, $wrappers);
++    $wrapper = $wrappers[0];
++    $this->assertStringEndsWith('-wrapper', (string) $wrapper['id']);
++    $label_id = (string) $wrapper['aria-describedby'];
++    $this->assertStringEndsWith('-label', $label_id);
++    $this->assertCount(0, $wrapper->xpath('.//label'));
++    $spans = $wrapper->xpath('.//span[@id="' . $label_id . '"]');
++    $this->assertCount(1, $spans);
++    $this->assertStringContainsString('form-item__label', (string) $spans[0]['class']);
++    $this->assertSame('Item title', trim((string) $spans[0]));
++  }
++
++}
+diff --git a/core/tests/Drupal/Nightwatch/Tests/statesTest.js b/core/tests/Drupal/Nightwatch/Tests/statesTest.js
+index 8c037e53ecc..2c85c77e35f 100644
+--- a/core/tests/Drupal/Nightwatch/Tests/statesTest.js
++++ b/core/tests/Drupal/Nightwatch/Tests/statesTest.js
+@@ -18,7 +18,7 @@ module.exports = {
+       .drupalRelativeURL('/form-test/javascript-states-form')
+       .waitForElementVisible('body', 1000)
+       .waitForElementNotVisible(
+-        '#edit-item-visible-when-number-trigger-filled-by-spinner',
++        '#item-visible-when-number-trigger-filled-by-spinner-wrapper',
+         1000,
+       )
+       .execute(() => {
+@@ -30,7 +30,7>::module.exports = {
+       });
+ 
+     browser.waitForElementVisible(
+-      '#edit-item-visible-when-number-trigger-filled-by-spinner',
++      '#item-visible-when-number-trigger-filled-by-spinner-wrapper',
+       1000,
+     );
+   },
+diff --git a/core/themes/claro/templates/form-element-label.html.twig b/core/themes/claro/templates/form-element-label.html.twig
+index b7dfcc95e4d..89c8b04d135 100644
+--- a/core/themes/claro/templates/form-element-label.html.twig
++++ b/core/themes/claro/templates/form-element-label.html.twig
+@@ -8,6 +8,10 @@
+  * - title_display: Elements title_display setting.
+  * - required: An indicator for whether the associated form element is required.
+  * - attributes: A list of HTML attributes for the label.
++ * - tag: The HTML element tag to use for rendering the title (defaults to
++ *   'label', or 'span' for non-labelable elements).
++ * - non_labelable: An indicator that the title does not apply to a labelable
++ *   element.
+  *
+  * @see \Drupal\Core\Form\FormPreprocess::preprocessFormElementLabel()
+  */
+@@ -22,5 +26,5 %}
+   ]
+ %}
+ {% if title is not empty or required -%}
+-  <label{{ attributes.addClass(classes) }}>{{ title }}</label>
++  <{{ tag }}{{ attributes.addClass(classes) }}>{{ title }}</{{ tag }}>
+ {%- endif %}
+diff --git a/core/themes/default_admin/templates/form/form-element-label.html.twig b/core/themes/default_admin/templates/form/form-element-label.html.twig
+index b7dfcc95e4d..89c8b04d135 100644
+--- a/core/themes/default_admin/templates/form/form-element-label.html.twig
++++ b/core/themes/default_admin/templates/form/form-element-label.html.twig
+@@ -8,6 +8,10 @@
+  * - title_display: Elements title_display setting.
+  * - required: An indicator for whether the associated form element is required.
+  * - attributes: A list of HTML attributes for the label.
++ * - tag: The HTML element tag to use for rendering the title (defaults to
++ *   'label', or 'span' for non-labelable elements).
++ * - non_labelable: An indicator that the title does not apply to a labelable
++ *   element.
+  *
+  * @see \Drupal\Core\Form\FormPreprocess::preprocessFormElementLabel()
+  */
+@@ -22,5 +26,5 %}
+   ]
+ %}
+ {% if title is not empty or required -%}
+-  <label{{ attributes.addClass(classes) }}>{{ title }}</label>
++  <{{ tag }}{{ attributes.addClass(classes) }}>{{ title }}</{{ tag }}>
+ {%- endif %}
+diff --git a/core/themes/starterkit_theme/templates/form/form-element-label.html.twig b/core/themes/starterkit_theme/templates/form/form-element-label.html.twig
+index f325ee5ca87..e1d8d64b9de 100644
+--- a/core/themes/starterkit_theme/templates/form/form-element-label.html.twig
++++ b/core/themes/starterkit_theme/templates/form/form-element-label.html.twig
+@@ -8,6 +8,10 @@
+  * - title_display: Elements title_display setting.
+  * - required: An indicator for whether the associated form element is required.
+  * - attributes: A list of HTML attributes for the label.
++ * - tag: The HTML element tag to use for rendering the title (defaults to
++ *   'label', or 'span' for non-labelable elements).
++ * - non_labelable: An indicator that the title does not apply to a labelable
++ *   element.
+  *
+  * @see \Drupal\Core\Form\FormPreprocess::preprocessFormElementLabel()
+  */
+@@ -21,5 +25,5 %}
+   ]
+ %}
+ {% if title is not empty or required -%}
+-  <label{{ attributes.addClass(classes) }}>{{ title }}</label>
++  <{{ tag }}{{ attributes.addClass(classes) }}>{{ title }}</{{ tag }}>
+ {%- endif %}
