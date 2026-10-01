@@ -20,10 +20,11 @@ Both have Inline Form Errors on, the Article content type (recipe
 
     node tools/compare/serve.mjs [slug]       # then open http://localhost:8100/
 
-Controls: **Compare upstream with** (variant), **Page**, **Go (both)**,
-**Log in both as admin**, **Site theme** (Light / Dark / Follow OS),
-**Frame width** (Half / Phone / Tablet), **Sync scrolling**, **Sync navigation**,
-**Simulate a dark-mode OS**, **Mirror clicks and typing**.
+Controls: **Compare upstream with** (variant), **Page**, **Go (both)**, **Log in both as admin**, **Clear Drupal caches (both)**,
+**Reset browser state (both)**, **Reload Before / Reload After**, **Open outside this tool** links, **Site theme**
+(Light / Dark / Follow OS), **Frame width** (Half, the default, / Phone / Tablet), **Sync scrolling**, **Sync navigation**,
+**Simulate a dark-mode OS**, **Mirror clicks and typing**, **Live accessibility checks (axe-core)**, and **View** (Side by side /
+Onion skin / Difference). Below the frames: the live accessibility panel, a **manual confirmation** panel, and **Run checks**.
 
 - Site theme sets or clears the Default Admin `dark-mode` class on `<html>`. Follow
   OS uses the real or simulated OS preference.
@@ -74,6 +75,12 @@ setup reached, sidebar open, focus in the URL alias field, saved preference not
 overwritten, no JavaScript errors, same number of open details sections.
 The harmless "ResizeObserver loop" browser notice is ignored in the error count.
 
+## Manual confirmation
+Because the two frames stay in step, a person can confirm the change by eye. The panel asks the questions in the variant's
+`observe` list (for example "The sidebar of advanced fields opened by itself") once for Before and once for After, compares your
+answers with `expectBefore` and `expectAfter`, shows a green or red summary, and saves your answers and a notes field in the
+downloaded log. It does not depend on the automated checks and does not replace testing with a keyboard.
+
 ## View modes: finding differences
 - **Side by side** (default).
 - **Onion skin**: Before underneath, After on top, with an opacity slider.
@@ -114,12 +121,23 @@ Logs in to both sites, fetches each page in `pages` and every local CSS/JS file
 it references, normalises per-site noise (hostnames, form tokens, random ids,
 cache-busting query strings, drupal-settings JSON, aggregate file names) and
 writes `reports/issues/<nid>/compare/<slug>/SUMMARY.md` plus one `.diff` per
-changed file. For #3619127 it reports 1 of 336 items different: `sidebar.js`.
+changed file. For #3619127 it reports exactly one differing item (the patched `sidebar.js`) out of a few hundred compared.
 
-## Add a comparison
-Add an entry to `variants.json`: slug, issue number, label, description,
-`before.env`, `after.env` (+ `patches` applied, for the record), `pages`,
-`login`, optional `demo` (`start`, `viewport`).
+## variants.json: field reference
+One entry per comparison; `docs/NEW-ISSUE.md` walks through writing one. A variant may `"extends": "<slug>"` another and override
+fields (`core`, `before`, `after` merge one level deep, so `after.patches` is inherited unless replaced).
+
+| Field | Meaning |
+|---|---|
+| `slug`, `issue`, `label`, `description` | Identity and the sentence shown above the frames. |
+| `core` | `{ "commit": "<sha>" }` pins an exact core commit; `{ "ref": "main", "commit": null }` follows the branch (fetched when an environment is first created). |
+| `before.env`, `after.env` | Directory names under `envs/`. `after.patches` lists patch files (paths from the repository root) applied in order. `url` overrides the link for "open outside". |
+| `recipe` | Directory under `recipes/` applied to both sites (the starting state). Omit for a plain Standard install. |
+| `pages`, `login` | Pages the diff report fetches; whether it logs in. |
+| `steps`, `expected`, `actual`, `setup` | Shown above the frames. Each step: `{ text, how: "recipe" / "mirror" / "each", lookFor }`. |
+| `checks` | `{ label, probe, expect, kind }` for Run checks: `probe` is a JS expression evaluated inside each frame; `expect` a value or `"same"`; `kind` is `precondition`, `fix` or `regression`. |
+| `observe` | `{ label, expectBefore, expectAfter }` for the manual confirmation panel. |
+| `demo` | `{ start }`: the page both frames open on. |
 
 ## If a frame does not load
 The viewer raises an alert after 12 seconds and checks both sites; use **Reload Before / Reload After**. Details of what
@@ -127,12 +145,9 @@ was fixed and how to measure it: `docs/FRAME-LOADING-2026-10-01.md`. If a DDEV p
 then `ddev restart` in that environment.
 
 ## Limits
-- Compares served HTML/CSS/JS and shows behaviour. It does not replace a
-  keyboard and screen-reader test.
-- Only the first variant's environments are proxied at a time (the page switches
-  variants, but each variant's envs must be running).
-- Tested in Chrome (the in-app browser). Frames use `SameSite=None; Secure`
-  cookies on `*.localhost`; other browsers are untested.
-- Typing into the frames (for example reproducing the error-link flow) was not
-  exercised through the viewer yet.
-- `drupal-compare.ddev.site` is not set up; the viewer runs on `localhost:8100`.
+- It compares behaviour in a browser and the files served. It does not replace testing with a keyboard.
+- Only one variant's environments are proxied at a time (the page switches variants, but that variant's environments must be running).
+- Tested in Chromium (the in-app browser and Playwright). Frames use `SameSite=None; Secure` cookies on `*.localhost` or
+  `*.ddev.site`; other browsers are untested. Onion skin has been used but not systematically checked.
+- Rich widgets (CKEditor, autocomplete, file upload) are untested with Mirror.
+- Script-generated events do not trigger the same behaviour as real input: for focus and activation use real clicks and keys.

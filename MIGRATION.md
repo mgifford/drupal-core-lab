@@ -18,9 +18,9 @@ Date: 2026-10-01. Nothing from Drupal core itself was migrated.
 | `ISSUE-<nid>.md`, `ISSUE_<nid>_*.md` | `reports/issues/<nid>/` |
 | `ISSUE-COMMENTS-*`, `ISSUE-DRAFTS-*` | `reports/issue-drafts/` |
 | `testing/issue-<nid>-*` | `reports/issues/<nid>/` |
-| other root `*.md` process docs | `docs/` |
+| other root `*.md` process docs | `docs/legacy/` (moved there 2026-10-01: they describe the old workflow) |
 | old `AGENTS.md`, `CLAUDE.md`, `README.md` | `docs/legacy/` (fork-specific, superseded) |
-| `documentation-new/` | `docs/documentation-new/` |
+| `documentation-new/` | `docs/legacy/documentation-new/` |
 | `openacr-pilot/` | `reports/openacr-pilot/` |
 | `reports/`, `patches/`, `tools/`, `tests/` | same names |
 | `scripts/` | `scripts/legacy-core-root/` |

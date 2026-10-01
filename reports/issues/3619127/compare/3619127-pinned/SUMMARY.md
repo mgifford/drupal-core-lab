@@ -1,4 +1,4 @@
-# Compare: 3619127-vanilla
+# Compare: 3619127-pinned
 
 Generated 2026-10-01T10:11:25.922Z. Before: `baseline-main`. After: `issue-3619127-vanilla`.
 

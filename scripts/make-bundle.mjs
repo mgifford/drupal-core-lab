@@ -1,5 +1,5 @@
 // Package one comparison as a self-contained zip that someone else can unpack and run.
-//   node scripts/make-bundle.mjs [slug]      writes dist/drupal-repro-<issue>-<date>.zip
+//   node scripts/make-bundle.mjs [slug]      writes bundles/drupal-repro-<issue>-<date>.zip (replaces an older zip for the same issue)
 // The zip is a slice of this lab with the same layout (so the tools run unchanged): the viewer,
 // the recipe, the patches, the steps and checks, the evidence, and a setup command. It does not
 // contain Drupal core; setup clones it.
@@ -31,7 +31,10 @@ copy(`recipes/${v.recipe}`);
 copy(`reports/issues/${v.issue}`);
 
 fs.mkdirSync(path.join(root, 'tools/compare'), { recursive: true });
-fs.writeFileSync(path.join(root, 'tools/compare/variants.json'), JSON.stringify([v], null, 2) + '\n');
+const rawAll = JSON.parse(fs.readFileSync(path.join(labRoot, 'tools/compare/variants.json'), 'utf8'));
+const issueVariants = rawAll.filter((x) => String(x.issue || '') === String(v.issue) || rawAll.some((y) => y.slug === x.extends && String(y.issue) === String(v.issue)));
+fs.writeFileSync(path.join(root, 'tools/compare/variants.json'), JSON.stringify(issueVariants, null, 2) + '\n');
+const latestSlug = (issueVariants.find((x) => /-latest$/.test(x.slug)) || {}).slug;
 
 const steps = (v.steps || []).map((s, i) => `${i + 1}. ${s.text}${s.lookFor ? `\n   *Look for:* ${s.lookFor}` : ''}`).join('\n');
 const checks = (v.checks || []).map((c) => `| ${c.kind} | ${c.label} | ${c.expect === 'same' ? 'same on both sides' : c.expect} |`).join('\n');
@@ -70,6 +73,20 @@ which must be done in each frame by hand (and by keyboard). Then press **Run che
 Switch **View** to **Difference** to see anything that looks different (black means identical).
 The **Accessibility, live (axe-core)** panel compares both sides after every page load and interaction and
 alerts when After has more (or fewer) violations than Before.
+
+## Coming back later, or trying updated Drupal core
+\`${v.slug}\` uses ${v.core && v.core.commit ? 'the pinned core commit `' + v.core.commit.slice(0, 12) + '`, so it reproduces exactly as verified' : 'core as configured in variants.json'}.${latestSlug ? `
+To see whether it still works on current core:
+
+\`\`\`bash
+node tools/compare/setup.mjs ${v.slug} --check-patches    # do the patches still apply to the pinned core?
+node tools/compare/setup.mjs ${latestSlug} --check-patches    # ...and to the current core main?
+node tools/compare/setup.mjs ${latestSlug}                     # build Before and After on current main
+node tools/playwright/walkthrough.mjs ${latestSlug}            # needs: cd tools/playwright && npm install && npx playwright install chromium
+\`\`\`
+` : ''}
+\`reports/issues/${v.issue}/REPRODUCE.md\` explains what each outcome means (a patch that no longer applies, a problem that no longer
+reproduces because upstream fixed it, a fix that no longer works) and how to re-pin.
 
 ## What is in this bundle
 | Path | What |
@@ -113,9 +130,9 @@ git.drupalcode.org, not included. The viewer and scripts were written with AI as
 for sources and dates. Always check the issue on drupal.org: it is the source of truth.
 `);
 
-fs.mkdirSync(path.join(labRoot, 'dist'), { recursive: true });
-const zip = path.join(labRoot, 'dist', `${name}-${date}.zip`);
-fs.rmSync(zip, { force: true });
+fs.mkdirSync(path.join(labRoot, 'bundles'), { recursive: true });
+for (const f of fs.readdirSync(path.join(labRoot, 'bundles'))) if (f.startsWith(`${name}-`) && f.endsWith('.zip')) fs.rmSync(path.join(labRoot, 'bundles', f));
+const zip = path.join(labRoot, 'bundles', `${name}-${date}.zip`);
 const r = spawnSync('zip', ['-qr', zip, name], { cwd: stage, stdio: 'inherit' });
 if (r.status !== 0) { console.error('zip failed (is the zip command installed?)'); process.exit(1); }
 fs.rmSync(stage, { recursive: true, force: true });

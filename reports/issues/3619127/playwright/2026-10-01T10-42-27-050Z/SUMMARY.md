@@ -1,6 +1,6 @@
-# Playwright walkthrough: #3619127 (3619127-vanilla)
+# Playwright walkthrough: #3619127 (3619127-pinned)
 
-Run 2026-10-01T10:02:20.679Z. Viewport 480x900. Trusted input (Playwright clicks and key presses), axe-core WCAG 2.0 to 2.2 A/AA.
+Run 2026-10-01T10:42:27.381Z. Core: Before `d29add7ebc18954dcb88877ed38b5bd88cdbf967 2026-09-30`, After `d29add7ebc18954dcb88877ed38b5bd88cdbf967 2026-09-30` (`<commit> <date>`) (pinned). Patches on After: `3619127-forms-sidebar-with-ife.patch`, `patch-0-vanilla-js-no-jquery.patch`, `patch-1-no-persist-and-waits.patch`. Viewport 480x900. Trusted input (Playwright clicks and key presses), axe-core WCAG 2.0 to 2.2 A/AA.
 
 Rule: **fix** checks should fail on Before and pass on After; **regression** checks should be equal.
 
@@ -43,6 +43,10 @@ Field as exposed to assistive technology after using the link (After):
 ```
 
 Screenshots: `before-keyboard-2-after-link.png`, `after-keyboard-2-after-link.png`.
+
+## Interpretation
+
+✓ **Reproduced and fixed.** On this core, Before shows the problem and After (with the patches) fixes it.
 
 ---
 **✓ All checks behave as expected.** Automated results are a DRAFT: they do not replace a keyboard and screen-reader pass by a person.

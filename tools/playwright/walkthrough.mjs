@@ -9,7 +9,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { labRoot, variants, envInfo, loginPath } from '../compare/lib.mjs';
+import { execFileSync } from 'node:child_process';
+import { labRoot, variants, envInfo, loginPath, envDir } from '../compare/lib.mjs';
 import { setup } from './flow.mjs';
 
 const v = variants().find((x) => x.slug === (process.argv[2] || variants()[0].slug));
@@ -64,15 +65,16 @@ async function runSide(browser, side) {
 }
 
 const browser = await chromium.launch();
-const results = { variant: v.slug, issue: v.issue, when: new Date().toISOString(), viewport: VIEWPORT, sides: {} };
+const gitInfo = (env) => { try { return execFileSync('git', ['-C', envDir(env), 'log', '-1', '--format=%H %cs'], { encoding: 'utf8' }).trim(); } catch { return 'unknown'; } };
+const results = { variant: v.slug, issue: v.issue, when: new Date().toISOString(), viewport: VIEWPORT, core: v.core || {}, commits: { before: gitInfo(v.before.env), after: gitInfo(v.after.env) }, patches: v.after.patches || [], sides: {} };
 for (const side of ['before', 'after']) { console.log(`running ${side} (${v[side].env}) ...`); results.sides[side] = await runSide(browser, side); }
 await browser.close();
 fs.writeFileSync(path.join(out, 'results.json'), JSON.stringify(results, null, 2));
 
 // ---- summary: the old version should fail the fix checks, the new one should pass; nothing else should change
 const ok = (b) => (b ? '✓ yes' : '✗ no');
-let md = `# Playwright walkthrough: #${v.issue} (${v.slug})\n\nRun ${results.when}. Viewport ${VIEWPORT.width}x${VIEWPORT.height}. Trusted input (Playwright clicks and key presses), axe-core WCAG 2.0 to 2.2 A/AA.\n\nRule: **fix** checks should fail on Before and pass on After; **regression** checks should be equal.\n\n`;
-let unexpected = 0;
+let md = `# Playwright walkthrough: #${v.issue} (${v.slug})\n\nRun ${results.when}. Core: Before \`${results.commits.before}\`, After \`${results.commits.after}\` (\`<commit> <date>\`)${v.core && v.core.commit ? ' (pinned)' : ' (follows main)'}. Patches on After: ${results.patches.length ? results.patches.map((p) => '`' + p.split('/').pop() + '`').join(', ') : 'none'}. Viewport ${VIEWPORT.width}x${VIEWPORT.height}. Trusted input (Playwright clicks and key presses), axe-core WCAG 2.0 to 2.2 A/AA.\n\nRule: **fix** checks should fail on Before and pass on After; **regression** checks should be equal.\n\n`;
+let unexpected = 0; const fixRows = [];
 for (const mode of ['mouse', 'keyboard']) {
   const B = results.sides.before.runs[mode], A = results.sides.after.runs[mode];
   const rows = [
@@ -87,10 +89,17 @@ for (const mode of ['mouse', 'keyboard']) {
     ['regression', 'JavaScript errors', B.jsErrors.length, A.jsErrors.length],
   ];
   md += `## ${mode === 'mouse' ? 'Mouse' : 'Keyboard only (Tab/focus the link, press Enter)'}\n\n| Type | Check | Before | After | Verdict |\n|---|---|---|---|---|\n`;
-  for (const [t, label, b, a] of rows) { const good = !b && a; if (!good) unexpected++; md += `| ${t} | ${label} | ${ok(b)} | ${ok(a)} | ${good ? '✓ as expected: fails before, passes after' : '✗ NOT as expected'} |\n`; }
+  for (const [t, label, b, a] of rows) { fixRows.push([b, a]); const good = !b && a; if (!good) unexpected++; md += `| ${t} | ${label} | ${ok(b)} | ${ok(a)} | ${good ? '✓ as expected: fails before, passes after' : '✗ NOT as expected'} |\n`; }
   for (const [t, label, b, a] of reg) { const good = String(b) === String(a); if (!good) unexpected++; md += `| ${t} | ${label} | ${b} | ${a} | ${good ? '✓ unchanged' : '✗ differs'} |\n`; }
   md += `\nField as exposed to assistive technology after using the link (After):\n\n\`\`\`yaml\n${A.fieldAccessibilityTree}\n\`\`\`\n\nScreenshots: \`before-${mode}-2-after-link.png\`, \`after-${mode}-2-after-link.png\`.\n\n`;
 }
+const reproduced = fixRows.every(([b]) => !b), notReproduced = fixRows.every(([b]) => b), fixed = fixRows.every(([, a]) => a);
+let interp;
+if (reproduced && fixed) interp = '\u2713 **Reproduced and fixed.** On this core, Before shows the problem and After (with the patches) fixes it.';
+else if (reproduced && !fixed) interp = '\u2717 **Reproduced, but the patched After does not fix it** on this core. The patches may need rerolling, or the surrounding code has changed. Run `node tools/compare/setup.mjs <slug> --check-patches` and review the diff of `sidebar.js` against the core you are using.';
+else if (notReproduced) interp = '\u26A0 **The problem does not reproduce on Before** on this core. Either upstream has already fixed it (check the issue on drupal.org and recent core commits for the changed files), or these steps and selectors no longer match this core. Do **not** conclude the patch is wrong: investigate first.';
+else interp = '\u26A0 **Mixed result**: some fix checks fail on Before and some do not. The behaviour may have partly changed on this core. Compare the screenshots and read the table above.';
+md += `## Interpretation\n\n${interp}\n\n`;
 md += `---\n**${unexpected === 0 ? '✓ All checks behave as expected' : `✗ ${unexpected} check(s) not as expected`}.** Automated results are a DRAFT: they do not replace a keyboard and screen-reader pass by a person.\n`;
 fs.writeFileSync(path.join(out, 'SUMMARY.md'), md);
 console.log(`\n${unexpected === 0 ? 'OK' : 'UNEXPECTED RESULTS'}: ${path.relative(labRoot, out)}/SUMMARY.md`);

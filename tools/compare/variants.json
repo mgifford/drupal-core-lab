@@ -1,8 +1,8 @@
 [
   {
-    "slug": "3619127-vanilla",
+    "slug": "3619127-pinned",
     "issue": "3619127",
-    "label": "#3619127: sidebar opens from Inline Form Errors links (MR + vanilla JS)",
+    "label": "#3619127: sidebar opens from Inline Form Errors links (MR + vanilla JS), pinned core",
     "description": "Before: upstream main. After: MR !16895 with patch-0 (no jQuery) and patch-1 (no persist). Open /node/add/article in a narrow window, set a URL alias of 'no-slash' inside the sidebar, close the sidebar, Save, then use the error link. Before: nothing opens. After: the sidebar opens and the field gets focus.",
     "before": {
       "env": "baseline-main"
@@ -137,6 +137,27 @@
         "expectBefore": false,
         "expectAfter": false
       }
-    ]
+    ],
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "d29add7ebc18954dcb88877ed38b5bd88cdbf967"
+    },
+    "pinnedNote": "Core commit d29add7ebc1 (2026-09-30), the one the evidence in reports/issues/3619127/ was produced on. Reproduces exactly as verified."
+  },
+  {
+    "slug": "3619127-latest",
+    "extends": "3619127-pinned",
+    "label": "#3619127: same steps against the LATEST Drupal core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-latest"
+    },
+    "after": {
+      "env": "issue-3619127-latest"
+    },
+    "pinnedNote": "Follows current core main when the environments are created. If the patches no longer apply, or Before no longer fails, see reports/issues/3619127/REPRODUCE.md."
   }
 ]

@@ -6,7 +6,19 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const labRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-export const variants = () => JSON.parse(fs.readFileSync(path.join(labRoot, 'tools/compare/variants.json'), 'utf8'));
+// A variant may `extends` another by slug: it inherits every field and overrides the ones it sets
+// (`core`, `before` and `after` are merged one level deep, so `after.patches` is inherited unless replaced).
+export const variants = () => {
+  const all = JSON.parse(fs.readFileSync(path.join(labRoot, 'tools/compare/variants.json'), 'utf8'));
+  const bySlug = Object.fromEntries(all.map((x) => [x.slug, x]));
+  const resolve = (x) => {
+    if (!x.extends) return x;
+    const base = resolve(bySlug[x.extends]); const out = { ...base, ...x }; delete out.extends;
+    for (const k of ['core', 'before', 'after']) if (base[k] || x[k]) out[k] = { ...(base[k] || {}), ...(x[k] || {}) };
+    return out;
+  };
+  return all.map(resolve);
+};
 export const envDir = (env) => path.join(labRoot, 'envs', env);
 
 // DDEV hostname and router port for an environment (the router needs a Host header).

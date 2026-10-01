@@ -11,8 +11,8 @@ moments, record what assistive technology would be given, and write the result t
     npx playwright install chromium        # large download (the browser)
 
 ## Run (both DDEV sites must be running; see ../compare/README.md)
-    node tools/playwright/walkthrough.mjs 3619127-vanilla     # steps 6 to 10, mouse and keyboard-only, axe at each stage
-    node tools/playwright/screenreader.mjs 3619127-vanilla    # Guidepup virtual screen reader: what is announced
+    node tools/playwright/walkthrough.mjs 3619127-pinned     # steps 6 to 10, mouse and keyboard-only, axe at each stage
+    node tools/playwright/screenreader.mjs 3619127-pinned    # Guidepup virtual screen reader: what is announced
 
 Login uses the one-time link from `ddev drupal login`, not a typed password.
 

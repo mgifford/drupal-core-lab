@@ -1,69 +1,23 @@
-# Testing workflow (hard-coded process)
+# docs/
 
-This directory is the durable home for Drupal-core patch work: the generated patch,
-interdiff, issue-queue comment, screen-reader harness, and a full review bundle. It is
-committed to the GitHub fork (`origin`) so the work and the *process* survive across
-sessions, machines, and different LLMs.
+Current documentation for this lab (written or verified 2026-10-01), plus a `legacy/` folder.
 
-## Layout
-```
-testing/<issue-id>-<short-title>/
-  <issue>-full.patch            # full patch vs branch base (uploadable)
-  <issue>-interdiff.patch       # diff vs the previous/aggregate patch
-  <issue>-comment.md            # proposed drupal.org issue-queue comment
-  <issue>-review-bundle.zip     # everything zipped for quick review
-  guidepup/                     # before/after VoiceOver harness + analysis
-  src/                          # copies of changed source files for direct review
-  README.md                     # what this issue changed + how to verify
-core/recipes/replicate_core_testing/   # composite Drupal recipe that builds the test environment
-scripts/reset-site.sh           # reset the dev site to a clean baseline
-.dddev/commands/host/reset-site  # `ddev reset-site` wrapper
-```
+| Document | What it covers |
+|---|---|
+| [NEW-ISSUE.md](NEW-ISSUE.md) | Starting a new issue: scaffold, recipe, variant, steps and checks, evidence, and coming back to it later. |
+| [TESTING-TOOLS.md](TESTING-TOOLS.md) | Each tool (axe-core, Playwright, Guidepup virtual screen reader, the viewer, the diff report, Accessibility Insights) and what it can and cannot tell you. |
+| [ADDON-TRIAL-2026-10-01.md](ADDON-TRIAL-2026-10-01.md) | Trial of the DDEV add-on `justafish/ddev-drupal-core-dev`, with gotchas (Mutagen, router, SQLite). |
+| [FRAME-LOADING-2026-10-01.md](FRAME-LOADING-2026-10-01.md) | Why viewer frames sometimes did not load, what was measured and fixed, how to diagnose it. |
 
-## Daily loop (patch -> review -> reset -> next patch)
-1. **Develop** the patch in the working tree (e.g. under `core/themes/default_admin`).
-2. **Test**:
-   ```bash
-   ddev exec env SIMPLETEST_BASE_URL=https://drupal-core.ddev.site \
-     ./vendor/bin/phpunit -c core core/themes/default_admin/tests/src/Functional/SidebarChildErrorsTest.php
-   ddev exec bash ./core/scripts/dev/commit-code-check.sh
-   ```
-3. **Produce review artifacts** (patch + interdiff + comment + guidepup + bundle):
-   ```bash
-   git add -N core/themes/default_admin/tests/src/Functional/SidebarChildErrorsTest.php
-   git diff HEAD -- core/themes/default_admin > testing/<issue>/<issue>-full.patch
-   ```
-   Copy the result into `testing/<issue>/` (keep the bundle + comment in sync).
-4. **Reset for the next patch** (complete DB reset; code is never touched):
-   ```bash
-   ddev reset-site            # restore saved snapshot
-   ddev reset-site --capture  # after intentionally changing the baseline
-   ddev drush uli             # log back in
-   ```
-5. **Push progress** to GitHub so it is not lost:
-   ```bash
-   git add testing/ scripts/ recipes/ .ddev/commands/host/reset-site
-   git commit -m "Issue #<n>: store review artifacts + reset/recipe tooling"
-   git push origin "$(git branch --show-current)"
-   ```
+Elsewhere:
+- `../AGENTS.md`: how to work here, and the rules.
+- `../reports/issues/README.md`: every issue evaluated, and how to come back to it (generated).
+- `../tools/compare/README.md`: the side-by-side viewer, diff report, variants format.
+- `../tools/playwright/README.md`: scripted walkthroughs and the virtual screen reader.
+- `../MIGRATION.md`: how this repository was built from the old `mgifford/drupal-core` fork.
 
-## Building the test environment (recipe, not a blank slate)
-The baseline is **not** a bare install. It is a standard profile plus the
-`core/recipes/replicate_core_testing` recipe, which layers comments, taxonomy, media
-types, editorial workflow, multiple text formats, user pictures and responsive images,
-and sets Default Admin as the administration theme so the sidebar / advanced-group
-behavior can be reproduced.
-
-```bash
-ddev exec drush site:install standard -y
-ddev exec drush recipe core/recipes/replicate_core_testing
-ddev drush uli
-```
-
-`ddev reset-site` restores a saved database snapshot (fast) and falls back to the recipe
-rebuild above when no snapshot exists. The snapshot is machine-local; the **recipe is the
-portable, committed source of truth** for the environment.
-
-## Disclosure
-Any drupal.org issue-queue prose in `*/comment.md` ends with the required line:
-`Generated with the help of an LLM.`
+## legacy/
+Everything inherited from the old `mgifford/drupal-core` fork before the lab existed (process notes, nightly pipeline,
+`reset-core` workflow, old README/AGENTS/CLAUDE files, a Drupal.org documentation draft). **They describe a workflow that no
+longer exists here**: commands, scripts and paths in them (`ddev reset-core`, `reports/axe-results/`, a core checkout at the
+repository root) will not work. Read them for ideas and history; do not follow their commands without checking.
