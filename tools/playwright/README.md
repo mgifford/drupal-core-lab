@@ -19,6 +19,7 @@ Login uses the one-time link from `ddev drupal login`, not a typed password.
 | Script | Output | What it shows |
 |---|---|---|
 | `walkthrough.mjs` | `reports/issues/<nid>/playwright/<time>/SUMMARY.md`, `results.json`, screenshots | Old version fails the fix checks, new passes; regression checks unchanged; axe counts; the field's accessibility tree. Exit code 2 if anything is not as expected. |
+| `frameload.mjs` | prints load times | How long both viewer frames take to load over N reloads in a real browser. Run it when frames sometimes do not load (see `../../docs/FRAME-LOADING-2026-10-01.md`). |
 | `screenreader.mjs` | `reports/issues/<nid>/screenreader/<time>/SUMMARY.md` | Phrases from `@guidepup/virtual-screen-reader` over a jsdom snapshot, before vs after. |
 
 `flow.mjs` holds the shared steps. The selectors are specific to #3619127; copy and adapt for another issue.

@@ -1,5 +1,5 @@
 // Shared helpers: find environments, talk to DDEV, normalise pages for diffing.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, execFile } from 'node:child_process';
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
@@ -16,11 +16,28 @@ export function envInfo(env) {
   return { host: raw.hostname, hosts: raw.hostnames || [raw.hostname], routerPort: Number(raw.router_http_port || 80), status: raw.status };
 }
 
+// envInfo without blocking the Node event loop (used to refresh the viewer's cache in the background).
+export function envInfoAsync(env) {
+  return new Promise((resolve, reject) => execFile('ddev', ['describe', '-j'], { cwd: envDir(env), encoding: 'utf8', timeout: 60000 }, (err, out) => {
+    if (err) return reject(err);
+    const raw = JSON.parse(out).raw;
+    resolve({ host: raw.hostname, hosts: raw.hostnames || [raw.hostname], routerPort: Number(raw.router_http_port || 80), status: raw.status });
+  }));
+}
+
 // One-time login path (e.g. /user/reset/1/123/abc/login) for user 1, via the DDEV add-on.
 export function loginPath(env) {
   const out = execFileSync('ddev', ['drupal', 'login'], { cwd: envDir(env), encoding: 'utf8' }).trim().split('\n').pop();
   // The add-on's link ends at the 'set password' form; '/login' completes the login directly.
   return new URL(out).pathname.replace(/\/login$/, '') + '/login';
+}
+
+// Same as loginPath, without blocking the Node event loop (used by the viewer server).
+export function loginPathAsync(env) {
+  return new Promise((resolve, reject) => execFile('ddev', ['drupal', 'login'], { cwd: envDir(env), encoding: 'utf8', timeout: 60000 }, (err, out) => {
+    if (err) return reject(err);
+    resolve(new URL(out.trim().split('\n').pop()).pathname.replace(/\/login$/, '') + '/login');
+  }));
 }
 
 // Fetch from an environment through the router, following redirects and keeping cookies.

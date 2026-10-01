@@ -6,7 +6,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
-import { labRoot, variants, envInfo, loginPath, envDir } from './lib.mjs';
+import { labRoot, variants, envInfo, envInfoAsync, loginPathAsync, envDir } from './lib.mjs';
 
 const PAGE = Number(process.env.PORT || 8100);
 const AXE = path.join(labRoot, 'tools/compare/.deps/node_modules/axe-core/axe.min.js');
@@ -21,16 +21,19 @@ const SIDES = DDEV
 const list = variants();
 const state = { slug: process.argv.slice(2).find((x) => !x.startsWith('--')) || list[0].slug, theme: 'auto', darkos: false, axe: true, axeBest: false };
 const current = () => list.find((x) => x.slug === state.slug) || list[0];
+const agent = new http.Agent({ keepAlive: true, maxSockets: 64 }); // reuse connections to the DDEV router
 const infoCache = {};
 // The real sites, for opening outside the viewer. Prefer a url set in variants.json; else the DDEV hostname.
 function realSites() {
   const v = current(), out = {};
   for (const side of ['before', 'after']) {
-    try { const hs = envInfo(v[side].env).hosts; out[side] = v[side].url || `https://${hs.slice().sort((a, b) => a.length - b.length)[0]}`; } catch (e) { out[side] = v[side].url || ''; }
+    try { const hs = info(v[side].env).hosts; out[side] = v[side].url || `https://${hs.slice().sort((a, b) => a.length - b.length)[0]}`; } catch (e) { out[side] = v[side].url || ''; }
   }
   return out;
 }
-const info = (env) => (infoCache[env] ||= envInfo(env));
+// `ddev describe` takes 1 to 3 seconds and runs synchronously, which would freeze every proxy while it ran,
+// so look each environment up once, keep it for 5 minutes, and warm the cache at startup.
+const info = (env) => { const c = infoCache[env]; if (c) { if (Date.now() - c.t > 300000 && !c.refreshing) { c.refreshing = true; envInfoAsync(env).then((v) => { infoCache[env] = { v, t: Date.now() }; }).catch(() => { c.refreshing = false; c.t = Date.now() - 240000; }); } return c.v; } const v = envInfo(env); infoCache[env] = { v, t: Date.now() }; return v; };
 
 const SYNC = (side, st) => `<script>(()=>{if(window.parent===window)return;
 const side=${JSON.stringify(side)};let S=${JSON.stringify({ theme: st.theme, darkos: st.darkos, axe: st.axe, axeBest: st.axeBest })};
@@ -105,28 +108,32 @@ function proxyFor(side) {
     const swap = (t) => hosts.reduce((a, h) => a.split(`https://${h}`).join(origin).split(`http://${h}`).join(origin).split(h).join(mine), t);
     const headers = { ...req.headers, host, 'accept-encoding': 'identity' };
     delete headers.origin; delete headers.referer;
-    const up = http.request({ host: '127.0.0.1', port: routerPort, path: req.url, method: req.method, headers }, (r) => {
+    const started = Date.now();
+    const logSlow = (what) => { const ms = Date.now() - started; if (ms > 3000 || what) console.log(`${new Date().toISOString()} ${side} ${req.method} ${req.url.slice(0, 80)} ${what || 'slow'} ${ms}ms`); };
+    const up = http.request({ host: '127.0.0.1', port: routerPort, path: req.url, method: req.method, headers, agent }, (r) => {
       const h = { ...r.headers };
       delete h['x-frame-options']; delete h['content-security-policy']; delete h['content-length'];
       delete h.etag; delete h['last-modified']; h['cache-control'] = 'no-store';
       if (h.location) h.location = swap(h.location);
       if (h['set-cookie']) h['set-cookie'] = h['set-cookie'].map((c) => c.replace(/;\s*domain=[^;]*/i, '').replace(/;\s*samesite=[^;]*/i, '').replace(/;\s*secure/i, '') + '; SameSite=None; Secure');
       const type = h['content-type'] || '';
-      if (!/text|json|javascript|xml/.test(type)) { res.writeHead(r.statusCode, h); r.pipe(res); return; }
+      if (!/text|json|javascript|xml/.test(type)) { res.writeHead(r.statusCode, h); r.pipe(res); r.on('end', () => logSlow('')); return; }
       const chunks = [];
       r.on('data', (c) => chunks.push(c));
       r.on('end', () => {
         let body = swap(Buffer.concat(chunks).toString('utf8'));
         if (/text\/html/.test(type)) body = body.replace(/<head([^>]*)>/i, (m) => m + SYNC(side, state));
-        res.writeHead(r.statusCode, h); res.end(body);
+        res.writeHead(r.statusCode, h); res.end(body); logSlow('');
       });
     });
-    up.on('error', (e) => { res.writeHead(502); res.end(`${env} is not reachable: ${e.message}. Is its DDEV project running?`); });
+    up.setTimeout(30000, () => up.destroy(new Error('no response from the site within 30 seconds')));
+    up.on('error', (e) => { logSlow('ERROR ' + e.message); if (!res.headersSent) res.writeHead(502, { 'content-type': 'text/plain' }); res.end(`${env} is not reachable: ${e.message}. Is its DDEV project running? Reload the frame.`); });
     req.pipe(up);
   });
 }
 
-for (const side of Object.keys(SIDES)) proxyFor(side).listen(SIDES[side].port, '127.0.0.1');
+for (const x of list) for (const side of ['before', 'after']) { try { info(x[side].env); } catch (e) { console.log(`could not look up ${x[side].env} yet (${String(e.message).split('\n')[0]}); will retry on first use`); } }
+for (const side of Object.keys(SIDES)) { const srv = proxyFor(side); srv.keepAliveTimeout = 65000; srv.headersTimeout = 66000; srv.listen(SIDES[side].port, '127.0.0.1'); }
 
 http.createServer((req, res) => {
   const u = new URL(req.url, 'http://x');
@@ -136,17 +143,27 @@ http.createServer((req, res) => {
   } else if (u.pathname === '/api/state') {
     if (req.method === 'POST') { let b = ''; req.on('data', (c) => (b += c)); req.on('end', () => { try { Object.assign(state, JSON.parse(b)); } catch (e) { /* ignore */ } res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify(state)); }); }
     else { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify(state)); }
+  } else if (u.pathname === '/api/health') {
+    const v = current();
+    const probe = (side) => new Promise((resolve) => {
+      let site;
+      try { site = info(v[side].env); } catch (e) { return resolve({ ok: false, text: `DDEV could not describe ${v[side].env}: ${String(e.message).split('\n')[0].slice(0, 120)}` }); }
+      const t = Date.now();
+      const rq = http.request({ host: '127.0.0.1', port: site.routerPort, path: '/user/login', method: 'HEAD', headers: { host: site.host }, timeout: 6000, agent }, (r) => { r.resume(); resolve({ ok: r.statusCode < 500, text: `${v[side].env} answered ${r.statusCode} in ${Date.now() - t} ms` }); });
+      rq.on('timeout', () => { rq.destroy(); resolve({ ok: false, text: `${v[side].env} did not answer within 6 seconds (is its DDEV project running? try ddev restart)` }); });
+      rq.on('error', (e) => resolve({ ok: false, text: `${v[side].env} unreachable: ${e.message}` }));
+      rq.end();
+    });
+    Promise.all([probe('before'), probe('after')]).then(([before, after]) => { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify({ before, after })); });
   } else if (u.pathname === '/api/cache') {
     const v = current();
     const run = (env) => new Promise((resolve) => execFile('ddev', ['drupal', 'cache'], { cwd: envDir(env), timeout: 120000 }, (err, so, se) => resolve(err ? `failed: ${String(se || err.message).trim().slice(0, 200)}` : 'cleared')));
     Promise.all([run(v.before.env), run(v.after.env)]).then(([before, after]) => { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify({ before, after })); });
   } else if (u.pathname === '/api/login') {
     const v = current();
-    try {
-      const out = {};
-      for (const side of Object.keys(SIDES)) out[side] = `${SIDES[side].origin}${loginPath(v[side].env)}`;
-      res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify(out));
-    } catch (e) { res.writeHead(500); res.end(String(e.message)); }
+    Promise.all(['before', 'after'].map((side) => loginPathAsync(v[side].env).then((p) => [side, `${SIDES[side].origin}${p}`])))
+      .then((pairs) => { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify(Object.fromEntries(pairs))); })
+      .catch((e) => { res.writeHead(500); res.end(String(e.message)); });
   } else {
     res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
     const file = path.join(labRoot, 'tools/compare/index.html');

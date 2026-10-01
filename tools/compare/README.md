@@ -121,6 +121,11 @@ Add an entry to `variants.json`: slug, issue number, label, description,
 `before.env`, `after.env` (+ `patches` applied, for the record), `pages`,
 `login`, optional `demo` (`start`, `viewport`).
 
+## If a frame does not load
+The viewer raises an alert after 12 seconds and checks both sites; use **Reload Before / Reload After**. Details of what
+was fixed and how to measure it: `docs/FRAME-LOADING-2026-10-01.md`. If a DDEV project is not running, `ddev list`,
+then `ddev restart` in that environment.
+
 ## Limits
 - Compares served HTML/CSS/JS and shows behaviour. It does not replace a
   keyboard and screen-reader test.

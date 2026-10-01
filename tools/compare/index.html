@@ -54,6 +54,7 @@
     <button type="button" id="login">Log in both as admin</button>
     <button type="button" id="cache">Clear Drupal caches (both)</button>
     <button type="button" id="storage">Reset browser state (both)</button>
+    <button type="button" id="rb">Reload Before</button> <button type="button" id="ra">Reload After</button>
     <span class="ext">Open outside this tool: <a id="ob" target="_blank" rel="noopener" href="#">Before (upstream main)</a> <a id="oa" target="_blank" rel="noopener" href="#">After (with the change)</a> <span class="path">(own login: admin / admin)</span></span>
     <fieldset><legend>Site theme</legend>
       <label><input type="radio" name="theme" value="light"> Light</label>
@@ -81,6 +82,7 @@
     <label id="amwrap" hidden>Amplify <input type="range" id="amplify" min="1" max="12" value="4"></label>
     <span id="status" role="status" aria-live="polite">Loading…</span>
   </div>
+  <div id="framewarn" class="verdict bad" role="alert" hidden></div>
   <p id="legend" role="status" hidden></p>
   <div class="panes" id="panes">
     <section class="pane" aria-labelledby="hb" tabindex="0"><h2 id="hb">Before: upstream main <span class="path" id="pb"></span></h2><iframe id="fb" title="Before: upstream main"></iframe></section>
@@ -120,7 +122,7 @@ const status = (t) => { $('status').textContent = t; };
 const radio = (name) => document.querySelector(`input[name="${name}"]:checked`).value;
 const post = (body) => fetch('/api/state', { method: 'POST', body: JSON.stringify(body) });
 function updateExternal() { for (const [side, id] of [['before', 'ob'], ['after', 'oa']]) { const a = $(id); a.href = (sites[side] || '') + (last[side] || $('goto').value || '/'); a.hidden = !sites[side]; } }
-function load(side, path) { last[side] = path; P[side].textContent = path; F[side].src = origins[side] + path; updateExternal(); }
+function load(side, path) { markStart(side); last[side] = path; P[side].textContent = path; F[side].src = origins[side] + path; updateExternal(); }
 function loadBoth(path) { status('Loading…'); load('before', path); load('after', path); }
 function applyWidth() { const w = radio('width'); for (const s of ['before', 'after']) F[s].style.width = w === 'half' ? '100%' : w; }
 function sendState() { const state = { theme: radio('theme'), darkos: $('darkos').checked, axe: $('axeon').checked, axeBest: $('axebest').checked };
@@ -146,7 +148,7 @@ $('go').addEventListener('click', () => loadBoth($('goto').value));
 $('goto').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('go').click(); });
 $('login').addEventListener('click', async () => {
   status('Logging in…');
-  try { const r = await (await fetch('/api/login')).json(); F.before.src = r.before; F.after.src = r.after; status('Logged in. Use Go to open a page.'); }
+  try { const r = await (await fetch('/api/login')).json(); markStart('before'); markStart('after'); F.before.src = r.before; F.after.src = r.after; status('Logged in. Use Go to open a page.'); }
   catch (e) { status('Login failed: ' + e); }
 });
 addEventListener('message', (e) => {
@@ -159,7 +161,7 @@ addEventListener('message', (e) => {
   if (m.type === 'axe-error') { $('axeverdict').className = 'verdict warn'; $('axeverdict').textContent = 'axe-core error in the ' + m.side + ' frame: ' + m.message; }
   if (m.type === 'probe-result') { const p = pending[m.id]; if (p) { results[p.i][p.side] = m.value; showResult(p.i); } }
   if (m.type === 'real-click') { realClick[m.side] = true; showRealClick(); }
-  if (m.type === 'loaded') { realClick[m.side] = false; showRealClick(); }
+  if (m.type === 'loaded') { realClick[m.side] = false; showRealClick(); loadedAt[m.side] = Date.now(); }
   if (m.type === 'nav') {
     P[m.side].textContent = m.path; last[m.side] = m.path; updateExternal(); status('Ready.'); if (radio('view') !== 'side') applyView();
     if ($('syncnav').checked && last[m.side] !== m.path) { last[m.side] = m.path; if (last[other(m.side)] !== m.path) load(other(m.side), m.path); }
@@ -331,6 +333,26 @@ function renderObs() {
   else if (answered < list.length) { V.className = 'verdict warn'; V.textContent = `✓ So far ${good} as expected. ${list.length - answered} still to answer.`; }
   else { V.className = 'verdict ok'; V.textContent = `✓ All ${good} of your observations match the expected result: Before does not respond to the error link, After does, and nothing else looks different.`; }
 }
+
+// ---- Frame load watchdog: a frame that has not finished loading is reported, with a health check ----
+const startedAt = { before: 0, after: 0 }, loadedAt = { before: 0, after: 0 }; let warnTimer;
+const markStart = (side) => { startedAt[side] = Date.now(); loadedAt[side] = 0; };
+async function showFrameWarning(stuck) {
+  const W = $('framewarn'); W.hidden = false; W.textContent = `⚠ The ${stuck.join(' and ')} frame${stuck.length > 1 ? 's have' : ' has'} not finished loading (waited ${Math.round((Date.now() - Math.min(...stuck.map((s) => startedAt[s]))) / 1000)} s). Checking the sites…`;
+  try { const h = await (await fetch('/api/health')).json();
+    W.textContent = `⚠ The ${stuck.join(' and ')} frame${stuck.length > 1 ? 's have' : ' has'} not finished loading. Site check: ${h.before.ok ? '✓' : '✗'} ${h.before.text}; ${h.after.ok ? '✓' : '✗'} ${h.after.text}. ` + (h.before.ok && h.after.ok ? 'Both sites answer, so this was probably a stalled request: use the Reload buttons.' : 'A site is not answering: check DDEV (ddev list), then reload.'); }
+  catch (e) { W.textContent += ' (the viewer server did not answer the health check: is node tools/compare/serve.mjs still running?)'; }
+}
+function watchFrames() {
+  clearInterval(warnTimer); warnTimer = setInterval(() => {
+    const stuck = ['before', 'after'].filter((s) => startedAt[s] && !loadedAt[s] && Date.now() - startedAt[s] > 12000);
+    if (stuck.length) { if ($('framewarn').hidden || $('framewarn').dataset.k !== stuck.join()) { $('framewarn').dataset.k = stuck.join(); showFrameWarning(stuck); } }
+    else if (!$('framewarn').hidden) { $('framewarn').hidden = true; delete $('framewarn').dataset.k; }
+  }, 2000);
+}
+const reloadSide = (s) => { markStart(s); const src = F[s].src; F[s].src = 'about:blank'; setTimeout(() => { F[s].src = src; }, 50); };
+$('rb').addEventListener('click', () => reloadSide('before')); $('ra').addEventListener('click', () => reloadSide('after'));
+watchFrames();
 init();
 </script>
 </body>
