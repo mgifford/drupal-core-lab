@@ -146,6 +146,16 @@ focus is, not how it looks.
 - Elements are matched by stable `id`, else by structural position. Rich widgets
   (CKEditor, autocomplete, file upload) are untested.
 
+## CKEditor 5
+CKEditor is a `contenteditable` element, not an input, so it is mirrored through its own API: a change in one frame sends the editor's HTML,
+and the matching editor in the other frame (matched by its source textarea's name, e.g. `body[0][value]`) gets `setData`. Verified both ways with
+real typing: `node tools/playwright/mirror-ckeditor.mjs`. Limits, so you know what to confirm by eye:
+- Only the **content** is mirrored. Selection, caret and toolbar state are not, and `setData` moves the caret in the replayed frame.
+- Toolbar buttons (bold, lists, link dialogs) are mirrored as clicks, but each editor's selection differs, so the formatting may not match.
+  Treat a difference there as something to check by hand, not as a result.
+- Keyboard use of the editor (Alt+F10 to the toolbar, arrow keys) is never mirrored; do it in each frame.
+- Live axe sees the editor as ordinary DOM. It cannot judge editing behaviour; that needs a person with a keyboard and a screen reader.
+
 ## Diff report
 
     node tools/compare/diff.mjs [slug]

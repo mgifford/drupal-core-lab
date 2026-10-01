@@ -43,7 +43,7 @@ width* change how both sides look so you can check dark mode and narrow screens.
 in step.
 
 **Mirror clicks, typing and drags.** Your real clicks, typing, checkboxes, selects and drags (for example reordering rows in a Drupal table) in one frame are repeated in the other, so you do the
-setup once. **Mirror hover and focus** (off by default) draws a marker on the matching element in the other frame; it cannot make the real hover or focus style appear there, because browsers do not let a page set those. It does **not** mirror the keyboard (Tab, Enter) or focus, and the repeated click is a script click, which does not behave like
+setup once. **Mirror hover and focus** (off by default) draws a marker on the matching element in the other frame; it cannot make the real hover or focus style appear there, because browsers do not let a page set those. Rich text in CKEditor is mirrored as content only (not selection or toolbar state; see `tools/compare/README.md`). It does **not** mirror the keyboard (Tab, Enter) or focus, and the repeated click is a script click, which does not behave like
 a real one. So turn it off (Run checks does this for you) and do the final step yourself in each frame.
 
 ## 4. Do the test

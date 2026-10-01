@@ -82,7 +82,8 @@ const send=(kind,el,extra)=>post(Object.assign({type:'mirror',kind,path:pathOf(e
 document.addEventListener('click',(e)=>{if(!e.isTrusted||window.__cmpDragged)return;const el=e.target.closest('a,button,summary,input,select,label,[role=button]')||e.target;if(el.tagName==='INPUT'&&/text|email|password|search|url|number|tel/.test(el.type||'text'))return;if(el.tagName==='SELECT'||el.tagName==='LABEL')return;send('click',el,{})},true);
 document.addEventListener('input',(e)=>{if(!e.isTrusted)return;const el=e.target;if(el.type==='checkbox'||el.type==='radio'||el.tagName==='SELECT')return;if('value' in el)send('value',el,{value:el.value})},true);
 document.addEventListener('change',(e)=>{if(!e.isTrusted)return;const el=e.target;if(el.tagName==='SELECT')send('value',el,{value:el.value});else if(el.type==='checkbox'||el.type==='radio')send('checked',el,{checked:el.checked})},true);
-const apply=(d)=>{const el=find(d.path);if(!el){post({type:'mirror-miss',kind:d.kind,label:d.label});return}
+const apply=(d)=>{if(d.kind==='ckeditor'){const ed=ckById()[d.id];if(!ed){post({type:'mirror-miss',kind:'ckeditor',label:'the rich text editor'});return}if(ed.getData()!==d.data){ckApplying=true;try{ed.setData(d.data)}finally{ckApplying=false}}return}
+ const el=find(d.path);if(!el){post({type:'mirror-miss',kind:d.kind,label:d.label});return}
  if(d.kind==='click'){el.click()}
  else if(d.kind==='value'){const proto=el.tagName==='SELECT'?HTMLSelectElement.prototype:el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;
   const set=Object.getOwnPropertyDescriptor(proto,'value').set;set.call(el,d.value);el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}))}
@@ -118,6 +119,14 @@ const applyPtr=(d)=>{
   const r=el.getBoundingClientRect();rp={x:r.left+d.fx*r.width,y:r.top+d.fy*r.height};d.downs.forEach((o)=>fire(el,o,rp.x,rp.y));return}
  if(!rp)return;const x=rp.x+d.dx,y=rp.y+d.dy;const t=document.elementFromPoint(x,y)||document.body;fire(t,d.ev,x,y);
  if(d.kind==='dragend')rp=null};
+
+// CKEditor 5 is a contenteditable element, not an input, so typing is mirrored through its API: changes in one frame are sent as HTML and
+// set in the matching editor in the other (matched by the name of its source textarea; the editor's own instance ids differ per site).
+// Replaying with setData resets the caret in the other frame, which is acceptable for mirroring.
+const ckById=()=>{const m={};document.querySelectorAll('.ck-editor__editable').forEach((el)=>{const ed=el.ckeditorInstance;const src=ed&&ed.sourceElement;const id=src&&(src.name||src.id);if(id)m[id]=ed});return m};
+let ckApplying=false;const ckHooked=new WeakSet();
+setInterval(()=>{const m=ckById();for(const id in m){const ed=m[id];if(ckHooked.has(ed))continue;ckHooked.add(ed);let t;
+ ed.model.document.on('change:data',()=>{if(ckApplying)return;clearTimeout(t);t=setTimeout(()=>post({type:'mirror',kind:'ckeditor',id,data:ed.getData(),label:'the editor'}),150)})}},1000);
 // Live accessibility checks: run axe-core after load and, debounced, after interaction. Results go to the parent.
 let axeBusy=false,axeQueued=false,axeTimer;
 const loadAxe=()=>new Promise((res)=>{if(window.axe)return res();const sc=document.createElement('script');sc.src='/__compare/axe.js';sc.onload=()=>res();sc.onerror=()=>res();document.head.appendChild(sc)});
