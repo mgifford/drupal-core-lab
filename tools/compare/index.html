@@ -45,7 +45,7 @@
 </head>
 <body>
 <header><h1>Drupal core: before and after</h1><p id="desc" class="note"></p>
-<details id="stepsbox" open><summary>Steps to reproduce</summary><ol id="steps"></ol><p id="exp" class="note"></p><p id="act" class="note"></p><p id="setup" class="note"></p></details></header>
+<details id="stepsbox" open><summary>Steps to reproduce <span class="note">(optional checklist: tick each step as you do it)</span></summary><ol id="steps"></ol><p id="stepsprog" class="note" role="status"></p><p><button type="button" id="tickrecipe">Tick the steps the recipe did</button> <button type="button" id="clearticks">Clear ticks</button> <span class="note">Ticks are saved in this browser for this issue and included in the downloaded log. Nothing depends on them.</span></p><p id="exp" class="note"></p><p id="act" class="note"></p><p id="setup" class="note"></p></details></header>
 <main>
   <div class="controls" role="group" aria-label="Comparison controls">
     <label>Compare upstream with <select id="variant"></select></label>
@@ -89,6 +89,35 @@
     <section class="pane" aria-labelledby="ha" tabindex="0"><h2 id="ha">After: with the change <span class="path" id="pa"></span></h2><iframe id="fa" title="After: with the change"></iframe></section>
   </div>
 </main>
+<section aria-labelledby="envh">
+<h2 id="envh" style="font-size:1rem;margin:.5rem 1rem 0">Where did you test? <span class="note">(saved with the downloaded log)</span></h2>
+<p id="envremind" class="verdict warn" role="status" aria-live="polite"></p>
+<details id="envbox" open><summary>Environment for this session</summary>
+<div class="controls" style="border:0">
+  <label>Browser <input type="text" id="envbrowser" size="22"></label>
+  <label>OS <input type="text" id="envos" size="18"></label>
+  <label>Viewport <input type="text" id="envvp" size="14"></label>
+  <label>Assistive technology <input type="text" id="envat" size="18" placeholder="none"></label>
+  <fieldset><legend>Colour modes you looked at</legend>
+    <label><input type="checkbox" name="envmode" value="light"> Light</label> <label><input type="checkbox" name="envmode" value="dark"> Dark</label>
+    <label><input type="checkbox" name="envmode" value="forced-colors"> Forced colours / high contrast</label> <label><input type="checkbox" name="envmode" value="increased-contrast"> Increased contrast</label>
+  </fieldset>
+  <fieldset><legend>Input you used</legend>
+    <label><input type="checkbox" name="envinput" value="mouse"> Mouse</label> <label><input type="checkbox" name="envinput" value="keyboard"> Keyboard only</label>
+    <label><input type="checkbox" name="envinput" value="touch"> Touch</label> <label><input type="checkbox" name="envinput" value="voice"> Voice control</label> <label><input type="checkbox" name="envinput" value="screen-reader"> Screen reader</label>
+  </fieldset>
+</div></details>
+</section>
+<section aria-labelledby="lhh">
+<h2 id="lhh" style="font-size:1rem;margin:.5rem 1rem 0">Lighthouse (optional, in the background)
+  <label style="font-weight:400"><input type="checkbox" id="lhon"> Run Lighthouse audits</label>
+  <label style="font-weight:400"><input type="checkbox" id="lhperf"> include performance (slower, noisier)</label>
+  <button type="button" id="lhnow">Audit this page now</button></h2>
+<p class="note">Lighthouse runs in its own headless Chrome and audits the page as it <strong>loads</strong>, logged in. It does not see states you reach by clicking (for example an error summary after Save) and takes about 10 seconds per site. Accessibility and best-practice audits are shown by default; use axe above for live, interactive checking.</p>
+<p id="lhverdict" class="verdict warn" role="status" aria-live="polite" hidden></p>
+<table class="checks" id="lhtable" hidden><thead><tr><th>Category</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody></tbody></table>
+<table class="checks" id="lhdiff" hidden><caption class="note" style="text-align:left">Audits that fail on one side or both</caption><thead><tr><th>Audit</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody></tbody></table>
+</section>
 <section aria-labelledby="axeh" class="axe">
 <h2 id="axeh" style="font-size:1rem;margin:.5rem 1rem 0">Accessibility, live (axe-core)
   <button type="button" id="axenow">Re-run now</button> <button type="button" id="axedl">Download log</button> <button type="button" id="axeclr">Clear log</button></h2>
@@ -124,12 +153,20 @@ const post = (body) => fetch('/api/state', { method: 'POST', body: JSON.stringif
 function updateExternal() { for (const [side, id] of [['before', 'ob'], ['after', 'oa']]) { const a = $(id); a.href = (sites[side] || '') + (last[side] || $('goto').value || '/'); a.hidden = !sites[side]; } }
 function load(side, path) { markStart(side); last[side] = path; P[side].textContent = path; F[side].src = origins[side] + path; updateExternal(); }
 function loadBoth(path) { status('Loading…'); load('before', path); load('after', path); }
-function applyWidth() { const w = radio('width'); for (const s of ['before', 'after']) F[s].style.width = w === 'half' ? '100%' : w; }
+// In overlay views each frame must keep the width it has side by side (half of the page), or it would cross a responsive breakpoint and show a different layout.
+function applyWidth() { const w = radio('width'), overlay = radio('view') !== 'side'; for (const s of ['before', 'after']) F[s].style.width = w === 'half' ? (overlay ? 'calc(50% - .25rem)' : '100%') : w; }
 function sendState() { const state = { theme: radio('theme'), darkos: $('darkos').checked, axe: $('axeon').checked, axeBest: $('axebest').checked };
   post(state); for (const s of ['before', 'after']) F[s].contentWindow && F[s].contentWindow.postMessage({ compare: 1, type: 'state', state }, '*'); }
 const TAGS = { recipe: 'set up by the recipe', mirror: 'mirrored to both frames', each: 'do in each frame' };
-function renderSteps() { const ol = $('steps'); ol.textContent = ''; for (const st of v.steps || []) { const li = document.createElement('li'); li.textContent = st.text; if (st.lookFor) { const lf = document.createElement('span'); lf.className = 'lookfor'; lf.textContent = 'Look for: ' + st.lookFor; li.append(lf); } const t = document.createElement('span'); t.className = 'tag'; t.textContent = TAGS[st.how] || st.how; li.append(t); ol.append(li); }
-  $('exp').textContent = v.expected ? 'Expected: ' + v.expected : ''; $('act').textContent = v.actual ? 'Actual: ' + v.actual : ''; $('setup').textContent = v.setup ? 'Setup: ' + v.setup : ''; $('stepsbox').hidden = !(v.steps && v.steps.length); }
+let ticks = [];
+const tickKey = () => 'compare.steps.' + (v && v.slug);
+function loadTicks() { try { return JSON.parse(localStorage.getItem(tickKey()) || '[]'); } catch (e) { return []; } }
+function saveTicks() { try { localStorage.setItem(tickKey(), JSON.stringify(ticks)); } catch (e) { /* storage unavailable */ } }
+function showProgress() { const n = (v.steps || []).length, d = (v.steps || []).filter((_, i) => ticks[i]).length; $('stepsprog').textContent = n ? `${d} of ${n} steps ticked (optional)` : ''; }
+function renderSteps() { ticks = loadTicks(); const ol = $('steps'); ol.textContent = ''; for (const st of v.steps || []) { const li = document.createElement('li'); const idx = ol.children.length; const lab = document.createElement('label'); const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!ticks[idx]; cb.addEventListener('change', () => { ticks[idx] = cb.checked; saveTicks(); showProgress(); }); lab.append(cb, document.createTextNode(' ' + st.text)); li.append(lab); if (st.lookFor) { const lf = document.createElement('span'); lf.className = 'lookfor'; lf.textContent = 'Look for: ' + st.lookFor; li.append(lf); } const t = document.createElement('span'); t.className = 'tag'; t.textContent = TAGS[st.how] || st.how; li.append(t); ol.append(li); }
+  $('exp').textContent = v.expected ? 'Expected: ' + v.expected : ''; $('act').textContent = v.actual ? 'Actual: ' + v.actual : ''; $('setup').textContent = v.setup ? 'Setup: ' + v.setup : ''; $('stepsbox').hidden = !(v.steps && v.steps.length); showProgress(); }
+$('tickrecipe').addEventListener('click', () => { (v.steps || []).forEach((st, i) => { if (st.how === 'recipe') ticks[i] = true; }); saveTicks(); renderSteps(); });
+$('clearticks').addEventListener('click', () => { ticks = []; saveTicks(); renderSteps(); });
 function setVariant(slug) { v = variants.find((x) => x.slug === slug); $('desc').textContent = v.description; renderSteps(); buildObs(); document.title = `Compare: ${v.slug}`;
   const start = (v.demo && v.demo.start) || v.pages[0] || '/'; $('goto').value = start;
   document.querySelector('input[name="width"][value="half"]').checked = true; applyWidth(); }
@@ -163,7 +200,7 @@ addEventListener('message', (e) => {
   if (m.type === 'real-click') { realClick[m.side] = true; showRealClick(); }
   if (m.type === 'loaded') { realClick[m.side] = false; showRealClick(); loadedAt[m.side] = Date.now(); }
   if (m.type === 'nav') {
-    P[m.side].textContent = m.path; last[m.side] = m.path; updateExternal(); status('Ready.'); if (radio('view') !== 'side') applyView();
+    P[m.side].textContent = m.path; last[m.side] = m.path; updateExternal(); lhSchedule(); status('Ready.'); if (radio('view') !== 'side') applyView();
     if ($('syncnav').checked && last[m.side] !== m.path) { last[m.side] = m.path; if (last[other(m.side)] !== m.path) load(other(m.side), m.path); }
   }
 });
@@ -171,7 +208,7 @@ addEventListener('message', (e) => {
 // View modes: side by side, onion skin (opacity), difference (identical pixels go black).
 let savedSync;
 function applyView() {
-  const mode = radio('view'), panes = $('panes'), fa = $('fa'), ss = $('syncscroll');
+  const mode = radio('view'), panes = $('panes'), fa = $('fa'), ss = $('syncscroll'); applyWidth();
   if (mode !== 'side') { if (savedSync === undefined) savedSync = ss.checked; ss.checked = true; ss.disabled = true; }
   else { ss.disabled = false; if (savedSync !== undefined) { ss.checked = savedSync; savedSync = undefined; } }
   panes.classList.toggle('overlay', mode !== 'side'); panes.classList.toggle('onion', mode === 'onion'); panes.classList.toggle('diff', mode === 'diff');
@@ -308,7 +345,7 @@ $('axeon').addEventListener('change', () => { sendState(); if (!$('axeon').check
 $('axebest').addEventListener('change', () => { AX.before = AX.after = null; sendState(); setTimeout(() => { for (const s of ['before', 'after']) F[s].contentWindow && F[s].contentWindow.postMessage({ compare: 1, type: 'axe-now' }, '*'); }, 300); });
 $('axenow').addEventListener('click', () => { for (const s of ['before', 'after']) F[s].contentWindow && F[s].contentWindow.postMessage({ compare: 1, type: 'axe-now' }, '*'); });
 $('axeclr').addEventListener('click', () => { axeLog.length = 0; $('axelog').querySelector('tbody').textContent = ''; $('axelogn').textContent = 0; lastKey = ''; });
-$('axedl').addEventListener('click', () => { const blob = new Blob([JSON.stringify({ variant: v && v.slug, exported: new Date().toISOString(), manualObservations: (v.observe || []).map((o, i) => ({ question: o.label, expected: { before: !!o.expectBefore, after: !!o.expectAfter }, answered: obsAns[i] || null })), notes: $('obsnote').value, entries: axeLog }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `axe-log-${v ? v.slug : 'compare'}.json`; a.click(); });
+$('axedl').addEventListener('click', () => { const blob = new Blob([JSON.stringify({ variant: v && v.slug, exported: new Date().toISOString(), checklist: (v.steps || []).map((st, i) => ({ step: st.text, done: !!ticks[i] })), environmentTested: envTested(), lighthouse: lhLog, manualObservations: (v.observe || []).map((o, i) => ({ question: o.label, expected: { before: !!o.expectBefore, after: !!o.expectAfter }, answered: obsAns[i] || null })), notes: $('obsnote').value, entries: axeLog }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `axe-log-${v ? v.slug : 'compare'}.json`; a.click(); });
 
 // ---- Manual confirmation ----
 const obsAns = {};
@@ -353,7 +390,66 @@ function watchFrames() {
 const reloadSide = (s) => { markStart(s); const src = F[s].src; F[s].src = 'about:blank'; setTimeout(() => { F[s].src = src; }, 50); };
 $('rb').addEventListener('click', () => reloadSide('before')); $('ra').addEventListener('click', () => reloadSide('after'));
 watchFrames();
-init();
+
+// ---- Where did you test: environment capture and reminders ----
+const browserInfo = () => { const u = navigator.userAgent; let m;
+  if ((m = u.match(/Edg\/(\d+)/))) return { family: 'Edge', version: m[1] };
+  if ((m = u.match(/Firefox\/(\d+)/))) return { family: 'Firefox', version: m[1] };
+  if ((m = u.match(/(?:Chrome|CriOS)\/(\d+)/))) return { family: 'Chrome', version: m[1] };
+  if ((m = u.match(/Version\/(\d+).*Safari/))) return { family: 'Safari', version: m[1] };
+  return { family: 'Other', version: '' }; };
+const currentMode = () => { const th = radio('theme'); const dark = th === 'dark' || $('darkos').checked || (th === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches); return matchMedia('(forced-colors: active)').matches ? 'forced-colors' : dark ? 'dark' : 'light'; };
+const histKey = () => 'compare.tested.' + (v && v.slug);
+const loadHist = () => { try { return JSON.parse(localStorage.getItem(histKey()) || '[]'); } catch (e) { return []; } };
+function recordTested(why) { if (!v) return; const b = browserInfo(), e = { browser: b.family, mode: currentMode() }; const hist = loadHist();
+  if (!hist.some((x) => x.browser === e.browser && x.mode === e.mode)) { hist.push({ ...e, when: new Date().toISOString(), why }); try { localStorage.setItem(histKey(), JSON.stringify(hist)); } catch (x) { /* storage unavailable */ } }
+  const m = document.querySelector(`input[name="envmode"][value="${e.mode}"]`); if (m) m.checked = true; remindEnv(); }
+function remindEnv() { const hist = loadHist(), b = browserInfo().family; const R = $('envremind');
+  const modes = ['light', 'dark', 'forced-colors']; const done = hist.filter((x) => x.browser === b).map((x) => x.mode);
+  const missingModes = modes.filter((m) => !done.includes(m)); const doneBrowsers = [...new Set(hist.map((x) => x.browser))];
+  const otherBrowsers = ['Chrome', 'Firefox', 'Safari'].filter((x) => x !== 'Chrome' ? !doneBrowsers.includes(x) : !doneBrowsers.includes('Chrome') && !doneBrowsers.includes('Edge'));
+  R.className = 'verdict ' + (missingModes.length || otherBrowsers.length ? 'warn' : 'ok');
+  R.textContent = hist.length ? `Recorded for this issue in this browser (${b}): ${done.length ? done.join(', ') : 'nothing yet'}. Not yet: ${missingModes.length ? missingModes.join(', ') + ' mode' : 'no other modes'}. Other browsers not recorded: ${otherBrowsers.length ? otherBrowsers.join(', ') : 'none'}. (Use Site theme and "Simulate a dark-mode OS" for dark; run the scripted walkthrough for Firefox and WebKit.)`
+    : `Nothing recorded yet for this issue. Run the checks or answer the manual panel to record that you tested in ${b} in ${currentMode()} mode. Remember dark mode, forced colours, and a second browser.`; }
+function envTested() { const b = browserInfo(); const val = (n) => [...document.querySelectorAll(`input[name="${n}"]:checked`)].map((x) => x.value);
+  return { browser: $('envbrowser').value || b.family, browserVersion: b.version, os: $('envos').value, viewport: $('envvp').value, colourModes: val('envmode'), input: val('envinput'), assistiveTechnology: $('envat').value || 'none', recordedInThisBrowser: loadHist() }; }
+function initEnv() { const b = browserInfo(); $('envbrowser').value = `${b.family} ${b.version}`.trim(); $('envos').value = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || ''; $('envvp').value = `${innerWidth}x${innerHeight}`; remindEnv(); }
+$('runchecks').addEventListener('click', () => recordTested('ran checks'));
+document.addEventListener('change', (e) => { if (e.target && e.target.name && /^obs-/.test(e.target.name)) recordTested('answered the manual panel'); });
+
+// ---- Lighthouse (optional background audits, run by the viewer server in its own Chrome) ----
+const lhLog = []; let lhPath = '', lhTimer, lhPoll;
+async function lhStatus() { try { const s = await (await fetch('/api/lighthouse/status')).json(); if (!s.ok) { $('lhverdict').hidden = false; $('lhverdict').className = 'verdict warn'; $('lhverdict').textContent = 'Lighthouse is not installed: ' + s.missing.join('; '); return false; } return true; } catch (e) { return false; } }
+function lhSchedule() { if (!$('lhon').checked) return; clearTimeout(lhTimer); lhTimer = setTimeout(() => lhRun(), 3000); }
+async function lhRun() {
+  const path = (last.after || last.before || '/').split('#')[0]; if (!path || path === lhPath && !lhRun.force) return; lhPath = path; lhRun.force = false;
+  if (!(await lhStatus())) return; const V = $('lhverdict'); V.hidden = false; V.className = 'verdict warn'; V.textContent = `Running Lighthouse on ${path} for both sites… (about 10 s each)`;
+  const r = await (await fetch(`/api/lighthouse/run?path=${encodeURIComponent(path)}&perf=${$('lhperf').checked ? 1 : 0}`, { method: 'POST' })).json();
+  clearInterval(lhPoll); lhPoll = setInterval(async () => { const j = await (await fetch('/api/lighthouse/result?id=' + r.id)).json();
+    if (j.state === 'done') { clearInterval(lhPoll); showLighthouse(path, j.results); } else if (j.state === 'error') { clearInterval(lhPoll); V.className = 'verdict bad'; V.textContent = 'Lighthouse failed: ' + j.error; } }, 2000);
+}
+function showLighthouse(path, res) {
+  const B = res.before, A = res.after, V = $('lhverdict'); if (B.runtimeError || A.runtimeError) { V.hidden = false; V.className = 'verdict bad'; V.textContent = `Lighthouse could not load the page: ${B.runtimeError || A.runtimeError}`; return; }
+  const cats = Object.keys(B.scores); const tb = $('lhtable').querySelector('tbody'); tb.textContent = ''; let worse = 0, better = 0;
+  for (const c of cats) { const b = B.scores[c], a = A.scores[c], d = a - b; if (d < 0) worse++; else if (d > 0) better++;
+    const tr = document.createElement('tr'); for (const t of [c, b, a, d < 0 ? `↓ ${d} (worse)` : d > 0 ? `↑ +${d} (better)` : '= same']) { const td = document.createElement('td'); td.textContent = t; tr.append(td); } tr.lastChild.className = d < 0 ? 'bad v' : d > 0 ? 'ok v' : 'na v'; tb.append(tr); }
+  $('lhtable').hidden = false;
+  const ids = new Set([...B.failed.map((x) => x.id), ...A.failed.map((x) => x.id)]); const db = $('lhdiff').querySelector('tbody'); db.textContent = ''; let newFail = [];
+  for (const id of ids) { const b = B.failed.find((x) => x.id === id), a = A.failed.find((x) => x.id === id), info = a || b;
+    const status = a && !b ? ['bad v', '↑ New in After'] : !a && b ? ['ok v', '↓ Fixed in After'] : ['na v', '= Fails on both'];
+    if (a && !b) newFail.push(id); const tr = document.createElement('tr');
+    for (const t of [`${id}: ${info.title}`, b ? `fails (${b.items})` : 'passes', a ? `fails (${a.items})` : 'passes', status[1]]) { const td = document.createElement('td'); td.textContent = t; tr.append(td); } tr.lastChild.className = status[0]; db.append(tr); }
+  $('lhdiff').hidden = ids.size === 0;
+  V.hidden = false; V.setAttribute('role', worse || newFail.length ? 'alert' : 'status');
+  V.className = 'verdict ' + (worse || newFail.length ? 'bad' : better ? 'ok' : 'ok');
+  V.textContent = worse || newFail.length ? `⚠ Lighthouse (${path}): After is worse. ${worse ? worse + ' category score' + (worse > 1 ? 's' : '') + ' lower. ' : ''}${newFail.length ? 'New failing audits in After: ' + newFail.join(', ') + '.' : ''}`
+    : better ? `✓ Lighthouse (${path}): After is better on ${better} categor${better > 1 ? 'ies' : 'y'}.` : `= Lighthouse (${path}): same scores and the same failing audits on both sides (${cats.map((c) => c + ' ' + A.scores[c]).join(', ')}). Lighthouse ${A.lighthouseVersion}.`;
+  lhLog.push({ t: new Date().toISOString(), path, before: B.scores, after: A.scores, newFailingInAfter: newFail, lighthouseVersion: A.lighthouseVersion });
+}
+$('lhon').addEventListener('change', () => { if ($('lhon').checked) { lhRun.force = true; lhRun(); } });
+$('lhnow').addEventListener('click', () => { lhRun.force = true; lhRun(); });
+$('lhperf').addEventListener('change', () => { if ($('lhon').checked) { lhRun.force = true; lhRun(); } });
+init().then(initEnv);
 </script>
 </body>
 </html>

@@ -21,6 +21,6 @@ one: `node scripts/new-issue.mjs <nid> --branch <fork-branch>` (see `docs/NEW-IS
 | [3604037](3604037/) | Branch patches for #3604037 | no | 1 | 2026-10-01 |  |  |
 | [3614293](3614293/) | Issue #3614293 Update: Automated Form Validation Accessibility Testing | no | 1 |  |  |  |
 | [3617875](3617875/) | Branch patches for #3617875 | no | 3 |  |  |  |
-| [3619127](3619127/) | forms sidebar does not open from Inline Form Errors links | [yes](3619127/REPRODUCE.md) | 4 | 2026-10-01 | 3 | `3619127-pinned`, `3619127-latest` |
+| [3619127](3619127/) | forms sidebar does not open from Inline Form Errors links | [yes](3619127/REPRODUCE.md) | 4 | 2026-10-01 | 9 | `3619127-pinned`, `3619127-latest` |
 | [3619387](3619387/) | Branch patches for #3619387 | no | 4 |  |  |  |
 | [3619933](3619933/) | Branch patches for #3619933 | no | 6 |  |  |  |

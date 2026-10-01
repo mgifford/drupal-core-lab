@@ -2,6 +2,7 @@
 // starting state (Standard install, admin/admin, recipe applied, patches on the "after" side).
 //   node tools/compare/setup.mjs [slug] [--dry-run]
 //   node tools/compare/setup.mjs [slug] --check-patches    only report whether the patches still apply to that core
+//   node tools/compare/setup.mjs [slug] --with-lighthouse   also install Lighthouse (optional background audits in the viewer; Node 22.19+)
 //
 // A variant's `core` says which Drupal core to use: `{ "ref": "main" }` follows the branch (fetched when an
 // environment is first created), `{ "commit": "<sha>" }` pins one exact commit so a reproduction can be repeated
@@ -78,7 +79,9 @@ if (CHECK) {
 }
 
 step('axe-core (live accessibility checks), installed from npm, not vendored');
-if (!have(path.join(labRoot, 'tools/compare/.deps/node_modules/axe-core/axe.min.js'))) run('npm', ['install', '--prefix', path.join(labRoot, 'tools/compare/.deps'), '--no-audit', '--no-fund', '--no-save', 'axe-core@4']);
+const deps = path.join(labRoot, 'tools/compare/.deps');
+const want = ['axe-core@4', ...(args.includes('--with-lighthouse') ? ['lighthouse'] : [])];
+if (!have(path.join(deps, 'node_modules/axe-core/axe.min.js')) || (args.includes('--with-lighthouse') && !have(path.join(deps, 'node_modules/lighthouse')))) run('npm', ['install', '--prefix', deps, '--no-audit', '--no-fund', '--no-save', ...want]);
 
 const sides = [['before', v.before], ['after', v.after]];
 for (const [side, spec] of sides) {

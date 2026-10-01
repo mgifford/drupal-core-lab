@@ -5,13 +5,19 @@ and a patched copy side by side, let a person reproduce the problem and confirm 
 axe-core, compare what each site serves, and keep the evidence so the work can be **repeated later, on the same core or on updated
 Drupal**. Local development only; nothing is posted anywhere automatically.
 
+![Two Drupal sites side by side: upstream Drupal on the left, where clicking the error link does nothing, and the same page with the change on the right, where the sidebar opened to show the invalid field.](docs/images/viewer-frames.png)
+
+*The side-by-side viewer: upstream Drupal (left) and the same page with a patch (right), showing issue #3619127 (error links that should open the form's sidebar). It repeats your setup in both frames, runs checks, and compares accessibility as you click.*
+
 ## Start here
 | I want to... | Go to |
 |---|---|
 | Reproduce #3619127 (the worked example) | [reports/issues/3619127/REPRODUCE.md](reports/issues/3619127/REPRODUCE.md) |
 | See every issue evaluated, and how to come back to it | [reports/issues/README.md](reports/issues/README.md) |
 | Start a new issue | [docs/NEW-ISSUE.md](docs/NEW-ISSUE.md) |
-| Use the side-by-side viewer and diff report | [tools/compare/README.md](tools/compare/README.md) |
+| **Learn to use the viewer to test an issue** (with screenshots) | [docs/USER-GUIDE.md](docs/USER-GUIDE.md) |
+| Look up viewer options and the variants.json format | [tools/compare/README.md](tools/compare/README.md) |
+| See what has and has not been tested (browsers, colour modes) | `reports/issues/<nid>/COVERAGE.md`, e.g. [3619127](reports/issues/3619127/COVERAGE.md) |
 | Run the scripted walkthroughs and the virtual screen reader | [tools/playwright/README.md](tools/playwright/README.md) |
 | Know what each tool can and cannot tell me | [docs/TESTING-TOOLS.md](docs/TESTING-TOOLS.md) |
 | Work here as an agent (rules, environments, commands) | [AGENTS.md](AGENTS.md) |

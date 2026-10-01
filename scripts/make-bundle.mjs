@@ -21,7 +21,10 @@ const copy = (rel, filter = () => true) => {
   if (!fs.existsSync(src)) { console.error(`missing: ${rel}`); process.exit(1); }
   fs.cpSync(src, dst, { recursive: true, filter: (f) => !/\.DS_Store$|node_modules/.test(f) && filter(f) });
 };
-for (const f of ['serve.mjs', 'index.html', 'lib.mjs', 'diff.mjs', 'setup.mjs', 'README.md']) copy(`tools/compare/${f}`);
+for (const f of ['serve.mjs', 'index.html', 'lib.mjs', 'diff.mjs', 'setup.mjs', 'lighthouse.mjs', 'README.md']) copy(`tools/compare/${f}`);
+copy('scripts/coverage.mjs');
+copy('docs/USER-GUIDE.md');
+copy('docs/images');
 copy('scripts/lab-site.sh');
 copy('tools/compare/site/.ddev/config.yaml');
 copy('tools/compare/site/.ddev/nginx_full/compare.conf');

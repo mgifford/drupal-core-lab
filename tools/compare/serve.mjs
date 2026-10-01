@@ -6,6 +6,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
+import { lighthouseAvailable, audit as lighthouseAudit } from './lighthouse.mjs';
 import { labRoot, variants, envInfo, envInfoAsync, loginPathAsync, envDir } from './lib.mjs';
 
 const PAGE = Number(process.env.PORT || 8100);
@@ -21,6 +22,18 @@ const SIDES = DDEV
 const list = variants();
 const state = { slug: process.argv.slice(2).find((x) => !x.startsWith('--')) || list[0].slug, theme: 'auto', darkos: false, axe: true, axeBest: false };
 const current = () => list.find((x) => x.slug === state.slug) || list[0];
+// Lighthouse jobs run one at a time, each in its own Chrome, and never block the proxies (login and DDEV lookups are async or cached).
+const lh = { seq: 0, running: false, pending: null, jobs: new Map() };
+async function runLighthouse(id, job) {
+  lh.running = true;
+  try {
+    const v = current(); const r = {};
+    for (const side of ['before', 'after']) r[side] = await lighthouseAudit({ env: v[side].env, host: info(v[side].env).host, pagePath: job.path, performance: job.perf });
+    job.results = r; job.state = 'done';
+  } catch (e) { job.state = 'error'; job.error = String(e.message).split('\n')[0].slice(0, 300); }
+  lh.running = false;
+  if (lh.pending) { const p = lh.pending; lh.pending = null; runLighthouse(p.id, p.job); }
+}
 const agent = new http.Agent({ keepAlive: true, maxSockets: 64 }); // reuse connections to the DDEV router
 const infoCache = {};
 // The real sites, for opening outside the viewer. Prefer a url set in variants.json; else the DDEV hostname.
@@ -155,6 +168,16 @@ http.createServer((req, res) => {
       rq.end();
     });
     Promise.all([probe('before'), probe('after')]).then(([before, after]) => { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify({ before, after })); });
+  } else if (u.pathname === '/api/lighthouse/status') {
+    res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify({ ...lighthouseAvailable(), running: lh.running }));
+  } else if (u.pathname === '/api/lighthouse/run' && req.method === 'POST') {
+    const id = ++lh.seq; const job = { state: 'running', path: u.searchParams.get('path') || '/', perf: u.searchParams.get('perf') === '1' };
+    lh.jobs.set(id, job); if (lh.jobs.size > 20) lh.jobs.delete(lh.jobs.keys().next().value);
+    if (lh.running) { lh.pending = { id, job }; } else runLighthouse(id, job);
+    res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify({ id, queued: lh.running && lh.pending && lh.pending.id === id }));
+  } else if (u.pathname === '/api/lighthouse/result') {
+    const job = lh.jobs.get(Number(u.searchParams.get('id'))) || { state: 'error', error: 'unknown job' };
+    res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify(job));
   } else if (u.pathname === '/api/cache') {
     const v = current();
     const run = (env) => new Promise((resolve) => execFile('ddev', ['drupal', 'cache'], { cwd: envDir(env), timeout: 120000 }, (err, so, se) => resolve(err ? `failed: ${String(se || err.message).trim().slice(0, 200)}` : 'cleared')));

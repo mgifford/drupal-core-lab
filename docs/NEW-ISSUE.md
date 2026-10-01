@@ -21,6 +21,8 @@ Edit the `<nid>-pinned` entry in `tools/compare/variants.json`:
   `kind` is `precondition` (must pass on both or nothing means anything), `fix` (should fail Before and pass After) or
   `regression` (should be equal). Record events instead of reading state when only one frame can hold it (focus).
 - `observe`: manual yes/no questions with `expectBefore` and `expectAfter`.
+- `steps` also become an optional checklist in the viewer (people can tick them; ticks are saved in their browser and the downloaded log).
+- `coverage` (optional): `{ "matrix": [...], "manual": [...], "blocked": { "firefox": "why it could not be run" } }` to replace the standard browser and colour-mode matrix.
 Edit `recipes/repro_<nid>/recipe.yml` so the starting state exists (modules, content types, config).
 Full field reference: `tools/compare/README.md`.
 
@@ -36,6 +38,12 @@ Copy `tools/playwright/walkthrough.mjs` and `flow.mjs` and adapt the selectors (
 mouse then keyboard-only, axe at each stage). Run it and `screenreader.mjs`. They write dated folders under
 `reports/issues/<nid>/`. Fill in `EVIDENCE.md` (exact commits) and `STATUS-<date>.md`. Nothing is posted to drupal.org by any
 script; `ISSUE-COMMENT-DRAFT.md` is a draft for a person to review and post.
+
+## 4b. Record what has and has not been tested
+    node tools/playwright/walkthrough.mjs <nid>-pinned --browser=webkit --scheme=dark     # also --forced-colors, --viewport=1280x900
+    node scripts/coverage.mjs <nid>                                                        # writes COVERAGE.md
+Run the standard matrix (Chromium, Firefox, WebKit; light and dark; forced colours). A missing row is a gap, shown as NOT TESTED. Save
+viewer logs from people who tested by hand in `reports/issues/<nid>/manual/` and re-run `coverage.mjs`.
 
 ## 5. Package it
     node scripts/make-bundle.mjs <nid>-pinned          # writes bundles/drupal-repro-<nid>-<date>.zip

@@ -1,6 +1,6 @@
 # Playwright walkthrough: #3619127 (3619127-pinned)
 
-Run 2026-10-01T10:42:27.381Z. Core: Before `d29add7ebc18954dcb88877ed38b5bd88cdbf967 2026-09-30`, After `d29add7ebc18954dcb88877ed38b5bd88cdbf967 2026-09-30` (`<commit> <date>`) (pinned). Patches on After: `3619127-forms-sidebar-with-ife.patch`, `patch-0-vanilla-js-no-jquery.patch`, `patch-1-no-persist-and-waits.patch`. Viewport 480x900. Trusted input (Playwright clicks and key presses), axe-core WCAG 2.0 to 2.2 A/AA.
+Run 2026-10-01T11:00:11.858Z. Core: Before `d29add7ebc18954dcb88877ed38b5bd88cdbf967 2026-09-30`, After `d29add7ebc18954dcb88877ed38b5bd88cdbf967 2026-09-30` (`<commit> <date>`) (pinned). Patches on After: `3619127-forms-sidebar-with-ife.patch`, `patch-0-vanilla-js-no-jquery.patch`, `patch-1-no-persist-and-waits.patch`. Environment: **chromium 153.0.8010.12**, colour scheme **dark**, viewport 480x900, darwin arm64. Trusted input (Playwright clicks and key presses), axe-core WCAG 2.0 to 2.2 A/AA.
 
 Rule: **fix** checks should fail on Before and pass on After; **regression** checks should be equal.
 
@@ -12,8 +12,8 @@ Rule: **fix** checks should fail on Before and pass on After; **regression** che
 | fix | URL alias field receives focus | ✗ no | ✓ yes | ✓ as expected: fails before, passes after |
 | fix | URL alias field is in the viewport | ✗ no | ✓ yes | ✓ as expected: fails before, passes after |
 | regression | Saved sidebar preference unchanged (still "false") | false | false | ✓ unchanged |
-| regression | axe violations (elements) after using the link | 0 | 0 | ✓ unchanged |
-| regression | axe violations before using the link | 0 | 0 | ✓ unchanged |
+| regression | axe violations (elements) after using the link | 2 | 4 | ✗ differs |
+| regression | axe violations before using the link | 2 | 2 | ✓ unchanged |
 | regression | JavaScript errors | 0 | 0 | ✓ unchanged |
 
 Field as exposed to assistive technology after using the link (After):
@@ -32,8 +32,8 @@ Screenshots: `before-mouse-2-after-link.png`, `after-mouse-2-after-link.png`.
 | fix | URL alias field receives focus | ✗ no | ✓ yes | ✓ as expected: fails before, passes after |
 | fix | URL alias field is in the viewport | ✗ no | ✓ yes | ✓ as expected: fails before, passes after |
 | regression | Saved sidebar preference unchanged (still "false") | false | false | ✓ unchanged |
-| regression | axe violations (elements) after using the link | 0 | 0 | ✓ unchanged |
-| regression | axe violations before using the link | 0 | 0 | ✓ unchanged |
+| regression | axe violations (elements) after using the link | 2 | 4 | ✗ differs |
+| regression | axe violations before using the link | 2 | 2 | ✓ unchanged |
 | regression | JavaScript errors | 0 | 0 | ✓ unchanged |
 
 Field as exposed to assistive technology after using the link (After):
@@ -49,4 +49,4 @@ Screenshots: `before-keyboard-2-after-link.png`, `after-keyboard-2-after-link.pn
 ✓ **Reproduced and fixed.** On this core, Before shows the problem and After (with the patches) fixes it.
 
 ---
-**✓ All checks behave as expected.** Automated results are a DRAFT: they do not replace a keyboard and screen-reader pass by a person.
+**✗ 2 check(s) not as expected.** Automated results are a DRAFT: they do not replace a keyboard and screen-reader pass by a person.

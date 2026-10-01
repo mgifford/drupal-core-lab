@@ -75,6 +75,23 @@ setup reached, sidebar open, focus in the URL alias field, saved preference not
 overwritten, no JavaScript errors, same number of open details sections.
 The harmless "ResizeObserver loop" browser notice is ignored in the error count.
 
+## Optional step checklist
+The variant's `steps` appear as a checklist. Ticking is optional, saved per issue in the browser (`localStorage`), shown as "n of N steps
+ticked", and included in the downloaded log. **Tick the steps the recipe did** ticks the `how: recipe` steps; **Clear ticks** resets.
+
+## Where did you test? (and reminders)
+The panel records the browser, OS, viewport, colour modes looked at, input used and assistive technology, saved in the downloaded log
+(`environmentTested`). The viewer also notes, per issue and browser, which colour modes you have run checks in, and reminds you of
+the modes and browsers not yet recorded (dark mode, forced colours, other browsers). Save the log in `reports/issues/<nid>/manual/`
+and run `node scripts/coverage.mjs <nid>`.
+
+## Lighthouse (optional)
+Tick **Run Lighthouse audits** (or press **Audit this page now**). The server runs Lighthouse for Before then After, one at a time, in its
+own headless Chrome that logs in first, and shows accessibility and best-practice scores, a banner (an alert when After is worse), and the
+audits that fail on one side or both. It audits the page as it **loads**: not an error summary after Save, and not a state you reach by
+clicking. Install with `node tools/compare/setup.mjs <slug> --with-lighthouse` or `npm install --prefix tools/compare/.deps lighthouse`
+(Node 22.19+, Playwright's Chromium). Performance is opt-in and noisy on a shared machine.
+
 ## Manual confirmation
 Because the two frames stay in step, a person can confirm the change by eye. The panel asks the questions in the variant's
 `observe` list (for example "The sidebar of advanced fields opened by itself") once for Before and once for After, compares your

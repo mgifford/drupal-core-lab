@@ -1,5 +1,7 @@
 // Scripted walkthrough of a comparison against both sites, with trusted (real) input.
-//   node tools/playwright/walkthrough.mjs [slug]
+//   node tools/playwright/walkthrough.mjs [slug] [--browser=chromium|firefox|webkit] [--scheme=light|dark] [--forced-colors] [--viewport=WxH]
+// Defaults: chromium, light, 480x900 (below 1024 px, so the sidebar of advanced fields starts collapsed). Each run records its
+// environment in results.json; `node scripts/coverage.mjs <nid>` turns those into a matrix of what has and has not been tested.
 // For each side it: logs in with a one-time link, follows the issue's steps (once with the mouse,
 // once with the keyboard only), runs axe-core at the key moments, records the page state and the
 // accessibility tree of the field that should receive focus, and saves screenshots. Output goes to
@@ -7,19 +9,25 @@
 // Specific to #3619127 (the selectors below); copy and adapt it for another variant.
 import fs from 'node:fs';
 import path from 'node:path';
-import { chromium } from '@playwright/test';
+import { chromium, firefox, webkit } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { execFileSync } from 'node:child_process';
 import { labRoot, variants, envInfo, loginPath, envDir } from '../compare/lib.mjs';
 import { setup } from './flow.mjs';
 
-const v = variants().find((x) => x.slug === (process.argv[2] || variants()[0].slug));
+const argv = process.argv.slice(2);
+const opt = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); return a ? a.split('=')[1] : d; };
+const BROWSER = opt('browser', 'chromium'); const SCHEME = opt('scheme', 'light'); const FORCED = argv.includes('--forced-colors');
+const [VW, VH] = opt('viewport', '480x900').split('x').map(Number);
+if (!{ chromium, firefox, webkit }[BROWSER]) { console.error('--browser must be chromium, firefox or webkit'); process.exit(1); }
+const v = variants().find((x) => x.slug === (argv.find((a) => !a.startsWith('--')) || variants()[0].slug));
 if (!v) { console.error('unknown variant'); process.exit(1); }
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-const out = path.join(labRoot, 'reports/issues', v.issue, 'playwright', stamp);
+const envTag = `${BROWSER}-${SCHEME}${FORCED ? '-forced' : ''}-${VW}x${VH}`;
+const out = path.join(labRoot, 'reports/issues', v.issue, 'playwright', `${stamp}-${envTag}`);
 fs.mkdirSync(out, { recursive: true });
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
-const VIEWPORT = { width: 480, height: 900 }; // below 1024, so the sidebar of advanced fields is collapsed
+const VIEWPORT = { width: VW, height: VH };
 
 async function axeScan(page) {
   const r = await new AxeBuilder({ page }).withTags(TAGS).analyze();
@@ -44,7 +52,7 @@ async function runSide(browser, side) {
   const base = `http://${host}`;
   const results = { side, env: spec.env, host, runs: {} };
   for (const mode of ['mouse', 'keyboard']) {
-    const ctx = await browser.newContext({ viewport: VIEWPORT });
+    const ctx = await browser.newContext({ viewport: VIEWPORT, colorScheme: SCHEME, forcedColors: FORCED ? 'active' : 'none' });
     const page = await ctx.newPage();
     const errors = []; page.on('pageerror', (e) => errors.push(String(e.message)));
     await page.goto(base + loginPath(spec.env));                          // one-time login link
@@ -64,16 +72,17 @@ async function runSide(browser, side) {
   return results;
 }
 
-const browser = await chromium.launch();
+const browser = await { chromium, firefox, webkit }[BROWSER].launch();
+const environment = { browser: BROWSER, browserVersion: browser.version(), colorScheme: SCHEME, forcedColors: FORCED, viewport: VIEWPORT, os: `${process.platform} ${process.arch}` };
 const gitInfo = (env) => { try { return execFileSync('git', ['-C', envDir(env), 'log', '-1', '--format=%H %cs'], { encoding: 'utf8' }).trim(); } catch { return 'unknown'; } };
-const results = { variant: v.slug, issue: v.issue, when: new Date().toISOString(), viewport: VIEWPORT, core: v.core || {}, commits: { before: gitInfo(v.before.env), after: gitInfo(v.after.env) }, patches: v.after.patches || [], sides: {} };
+const results = { variant: v.slug, issue: v.issue, when: new Date().toISOString(), viewport: VIEWPORT, environment, core: v.core || {}, commits: { before: gitInfo(v.before.env), after: gitInfo(v.after.env) }, patches: v.after.patches || [], sides: {} };
 for (const side of ['before', 'after']) { console.log(`running ${side} (${v[side].env}) ...`); results.sides[side] = await runSide(browser, side); }
 await browser.close();
 fs.writeFileSync(path.join(out, 'results.json'), JSON.stringify(results, null, 2));
 
 // ---- summary: the old version should fail the fix checks, the new one should pass; nothing else should change
 const ok = (b) => (b ? '✓ yes' : '✗ no');
-let md = `# Playwright walkthrough: #${v.issue} (${v.slug})\n\nRun ${results.when}. Core: Before \`${results.commits.before}\`, After \`${results.commits.after}\` (\`<commit> <date>\`)${v.core && v.core.commit ? ' (pinned)' : ' (follows main)'}. Patches on After: ${results.patches.length ? results.patches.map((p) => '`' + p.split('/').pop() + '`').join(', ') : 'none'}. Viewport ${VIEWPORT.width}x${VIEWPORT.height}. Trusted input (Playwright clicks and key presses), axe-core WCAG 2.0 to 2.2 A/AA.\n\nRule: **fix** checks should fail on Before and pass on After; **regression** checks should be equal.\n\n`;
+let md = `# Playwright walkthrough: #${v.issue} (${v.slug})\n\nRun ${results.when}. Core: Before \`${results.commits.before}\`, After \`${results.commits.after}\` (\`<commit> <date>\`)${v.core && v.core.commit ? ' (pinned)' : ' (follows main)'}. Patches on After: ${results.patches.length ? results.patches.map((p) => '`' + p.split('/').pop() + '`').join(', ') : 'none'}. Environment: **${environment.browser} ${environment.browserVersion}**, colour scheme **${environment.colorScheme}**${environment.forcedColors ? ', **forced colours**' : ''}, viewport ${VIEWPORT.width}x${VIEWPORT.height}, ${environment.os}. Trusted input (Playwright clicks and key presses), axe-core WCAG 2.0 to 2.2 A/AA.\n\nRule: **fix** checks should fail on Before and pass on After; **regression** checks should be equal.\n\n`;
 let unexpected = 0; const fixRows = [];
 for (const mode of ['mouse', 'keyboard']) {
   const B = results.sides.before.runs[mode], A = results.sides.after.runs[mode];
@@ -99,6 +108,9 @@ if (reproduced && fixed) interp = '\u2713 **Reproduced and fixed.** On this core
 else if (reproduced && !fixed) interp = '\u2717 **Reproduced, but the patched After does not fix it** on this core. The patches may need rerolling, or the surrounding code has changed. Run `node tools/compare/setup.mjs <slug> --check-patches` and review the diff of `sidebar.js` against the core you are using.';
 else if (notReproduced) interp = '\u26A0 **The problem does not reproduce on Before** on this core. Either upstream has already fixed it (check the issue on drupal.org and recent core commits for the changed files), or these steps and selectors no longer match this core. Do **not** conclude the patch is wrong: investigate first.';
 else interp = '\u26A0 **Mixed result**: some fix checks fail on Before and some do not. The behaviour may have partly changed on this core. Compare the screenshots and read the table above.';
+results.verdict = reproduced && fixed ? 'reproduced-and-fixed' : reproduced ? 'reproduced-not-fixed' : notReproduced ? 'not-reproduced' : 'mixed';
+results.unexpected = unexpected;
+fs.writeFileSync(path.join(out, 'results.json'), JSON.stringify(results, null, 2));
 md += `## Interpretation\n\n${interp}\n\n`;
 md += `---\n**${unexpected === 0 ? '✓ All checks behave as expected' : `✗ ${unexpected} check(s) not as expected`}.** Automated results are a DRAFT: they do not replace a keyboard and screen-reader pass by a person.\n`;
 fs.writeFileSync(path.join(out, 'SUMMARY.md'), md);

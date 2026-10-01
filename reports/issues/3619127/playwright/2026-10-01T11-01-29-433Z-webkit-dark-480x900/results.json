@@ -1,0 +1,187 @@
+{
+  "variant": "3619127-pinned",
+  "issue": "3619127",
+  "when": "2026-10-01T11:01:29.686Z",
+  "viewport": {
+    "width": 480,
+    "height": 900
+  },
+  "environment": {
+    "browser": "webkit",
+    "browserVersion": "26.6",
+    "colorScheme": "dark",
+    "forcedColors": false,
+    "viewport": {
+      "width": 480,
+      "height": 900
+    },
+    "os": "darwin arm64"
+  },
+  "core": {
+    "url": "https://git.drupalcode.org/project/drupal.git",
+    "commit": "d29add7ebc18954dcb88877ed38b5bd88cdbf967"
+  },
+  "commits": {
+    "before": "d29add7ebc18954dcb88877ed38b5bd88cdbf967 2026-09-30",
+    "after": "d29add7ebc18954dcb88877ed38b5bd88cdbf967 2026-09-30"
+  },
+  "patches": [
+    "reports/issues/3619127/branches/3619127-forms-sidebar-with-ife.patch",
+    "reports/issues/3619127/patch-0-vanilla-js-no-jquery.patch",
+    "reports/issues/3619127/patch-1-no-persist-and-waits.patch"
+  ],
+  "sides": {
+    "before": {
+      "side": "before",
+      "env": "baseline-main",
+      "host": "drupal-core.ddev.site",
+      "runs": {
+        "mouse": {
+          "beforeUse": {
+            "state": {
+              "sidebarOpen": false,
+              "aliasFieldFocused": false,
+              "aliasFieldInViewport": false,
+              "savedMobilePreference": "false",
+              "focused": "body"
+            },
+            "axe": {
+              "total": 2,
+              "rules": {
+                "color-contrast": 2
+              }
+            }
+          },
+          "afterLink": {
+            "state": {
+              "sidebarOpen": false,
+              "aliasFieldFocused": false,
+              "aliasFieldInViewport": false,
+              "savedMobilePreference": "false",
+              "focused": "body"
+            },
+            "axe": {
+              "total": 2,
+              "rules": {
+                "color-contrast": 2
+              }
+            }
+          },
+          "fieldAccessibilityTree": "",
+          "jsErrors": []
+        },
+        "keyboard": {
+          "beforeUse": {
+            "state": {
+              "sidebarOpen": false,
+              "aliasFieldFocused": false,
+              "aliasFieldInViewport": false,
+              "savedMobilePreference": "false",
+              "focused": "body"
+            },
+            "axe": {
+              "total": 2,
+              "rules": {
+                "color-contrast": 2
+              }
+            }
+          },
+          "afterLink": {
+            "state": {
+              "sidebarOpen": false,
+              "aliasFieldFocused": false,
+              "aliasFieldInViewport": false,
+              "savedMobilePreference": "false",
+              "focused": "body"
+            },
+            "axe": {
+              "total": 2,
+              "rules": {
+                "color-contrast": 2
+              }
+            }
+          },
+          "fieldAccessibilityTree": "",
+          "jsErrors": []
+        }
+      }
+    },
+    "after": {
+      "side": "after",
+      "env": "issue-3619127-vanilla",
+      "host": "drupal-patch.ddev.site",
+      "runs": {
+        "mouse": {
+          "beforeUse": {
+            "state": {
+              "sidebarOpen": false,
+              "aliasFieldFocused": false,
+              "aliasFieldInViewport": false,
+              "savedMobilePreference": "false",
+              "focused": "body"
+            },
+            "axe": {
+              "total": 2,
+              "rules": {
+                "color-contrast": 2
+              }
+            }
+          },
+          "afterLink": {
+            "state": {
+              "sidebarOpen": true,
+              "aliasFieldFocused": true,
+              "aliasFieldInViewport": true,
+              "savedMobilePreference": "false",
+              "focused": "input[name=path[0][alias]]"
+            },
+            "axe": {
+              "total": 4,
+              "rules": {
+                "color-contrast": 4
+              }
+            }
+          },
+          "fieldAccessibilityTree": "- textbox \"URL alias\" [invalid]: no-slash",
+          "jsErrors": []
+        },
+        "keyboard": {
+          "beforeUse": {
+            "state": {
+              "sidebarOpen": false,
+              "aliasFieldFocused": false,
+              "aliasFieldInViewport": false,
+              "savedMobilePreference": "false",
+              "focused": "body"
+            },
+            "axe": {
+              "total": 2,
+              "rules": {
+                "color-contrast": 2
+              }
+            }
+          },
+          "afterLink": {
+            "state": {
+              "sidebarOpen": true,
+              "aliasFieldFocused": true,
+              "aliasFieldInViewport": true,
+              "savedMobilePreference": "false",
+              "focused": "input[name=path[0][alias]]"
+            },
+            "axe": {
+              "total": 4,
+              "rules": {
+                "color-contrast": 4
+              }
+            }
+          },
+          "fieldAccessibilityTree": "- textbox \"URL alias\" [invalid]: no-slash",
+          "jsErrors": []
+        }
+      }
+    }
+  },
+  "verdict": "reproduced-and-fixed",
+  "unexpected": 2
+}
