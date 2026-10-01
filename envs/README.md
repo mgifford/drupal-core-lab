@@ -19,9 +19,8 @@ minutes (`node tools/compare/setup.mjs <slug>`), so build the other one only whe
 pair (`baseline-main`, `issue-3619127-vanilla`).
 
     node scripts/lab-env.mjs status             # what exists, what is running, which variant uses it
-    node scripts/lab-env.mjs start <slug>       # start a variant's two environments
-    node scripts/lab-env.mjs stop <slug|all>    # stop them (nothing is lost)
+    node scripts/lab-env.mjs start <slug>       # start a variant's two environments and the viewer
+    node scripts/lab-env.mjs stop <slug|all>    # stop them and the viewer (nothing is lost)
     node scripts/lab-env.mjs delete <slug> --yes   # remove them and free the disk
 
-Moving between issues: `stop` the one you are leaving, `start` (or `setup.mjs`) the one you are entering, then
-`node tools/compare/serve.mjs <slug>`. See `../AGENTS.md` and `../docs/NEW-ISSUE.md`.
+Moving between issues: `stop` the one you are leaving, then `start` (or `setup.mjs` first, if it is new) the one you are entering; `start` also launches the viewer. See `../AGENTS.md` and `../docs/NEW-ISSUE.md`.
