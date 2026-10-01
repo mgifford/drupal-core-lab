@@ -15,6 +15,7 @@ Drupal**. Local development only; nothing is posted anywhere automatically.
 | Reproduce #3619127 (the worked example) | [reports/issues/3619127/REPRODUCE.md](reports/issues/3619127/REPRODUCE.md) |
 | See every issue evaluated, and how to come back to it | [reports/issues/README.md](reports/issues/README.md) |
 | Start a new issue | [docs/NEW-ISSUE.md](docs/NEW-ISSUE.md) |
+| **First time here? Fresh clone to first comparison** | [docs/FIRST-RUN.md](docs/FIRST-RUN.md) |
 | **Learn to use the viewer to test an issue** (with screenshots) | [docs/USER-GUIDE.md](docs/USER-GUIDE.md) |
 | Look up viewer options and the variants.json format | [tools/compare/README.md](tools/compare/README.md) |
 | See what has and has not been tested (browsers, colour modes) | `reports/issues/<nid>/COVERAGE.md`, e.g. [3619127](reports/issues/3619127/COVERAGE.md) |

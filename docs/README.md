@@ -4,7 +4,8 @@ Current documentation for this lab (written or verified 2026-10-01), plus a `leg
 
 | Document | What it covers |
 |---|---|
-| [USER-GUIDE.md](USER-GUIDE.md) | **Start here if you are new:** how to use the viewer to test an issue, with screenshots, how to read the results, and what to do when something looks wrong. |
+| [FIRST-RUN.md](FIRST-RUN.md) | **Start here on a fresh clone:** prerequisites, the doctor check, building and starting your first comparison. |
+| [USER-GUIDE.md](USER-GUIDE.md) | **Then:** how to use the viewer to test an issue, with screenshots, how to read the results, and what to do when something looks wrong. |
 | [NEW-ISSUE.md](NEW-ISSUE.md) | Starting a new issue: scaffold, recipe, variant, steps and checks, evidence, and coming back to it later. |
 | [TESTING-TOOLS.md](TESTING-TOOLS.md) | Each tool (axe-core, Playwright, Guidepup virtual screen reader, the viewer, the diff report, Accessibility Insights) and what it can and cannot tell you. |
 | [ADDON-TRIAL-2026-10-01.md](ADDON-TRIAL-2026-10-01.md) | Trial of the DDEV add-on `justafish/ddev-drupal-core-dev`, with gotchas (Mutagen, router, SQLite). |
