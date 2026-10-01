@@ -1,11 +1,8 @@
 # Branch patches for #3604037
 
-Extracted 2026-10-01 from the drupal.org issue fork(s) with
-`git diff <merge-base with upstream main> <branch tip>`: only the branch's own
-changes, **not rebased** onto current `main`. Re-check against the issue before
-use: the MR on drupal.org is the source of truth. Apply to a core worktree with
-`git apply branches/<file>.patch` (may need a reroll if the base is old).
+Extracted 2026-10-01 from https://git.drupalcode.org/issue/drupal-3604037.git with `git diff <merge-base> <branch tip>`: only the branch's own changes.
+Not rebased onto current `main`. The MR on drupal.org is the source of truth.
 
-| Patch | Source | Tip | Base | Tip date | Files | Commits |
-|---|---|---|---|---|---|---|
-| `branches/3604037-grouping-elements-child-errors-default-admin.patch` | issue-fork drupal-3604037 (MR !17078) | e8b2e166be8 | c321043bb82 | 2026-09-30 | 18 | 25 |
+| Patch | Source | Tip | Base | Base date and subject | Files |
+|---|---|---|---|---|---|
+| `branches/3604037-grouping-elements-child-errors-default-admin.patch` | https://git.drupalcode.org/issue/drupal-3604037.git `3604037-grouping-elements-child-errors-default-admin` | e8b2e166be8 | c321043bb82d | 2026-09-28 task: #3557481 Convert hook_schema() implementations to SchemaDefinition - regular modules | 18 |
