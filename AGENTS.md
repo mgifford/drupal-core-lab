@@ -120,6 +120,7 @@ Use only if `setup.mjs` is not usable. `core/scripts/dr install` is SQLite-only;
   (CI fails if it is stale). Do not edit `cloud/` by hand.
 - Optional extras default **off**; user choices live in `localStorage` only (`compare.prefs`). Never add accounts or server-side storage.
 - The script injected into the proxied pages is a template literal in `serve.mjs`: double the backslashes in regexes, no backticks or `${}`.
+- The controls are collapsible blocks (`.opts details[data-sec]`): Device width and Colour mode open by default, the rest closed. Tests must open a block (`summary:has-text("Behaviour")`) before using a control inside it. A new control belongs in the block that matches its job; keep the top bar for page navigation.
 - Verify with real input: `node tools/playwright/mirror-drag.mjs` (viewer must be running), plus `node scripts/doctor.mjs`.
 - Cloud (DDEV Coder workspaces) is a **proposal on hold**: `docs/CLOUD-PLAN.md`. Do not build it or sign in to it without the user.
 

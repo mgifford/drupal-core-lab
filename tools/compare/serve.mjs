@@ -161,7 +161,9 @@ function proxyFor(side) {
       return;
     }
     const env = current()[side].env;
-    const { hosts, host, routerHttpsPort } = info(env);
+    let hosts, host, routerHttpsPort;
+    try { ({ hosts, host, routerHttpsPort } = info(env)); }
+    catch (e) { res.writeHead(502, { 'content-type': 'text/html; charset=utf-8' }); res.end(`<!doctype html><meta charset="utf-8"><title>Not built</title><p style="font:16px system-ui;padding:1rem">${String(e.message).replace('<slug>', current().slug).replace(/[<>&]/g, '')}</p>`); return; }
     const swap = (t) => hosts.reduce((a, h) => a.split(`https://${h}`).join(origin).split(`http://${h}`).join(origin).split(h).join(mine), t);
     const headers = { ...req.headers, host, 'accept-encoding': 'identity' };
     delete headers.origin; delete headers.referer;
@@ -262,3 +264,7 @@ http.createServer((req, res) => {
 
 // Close the forced-colours window when the server stops, so it is not left running on its own.
 for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, async () => { await emulation.close().catch(() => {}); process.exit(0); });
+
+// A local tool must not die because one request failed: log it and keep serving.
+process.on('uncaughtException', (e) => console.error('uncaught:', e && e.message));
+process.on('unhandledRejection', (e) => console.error('unhandled rejection:', e && e.message));

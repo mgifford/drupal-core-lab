@@ -5,6 +5,7 @@ import { chromium } from '@playwright/test';
 const api = async (body) => (await fetch('http://localhost:8100/api/emulation', body ? { method: 'POST', body: JSON.stringify(body) } : undefined)).json();
 const b = await chromium.launch(); const p = await (await b.newContext({ viewport: { width: 1400, height: 900 } })).newPage();
 await p.goto('http://localhost:8100/'); await p.waitForTimeout(3000);
+await p.click('summary:has-text("Display")');          // the forced-colours controls live in the Display section
 console.log('button visible in a normal window:', await p.locator('#emulopen').isVisible(), '| mode switch hidden:', await p.locator('#emulbox').isHidden());
 await p.click('#emulopen'); await p.waitForTimeout(12000);          // the controlled window loads the viewer and its frames
 let ok = true; const check = async (mode, want) => {

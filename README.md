@@ -1,5 +1,9 @@
 # drupal-core-lab
 
+![A short looped demonstration of the side-by-side viewer. Two Drupal sites sit next to each other: core on the left, core plus the change on the right. A form is submitted once and both sides show the same errors. After closing a group of fields, the right-hand side marks it with a red bar and an error icon while the left does not. The colour mode is switched to dark and the width to mobile with one click each.](docs/images/viewer-demo.gif)
+
+*What it does in about 15 seconds: two Drupal sites side by side, one set of steps, the difference marked. Low resolution on purpose; the live viewer is full size.*
+
 A workspace for **evaluating Drupal core changes**, kept separate from Drupal core itself. For an issue it can: build upstream core
 and a patched copy side by side, let a person reproduce the problem and confirm the fix, replay the steps with real input and
 axe-core, compare what each site serves, and keep the evidence so the work can be **repeated later, on the same core or on updated

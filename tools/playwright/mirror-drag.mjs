@@ -11,7 +11,7 @@ const fb = p.frameLocator('#fb'), fa = p.frameLocator('#fa');
 const rows = async (f) => (await f.locator('table#blocks tbody tr.draggable').evaluateAll((r) => r.map((x) => x.querySelector('td')?.textContent.trim().slice(0, 25)))).slice(0, 8);
 console.log('before rows:', await rows(fb)); console.log('after rows:', await rows(fa));
 // hover marker
-await p.check('#mirrorhover');
+await p.click('summary:has-text("Behaviour")'); await p.check('#mirrorhover');
 const handle = fb.locator('table#blocks tbody tr.draggable .tabledrag-handle').first();
 await handle.scrollIntoViewIfNeeded(); const box = await handle.boundingBox();
 await p.mouse.move(box.x + 5, box.y + 5); await p.waitForTimeout(500);

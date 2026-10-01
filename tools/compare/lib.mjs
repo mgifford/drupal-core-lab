@@ -24,6 +24,7 @@ export const envDir = (env) => path.join(labRoot, 'envs', env);
 
 // DDEV hostname and router port for an environment (the router needs a Host header).
 export function envInfo(env) {
+  if (!fs.existsSync(path.join(envDir(env), '.ddev/config.yaml'))) throw new Error(`${env} has not been built yet. Build it: node tools/compare/setup.mjs <slug>`);
   const out = execFileSync('ddev', ['describe', '-j'], { cwd: envDir(env), encoding: 'utf8' });
   const raw = JSON.parse(out).raw;
   return { host: raw.hostname, hosts: raw.hostnames || [raw.hostname], routerPort: Number(raw.router_http_port || 80), routerHttpsPort: Number(raw.router_https_port || 443), status: raw.status };

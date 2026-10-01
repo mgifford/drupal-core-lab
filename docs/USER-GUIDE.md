@@ -4,6 +4,10 @@ This guide is for someone who wants to **see a Drupal core issue work (or not)**
 being an expert in the lab. It uses issue [#3619127](https://www.drupal.org/project/drupal/issues/3619127) as the example. Local
 development only: everything runs on your own computer, and nothing is posted anywhere.
 
+![A short looped demonstration of the side-by-side viewer. Two Drupal sites sit next to each other: core on the left, core plus the change on the right. A form is submitted once and both sides show the same errors. After closing a group of fields, the right-hand side marks it with a red bar and an error icon while the left does not. The colour mode is switched to dark and the width to mobile with one click each.](images/viewer-demo.gif)
+
+*The whole idea in about 15 seconds.*
+
 ![Two Drupal sites side by side. On the left, upstream Drupal: an error summary says two errors were found and the sidebar is still closed after clicking the "URL alias" link. On the right, the same page with the change: the sidebar has opened and shows the URL alias field with its error.](images/viewer-frames.png)
 
 *The point of the tool. Left: upstream Drupal after clicking the error link: nothing happened. Right: with the change, the sidebar opened to the invalid field.*
@@ -35,6 +39,8 @@ are saved in your browser and in the downloaded log; nothing depends on them). E
 done for you), *mirrored to both frames* (do it once, the viewer repeats it on the other side), or *do in each frame* (you do it, in each
 frame, because that is the thing being tested). "Look for" lines say what you should see. **Expected** and **Actual** say what the issue
 claims.
+
+**Layout.** The top bar always shows page navigation (variant, Page, Go, log in, reload). Below it are blocks that flow to fit your window: **Device width** (Mobile, Tablet, Desktop) and **Colour mode** (Light, Dark, Follow OS) are open by default; **Display**, **Behaviour**, **Accessibility checks** and **Tools** start closed. A closed block shows a hint when something inside it is changed from its default (for example "Behaviour (JavaScript off)"), and the viewer remembers which blocks you opened.
 
 **Controls.** *Log in both as admin*; *Go (both)* opens the same page on both sides; *Clear Drupal caches (both)* and *Reset browser state
 (both)* fix most "it should have worked" surprises (the second clears the saved sidebar preference); *Reload Before / After* for a stuck
