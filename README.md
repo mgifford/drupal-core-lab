@@ -15,5 +15,6 @@ evidence. Core checkouts are disposable and live in `envs/` (gitignored).
     .agents/ .claude/   AI skills and agent definitions
     envs/         disposable core worktrees, one DDEV project each
 
+Modelled on [justafish/ddev-drupal-core-dev](https://github.com/justafish/ddev-drupal-core-dev) (DDEV add-on for core development).
 Start with `AGENTS.md`. Migration notes and open follow-ups: `MIGRATION.md`.
 Current work: `reports/issues/3619127/`.

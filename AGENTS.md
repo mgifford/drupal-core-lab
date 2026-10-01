@@ -11,6 +11,14 @@ The job: reproduce a problem on pristine upstream, apply an issue fork's branch
 or a patch, compare the two under the same conditions, and write the result up
 so a human can post it to drupal.org.
 
+We follow the model of
+[justafish/ddev-drupal-core-dev](https://github.com/justafish/ddev-drupal-core-dev),
+a DDEV add-on for core development (`ddev drupal install`, `ddev phpunit`,
+`ddev nightwatch`, lint commands, no Drush). This repository adds what the
+add-on does not: several core checkouts side by side, baseline-versus-patched
+comparison, and kept reports. **Status:** the add-on has not been trialled on
+Drupal 12 `main` yet; until it has, the manual steps below are the verified path.
+
 Instruction precedence: `ACCESSIBILITY.md`, then this file, then `STYLES.md`,
 then `.agents/DRUPAL_AGENTS.md`. When they conflict, choose the safer, more
 accessible option.
@@ -33,7 +41,9 @@ most; `ddev stop` the rest (each uses real memory).
 Verified on DDEV 1.25, PHP 8.5, Drupal 12 `main`, with core's own CLI and no
 Drush. Adjust paths for `envs/`.
 
-    git clone https://git.drupalcode.org/project/drupal.git envs/core.git
+    git clone --bare https://git.drupalcode.org/project/drupal.git envs/core.git
+    git -C envs/core.git config remote.origin.fetch '+refs/heads/main:refs/remotes/origin/main'
+    git -C envs/core.git fetch origin main
     git -C envs/core.git worktree add --detach ../baseline-main origin/main
     cd envs/baseline-main
     mkdir -p .ddev        # copy a DDEV config.yaml here, set a unique `name:`
@@ -66,9 +76,9 @@ To reset a site: snapshot, drop and recreate the `db` database, remove
 `sites/default/files` and `sites/default/settings.php`, `ddev restart`, then
 install again. This sequence was run successfully on 2026-10-01.
 
-### Proposed, NOT yet verified: the DDEV add-on
+### Next step, NOT yet verified: install the add-on in each environment
 
-`justafish/ddev-drupal-core-dev` (Apache-2.0) provides `ddev drupal install`,
+[`justafish/ddev-drupal-core-dev`](https://github.com/justafish/ddev-drupal-core-dev) (Apache-2.0; README: `ddev config --omit-containers=db --disable-settings-management`, then `ddev add-on get justafish/ddev-drupal-core-dev`) provides `ddev drupal install`,
 `ddev drupal uninstall`, `ddev phpunit`, `ddev nightwatch` and lint commands
 without Drush, using SQLite and no database container. It would replace most
 of the manual steps above. **Trial it on `baseline-main` first** (Drupal 12
