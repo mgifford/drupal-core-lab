@@ -60,3 +60,7 @@ Not yet done: the recipe (`recipes/repro_3604037`), the variant's steps, checks 
 | `EVIDENCE.md` | Results with exact commits. DRAFT until a person has reviewed it. |
 | `playwright/`, `compare/`, `screenreader/` | Generated evidence from the scripts. |
 | `ISSUE-COMMENT-DRAFT.md` | A draft for a human to review and post. Nothing is posted automatically. |
+
+
+## Same test page on both sides
+The MR also changes the `form_test` page (adds a second required field so its test can check a count of 2). So that both sites show the same page, that one change is applied to **Before** as `branches/support-fixture-two-required-fields.patch` (listed as `before.patches`). It is a test-support file, not the code under test; the code differences are everything else in the MR patch.

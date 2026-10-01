@@ -61,7 +61,7 @@ html:not([data-runtime="static"]) [data-static-only] { display: none !important;
   <ol>
     <li>On your own computer (recommended): <code id="spcmd"></code></li>
     <li id="spcloud">In a DDEV cloud workspace (needs access that DDEV grants; see the plan in the repository): <a id="spcloudlink" href="https://start.coder.ddev.com/drupal-issue">open the issue picker</a>.</li>
-    <li>Evidence and notes for this issue: <a id="spreports" href="#">reports</a>, <a id="spissue" href="#">issue on drupal.org</a>.</li>
+    <li>Evidence and notes for this issue: <a id="spreports" href="#">reports</a>, <a id="spissue" href="#">issue on drupal.org</a>. Guides: <a id="spdocs" href="#">documentation</a>.</li>
   </ol>
 </section>
 <main>
@@ -214,7 +214,7 @@ function setVariant(slug) { v = variants.find((x) => x.slug === slug); $('desc')
 function fillStaticPanel() {
   const root = (window.__repo || '').replace(/\/$/, '');
   $('spcmd').textContent = `node scripts/lab-env.mjs start ${v.slug}`;
-  $('spreports').href = `${root}/tree/main/reports/issues/${v.issue}`; $('spissue').href = `https://www.drupal.org/project/drupal/issues/${v.issue}`;
+  $('spreports').href = `${root}/tree/main/reports/issues/${v.issue}`; $('spdocs').href = `${root}/blob/main/docs/USER-GUIDE.md`; $('spissue').href = `https://www.drupal.org/project/drupal/issues/${v.issue}`;
 }
 async function init() {
   const d = await (await fetch('variants.json')).json();
