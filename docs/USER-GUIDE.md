@@ -26,6 +26,9 @@ If the environments do not exist yet, build them first, then use the two command
 Add `--ddev` to the second command (after `cd tools/compare/site && ddev start` once) to use https://drupal-compare.ddev.site instead.
 Both sites log in as `admin` / `admin`. If a command stops with `ddev-router failed to become ready`, run it again: it resumes.
 
+Optional extras (live accessibility checks, Lighthouse, dark-mode simulation) are **off until you turn them on**. Your choices are remembered
+in this browser only (`localStorage`); nothing is stored on a server or in an account. The GitHub Pages copy is a read-only guide and runs no checks.
+
 ## 3. A tour of the page
 
 ![The top of the viewer: the title, an optional numbered checklist of steps to reproduce with small tags showing which steps the recipe does, which are mirrored to both frames and which you do yourself, then the controls.](images/viewer-overview.png)

@@ -88,7 +88,7 @@ html:not([data-runtime="static"]) [data-static-only] { display: none !important;
     <label data-needs="live"><input type="checkbox" id="syncnav" checked> Sync navigation</label>
     <label data-needs="live"><input type="checkbox" id="darkos"> Simulate a dark-mode OS</label>
     <label data-needs="live"><input type="checkbox" id="mirror" checked> Mirror clicks and typing</label>
-    <label data-needs="live"><input type="checkbox" id="axeon" checked> Live accessibility checks (axe-core)</label>
+    <label data-needs="live"><input type="checkbox" id="axeon"> Live accessibility checks (axe-core)</label>
     <label data-needs="live"><input type="checkbox" id="axebest"> include best-practice rules</label>
     <span data-needs="live" id="axemini" role="status" aria-live="polite"></span>
     <fieldset data-needs="live"><legend>View</legend>
@@ -184,6 +184,13 @@ function load(side, path) { path = String(path || '/').trim().replace(/^https?:\
 function loadBoth(path) { status('Loading…'); load('before', path); load('after', path); }
 // In overlay views each frame must keep the width it has side by side (half of the page), or it would cross a responsive breakpoint and show a different layout.
 function applyWidth() { const w = radio('width'), overlay = radio('view') !== 'side'; for (const s of ['before', 'after']) F[s].style.width = w === 'half' ? (overlay ? 'calc(50% - .25rem)' : '100%') : w; }
+// Optional extras (live axe, Lighthouse, ...) are OFF until you turn them on. Choices are remembered in this browser (localStorage) only.
+const PREF_KEY = 'compare.prefs', PREF_CHECKS = ['axeon', 'axebest', 'lhon', 'lhperf', 'darkos'];
+function applyPrefs() { let p = {}; try { p = JSON.parse(localStorage.getItem(PREF_KEY)) || {}; } catch (e) { /* none */ }
+  PREF_CHECKS.forEach((id) => { if (typeof p[id] === 'boolean') $(id).checked = p[id]; });
+  if (p.theme) { const r = document.querySelector(`input[name="theme"][value="${p.theme}"]`); if (r) r.checked = true; } }
+function savePrefs() { try { const p = { theme: radio('theme') }; PREF_CHECKS.forEach((id) => { p[id] = $(id).checked; }); localStorage.setItem(PREF_KEY, JSON.stringify(p)); } catch (e) { /* storage unavailable */ } }
+document.addEventListener('change', (e) => { if (PREF_CHECKS.includes(e.target.id) || e.target.name === 'theme') savePrefs(); });
 function sendState() { const state = { theme: radio('theme'), darkos: $('darkos').checked, axe: $('axeon').checked, axeBest: $('axebest').checked };
   post(state); for (const s of ['before', 'after']) F[s].contentWindow && F[s].contentWindow.postMessage({ compare: 1, type: 'state', state }, '*'); }
 const TAGS = { recipe: 'set up by the recipe', mirror: 'mirrored to both frames', each: 'do in each frame' };
@@ -221,7 +228,8 @@ async function init() {
   } origins = d.origins; sites = d.sites || {}; variants = d.variants;
   for (const x of variants) { const o = document.createElement('option'); o.value = x.slug; o.textContent = x.label; $('variant').append(o); }
   $('variant').value = d.state.slug; setVariant(d.state.slug);
-  document.querySelector(`input[name="theme"][value="${d.state.theme}"]`).checked = true; $('darkos').checked = d.state.darkos; $('axeon').checked = d.state.axe !== false; $('axebest').checked = !!d.state.axeBest;
+  document.querySelector(`input[name="theme"][value="${d.state.theme}"]`).checked = true; $('darkos').checked = d.state.darkos; $('axeon').checked = false; $('axebest').checked = false;
+  applyPrefs(); sendState();            // optional checks start OFF; your saved choices (this browser only) win
   loadBoth($('goto').value);
 }
 $('variant').addEventListener('change', async () => { if (STATIC) { setVariant($('variant').value); fillStaticPanel(); return; } await post({ slug: $('variant').value }); setVariant($('variant').value); loadBoth($('goto').value); });
@@ -484,7 +492,7 @@ function lhSchedule() { if (!$('lhon').checked) return; clearTimeout(lhTimer); l
 async function lhRun() {
   const path = (last.after || last.before || '/').split('#')[0]; if (!path || path === lhPath && !lhRun.force) return; lhPath = path; lhRun.force = false;
   if (!(await lhStatus())) return; const V = $('lhverdict'); V.hidden = false; V.className = 'verdict warn'; V.textContent = `Running Lighthouse on ${path} for both sites… (about 10 s each)`;
-  const r = await (await fetch(`/api/lighthouse/run?path=${encodeURIComponent(path)}&perf=${$('lhperf').checked ? 1 : 0}`, { method: 'POST' })).json();
+  const r = await (await fetch(`api/lighthouse/run?path=${encodeURIComponent(path)}&perf=${$('lhperf').checked ? 1 : 0}`, { method: 'POST' })).json();
   clearInterval(lhPoll); lhPoll = setInterval(async () => { const j = await (await fetch('api/lighthouse/result?id=' + r.id)).json();
     if (j.state === 'done') { clearInterval(lhPoll); showLighthouse(path, j.results); } else if (j.state === 'error') { clearInterval(lhPoll); V.className = 'verdict bad'; V.textContent = 'Lighthouse failed: ' + j.error; } }, 2000);
 }
