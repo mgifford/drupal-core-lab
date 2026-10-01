@@ -17,13 +17,15 @@ let browser = null, page = null, mode = 'normal';
 
 export const available = () => fs.existsSync(PW);
 
-export async function open(url) {
+export async function open(url, initial = 'forced-light') {
   if (!available()) throw new Error('Playwright is not installed: cd tools/playwright && npm install && npx playwright install chromium');
   if (page && !page.isClosed()) { await page.bringToFront(); return; }
   const { chromium } = await import(pathToFileURL(PW).href);
-  browser = await chromium.launch({ headless: !!process.env.LAB_EMULATION_HEADLESS, args: ['--window-size=1500,1000'] });
+  // Playwright's own SIGINT/SIGTERM handlers would swallow the signal and keep the server alive; serve.mjs closes the window and exits itself.
+  browser = await chromium.launch({ headless: !!process.env.LAB_EMULATION_HEADLESS, args: ['--window-size=1500,1000'], handleSIGINT: false, handleSIGTERM: false, handleSIGHUP: false });
   const ctx = await browser.newContext({ viewport: process.env.LAB_EMULATION_HEADLESS ? { width: 1500, height: 1000 } : null, ignoreHTTPSErrors: true });
-  page = await ctx.newPage(); mode = 'normal';
+  page = await ctx.newPage();
+  await page.emulateMedia(MODES[initial]); mode = initial;      // open already in forced colours: that is what the button promises
   page.on('close', () => { page = null; mode = 'normal'; browser && browser.close().catch(() => {}); browser = null; });
   await page.goto(url);
 }

@@ -205,6 +205,10 @@ for (const side of Object.keys(SIDES)) { const srv = proxyFor(side); srv.keepAli
 
 http.createServer((req, res) => {
   const u = new URL(req.url, 'http://x');
+  // Local tool, but any web page can send requests to localhost: accept only our own hostnames, and for POST only our own origin.
+  const hostOk = [`localhost:${PAGE}`, `127.0.0.1:${PAGE}`, 'drupal-compare.ddev.site'].includes(req.headers.host);
+  const origin = req.headers.origin; const originOk = !origin || [`http://localhost:${PAGE}`, `http://127.0.0.1:${PAGE}`, 'https://drupal-compare.ddev.site'].includes(origin);
+  if (!hostOk || (req.method === 'POST' && !originOk)) { res.writeHead(403, { 'content-type': 'text/plain' }); res.end('Forbidden: this request did not come from the viewer.'); return; }
   if (u.pathname === '/variants.json') {
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
     res.end(JSON.stringify({ variants: list, state, origins: { before: SIDES.before.origin, after: SIDES.after.origin }, sites: realSites() }));
@@ -255,3 +259,6 @@ http.createServer((req, res) => {
     res.end(fs.readFileSync(file, 'utf8').replace('__BUILD__', fs.statSync(file).mtime.toISOString()));
   }
 }).listen(PAGE, '127.0.0.1', () => console.log(`compare: ${DDEV ? 'https://drupal-compare.ddev.site/  (via the drupal-compare DDEV project; also' : ''} http://localhost:${PAGE}/   (default variant ${state.slug}${DDEV ? ', DDEV hostnames' : ''})`));
+
+// Close the forced-colours window when the server stops, so it is not left running on its own.
+for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, async () => { await emulation.close().catch(() => {}); process.exit(0); });

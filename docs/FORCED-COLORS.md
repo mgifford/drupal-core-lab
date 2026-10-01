@@ -7,7 +7,7 @@ that relies on colour alone (a red border) can vanish; shapes, icons and text su
 contains an error with a red bar, a red label and an icon.
 
 ## The easy way: the viewer's forced-colours window
-In the viewer press **Open forced-colours window**. A separate Chromium window opens on the viewer, and in it a **Browser colour emulation** switch
+In the viewer press **Open forced-colours window**. A separate Chromium window opens on the viewer **already in forced colours (light)**, and in it a **Browser colour emulation** switch
 lets you move between *Normal*, *Forced colours, light*, *Forced colours, dark* (the black high-contrast palette) and *More contrast*, live, for
 **both frames at once**. The line beside the switch shows what each frame actually reports (for example "Before: forced colours on, dark"), so you can see the
 setting really reached them. It is **emulation**, not a real Windows contrast theme, so keep a real-theme check (below) for the final word. The window is a clean

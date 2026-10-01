@@ -11,7 +11,8 @@ let ok = true; const check = async (mode, want) => {
   await api({ mode }); await p.waitForTimeout(800); const s = await api();
   const got = s.frames.length === 2 && s.frames.every((f) => f && f.forced === want.forced && f.dark === want.dark && f.more === want.more);
   console.log(`${mode.padEnd(13)} ->`, JSON.stringify(s.frames), got ? 'PASS' : 'FAIL'); if (!got) ok = false; };
-const first = await api(); console.log('window open:', first.open, '| frames:', first.frames.length); if (!first.open || first.frames.length !== 2) ok = false;
+const first = await api(); const inForced = first.frames.length === 2 && first.frames.every((f) => f && f.forced);
+console.log('window open:', first.open, '| mode:', first.mode, '| frames:', first.frames.length, '| already in forced colours on open:', inForced); if (!first.open || first.frames.length !== 2 || first.mode !== 'forced-light' || !inForced) ok = false;
 await check('forced-light', { forced: true, dark: false, more: false });
 await check('forced-dark', { forced: true, dark: true, more: false });
 await check('contrast', { forced: false, dark: false, more: true });
