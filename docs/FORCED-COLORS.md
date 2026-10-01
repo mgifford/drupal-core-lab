@@ -6,7 +6,17 @@ yellow and blue on black). Author colours for text, backgrounds, borders and out
 that relies on colour alone (a red border) can vanish; shapes, icons and text survive. That is why it matters for #3604037, which marks a group that
 contains an error with a red bar, a red label and an icon.
 
-## How to turn it on
+## The easy way: the viewer's forced-colours window
+In the viewer press **Open forced-colours window**. A separate Chromium window opens on the viewer, and in it a **Browser colour emulation** switch
+lets you move between *Normal*, *Forced colours, light*, *Forced colours, dark* (the black high-contrast palette) and *More contrast*, live, for
+**both frames at once**. The line beside the switch shows what each frame actually reports (for example "Before: forced colours on, dark"), so you can see the
+setting really reached them. It is **emulation**, not a real Windows contrast theme, so keep a real-theme check (below) for the final word. The window is a clean
+Chromium profile (no extensions, no logins): press **Log in both as admin** in it. It needs the lab's Playwright install (`node scripts/doctor.mjs` checks it),
+and it exists only when the lab server is running; the read-only GitHub Pages guide does not have it. Test: `node tools/playwright/forced-window.mjs`.
+
+![The viewer's controls in the forced-colours window, including the Browser colour emulation switch with Normal, Forced colours light, Forced colours dark and More contrast.](images/viewer-forced-colours.png)
+
+## Other ways to turn it on
 | Where | How |
 |---|---|
 | Real thing (best) | Windows: Settings > Accessibility > Contrast themes. Firefox on any OS: Settings > General > Colors > Manage Colors > "Always" high contrast. |
@@ -16,8 +26,7 @@ contains an error with a red bar, a red label and an icon.
 ## Does it work with the side-by-side viewer's frames?
 Yes, when the setting is made on the **whole tab** (DevTools Rendering panel, Playwright's context, or the operating system): the emulation applies to
 every frame in the tab. We checked this: with `forcedColors: 'active'` on the viewer page, `matchMedia('(forced-colors: active)')` is true inside both
-frames. The viewer cannot turn forced colours on for you, because a web page is not allowed to change that setting, so make the setting first, then reload
-the frames. Both frames follow the same setting, so the comparison is fair. (The viewer's "Site theme" and "Simulate a dark-mode OS" are different:
+frames. The viewer page itself cannot turn forced colours on, because a web page is not allowed to change that setting; that is why the button above opens a window the server controls. Otherwise make the setting first, then reload the frames. Both frames follow the same setting, so the comparison is fair. (The viewer's "Site theme" and "Simulate a dark-mode OS" are different:
 they change the site's own dark mode, not forced colours.)
 
 ## What to look at

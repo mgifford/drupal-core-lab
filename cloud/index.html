@@ -84,6 +84,14 @@ html:not([data-runtime="static"]) [data-static-only] { display: none !important;
       <label><input type="radio" name="dir" value="ltr"> Left to right</label>
       <label><input type="radio" name="dir" value="rtl"> Right to left</label>
     </fieldset>
+    <span data-needs="live" id="emulopenwrap"><button type="button" id="emulopen">Open forced-colours window</button></span>
+    <fieldset data-needs="live" id="emulbox" hidden><legend>Browser colour emulation (both frames)</legend>
+      <label><input type="radio" name="emul" value="normal" checked> Normal</label>
+      <label><input type="radio" name="emul" value="forced-light"> Forced colours, light</label>
+      <label><input type="radio" name="emul" value="forced-dark"> Forced colours, dark</label>
+      <label><input type="radio" name="emul" value="contrast"> More contrast</label>
+      <span id="emulstatus" class="note" role="status"></span>
+    </fieldset>
     <label data-needs="live"><input type="checkbox" id="nojs"> Turn the sites' JavaScript off (reloads both)</label>
     <fieldset data-needs="live"><legend>Frame width</legend>
       <label data-needs="live"><input type="radio" name="width" value="half" checked> Half</label>
@@ -245,6 +253,16 @@ $('variant').addEventListener('change', async () => { if (STATIC) { setVariant($
 document.querySelectorAll('input[name="width"]').forEach((r) => r.addEventListener('change', applyWidth));
 document.querySelectorAll('input[name="theme"]').forEach((r) => r.addEventListener('change', sendState));
 $('darkos').addEventListener('change', sendState);
+// ---- Forced colours and related browser settings: a page cannot set these itself, so the server drives a separate Chromium window ----
+const CONTROLLED = new URLSearchParams(location.search).get('controlled') === '1';
+const emulPost = async (body) => { const r = await fetch('api/emulation', { method: 'POST', body: JSON.stringify(body) }); const d = await r.json(); if (!r.ok) throw new Error(d.error || 'failed'); return d; };
+function showEmul(s) {
+  const side = ['Before', 'After'];
+  $('emulstatus').textContent = (s.frames.length ? s.frames.map((f, i) => f ? `${side[i]}: forced colours ${f.forced ? 'on' : 'off'}, ${f.dark ? 'dark' : 'light'}${f.more ? ', more contrast' : ''}` : `${side[i]}: not answering`).join('; ') + '. ' : '') + 'This is emulation, not a real Windows contrast theme.';
+}
+if (CONTROLLED) { $('emulbox').hidden = false; $('emulopenwrap').hidden = true; setTimeout(() => fetch('api/emulation').then((r) => r.json()).then(showEmul).catch(() => {}), 3000); }
+$('emulopen').addEventListener('click', async () => { try { await emulPost({ open: true }); status('A separate window opened. Switch colour modes there; it affects both frames.'); } catch (e) { status('Could not open the window: ' + e.message); } });
+document.querySelectorAll('input[name="emul"]').forEach((r) => r.addEventListener('change', async () => { try { await emulPost({ mode: radio('emul') }); await new Promise((x) => setTimeout(x, 700)); showEmul(await (await fetch('api/emulation')).json()); } catch (e) { $('emulstatus').textContent = 'Could not switch: ' + e.message; } }));
 document.querySelectorAll('input[name="dir"]').forEach((r) => r.addEventListener('change', sendState));
 $('nojs').addEventListener('change', async () => { await post({ nojs: $('nojs').checked }); status($('nojs').checked ? 'JavaScript is OFF in both sites. Reloading…' : 'JavaScript is back on. Reloading…'); loadBoth($('goto').value); });
 $('go').addEventListener('click', () => loadBoth($('goto').value));

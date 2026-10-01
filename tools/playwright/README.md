@@ -45,3 +45,4 @@ See `../../docs/TESTING-TOOLS.md` for how this fits with axe-core, the viewer an
 sidebar accordion, vertical tabs, narrow tabs) in light, dark, forced-colour palettes, right-to-left and with JavaScript off, at rest, hover and keyboard focus,
 with WCAG contrast ratios, and can try CSS proposals on After without changing any environment. Output: `reports/issues/3604037/playwright/<run>-evaluate/`.
 Also `mirror-drag.mjs` and `mirror-ckeditor.mjs` (viewer mirroring tests).
+`forced-window.mjs`: tests the viewer's forced-colours window (start the viewer with `LAB_EMULATION_HEADLESS=1`).
