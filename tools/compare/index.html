@@ -26,10 +26,17 @@
   .panes.overlay.diff #fa { mix-blend-mode: difference; }
   #legend { font-size: .9rem; padding: 0 1rem; }
   table.checks { border-collapse: collapse; margin: .25rem 1rem; font-size: .9rem; } table.checks th, table.checks td { border: 1px solid var(--line); padding: .2rem .5rem; text-align: left; }
+  :root { --ok-bg: #d9f2dd; --ok-fg: #0b4a1a; --bad-bg: #fbdada; --bad-fg: #7a0b0b; --warn-bg: #fff0c2; --warn-fg: #5c4400; --na-bg: #e6e6ea; --na-fg: #3a3a42; }
+  @media (prefers-color-scheme: dark) { :root { --ok-bg: #12351a; --ok-fg: #b6f0c0; --bad-bg: #4a1414; --bad-fg: #ffc4c4; --warn-bg: #4a3a0a; --warn-fg: #ffe28a; --na-bg: #2a2a30; --na-fg: #cfcfd6; } }
+  td.ok { background: var(--ok-bg); color: var(--ok-fg); } td.bad { background: var(--bad-bg); color: var(--bad-fg); } td.warn { background: var(--warn-bg); color: var(--warn-fg); } td.na { background: var(--na-bg); color: var(--na-fg); }
+  td.v { font-weight: 600; }
+  .verdict { margin: .5rem 1rem; padding: .5rem .75rem; border: 2px solid; border-radius: .4rem; font-weight: 600; max-width: 70rem; }
+  .verdict.ok { background: var(--ok-bg); color: var(--ok-fg); } .verdict.bad { background: var(--bad-bg); color: var(--bad-fg); } .verdict.warn { background: var(--warn-bg); color: var(--warn-fg); }
   .lookfor { display: block; font-size: .85rem; margin-left: 1rem; }
   .pane h2 { font-size: 1rem; margin: 0 0 .25rem; }
   .pane iframe { width: 100%; height: 72vh; border: 1px solid var(--line); background: #fff; }
   .path { font-family: ui-monospace, monospace; font-size: .85rem; }
+  .ext a { margin: 0 .35rem; }
   .note { font-size: .9rem; max-width: 70rem; }
   #stepsbox { padding: 0 1rem .5rem; } #stepsbox summary { font-weight: 600; cursor: pointer; }
   #steps li { margin: .15rem 0; } .tag { font-size: .75rem; border: 1px solid var(--line); border-radius: .6rem; padding: 0 .4rem; margin-left: .4rem; }
@@ -47,6 +54,7 @@
     <button type="button" id="login">Log in both as admin</button>
     <button type="button" id="cache">Clear Drupal caches (both)</button>
     <button type="button" id="storage">Reset browser state (both)</button>
+    <span class="ext">Open outside this tool: <a id="ob" target="_blank" rel="noopener" href="#">Before (upstream main)</a> <a id="oa" target="_blank" rel="noopener" href="#">After (with the change)</a> <span class="path">(own login: admin / admin)</span></span>
     <fieldset><legend>Site theme</legend>
       <label><input type="radio" name="theme" value="light"> Light</label>
       <label><input type="radio" name="theme" value="dark"> Dark</label>
@@ -61,6 +69,9 @@
     <label><input type="checkbox" id="syncnav" checked> Sync navigation</label>
     <label><input type="checkbox" id="darkos"> Simulate a dark-mode OS</label>
     <label><input type="checkbox" id="mirror" checked> Mirror clicks and typing</label>
+    <label><input type="checkbox" id="axeon" checked> Live accessibility checks (axe-core)</label>
+    <label><input type="checkbox" id="axebest"> include best-practice rules</label>
+    <span id="axemini" role="status" aria-live="polite"></span>
     <fieldset><legend>View</legend>
       <label><input type="radio" name="view" value="side" checked> Side by side</label>
       <label><input type="radio" name="view" value="onion"> Onion skin</label>
@@ -72,39 +83,52 @@
   </div>
   <p id="legend" role="status" hidden></p>
   <div class="panes" id="panes">
-    <section class="pane" aria-labelledby="hb"><h2 id="hb">Before: upstream main <span class="path" id="pb"></span></h2><iframe id="fb" title="Before: upstream main"></iframe></section>
-    <section class="pane" aria-labelledby="ha"><h2 id="ha">After: with the change <span class="path" id="pa"></span></h2><iframe id="fa" title="After: with the change"></iframe></section>
+    <section class="pane" aria-labelledby="hb" tabindex="0"><h2 id="hb">Before: upstream main <span class="path" id="pb"></span></h2><iframe id="fb" title="Before: upstream main"></iframe></section>
+    <section class="pane" aria-labelledby="ha" tabindex="0"><h2 id="ha">After: with the change <span class="path" id="pa"></span></h2><iframe id="fa" title="After: with the change"></iframe></section>
   </div>
 </main>
+<section aria-labelledby="axeh" class="axe">
+<h2 id="axeh" style="font-size:1rem;margin:.5rem 1rem 0">Accessibility, live (axe-core)
+  <button type="button" id="axenow">Re-run now</button> <button type="button" id="axedl">Download log</button> <button type="button" id="axeclr">Clear log</button></h2>
+<p class="note">axe-core runs in both frames after every page load and after interactions (clicks, focus, changes to the page). Because both frames are driven the same way, a difference means the change affects accessibility. "Violations" are elements axe flags as failing WCAG A/AA rules. Automated checks find only a subset of problems; they do not replace a keyboard and screen-reader test.</p>
+<p id="axeverdict" class="verdict warn" role="status" aria-live="polite">Waiting for both frames to finish loading…</p>
+<table class="checks" id="axecounts"><caption class="note" style="text-align:left">Violating elements by impact (rules in brackets)</caption><thead><tr><th>Side</th><th>Critical</th><th>Serious</th><th>Moderate</th><th>Minor</th><th>Total</th></tr></thead><tbody></tbody></table>
+<table class="checks" id="axediff" hidden><caption class="note" style="text-align:left">Rules that differ, or that fail on both sides</caption><thead><tr><th>Rule</th><th>Impact</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody></tbody></table>
+<details><summary>Log of changes as you navigate (<span id="axelogn">0</span>)</summary>
+<table class="checks" id="axelog"><thead><tr><th>Time</th><th>Page (reported by)</th><th>Before</th><th>After</th><th>Difference</th></tr></thead><tbody></tbody></table></details>
+</section>
 <section aria-labelledby="chkh"><h2 id="chkh" style="font-size:1rem;margin:.5rem 1rem 0">Checks <button type="button" id="runchecks">Run checks</button></h2>
-<p class="note">After the last step, press Run checks. Each check runs inside both frames and says Pass or Fail against what is expected. "Fix" checks should differ between Before and After; "Regression" checks should pass on both.</p>
-<table class="checks" id="checks"><thead><tr><th>Type</th><th>Check</th><th>Expected</th><th>Before</th><th>After</th></tr></thead><tbody></tbody></table></section>
+<p class="note">After the last step, press Run checks. Each check runs inside both frames and says Pass or Fail against what is expected. The rule: a <strong>fix</strong> check should <strong>fail on Before and pass on After</strong>; a <strong>regression</strong> check should pass on both; a <strong>precondition</strong> must pass on both or nothing else means anything.</p>
+<p id="verdict" class="verdict" role="status" hidden></p>
+<table class="checks" id="checks"><thead><tr><th>Type</th><th>Check</th><th>Expected</th><th>Before</th><th>After</th><th>Verdict</th></tr></thead><tbody></tbody></table></section>
 <p class="note"><strong>Mirror</strong> repeats real clicks, typed text, checkboxes and selects in the other frame to save setup time. It does not mirror the keyboard (Tab, Enter, focus), because script-generated key events do not behave like real ones. Do the final keyboard check in each frame yourself.</p>
+<p class="note">Viewer build: <code>__BUILD__</code>. If this differs from the server's start, reload the page (an old tab keeps running old code).</p>
 <p class="note">Frames are separate sites on <code>before.localhost</code> and <code>after.localhost</code>, so logins do not interfere. This compares behaviour in a browser. It is not a substitute for testing with a keyboard and a screen reader.</p>
 <script>
 const $ = (id) => document.getElementById(id);
 const F = { before: $('fb'), after: $('fa') }, P = { before: $('pb'), after: $('pa') };
-const last = { before: '', after: '' }; let origins; let variants = []; let v;
+const last = { before: '', after: '' }; let origins, sites = {}; let variants = []; let v;
 const other = (s) => (s === 'before' ? 'after' : 'before');
 const status = (t) => { $('status').textContent = t; };
 const radio = (name) => document.querySelector(`input[name="${name}"]:checked`).value;
 const post = (body) => fetch('/api/state', { method: 'POST', body: JSON.stringify(body) });
-function load(side, path) { last[side] = path; P[side].textContent = path; F[side].src = origins[side] + path; }
+function updateExternal() { for (const [side, id] of [['before', 'ob'], ['after', 'oa']]) { const a = $(id); a.href = (sites[side] || '') + (last[side] || $('goto').value || '/'); a.hidden = !sites[side]; } }
+function load(side, path) { last[side] = path; P[side].textContent = path; F[side].src = origins[side] + path; updateExternal(); }
 function loadBoth(path) { status('Loading…'); load('before', path); load('after', path); }
 function applyWidth() { const w = radio('width'); for (const s of ['before', 'after']) F[s].style.width = w === 'half' ? '100%' : w; }
-function sendState() { const state = { theme: radio('theme'), darkos: $('darkos').checked };
+function sendState() { const state = { theme: radio('theme'), darkos: $('darkos').checked, axe: $('axeon').checked, axeBest: $('axebest').checked };
   post(state); for (const s of ['before', 'after']) F[s].contentWindow && F[s].contentWindow.postMessage({ compare: 1, type: 'state', state }, '*'); }
 const TAGS = { recipe: 'set up by the recipe', mirror: 'mirrored to both frames', each: 'do in each frame' };
 function renderSteps() { const ol = $('steps'); ol.textContent = ''; for (const st of v.steps || []) { const li = document.createElement('li'); li.textContent = st.text; if (st.lookFor) { const lf = document.createElement('span'); lf.className = 'lookfor'; lf.textContent = 'Look for: ' + st.lookFor; li.append(lf); } const t = document.createElement('span'); t.className = 'tag'; t.textContent = TAGS[st.how] || st.how; li.append(t); ol.append(li); }
   $('exp').textContent = v.expected ? 'Expected: ' + v.expected : ''; $('act').textContent = v.actual ? 'Actual: ' + v.actual : ''; $('setup').textContent = v.setup ? 'Setup: ' + v.setup : ''; $('stepsbox').hidden = !(v.steps && v.steps.length); }
 function setVariant(slug) { v = variants.find((x) => x.slug === slug); $('desc').textContent = v.description; renderSteps(); document.title = `Compare: ${v.slug}`;
   const start = (v.demo && v.demo.start) || v.pages[0] || '/'; $('goto').value = start;
-  const w = v.demo && v.demo.viewport === 'narrow' ? '768px' : 'half'; document.querySelector(`input[name="width"][value="${w}"]`).checked = true; applyWidth(); }
+  document.querySelector('input[name="width"][value="half"]').checked = true; applyWidth(); }
 async function init() {
-  const d = await (await fetch('/variants.json')).json(); origins = d.origins; variants = d.variants;
+  const d = await (await fetch('/variants.json')).json(); origins = d.origins; sites = d.sites || {}; variants = d.variants;
   for (const x of variants) { const o = document.createElement('option'); o.value = x.slug; o.textContent = x.label; $('variant').append(o); }
   $('variant').value = d.state.slug; setVariant(d.state.slug);
-  document.querySelector(`input[name="theme"][value="${d.state.theme}"]`).checked = true; $('darkos').checked = d.state.darkos;
+  document.querySelector(`input[name="theme"][value="${d.state.theme}"]`).checked = true; $('darkos').checked = d.state.darkos; $('axeon').checked = d.state.axe !== false; $('axebest').checked = !!d.state.axeBest;
   loadBoth($('goto').value);
 }
 $('variant').addEventListener('change', async () => { await post({ slug: $('variant').value }); setVariant($('variant').value); loadBoth($('goto').value); });
@@ -123,23 +147,29 @@ addEventListener('message', (e) => {
   if (m.type === 'scroll' && $('syncscroll').checked) { const o = F[other(m.side)].contentWindow; o && o.postMessage({ compare: 1, type: 'scroll', x: m.x, y: m.y }, '*'); }
   if (m.type === 'mirror' && $('mirror').checked) { const o = F[other(m.side)].contentWindow; o && o.postMessage(Object.assign({}, m, { compare: 1 }), '*'); }
   if (m.type === 'mirror-miss') status(`Not mirrored: could not find "${m.label || m.kind}" in the ${m.side} frame. The two sides have diverged here.`);
+  if (m.type === 'axe') { AX[m.side] = { url: m.url, violations: m.violations }; logAxe(m.side, AX[m.side]); }
+  if (m.type === 'axe-unavailable') { $('axeverdict').className = 'verdict warn'; $('axeverdict').textContent = 'axe-core is not installed. Run: npm install --prefix tools/compare/.deps axe-core@4 , then reload.'; }
+  if (m.type === 'axe-error') { $('axeverdict').className = 'verdict warn'; $('axeverdict').textContent = 'axe-core error in the ' + m.side + ' frame: ' + m.message; }
   if (m.type === 'probe-result') { const p = pending[m.id]; if (p) { results[p.i][p.side] = m.value; showResult(p.i); } }
   if (m.type === 'nav') {
-    P[m.side].textContent = m.path; status('Ready.');
+    P[m.side].textContent = m.path; last[m.side] = m.path; updateExternal(); status('Ready.'); if (radio('view') !== 'side') applyView();
     if ($('syncnav').checked && last[m.side] !== m.path) { last[m.side] = m.path; if (last[other(m.side)] !== m.path) load(other(m.side), m.path); }
   }
 });
 
 // View modes: side by side, onion skin (opacity), difference (identical pixels go black).
+let savedSync;
 function applyView() {
-  const mode = radio('view'), panes = $('panes'), fa = $('fa');
+  const mode = radio('view'), panes = $('panes'), fa = $('fa'), ss = $('syncscroll');
+  if (mode !== 'side') { if (savedSync === undefined) savedSync = ss.checked; ss.checked = true; ss.disabled = true; }
+  else { ss.disabled = false; if (savedSync !== undefined) { ss.checked = savedSync; savedSync = undefined; } }
   panes.classList.toggle('overlay', mode !== 'side'); panes.classList.toggle('onion', mode === 'onion'); panes.classList.toggle('diff', mode === 'diff');
   $('opwrap').hidden = mode !== 'onion'; $('amwrap').hidden = mode !== 'diff';
   fa.style.opacity = mode === 'onion' ? $('opacity').value / 100 : '';
   panes.style.filter = mode === 'diff' ? `brightness(${$('amplify').value})` : '';
-  const L = $('legend'); L.hidden = mode === 'side';
-  L.textContent = mode === 'onion' ? 'Onion skin: Before underneath, After on top. Slide the opacity to fade between them. Input goes to the top (After) frame; Mirror repeats it underneath.'
-    : mode === 'diff' ? 'Difference: black means the two sides look identical; anything bright changed. Raise Amplify to reveal faint differences. Input goes to the top (After) frame; Mirror repeats it underneath.' : '';
+  const L = $('legend'); L.hidden = mode === 'side'; const lp = () => ` Before: ${last.before || '?'} | After: ${last.after || '?'}.`;
+  L.textContent = mode === 'onion' ? 'Onion skin: Before underneath, After on top. Slide the opacity to fade between them. Input goes to the top (After) frame; Mirror repeats it underneath. Scrolling is kept in sync.' + lp()
+    : mode === 'diff' ? 'Difference: black means the two sides look identical; anything bright changed. Raise Amplify to reveal faint differences. Input goes to the top (After) frame; Mirror repeats it underneath. Scrolling is kept in sync. Focus rings and hover states appear as differences because only one side has real focus.' + lp() : '';
 }
 document.querySelectorAll('input[name="view"]').forEach((r) => r.addEventListener('change', applyView));
 $('opacity').addEventListener('input', applyView); $('amplify').addEventListener('input', applyView);
@@ -147,19 +177,49 @@ $('opacity').addEventListener('input', applyView); $('amplify').addEventListener
 // Checks: run a probe inside each frame and compare with what is expected.
 const pending = {}; let probeId = 0; const results = {};
 function runChecks() {
-  const body = document.querySelector('#checks tbody'); body.textContent = ''; (v.checks || []).forEach((c, i) => {
+  const body = document.querySelector('#checks tbody'); body.textContent = ''; $('verdict').hidden = true; (v.checks || []).forEach((c, i) => {
     const tr = document.createElement('tr'); tr.id = 'chk' + i;
-    for (const t of [c.kind, c.label, c.expect === 'same' ? 'same on both sides' : String(c.expect), '…', '…']) { const td = document.createElement('td'); td.textContent = t; tr.append(td); }
+    for (const t of [c.kind, c.label, c.expect === 'same' ? 'same on both sides' : String(c.expect), '…', '…', '…']) { const td = document.createElement('td'); td.textContent = t; tr.append(td); }
     body.append(tr); results[i] = {};
     for (const side of ['before', 'after']) { const id = ++probeId; pending[id] = { i, side }; F[side].contentWindow.postMessage({ compare: 1, type: 'probe', id, code: c.probe }, '*'); }
   });
 }
-function showResult(i) {
-  const c = v.checks[i], r = results[i]; if (!('before' in r) || !('after' in r)) return;
-  const ok = (val, other) => (c.expect === 'same' ? String(val) === String(other) : String(val) === String(c.expect));
-  const cells = document.getElementById('chk' + i).children;
-  for (const [idx, side, other] of [[3, 'before', 'after'], [4, 'after', 'before']]) cells[idx].textContent = `${ok(r[side], r[other]) ? 'Pass' : 'Fail'}: ${r[side]}`;
+function passes(c, val, other) { return c.expect === 'same' ? String(val) === String(other) : String(val) === String(c.expect); }
+function setCell(td, cls, text) { td.className = cls; td.textContent = text; }
+function renderAll() {
+  const checks = v.checks || []; const rows = checks.map((c, i) => ({ c, r: results[i] || {}, tr: document.getElementById('chk' + i) }));
+  const ready = rows.filter((x) => 'before' in x.r && 'after' in x.r);
+  if (ready.length < rows.length) return;
+  const pre = rows.filter((x) => x.c.kind === 'precondition');
+  const setupOk = pre.every((x) => passes(x.c, x.r.before, x.r.after) && passes(x.c, x.r.after, x.r.before));
+  let unexpected = 0, expected = 0;
+  for (const { c, r, tr } of rows) {
+    const pb = passes(c, r.before, r.after), pa = passes(c, r.after, r.before), cells = tr.children;
+    setCell(cells[3], pb ? 'ok' : 'bad', `${pb ? '\u2713 Pass' : '\u2717 Fail'}: ${r.before}`);
+    setCell(cells[4], pa ? 'ok' : 'bad', `${pa ? '\u2713 Pass' : '\u2717 Fail'}: ${r.after}`);
+    let cls, text;
+    if (c.kind === 'precondition') { [cls, text] = pb && pa ? ['ok', '\u2713 Setup reached'] : ['bad', '\u2717 Setup NOT reached on ' + (!pb && !pa ? 'either side' : !pb ? 'Before' : 'After') + ': redo the steps']; }
+    else if (!setupOk) { cls = 'na'; text = '\u2013 Not meaningful until the setup is reached'; }
+    else if (c.kind === 'fix') {
+      if (!pb && pa) [cls, text] = ['ok', '\u2713 As expected: fails before, passes after'];
+      else if (pb && pa) [cls, text] = ['warn', '\u26A0 Passes before too: this step did not reproduce the problem'];
+      else if (!pb && !pa) [cls, text] = ['bad', '\u2717 Still fails after the change'];
+      else [cls, text] = ['bad', '\u2717 Broke: worked before, fails after'];
+    } else {
+      if (pb && pa) [cls, text] = ['ok', '\u2713 Unchanged: passes on both'];
+      else if (pb && !pa) [cls, text] = ['bad', '\u2717 Regression: worked before, fails after'];
+      else if (!pb && pa) [cls, text] = ['ok', '\u2713 Improved: fails before, passes after'];
+      else [cls, text] = ['bad', '\u2717 Fails on both: environment problem or an existing bug'];
+    }
+    setCell(cells[5], cls + ' v', text);
+    if (c.kind !== 'precondition' && setupOk) { if (cls === 'ok') expected++; else unexpected++; }
+  }
+  const V = $('verdict'); V.hidden = false;
+  if (!setupOk) { const failed = pre.filter((x) => !(passes(x.c, x.r.before, x.r.after) && passes(x.c, x.r.after, x.r.before))).map((x) => x.c.label); V.className = 'verdict bad'; V.textContent = '\u2717 Setup not reached, so the results below mean nothing yet. Not met: ' + failed.join('; ') + '. Follow the steps, then press Run checks again.' + (failed.some((l) => /real click/.test(l)) ? (' Why: the link must be clicked by you in EACH frame. ' + ($('mirror').checked ? 'Mirror clicks and typing is still ON, which replays your click in the other frame as a script click. Untick it first, then click the "URL alias" link yourself in both frames (or Tab to it and press Enter).' : 'Click the "URL alias" link yourself in both frames (or Tab to it and press Enter).')) : ''); }
+  else if (unexpected === 0) { V.className = 'verdict ok'; V.textContent = `\u2713 All ${expected} checks behave as expected: the old version fails where the fix applies, the new one passes, and nothing else changed.`; }
+  else { V.className = 'verdict bad'; V.textContent = `\u2717 ${unexpected} of ${expected + unexpected} checks are not as expected. Read the Verdict column; nothing should fail in the new version.`; }
 }
+function showResult(i) { renderAll(); }
 $('runchecks').addEventListener('click', runChecks);
 $('cache').addEventListener('click', async () => {
   status('Clearing caches on both sites…');
@@ -167,6 +227,73 @@ $('cache').addEventListener('click', async () => {
   catch (e) { status('Cache clear failed: ' + e); }
 });
 $('storage').addEventListener('click', () => { for (const s of ['before', 'after']) F[s].contentWindow && F[s].contentWindow.postMessage({ compare: 1, type: 'clear-storage' }, '*'); status('Cleared localStorage and sessionStorage in both frames (the sidebar preference is stored there). Reloading.'); });
+
+// ---- Live accessibility (axe-core) ----
+const AX = { before: null, after: null }; const axeLog = []; const baseTitle = document.title; let lastKey = '';
+const IMPACTS = ['critical', 'serious', 'moderate', 'minor'];
+const ntarget = (t) => t.replace(/(\b[a-z][a-z0-9_-]*-)\d{9,10}\b/g, '$1RANDOM').replace(/form-[A-Za-z0-9_-]{20,}/g, 'form-BUILD').replace(/js-view-dom-id-[a-f0-9]+/g, 'js-view-dom-id-ID');
+function summarise(res) {
+  const rules = new Map(); const totals = { critical: 0, serious: 0, moderate: 0, minor: 0, total: 0 }; const ruleCounts = { critical: 0, serious: 0, moderate: 0, minor: 0 };
+  for (const v of res.violations) {
+    const targets = new Set(v.nodes.map((n) => ntarget(n.target))); rules.set(v.id, { impact: v.impact || 'minor', help: v.help, helpUrl: v.helpUrl, targets });
+    totals[v.impact || 'minor'] += v.nodes.length; totals.total += v.nodes.length; ruleCounts[v.impact || 'minor']++;
+  }
+  return { rules, totals, ruleCounts };
+}
+function renderAxe() {
+  const mini = $('axemini'), verdict = $('axeverdict');
+  if (!$('axeon').checked) { mini.textContent = 'A11y checks off'; verdict.className = 'verdict warn'; verdict.textContent = 'Live accessibility checks are off.'; $('axediff').hidden = true; return; }
+  if (!AX.before || !AX.after) { mini.textContent = 'A11y: waiting…'; return; }
+  const B = summarise(AX.before), A = summarise(AX.after);
+  const tb = $('axecounts').querySelector('tbody'); tb.textContent = '';
+  for (const [name, S] of [['Before', B], ['After', A]]) { const tr = document.createElement('tr'); const th = document.createElement('th'); th.textContent = name; tr.append(th);
+    for (const k of [...IMPACTS, 'total']) { const td = document.createElement('td'); td.textContent = k === 'total' ? `${S.totals.total} (${Object.values(S.ruleCounts).reduce((a, b) => a + b, 0)})` : `${S.totals[k]} (${S.ruleCounts[k]})`; tr.append(td); } tb.append(tr); }
+  // per rule differences
+  const rows = []; const ids = new Set([...B.rules.keys(), ...A.rules.keys()]); let worse = 0, better = 0, shifted = 0; const newRules = [];
+  for (const id of ids) {
+    const b = B.rules.get(id), a = A.rules.get(id); const nb = b ? b.targets.size : 0, na = a ? a.targets.size : 0; const info = a || b;
+    const onlyA = a ? [...a.targets].filter((t) => !b || !b.targets.has(t)) : []; const onlyB = b ? [...b.targets].filter((t) => !a || !a.targets.has(t)) : [];
+    let cls, text;
+    if (na > nb) { cls = 'bad'; text = `↑ Worse: ${na - nb} more in After` + (!b ? ' (new rule)' : ''); worse += na - nb; newRules.push(`${id} (+${na - nb})`); }
+    else if (na < nb) { cls = 'ok'; text = `↓ Better: ${nb - na} fewer in After`; better += nb - na; }
+    else if (onlyA.length || onlyB.length) { cls = 'warn'; text = `≠ Same count, different elements`; shifted++; }
+    else { cls = 'na'; text = '= Same on both sides'; }
+    rows.push({ id, info, nb, na, cls, text, onlyA, onlyB });
+  }
+  rows.sort((x, y) => ({ bad: 0, warn: 1, ok: 2, na: 3 }[x.cls] - { bad: 0, warn: 1, ok: 2, na: 3 }[y.cls]) || x.id.localeCompare(y.id));
+  const db = $('axediff').querySelector('tbody'); db.textContent = ''; $('axediff').hidden = rows.length === 0;
+  for (const r of rows) { const tr = document.createElement('tr');
+    const c1 = document.createElement('td'); const link = document.createElement('a'); link.href = r.info.helpUrl; link.target = '_blank'; link.rel = 'noopener'; link.textContent = r.id; c1.append(link); const help = document.createElement('div'); help.className = 'note'; help.textContent = r.info.help; c1.append(help);
+    const c2 = document.createElement('td'); c2.textContent = r.info.impact; const c3 = document.createElement('td'); c3.textContent = r.nb; const c4 = document.createElement('td'); c4.textContent = r.na;
+    const c5 = document.createElement('td'); c5.className = r.cls + ' v'; c5.textContent = r.text;
+    const det = [...r.onlyA.map((t) => 'Only in After: ' + t), ...r.onlyB.map((t) => 'Only in Before: ' + t)].slice(0, 6);
+    if (det.length) { const ul = document.createElement('ul'); ul.className = 'note'; for (const d of det) { const li = document.createElement('li'); li.textContent = d; ul.append(li); } c5.append(ul); }
+    tr.append(c1, c2, c3, c4, c5); db.append(tr); }
+  const d = A.totals.total - B.totals.total; let cls, msg;
+  if (d > 0) { cls = 'bad'; msg = `⚠ After has ${d} more accessibility violation${d === 1 ? '' : 's'} than Before (${A.totals.total} vs ${B.totals.total}). Worse: ${newRules.join(', ')}.`; }
+  else if (d < 0) { cls = 'ok'; msg = `✓ After has ${-d} fewer accessibility violation${d === -1 ? '' : 's'} than Before (${A.totals.total} vs ${B.totals.total}).`; }
+  else if (shifted) { cls = 'warn'; msg = `≠ Same number of violations (${A.totals.total}), but on different elements: check the table.`; }
+  else { cls = 'ok'; msg = `= Same accessibility violations on both sides (${A.totals.total}). The change did not add or remove any on this page.`; }
+  verdict.className = 'verdict ' + cls; verdict.setAttribute('role', d > 0 ? 'alert' : 'status'); verdict.textContent = msg;
+  mini.textContent = (d > 0 ? '⚠ ' : d < 0 ? '✓ ' : '= ') + `A11y: Before ${B.totals.total} · After ${A.totals.total}`;
+  document.title = (d > 0 ? `⚠ +${d} a11y · ` : '') + baseTitle;
+  return { B, A, d, worse, better };
+}
+function logAxe(side, res) {
+  const r = renderAxe(); if (!r) return; const key = side + '|' + res.url + '|' + r.B.totals.total + '|' + r.A.totals.total; if (key === lastKey) return; lastKey = key;
+  const e = { t: new Date().toISOString(), side, page: res.url, before: r.B.totals.total, after: r.A.totals.total, delta: r.d,
+    afterRules: Object.fromEntries([...r.A.rules].map(([k, x]) => [k, [...x.targets]])), beforeRules: Object.fromEntries([...r.B.rules].map(([k, x]) => [k, [...x.targets]])) };
+  axeLog.push(e); if (axeLog.length > 300) axeLog.shift();
+  const tr = document.createElement('tr'); const cells = [new Date(e.t).toLocaleTimeString(), `${e.page} (${side})`, e.before, e.after, e.delta > 0 ? `⚠ +${e.delta} in After` : e.delta < 0 ? `✓ ${e.delta} in After` : '= same'];
+  cells.forEach((c, i) => { const td = document.createElement('td'); td.textContent = c; if (i === 4) td.className = e.delta > 0 ? 'bad' : e.delta < 0 ? 'ok' : 'na'; tr.append(td); });
+  $('axelog').querySelector('tbody').prepend(tr); $('axelogn').textContent = axeLog.length;
+}
+function sendAxeState() { sendState(); }
+$('axeon').addEventListener('change', () => { sendState(); if (!$('axeon').checked) renderAxe(); });
+$('axebest').addEventListener('change', () => { AX.before = AX.after = null; sendState(); setTimeout(() => { for (const s of ['before', 'after']) F[s].contentWindow && F[s].contentWindow.postMessage({ compare: 1, type: 'axe-now' }, '*'); }, 300); });
+$('axenow').addEventListener('click', () => { for (const s of ['before', 'after']) F[s].contentWindow && F[s].contentWindow.postMessage({ compare: 1, type: 'axe-now' }, '*'); });
+$('axeclr').addEventListener('click', () => { axeLog.length = 0; $('axelog').querySelector('tbody').textContent = ''; $('axelogn').textContent = 0; lastKey = ''; });
+$('axedl').addEventListener('click', () => { const blob = new Blob([JSON.stringify({ variant: v && v.slug, exported: new Date().toISOString(), entries: axeLog }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `axe-log-${v ? v.slug : 'compare'}.json`; a.click(); });
 init();
 </script>
 </body>

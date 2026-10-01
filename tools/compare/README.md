@@ -35,12 +35,38 @@ Controls: **Compare upstream with** (variant), **Page**, **Go (both)**,
   (cookies are scoped by host, not port), the proxy strips framing headers and
   injects the sync script. The sites themselves are unchanged.
 
+## Live accessibility checks (axe-core)
+axe-core runs inside both frames after every page load and, debounced, after interaction
+(clicks, focus, changes to the page). The panel shows violating elements by impact for each
+side, a verdict that is announced as an alert when After is **worse** (and as a status when it
+is better or the same), the rules and exact elements that differ, and a log of every change as you
+navigate, which you can download as JSON. The browser tab title gains a warning prefix when After
+is worse, so you notice from another tab. Because both frames are driven the same way, a difference
+points at the change. Verified by adding an image without alt text and an unlabelled input to the
+After frame only: the alert appeared within about five seconds.
+
+axe-core is installed from npm by `setup.mjs` into `tools/compare/.deps/` (MPL-2.0, not committed);
+to install it by hand: `npm install --prefix tools/compare/.deps axe-core@4`. Rules: WCAG 2.0, 2.1
+and 2.2 A/AA by default; tick "include best-practice rules" for more. Automated checks find only
+a subset of barriers.
+
+## Open outside the viewer
+"Open outside this tool" links open the real Before and After sites at the current page in a new
+window (they have their own login: admin / admin).
+
+## DDEV address for the viewer
+    cd tools/compare/site && ddev start          # once: https://drupal-compare.ddev.site
+    node tools/compare/serve.mjs --ddev          # from the lab root
+The viewer is then at https://drupal-compare.ddev.site and the frames at
+`drupal-compare-before.ddev.site` and `drupal-compare-after.ddev.site` (see `site/README.md`).
+Without `--ddev` it uses http://localhost:8100 and `*.localhost`.
+
 ## Steps, expected result and checks
 Each variant in `variants.json` can carry `steps` (each tagged `recipe`, `mirror` or
 `each`, with an optional `lookFor`), `expected`, `actual`, `setup`, and `checks`.
 The viewer shows them above the frames so a newcomer knows what correct looks like.
 
-**Run checks** evaluates each check's `probe` (a JS expression) inside both frames and
+**Run checks** shows a banner (green when the old version fails where the fix applies, the new one passes and nothing else changed) and a Verdict column per row, with an icon and words as well as colour. Setup preconditions must pass first: the error link must be on the page and must have been used with a **real** click or key press in each frame (turn Mirror off first). It evaluates each check's `probe` (a JS expression) inside both frames and
 shows Pass or Fail against `expect` (a value, or `"same"` meaning it must equal the
 other side). Kinds: `precondition` (did you reach the right state?), `fix` (should
 differ between Before and After), `regression` (should pass on both). For #3619127:

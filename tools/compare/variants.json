@@ -64,7 +64,7 @@
         "lookFor": "An error summary at the top of the page, with \"URL alias\" as a link. If you do not see it, the setup went wrong; try again from step 6."
       },
       {
-        "text": "Turn Mirror off. In EACH frame, click the \"URL alias\" link (then repeat using only the keyboard: Tab to the link, press Enter).",
+        "text": "Turn Mirror off. In EACH frame, click the \"URL alias\" link with a REAL mouse click (then repeat using only the keyboard: Tab to the link, press Enter). Do not use a script: script-generated clicks do not trigger the focus behaviour being tested.",
         "how": "each",
         "lookFor": "Before: nothing visibly happens. After: the sidebar opens and the URL alias box is outlined (it has keyboard focus). Then press Run checks."
       }
@@ -80,14 +80,20 @@
         "kind": "precondition"
       },
       {
+        "label": "The error link was used with a real click or key press, not a script",
+        "probe": "!!window.__cmpTrustedFragmentClick",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
         "label": "Sidebar is open after using the error link",
         "probe": "document.body.getAttribute('data-meta-sidebar') === 'open'",
         "expect": true,
         "kind": "fix"
       },
       {
-        "label": "URL alias field has keyboard focus",
-        "probe": "!!document.activeElement && document.activeElement.name === 'path[0][alias]'",
+        "label": "URL alias field received keyboard focus (recorded when it happens: only one frame can hold focus at a time)",
+        "probe": "(window.__cmpFocused || []).includes('path[0][alias]')",
         "expect": true,
         "kind": "fix"
       },

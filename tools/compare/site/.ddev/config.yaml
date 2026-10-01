@@ -1,0 +1,15 @@
+name: drupal-compare
+type: generic
+docroot: .
+php_version: "8.5"
+webserver_type: nginx-fpm
+omit_containers: [db]
+disable_settings_management: true
+use_dns_when_possible: true
+# The viewer, plus one name for each proxied site, all via the Node server on the host:
+#   https://drupal-compare.ddev.site         -> host :8100 (viewer)
+#   https://drupal-compare-before.ddev.site  -> host :8101 (Before)
+#   https://drupal-compare-after.ddev.site   -> host :8102 (After)
+additional_hostnames:
+  - drupal-compare-before
+  - drupal-compare-after

@@ -19,7 +19,7 @@ apply() {
   mkdir -p recipes && rm -rf "recipes/$recipe" && cp -R "$lab/recipes/$recipe" "recipes/$recipe"
   ddev exec php core/scripts/dr recipe:apply "recipes/$recipe"
   # Plain files, not minified aggregates, so a changed CSS/JS file can be compared as source.
-  local php='$a=require "autoload.php"; $r=Symfony\Component\HttpFoundation\Request::create("/"); $k=Drupal\Core\DrupalKernel::createFromRequest($r,$a,"prod"); $k->boot(); $k->preHandle($r); \Drupal::configFactory()->getEditable("system.performance")->set("css.preprocess",false)->set("js.preprocess",false)->save();'
+  local php='$a=require "autoload.php"; $r=Symfony\Component\HttpFoundation\Request::create("/"); $k=Drupal\Core\DrupalKernel::createFromRequest($r,$a,"prod"); $k->boot(); $k->preHandle($r); \Drupal::configFactory()->getEditable("system.performance")->set("css.preprocess",false)->set("js.preprocess",false)->save(); \Drupal::configFactory()->getEditable("system.site")->set("name","Drupal core test site")->save();'
   ddev exec "php -r '$php'"
   ddev drupal cache
 }
@@ -31,7 +31,7 @@ case "$cmd" in
     ddev drupal uninstall || true
     rm -rf sites/default/files sites/default/settings.php
     ddev restart >/dev/null
-    ddev drupal install standard --password=admin --site-name="$env"
+    ddev drupal install standard --password=admin --site-name="Drupal core test site"
     apply ;;
   *) echo "unknown command: $cmd" >&2; exit 2 ;;
 esac
