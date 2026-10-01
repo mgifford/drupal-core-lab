@@ -48,3 +48,10 @@ A read-only copy of the viewer's guide for each issue (no live sites) is the Git
 
 Modelled on [justafish/ddev-drupal-core-dev](https://github.com/justafish/ddev-drupal-core-dev) (a DDEV add-on for core development)
 and on the compare tool in FOSDEM-website.
+
+## License
+The code, scripts and documentation in this repository are licensed under the **GNU General Public License, version 2 or (at your option) any
+later version** (SPDX: `GPL-2.0-or-later`), the same licence as Drupal core. See [LICENSE.txt](LICENSE.txt). Patches in `reports/issues/*/branches/`
+are changes to Drupal core and carry core's licence. Third-party tools are installed from npm or DDEV and keep their own licences (Playwright and the
+DDEV add-on: Apache-2.0; axe-core: MPL-2.0, not committed). Material inherited from the old fork (`docs/legacy/`, `ACCESSIBILITY.md`, `STYLES.md`,
+`.agents/`) keeps whatever licence it had there; check its source before reusing it elsewhere.
