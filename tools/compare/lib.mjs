@@ -62,7 +62,9 @@ export function normalise(text, hosts) {
   t = t.replace(/(<script type="application\/json" data-drupal-selector="drupal-settings-json">)[\s\S]*?(<\/script>)/g, '$1SETTINGS$2');
   t = t.replace(/(name="form_build_id" value=")[^"]*/g, '$1BUILD_ID').replace(/(name="form_token" value=")[^"]*/g, '$1TOKEN');
   t = t.replace(/(id="form-)[A-Za-z0-9_-]+/g, '$1BUILD_ID').replace(/([?&]token=)[A-Za-z0-9_-]+/g, '$1TOKEN');
-  t = t.replace(/(\b[a-z][a-z0-9_-]*-)\d{9,10}\b/g, '$1RANDOM');
+  t = t.replace(/(\b[a-z][a-z0-9_-]*-)\d{6,10}\b/g, '$1RANDOM');
+  t = t.replace(/(name="changed" value=")\d+/g, '$1TS');
+  t = t.replace(/(name="created\[0\]\[value\]\[(?:time|date)\]" value=")[^"]*/g, '$1CREATED');
   t = t.replace(/(js-view-dom-id-)[a-f0-9]+/g, '$1ID');
   t = t.replace(/(data-drupal-selector="form-)[A-Za-z0-9_-]+/g, '$1BUILD_ID');
   t = t.replace(/(data-autocomplete-path="[^"?]*\/default\/)[A-Za-z0-9_-]+/g, '$1TOKEN');

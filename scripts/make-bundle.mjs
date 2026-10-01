@@ -98,6 +98,7 @@ ${checks}
 - Rebuild a site from scratch: \`scripts/lab-site.sh reset <env>\` (destroys that site's content).
 - Diff what the two sites serve: \`node tools/compare/diff.mjs ${v.slug}\` (writes to \`reports/issues/${v.issue}/compare/\`).
 - Stop and remove: in each \`envs/<name>/\` run \`ddev delete --omit-snapshot --yes\`.
+- If setup stops with \`ddev-router failed to become ready\` (DDEV's shared router sometimes misses its 60 second health check, more often with many DDEV projects running): just run the same \`setup.mjs\` command again, it resumes where it stopped. Running \`ddev poweroff\` first (stops all DDEV projects) makes it much less likely.
 - If a site will not start after moving the folder: \`ddev stop\`, \`ddev mutagen reset\`, \`ddev start\`.
 
 ## What this does not replace

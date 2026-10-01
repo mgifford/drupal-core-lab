@@ -97,7 +97,14 @@
 <details><summary>Log of changes as you navigate (<span id="axelogn">0</span>)</summary>
 <table class="checks" id="axelog"><thead><tr><th>Time</th><th>Page (reported by)</th><th>Before</th><th>After</th><th>Difference</th></tr></thead><tbody></tbody></table></details>
 </section>
-<section aria-labelledby="chkh"><h2 id="chkh" style="font-size:1rem;margin:.5rem 1rem 0">Checks <button type="button" id="runchecks">Run checks</button></h2>
+<section aria-labelledby="obsh">
+<h2 id="obsh" style="font-size:1rem;margin:.5rem 1rem 0">Manual confirmation: what do you see?</h2>
+<p class="note">The two frames stay in step, so you can confirm the change by eye. Do the steps, click the "URL alias" link yourself in each frame (Mirror off), then answer for each side. Your answers are compared with what is expected and saved in the downloaded log. This does not replace testing with a keyboard and a screen reader.</p>
+<p id="obsverdict" class="verdict warn" role="status" aria-live="polite" hidden></p>
+<table class="checks" id="obs"><thead><tr><th>Did you see this?</th><th>Expected Before / After</th><th>Before</th><th>After</th><th>Result</th></tr></thead><tbody></tbody></table>
+<p class="note"><label>Notes (kept in the downloaded log) <input type="text" id="obsnote" size="60"></label></p>
+</section>
+<section aria-labelledby="chkh"><h2 id="chkh" style="font-size:1rem;margin:.5rem 1rem 0">Checks <button type="button" id="runchecks">Run checks</button> <span id="rcstat" class="path" role="status" aria-live="polite"></span></h2>
 <p class="note">After the last step, press Run checks. Each check runs inside both frames and says Pass or Fail against what is expected. The rule: a <strong>fix</strong> check should <strong>fail on Before and pass on After</strong>; a <strong>regression</strong> check should pass on both; a <strong>precondition</strong> must pass on both or nothing else means anything.</p>
 <p id="verdict" class="verdict" role="status" hidden></p>
 <table class="checks" id="checks"><thead><tr><th>Type</th><th>Check</th><th>Expected</th><th>Before</th><th>After</th><th>Verdict</th></tr></thead><tbody></tbody></table></section>
@@ -121,7 +128,7 @@ function sendState() { const state = { theme: radio('theme'), darkos: $('darkos'
 const TAGS = { recipe: 'set up by the recipe', mirror: 'mirrored to both frames', each: 'do in each frame' };
 function renderSteps() { const ol = $('steps'); ol.textContent = ''; for (const st of v.steps || []) { const li = document.createElement('li'); li.textContent = st.text; if (st.lookFor) { const lf = document.createElement('span'); lf.className = 'lookfor'; lf.textContent = 'Look for: ' + st.lookFor; li.append(lf); } const t = document.createElement('span'); t.className = 'tag'; t.textContent = TAGS[st.how] || st.how; li.append(t); ol.append(li); }
   $('exp').textContent = v.expected ? 'Expected: ' + v.expected : ''; $('act').textContent = v.actual ? 'Actual: ' + v.actual : ''; $('setup').textContent = v.setup ? 'Setup: ' + v.setup : ''; $('stepsbox').hidden = !(v.steps && v.steps.length); }
-function setVariant(slug) { v = variants.find((x) => x.slug === slug); $('desc').textContent = v.description; renderSteps(); document.title = `Compare: ${v.slug}`;
+function setVariant(slug) { v = variants.find((x) => x.slug === slug); $('desc').textContent = v.description; renderSteps(); buildObs(); document.title = `Compare: ${v.slug}`;
   const start = (v.demo && v.demo.start) || v.pages[0] || '/'; $('goto').value = start;
   document.querySelector('input[name="width"][value="half"]').checked = true; applyWidth(); }
 async function init() {
@@ -151,6 +158,8 @@ addEventListener('message', (e) => {
   if (m.type === 'axe-unavailable') { $('axeverdict').className = 'verdict warn'; $('axeverdict').textContent = 'axe-core is not installed. Run: npm install --prefix tools/compare/.deps axe-core@4 , then reload.'; }
   if (m.type === 'axe-error') { $('axeverdict').className = 'verdict warn'; $('axeverdict').textContent = 'axe-core error in the ' + m.side + ' frame: ' + m.message; }
   if (m.type === 'probe-result') { const p = pending[m.id]; if (p) { results[p.i][p.side] = m.value; showResult(p.i); } }
+  if (m.type === 'real-click') { realClick[m.side] = true; showRealClick(); }
+  if (m.type === 'loaded') { realClick[m.side] = false; showRealClick(); }
   if (m.type === 'nav') {
     P[m.side].textContent = m.path; last[m.side] = m.path; updateExternal(); status('Ready.'); if (radio('view') !== 'side') applyView();
     if ($('syncnav').checked && last[m.side] !== m.path) { last[m.side] = m.path; if (last[other(m.side)] !== m.path) load(other(m.side), m.path); }
@@ -176,7 +185,11 @@ $('opacity').addEventListener('input', applyView); $('amplify').addEventListener
 
 // Checks: run a probe inside each frame and compare with what is expected.
 const pending = {}; let probeId = 0; const results = {};
+let realClick = { before: false, after: false };
+function showRealClick() { const f = (b) => (b ? '\u2713' : '\u2717 not yet'); $('rcstat').textContent = `Real click on the error link: Before ${f(realClick.before)} \u00B7 After ${f(realClick.after)}`; }
 function runChecks() {
+  if ($('mirror').checked) { $('mirror').checked = false; status('Mirror turned off for the final step. Click the "URL alias" link yourself in EACH frame, then press Run checks again.'); }
+  showRealClick();
   const body = document.querySelector('#checks tbody'); body.textContent = ''; $('verdict').hidden = true; (v.checks || []).forEach((c, i) => {
     const tr = document.createElement('tr'); tr.id = 'chk' + i;
     for (const t of [c.kind, c.label, c.expect === 'same' ? 'same on both sides' : String(c.expect), '…', '…', '…']) { const td = document.createElement('td'); td.textContent = t; tr.append(td); }
@@ -231,7 +244,7 @@ $('storage').addEventListener('click', () => { for (const s of ['before', 'after
 // ---- Live accessibility (axe-core) ----
 const AX = { before: null, after: null }; const axeLog = []; const baseTitle = document.title; let lastKey = '';
 const IMPACTS = ['critical', 'serious', 'moderate', 'minor'];
-const ntarget = (t) => t.replace(/(\b[a-z][a-z0-9_-]*-)\d{9,10}\b/g, '$1RANDOM').replace(/form-[A-Za-z0-9_-]{20,}/g, 'form-BUILD').replace(/js-view-dom-id-[a-f0-9]+/g, 'js-view-dom-id-ID');
+const ntarget = (t) => t.replace(/(\b[a-z][a-z0-9_-]*-)\d{6,10}\b/g, '$1RANDOM').replace(/form-[A-Za-z0-9_-]{20,}/g, 'form-BUILD').replace(/js-view-dom-id-[a-f0-9]+/g, 'js-view-dom-id-ID');
 function summarise(res) {
   const rules = new Map(); const totals = { critical: 0, serious: 0, moderate: 0, minor: 0, total: 0 }; const ruleCounts = { critical: 0, serious: 0, moderate: 0, minor: 0 };
   for (const v of res.violations) {
@@ -293,7 +306,31 @@ $('axeon').addEventListener('change', () => { sendState(); if (!$('axeon').check
 $('axebest').addEventListener('change', () => { AX.before = AX.after = null; sendState(); setTimeout(() => { for (const s of ['before', 'after']) F[s].contentWindow && F[s].contentWindow.postMessage({ compare: 1, type: 'axe-now' }, '*'); }, 300); });
 $('axenow').addEventListener('click', () => { for (const s of ['before', 'after']) F[s].contentWindow && F[s].contentWindow.postMessage({ compare: 1, type: 'axe-now' }, '*'); });
 $('axeclr').addEventListener('click', () => { axeLog.length = 0; $('axelog').querySelector('tbody').textContent = ''; $('axelogn').textContent = 0; lastKey = ''; });
-$('axedl').addEventListener('click', () => { const blob = new Blob([JSON.stringify({ variant: v && v.slug, exported: new Date().toISOString(), entries: axeLog }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `axe-log-${v ? v.slug : 'compare'}.json`; a.click(); });
+$('axedl').addEventListener('click', () => { const blob = new Blob([JSON.stringify({ variant: v && v.slug, exported: new Date().toISOString(), manualObservations: (v.observe || []).map((o, i) => ({ question: o.label, expected: { before: !!o.expectBefore, after: !!o.expectAfter }, answered: obsAns[i] || null })), notes: $('obsnote').value, entries: axeLog }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `axe-log-${v ? v.slug : 'compare'}.json`; a.click(); });
+
+// ---- Manual confirmation ----
+const obsAns = {};
+function buildObs() {
+  const body = document.querySelector('#obs tbody'); body.textContent = ''; for (const k of Object.keys(obsAns)) delete obsAns[k];
+  (v.observe || []).forEach((o, i) => { const tr = document.createElement('tr'); tr.id = 'obs' + i;
+    const td0 = document.createElement('td'); td0.textContent = o.label; const td1 = document.createElement('td'); td1.textContent = `${o.expectBefore ? 'Yes' : 'No'} / ${o.expectAfter ? 'Yes' : 'No'}`; tr.append(td0, td1);
+    for (const side of ['before', 'after']) { const td = document.createElement('td'); td.className = 'na';
+      for (const val of ['yes', 'no']) { const lab = document.createElement('label'); const r = document.createElement('input'); r.type = 'radio'; r.name = `obs-${i}-${side}`; r.value = val; r.addEventListener('change', () => { (obsAns[i] ||= {})[side] = val; renderObs(); }); lab.append(r, document.createTextNode(' ' + (val === 'yes' ? 'Yes' : 'No') + ' ')); td.append(lab); }
+      tr.append(td); }
+    const res = document.createElement('td'); res.className = 'na v'; res.textContent = '– not answered'; tr.append(res); body.append(tr); });
+  $('obsverdict').hidden = true;
+}
+function renderObs() {
+  const list = v.observe || []; let answered = 0, good = 0, bad = 0;
+  list.forEach((o, i) => { const a = obsAns[i] || {}; const cell = document.querySelector(`#obs${i} td:last-child`);
+    if (a.before && a.after) { answered++; const ok = (a.before === 'yes') === !!o.expectBefore && (a.after === 'yes') === !!o.expectAfter;
+      cell.className = (ok ? 'ok' : 'bad') + ' v'; cell.textContent = ok ? '✓ As expected' : `✗ Not as expected (expected ${o.expectBefore ? 'Yes' : 'No'} / ${o.expectAfter ? 'Yes' : 'No'})`; ok ? good++ : bad++; }
+    else { cell.className = 'na v'; cell.textContent = '– not answered'; } });
+  const V = $('obsverdict'); if (!answered) { V.hidden = true; return; } V.hidden = false;
+  if (bad) { V.className = 'verdict bad'; V.textContent = `✗ ${bad} of ${answered} answered observations are not as expected. Check the rows marked ✗.`; }
+  else if (answered < list.length) { V.className = 'verdict warn'; V.textContent = `✓ So far ${good} as expected. ${list.length - answered} still to answer.`; }
+  else { V.className = 'verdict ok'; V.textContent = `✓ All ${good} of your observations match the expected result: Before does not respond to the error link, After does, and nothing else looks different.`; }
+}
 init();
 </script>
 </body>

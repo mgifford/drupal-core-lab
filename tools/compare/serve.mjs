@@ -53,7 +53,8 @@ addEventListener('scroll',()=>{if(!quiet)post({type:'scroll',x:scrollX,y:scrollY
 function nav(){post({type:'nav',path:location.pathname+location.search+location.hash})}
 window.__cmpErrors=[];window.__cmpFocused=[];window.__cmpTrustedFragmentClick=false;
 addEventListener('focusin',(e)=>{const t=e.target;if(t&&t.name)window.__cmpFocused.push(t.name)},true);
-addEventListener('click',(e)=>{const a=e.target.closest&&e.target.closest('a[href*="#"]');if(a&&e.isTrusted)window.__cmpTrustedFragmentClick=true},true);addEventListener('error',(e)=>window.__cmpErrors.push(String(e.message)));
+addEventListener('click',(e)=>{const a=e.target.closest&&e.target.closest('a[href*="#"]');if(a&&e.isTrusted){window.__cmpTrustedFragmentClick=true;post({type:'real-click'})}},true);
+addEventListener('load',()=>post({type:'loaded'}));addEventListener('error',(e)=>window.__cmpErrors.push(String(e.message)));
 addEventListener('hashchange',nav);addEventListener('popstate',nav);
 // Mirror setup actions: only real (trusted) user events are captured, so the synthetic events
 // we replay on the other side never loop. Keyboard focus and Tab/Enter are deliberately not mirrored.

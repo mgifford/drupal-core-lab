@@ -1,10 +1,10 @@
 # Compare: 3619127-vanilla
 
-Generated 2026-10-01T09:15:29.970Z. Before: `baseline-main`. After: `issue-3619127-vanilla`.
+Generated 2026-10-01T10:11:25.922Z. Before: `baseline-main`. After: `issue-3619127-vanilla`.
 
 Logged in as admin: yes. Pages: /node/add/article, /admin/content.
 
-**1 of 336 items differ.** Per-site noise (hostnames, tokens, cache-busting strings, settings JSON, aggregate file names) is normalised away.
+**1 of 385 items differ.** Per-site noise (hostnames, tokens, cache-busting strings, settings JSON, aggregate file names) is normalised away.
 
 | Kind | Item | Result | Diff |
 |---|---|---|---|
@@ -226,6 +226,15 @@ Logged in as admin: yes. Pages: /node/add/article, /admin/content.
 | asset | `/core/modules/system/css/components/js.module.css` | same |  |
 | asset | `/core/misc/components/tablesort.module.css` | same |  |
 | asset | `/core/modules/contextual/css/contextual.module.css` | same |  |
+| asset | `/core/misc/components/progress.module.css` | same |  |
+| asset | `/core/themes/default_admin/css/components/ajax-progress.module.css` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/themes/base/core.css` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/themes/base/button.css` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/themes/base/controlgroup.css` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/themes/base/checkboxradio.css` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/themes/base/resizable.css` | same |  |
+| asset | `/core/modules/ckeditor5/css/ckeditor5.dialog.fix.css` | same |  |
+| asset | `/core/themes/default_admin/css/components/dropbutton.css` | same |  |
 | asset | `/core/modules/views/css/views.module.css` | same |  |
 | asset | `/core/modules/contextual/css/contextual.theme.css` | same |  |
 | asset | `/core/modules/navigation/css/base/fonts.css` | same |  |
@@ -253,8 +262,10 @@ Logged in as admin: yes. Pages: /node/add/article, /admin/content.
 | asset | `/core/themes/default_admin/css/components/system-admin--links.css` | same |  |
 | asset | `/core/themes/default_admin/css/components/system-admin--modules.css` | same |  |
 | asset | `/core/themes/default_admin/css/components/system-admin--panel.css` | same |  |
+| asset | `/core/themes/default_admin/css/components/jquery.ui/theme.css` | same |  |
 | asset | `/core/modules/navigation/components/toolbar-button/toolbar-button.css` | same |  |
 | asset | `/core/themes/default_admin/css/components/tablesort-indicator.css` | same |  |
+| asset | `/core/themes/default_admin/css/components/progress.css` | same |  |
 | asset | `/core/themes/default_admin/css/layout/card-list.css` | same |  |
 | asset | `/core/themes/default_admin/css/components/card.css` | same |  |
 | asset | `/core/themes/default_admin/css/components/status.css` | same |  |
@@ -269,7 +280,6 @@ Logged in as admin: yes. Pages: /node/add/article, /admin/content.
 | asset | `/core/themes/default_admin/css/components/button.css` | same |  |
 | asset | `/core/themes/default_admin/css/components/action-link.css` | same |  |
 | asset | `/core/themes/default_admin/css/components/user-login-block.css` | same |  |
-| asset | `/core/themes/default_admin/css/components/dropbutton.css` | same |  |
 | asset | `/core/themes/default_admin/css/components/details.css` | same |  |
 | asset | `/core/themes/default_admin/css/components/divider.css` | same |  |
 | asset | `/core/themes/default_admin/css/components/field.css` | same |  |
@@ -305,34 +315,73 @@ Logged in as admin: yes. Pages: /node/add/article, /admin/content.
 | asset | `/core/themes/default_admin/css/components/views-exposed-form.css` | same |  |
 | asset | `/core/themes/default_admin/css/components/contextual-links.css` | same |  |
 | asset | `/core/themes/default_admin/css/theme/accent.css` | same |  |
+| asset | `/core/themes/default_admin/css/components/dialog.css` | same |  |
 | asset | `/core/themes/default_admin/css/components/node-preview.css` | same |  |
 | asset | `/core/themes/default_admin/css/components/navigation.css` | same |  |
 | asset | `/core/themes/default_admin/migration/js/init.js` | same |  |
 | asset | `/core/misc/drupalSettingsLoader.js` | same |  |
 | asset | `/core/misc/touchevents-test.js` | same |  |
 | asset | `/core/themes/default_admin/migration/js/scroll_sync.js` | same |  |
-| asset | `/core/assets/vendor/jquery/jquery.min.js` | same |  |
+| asset | `/core/assets/vendor/htmx/htmx.min.js` | same |  |
 | asset | `/core/misc/drupal.js` | same |  |
 | asset | `/core/misc/drupal.init.js` | same |  |
-| asset | `/core/assets/vendor/once/once.min.js` | same |  |
-| asset | `/core/modules/contextual/js/contextual.js` | same |  |
-| asset | `/core/misc/active-link.js` | same |  |
+| asset | `/core/assets/vendor/loadjs/loadjs.min.js` | same |  |
+| asset | `/core/misc/htmx/htmx-utils.js` | same |  |
+| asset | `/core/misc/htmx/htmx-assets.js` | same |  |
+| asset | `/core/misc/htmx/htmx-behaviors.js` | same |  |
 | asset | `/core/misc/debounce.js` | same |  |
 | asset | `/core/misc/announce.js` | same |  |
+| asset | `/core/assets/vendor/once/once.min.js` | same |  |
 | asset | `/core/misc/message.js` | same |  |
 | asset | `/core/themes/default_admin/migration/js/messages.js` | same |  |
+| asset | `/core/modules/big_pipe/js/big_pipe.commands.js` | same |  |
+| asset | `/core/modules/big_pipe/js/big_pipe.js` | same |  |
+| asset | `/core/assets/vendor/jquery/jquery.min.js` | same |  |
+| asset | `/core/modules/contextual/js/contextual.js` | same |  |
+| asset | `/core/misc/active-link.js` | same |  |
+| asset | `/core/misc/progress.js` | same |  |
+| asset | `/core/assets/vendor/tabbable/index.umd.min.js` | same |  |
+| asset | `/core/misc/ajax.js` | same |  |
+| asset | `/core/themes/default_admin/js/ajax.js` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/ui/version-min.js` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/ui/data-min.js` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/ui/disable-selection-min.js` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/ui/focusable-min.js` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/ui/jquery-patch-min.js` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/ui/keycode-min.js` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/ui/plugin-min.js` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/ui/scroll-parent-min.js` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/ui/widget-min.js` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/ui/unique-id-min.js` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/ui/labels-min.js` | same |  |
+| asset | `/core/misc/displace.js` | same |  |
+| asset | `/core/misc/position.js` | same |  |
+| asset | `/core/themes/default_admin/migration/js/accent.js` | same |  |
+| asset | `/core/assets/vendor/tua-body-scroll-lock/tua-bsl.umd.min.js` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/ui/widgets/controlgroup-min.js` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/ui/form-reset-mixin-min.js` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/ui/widgets/mouse-min.js` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/ui/widgets/draggable-min.js` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/ui/widgets/resizable-min.js` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/ui/widgets/checkboxradio-min.js` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/ui/widgets/button-min.js` | same |  |
+| asset | `/core/assets/vendor/jquery.ui/ui/widgets/dialog-min.js` | same |  |
+| asset | `/core/misc/dialog/dialog.js` | same |  |
+| asset | `/core/misc/dialog/dialog.position.js` | same |  |
+| asset | `/core/misc/dialog/dialog.jquery-ui.js` | same |  |
+| asset | `/core/modules/ckeditor5/js/ckeditor5.dialog.fix.js` | same |  |
+| asset | `/core/misc/dialog/dialog.ajax.js` | same |  |
+| asset | `/core/misc/dropbutton/dropbutton.js` | same |  |
+| asset | `/core/themes/default_admin/js/dropbutton.js` | same |  |
+| asset | `/core/themes/default_admin/migration/js/dropbutton.js` | same |  |
 | asset | `/core/themes/default_admin/migration/js/tableheader.js` | same |  |
 | asset | `/core/misc/tableresponsive.js` | same |  |
 | asset | `/core/misc/checkbox.js` | same |  |
 | asset | `/core/themes/default_admin/js/checkbox.js` | same |  |
-| asset | `/core/assets/vendor/tabbable/index.umd.min.js` | same |  |
 | asset | `/core/themes/default_admin/migration/js/tableselect.js` | same |  |
 | asset | `/core/themes/default_admin/js/tableselect.js` | same |  |
-| asset | `/core/themes/default_admin/migration/js/accent.js` | same |  |
-| asset | `/core/themes/default_admin/js/nav-tabs.js` | same |  |
 | asset | `/core/themes/default_admin/migration/js/escape_admin.js` | same |  |
 | asset | `/core/themes/default_admin/migration/js/navigation.js` | same |  |
-| asset | `/core/misc/displace.js` | same |  |
 | asset | `/core/themes/default_admin/migration/js/sticky.js` | same |  |
 | asset | `/core/assets/vendor/floating-ui/floating-ui.core.umd.min.js` | same |  |
 | asset | `/core/assets/vendor/floating-ui/floating-ui.dom.umd.min.js` | same |  |
