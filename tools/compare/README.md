@@ -190,6 +190,7 @@ fields (`core`, `before`, `after` merge one level deep, so `after.patches` is in
 | `checks` | `{ label, probe, expect, kind }` for Run checks: `probe` is a JS expression evaluated inside each frame; `expect` a value or `"same"`; `kind` is `precondition`, `fix` or `regression`. |
 | `observe` | `{ label, expectBefore, expectAfter }` for the manual confirmation panel. |
 | `demo` | `{ start }`: the page both frames open on. |
+| `languages` | Language codes `setup.mjs` adds to both sites (`scripts/lab-site.sh language <env> <code>`, via `scripts/add-language.php`), each with a `/<code>` URL prefix. `fa` (Farsi) is right to left. The interface stays English unless translations are imported. |
 
 ## If a frame does not load
 The viewer raises an alert after 12 seconds and checks both sites; use **Reload Before / Reload After**. Details of what

@@ -2,6 +2,7 @@
 # Put a lab environment into a known state. Local development only.
 #
 #   scripts/lab-site.sh apply <env> [recipe]   apply a recipe from recipes/ (default ife_sidebar_repro)
+#   scripts/lab-site.sh language <env> [code]  add a language with a /<code> URL prefix (default fa, Farsi: right to left); see scripts/add-language.php
 #   scripts/lab-site.sh reset <env> [recipe]   DESTROYS the site: reinstall Standard (admin/admin), then apply
 #
 # <env> is a directory under envs/ (for example baseline-main). Needs the DDEV add-on
@@ -33,6 +34,11 @@ case "$cmd" in
     ddev restart >/dev/null
     ddev drupal install standard --password=admin --site-name="Drupal core test site"
     apply ;;
+  language)
+    code="${3:-fa}"
+    cp "$lab/scripts/add-language.php" .lab-add-language.php
+    ddev exec php .lab-add-language.php "$code"; rm -f .lab-add-language.php
+    ddev drupal cache; echo "$env: browse /$code/..."; exit 0 ;;
   *) echo "unknown command: $cmd" >&2; exit 2 ;;
 esac
 echo "$env ready (recipe: $recipe). Log in as admin / admin."

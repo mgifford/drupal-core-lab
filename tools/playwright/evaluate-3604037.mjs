@@ -1,9 +1,10 @@
 // #3604037: measure and photograph the "group contains an error" indicators, Before and After, in several modes.
-//   node tools/playwright/evaluate-3604037.mjs [slug] [--modes=light,dark,light-zindex,dark-zindex,forced,forced-dark,forced-currentcolor,forced-preserve,forced-linktext,forced-dark-currentcolor,forced-dark-preserve,forced-dark-linktext,rtl,nojs]
+//   node tools/playwright/evaluate-3604037.mjs [slug] [--modes=light,dark,farsi,light-zindex,dark-zindex,forced,forced-dark,forced-currentcolor,forced-preserve,forced-linktext,forced-dark-currentcolor,forced-dark-preserve,forced-dark-linktext,rtl,nojs]
 // For each mode it reaches the error state on two pages (a details section; a vertical tab), then records:
 //   - screenshots of the marked element (Before, After, and a side-by-side image),
 //   - computed colours of the summary text, the error border, the error icon and the background behind them, as WCAG contrast ratios,
 //   - whether the error indicators are present at all (a mask icon, a border, a data-child-error-count attribute).
+// "farsi" = the real Farsi language at /fa (right to left; needs `scripts/lab-site.sh language <env> fa` on both sites).
 // "forced" = Windows-style forced colours (light palette); "forced-dark" = the dark (black) high-contrast palette.
 // "*-currentcolor", "*-preserve", "*-linktext" re-run on After with the icon's `canvasText` replaced by a proposal (see PROPOSALS below).
 // Plain `background: currentColor` is NOT enough: forced colours overrides it, so the icon would vanish.
@@ -151,7 +152,7 @@ for (const mode of MODES) {
           entry.noJsErrorMarkers = await page.evaluate(() => ({ detailsError: document.querySelectorAll('details.error').length, childErrorCount: [...document.querySelectorAll('[data-child-error-count]')].length, errorSummary: !!document.querySelector('[role=alert], .messages--error') }));
           await page.screenshot({ path: path.join(out, `${mode}-${key}.png`), fullPage: false }); continue;
         }
-        const target = await reach(page, base, kind);
+        const target = await reach(page, mode === 'farsi' ? base + '/fa' : base, kind);
         await page.evaluate(pageFns); if (baseMode(mode) === 'dark' && !(await page.evaluate(() => document.documentElement.classList.contains('dark-mode')))) await page.evaluate(() => document.documentElement.classList.add('dark-mode'));
         if (mode === 'rtl') { await page.evaluate(() => { document.documentElement.dir = 'rtl'; }); await page.waitForTimeout(300); }
         const box = kind === 'tabs' ? page.locator('.vertical-tabs').first() : kind === 'tabsnarrow' ? page.locator('.vertical-tabs__items').first() : await pickLoc(page, kind);

@@ -127,6 +127,7 @@ for (const [side, spec] of sides) {
   if (v.testExtensions) run('ddev', ['drupal', 'test:extensions-enable'], { cwd: dir });   // lets the recipe install test modules such as form_test
   if (v.recipe) run('bash', [path.join(labRoot, 'scripts/lab-site.sh'), 'apply', spec.env, v.recipe]);
   else console.log('no recipe set for this variant: the site is a plain Standard install');
+  for (const code of v.languages || []) run('bash', [path.join(labRoot, 'scripts/lab-site.sh'), 'language', spec.env, code]);   // e.g. fa: right-to-left, browse /fa/...
 }
 
 console.log(`\nDone. Both sites: log in as admin / admin.\nStart the viewer:  node tools/compare/serve.mjs ${v.slug}   then open http://localhost:8100/`);

@@ -110,6 +110,8 @@ Use only if `setup.mjs` is not usable. `core/scripts/dr install` is SQLite-only;
 | `ddev describe` freezes the viewer | It is synchronous; use the cached/async `envInfoAsync`. |
 | macOS: no `timeout`; zsh does not word-split `$var` | Use real exit codes; run multi-word variables through `bash`. |
 | The built-in browser pane shows blank frames or `ERR_BLOCKED_BY_CLIENT` | It blocks cross-site frames and requests to some hosts. Verify with Playwright (`tools/playwright/mirror-drag.mjs` is a model), not the pane. |
+| Adding a language with a recipe crashes (`setWeight() on null`) | A recipe that installs the Language module does not create its locked languages (und, zxx). Use `scripts/lab-site.sh language <env> <code>` (API script `scripts/add-language.php`); it also sets the `/<code>` prefix. |
+| Disk almost full (under 1 GB) | Regenerable caches first: `npm cache clean --force`, `rm -rf ~/.npm/_npx`, `docker builder prune -af`. Then see the disk row above. Check what is big with `du -sh ~/.cache/* ~/.npm`. |
 | Before is not pristine | Only if the variant lists `before.patches` (a declared test-support change, e.g. #3604037's form_test page). |
 
 ## Changing the viewer (`tools/compare/index.html`, `serve.mjs`)
