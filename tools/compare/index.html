@@ -229,17 +229,19 @@ function showRealClick() { const f = (b) => (b ? '\u2713' : '\u2717 not yet'); $
 function runChecks() {
   if ($('mirror').checked) { $('mirror').checked = false; status('Mirror turned off for the final step. Click the "URL alias" link yourself in EACH frame, then press Run checks again.'); }
   showRealClick();
-  const body = document.querySelector('#checks tbody'); body.textContent = ''; $('verdict').hidden = true; (v.checks || []).forEach((c, i) => {
+  const body = document.querySelector('#checks tbody'); body.textContent = ''; $('verdict').hidden = true; for (const [i, c] of (v.checks || []).entries()) {
     const tr = document.createElement('tr'); tr.id = 'chk' + i;
     for (const t of [c.kind, c.label, c.expect === 'same' ? 'same on both sides' : String(c.expect), '…', '…', '…']) { const td = document.createElement('td'); td.textContent = t; tr.append(td); }
     body.append(tr); results[i] = {};
+    // A check with onlyOn (a path fragment) applies only while the frames are on that page; otherwise it is shown as not applicable.
+    if (c.onlyOn && !((last.before || '').includes(c.onlyOn) && (last.after || '').includes(c.onlyOn))) { results[i].na = true; setCell(tr.children[3], 'na', 'n/a'); setCell(tr.children[4], 'na', 'n/a'); setCell(tr.children[5], 'na v', '\u2013 only on ' + c.onlyOn + ' (open that page, redo the steps, run again)'); continue; }
     for (const side of ['before', 'after']) { const id = ++probeId; pending[id] = { i, side }; F[side].contentWindow.postMessage({ compare: 1, type: 'probe', id, code: c.probe }, '*'); }
-  });
+  }
 }
 function passes(c, val, other) { return c.expect === 'same' ? String(val) === String(other) : String(val) === String(c.expect); }
 function setCell(td, cls, text) { td.className = cls; td.textContent = text; }
 function renderAll() {
-  const checks = v.checks || []; const rows = checks.map((c, i) => ({ c, r: results[i] || {}, tr: document.getElementById('chk' + i) }));
+  const checks = v.checks || []; const rows = checks.map((c, i) => ({ c, r: results[i] || {}, tr: document.getElementById('chk' + i) })).filter((x) => !x.r.na);
   const ready = rows.filter((x) => 'before' in x.r && 'after' in x.r);
   if (ready.length < rows.length) return;
   const pre = rows.filter((x) => x.c.kind === 'precondition');

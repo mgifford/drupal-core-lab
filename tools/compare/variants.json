@@ -168,8 +168,8 @@
   {
     "slug": "3604037-pinned",
     "issue": "3604037",
-    "label": "#3604037: Indicate that grouping elements have child element errors, pinned core",
-    "description": "TODO: what to do and what to look for.",
+    "label": "#3604037: groups (details, vertical tabs) that contain a field error say so, pinned core",
+    "description": "Forms group fields in closed <details> and vertical tabs. When a field inside a closed or inactive group has an error, nothing on the group says so. The change (MR !17078, Default Admin theme) marks such groups with a red border, an icon, red label text, a hidden \" (contains error)\" label for screen readers and a data-child-error-count attribute. Follow the steps on three pages, then press Run checks on each page: the checks apply to the page the frames are on.",
     "status": "stub: fill in pages, steps, expected, checks, observe",
     "core": {
       "url": "https://git.drupalcode.org/project/drupal.git",
@@ -185,15 +185,171 @@
       ]
     },
     "pages": [
-      "/"
+      "/form_test/details-contains-required-fields",
+      "/node/add/article",
+      "/admin/config/people/accounts"
     ],
     "login": true,
     "recipe": "repro_3604037",
-    "steps": [],
-    "expected": "TODO",
-    "actual": "TODO",
-    "checks": [],
-    "observe": []
+    "steps": [
+      {
+        "text": "Default Admin is the admin theme.",
+        "how": "recipe"
+      },
+      {
+        "text": "An Article content type, the Path module and the form_test test module are installed (setup enables test extensions).",
+        "how": "recipe"
+      },
+      {
+        "text": "Type /form_test/details-contains-required-fields in Page and press Go (both). A form appears with a collapsible section that contains required fields.",
+        "how": "mirror",
+        "lookFor": "A details section titled something like \"Meta\" with two required text fields inside."
+      },
+      {
+        "text": "Press the form's submit button without filling in anything.",
+        "how": "mirror",
+        "lookFor": "Error messages for the required fields."
+      },
+      {
+        "text": "Close the details section by clicking its title.",
+        "how": "mirror",
+        "lookFor": "Before: a plain closed section, nothing says it contains errors. After: it is marked as containing errors (red border, error icon, red title). Then press Run checks."
+      },
+      {
+        "text": "Open /node/add/article. Open the sidebar, open \"URL alias\", type a value with no leading slash (no-slash), close the sidebar, press Save.",
+        "how": "mirror",
+        "lookFor": "Open the sidebar again: After marks the \"URL alias\" group as containing an error even though it is closed. Run checks."
+      },
+      {
+        "text": "Open /admin/config/people/accounts (each frame must be at least 650 px wide: use Half or Tablet). In the Emails section clear the required Subject, press Save, then click a different vertical tab.",
+        "how": "mirror",
+        "lookFor": "The tab that contains the error is marked in After but not in Before. Run checks."
+      },
+      {
+        "text": "Repeat step 5 with Site theme set to Dark, and note anything hard to see (borders, icon, text).",
+        "how": "each"
+      }
+    ],
+    "expected": "A closed details section or an inactive vertical tab that contains a field error is visibly marked (red border, icon, red text) and has hidden text \" (contains error)\" and a data-child-error-count attribute.",
+    "actual": "Before the change a closed or inactive group gives no sign that a field inside it has an error; the user must open each group to find it.",
+    "checks": [
+      {
+        "label": "Setup reached: the test form shows required-field errors",
+        "probe": "document.querySelectorAll('.form-item__error-message, .form-item--error-message').length > 0",
+        "expect": true,
+        "kind": "precondition",
+        "onlyOn": "/form_test/details-contains-required-fields"
+      },
+      {
+        "label": "A group (details) that contains the errors is on the page",
+        "probe": "!!document.querySelector('details')",
+        "expect": true,
+        "kind": "precondition",
+        "onlyOn": "/form_test/details-contains-required-fields"
+      },
+      {
+        "label": "The details that contains errors has data-child-error-count",
+        "probe": "!!document.querySelector('details[data-child-error-count]')",
+        "expect": true,
+        "kind": "fix",
+        "onlyOn": "/form_test/details-contains-required-fields"
+      },
+      {
+        "label": "The count is 2 (two required fields inside)",
+        "probe": "(document.querySelector('details[data-child-error-count]') || document.body).getAttribute('data-child-error-count')",
+        "expect": "2",
+        "kind": "fix",
+        "onlyOn": "/form_test/details-contains-required-fields"
+      },
+      {
+        "label": "The summary carries the hidden text \"(contains error)\"",
+        "probe": "((document.querySelector('details > summary .child-error-indicator') || {}).textContent || '').trim()",
+        "expect": "(contains error)",
+        "kind": "fix",
+        "onlyOn": "/form_test/details-contains-required-fields"
+      },
+      {
+        "label": "Setup reached: the URL alias error is on the node form",
+        "probe": "!!document.querySelector('a[href$=\"#edit-path-0-alias\"]')",
+        "expect": true,
+        "kind": "precondition",
+        "onlyOn": "/node/add/article"
+      },
+      {
+        "label": "The closed URL alias group is marked (data-child-error-count)",
+        "probe": "!!(document.querySelector('#edit-path-0') || document.body).hasAttribute('data-child-error-count')",
+        "expect": true,
+        "kind": "fix",
+        "onlyOn": "/node/add/article"
+      },
+      {
+        "label": "Its summary carries the hidden text \"(contains error)\"",
+        "probe": "((document.querySelector('#edit-path-0 > summary .child-error-indicator') || {}).textContent || '').trim()",
+        "expect": "(contains error)",
+        "kind": "fix",
+        "onlyOn": "/node/add/article"
+      },
+      {
+        "label": "Setup reached: the account settings form shows an error",
+        "probe": "document.querySelectorAll('.form-item__error-message, .form-item--error-message').length > 0",
+        "expect": true,
+        "kind": "precondition",
+        "onlyOn": "/admin/config/people/accounts"
+      },
+      {
+        "label": "A vertical tab that contains an error is marked",
+        "probe": "!!document.querySelector('.vertical-tabs__menu-item.error')",
+        "expect": true,
+        "kind": "fix",
+        "onlyOn": "/admin/config/people/accounts"
+      },
+      {
+        "label": "That tab has the hidden \"(contains error)\" text",
+        "probe": "!!document.querySelector('.vertical-tabs__menu-item .child-error-indicator')",
+        "expect": true,
+        "kind": "fix",
+        "onlyOn": "/admin/config/people/accounts"
+      },
+      {
+        "label": "JavaScript errors on the page (ignoring the harmless \"ResizeObserver loop\" notice)",
+        "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+        "expect": 0,
+        "kind": "regression"
+      },
+      {
+        "label": "Number of open details sections matches the other side",
+        "probe": "document.querySelectorAll('details[open]').length",
+        "expect": "same",
+        "kind": "regression"
+      }
+    ],
+    "observe": [
+      {
+        "label": "A group that contains an error (a closed section or an inactive tab) is visibly marked",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "The mark is more than colour: there is also an icon or a border",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "The keyboard focus outline on the group is still clearly visible",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Anything else looks broken, overlapped or unreadable (borders, icon, text, spacing)",
+        "expectBefore": false,
+        "expectAfter": false
+      }
+    ],
+    "testExtensions": true,
+    "demo": {
+      "start": "/form_test/details-contains-required-fields"
+    },
+    "setup": "node tools/compare/setup.mjs 3604037-latest (the environments for a core and the same core with the patch)."
   },
   {
     "slug": "3604037-latest",

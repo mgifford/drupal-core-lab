@@ -2,6 +2,7 @@
 // starting state (Standard install, admin/admin, recipe applied, patches on the "after" side).
 //   node tools/compare/setup.mjs [slug] [--dry-run]
 //   node tools/compare/setup.mjs [slug] --check-patches    only report whether the patches still apply to that core
+//   (a variant with "testExtensions": true gets `ddev drupal test:extensions-enable` before its recipe, so it can install test modules)
 //   node tools/compare/setup.mjs [slug] --with-lighthouse   also install Lighthouse (optional background audits in the viewer; Node 22.19+)
 //
 // A variant's `core` says which Drupal core to use: `{ "ref": "main" }` follows the branch (fetched when an
@@ -123,6 +124,7 @@ for (const [side, spec] of sides) {
   const installed = !dry && have(path.join(dir, 'sites/default/settings.php')) && spawnSync('ddev', ['drupal', 'login'], { cwd: dir, stdio: 'ignore' }).status === 0;
   if (installed) console.log('already installed; applying the recipe again (safe)');
   else run('ddev', ['drupal', 'install', 'standard', '--password=admin', '--site-name=Drupal core test site'], { cwd: dir });
+  if (v.testExtensions) run('ddev', ['drupal', 'test:extensions-enable'], { cwd: dir });   // lets the recipe install test modules such as form_test
   if (v.recipe) run('bash', [path.join(labRoot, 'scripts/lab-site.sh'), 'apply', spec.env, v.recipe]);
   else console.log('no recipe set for this variant: the site is a plain Standard install');
 }

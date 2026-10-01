@@ -19,6 +19,7 @@ root; where it disagrees with this file, this file wins.)
 Everything is driven by **variants** in `tools/compare/variants.json`. A variant says which core (a pinned commit, or the latest
 `main`), which two environments, which patches, the recipe that creates the starting state, the steps, and the checks.
 
+    node scripts/lab-env.mjs status | start <slug> | stop <slug|all> | delete <slug> --yes   # manage environments (two at a time)
     node tools/compare/setup.mjs <slug>                  # build Before and After from scratch (resumable, idempotent)
     node tools/compare/setup.mjs <slug> --check-patches  # only: do the patches still apply to that core?
     node tools/compare/serve.mjs <slug> [--ddev]         # side-by-side viewer (http://localhost:8100 or https://drupal-compare.ddev.site)
@@ -42,12 +43,16 @@ Never switch one checkout between "before" and "after". One worktree per variant
 Both run the same PHP, theme and modules, so the only difference is the code under test. Keep two or three DDEV projects running at
 most (`ddev stop` the rest). Local development only; sites use `admin` / `admin`.
 
-| Environment | Core | URL |
+The normal state is **two sites running: a core, and the same core with an issue's patch.** Each issue has a `-latest` variant (current
+core `main` when built: the day-to-day pair) and a `-pinned` one (an exact commit, for reproducing the original result). Build and run only
+the pair you need; see `envs/README.md`. `node scripts/lab-env.mjs status` shows what exists and what is running.
+
+| Variant | Environments | Core |
 |---|---|---|
-| `envs/baseline-main` | pinned `d29add7ebc1` (2026-09-30) | https://drupal-core.ddev.site |
-| `envs/issue-3619127-vanilla` | the same, plus the #3619127 patches | https://drupal-patch.ddev.site |
-| `envs/baseline-latest`, `envs/issue-3619127-latest` | current core `main` when built | `ddev describe` in each |
-| Viewer (`tools/compare/site`, optional) | | https://drupal-compare.ddev.site |
+| `3619127-pinned` | `baseline-main`, `issue-3619127-vanilla` | `d29add7ebc1` (2026-09-30), stopped |
+| `3619127-latest` | `baseline-latest`, `issue-3619127-latest` | `073a7d3` (2026-10-01), stopped |
+| `3604037-latest` | `baseline-3604037-latest`, `issue-3604037-latest` | current `main` when built (`8cd44d4`, 2026-10-01) |
+| viewer address (optional) | `tools/compare/site` | https://drupal-compare.ddev.site |
 
 Short hostnames are added with `ddev config --additional-hostnames=<name>`. Host ports change after a restart; use `ddev describe`.
 

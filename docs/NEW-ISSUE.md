@@ -27,6 +27,8 @@ Edit `recipes/repro_<nid>/recipe.yml` so the starting state exists (modules, con
 Full field reference: `tools/compare/README.md`.
 
 ## 3. Build, check, look
+Build the **`-latest`** pair first (updated core, and updated core plus the patch): that is the day-to-day pair. Build `-pinned` later,
+when you want the exact original reproduction recorded. Stop the previous issue's pair first (`node scripts/lab-env.mjs stop <slug>`).
     node tools/compare/setup.mjs <nid>-pinned --check-patches    # do the patches apply to the pinned core?
     node tools/compare/setup.mjs <nid>-pinned                     # build Before and After (10 to 20 minutes the first time)
     node tools/compare/serve.mjs <nid>-pinned                     # viewer; reproduce by hand, answer the manual panel
