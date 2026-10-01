@@ -16,8 +16,7 @@ We follow the model of
 a DDEV add-on for core development (`ddev drupal install`, `ddev phpunit`,
 `ddev nightwatch`, lint commands, no Drush). This repository adds what the
 add-on does not: several core checkouts side by side, baseline-versus-patched
-comparison, and kept reports. **Status:** the add-on has not been trialled on
-Drupal 12 `main` yet; until it has, the manual steps below are the verified path.
+comparison, and kept reports. **Status:** trialled on Drupal 12 `main` on 2026-10-01 and working; see below.
 
 Instruction precedence: `ACCESSIBILITY.md`, then this file, then `STYLES.md`,
 then `.agents/DRUPAL_AGENTS.md`. When they conflict, choose the safer, more
@@ -76,14 +75,24 @@ To reset a site: snapshot, drop and recreate the `db` database, remove
 `sites/default/files` and `sites/default/settings.php`, `ddev restart`, then
 install again. This sequence was run successfully on 2026-10-01.
 
-### Next step, NOT yet verified: install the add-on in each environment
+### Preferred: the DDEV add-on (verified 2026-10-01)
 
-[`justafish/ddev-drupal-core-dev`](https://github.com/justafish/ddev-drupal-core-dev) (Apache-2.0; README: `ddev config --omit-containers=db --disable-settings-management`, then `ddev add-on get justafish/ddev-drupal-core-dev`) provides `ddev drupal install`,
-`ddev drupal uninstall`, `ddev phpunit`, `ddev nightwatch` and lint commands
-without Drush, using SQLite and no database container. It would replace most
-of the manual steps above. **Trial it on `baseline-main` first** (Drupal 12
-main, PHP 8.5) before documenting it as the standard path, then update this
-file.
+[`justafish/ddev-drupal-core-dev`](https://github.com/justafish/ddev-drupal-core-dev)
+(Apache-2.0) is the standard way to install and test inside each environment.
+Trial notes and gotchas: `docs/ADDON-TRIAL-2026-10-01.md`.
+
+    cd envs/<name>
+    ddev config --omit-containers=db --disable-settings-management
+    ddev start && ddev composer install --no-interaction
+    ddev add-on get justafish/ddev-drupal-core-dev && ddev restart
+    ddev drupal install standard              # SQLite, ~2 s
+    ddev drupal module:install inline_form_errors
+    ddev drupal login                         # one-time link
+    ddev phpunit <path-to-test>               # JS tests use the add-on's Chrome
+
+`ddev drupal list` shows everything it offers (lint, cache, uninstall, ...).
+Note: SQLite, not MariaDB. A known-flaky upstream test is recorded in the trial
+notes. The manual MariaDB procedure above remains the fallback.
 
 ### Common commands (per environment)
 
