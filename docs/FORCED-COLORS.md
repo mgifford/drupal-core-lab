@@ -34,7 +34,7 @@ and it exists only when the lab server is running; the read-only GitHub Pages gu
 ## Does it work with the side-by-side viewer's frames?
 Yes, when the setting is made on the **whole tab** (DevTools Rendering panel, Playwright's context, or the operating system): the emulation applies to
 every frame in the tab. We checked this: with `forcedColors: 'active'` on the viewer page, `matchMedia('(forced-colors: active)')` is true inside both
-frames. The viewer page itself cannot turn forced colours on, because a web page is not allowed to change that setting; that is why the button above opens a window the server controls. Otherwise make the setting first, then reload the frames. Both frames follow the same setting, so the comparison is fair. (The viewer's "Site theme" and "Simulate a dark-mode OS" are different:
+frames. The viewer page itself cannot turn forced colours on, because a web page is not allowed to change that setting; that is why the button above opens a window the server controls. Otherwise make the setting first, then reload the frames. Both frames follow the same setting, so the comparison is fair. (The viewer's "Colour mode" and "Simulate a dark-mode OS" are different:
 they change the site's own dark mode, not forced colours.)
 
 ## What to look at

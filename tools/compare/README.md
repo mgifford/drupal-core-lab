@@ -20,13 +20,14 @@ Both have Inline Form Errors on, the Article content type (recipe
 
     node tools/compare/serve.mjs [slug]       # then open http://localhost:8100/
 
-Controls: **Compare upstream with** (variant), **Page**, **Go (both)**, **Log in both as admin**, **Clear Drupal caches (both)**,
-**Reset browser state (both)**, **Reload Before / Reload After**, **Open outside this tool** links, **Site theme**
-(Light / Dark / Follow OS), **Frame width** (Half, the default, / Phone / Tablet), **Sync scrolling**, **Sync navigation**,
-**Simulate a dark-mode OS**, **Mirror clicks, typing and drags**, **Mirror hover and focus (marker)**, **Live accessibility checks (axe-core)**, and **View** (Side by side /
-Onion skin / Difference). Below the frames: the live accessibility panel, a **manual confirmation** panel, and **Run checks**.
+The **top bar** always shows page navigation: **Compare upstream with** (variant), **Page**, **Go (both)**, **Log in both as admin**, **Reload Before / Reload After**, plus the status line.
+Below it are blocks that flow to fit the window. Open by default: **Device width** (Mobile / Tablet / Desktop, the default) and **Colour mode** (Light / Dark / Follow OS).
+Closed by default: **Display** (View: Side by side / Onion skin / Difference, Text direction, Simulate a dark-mode OS, the forced-colours window), **Behaviour** (Sync scrolling, Sync navigation,
+Mirror clicks, typing and drags, Mirror hover and focus, JavaScript off), **Accessibility checks** (Live axe-core, best-practice rules) and **Tools** (Clear Drupal caches, Reset browser state,
+Open outside this tool). A closed block shows a hint when something inside is not at its default, and which blocks you opened is remembered. Below the frames: the live accessibility panel,
+a **manual confirmation** panel, and **Run checks**.
 
-- Site theme sets or clears the Default Admin `dark-mode` class on `<html>`. Follow
+- Colour mode (formerly "Site theme") sets or clears the Default Admin `dark-mode` class on `<html>`. Follow
   OS uses the real or simulated OS preference.
 - Simulate a dark-mode OS rewrites `prefers-color-scheme` media rules in both
   frames and makes `matchMedia` report dark, so the theme's scripts see it too.

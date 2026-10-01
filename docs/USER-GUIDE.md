@@ -44,7 +44,7 @@ claims.
 
 **Controls.** *Log in both as admin*; *Go (both)* opens the same page on both sides; *Clear Drupal caches (both)* and *Reset browser state
 (both)* fix most "it should have worked" surprises (the second clears the saved sidebar preference); *Reload Before / After* for a stuck
-frame; *Open outside this tool* opens the real Before or After site in its own window. *Site theme*, *Simulate a dark-mode OS* and *Frame
+frame; *Open outside this tool* opens the real Before or After site in its own window. *Colour mode*, *Simulate a dark-mode OS* and *Device
 width* change how both sides look so you can check dark mode and narrow screens. *Sync scrolling* and *Sync navigation* keep the frames
 in step.
 
