@@ -19,7 +19,7 @@ root; where it disagrees with this file, this file wins.)
 Everything is driven by **variants** in `tools/compare/variants.json`. A variant says which core (a pinned commit, or the latest
 `main`), which two environments, which patches, the recipe that creates the starting state, the steps, and the checks.
 
-    node scripts/lab-env.mjs status | start <slug> | stop <slug|all> | delete <slug> --yes   # manage environments (two at a time)
+    node scripts/lab-env.mjs status | start <slug> | stop <slug|all> | delete <slug> --yes   # manage environments (two at a time); start also launches the viewer
     node tools/compare/setup.mjs <slug>                  # build Before and After from scratch (resumable, idempotent)
     node tools/compare/setup.mjs <slug> --check-patches  # only: do the patches still apply to that core?
     node tools/compare/serve.mjs <slug> [--ddev]         # side-by-side viewer (http://localhost:8100 or https://drupal-compare.ddev.site)

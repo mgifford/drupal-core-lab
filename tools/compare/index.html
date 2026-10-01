@@ -36,11 +36,17 @@
   .pane h2 { font-size: 1rem; margin: 0 0 .25rem; }
   .pane iframe { width: 100%; height: 72vh; border: 1px solid var(--line); background: #fff; }
   .path { font-family: ui-monospace, monospace; font-size: .85rem; }
+  .pane h2 { display: flex; align-items: baseline; gap: .5rem; min-width: 0; }
+  .pane h2 .path { flex: 1 1 auto; min-width: 0; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pane:hover h2 .path, .pane:focus-within h2 .path, .pane:focus h2 .path { white-space: normal; overflow-wrap: anywhere; overflow: visible; }
   .ext a { margin: 0 .35rem; }
   .note { font-size: .9rem; max-width: 70rem; }
   #stepsbox { padding: 0 1rem .5rem; } #stepsbox summary { font-weight: 600; cursor: pointer; }
   #steps li { margin: .15rem 0; } .tag { font-size: .75rem; border: 1px solid var(--line); border-radius: .6rem; padding: 0 .4rem; margin-left: .4rem; }
   @media (max-width: 800px) { .panes { grid-template-columns: 1fr; } }
+#loaddlg{max-width:34rem;border:2px solid currentColor;border-radius:.5rem;padding:1rem 1.25rem}
+#loaddlg::backdrop{background:rgba(0,0,0,.45)}
+#loaddlg li.ok::marker{content:"\2713  "}#loaddlg li.wait::marker{content:"\23F3  "}
 </style>
 </head>
 <body>
@@ -82,7 +88,13 @@
     <label id="amwrap" hidden>Amplify <input type="range" id="amplify" min="1" max="12" value="4"></label>
     <span id="status" role="status" aria-live="polite">Loading…</span>
   </div>
-  <div id="framewarn" class="verdict bad" role="alert" hidden></div>
+  <dialog id="loaddlg" aria-labelledby="loadtitle" aria-describedby="loadbody">
+    <h2 id="loadtitle">The sites are still loading</h2>
+    <p id="loadbody"></p>
+    <ul id="loadlist"></ul>
+    <p class="note">This closes by itself when both sites answer, and the frames then reload. A freshly started DDEV site can take a minute or two.</p>
+    <form method="dialog"><button type="submit">Hide this message</button></form>
+  </dialog>
   <p id="legend" role="status" hidden></p>
   <div class="panes" id="panes">
     <section class="pane" aria-labelledby="hb" tabindex="0"><h2 id="hb">Before: upstream main <span class="path" id="pb"></span></h2><iframe id="fb" title="Before: upstream main"></iframe></section>
@@ -158,9 +170,14 @@ function applyWidth() { const w = radio('width'), overlay = radio('view') !== 's
 function sendState() { const state = { theme: radio('theme'), darkos: $('darkos').checked, axe: $('axeon').checked, axeBest: $('axebest').checked };
   post(state); for (const s of ['before', 'after']) F[s].contentWindow && F[s].contentWindow.postMessage({ compare: 1, type: 'state', state }, '*'); }
 const TAGS = { recipe: 'set up by the recipe', mirror: 'mirrored to both frames', each: 'do in each frame' };
+// Long query values (one-time login tokens) are shortened; the full URL is the tooltip and shows when the pane is hovered or focused.
+function setPath(el, p) { el.textContent = p.replace(/([?&][^=&]*(?:token|hash|key)[^=&]*=)[^&#]{12,}/gi, '$1…'); el.title = p; }
 let ticks = [];
 const tickKey = () => 'compare.steps.' + (v && v.slug);
-function loadTicks() { try { return JSON.parse(localStorage.getItem(tickKey()) || '[]'); } catch (e) { return []; } }
+function loadTicks() { let saved = null; try { saved = JSON.parse(localStorage.getItem(tickKey())); } catch (e) { /* none */ }
+  if (Array.isArray(saved)) return saved;
+  return (v.steps || []).map((st) => st.how === 'recipe');   // first visit: steps the recipe already did start ticked; still optional and untickable
+}
 function saveTicks() { try { localStorage.setItem(tickKey(), JSON.stringify(ticks)); } catch (e) { /* storage unavailable */ } }
 function showProgress() { const n = (v.steps || []).length, d = (v.steps || []).filter((_, i) => ticks[i]).length; $('stepsprog').textContent = n ? `${d} of ${n} steps ticked (optional)` : ''; }
 function renderSteps() { ticks = loadTicks(); const ol = $('steps'); ol.textContent = ''; for (const st of v.steps || []) { const li = document.createElement('li'); const idx = ol.children.length; const lab = document.createElement('label'); const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!ticks[idx]; cb.addEventListener('change', () => { ticks[idx] = cb.checked; saveTicks(); showProgress(); }); lab.append(cb, document.createTextNode(' ' + st.text)); li.append(lab); if (st.lookFor) { const lf = document.createElement('span'); lf.className = 'lookfor'; lf.textContent = 'Look for: ' + st.lookFor; li.append(lf); } const t = document.createElement('span'); t.className = 'tag'; t.textContent = TAGS[st.how] || st.how; li.append(t); ol.append(li); }
@@ -200,7 +217,7 @@ addEventListener('message', (e) => {
   if (m.type === 'real-click') { realClick[m.side] = true; showRealClick(); }
   if (m.type === 'loaded') { realClick[m.side] = false; showRealClick(); loadedAt[m.side] = Date.now(); }
   if (m.type === 'nav') {
-    P[m.side].textContent = m.path; last[m.side] = m.path; updateExternal(); lhSchedule(); status('Ready.'); if (radio('view') !== 'side') applyView();
+    setPath(P[m.side], m.path); last[m.side] = m.path; updateExternal(); lhSchedule(); status('Ready.'); if (radio('view') !== 'side') applyView();
     if ($('syncnav').checked && last[m.side] !== m.path) { last[m.side] = m.path; if (last[other(m.side)] !== m.path) load(other(m.side), m.path); }
   }
 });
@@ -376,19 +393,28 @@ function renderObs() {
 // ---- Frame load watchdog: a frame that has not finished loading is reported, with a health check ----
 const startedAt = { before: 0, after: 0 }, loadedAt = { before: 0, after: 0 }; let warnTimer;
 const markStart = (side) => { startedAt[side] = Date.now(); loadedAt[side] = 0; };
-async function showFrameWarning(stuck) {
-  const W = $('framewarn'); W.hidden = false; W.textContent = `⚠ The ${stuck.join(' and ')} frame${stuck.length > 1 ? 's have' : ' has'} not finished loading (waited ${Math.round((Date.now() - Math.min(...stuck.map((s) => startedAt[s]))) / 1000)} s). Checking the sites…`;
-  try { const h = await (await fetch('/api/health')).json();
-    W.textContent = `⚠ The ${stuck.join(' and ')} frame${stuck.length > 1 ? 's have' : ' has'} not finished loading. Site check: ${h.before.ok ? '✓' : '✗'} ${h.before.text}; ${h.after.ok ? '✓' : '✗'} ${h.after.text}. ` + (h.before.ok && h.after.ok ? 'Both sites answer, so this was probably a stalled request: use the Reload buttons.' : 'A site is not answering: check DDEV (ddev list), then reload.'); }
-  catch (e) { W.textContent += ' (the viewer server did not answer the health check: is node tools/compare/serve.mjs still running?)'; }
+let healthTimer, dismissedLoad = false, healed = false;
+const dlg = () => $('loaddlg');
+function showLoading(h, stuck) {
+  const D = dlg(), both = h && h.before.ok && h.after.ok;
+  if (both) { healed = true; if (D.open) D.close(); return; }
+  $('loadbody').textContent = h ? 'Drupal is starting up or the DDEV router is not ready yet. Nothing is wrong with the issue or the patch.' : 'Waiting for the viewer server to answer the health check.';
+  const ul = $('loadlist'); ul.textContent = '';
+  for (const s of ['before', 'after']) { const li = document.createElement('li'); const r = h && h[s]; li.className = r && r.ok ? 'ok' : 'wait'; li.textContent = `${s === 'before' ? 'Before' : 'After'}: ${r ? (r.ok ? 'ready' : 'not answering yet') : 'unknown'}`; ul.append(li); }
+  if (!D.open && !dismissedLoad) D.showModal();
 }
-function watchFrames() {
-  clearInterval(warnTimer); warnTimer = setInterval(() => {
-    const stuck = ['before', 'after'].filter((s) => startedAt[s] && !loadedAt[s] && Date.now() - startedAt[s] > 12000);
-    if (stuck.length) { if ($('framewarn').hidden || $('framewarn').dataset.k !== stuck.join()) { $('framewarn').dataset.k = stuck.join(); showFrameWarning(stuck); } }
-    else if (!$('framewarn').hidden) { $('framewarn').hidden = true; delete $('framewarn').dataset.k; }
-  }, 2000);
+async function checkLoading() {
+  let h = null; try { h = await (await fetch('/api/health')).json(); } catch (e) { /* server not answering */ }
+  const stuck = ['before', 'after'].filter((s) => startedAt[s] && !loadedAt[s] && Date.now() - startedAt[s] > 12000);
+  const ready = h && h.before.ok && h.after.ok;
+  if (!ready) { healed = false; showLoading(h, stuck); }
+  else if (dlg().open) { dlg().close(); }
+  // both sites answer but a frame is stuck on an error page or blank: reload it once automatically
+  if (ready && stuck.length && !healed) { healed = true; stuck.forEach(reloadSide); }
+  else if (ready && stuck.length && Date.now() - Math.min(...stuck.map((s) => startedAt[s])) > 30000) { stuck.forEach(reloadSide); }
 }
+function watchFrames() { clearInterval(healthTimer); checkLoading(); healthTimer = setInterval(checkLoading, 3000); }
+dlg().addEventListener('close', () => { dismissedLoad = !(healed); });
 const reloadSide = (s) => { markStart(s); const src = F[s].src; F[s].src = 'about:blank'; setTimeout(() => { F[s].src = src; }, 50); };
 $('rb').addEventListener('click', () => reloadSide('before')); $('ra').addEventListener('click', () => reloadSide('after'));
 watchFrames();

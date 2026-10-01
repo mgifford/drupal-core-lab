@@ -12,7 +12,14 @@ development only: everything runs on your own computer, and nothing is posted an
 Docker, [DDEV](https://ddev.com/) 1.24 or newer, git and Node.js 20+ (22.19+ for the optional Lighthouse panel). About 10 GB of disk and 8 GB
 of memory. The first setup takes 10 to 20 minutes because it downloads Drupal core and installs it twice.
 
-## 2. Start it (two commands)
+## 2. Start it (one command)
+    node scripts/lab-env.mjs start 3604037-latest    # starts both sites AND the viewer; stop with: node scripts/lab-env.mjs stop 3604037-latest
+
+The viewer opens at https://drupal-compare.ddev.site (or http://localhost:8100). While the sites are still starting it shows a **"The sites are
+still loading"** message and reloads the frames by itself when both answer. Steps the recipe already did start ticked. Long URLs in the
+frame headings are shortened to one line; hover or focus a frame to see the whole address.
+
+If the environments do not exist yet, build them first, then use the two commands below if you prefer to run the pieces by hand.
     node tools/compare/setup.mjs 3619127-pinned      # builds Before (upstream) and After (with the patches); safe to re-run
     node tools/compare/serve.mjs 3619127-pinned      # then open http://localhost:8100/
 

@@ -2,6 +2,7 @@
 import { execFileSync, execFile } from 'node:child_process';
 import fs from 'node:fs';
 import http from 'node:http';
+import https from 'node:https';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -25,7 +26,7 @@ export const envDir = (env) => path.join(labRoot, 'envs', env);
 export function envInfo(env) {
   const out = execFileSync('ddev', ['describe', '-j'], { cwd: envDir(env), encoding: 'utf8' });
   const raw = JSON.parse(out).raw;
-  return { host: raw.hostname, hosts: raw.hostnames || [raw.hostname], routerPort: Number(raw.router_http_port || 80), status: raw.status };
+  return { host: raw.hostname, hosts: raw.hostnames || [raw.hostname], routerPort: Number(raw.router_http_port || 80), routerHttpsPort: Number(raw.router_https_port || 443), status: raw.status };
 }
 
 // envInfo without blocking the Node event loop (used to refresh the viewer's cache in the background).
@@ -33,7 +34,7 @@ export function envInfoAsync(env) {
   return new Promise((resolve, reject) => execFile('ddev', ['describe', '-j'], { cwd: envDir(env), encoding: 'utf8', timeout: 60000 }, (err, out) => {
     if (err) return reject(err);
     const raw = JSON.parse(out).raw;
-    resolve({ host: raw.hostname, hosts: raw.hostnames || [raw.hostname], routerPort: Number(raw.router_http_port || 80), status: raw.status });
+    resolve({ host: raw.hostname, hosts: raw.hostnames || [raw.hostname], routerPort: Number(raw.router_http_port || 80), routerHttpsPort: Number(raw.router_https_port || 443), status: raw.status });
   }));
 }
 
@@ -54,10 +55,10 @@ export function loginPathAsync(env) {
 
 // Fetch from an environment through the router, following redirects and keeping cookies.
 // Uses node:http because fetch() ignores a custom Host header, which the router needs.
-function httpGet(port, host, pathAndQuery, jar) {
+function httpGet(port, host, pathAndQuery, jar) {   // HTTPS to the router: its plain-HTTP port can reset connections
   return new Promise((resolve, reject) => {
     const cookie = Object.entries(jar).map(([k, v]) => `${k}=${v}`).join('; ');
-    const req = http.request({ host: '127.0.0.1', port, path: pathAndQuery, method: 'GET', headers: { host, cookie, 'accept-encoding': 'identity' } }, (res) => {
+    const req = https.request({ host: '127.0.0.1', port, servername: host, rejectUnauthorized: false, path: pathAndQuery, method: 'GET', headers: { host, cookie, 'accept-encoding': 'identity' } }, (res) => {
       const chunks = [];
       res.on('data', (c) => chunks.push(c));
       res.on('end', () => resolve({ res, body: Buffer.concat(chunks) }));
@@ -69,7 +70,7 @@ function httpGet(port, host, pathAndQuery, jar) {
 export async function envFetch(env, info, pathAndQuery, jar = {}) {
   let p = pathAndQuery;
   for (let i = 0; i < 8; i++) {
-    const { res, body } = await httpGet(info.routerPort, info.host, p, jar);
+    const { res, body } = await httpGet(info.routerHttpsPort || 443, info.host, p, jar);
     for (const c of res.headers['set-cookie'] || []) {
       const [kv] = c.split(';'); const eq = kv.indexOf('=');
       jar[kv.slice(0, eq)] = kv.slice(eq + 1);

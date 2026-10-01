@@ -1,13 +1,14 @@
 // Start, stop and inspect the lab's DDEV environments by variant name. Two sites at a time is the normal state:
 // a core, and the same core with an issue's patch.
 //   node scripts/lab-env.mjs status                 what exists, what is running, which variant uses it
-//   node scripts/lab-env.mjs start <slug>           start both environments of a variant (retries DDEV's router flake)
-//   node scripts/lab-env.mjs stop <slug|all>        stop both (data is kept; start brings them back)
+//   node scripts/lab-env.mjs start <slug>           start both environments AND the side-by-side viewer (retries DDEV's router flake)
+//   node scripts/lab-env.mjs stop <slug|all>        stop the viewer and both environments (data is kept; start brings them back)
+//   Viewer: https://drupal-compare.ddev.site (needs `ddev start` once in tools/compare/site) or http://localhost:8100. Log: .lab-viewer.log; pid: .lab-viewer.pid (both gitignored).
 //   node scripts/lab-env.mjs delete <slug> --yes    DELETE both environments and their worktrees (rebuild with setup.mjs)
 // `stop all` stops every lab environment but leaves the small drupal-compare address project running.
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawnSync, execFileSync } from 'node:child_process';
+import { spawnSync, execFileSync, spawn } from 'node:child_process';
 import { labRoot, variants, envDir } from '../tools/compare/lib.mjs';
 
 const [cmd, target] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
@@ -17,6 +18,22 @@ const envsDir = path.join(labRoot, 'envs');
 const allEnvs = fs.existsSync(envsDir) ? fs.readdirSync(envsDir).filter((d) => fs.existsSync(path.join(envsDir, d, '.ddev/config.yaml'))) : [];
 const envsOf = (slug) => { const v = vs.find((x) => x.slug === slug); if (!v) { console.error(`unknown variant: ${slug}. Variants: ${vs.map((x) => x.slug).join(', ')}`); process.exit(1); } return [v.before.env, v.after.env]; };
 const ddev = (dir, args, opts = {}) => spawnSync('ddev', args, { cwd: dir, stdio: 'inherit', ...opts });
+const pidFile = path.join(labRoot, '.lab-viewer.pid'), logFile = path.join(labRoot, '.lab-viewer.log');
+function stopViewer() {
+  try { const pid = Number(fs.readFileSync(pidFile, 'utf8')); if (pid) process.kill(pid); } catch { /* not running */ }
+  spawnSync('pkill', ['-f', 'tools/compare/serve.mjs']); fs.rmSync(pidFile, { force: true });
+}
+function startViewer(slug) {
+  stopViewer();
+  // the address project (drupal-compare.ddev.site) forwards to the viewer; start it if present
+  const site = path.join(labRoot, 'tools/compare/site');
+  let ddevAddr = false;
+  if (fs.existsSync(path.join(site, '.ddev/config.yaml'))) ddevAddr = ddev(site, ['start'], { stdio: 'ignore' }).status === 0;
+  const out = fs.openSync(logFile, 'w');
+  const child = spawn('node', ['tools/compare/serve.mjs', ...(ddevAddr ? ['--ddev'] : []), slug], { cwd: labRoot, detached: true, stdio: ['ignore', out, out] });
+  child.unref(); fs.writeFileSync(pidFile, String(child.pid));
+  return ddevAddr ? 'https://drupal-compare.ddev.site' : 'http://localhost:8100';
+}
 const state = () => { try { const raw = JSON.parse(execFileSync('ddev', ['list', '-j'], { encoding: 'utf8' })).raw; return Object.fromEntries(raw.filter((p) => p.approot).map((p) => [p.approot, p])); } catch { return {}; } };
 
 function status() {
@@ -37,9 +54,11 @@ switch (cmd) {
       let ok = false; for (let i = 1; i <= 3 && !ok; i++) { ok = ddev(envDir(e), ['start']).status === 0; if (!ok) { console.log('Failed; DDEV\'s router sometimes times out and recovers. Waiting 20 s and retrying.'); spawnSync('sleep', ['20']); } }
       if (!ok) { console.error(`could not start ${e}`); process.exit(1); }
     }
-    console.log(`\nStarted both environments of ${target}. Viewer: node tools/compare/serve.mjs ${target}`); break; }
+    const url = startViewer(target);
+    console.log(`\nStarted both environments of ${target} and the viewer: ${url}\n(The viewer shows a "still loading" message until both sites answer.) Stop everything: node scripts/lab-env.mjs stop ${target}`); break; }
   case 'stop': {
     if (!target) { console.error('usage: stop <slug|all>'); process.exit(2); }
+    stopViewer();
     for (const e of target === 'all' ? allEnvs : envsOf(target)) { if (fs.existsSync(envDir(e))) { process.stdout.write(`${e}: `); ddev(envDir(e), ['stop']); } }
     break; }
   case 'delete': {

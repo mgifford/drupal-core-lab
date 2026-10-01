@@ -3,6 +3,7 @@
 // Each site is reached through a small proxy on its own *.localhost hostname so the two
 // sessions never share cookies, framing works, and a sync script can be injected.
 import http from 'node:http';
+import https from 'node:https';
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
@@ -34,7 +35,7 @@ async function runLighthouse(id, job) {
   lh.running = false;
   if (lh.pending) { const p = lh.pending; lh.pending = null; runLighthouse(p.id, p.job); }
 }
-const agent = new http.Agent({ keepAlive: true, maxSockets: 64 }); // reuse connections to the DDEV router
+const agent = new https.Agent({ keepAlive: true, maxSockets: 64, rejectUnauthorized: false }); // reuse connections to the DDEV router
 const infoCache = {};
 // The real sites, for opening outside the viewer. Prefer a url set in variants.json; else the DDEV hostname.
 function realSites() {
@@ -117,13 +118,14 @@ function proxyFor(side) {
       return;
     }
     const env = current()[side].env;
-    const { hosts, host, routerPort } = info(env);
+    const { hosts, host, routerHttpsPort } = info(env);
     const swap = (t) => hosts.reduce((a, h) => a.split(`https://${h}`).join(origin).split(`http://${h}`).join(origin).split(h).join(mine), t);
     const headers = { ...req.headers, host, 'accept-encoding': 'identity' };
     delete headers.origin; delete headers.referer;
     const started = Date.now();
     const logSlow = (what) => { const ms = Date.now() - started; if (ms > 3000 || what) console.log(`${new Date().toISOString()} ${side} ${req.method} ${req.url.slice(0, 80)} ${what || 'slow'} ${ms}ms`); };
-    const up = http.request({ host: '127.0.0.1', port: routerPort, path: req.url, method: req.method, headers, agent }, (r) => {
+    const run = (attempt) => {
+    const up = https.request({ host: '127.0.0.1', port: routerHttpsPort || 443, servername: host, rejectUnauthorized: false, path: req.url, method: req.method, headers, agent }, (r) => {
       const h = { ...r.headers };
       delete h['x-frame-options']; delete h['content-security-policy']; delete h['content-length'];
       delete h.etag; delete h['last-modified']; h['cache-control'] = 'no-store';
@@ -140,12 +142,17 @@ function proxyFor(side) {
       });
     });
     up.setTimeout(30000, () => up.destroy(new Error('no response from the site within 30 seconds')));
-    up.on('error', (e) => { logSlow('ERROR ' + e.message); if (!res.headersSent) res.writeHead(502, { 'content-type': 'text/plain' }); res.end(`${env} is not reachable: ${e.message}. Is its DDEV project running? Reload the frame.`); });
-    req.pipe(up);
+    up.on('error', (e) => {
+      // A pooled connection can go stale when DDEV's router restarts. Drop the pool and repeat a safe request once.
+      if (attempt === 0 && ['GET', 'HEAD'].includes(req.method) && /ECONNRESET|EPIPE|socket hang up/.test(`${e.code || ''} ${e.message}`)) { agent.destroy(); return run(1); }
+      logSlow('ERROR ' + e.message); if (!res.headersSent) res.writeHead(502, { 'content-type': 'text/html; charset=utf-8', 'retry-after': '5' }); res.end(`<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="5"><title>Still loading</title><p style="font:16px system-ui;padding:1rem">This site is still starting. Retrying every 5 seconds.</p>`); });
+    if (['GET', 'HEAD'].includes(req.method)) up.end(); else req.pipe(up);
+    };
+    run(0);
   });
 }
 
-for (const x of list) for (const side of ['before', 'after']) { try { info(x[side].env); } catch (e) { console.log(`could not look up ${x[side].env} yet (${String(e.message).split('\n')[0]}); will retry on first use`); } }
+for (const x of list) for (const side of ['before', 'after']) { if (!fs.existsSync(envDir(x[side].env))) continue; try { info(x[side].env); } catch (e) { console.log(`could not look up ${x[side].env} yet (${String(e.message).split('\n')[0]}); will retry on first use`); } }
 for (const side of Object.keys(SIDES)) { const srv = proxyFor(side); srv.keepAliveTimeout = 65000; srv.headersTimeout = 66000; srv.listen(SIDES[side].port, '127.0.0.1'); }
 
 http.createServer((req, res) => {
@@ -162,7 +169,7 @@ http.createServer((req, res) => {
       let site;
       try { site = info(v[side].env); } catch (e) { return resolve({ ok: false, text: `DDEV could not describe ${v[side].env}: ${String(e.message).split('\n')[0].slice(0, 120)}` }); }
       const t = Date.now();
-      const rq = http.request({ host: '127.0.0.1', port: site.routerPort, path: '/user/login', method: 'HEAD', headers: { host: site.host }, timeout: 6000, agent }, (r) => { r.resume(); resolve({ ok: r.statusCode < 500, text: `${v[side].env} answered ${r.statusCode} in ${Date.now() - t} ms` }); });
+      const rq = https.request({ host: '127.0.0.1', port: site.routerHttpsPort || 443, servername: site.host, rejectUnauthorized: false, path: '/user/login', method: 'HEAD', headers: { host: site.host }, timeout: 6000, agent: false }, (r) => { r.resume(); resolve({ ok: r.statusCode < 500, text: `${v[side].env} answered ${r.statusCode} in ${Date.now() - t} ms` }); });
       rq.on('timeout', () => { rq.destroy(); resolve({ ok: false, text: `${v[side].env} did not answer within 6 seconds (is its DDEV project running? try ddev restart)` }); });
       rq.on('error', (e) => resolve({ ok: false, text: `${v[side].env} unreachable: ${e.message}` }));
       rq.end();
