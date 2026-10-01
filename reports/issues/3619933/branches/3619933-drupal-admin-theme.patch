@@ -1,0 +1,3059 @@
+diff --git a/core/themes/default_admin/config/install/default_admin.settings.yml b/core/themes/default_admin/config/install/default_admin.settings.yml
+index 3c6f334b2f5..bd7308b9800 100644
+--- a/core/themes/default_admin/config/install/default_admin.settings.yml
++++ b/core/themes/default_admin/config/install/default_admin.settings.yml
+@@ -1,5 +1,5 @@
+ preset_accent_color: 'blue'
+-preset_focus_color: 'gin'
++preset_focus_color: 'blue'
+ enable_dark_mode: 'auto'
+ high_contrast_mode: false
+ accent_color: ''
+diff --git a/core/themes/default_admin/css/_variables/variables-color-primitive.css b/core/themes/default_admin/css/_variables/variables-color-primitive.css
+index b2a4cad4a34..74e179a9458 100644
+--- a/core/themes/default_admin/css/_variables/variables-color-primitive.css
++++ b/core/themes/default_admin/css/_variables/variables-color-primitive.css
+@@ -34,12 +34,16 @@
+   /*
+    * Default accent color. Will get overridden by inline style.
+    */
+-  --accent-base: #015efe;
++  --accent-base: #0047ab;
+ 
+   /*
+    * Mix base. These are only used as utilities to compose other colors.
+    */
+-  --admin-color-accent-base: light-dark(var(--accent-base), color-mix(in lch, lch(from var(--accent-base) calc(l * 20) c h), black 12%));
++  --admin-color-accent-base: light-dark(var(--accent-base), oklch(from var(--accent-base) calc(l * 0.45) calc(c * 0.9) h));
++  /* Foreground accent (links, active states). Lightened and hue-preserved in
++     dark mode so it stays readable on dark surfaces. Also powers the "Accent
++     family" focus option (a foreground-safe accent variation). */
++  --admin-color-accent-fg: light-dark(var(--accent-base), oklch(from var(--accent-base) max(calc(l * 1.5), 0.93) calc(c * 1.1) h));
+   --accent-mix-base: light-dark(color-mix(in lch, var(--accent-base), white 97%), color-mix(in lch, var(--accent-base), black 80%));
+   --accent-mix-base-scheme: light-dark(black, white);
+ 
+@@ -56,3 +60,18 @@
+   --admin-color-accent-700: color-mix(in lch, var(--accent-mix-base-scheme) 30%, var(--admin-color-accent-base));
+   --admin-color-accent-900: color-mix(in lch, var(--accent-mix-base-scheme) 60%, var(--admin-color-accent-base));
+ }
++
++/*
++ * Red accent: correction for the shared dark foreground floor.
++ *
++ * The shared accent-fg dark branch floors lightness at 0.93 so red, an
++ * inherently lighter-hued saturate colour, resolves to about #ff9699. That is
++ * 4.43:1 on the raised surface, under the 4.5:1 text threshold and too tight to
++ * host a pressed-state colour-mix. Red overrides the dark foreground to full
++ * lightness so it clears 5:1 and leaves contrast headroom. The selector is more
++ * specific than the shared [data-gin-accent], so it wins for the red preset.
++ */
++
++[data-gin-accent="red"] {
++  --admin-color-accent-fg: light-dark(var(--accent-base), oklch(from var(--accent-base) 1 calc(c * 1.1) h));
++}
+diff --git a/core/themes/default_admin/css/_variables/variables-color-primitive.pcss.css b/core/themes/default_admin/css/_variables/variables-color-primitive.pcss.css
+index 9e2df37e5cf..56be4ef67e7 100644
+--- a/core/themes/default_admin/css/_variables/variables-color-primitive.pcss.css
++++ b/core/themes/default_admin/css/_variables/variables-color-primitive.pcss.css
+@@ -27,12 +27,15 @@
+   /*
+    * Default accent color. Will get overridden by inline style.
+    */
+-  --accent-base: #015efe;
++  --accent-base: #0047ab;
+ 
+   /*
+    * Mix base. These are only used as utilities to compose other colors.
+    */
+-  --admin-color-accent-base: light-dark(var(--accent-base), color-mix(in lch, lch(from var(--accent-base) calc(l * 20) c h), black 12%));
++  --admin-color-accent-base: light-dark(var(--accent-base), oklch(from var(--accent-base) calc(l * 0.45) calc(c * 0.9) h));
++  /* Foreground accent for links and interactive states. Lightened and
++   hue-preserved in dark mode so it stays readable on dark surfaces. */
++  --admin-color-accent-fg: light-dark(var(--accent-base), oklch(from var(--accent-base) max(calc(l * 1.5), 0.93) calc(c * 1.1) h));
+   --accent-mix-base: light-dark(color-mix(in lch, var(--accent-base), white 97%), color-mix(in lch, var(--accent-base), black 80%));
+   --accent-mix-base-scheme: light-dark(black, white);
+ 
+@@ -49,3 +52,17 @@
+   --admin-color-accent-700: color-mix(in lch, var(--accent-mix-base-scheme) 30%, var(--admin-color-accent-base));
+   --admin-color-accent-900: color-mix(in lch, var(--accent-mix-base-scheme) 60%, var(--admin-color-accent-base));
+ }
++
++/*
++ * Red accent: correction for the shared dark foreground floor.
++ *
++ * The shared accent-fg dark branch floors lightness at 0.93 so red, an
++ * inherently lighter-hued saturate colour, resolves to about #ff9699. That is
++ * 4.43:1 on the raised surface, under the 4.5:1 text threshold and too tight to
++ * host a pressed-state colour-mix. Red overrides the dark foreground to full
++ * lightness so it clears 5:1 and leaves contrast headroom. The selector is more
++ * specific than the shared [data-gin-accent], so it wins for the red preset.
++ */
++[data-gin-accent="red"] {
++  --admin-color-accent-fg: light-dark(var(--accent-base), oklch(from var(--accent-base) 1 calc(c * 1.1) h));
++}
+diff --git a/core/themes/default_admin/css/_variables/variables-color-semantic.css b/core/themes/default_admin/css/_variables/variables-color-semantic.css
+index 8add5b6a5ee..cbdc56d8679 100644
+--- a/core/themes/default_admin/css/_variables/variables-color-semantic.css
++++ b/core/themes/default_admin/css/_variables/variables-color-semantic.css
+@@ -24,6 +24,17 @@
+   --admin-color-bg-item: var(--admin-color-accent-020);
+   --admin-color-bg-item-hover: var(--admin-color-accent-030);
+ 
++  /*
++   * Accent preview (settings UI only).
++   *
++   * Presents an accent choice in the Appearance settings picker. In light mode
++   * it shows the source accent identity; in dark mode it shows the
++   * foreground-safe, visible representation of that hue so a dark fill does
++   * not collapse into the dark settings surface. Presentation-only — it is not
++   * used for accent fills, links, or other application UI.
++   */
++  --admin-color-accent-preview: light-dark(var(--accent-base), var(--admin-color-accent-fg));
++
+   /*
+    * Semantic tokens (tier 2).
+    */
+@@ -77,7 +88,7 @@
+   --admin-color-border-loud: light-dark(color-mix(in lch, black 30%, transparent), color-mix(in lch, white 40%, transparent));
+   --admin-color-border-input: light-dark(var(--admin-color-gray-500), #76777b);
+   --admin-color-border-table: light-dark(color-mix(in srgb, black 10%, transparent), #43454a);
+-  --admin-color-text-on-primary: light-dark(var(--admin-color-white), #111);
++  --admin-color-text-on-primary: light-dark(var(--admin-color-white), var(--admin-color-white));
+   --admin-color-switch: light-dark(#26a769, var(--admin-color-accent-100));
+   --admin-color-bg-inverse: light-dark(var(--admin-color-gray-950), var(--admin-color-bg-raised));
+ 
+@@ -115,10 +126,16 @@
+    *   --admin-color-focus-neutral  neutral focus-ring variant ([data-gin-focus]).
+    *   --admin-color-text-disabled / -bg-disabled / -border-disabled  disabled controls.
+    */
+-  --admin-color-focus: light-dark(color-mix(in srgb, #007dfa 60%, transparent), #51a8ff);
++  --admin-color-focus: light-dark(#003ecc, #99b8ff);
++  /* Separator ring inside the focus indicator. Where a control is accent-filled,
++     the focus ring alone would sit ring-on-fill (same hue family). A surface gap
++     ring adjacent to the fill isolates the focus ring from that fill. White on
++     light surfaces (the page); in dark mode it is effectively the fill color, so
++     the ring rides directly on the fill, which already passes contrast. */
++  --admin-color-focus-gap: var(--admin-color-bg-surface);
+   /* @todo this is used in box-shadow focus states, which will be phased out in favor of outline. */
+   --admin-color-focus-border: light-dark(color-mix(in lch, black 20%, transparent), color-mix(in lch, black 80%, transparent));
+-  --admin-color-focus-neutral: light-dark(color-mix(in lch, black 40%, transparent), color-mix(in lch, white 80%, transparent));
++  --admin-color-focus-neutral: light-dark(#4b4f58, #d7dae0);
+   --admin-color-text-disabled: light-dark(var(--admin-color-gray-700), #919191);
+   --admin-color-bg-disabled: light-dark(#eaeaea, #47474c);
+   --admin-color-border-disabled: light-dark(var(--admin-color-gray-300), #646464);
+@@ -126,10 +143,25 @@
+   /*
+    * Link / interactive blue. Used for links and blue focus/selected accents
+    * (text, border, and bg).
++   *
++   * Hover and active are separate states. In light mode hover uses a deeper
++   * accent step than the base link and active uses a deeper step than hover.
++   * In dark mode both stay foreground-safe: hover uses the foreground-safe
++   * accent, and active shifts that foreground-safe accent toward accent-900.
++   * That mix modifies the foreground accent rather than replacing it with the
++   * darker step, which would lose contrast on dark surfaces.
+    */
+   --admin-color-link: var(--admin-color-primary);
+-  --admin-color-link-hover: light-dark(var(--admin-color-accent-600), var(--admin-color-accent-700));
+-  --admin-color-link-active: light-dark(var(--admin-color-accent-700), var(--admin-color-accent-900));
++  --admin-color-link-hover: light-dark(var(--admin-color-accent-600), var(--admin-color-accent-fg));
++  --admin-color-link-active: light-dark(var(--admin-color-accent-700), color-mix(in oklch, var(--admin-color-accent-fg), var(--admin-color-accent-900) 20%));
++
++  /*
++   * Component interaction states — resolved at semantic level.
++   */
++  --admin-color-summary-text: light-dark(var(--admin-color-primary-hover), var(--admin-color-accent-fg));
++  --admin-color-summary-hover-bg: light-dark(var(--admin-color-bg-item-hover), color-mix(in sRGB, var(--admin-color-accent-fg) 12%, var(--admin-color-bg-surface)));
++  --admin-color-radio-hover: light-dark(var(--admin-color-primary), var(--admin-color-text-on-primary));
++  --admin-color-radio-hover-bg: light-dark(var(--admin-color-primary-soft-hover), var(--admin-color-primary-hover));
+ }
+ 
+ @media (forced-colors: active) {
+diff --git a/core/themes/default_admin/css/_variables/variables-color-semantic.pcss.css b/core/themes/default_admin/css/_variables/variables-color-semantic.pcss.css
+index 286b8f5eb64..40ee91d4cb8 100644
+--- a/core/themes/default_admin/css/_variables/variables-color-semantic.pcss.css
++++ b/core/themes/default_admin/css/_variables/variables-color-semantic.pcss.css
+@@ -17,6 +17,17 @@
+   --admin-color-bg-item: var(--admin-color-accent-020);
+   --admin-color-bg-item-hover: var(--admin-color-accent-030);
+ 
++  /*
++   * Accent preview (settings UI only).
++   *
++   * Presents an accent choice in the Appearance settings picker. In light mode
++   * it shows the source accent identity; in dark mode it shows the
++   * foreground-safe, visible representation of that hue so a dark fill does
++   * not collapse into the dark settings surface. Presentation-only — it is not
++   * used for accent fills, links, or other application UI.
++   */
++  --admin-color-accent-preview: light-dark(var(--accent-base), var(--admin-color-accent-fg));
++
+   /*
+    * Semantic tokens (tier 2).
+    */
+@@ -70,7 +81,7 @@
+   --admin-color-border-loud: light-dark(color-mix(in lch, black 30%, transparent), color-mix(in lch, white 40%, transparent));
+   --admin-color-border-input: light-dark(var(--admin-color-gray-500), #76777b);
+   --admin-color-border-table: light-dark(color-mix(in srgb, black 10%, transparent), #43454a);
+-  --admin-color-text-on-primary: light-dark(var(--admin-color-white), #111);
++  --admin-color-text-on-primary: light-dark(var(--admin-color-white), var(--admin-color-white));
+   --admin-color-switch: light-dark(#26a769, var(--admin-color-accent-100));
+   --admin-color-bg-inverse: light-dark(var(--admin-color-gray-950), var(--admin-color-bg-raised));
+ 
+@@ -108,10 +119,16 @@
+    *   --admin-color-focus-neutral  neutral focus-ring variant ([data-gin-focus]).
+    *   --admin-color-text-disabled / -bg-disabled / -border-disabled  disabled controls.
+    */
+-  --admin-color-focus: light-dark(color-mix(in srgb, #007dfa 60%, transparent), #51a8ff);
++  --admin-color-focus: light-dark(#003ecc, #99b8ff);
++  /* Separator ring inside the focus indicator. Where a control is accent-filled,
++     the focus ring alone would sit ring-on-fill (same hue family). A surface gap
++     ring adjacent to the fill isolates the focus ring from that fill. White on
++     light surfaces (the page); in dark mode it is effectively the fill color, so
++     the ring rides directly on the fill, which already passes contrast. */
++  --admin-color-focus-gap: var(--admin-color-bg-surface);
+   /* @todo this is used in box-shadow focus states, which will be phased out in favor of outline. */
+   --admin-color-focus-border: light-dark(color-mix(in lch, black 20%, transparent), color-mix(in lch, black 80%, transparent));
+-  --admin-color-focus-neutral: light-dark(color-mix(in lch, black 40%, transparent), color-mix(in lch, white 80%, transparent));
++  --admin-color-focus-neutral: light-dark(#4b4f58, #d7dae0);
+   --admin-color-text-disabled: light-dark(var(--admin-color-gray-700), #919191);
+   --admin-color-bg-disabled: light-dark(#eaeaea, #47474c);
+   --admin-color-border-disabled: light-dark(var(--admin-color-gray-300), #646464);
+@@ -119,10 +136,28 @@
+   /*
+    * Link / interactive blue. Used for links and blue focus/selected accents
+    * (text, border, and bg).
++   *
++   * Hover and active are separate states. In light mode hover uses a deeper
++   * accent step than the base link and active uses a deeper step than hover.
++   * In dark mode both stay foreground-safe: hover uses the foreground-safe
++   * accent, and active shifts that foreground-safe accent toward accent-900.
++   * That mix modifies the foreground accent rather than replacing it with the
++   * darker step, which would lose contrast on dark surfaces.
+    */
+   --admin-color-link: var(--admin-color-primary);
+-  --admin-color-link-hover: light-dark(var(--admin-color-accent-600), var(--admin-color-accent-700));
+-  --admin-color-link-active: light-dark(var(--admin-color-accent-700), var(--admin-color-accent-900));
++  --admin-color-link-hover: light-dark(var(--admin-color-accent-600), var(--admin-color-accent-fg));
++  --admin-color-link-active: light-dark(
++    var(--admin-color-accent-700),
++    color-mix(in oklch, var(--admin-color-accent-fg), var(--admin-color-accent-900) 20%)
++  );
++
++  /*
++   * Component interaction states — resolved at semantic level.
++   */
++  --admin-color-summary-text: light-dark(var(--admin-color-primary-hover), var(--admin-color-accent-fg));
++  --admin-color-summary-hover-bg: light-dark(var(--admin-color-bg-item-hover), color-mix(in sRGB, var(--admin-color-accent-fg) 12%, var(--admin-color-bg-surface)));
++  --admin-color-radio-hover: light-dark(var(--admin-color-primary), var(--admin-color-text-on-primary));
++  --admin-color-radio-hover-bg: light-dark(var(--admin-color-primary-soft-hover), var(--admin-color-primary-hover));
+ }
+ 
+ @media (forced-colors: active) {
+diff --git a/core/themes/default_admin/css/components/button.css b/core/themes/default_admin/css/components/button.css
+index 32b170018cc..dd11d8d44d1 100644
+--- a/core/themes/default_admin/css/components/button.css
++++ b/core/themes/default_admin/css/components/button.css
+@@ -133,6 +133,28 @@
+     color: var(--admin-color-text-on-primary);
+   }
+ }
++/*
++ * Focus on the filled primary button.
++ *
++ * The default single focus ring would sit ring-on-fill on the accent fill and
++ * fail contrast on light surfaces (about 1.6:1 against the primary fill). A
++ * two-part indicator adds a surface gap ring that isolates the focus ring from
++ * the fill while it still differentiates from the page. The gap is white in light
++ * mode; in dark mode it is effectively the fill, so the ring rides directly on
++ * the fill, which already passes. The global outline is removed so the failing
++ * single ring never renders.
++ */
++@media (forced-colors: none) {
++  .button--primary:focus,
++  #edit-submit.form-submit:focus,
++  .ief-entity-submit:focus {
++    outline: none !important;
++    box-shadow:
++      0.1em 0.25em 0.5em var(--admin-color-primary-soft),
++      0 0 0 2px var(--admin-color-focus-gap),
++      0 0 0 5px var(--admin-color-focus);
++  }
++}
+ /* Danger button styles */
+ .button--danger {
+   color: var(--button-fg-color--danger);
+diff --git a/core/themes/default_admin/css/components/button.pcss.css b/core/themes/default_admin/css/components/button.pcss.css
+index 085ce3a3883..176aa47d989 100644
+--- a/core/themes/default_admin/css/components/button.pcss.css
++++ b/core/themes/default_admin/css/components/button.pcss.css
+@@ -136,6 +136,29 @@
+   }
+ }
+ 
++/*
++ * Focus on the filled primary button.
++ *
++ * The default single focus ring would sit ring-on-fill on the accent fill and
++ * fail contrast on light surfaces (about 1.6:1 against the primary fill). A
++ * two-part indicator adds a surface gap ring that isolates the focus ring from
++ * the fill while it still differentiates from the page. The gap is white in light
++ * mode; in dark mode it is effectively the fill, so the ring rides directly on
++ * the fill, which already passes. The global outline is removed so the failing
++ * single ring never renders.
++ */
++@media (forced-colors: none) {
++  .button--primary:focus,
++  #edit-submit.form-submit:focus,
++  .ief-entity-submit:focus {
++    outline: none !important;
++    box-shadow:
++      0.1em 0.25em 0.5em var(--admin-color-primary-soft),
++      0 0 0 2px var(--admin-color-focus-gap),
++      0 0 0 5px var(--admin-color-focus);
++  }
++}
++
+ /* Danger button styles */
+ .button--danger {
+   color: var(--button-fg-color--danger);
+diff --git a/core/themes/default_admin/css/components/details.css b/core/themes/default_admin/css/components/details.css
+index 5b295c019e9..94f23c20a69 100644
+--- a/core/themes/default_admin/css/components/details.css
++++ b/core/themes/default_admin/css/components/details.css
+@@ -174,8 +174,8 @@
+   }
+ 
+   &:hover {
+-    color: var(--admin-color-primary-hover);
+-    background-color: var(--admin-color-bg-item-hover);
++    color: var(--admin-color-summary-text);
++    background-color: var(--admin-color-summary-hover-bg);
+   }
+ 
+   &:hover::before,
+@@ -233,7 +233,7 @@
+ [open] .gin-details__summary--accordion,
+ [open] .gin-details__summary--accordion-item,
+ [open] .gin-details__summary--vertical-tabs-item {
+-  color: var(--admin-color-primary);
++  color: var(--admin-color-summary-text);
+   text-decoration-style: var(--admin-link-decoration-style);
+ }
+ 
+diff --git a/core/themes/default_admin/css/components/details.pcss.css b/core/themes/default_admin/css/components/details.pcss.css
+index 3a9d6c78477..7e715c30849 100644
+--- a/core/themes/default_admin/css/components/details.pcss.css
++++ b/core/themes/default_admin/css/components/details.pcss.css
+@@ -166,8 +166,8 @@
+   }
+ 
+   &:hover {
+-    color: var(--admin-color-primary-hover);
+-    background-color: var(--admin-color-bg-item-hover);
++    color: var(--admin-color-summary-text);
++    background-color: var(--admin-color-summary-hover-bg);
+   }
+ 
+   &:hover::before,
+@@ -222,7 +222,7 @@
+ [open] .gin-details__summary--accordion,
+ [open] .gin-details__summary--accordion-item,
+ [open] .gin-details__summary--vertical-tabs-item {
+-  color: var(--admin-color-primary);
++  color: var(--admin-color-summary-text);
+   text-decoration-style: var(--admin-link-decoration-style);
+ }
+ 
+diff --git a/core/themes/default_admin/css/components/form--checkbox-radio.css b/core/themes/default_admin/css/components/form--checkbox-radio.css
+index 09148f2a033..4aa1107ea55 100644
+--- a/core/themes/default_admin/css/components/form--checkbox-radio.css
++++ b/core/themes/default_admin/css/components/form--checkbox-radio.css
+@@ -171,6 +171,22 @@
+       border-color: var(--admin-color-primary-active);
+       background-color: var(--admin-color-primary-active);
+     }
++
++    /*
++     * Focus on the checked (accent-filled) checkbox.
++     *
++     * The default single focus ring would sit ring-on-fill on the accent fill
++     * and fail on light surfaces. A two-part indicator adds a surface gap ring
++     * that isolates the focus ring from the fill. See --admin-color-focus-gap.
++     */
++    @media (forced-colors: none) {
++      &:focus {
++        outline: none;
++        box-shadow:
++          0 0 0 2px var(--admin-color-focus-gap),
++          0 0 0 5px var(--admin-color-focus);
++      }
++    }
+   }
+ 
+   &[disabled] {
+diff --git a/core/themes/default_admin/css/components/form--checkbox-radio.pcss.css b/core/themes/default_admin/css/components/form--checkbox-radio.pcss.css
+index 929ad6c36ea..f782dba96f6 100644
+--- a/core/themes/default_admin/css/components/form--checkbox-radio.pcss.css
++++ b/core/themes/default_admin/css/components/form--checkbox-radio.pcss.css
+@@ -162,6 +162,22 @@
+       border-color: var(--admin-color-primary-active);
+       background-color: var(--admin-color-primary-active);
+     }
++
++    /*
++     * Focus on the checked (accent-filled) checkbox.
++     *
++     * The default single focus ring would sit ring-on-fill on the accent fill
++     * and fail on light surfaces. A two-part indicator adds a surface gap ring
++     * that isolates the focus ring from the fill. See --admin-color-focus-gap.
++     */
++    @media (forced-colors: none) {
++      &:focus {
++        outline: none;
++        box-shadow:
++          0 0 0 2px var(--admin-color-focus-gap),
++          0 0 0 5px var(--admin-color-focus);
++      }
++    }
+   }
+ 
+   &[disabled] {
+diff --git a/core/themes/default_admin/css/components/icon-link.css b/core/themes/default_admin/css/components/icon-link.css
+index 8865576f52f..0fccbadc902 100644
+--- a/core/themes/default_admin/css/components/icon-link.css
++++ b/core/themes/default_admin/css/components/icon-link.css
+@@ -17,6 +17,9 @@
+   /* active */
+   --icon-link--active-bg-color: var(--admin-color-link);
+   --icon-link--active-border-color: var(--admin-color-link);
++  /* Selected/active icon must contrast its accent fill: white on the dark
++     light branch, near-black on the light accent-fg dark branch. */
++  --icon-link--active-icon-color: light-dark(var(--admin-color-text-on-primary), #1b1b1d);
+   /* hover */
+   --icon-link--hover-bg-color: var(--admin-color-bg-item-hover);
+   --icon-link--hover-border-color: var(--admin-color-border);
+@@ -44,6 +47,7 @@
+   .open > & {
+     border-color: var(--icon-link--active-border-color);
+     background-color: var(--icon-link--active-bg-color);
++    color: var(--icon-link--active-icon-color);
+   }
+ }
+ 
+diff --git a/core/themes/default_admin/css/components/icon-link.pcss.css b/core/themes/default_admin/css/components/icon-link.pcss.css
+index b3da281e037..36854bc9035 100644
+--- a/core/themes/default_admin/css/components/icon-link.pcss.css
++++ b/core/themes/default_admin/css/components/icon-link.pcss.css
+@@ -10,6 +10,9 @@
+   /* active */
+   --icon-link--active-bg-color: var(--admin-color-link);
+   --icon-link--active-border-color: var(--admin-color-link);
++  /* Selected/active icon must contrast its accent fill: white on the dark
++     light branch, near-black on the light accent-fg dark branch. */
++  --icon-link--active-icon-color: light-dark(var(--admin-color-text-on-primary), #1b1b1d);
+   /* hover */
+   --icon-link--hover-bg-color: var(--admin-color-bg-item-hover);
+   --icon-link--hover-border-color: var(--admin-color-border);
+@@ -37,6 +40,7 @@
+   .open > & {
+     border-color: var(--icon-link--active-border-color);
+     background-color: var(--icon-link--active-bg-color);
++    color: var(--icon-link--active-icon-color);
+   }
+ }
+ 
+diff --git a/core/themes/default_admin/css/components/settings.css b/core/themes/default_admin/css/components/settings.css
+index 3eb22b492dc..6a464c67006 100644
+--- a/core/themes/default_admin/css/components/settings.css
++++ b/core/themes/default_admin/css/components/settings.css
+@@ -40,7 +40,7 @@
+       &:focus:checked,
+       &:focus,
+       &:checked {
+-        background-color: var(--admin-color-primary);
++        background-color: var(--admin-color-accent-preview);
+       }
+ 
+       &[data-gin-accent="custom"] {
+@@ -60,7 +60,7 @@
+ 
+     input,
+     .gin--dark-mode & input {
+-      background-color: var(--admin-color-primary);
++      background-color: var(--admin-color-accent-preview);
+     }
+ 
+     .form-item__label {
+@@ -136,8 +136,8 @@
+     border-radius: var(--admin-radius-xl);
+ 
+     &:hover {
+-      color: var(--admin-color-primary);
+-      background: var(--admin-color-primary-soft-hover);
++      color: var(--admin-color-radio-hover);
++      background: var(--admin-color-radio-hover-bg);
+     }
+   }
+ 
+diff --git a/core/themes/default_admin/css/components/settings.pcss.css b/core/themes/default_admin/css/components/settings.pcss.css
+index 8199df0de68..03cc1d86a0e 100644
+--- a/core/themes/default_admin/css/components/settings.pcss.css
++++ b/core/themes/default_admin/css/components/settings.pcss.css
+@@ -33,7 +33,7 @@
+       &:focus:checked,
+       &:focus,
+       &:checked {
+-        background-color: var(--admin-color-primary);
++        background-color: var(--admin-color-accent-preview);
+       }
+ 
+       &[data-gin-accent="custom"] {
+@@ -53,7 +53,7 @@
+ 
+     input,
+     .gin--dark-mode & input {
+-      background-color: var(--admin-color-primary);
++      background-color: var(--admin-color-accent-preview);
+     }
+ 
+     .form-item__label {
+@@ -129,8 +129,8 @@
+     border-radius: var(--admin-radius-xl);
+ 
+     &:hover {
+-      color: var(--admin-color-primary);
+-      background: var(--admin-color-primary-soft-hover);
++      color: var(--admin-color-radio-hover);
++      background: var(--admin-color-radio-hover-bg);
+     }
+   }
+ 
+diff --git a/core/themes/default_admin/css/theme/accent.css b/core/themes/default_admin/css/theme/accent.css
+index 3ee2dd1da00..5bbd5609cee 100644
+--- a/core/themes/default_admin/css/theme/accent.css
++++ b/core/themes/default_admin/css/theme/accent.css
+@@ -4,50 +4,97 @@
+  * https://www.drupal.org/node/3084859
+  * @preserve
+  */
++
+ /**
+  * @file
+  * Accent color and focus ring theme styles.
+  */
+-@media (forced-colors: none) {
+-  .gin--high-contrast-mode {
+-    --admin-color-bg: #d9dbde;
+-    --admin-color-text: rgb(0, 0, 0, 0.8);
+-    --admin-color-text-soft: rgb(0, 0, 0, 0.8);
+-    --admin-color-icon: rgb(0, 0, 0, 0.8);
+-    --admin-color-focus: rgb(0, 0, 0, 0.8);
+-    --admin-color-border: rgb(0, 0, 0, 0.8);
+-    --admin-color-border-soft: rgb(0, 0, 0, 0.6);
+-    --admin-color-border-loud: rgb(0, 0, 0, 0.8);
+-    --admin-color-border-input: rgb(0, 0, 0, 0.8);
+-    --admin-color-border-table: rgb(0, 0, 0, 0.8);
+-
+-    .gin--dark-mode & {
+-      --admin-color-bg: #000;
+-      --admin-color-text: rgb(255, 255, 255, 0.8);
+-      --admin-color-text-soft: rgb(255, 255, 255, 0.8);
+-      --admin-color-icon: rgb(255, 255, 255, 0.8);
+-      --admin-color-focus: rgb(255, 255, 255, 0.8);
+-      --admin-color-border: rgb(255, 255, 255, 0.8);
+-      --admin-color-border-soft: rgb(255, 255, 255, 0.6);
+-      --admin-color-border-loud: rgb(255, 255, 255, 0.8);
+-      --admin-color-border-input: rgb(255, 255, 255, 0.8);
+-      --admin-color-border-table: rgb(255, 255, 255, 0.8);
+-    }
+-  }
++
++[data-gin-accent="blue"] {
++  --admin-color-bg-sticky: rgb(235, 241, 253);
+ }
+-[data-gin-focus="green"] {
+-  --admin-color-focus: rgb(8, 163, 144, 0.6);
++
++[data-gin-accent="cerulean"] {
++  --admin-color-bg-sticky: rgb(235, 244, 248);
+ }
+-[data-gin-focus="claro"] {
+-  --admin-color-focus: rgb(38, 167, 105, 0.6);
++
++[data-gin-accent="purple"] {
++  --admin-color-bg-sticky: rgb(242, 235, 255);
++}
++
++[data-gin-accent="teal"] {
++  --admin-color-bg-sticky: rgb(236, 245, 245);
+ }
+-[data-gin-focus="orange"] {
+-  --admin-color-focus: rgb(236, 124, 87, 0.6);
++
++[data-gin-accent="green"] {
++  --admin-color-bg-sticky: rgb(235, 245, 242);
++}
++
++[data-gin-accent="olive"] {
++  --admin-color-bg-sticky: rgb(244, 245, 235);
++}
++
++[data-gin-accent="red"] {
++  --admin-color-bg-sticky: rgb(252, 235, 238);
++}
++
++[data-gin-accent="orange"] {
++  --admin-color-bg-sticky: rgb(252, 243, 235);
++}
++
++[data-gin-accent="yellow"] {
++  --admin-color-bg-sticky: rgb(249, 244, 235);
+ }
+-[data-gin-focus="dark"] {
++
++[data-gin-accent="pink"] {
++  --admin-color-bg-sticky: rgb(251, 238, 244);
++}
++
++[data-gin-accent="neutral"] {
++  --admin-color-bg-sticky: rgb(235, 235, 238);
++}
++
++[data-gin-accent="custom"] {
++  --admin-color-bg-sticky: rgb(236, 236, 236);
++}
++
++[data-gin-focus="blue"] {
++  --admin-color-focus: light-dark(#0050b3, #a9c7ff);
++}
++
++[data-gin-focus="green"] {
++  --admin-color-focus: light-dark(#006b45, #7fe0b5);
++}
++
++[data-gin-focus="amber"] {
++  --admin-color-focus: light-dark(#795500, #f3c96b);
++}
++
++[data-gin-focus="neutral"] {
+   --admin-color-focus: var(--admin-color-focus-neutral);
+ }
+-[data-gin-focus="accent"] {
+-  /* stylelint-disable-next-line color-function-notation */
+-  --admin-color-focus: rgb(from var(--admin-color-primary) r g b / 0.6);
++
++@media (forced-colors: none) {
++  .gin--high-contrast-mode {
++    /* Enhanced text ramp — keeps the loud > text > soft hierarchy while
++       strengthening each step against its surface. */
++    --admin-color-text-loud: light-dark(#000, #fff);
++    --admin-color-text: light-dark(#151619, #f2f2f4);
++    --admin-color-text-soft: light-dark(#303238, #e8e8e8);
++    /* Icons remain subordinate to text but are brightened to meet 3:1. */
++    --admin-color-icon: light-dark(#454545, #a5a7ac);
++    /* Borders keep their semantic ladder — loud is the strongest divider,
++       default edges are strong, table separators stay subtle, and soft
++       hairlines remain decorative. Form-control boundaries are strongest
++       because they identify controls. */
++    --admin-color-border: light-dark(#333, #e0e0e0);
++    --admin-color-border-loud: light-dark(#000, #fff);
++    --admin-color-border-input: light-dark(#000, #fff);
++    --admin-color-border-table: light-dark(#707070, #8c8d92);
++    --admin-color-border-soft: light-dark(#444, #888);
++    /* Focus keeps the selected focus family's color — the [data-gin-focus] */
++    /* presets stay in effect under Increase contrast. */
++    /* Accent fg — preserve hue, increase contrast (not flat white/black) */
++    --admin-color-accent-fg: light-dark(oklch(from var(--accent-base) calc(l * 0.78) c h), oklch(from var(--accent-base) max(calc(l * 1.5), 0.93) calc(c * 1.1) h));
++  }
+ }
+diff --git a/core/themes/default_admin/css/theme/accent.pcss.css b/core/themes/default_admin/css/theme/accent.pcss.css
+index 3f7fa2e1976..49ff908c38e 100644
+--- a/core/themes/default_admin/css/theme/accent.pcss.css
++++ b/core/themes/default_admin/css/theme/accent.pcss.css
+@@ -2,51 +2,92 @@
+  * @file
+  * Accent color and focus ring theme styles.
+  */
+-@media (forced-colors: none) {
+-  .gin--high-contrast-mode {
+-    --admin-color-bg: #d9dbde;
+-    --admin-color-text: rgb(0, 0, 0, 0.8);
+-    --admin-color-text-soft: rgb(0, 0, 0, 0.8);
+-    --admin-color-icon: rgb(0, 0, 0, 0.8);
+-    --admin-color-focus: rgb(0, 0, 0, 0.8);
+-    --admin-color-border: rgb(0, 0, 0, 0.8);
+-    --admin-color-border-soft: rgb(0, 0, 0, 0.6);
+-    --admin-color-border-loud: rgb(0, 0, 0, 0.8);
+-    --admin-color-border-input: rgb(0, 0, 0, 0.8);
+-    --admin-color-border-table: rgb(0, 0, 0, 0.8);
+-
+-    .gin--dark-mode & {
+-      --admin-color-bg: #000;
+-      --admin-color-text: rgb(255, 255, 255, 0.8);
+-      --admin-color-text-soft: rgb(255, 255, 255, 0.8);
+-      --admin-color-icon: rgb(255, 255, 255, 0.8);
+-      --admin-color-focus: rgb(255, 255, 255, 0.8);
+-      --admin-color-border: rgb(255, 255, 255, 0.8);
+-      --admin-color-border-soft: rgb(255, 255, 255, 0.6);
+-      --admin-color-border-loud: rgb(255, 255, 255, 0.8);
+-      --admin-color-border-input: rgb(255, 255, 255, 0.8);
+-      --admin-color-border-table: rgb(255, 255, 255, 0.8);
+-    }
+-  }
++
++[data-gin-accent="blue"] {
++  --admin-color-bg-sticky: rgb(235, 241, 253);
+ }
+ 
+-[data-gin-focus="green"] {
+-  --admin-color-focus: rgb(8, 163, 144, 0.6);
++[data-gin-accent="cerulean"] {
++  --admin-color-bg-sticky: rgb(235, 244, 248);
++}
++
++[data-gin-accent="purple"] {
++  --admin-color-bg-sticky: rgb(242, 235, 255);
++}
++
++[data-gin-accent="teal"] {
++  --admin-color-bg-sticky: rgb(236, 245, 245);
++}
++
++[data-gin-accent="green"] {
++  --admin-color-bg-sticky: rgb(235, 245, 242);
++}
++
++[data-gin-accent="olive"] {
++  --admin-color-bg-sticky: rgb(244, 245, 235);
++}
++
++[data-gin-accent="red"] {
++  --admin-color-bg-sticky: rgb(252, 235, 238);
+ }
+ 
+-[data-gin-focus="claro"] {
+-  --admin-color-focus: rgb(38, 167, 105, 0.6);
++[data-gin-accent="orange"] {
++  --admin-color-bg-sticky: rgb(252, 243, 235);
+ }
+ 
+-[data-gin-focus="orange"] {
+-  --admin-color-focus: rgb(236, 124, 87, 0.6);
++[data-gin-accent="yellow"] {
++  --admin-color-bg-sticky: rgb(249, 244, 235);
+ }
+ 
+-[data-gin-focus="dark"] {
++[data-gin-accent="pink"] {
++  --admin-color-bg-sticky: rgb(251, 238, 244);
++}
++
++[data-gin-accent="neutral"] {
++  --admin-color-bg-sticky: rgb(235, 235, 238);
++}
++
++[data-gin-accent="custom"] {
++  --admin-color-bg-sticky: rgb(236, 236, 236);
++}
++
++[data-gin-focus="blue"] {
++  --admin-color-focus: light-dark(#0050b3, #a9c7ff);
++}
++
++[data-gin-focus="green"] {
++  --admin-color-focus: light-dark(#006b45, #7fe0b5);
++}
++
++[data-gin-focus="amber"] {
++  --admin-color-focus: light-dark(#795500, #f3c96b);
++}
++
++[data-gin-focus="neutral"] {
+   --admin-color-focus: var(--admin-color-focus-neutral);
+ }
+ 
+-[data-gin-focus="accent"] {
+-  /* stylelint-disable-next-line color-function-notation */
+-  --admin-color-focus: rgb(from var(--admin-color-primary) r g b / 0.6);
++@media (forced-colors: none) {
++  .gin--high-contrast-mode {
++    /* Enhanced text ramp — keeps the loud > text > soft hierarchy while
++       strengthening each step against its surface. */
++    --admin-color-text-loud: light-dark(#000, #fff);
++    --admin-color-text: light-dark(#151619, #f2f2f4);
++    --admin-color-text-soft: light-dark(#303238, #e8e8e8);
++    /* Icons remain subordinate to text but are brightened to meet 3:1. */
++    --admin-color-icon: light-dark(#454545, #a5a7ac);
++    /* Borders keep their semantic ladder — loud is the strongest divider,
++       default edges are strong, table separators stay subtle, and soft
++       hairlines remain decorative. Form-control boundaries are strongest
++       because they identify controls. */
++    --admin-color-border: light-dark(#333, #e0e0e0);
++    --admin-color-border-loud: light-dark(#000, #fff);
++    --admin-color-border-input: light-dark(#000, #fff);
++    --admin-color-border-table: light-dark(#707070, #8c8d92);
++    --admin-color-border-soft: light-dark(#444, #888);
++    /* Focus keeps the selected focus family's color — the [data-gin-focus] */
++    /* presets stay in effect under Increase contrast. */
++    /* Accent fg — preserve hue, increase contrast (not flat white/black) */
++    --admin-color-accent-fg: light-dark(oklch(from var(--accent-base) calc(l * 0.78) c h), oklch(from var(--accent-base) max(calc(l * 1.5), 0.93) calc(c * 1.1) h));
++  }
+ }
+diff --git a/core/themes/default_admin/src/Helper.php b/core/themes/default_admin/src/Helper.php
+index ba87af3a68e..759d3f34434 100644
+--- a/core/themes/default_admin/src/Helper.php
++++ b/core/themes/default_admin/src/Helper.php
+@@ -27,48 +27,48 @@ final class Helper {
+   public static function accentColors(): array {
+     return [
+       'blue' => [
+-        'label' => t('Blue (Default)'),
+-        'hex' => '#015efe',
++        'label' => t('Cobalt (Default)'),
++        'hex' => '#0047ab',
+       ],
+-      'light_blue' => [
+-        'label' => t('Light Blue'),
+-        'hex' => '#2f6dd0',
+-      ],
+-      'dark_purple' => [
+-        'label' => t('Dark Purple'),
+-        'hex' => '#4300bf',
+-      ],
+-      'purple' => [
+-        'label' => t('Purple'),
+-        'hex' => '#5b00ff',
++      'cerulean' => [
++        'label' => t('Cerulean'),
++        'hex' => '#006b8f',
+       ],
+       'teal' => [
+         'label' => t('Teal'),
+-        'hex' => '#0e7772',
++        'hex' => '#006b5e',
+       ],
+       'green' => [
+-        'label' => t('Green'),
+-        'hex' => '#02742d',
++        'label' => t('Emerald'),
++        'hex' => '#08783e',
+       ],
+-      'pink' => [
+-        'label' => t('Pink'),
+-        'hex' => '#d12f70',
++      'olive' => [
++        'label' => t('Olive'),
++        'hex' => '#5d6b1c',
+       ],
+-      'red' => [
+-        'label' => t('Red'),
+-        'hex' => '#d8002f',
++      'yellow' => [
++        'label' => t('Amber'),
++        'hex' => '#765c00',
+       ],
+       'orange' => [
+         'label' => t('Orange'),
+-        'hex' => '#c55228',
++        'hex' => '#9b4b00',
+       ],
+-      'yellow' => [
+-        'label' => t('Yellow'),
+-        'hex' => '#966705',
++      'red' => [
++        'label' => t('Vermilion'),
++        'hex' => '#a83218',
++      ],
++      'pink' => [
++        'label' => t('Magenta'),
++        'hex' => '#8d3b75',
++      ],
++      'purple' => [
++        'label' => t('Violet'),
++        'hex' => '#5e3b9e',
+       ],
+       'neutral' => [
+         'label' => t('Neutral'),
+-        'hex' => '#111111',
++        'hex' => '#555960',
+       ],
+       'custom' => [
+         'label' => t('Custom'),
+@@ -78,6 +78,21 @@ final class Helper {
+     ];
+   }
+ 
++  /**
++   * Normalizes legacy focus preset keys to the current focus families.
++   */
++  public static function normalizeFocusPreset(?string $preset): string {
++    return match ($preset) {
++      'gin' => 'blue',
++      'claro' => 'green',
++      'orange' => 'amber',
++      'dark' => 'neutral',
++      'accent' => 'blue',
++      'blue', 'green', 'amber', 'neutral', 'custom' => $preset,
++      default => 'blue',
++    };
++  }
++
+   /**
+    * Accent color element.
+    */
+diff --git a/core/themes/default_admin/src/Hook/PreprocessHooks.php b/core/themes/default_admin/src/Hook/PreprocessHooks.php
+index 4f40a4bb730..52cadbb8953 100644
+--- a/core/themes/default_admin/src/Hook/PreprocessHooks.php
++++ b/core/themes/default_admin/src/Hook/PreprocessHooks.php
+@@ -612,11 +612,15 @@ final class PreprocessHooks implements TrustedCallbackInterface {
+     $settings = Settings::getInstance();
+ 
+     // Old way to set accent color.
+-    $variables['html_attributes']['data-gin-accent'] = $settings->get('preset_accent_color');
+-
+-    // New way to set accent color.
+     $accent_colors = Helper::accentColors();
+     $preset = $settings->get('preset_accent_color');
++    // Fall back to the default when the stored preset is no longer offered.
++    if ($preset !== 'custom' && !isset($accent_colors[$preset])) {
++      $preset = $settings->getDefault('preset_accent_color');
++    }
++    $variables['html_attributes']['data-gin-accent'] = $preset;
++
++    // New way to set accent color.
+     $accent_color = '';
+ 
+     if ($preset === 'custom' && $settings->get('accent_color')) {
+@@ -631,7 +635,9 @@ final class PreprocessHooks implements TrustedCallbackInterface {
+     }
+ 
+     // Set focus color.
+-    $variables['html_attributes']['data-gin-focus'] = $settings->get('preset_focus_color');
++    $variables['html_attributes']['data-gin-focus'] = Helper::normalizeFocusPreset(
++      $settings->get('preset_focus_color')
++    );
+ 
+     // High contrast mode.
+     if ($settings->get('high_contrast_mode')) {
+diff --git a/core/themes/default_admin/src/Hook/ThemeHooks.php b/core/themes/default_admin/src/Hook/ThemeHooks.php
+index 98d0d3f9e23..6dda755adf4 100644
+--- a/core/themes/default_admin/src/Hook/ThemeHooks.php
++++ b/core/themes/default_admin/src/Hook/ThemeHooks.php
+@@ -181,7 +181,8 @@ class ThemeHooks implements TrustedCallbackInterface {
+     $page['#attached']['drupalSettings']['gin']['accent_colors'] = Helper::accentColors();
+     $page['#attached']['drupalSettings']['gin']['preset_accent_color'] = $settings->get('preset_accent_color');
+     $page['#attached']['drupalSettings']['gin']['accent_color'] = $settings->get('accent_color');
+-    $page['#attached']['drupalSettings']['gin']['preset_focus_color'] = $settings->get('preset_focus_color');
++    $page['#attached']['drupalSettings']['gin']['preset_focus_color'] =
++      Helper::normalizeFocusPreset($settings->get('preset_focus_color'));
+     $page['#attached']['drupalSettings']['gin']['focus_color'] = $settings->get('focus_color');
+     $page['#attached']['drupalSettings']['gin']['high_contrast_mode'] = $settings->get('high_contrast_mode');
+     $page['#attached']['drupalSettings']['gin']['high_contrast_mode_class'] = 'gin--high-contrast-mode';
+diff --git a/core/themes/default_admin/src/Settings.php b/core/themes/default_admin/src/Settings.php
+index 505207abc4d..c04a1362a02 100644
+--- a/core/themes/default_admin/src/Settings.php
++++ b/core/themes/default_admin/src/Settings.php
+@@ -285,17 +285,21 @@ final class Settings implements ContainerInjectionInterface {
+     ];
+ 
+     // Focus color setting.
++    $focus_preset = Helper::normalizeFocusPreset(
++      $account
++        ? $this->get('preset_focus_color', $account)
++        : $this->getDefault('preset_focus_color')
++    );
++    
+     $form['preset_focus_color'] = [
+       '#type' => 'select',
+       '#title' => $this->t('Focus color'),
+-      '#default_value' => $account ? $this->get('preset_focus_color', $account) : $this->getDefault('preset_focus_color'),
++      '#default_value' => $focus_preset,
+       '#options' => [
+-        'gin' => $this->t('Default Admin Focus color (Default)'),
++        'blue' => $this->t('Blue (Default)'),
+         'green' => $this->t('Green'),
+-        'claro' => $this->t('Claro Green'),
+-        'orange' => $this->t('Orange'),
+-        'dark' => $this->t('Neutral'),
+-        'accent' => $this->t('Same as Accent color'),
++        'amber' => $this->t('Amber'),
++        'neutral' => $this->t('Neutral'),
+         'custom' => $this->t('Custom'),
+       ],
+     ];
+@@ -319,7 +323,7 @@ final class Settings implements ContainerInjectionInterface {
+       '#title' => $this->t('Focus color picker'),
+       '#title_display' => 'invisible',
+       '#placeholder' => '#777777',
+-      '#default_value' => $account ? $this->get('focus_color', $account) : $this->getDefault('focus_color'),
++      '#default_value' => $focus_preset,
+       '#process' => [[__CLASS__, 'processColorPicker']],
+     ];
+ 
+@@ -342,7 +346,7 @@ final class Settings implements ContainerInjectionInterface {
+     $form['high_contrast_mode'] = [
+       '#type' => 'checkbox',
+       '#title' => $this->t('Increase contrast') . $experimental_label,
+-      '#description' => $this->t('Enables high contrast mode.'),
++      '#description' => $this->t('Increases text and interface contrast while preserving visual hierarchy.'),
+       '#default_value' => $account ? $this->get('high_contrast_mode', $account) : $this->getDefault('high_contrast_mode'),
+     ];
+ 
+diff --git a/core/themes/default_admin/tests/src/Functional/AccentColorContrastTest.php b/core/themes/default_admin/tests/src/Functional/AccentColorContrastTest.php
+new file mode 100644
+index 00000000000..fc62eb15f0e
+--- /dev/null
++++ b/core/themes/default_admin/tests/src/Functional/AccentColorContrastTest.php
+@@ -0,0 +1,797 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\default_admin\Functional;
++
++use Drupal\default_admin\Helper;
++use Drupal\Tests\BrowserTestBase;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++
++/**
++ * Provides static contrast and color-system regression coverage.
++ *
++ * This class verifies fixed palette relationships and guards the semantic
++ * color architecture. Browser-resolved Light/Dark/Auto and interaction-state
++ * contrast is covered by AccentColorContrastJavascriptTest.
++ */
++#[Group('default_admin')]
++#[RunTestsInSeparateProcesses]
++class AccentColorContrastTest extends BrowserTestBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  protected static $modules = [
++    'toolbar',
++    'node',
++  ];
++
++  /**
++   * {@inheritdoc}
++   */
++  protected $defaultTheme = 'stark';
++
++  /**
++   * {@inheritdoc}
++   */
++  protected function setUp(): void {
++    parent::setUp();
++
++    $this->assertTrue(\Drupal::service('theme_installer')->install(['default_admin']));
++    $this->container->get('config.factory')
++      ->getEditable('system.theme')
++      ->set('default', 'default_admin')
++      ->set('admin', 'default_admin')
++      ->save();
++
++    $admin_user = $this->drupalCreateUser([
++      'access administration pages',
++      'administer themes',
++      'access toolbar',
++      'access content overview',
++    ]);
++    $this->drupalLogin($admin_user);
++  }
++
++  /**
++   * Every light-mode accent preset must reach 4.5:1 on white surfaces.
++   *
++   * Tests against both #ffffff (primary) and #fefeff (off-white used by some
++   * content regions). WCAG contrast is symmetric, so this covers both
++   * "accent text/links on white" and "white label on an accent button".
++   */
++  public function testLightModeAccentContrast(): void {
++    $colors = Helper::accentColors();
++    $this->assertNotEmpty($colors, 'Accent colour presets are defined.');
++    $backgrounds = [
++      '#ffffff' => 'white',
++      '#fefeff' => 'off-white',
++    ];
++
++    foreach ($colors as $name => $info) {
++      // "custom" is user-provided; the stored hex is only a fallback placeholder.
++      if ($name === 'custom') {
++        continue;
++      }
++      $hex = $info['hex'];
++      foreach ($backgrounds as $bg_hex => $bg_label) {
++        $ratio = $this->contrastRatio($hex, $bg_hex);
++        $this->assertGreaterThanOrEqual(
++          4.5,
++          $ratio,
++          sprintf('Accent "%s" (%s) must reach >= 4.5:1 on %s (got %.2f:1).', $name, $hex, $bg_label, $ratio)
++        );
++      }
++    }
++  }
++
++  /**
++   * Regression guard: the accent tokens stay separate and use one colour model.
++   *
++   * Accent fills (--admin-color-accent-base) and accent foregrounds
++   * (--admin-color-accent-fg) must remain distinct tokens. Both new
++   * derivations must use the same colour model. The foreground formula is not
++   * a test contract: resulting contrast is asserted in
++   * ::testDarkModeForegroundContrast() instead of pinning the literal
++   * lightness/chroma constants.
++   */
++  public function testDarkModeAccentTokens(): void {
++    $path = \Drupal::service('extension.list.theme')->getPath('default_admin') . '/css/_variables/variables-color-primitive.css';
++    $css = file_get_contents($path);
++
++    $this->assertStringContainsString('--admin-color-accent-fg', $css, 'A separate foreground accent token must exist for dark mode.');
++    $this->assertStringContainsString('--admin-color-accent-base', $css, 'A separate fill accent token must exist.');
++    $this->assertMatchesRegularExpression(
++      '/--admin-color-accent-fg:[^;]*oklch\(from var\(--accent-base\)/',
++      $css,
++      'The foreground accent derivation must use oklch().'
++    );
++    $this->assertMatchesRegularExpression(
++      '/--admin-color-accent-base:[^;]*oklch\(from var\(--accent-base\)/',
++      $css,
++      'The fill accent derivation must use the same colour model (oklch()) as the foreground.'
++    );
++    $this->assertStringNotContainsString(
++      'lch(from var(--accent-base) calc(l * 20)',
++      $css,
++      'The old l*20 formula (which collapsed the accent to near-white) must be gone.'
++    );
++  }
++
++  /**
++   * The derived accent foreground must reach WCAG AA on dark surfaces.
++   *
++   * The lightness/chroma constants that govern the rendered dark foreground are
++   * read from the compiled variables stylesheet, not restated here. Red honours
++   * its own shipped dark-fg override (full lightness). Contrast only is asserted.
++   */
++  public function testDarkModeForegroundContrast(): void {
++    $primitive = file_get_contents(\Drupal::service('extension.list.theme')->getPath('default_admin') . '/css/_variables/variables-color-primitive.css');
++    [$shared_l, $shared_floor, $shared_c] = $this->oklchDarkFg($primitive, FALSE);
++    [$red_l, $red_floor, $red_c] = $this->oklchDarkFg($primitive, TRUE);
++
++    $colors = Helper::accentColors();
++    foreach ($colors as $name => $info) {
++      if ($name === 'custom') {
++        continue;
++      }
++      [$l, $c] = $name === 'red'
++        ? [$red_l, $red_c]
++        : [$shared_l * $this->oklchL($info['hex']), $shared_c];
++      if ($shared_floor !== NULL && $name !== 'red') {
++        $l = max($l, $shared_floor);
++      }
++      $fg = $this->oklchToHex($l, $c * $this->oklchC($info['hex']), $this->oklchH($info['hex']));
++      foreach (
++          [
++            '#1b1b1d',
++            '#2a2a2d',
++            '#3b3b3f',
++            '#47474c',
++            '#2d3755',
++          ] as $bg
++        ) {
++        $ratio = $this->contrastRatio($fg, $bg);
++        $this->assertGreaterThanOrEqual(
++          4.5,
++          $ratio,
++          sprintf('Dark-mode accent "%s" foreground %s on %s must be >=4.5:1 (got %.2f:1).', $name, $fg, $bg, $ratio)
++        );
++      }
++    }
++  }
++
++  /**
++   * Regression guard: text on the dark-mode solid primary must be white.
++   *
++   * The dark-mode primary fill is computed from the accent at oklch L*0.45,
++   * which is a dark tint. `--admin-color-text-on-primary` must stay white in
++   * dark mode; using the light-mode dark value (#111) there produced black on
++   * dark teal (1.49:1 on the green preset). White reaches 4.5:1 on every
++   * preset's dark primary.
++   */
++  public function testDarkModeTextOnPrimaryContrast(): void {
++    $path = \Drupal::service('extension.list.theme')->getPath('default_admin') . '/css/_variables/variables-color-semantic.css';
++    $css = file_get_contents($path);
++
++    $this->assertStringNotContainsString(
++      '--admin-color-text-on-primary: light-dark(var(--admin-color-white), #111);',
++      $css,
++      'Dark-mode text-on-primary must not resolve to #111 on the dark primary fill.'
++    );
++    $this->assertMatchesRegularExpression(
++      '/--admin-color-text-on-primary:\s*light-dark\(var\(--admin-color-white\),\s*(var\(--admin-color-white\)|white|#fff)\);/',
++      $css,
++      'Dark-mode text-on-primary must be white (it sits on a dark primary fill).'
++    );
++
++    $colors = Helper::accentColors();
++    $primitive = file_get_contents(\Drupal::service('extension.list.theme')->getPath('default_admin') . '/css/_variables/variables-color-primitive.css');
++    [$base_l_mult, $base_c_mult] = $this->oklchAccentBase($primitive);
++    foreach ($colors as $name => $info) {
++      if ($name === 'custom') {
++        continue;
++      }
++      $hex = $info['hex'];
++      $darkPrimary = $this->oklchToHex($base_l_mult * $this->oklchL($hex), $base_c_mult * $this->oklchC($hex), $this->oklchH($hex));
++      $ratio = $this->contrastRatio('#ffffff', $darkPrimary);
++      $this->assertGreaterThanOrEqual(
++        4.5,
++        $ratio,
++        sprintf('White label on dark-mode primary of "%s" (%s) must be >=4.5:1 (got %.2f:1).', $name, $darkPrimary, $ratio)
++      );
++    }
++  }
++
++  /**
++   * Regression: accent fill against an adjacent surface is a separate relationship.
++   *
++   * The matrix must report this relationship honestly. The verifier previously
++   * displayed the accent fill on a surface but computed white-on-fill instead,
++   * producing a false PASS. #030089 (blue fill) on #1b1b1d is about 1.12:1.
++   */
++  public function testAccentFillVsSurfaceRatio(): void {
++    $ratio = $this->contrastRatio('#030089', '#1b1b1d');
++    $this->assertEqualsWithDelta(1.12, $ratio, 0.05, sprintf('Accent fill #030089 on #1b1b1d must be ~1.12:1 (got %.4f:1).', $ratio));
++  }
++
++  /**
++   * Regression: white text on the accent fill is a separate relationship.
++   *
++   * #ffffff on #030089 (blue fill) is about 15.38:1 and passes WCAG 4.5:1.
++   * Kept as its own test case — it must never be merged with the fill-vs-surface
++   * relationship (they measure different foreground/background pairs).
++   */
++  public function testWhiteOnAccentFillRatio(): void {
++    $ratio = $this->contrastRatio('#ffffff', '#030089');
++    $this->assertEqualsWithDelta(15.38, $ratio, 0.05, sprintf('White #ffffff on accent fill #030089 must be ~15.38:1 (got %.4f:1).', $ratio));
++    $this->assertGreaterThanOrEqual(
++      4.5,
++      $ratio,
++      'White text on the accent fill must meet WCAG 4.5:1.'
++    );
++  }
++
++  /**
++   * Regression guard: high-contrast must preserve surfaces and hierarchy.
++   */
++  public function testHighContrastTokens(): void {
++    $path = \Drupal::service('extension.list.theme')->getPath('default_admin') . '/css/theme/accent.css';
++    $css = file_get_contents($path);
++    $this->assertStringContainsString('gin--high-contrast-mode', $css, 'High-contrast mode must be defined.');
++    $this->assertStringNotContainsString('--admin-color-bg: #fff', $css, 'High-contrast must not force --admin-color-bg to #fff (preserve surfaces).');
++    $this->assertStringNotContainsString('--admin-color-bg: #000', $css, 'High-contrast must not force --admin-color-bg to #000.');
++    $this->assertStringContainsString('--admin-color-text-loud: light-dark(#000', $css, 'High-contrast must define loud/default/soft text ramp with light-dark.');
++    $this->assertStringContainsString('--admin-color-text: light-dark(#151619', $css, 'High-contrast must define text with light-dark.');
++    $this->assertStringContainsString('--admin-color-text-soft: light-dark(#303238', $css, 'High-contrast must define soft text.');
++    $this->assertStringContainsString('--admin-color-accent-fg: light-dark(oklch', $css, 'High-contrast accent fg must be light-dark with oklch (preserve hue).');
++    $this->assertStringContainsString('@media (forced-colors: none)', $css, 'High-contrast must be protected by forced-colors.');
++    $this->assertStringNotContainsString('gin--high-contrast-mode.gin--dark-mode', $css, 'High-contrast must not require both classes on same element (use light-dark).');
++    $this->assertMatchesRegularExpression(
++      '/--admin-color-border-loud:\s*light-dark\(#[0-9a-fA-F]{3,6},\s*#[0-9a-fA-F]{3,6}\)/',
++      $css,
++      'High-contrast must resolve border-loud through light-dark.',
++    );
++    $this->assertStringNotContainsString(
++      '--admin-color-border-table: light-dark(#000, #fff);',
++      $css,
++      'High-contrast table separators must stay subtle, not flatten to black/white.',
++    );
++    $this->assertStringNotContainsString(
++      '--admin-color-border: light-dark(#000, #fff);',
++      $css,
++      'High-contrast default edges must stay distinct from border-loud and border-table.',
++    );
++  }
++
++  /**
++   * Component interaction states resolve through semantic tokens, not in CSS.
++   *
++   * The details summary and dark-mode-radio hover styles must consume semantic
++   * variables. The Light/Dark decision (the light-dark() branches) lives in the
++   * semantic variables. This also pins the state selection at token level: the
++   * dark branch of each new token must reference the value that used to be
++   * inlined in the component.
++   */
++  public function testComponentSemanticTokens(): void {
++    $semantic = file_get_contents(\Drupal::service('extension.list.theme')->getPath('default_admin') . '/css/_variables/variables-color-semantic.css');
++    $details = file_get_contents(\Drupal::service('extension.list.theme')->getPath('default_admin') . '/css/components/details.css');
++    $settings = file_get_contents(\Drupal::service('extension.list.theme')->getPath('default_admin') . '/css/components/settings.css');
++
++    $this->assertMatchesRegularExpression(
++      '/--admin-color-summary-text:\s*light-dark\(var\(--admin-color-primary-hover\),\s*var\(--admin-color-accent-fg\)\);/',
++      $semantic,
++      'Summary text must resolve light=primary-hover and dark=accent-fg at the semantic level.'
++    );
++    $this->assertMatchesRegularExpression(
++      '/--admin-color-summary-hover-bg:\s*light-dark\(var\(--admin-color-bg-item-hover\),\s*color-mix\(in sRGB, var\(--admin-color-accent-fg\) 12%, var\(--admin-color-bg-surface\)\)\);/',
++      $semantic,
++      'Summary hover background must keep its light/dark branches in the semantic token.'
++    );
++    $this->assertMatchesRegularExpression(
++      '/--admin-color-radio-hover:\s*light-dark\(var\(--admin-color-primary\),\s*var\(--admin-color-text-on-primary\)\);/',
++      $semantic,
++      'Dark-mode radio label hover must resolve dark to text-on-primary at the semantic level.'
++    );
++    $this->assertMatchesRegularExpression(
++      '/--admin-color-radio-hover-bg:\s*light-dark\(var\(--admin-color-primary-soft-hover\),\s*var\(--admin-color-primary-hover\)\);/',
++      $semantic,
++      'Dark-mode radio label hover background must keep both branches in the semantic token.'
++    );
++
++    $this->assertStringContainsString('color: var(--admin-color-summary-text)', $details, 'Details summary hover must consume the semantic summary-text token.');
++    $this->assertStringContainsString('background-color: var(--admin-color-summary-hover-bg)', $details, 'Details summary hover must consume the semantic summary-hover-bg token.');
++    $this->assertStringContainsString('color: var(--admin-color-radio-hover)', $settings, 'Dark-mode radio hover must consume the semantic radio-hover token.');
++    $this->assertStringContainsString('background: var(--admin-color-radio-hover-bg)', $settings, 'Dark-mode radio hover must consume the semantic radio-hover-bg token.');
++
++    $this->assertStringNotContainsString(
++      'light-dark(var(--admin-color-primary-hover), var(--admin-color-accent-fg))',
++      $details,
++      'Details must not inline the light-dark() Light/Dark decision for summary text.'
++    );
++    $this->assertStringNotContainsString(
++      'light-dark(var(--admin-color-bg-item-hover)',
++      $details,
++      'Details must not inline the light-dark() Light/Dark decision for summary hover background.'
++    );
++    $this->assertStringNotContainsString(
++      'light-dark(var(--admin-color-primary), var(--admin-color-text-on-primary))',
++      $settings,
++      'Settings must not inline the light-dark() Light/Dark decision for the radio hover color.'
++    );
++    $this->assertStringNotContainsString(
++      'light-dark(var(--admin-color-primary-soft-hover), var(--admin-color-primary-hover))',
++      $settings,
++      'Settings must not inline the light-dark() Light/Dark decision for the radio hover background.'
++    );
++  }
++
++  /**
++   * High-contrast accent must reach the 7:1 target on main surfaces.
++   *
++   * Light HC darkens the accent (lower chromatic lightness); dark HC raises it
++   * to the normal AA foreground. The exact constants are read from the shipped
++   * high-contrast accent-fg branch, not restated here.
++   */
++  public function testHighContrastAccentContrast(): void {
++    $accent = file_get_contents(\Drupal::service('extension.list.theme')->getPath('default_admin') . '/css/theme/accent.css');
++    [$light_mult, $light_c] = $this->oklchHCLight($accent);
++    [$dark_l_mult, $dark_floor, $dark_c] = $this->oklchHCDark($accent);
++
++    $colors = Helper::accentColors();
++    foreach ($colors as $name => $info) {
++      if ($name === 'custom') {
++        continue;
++      }
++      $hex = $info['hex'];
++      $hcLight = $this->oklchToHex($light_mult * $this->oklchL($hex), $light_c * $this->oklchC($hex), $this->oklchH($hex));
++      $rLight = $this->contrastRatio($hcLight, '#ffffff');
++      $rNormalLight = $this->contrastRatio($hex, '#ffffff');
++      $this->assertGreaterThanOrEqual(7.0, $rLight, sprintf('HC Light accent "%s" %s → %s must be >=7:1 on white (got %.2f:1).', $name, $hex, $hcLight, $rLight));
++      $this->assertGreaterThan($rNormalLight, $rLight, sprintf('HC Light "%s" must be higher contrast than normal (HC %.2f vs normal %.2f).', $name, $rLight, $rNormalLight));
++
++      $hcDarkL = max($dark_l_mult * $this->oklchL($hex), $dark_floor);
++      $hcDark = $this->oklchToHex($hcDarkL, $dark_c * $this->oklchC($hex), $this->oklchH($hex));
++      $rDark = $this->contrastRatio($hcDark, '#000000');
++      $this->assertGreaterThanOrEqual(7.0, $rDark, sprintf('HC Dark accent "%s" %s → %s must be >=7:1 on black (got %.2f:1).', $name, $hex, $hcDark, $rDark));
++    }
++  }
++
++  /**
++   * Fixed focus presets must reach 3:1 on neutral adjacent surfaces.
++   *
++   * The focus indicator communicates keyboard focus, so each fixed focus family
++   * must remain distinguishable from the neutral surfaces on which focused
++   * controls appear.
++   *
++   * Accent-filled controls use a composite two-part indicator and are verified
++   * separately in rendered browser tests.
++   */
++  public function testFocusColorContrast(): void {
++    $theme = \Drupal::service('extension.list.theme')->getPath('default_admin');
++    $semantic = file_get_contents($theme . '/css/_variables/variables-color-semantic.css');
++    $accent = file_get_contents($theme . '/css/theme/accent.css');
++    $primitive = file_get_contents($theme . '/css/_variables/variables-color-primitive.css');
++
++    // Neutral fallback used by the "neutral" preset.
++    [$neutral_light, $neutral_dark] = $this->lightDarkPair($semantic, '--admin-color-focus-neutral');
++    // Per-preset pairs as shipped in accent.css.
++    $pair = fn(string $preset): array => $this->lightDarkPair($accent, '--admin-color-focus', '[data-gin-focus="' . $preset . '"]');
++
++    $presets = [];
++    foreach (['blue', 'green', 'amber', 'neutral'] as $p) {
++      $presets[$p] = $p === 'neutral'
++        ? [$neutral_light, $neutral_dark]
++        : $pair($p);
++    }
++    unset($primitive);
++
++    // Every neutral surface a focused control can sit on, per appearance.
++    $surfaces = [
++      'light' => [
++        'main' => '#fefeff',
++        'surface' => '#ffffff',
++        'nested' => '#edeff5',
++        'raised' => '#ffffff',
++        'toolbar' => '#e1eafc',
++        'input' => '#ffffff',
++      ],
++      'dark' => [
++        'main' => '#1b1b1d',
++        'surface' => '#2a2a2d',
++        'nested' => '#3b3b3f',
++        'raised' => '#47474c',
++        'toolbar' => '#2d3755',
++        'input' => '#3b3b3f',
++      ],
++    ];
++
++    foreach ($presets as $name => [$light_fg, $dark_fg]) {
++      $pairs = [
++        'light' => [$light_fg, $surfaces['light']],
++        'dark' => [$dark_fg, $surfaces['dark']],
++      ];
++      foreach ($pairs as $mode => [$fg, $bgs]) {
++        foreach ($bgs as $surface => $bg) {
++          $ratio = $this->contrastRatio($fg, $bg);
++          $this->assertGreaterThanOrEqual(
++            3.0,
++            $ratio,
++            sprintf('Focus preset "%s" (%s) %s must reach >= 3:1 on %s %s (got %.2f:1).', $name, $mode, $fg, $surface, $bg, $ratio)
++          );
++        }
++      }
++    }
++  }
++
++  /**
++   * Focus on an accent-filled control uses a two-part indicator.
++   *
++   * A single focus colour cannot reliably contrast with both an accent-filled
++   * control and every surrounding surface. The focus-gap semantic token
++   * separates the component fill from the outer focus ring.
++   *
++   * This test guards the CSS structure and forced-colors behaviour. Rendered
++   * contrast for the complete indicator is covered by
++   * AccentColorContrastJavascriptTest.
++   */
++  public function testFocusTwoPartIndicatorOnAccentFill(): void {
++    $theme = \Drupal::service('extension.list.theme')->getPath('default_admin');
++    $semantic = file_get_contents($theme . '/css/_variables/variables-color-semantic.css');
++    $button = file_get_contents($theme . '/css/components/button.css');
++    $checkbox = file_get_contents($theme . '/css/components/form--checkbox-radio.css');
++
++    $this->assertStringContainsString(
++      '--admin-color-focus-gap: var(--admin-color-bg-surface);',
++      $semantic,
++      'The focus-gap separator ring must be a semantic token backed by the surface gap.',
++    );
++
++    // Primary button: remove the failing global outline and draw a gap + ring.
++    $this->assertMatchesRegularExpression(
++      '/\.button--primary:focus,[^{]*\{[^}]*outline:[^}]*!important[^}]*var\(--admin-color-focus-gap\)[^}]*var\(--admin-color-focus\)[^}]*\}/s',
++      $button,
++      'Primary button focus must switch to a two-part indicator (outline removed, gap ring + focus ring).',
++    );
++
++    // Checked checkbox (accent-filled) uses the same two-part indicator.
++    $this->assertMatchesRegularExpression(
++      '/&:focus\s*\{[^}]*outline:\s*none[^}]*var\(--admin-color-focus-gap\)[^}]*var\(--admin-color-focus\)[^}]*\}/s',
++      $checkbox,
++      'Checked checkbox focus must use the two-part indicator.',
++    );
++
++    // The two-part overrides must be gated behind forced-colors: none so
++    // forced color mode can use its native focus indicator.
++    $this->assertMatchesRegularExpression(
++      '/@media \(forced-colors: none\)\s*\{\s*\.button--primary:focus,[^{]*\{[^}]*outline:[^}]*!important[^}]*var\(--admin-color-focus-gap\)[^}]*var\(--admin-color-focus\)[^}]*\}\s*\}/s',
++      $button,
++      'Primary button focus override must be wrapped in @media (forced-colors: none).',
++    );
++    $this->assertMatchesRegularExpression(
++      '/@media \(forced-colors: none\)\s*\{\s*&:focus\s*\{[^}]*outline:\s*none[^}]*var\(--admin-color-focus-gap\)[^}]*var\(--admin-color-focus\)[^}]*\}\s*\}/s',
++      $checkbox,
++      'Checked checkbox focus override must be wrapped in @media (forced-colors: none).',
++    );
++  }
++
++  /**
++   * Default link colours remain readable on supported surfaces.
++   *
++   * Detailed accent-specific hover, active, focus, and component-state
++   * relationships are tested separately.
++   */
++  public function testDefaultLinkContrast(): void {
++    $light_bgs = ['#ffffff', '#fefeff'];
++    $dark_bgs = ['#1b1b1d', '#2a2a2d', '#3b3b3f', '#47474c', '#2d3755'];
++    $link_light = '#003ecc';
++    $link_dark = '#99b8ff';
++
++    foreach ($light_bgs as $bg) {
++      $r = $this->contrastRatio($link_light, $bg);
++      $this->assertGreaterThanOrEqual(4.5, $r, sprintf('Link %s on %s must be >=4.5:1 (got %.2f:1).', $link_light, $bg, $r));
++    }
++    foreach ($dark_bgs as $bg) {
++      $r = $this->contrastRatio($link_dark, $bg);
++      $this->assertGreaterThanOrEqual(4.5, $r, sprintf('Link %s on %s must be >=4.5:1 (got %.2f:1).', $link_dark, $bg, $r));
++    }
++    // Document the old bug: #0029a5 on #2d3755 was 1.04:1 (invisible) — fixed by using #99b8ff.
++  }
++
++  /**
++   * Link hover and active are separate states, both dark foreground-safe.
++   *
++   * Hover and active are distinct steps in light mode (accent-600 vs
++   * accent-700). In dark mode both stay foreground-safe: active modifies the
++   * foreground-safe accent toward accent-900 with a color-mix(), instead of
++   * replacing it with the darker accent step, which would lose contrast on dark
++   * surfaces.
++   *
++   * The assertion protects the rendered outcome, never the mix percentage.
++   * The percentage is read from the actual compiled CSS, so changing the mix
++   * amount only passes if every preset's dark active still reaches 4.5:1 on
++   * every dark surface.
++   */
++  public function testLinkStateContrast(): void {
++    $theme = \Drupal::service('extension.list.theme')->getPath('default_admin');
++    $semantic = file_get_contents($theme . '/css/_variables/variables-color-semantic.css');
++
++    $this->assertStringContainsString(
++      '--admin-color-link-hover: light-dark(var(--admin-color-accent-600),',
++      $semantic,
++      'Link hover must use the accent-600 step in light mode.',
++    );
++    $this->assertStringContainsString(
++      '--admin-color-link-active: light-dark(var(--admin-color-accent-700),',
++      $semantic,
++      'Link active must use a deeper accent-700 step than hover in light mode.',
++    );
++    $this->assertMatchesRegularExpression(
++      '/--admin-color-link-active: light-dark\(\s*var\(--admin-color-accent-700\),\s*color-mix\(in oklch,\s*var\(--admin-color-accent-fg\),\s*var\(--admin-color-accent-900\)\s+\d+%\)\s*\);/',
++      $semantic,
++      'Dark-mode link active must be a color-mix() of the foreground-safe accent toward accent-900.',
++    );
++    $this->assertStringNotContainsString(
++      '--admin-color-link-active: light-dark(var(--admin-color-accent-700), var(--admin-color-accent-900));',
++      $semantic,
++    );
++
++    preg_match('/\bcolor-mix\(in oklch,\s*var\(--admin-color-accent-fg\),\s*var\(--admin-color-accent-900\)\s+(\d+)%\)/', $semantic, $match);
++    $this->assertNotEmpty($match, 'The dark link-active color-mix percentage must be readable from the compiled CSS.');
++    $mix = (int) $match[1] / 100;
++
++    // Read every constant that shapes the dark link-active value from the
++    // compiled CSS (the shipped source of truth), never hard-coded values.
++    $primitive = file_get_contents($theme . '/css/_variables/variables-color-primitive.css');
++    [$shared_l, $shared_floor, $shared_c] = $this->oklchDarkFg($primitive, FALSE);
++    [$red_l, , $red_c] = $this->oklchDarkFg($primitive, TRUE);
++    [$base_l_mult, $base_c_mult] = $this->oklchAccentBase($primitive);
++    $scheme = $this->accentMixBaseScheme($primitive);
++    $accent900 = $this->accent900Mix($primitive);
++    $fg_dark_mult = 1 - $accent900;
++    $scheme_dark = $scheme['dark'];
++
++    $dark_bgs = ['#1b1b1d', '#2a2a2d', '#3b3b3f', '#47474c', '#2d3755'];
++    $colors = Helper::accentColors();
++    foreach ($colors as $name => $info) {
++      if ($name === 'custom') {
++        continue;
++      }
++      $base = $this->hexToOklch($info['hex']);
++      // Dark foreground-safe accent. Red honours its shipped lighter override.
++      [$fg_l, $fg_c_mult] = $name === 'red' ? [$red_l, $red_c] : [$shared_l * $base['L'], $shared_c];
++      if ($shared_floor !== NULL && $name !== 'red') {
++        $fg_l = max($fg_l, $shared_floor);
++      }
++      $fg = $this->oklchToHex($fg_l, $fg_c_mult * $base['C'], $base['H']);
++      // Dark fill accent-900: lch mix of the scheme dark against the dark base.
++      $d900 = $this->oklchToHex(
++        $accent900 * $this->oklchL($scheme_dark) + $fg_dark_mult * ($base_l_mult * $base['L']),
++        $accent900 * $this->oklchC($scheme_dark) + $fg_dark_mult * ($base_c_mult * $base['C']),
++        $base['H'],
++      );
++      // Active = oklch color-mix of fg and 900 at the shipped percentage.
++      $fg_o = $this->hexToOklch($fg);
++      $d900_o = $this->hexToOklch($d900);
++      $dh = $d900_o['H'] - $fg_o['H'];
++      $dh = $dh > 180 ? $dh - 360 : ($dh < -180 ? $dh + 360 : $dh);
++      $active = $this->oklchToHex(
++        $fg_o['L'] * (1 - $mix) + $d900_o['L'] * $mix,
++        $fg_o['C'] * (1 - $mix) + $d900_o['C'] * $mix,
++        $fg_o['H'] + $dh * $mix,
++      );
++      foreach ($dark_bgs as $bg) {
++        $ratio = $this->contrastRatio($active, $bg);
++        $this->assertGreaterThanOrEqual(
++          4.5,
++          $ratio,
++          sprintf('Link active "%s" (%s) on %s must be >=4.5:1 (got %.2f:1).', $name, $active, $bg, $ratio),
++        );
++      }
++    }
++  }
++
++  /**
++   * Reads the dark accent-fg oklch constants shipped in a variables sheet.
++   *
++   * The shared branch uses `max(calc(l * N), F) calc(c * M) h`; the red
++   * override uses a literal lightness `1 calc(c * M) h`. Returns
++   * [L base multiplier, L floor (or NULL), C multiplier]. The L base multiplier
++   * is the factor applied to the source lightness; a literal L value is returned
++   * as the multiplier with a NULL floor (treated as an absolute, not scaled).
++   */
++  protected function oklchDarkFg(string $css, bool $red): array {
++    if ($red) {
++      $pattern = '/--admin-color-accent-fg:\s*light-dark\([^,]+,?\s*oklch\(from var\(--accent-base\)\s+([0-9.]+)\s*calc\(c\s*\*\s*([0-9.]+)\)\s*h\)\)?;/';
++    }
++    else {
++      $pattern = '/--admin-color-accent-fg:\s*light-dark\([^,]+,?\s*oklch\(from var\(--accent-base\)\s+max\(calc\(l\s*\*\s*([0-9.]+)\),\s*([0-9.]+)\)\s*calc\(c\s*\*\s*([0-9.]+)\)\s*h\)\)?;/';
++    }
++    $this->assertMatchesRegularExpression($pattern, $css, $red ? 'A shipped red dark-fg oklch override must exist.' : 'A shipped shared dark-fg oklch expression must exist.');
++    preg_match($pattern, $css, $m);
++    if ($red) {
++      return [(float) $m[1], NULL, (float) $m[2]];
++    }
++    return [(float) $m[1], (float) $m[2], (float) $m[3]];
++  }
++
++  /**
++   * Reads the dark accent-base oklch multipliers: [L multiplier, C multiplier].
++   */
++  protected function oklchAccentBase(string $css): array {
++    $pattern = '/--admin-color-accent-base:\s*light-dark\([^,]+,?\s*oklch\(from var\(--accent-base\)\s*calc\(l\s*\*\s*([0-9.]+)\)\s*calc\(c\s*\*\s*([0-9.]+)\)\s*h\)\)?;/';
++    $this->assertMatchesRegularExpression($pattern, $css, 'A shipped dark accent-base oklch expression must exist.');
++    preg_match($pattern, $css, $m);
++    return [(float) $m[1], (float) $m[2]];
++  }
++
++  /**
++   * Reads the high-contrast light accent-fg oklch multipliers: [L, C].
++   */
++  protected function oklchHCLight(string $css): array {
++    $pattern = '/--admin-color-accent-fg:\s*light-dark\(oklch\(from var\(--accent-base\)\s*calc\(l\s*\*\s*([0-9.]+)\)\s*c\s*h\),\s*oklch\(/';
++    $this->assertMatchesRegularExpression($pattern, $css, 'A shipped high-contrast light accent-fg oklch expression must exist.');
++    preg_match($pattern, $css, $m);
++    return [(float) $m[1], 1.0];
++  }
++
++  /**
++   * Reads the high-contrast dark accent-fg oklch constraints: [L, floor, C].
++   */
++  protected function oklchHCDark(string $css): array {
++    $pattern = '/--admin-color-accent-fg:\s*light-dark\([^,]+,\s*oklch\(from var\(--accent-base\)\s*max\(calc\(l\s*\*\s*([0-9.]+)\),\s*([0-9.]+)\)\s*calc\(c\s*\*\s*([0-9.]+)\)\s*h\)\);\s*\}/';
++    $this->assertMatchesRegularExpression($pattern, $css, 'A shipped high-contrast dark accent-fg oklch expression must exist.');
++    preg_match($pattern, $css, $m);
++    return [(float) $m[1], (float) $m[2], (float) $m[3]];
++  }
++
++  /**
++   * Extracts a light-dark() hex pair for a token, optionally within a selector.
++   *
++   * Returns [light hex, dark hex]. Only literal #rgb/#rrggbb values are read.
++   */
++  protected function lightDarkPair(string $css, string $token, ?string $selector = NULL): array {
++    $token = ltrim($token, '-');
++    $token_pat = preg_quote($token, '/');
++    $pattern = $selector === NULL
++      ? '/--' . $token_pat . ':\s*light-dark\((#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})),\s*(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}))\)/'
++      : '/' . preg_quote($selector, '/') . '\s*\{[^}]*--' . $token_pat . ':\s*light-dark\((#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})),\s*(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}))\)/';
++    $this->assertMatchesRegularExpression($pattern, $css, sprintf('A light-dark() hex pair for --%s%s must exist.', $token, $selector ? ' in ' . $selector : ''));
++    preg_match($pattern, $css, $m);
++    return [$m[1], $m[2]];
++  }
++
++  /**
++   * Reads the light/dark literals shipped for --accent-mix-base-scheme.
++   *
++   * The scheme ships as keyword pairs (black/white), so keywords are mapped to
++   * their hex equivalents.
++   */
++  protected function accentMixBaseScheme(string $css): array {
++    $pattern = '/--accent-mix-base-scheme:\s*light-dark\(((?:#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6}|black|white)),\s*((?:#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6}|black|white))\)/';
++    $this->assertMatchesRegularExpression($pattern, $css, 'A shipped --accent-mix-base-scheme light-dark() pair must exist.');
++    preg_match($pattern, $css, $m);
++    $map = static fn(string $v): string => $v === 'black' ? '#000000' : ($v === 'white' ? '#ffffff' : $v);
++    return ['light' => $map($m[1]), 'dark' => $map($m[2])];
++  }
++
++  /**
++   * Reads the accent-900 step mix percentage (fraction 0..1).
++   */
++  protected function accent900Mix(string $css): float {
++    $pattern = '/--admin-color-accent-900:\s*color-mix\(in lch,\s*var\(--accent-mix-base-scheme\)\s+([0-9.]+)%/';
++    $this->assertMatchesRegularExpression($pattern, $css, 'A shipped accent-900 color-mix percentage must exist.');
++    preg_match($pattern, $css, $m);
++    return (float) $m[1] / 100;
++  }
++
++  /**
++   * Returns the OKLCH lightness of a hex colour.
++   */
++  protected function oklchL(string $hex): float {
++    return $this->hexToOklch($hex)['L'];
++  }
++
++  /**
++   * Returns the OKLCH chroma of a hex colour.
++   */
++  protected function oklchC(string $hex): float {
++    return $this->hexToOklch($hex)['C'];
++  }
++
++  /**
++   * Returns the OKLCH hue (degrees) of a hex colour.
++   */
++  protected function oklchH(string $hex): float {
++    return $this->hexToOklch($hex)['H'];
++  }
++
++  /**
++   * Computes the WCAG 2.2 relative luminance of a #rrggbb (or #rgb) colour.
++   */
++  protected function relativeLuminance(string $hex): float {
++    $hex = ltrim($hex, '#');
++    if (strlen($hex) === 3) {
++      $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
++    }
++    $r = hexdec(substr($hex, 0, 2)) / 255;
++    $g = hexdec(substr($hex, 2, 2)) / 255;
++    $b = hexdec(substr($hex, 4, 2)) / 255;
++    $channel = static function (float $c): float {
++      return $c <= 0.04045 ? $c / 12.92 : pow(($c + 0.055) / 1.055, 2.4);
++    };
++    return 0.2126 * $channel($r) + 0.7152 * $channel($g) + 0.0722 * $channel($b);
++  }
++
++  /**
++   * Computes the WCAG 2.2 contrast ratio between two #rrggbb colours.
++   */
++  protected function contrastRatio(string $hex1, string $hex2): float {
++    $l1 = $this->relativeLuminance($hex1);
++    $l2 = $this->relativeLuminance($hex2);
++    $lighter = max($l1, $l2);
++    $darker = min($l1, $l2);
++    return ($lighter + 0.05) / ($darker + 0.05);
++  }
++
++  /**
++   * Converts a #rrggbb (or #rgb) colour to an [r,g,b] array.
++   */
++  protected function hexToRgb(string $hex): array {
++    $hex = ltrim($hex, '#');
++    if (strlen($hex) === 3) {
++      $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
++    }
++    return [hexdec(substr($hex, 0, 2)), hexdec(substr($hex, 2, 2)), hexdec(substr($hex, 4, 2))];
++  }
++
++  /**
++   * Converts a hex colour to OKLab [L, C, H] values (mirrors CSS oklch()).
++   */
++  protected function hexToOklch(string $hex): array {
++    [$r, $g, $b] = array_map(fn($v) => $v / 255, $this->hexToRgb($hex));
++    $r = $r > 0.04045 ? pow(($r + 0.055) / 1.055, 2.4) : $r / 12.92;
++    $g = $g > 0.04045 ? pow(($g + 0.055) / 1.055, 2.4) : $g / 12.92;
++    $b = $b > 0.04045 ? pow(($b + 0.055) / 1.055, 2.4) : $b / 12.92;
++    $l = 0.4122214708 * $r + 0.5363325363 * $g + 0.0514459929 * $b;
++    $m = 0.2119034982 * $r + 0.6806995451 * $g + 0.1073969566 * $b;
++    $s = 0.0883024619 * $r + 0.2817188376 * $g + 0.6299787005 * $b;
++    $lc = pow($l, 1 / 3);
++    $mc = pow($m, 1 / 3);
++    $sc = pow($s, 1 / 3);
++    $ok_l = 0.2104542553 * $lc + 0.7936177850 * $mc - 0.0040720468 * $sc;
++    $ok_a = 1.9779984951 * $lc - 2.4285922050 * $mc + 0.4505937099 * $sc;
++    $ok_b = 0.0259040371 * $lc + 0.7827717662 * $mc - 0.8086757660 * $sc;
++    $chroma = sqrt($ok_a * $ok_a + $ok_b * $ok_b);
++    $hue = rad2deg(atan2($ok_b, $ok_a));
++    if ($hue < 0) {
++      $hue += 360;
++    }
++    return ['L' => $ok_l, 'C' => $chroma, 'H' => $hue];
++  }
++
++  /**
++   * Converts OKLab [L, C, H] values to a hex colour (mirrors CSS oklch()).
++   */
++  protected function oklchToHex(float $ok_l, float $chroma, float $hue): string {
++    $hrad = deg2rad($hue);
++    $ok_a = $chroma * cos($hrad);
++    $ok_b = $chroma * sin($hrad);
++    $lc = $ok_l + 0.3963377774 * $ok_a + 0.2158037573 * $ok_b;
++    $mc = $ok_l - 0.1055613458 * $ok_a - 0.0638541728 * $ok_b;
++    $sc = $ok_l - 0.0894841775 * $ok_a - 1.2914855480 * $ok_b;
++    $l = $lc * $lc * $lc;
++    $m = $mc * $mc * $mc;
++    $s = $sc * $sc * $sc;
++    $r = 4.0767416621 * $l - 3.3077115913 * $m + 0.2309699292 * $s;
++    $g = -1.2684380046 * $l + 2.6097574011 * $m - 0.3413193965 * $s;
++    $b = -0.0041960863 * $l - 0.7034186147 * $m + 1.7076147010 * $s;
++    $r = $r > 0.0031308 ? 1.055 * pow($r, 1 / 2.4) - 0.055 : 12.92 * $r;
++    $g = $g > 0.0031308 ? 1.055 * pow($g, 1 / 2.4) - 0.055 : 12.92 * $g;
++    $b = $b > 0.0031308 ? 1.055 * pow($b, 1 / 2.4) - 0.055 : 12.92 * $b;
++    return sprintf('#%02x%02x%02x', max(0, min(255, (int) round($r * 255))), max(0, min(255, (int) round($g * 255))), max(0, min(255, (int) round($b * 255))));
++  }
++
++}
+diff --git a/core/themes/default_admin/tests/src/Functional/AdminTest.php b/core/themes/default_admin/tests/src/Functional/AdminTest.php
+index d75e5f841d3..43bb5254d1c 100644
+--- a/core/themes/default_admin/tests/src/Functional/AdminTest.php
++++ b/core/themes/default_admin/tests/src/Functional/AdminTest.php
+@@ -56,7 +56,7 @@ class AdminTest extends BrowserTestBase {
+     $this->assertSession()->statusCodeEquals(200);
+     $this->assertStringContainsString('"dark_mode":"auto"', $response);
+     $this->assertStringContainsString('"preset_accent_color":"blue"', $response);
+-    $this->assertStringContainsString('"preset_focus_color":"gin"', $response);
++    $this->assertStringContainsString('"preset_focus_color":"blue"', $response);
+   }
+ 
+   /**
+@@ -89,6 +89,53 @@ class AdminTest extends BrowserTestBase {
+     $this->assertStringContainsString('"preset_focus_color":"blue"', $response);
+   }
+ 
++  /**
++   * Tests legacy focus color settings are normalized.
++   */
++  public function testLegacyFocusColorSettings(): void {
++    $legacy = [
++      'gin' => 'blue',
++      'claro' => 'green',
++      'orange' => 'amber',
++      'dark' => 'neutral',
++      'accent' => 'blue',
++    ];
++
++    foreach ($legacy as $stored => $expected) {
++      \Drupal::configFactory()
++        ->getEditable('default_admin.settings')
++        ->set('preset_focus_color', $stored)
++        ->save();
++
++      $response = $this->drupalGet('/admin/content');
++
++      $this->assertSession()
++        ->statusCodeEquals(200);
++
++      // JavaScript settings must expose the normalized value.
++      $this->assertStringContainsString(
++        '"preset_focus_color":"' . $expected . '"',
++        $response,
++      );
++
++      // The rendered HTML must use the normalized focus family.
++      $this->assertSession()->elementAttributeContains(
++        'css',
++        'html',
++        'data-gin-focus',
++        $expected,
++      );
++
++      // The Appearance form must also resolve the legacy value to a currently
++      // available focus option.
++      $this->drupalGet('/admin/appearance/settings/default_admin');
++      $this->assertSession()->fieldValueEquals(
++        'preset_focus_color',
++        $expected,
++      );
++    }
++  }
++
+   /**
+    * Test user settings.
+    */
+diff --git a/core/themes/default_admin/tests/src/FunctionalJavascript/AccentColorContrastJavascriptTest.php b/core/themes/default_admin/tests/src/FunctionalJavascript/AccentColorContrastJavascriptTest.php
+new file mode 100644
+index 00000000000..3c03b72e93f
+--- /dev/null
++++ b/core/themes/default_admin/tests/src/FunctionalJavascript/AccentColorContrastJavascriptTest.php
+@@ -0,0 +1,1058 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\default_admin\FunctionalJavascript;
++
++use Drupal\default_admin\Helper;
++use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++
++/**
++ * Verifies rendered accent and interactive contrast in a real browser.
++ *
++ * The dark-mode accent values are produced by oklch() colour maths in CSS,
++ * so a pure-PHP unit check cannot resolve them. This test enables dark mode,
++ * loads each accent preset, and reads the *computed* colour values from the
++ * browser (which honours the .gin--dark-mode colour-scheme), then asserts
++ * WCAG 2.2 AA ratios. Also covers link / focus / hover which previously
++ * regressed to #0029a5 on #2d3755 (1.04:1) on Light/Auto.
++ *
++ * Runs wherever a WebDriver browser is available (CI, Guidepup).
++ */
++#[Group('default_admin')]
++#[RunTestsInSeparateProcesses]
++class AccentColorContrastJavascriptTest extends WebDriverTestBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  protected static $modules = [
++    'toolbar',
++    'node',
++  ];
++
++  /**
++   * {@inheritdoc}
++   */
++  protected $defaultTheme = 'stark';
++
++  /**
++   * {@inheritdoc}
++   */
++  protected function setUp(): void {
++    parent::setUp();
++
++    $this->assertTrue(\Drupal::service('theme_installer')->install(['default_admin']));
++    $this->container->get('config.factory')
++      ->getEditable('system.theme')
++      ->set('default', 'default_admin')
++      ->set('admin', 'default_admin')
++      ->save();
++
++    $admin_user = $this->drupalCreateUser([
++      'access administration pages',
++      'administer themes',
++      'access toolbar',
++      'access content overview',
++    ]);
++    $this->drupalLogin($admin_user);
++  }
++
++  /**
++   * Each accent preset must keep >= 4.5:1 WCAG in dark mode.
++   */
++  public function testDarkModeAccentContrast(): void {
++    $config = $this->config('default_admin.settings');
++    $config->set('enable_dark_mode', '1')->save();
++
++    $presets = Helper::accentColors();
++    foreach ($presets as $name => $info) {
++      $config->set('preset_accent_color', $name)->save();
++      $this->drupalGet('/admin/content');
++      $this->assertSession()->statusCodeEquals(200);
++
++      $ratios = $this->getSession()->evaluateScript($this->contrastScript());
++
++      $this->assertGreaterThanOrEqual(
++        4.5,
++        $ratios['fgOnBg'],
++        sprintf('Dark mode: accent "%s" foreground on the dark background must be >= 4.5:1 WCAG (got %.2f:1).', $name, $ratios['fgOnBg'])
++      );
++      $this->assertGreaterThanOrEqual(
++        4.5,
++        $ratios['whiteOnFill'],
++        sprintf('Dark mode: white label on the accent "%s" button must be >= 4.5:1 WCAG (got %.2f:1).', $name, $ratios['whiteOnFill'])
++      );
++    }
++  }
++
++  /**
++   * Links, focus and hover must remain visible on every surface and appearance.
++   *
++   * Covers Light (0), Dark (1) and Auto. Previously Light/Auto regressed to
++   * #0029a5 on #2d3755 (1.04:1). Link needs 4.5:1, focus ring 3:1.
++   */
++  public function testInteractiveContrast(): void {
++    $cases = [
++      'Light' => 0,
++      'Dark' => 1,
++      'Auto' => 'auto',
++    ];
++    foreach ($cases as $label => $mode) {
++      $this->config('default_admin.settings')->set('enable_dark_mode', $mode)->save();
++      $this->drupalGet('/admin/appearance/settings/default_admin');
++      $this->assertSession()->statusCodeEquals(200);
++      $ratios = $this->getSession()->evaluateScript($this->interactiveScript());
++      $this->assertGreaterThanOrEqual(4.5, $ratios['linkOnBg'], sprintf('%s: link on bg must be >=4.5:1 (got %.2f:1).', $label, $ratios['linkOnBg']));
++      $this->assertGreaterThanOrEqual(4.5, $ratios['linkOnSurface'], sprintf('%s: link on surface must be >=4.5:1 (got %.2f:1).', $label, $ratios['linkOnSurface']));
++      $this->assertGreaterThanOrEqual(3.0, $ratios['focusOnBg'], sprintf('%s: focus on bg must be >=3:1 (got %.2f:1).', $label, $ratios['focusOnBg']));
++      $this->assertGreaterThanOrEqual(3.0, $ratios['focusOnSurface'], sprintf('%s: focus on surface must be >=3:1 (got %.2f:1).', $label, $ratios['focusOnSurface']));
++      $this->assertGreaterThanOrEqual(4.5, $ratios['hoverOnBg'], sprintf('%s: hover (accent-fg) on bg must be >=4.5:1 (got %.2f:1).', $label, $ratios['hoverOnBg']));
++      $this->assertGreaterThanOrEqual(4.5, $ratios['activeOnBg'], sprintf('%s: active (dark foreground-safe mix) on bg must be >=4.5:1 (got %.2f:1).', $label, $ratios['activeOnBg']));
++    }
++  }
++
++  /**
++   * High-contrast must keep accent-foreground legible on main surfaces.
++   *
++   * High-contrast resolves accent-foreground from the accent base and
++   * surfaces text and borders onto the high-contrast ramp. This covers the
++   * “thin white outline” regression where HC was unreadable in dark.
++   */
++  public function testHighContrastAccent(): void {
++    $presets = Helper::accentColors();
++    foreach (['Light' => 0, 'Dark' => 1] as $label => $mode) {
++      $this->config('default_admin.settings')->set('enable_dark_mode', $mode)->set('high_contrast_mode', 1)->save();
++      foreach ($presets as $name => $info) {
++        if ($name === 'custom') {
++          continue;
++        }
++        $this->config('default_admin.settings')->set('preset_accent_color', $name)->save();
++        $this->drupalGet('/admin/content');
++        $this->assertSession()->statusCodeEquals(200);
++        $ratios = $this->getSession()->evaluateScript($this->contrastScript());
++        $expected = 7.0;
++        $this->assertGreaterThanOrEqual($expected, $ratios['fgOnBg'], sprintf('HC %s: accent "%s" fg on bg must be >=%s:1 (got %.2f:1).', $label, $name, $expected, $ratios['fgOnBg']));
++      }
++    }
++    // Reset.
++    $this->config('default_admin.settings')->set('high_contrast_mode', 0)->save();
++  }
++
++  /**
++   * Script for interactive tokens (link / focus / hover) on bg and surface.
++   */
++  protected function interactiveScript(): string {
++    return <<<'JS'
++(function () {
++  const temp = document.createElement('div');
++  temp.style.display = 'none';
++  document.body.appendChild(temp);
++  function resolve(varName, property) {
++    temp.style[property] = 'var(' + varName + ')';
++    const v = getComputedStyle(temp)[property];
++    temp.style[property] = '';
++    return v;
++  }
++  function lum(s) {
++    if (!CSS.supports('color', s)) {
++      throw new Error('Unsupported computed color: ' + s);
++    }
++    const canvas = document.createElement('canvas');
++    canvas.width = canvas.height = 1;
++    const ctx = canvas.getContext('2d', { willReadFrequently: true });
++    if (!ctx) {
++      throw new Error('Canvas 2D context unavailable while resolving: ' + s);
++    }
++    ctx.fillStyle = s;
++    ctx.fillRect(0, 0, 1, 1);
++    const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
++    if (a !== 255) {
++      throw new Error('Expected opaque computed color, got: ' + s);
++    }
++    const f = value => {
++      const x = value / 255;
++      return x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
++    };
++    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
++  }
++  function ratio(a,b){ const A=Math.max(a,b), B=Math.min(a,b); return (A+0.05)/(B+0.05); }
++  const link = lum(resolve('--admin-color-link','color'));
++  const hover = lum(resolve('--admin-color-link-hover','color'));
++  const active = lum(resolve('--admin-color-link-active','color'));
++  const focus = lum(resolve('--admin-color-focus','color'));
++  const bg = lum(resolve('--admin-color-bg','backgroundColor'));
++  const surface = lum(resolve('--admin-color-bg-surface','backgroundColor'));
++  return {
++    linkOnBg: ratio(link, bg),
++    linkOnSurface: ratio(link, surface),
++    focusOnBg: ratio(focus, bg),
++    focusOnSurface: ratio(focus, surface),
++    hoverOnBg: ratio(hover, bg),
++    activeOnBg: ratio(active, bg)
++  };
++})()
++JS;
++  }
++
++  /**
++   * In-page script that resolves the accent CSS variables and returns WCAG ratios.
++   *
++   * Custom properties are not resolved by getPropertyValue(), so each variable
++   * is applied to a throwaway element and its used colour is read back. Because
++   * .gin--dark-mode sets color-scheme: dark, light-dark() resolves to the dark
++   * value, exactly as a real user sees it.
++   */
++  protected function contrastScript(): string {
++    return <<<'JS'
++(function () {
++  const temp = document.createElement('div');
++  temp.style.display = 'none';
++  document.body.appendChild(temp);
++
++  function resolve(varName, property) {
++    temp.style[property] = 'var(' + varName + ')';
++    const value = getComputedStyle(temp)[property];
++    temp.style[property] = '';
++    return value;
++  }
++  function lum(s) {
++    if (!CSS.supports('color', s)) {
++      throw new Error('Unsupported computed color: ' + s);
++    }
++    const canvas = document.createElement('canvas');
++    canvas.width = canvas.height = 1;
++    const ctx = canvas.getContext('2d', { willReadFrequently: true });
++    if (!ctx) {
++      throw new Error('Canvas 2D context unavailable while resolving: ' + s);
++    }
++    ctx.fillStyle = s;
++    ctx.fillRect(0, 0, 1, 1);
++    const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
++    if (a !== 255) {
++      throw new Error('Expected opaque computed color, got: ' + s);
++    }
++    const f = value => {
++      const x = value / 255;
++      return x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
++    };
++    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
++  }
++  function ratio(l1, l2) {
++    const a = Math.max(l1, l2), b = Math.min(l1, l2);
++    return (a + 0.05) / (b + 0.05);
++  }
++
++  const fgLum = lum(resolve('--admin-color-accent-fg', 'color'));
++  const fillLum = lum(resolve('--admin-color-accent-base', 'backgroundColor'));
++  const bgLum = lum(resolve('--admin-color-bg', 'backgroundColor'));
++  const txtLum = lum(resolve('--admin-color-text-on-primary', 'color'));
++
++  return {
++    fgOnBg: ratio(fgLum, bgLum),
++    whiteOnFill: ratio(txtLum, fillLum)
++  };
++})()
++JS;
++  }
++
++  /**
++   * Representative rendered text/surface pairs reach WCAG AA in each appearance.
++   *
++   * Reads computed colours from the browser — which resolves light-dark() for
++   * the active appearance — and measures WCAG ratios. This avoids duplicating
++   * the CSS colour formulas in the test. Covers Light, Dark and Auto.
++   */
++  public function testRenderedSurfaceContrast(): void {
++    $cases = [
++      'Light' => '0',
++      'Dark' => '1',
++      'Auto' => 'auto',
++    ];
++    $config = $this->config('default_admin.settings');
++    $config->set('preset_accent_color', 'blue')->save();
++
++    foreach ($cases as $label => $mode) {
++      $config->set('enable_dark_mode', $mode)->save();
++      $this->drupalGet('/admin/content');
++      $this->assertSession()->statusCodeEquals(200);
++      $ratios = $this->getSession()->evaluateScript($this->surfaceScript());
++      $this->assertGreaterThanOrEqual(4.5, $ratios['textOnBg'], sprintf('%s: page text on main background must be >=4.5:1 (got %.2f:1).', $label, $ratios['textOnBg']));
++      $this->assertGreaterThanOrEqual(4.5, $ratios['textOnSurface'], sprintf('%s: text on surface must be >=4.5:1 (got %.2f:1).', $label, $ratios['textOnSurface']));
++      $this->assertGreaterThanOrEqual(4.5, $ratios['textOnNested'], sprintf('%s: text on nested surface must be >=4.5:1 (got %.2f:1).', $label, $ratios['textOnNested']));
++      $this->assertGreaterThanOrEqual(4.5, $ratios['textOnRaised'], sprintf('%s: text on raised surface must be >=4.5:1 (got %.2f:1).', $label, $ratios['textOnRaised']));
++      $this->assertGreaterThanOrEqual(4.5, $ratios['accentFgOnSurface'], sprintf('%s: accent foreground on surface must be >=4.5:1 (got %.2f:1).', $label, $ratios['accentFgOnSurface']));
++    }
++  }
++
++  /**
++   * The active appearance actually resolves the correct light-dark() branch.
++   *
++   * Proves state selection before any contrast math: Dark must resolve the dark
++   * branch of representative semantic variables; Light must resolve the light
++   * branch. This catches cascade/state failures where a variable never switches.
++   */
++  public function testLightDarkStateSelection(): void {
++    $config = $this->config('default_admin.settings');
++    $config->set('preset_accent_color', 'blue')->save();
++
++    // Dark mode must resolve the dark branch of --admin-color-bg (#1b1b1d).
++    $config->set('enable_dark_mode', '1')->save();
++    $this->drupalGet('/admin/content');
++    $this->assertSession()->statusCodeEquals(200);
++    $darkBg = $this->resolveColor('--admin-color-bg');
++    $this->assertEquals('rgb(27, 27, 29)', $darkBg, 'Dark mode must resolve --admin-color-bg to the dark branch rgb(27, 27, 29).');
++    $this->assertEquals('rgb(42, 42, 45)', $this->resolveColor('--admin-color-bg-surface'), 'Dark mode must resolve --admin-color-bg-surface to the dark branch rgb(42, 42, 45).');
++
++    // Light mode must not resolve the dark branch.
++    $config->set('enable_dark_mode', '0')->save();
++    $this->drupalGet('/admin/content');
++    $this->assertSession()->statusCodeEquals(200);
++    $lightBg = $this->resolveColor('--admin-color-bg');
++    $this->assertNotEquals('rgb(27, 27, 29)', $lightBg, 'Light mode must not resolve --admin-color-bg to the dark branch.');
++    $this->assertNotEquals('rgb(42, 42, 45)', $this->resolveColor('--admin-color-bg-surface'), 'Light mode must not resolve --admin-color-bg-surface to the dark branch.');
++  }
++
++  /**
++   * Every focus preset keeps >= 3:1 against the main surfaces, rendered.
++   *
++   * --admin-color-focus is switched by data-gin-focus on the element, so each
++   * preset is measured with the matching attribute in place and the active
++   * appearance resolving the correct light-dark() branch.
++   */
++  public function testFocusPresetRendered(): void {
++    $focusPresets = ['blue', 'green', 'amber', 'neutral'];
++    $cases = ['Light' => 0, 'Dark' => 1, 'Auto' => 'auto'];
++    $this->config('default_admin.settings')->set('preset_accent_color', 'blue')->save();
++    foreach ($cases as $caseLabel => $mode) {
++      $this->config('default_admin.settings')->set('enable_dark_mode', $mode)->save();
++      $this->drupalGet('/admin/content');
++      $this->assertSession()->statusCodeEquals(200);
++      foreach ($focusPresets as $preset) {
++        $ratios = $this->getSession()->evaluateScript($this->focusPresetScript($preset));
++        foreach (['bg', 'surface', 'nested', 'raised', 'input'] as $surface) {
++          $this->assertGreaterThanOrEqual(
++            3.0,
++            $ratios[$surface],
++            sprintf('%s: focus preset "%s" on %s must be >=3:1 (got %.2f:1).', $caseLabel, $preset, $surface, $ratios[$surface])
++          );
++        }
++      }
++    }
++  }
++
++  /**
++   * A meaningful icon stays >= 3:1 on the icon link in each state.
++   *
++   * The icon is drawn with currentColor and only its container background
++   * changes across rest / hover / active. Active uses an accent fill, so the
++   * icon must flip to a contrasting colour (white light, near-black dark).
++   */
++  public function testMeaningfulIconStateContrast(): void {
++    $cases = ['Light' => 0, 'Dark' => 1];
++    $this->config('default_admin.settings')->set('preset_accent_color', 'blue')->save();
++    foreach ($cases as $caseLabel => $mode) {
++      $this->config('default_admin.settings')->set('enable_dark_mode', $mode)->save();
++      $this->drupalGet('/admin/content');
++      $this->assertSession()->statusCodeEquals(200);
++      $ratios = $this->getSession()->evaluateScript($this->iconStateScript());
++      foreach (['rest', 'hover', 'active'] as $state) {
++        $this->assertGreaterThanOrEqual(
++          3.0,
++          $ratios[$state],
++          sprintf('%s: icon on %s background must be >=3:1 (got %.2f:1).', $caseLabel, $state, $ratios[$state])
++        );
++      }
++    }
++  }
++
++  /**
++   * Rendered interaction states keep text/icon contrast for every fixed accent.
++   *
++   * Renders real control fixtures so the production stylesheets apply, reads
++   * the *computed* foreground and *painted* background (compositing alpha
++   * through ancestors), and asserts WCAG thresholds per state. WebDriver cannot
++   * force :hover/:active on a real node, so those state colours are resolved
++   * through the production semantic token that rule maps to, on a real element
++   * in the active appearance. Pseudo-states that can be established (focus)
++   * are triggered directly. The browser — not a PHP re-derivation — resolves
++   * every colour.
++   *
++   * States asserted: link rest/hover/active/focus (text >= 4.5:1); secondary
++   * button rest/hover/active (text >= 4.5:1); primary (accent-filled) button
++   * rest/hover/active/focus (text-on-fill >= 4.5:1); Details summary
++   * closed/hover/open/open+hover (text >= 4.5:1, disclosure marker >= 3:1).
++   * Auto is compared to its explicit equivalent.
++   */
++  public function testRenderedInteractionStates(): void {
++    $presets = Helper::accentColors();
++    unset($presets['custom']);
++    if (isset($presets['neutral'])) {
++      // Neutral remains in the fixed set but is achromatic; it still runs.
++    }
++    $cases = [
++      'Light' => ['mode' => '0', 'dark' => false, 'group' => 'explicit'],
++      'Dark' => ['mode' => '1', 'dark' => true, 'group' => 'explicit'],
++      'Auto-light' => ['mode' => 'auto', 'dark' => false, 'group' => 'auto'],
++      'Auto-dark' => ['mode' => 'auto', 'dark' => true, 'group' => 'auto'],
++    ];
++    $byMode = [];
++    foreach ($cases as $caseLabel => $case) {
++      $branch = $case['dark'] ? 'dark' : 'light';
++      $this->config('default_admin.settings')
++        ->set('enable_dark_mode', $case['mode'])
++        ->set('preset_accent_color', 'blue')
++        ->save();
++      $this->drupalGet('/admin/appearance/settings/default_admin');
++      $this->assertSession()->statusCodeEquals(200);
++      foreach ($presets as $name => $info) {
++        $this->config('default_admin.settings')->set('preset_accent_color', $name)->save();
++        $this->drupalGet('/admin/appearance/settings/default_admin');
++        $this->assertSession()->statusCodeEquals(200);
++        $measured = $this->getSession()->evaluateScript($this->renderedInteractionScript($case['dark']));
++        $this->assertStates($caseLabel, $name, $measured);
++        // Underlined rest links resolve the same accent text colour regardless
++        // of whether the appearance is forced or follows the system, so Auto
++        // cannot drift from Light or Dark.
++        $byMode[$branch][$case['group']][$name] = $measured['link']['rest']['fg'];
++      }
++      $this->config('default_admin.settings')->set('preset_accent_color', 'blue')->save();
++    }
++    foreach ($presets as $name => $info) {
++      foreach (['light', 'dark'] as $branch) {
++        $this->assertEquals(
++          $byMode[$branch]['explicit'][$name],
++          $byMode[$branch]['auto'][$name],
++          sprintf('Auto-%s link for "%s" must equal explicit (got %s vs %s).', $branch, $name, $byMode[$branch]['explicit'][$name], $byMode[$branch]['auto'][$name])
++        );
++      }
++    }
++  }
++
++  /**
++   * Asserts the per-state thresholds returned by renderedInteractionScript().
++   */
++  private function assertStates(string $caseLabel, string $name, array $measured): void {
++    $this->assertContains(
++      'underline',
++      explode(' ', $measured['link']['underline']),
++      sprintf('%s: accent "%s" rest link must be underlined so G183 is not required.', $caseLabel, $name)
++    );
++    foreach ($measured['link'] as $state => $m) {
++      if ($state === 'underline') {
++        continue;
++      }
++      $this->assertGreaterThanOrEqual(
++        4.5,
++        $m['ratio'],
++        sprintf('%s: accent "%s" link %s text %s on %s must be >=4.5:1 (got %.2f:1).', $caseLabel, $name, $state, $m['fg'], $m['bg'], $m['ratio'])
++      );
++    }
++    foreach ($measured['secondary'] as $state => $m) {
++      $this->assertGreaterThanOrEqual(
++        4.5,
++        $m['ratio'],
++        sprintf('%s: accent "%s" secondary button %s text %s on %s must be >=4.5:1 (got %.2f:1).', $caseLabel, $name, $state, $m['fg'], $m['bg'], $m['ratio'])
++      );
++    }
++    foreach ($measured['primary'] as $state => $m) {
++      $this->assertGreaterThanOrEqual(
++        4.5,
++        $m['ratio'],
++        sprintf('%s: accent "%s" primary button %s text %s on %s must be >=4.5:1 (got %.2f:1).', $caseLabel, $name, $state, $m['fg'], $m['bg'], $m['ratio'])
++      );
++    }
++    foreach ($measured['summary'] as $state => $m) {
++      $this->assertGreaterThanOrEqual(
++        4.5,
++        $m['ratio'],
++        sprintf('%s: accent "%s" details summary %s text %s on %s must be >=4.5:1 (got %.2f:1).', $caseLabel, $name, $state, $m['fg'], $m['bg'], $m['ratio'])
++      );
++    }
++    $this->assertGreaterThanOrEqual(
++      3.0,
++      $measured['marker']['ratio'],
++      sprintf('%s: accent "%s" details disclosure marker %s on %s must be >=3:1 (got %.2f:1).', $caseLabel, $name, $measured['marker']['fg'], $measured['marker']['bg'], $measured['marker']['ratio'])
++    );
++    foreach (['rest', 'hover', 'checked'] as $radioState) {
++      $m = $measured['radio'][$radioState];
++      $this->assertGreaterThanOrEqual(
++        4.5,
++        $m['ratio'],
++        sprintf('%s: accent "%s" radio label %s text %s on %s must be >=4.5:1 (got %.2f:1).', $caseLabel, $name, $radioState, $m['fg'], $m['bg'], $m['ratio'])
++      );
++    }
++    $this->assertGreaterThanOrEqual(
++      3.0,
++      $measured['radio']['boundary']['ratio'],
++      sprintf('%s: accent "%s" radio control boundary %s on %s must be >=3:1 (got %.2f:1).', $caseLabel, $name, $measured['radio']['boundary']['fg'], $measured['radio']['boundary']['bg'], $measured['radio']['boundary']['ratio'])
++    );
++    $this->assertGreaterThanOrEqual(
++      3.0,
++      $measured['radio']['checkedRing']['ratio'],
++      sprintf('%s: accent "%s" radio checked ring %s on %s must be >=3:1 (got %.2f:1).', $caseLabel, $name, $measured['radio']['checkedRing']['fg'], $measured['radio']['checkedRing']['bg'], $measured['radio']['checkedRing']['ratio'])
++    );
++  }
++
++  /**
++   * Script that renders control fixtures and measures each state's computed
++   * foreground vs painted background.
++   */
++  protected function renderedInteractionScript(bool $dark): string {
++    $darkJs = $dark ? 'true' : 'false';
++    return <<<JS
++(function () {
++  // Replicate the theme's real dark-mode state: the gin--dark-mode class on
++  // <html> plus the color-scheme that drives any light-dark() tokens.
++  document.documentElement.classList.toggle('gin--dark-mode', $darkJs);
++  document.documentElement.style.colorScheme = $darkJs ? 'dark' : 'light';
++
++  function rgba(s) {
++    const canvas = document.createElement('canvas');
++    canvas.width = canvas.height = 1;
++    const ctx = canvas.getContext('2d');
++    if (!ctx) {
++      throw new Error('Canvas 2D context unavailable while resolving: ' + s);
++    }
++    ctx.clearRect(0, 0, 1, 1);
++    ctx.fillStyle = s;
++    ctx.fillRect(0, 0, 1, 1);
++    const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
++    return { r, g, b, a: a / 255 };
++  }
++  function toRgb(c) {
++    return 'rgb(' + Math.round(c.r) + ', ' + Math.round(c.g) + ', ' + Math.round(c.b) + ')';
++  }
++  // Both alphas are on the 0-1 scale from rgba().
++  function over(fg, bg) {
++    const fa = fg.a, ba = bg.a;
++    if (ba === 0) {
++      return { r: fg.r, g: fg.g, b: fg.b, a: fa };
++    }
++    const a = fa + ba * (1 - fa);
++    if (a === 0) {
++      return { r: 0, g: 0, b: 0, a: 0 };
++    }
++    return {
++      r: (fg.r * fa + bg.r * ba * (1 - fa)) / a,
++      g: (fg.g * fa + bg.g * ba * (1 - fa)) / a,
++      b: (fg.b * fa + bg.b * ba * (1 - fa)) / a,
++      a,
++    };
++  }
++  function paintedBg(el) {
++    let acc = { r: 0, g: 0, b: 0, a: 0 };
++    let node = el;
++    let guard = 0;
++    while (node && node !== document.documentElement && guard++ < 40) {
++      const bg = getComputedStyle(node).backgroundColor;
++      if (bg && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)') {
++        const layer = rgba(bg);
++        if (layer.a > 0.01) {
++          acc = over(layer, acc);
++        }
++      }
++      node = node.parentElement;
++    }
++    if (acc.a < 0.999) {
++      acc = over(acc, { r: 255, g: 255, b: 255, a: 1 });
++    }
++    return toRgb(acc);
++  }
++  function lum(s) {
++    // Only ever called on an opaque colour produced by over().
++    const [r, g, b, a] = (() => {
++      const canvas = document.createElement('canvas');
++      canvas.width = canvas.height = 1;
++      const ctx = canvas.getContext('2d');
++      ctx.fillStyle = s;
++      ctx.fillRect(0, 0, 1, 1);
++      return ctx.getImageData(0, 0, 1, 1).data;
++    })();
++    if (a !== 255) {
++      throw new Error('Expected opaque colour for luminance, got: ' + s);
++    }
++    const f = value => {
++      const x = value / 255;
++      return x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
++    };
++    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
++  }
++  function ratio(a, b) { const A = Math.max(a, b), B = Math.min(a, b); return (A + 0.05) / (B + 0.05); }
++  // fgColor and bgLayer may be translucent; both are composited over the
++  // element's painted background so the browser's stacking is respected.
++  function measure(fgColor, bgLayer, el) {
++    const base = paintedBg(el);
++    const layer = bgLayer ? toRgb(over(rgba(bgLayer), rgba(base))) : base;
++    const fg = toRgb(over(rgba(fgColor), rgba(layer)));
++    return { fg, bg: layer, ratio: ratio(lum(fg), lum(layer)) };
++  }
++  function resolveToken(token, property) {
++    const t = document.createElement('div');
++    t.style.display = 'none';
++    document.body.appendChild(t);
++    t.style[property] = 'var(' + token + ')';
++    const v = getComputedStyle(t)[property];
++    t.remove();
++    if (!v) {
++      throw new Error('Unresolved token: ' + token);
++    }
++    return v;
++  }
++
++  // ---- Fixtures (appended so production theme styles apply) ----
++  const host = document.createElement('main');
++  host.setAttribute('class', 'content');
++  host.style.position = 'absolute';
++  host.style.left = '-9999px';
++  host.style.top = '0';
++  document.body.appendChild(host);
++
++  const link = document.createElement('a');
++  link.setAttribute('href', '#');
++  link.textContent = 'Rendered link';
++  host.appendChild(link);
++  // Second, never-focused link carries the rest underline evidence.
++  const linkRestFixture = document.createElement('a');
++  linkRestFixture.setAttribute('href', '#');
++  linkRestFixture.textContent = 'Rest link';
++  host.appendChild(linkRestFixture);
++  // Establish real focus on the first link (pseudo-state we can trigger).
++  link.focus();
++
++  const secondary = document.createElement('button');
++  secondary.setAttribute('type', 'button');
++  secondary.setAttribute('class', 'button');
++  secondary.textContent = 'Secondary action';
++  host.appendChild(secondary);
++
++  const primary = document.createElement('button');
++  primary.setAttribute('type', 'button');
++  primary.setAttribute('class', 'button button--primary');
++  primary.textContent = 'Primary action';
++  host.appendChild(primary);
++
++  const details = document.createElement('details');
++  details.setAttribute('class', 'gin-details');
++  const summary = document.createElement('summary');
++  summary.setAttribute('class', 'gin-details__summary');
++  summary.textContent = 'Details summary';
++  const body = document.createElement('div');
++  body.setAttribute('class', 'gin-details__wrapper');
++  body.textContent = 'Details content';
++  details.appendChild(summary);
++  details.appendChild(body);
++  host.appendChild(details);
++
++  // ---- Radio-style choice (mirrors the Appearance segmented control) ----
++  const radioWrap = document.createElement('div');
++  radioWrap.setAttribute('class', 'form-radios');
++  radioWrap.style.display = 'inline-flex';
++  const radioItem = document.createElement('div');
++  radioItem.setAttribute('class', 'form-type--radio form-item');
++  const radioInput = document.createElement('input');
++  radioInput.setAttribute('type', 'radio');
++  radioInput.setAttribute('name', 'choice');
++  radioInput.setAttribute('class', 'form-boolean form-boolean--type-radio');
++  const radioLabel = document.createElement('label');
++  radioLabel.setAttribute('class', 'form-item__label');
++  radioLabel.textContent = 'Choice';
++  radioItem.appendChild(radioInput);
++  radioItem.appendChild(radioLabel);
++  radioWrap.appendChild(radioItem);
++  host.appendChild(radioWrap);
++
++  // ---- Measure ----
++  // Foregrounds are read from the production semantic token resolved on a real
++  // element (the browser composes light-dark() and custom-property chains); the
++  // backgrounds are the painted ancestry so stacked alpha is respected.
++  void host.offsetHeight;
++  const linkRest = resolveToken('--admin-color-link', 'color');
++  const linkHover = resolveToken('--admin-color-link-hover', 'color');
++  const linkActive = resolveToken('--admin-color-link-active', 'color');
++  // Focus only removes the underline (:focus sets text-decoration: none), it
++  // does not change the colour, so the focused state shares the rest token.
++  const linkFocus = linkRest;
++  const linkRestUnderline = getComputedStyle(linkRestFixture).textDecorationLine;
++
++  const secondaryRest = getComputedStyle(secondary).color || resolveToken('--admin-color-primary', 'color');
++  const secondaryHoverFg = resolveToken('--admin-color-text-on-primary', 'color');
++  const secondaryHoverBg = resolveToken('--admin-color-primary-hover', 'backgroundColor');
++  const secondaryActiveBg = resolveToken('--admin-color-primary-active', 'backgroundColor');
++
++  const primaryBg = resolveToken('--admin-color-primary', 'backgroundColor');
++  const primaryHoverBg = resolveToken('--admin-color-primary-hover', 'backgroundColor');
++  const primaryActiveBg = resolveToken('--admin-color-primary-active', 'backgroundColor');
++  const primaryFg = resolveToken('--admin-color-text-on-primary', 'color');
++
++  const summaryRest = resolveToken('--admin-color-text', 'color');
++  const summaryHoverFg = resolveToken('--admin-color-summary-text', 'color');
++  const summaryHoverBg = resolveToken('--admin-color-summary-hover-bg', 'backgroundColor');
++  const markerRest = resolveToken('--admin-color-text', 'color');
++
++  const radioRestText = resolveToken('--admin-color-text', 'color');
++  const radioHoverText = resolveToken('--admin-color-radio-hover', 'color');
++  const radioHoverBg = resolveToken('--admin-color-radio-hover-bg', 'backgroundColor');
++  const radioCheckedText = resolveToken('--admin-color-text-on-primary', 'color');
++  const radioCheckedBg = resolveToken('--admin-color-primary', 'backgroundColor');
++  const radioBoundary = resolveToken('--admin-color-border-input', 'color');
++  const radioInputBg = resolveToken('--admin-color-bg-input', 'backgroundColor');
++  const checkedRing = resolveToken('--admin-color-primary', 'color');
++  const surfaceBg = resolveToken('--admin-color-bg-surface', 'backgroundColor');
++
++  const result = {
++    link: {
++      rest: measure(linkRest, null, link),
++      hover: measure(linkHover, null, link),
++      active: measure(linkActive, null, link),
++      focus: measure(linkFocus, null, link),
++      underline: linkRestUnderline,
++    },
++    secondary: {
++      rest: measure(secondaryRest, null, secondary),
++      hover: measure(secondaryHoverFg, secondaryHoverBg, secondary),
++      active: measure(secondaryHoverFg, secondaryActiveBg, secondary),
++    },
++    primary: {
++      rest: measure(primaryFg, primaryBg, primary),
++      hover: measure(primaryFg, primaryHoverBg, primary),
++      active: measure(primaryFg, primaryActiveBg, primary),
++      focus: measure(primaryFg, primaryBg, primary),
++    },
++    summary: {
++      rest: measure(summaryRest, null, summary),
++      hover: measure(summaryHoverFg, summaryHoverBg, summary),
++      open: measure(summaryHoverFg, null, summary),
++      'open-hover': measure(summaryHoverFg, summaryHoverBg, summary),
++    },
++    marker: measure(markerRest, null, summary),
++    radio: {
++      rest: measure(radioRestText, null, radioLabel),
++      hover: measure(radioHoverText, radioHoverBg, radioLabel),
++      checked: measure(radioCheckedText, radioCheckedBg, radioLabel),
++      boundary: measure(radioBoundary, radioInputBg, radioInput),
++      checkedRing: measure(checkedRing, surfaceBg, radioInput),
++    },
++    host: Boolean(host),
++  };
++  // Restore the real appearance state so later assertions are not skewed.
++  document.documentElement.classList.remove('gin--dark-mode');
++  document.documentElement.style.colorScheme = '';
++  host.remove();
++  document.body.appendChild(document.createElement('span'));
++  return result;
++})()
++JS;
++  }
++
++  /**
++   * Every accent picker swatch must stay visible against its adjacent surface.
++   *
++   * The swatch preview (--admin-color-accent-preview) is presentation-only:
++   * Light resolves the source accent identity, Dark resolves the visible
++   * foreground-safe accent (so dark mode no longer collapses the swatch into
++   * the dark surface). The raw input has no border by default, so the swatch
++   * boundary must read >= 3:1 (WCAG 1.4.11 non-text) against the actual
++   * surface it sits on in each appearance. Auto is covered by forcing the
++   * root colour-scheme to the intended branch; the two forced branches are
++   * also compared to Light/Dark so an Auto regression cannot slip through.
++   *
++   * The preview token references only --accent-base (light) and
++   * --admin-color-accent-fg (dark). Increase-contrast mode overrides
++   * --admin-color-accent-fg with the identical dark formula and leaves
++   * --accent-base untouched, so the preview is invariant under that mode and
++   * no separate HC case is needed here.
++   */
++  public function testAccentSwatchRenderedContrast(): void {
++    $presets = Helper::accentColors();
++    unset($presets['custom']);
++    $cases = [
++      'Light' => ['mode' => '0', 'scheme' => 'light'],
++      'Dark' => ['mode' => '1', 'scheme' => 'dark'],
++      'Auto-light' => ['mode' => 'auto', 'scheme' => 'auto-light'],
++      'Auto-dark' => ['mode' => 'auto', 'scheme' => 'auto-dark'],
++    ];
++    $fillByScheme = [];
++    foreach ($cases as $caseLabel => $case) {
++      $this->config('default_admin.settings')
++        ->set('enable_dark_mode', $case['mode'])
++        ->set('preset_accent_color', 'blue')
++        ->save();
++      $this->drupalGet('/admin/appearance/settings/default_admin');
++      $this->assertSession()->statusCodeEquals(200);
++      $ratios = $this->getSession()->evaluateScript($this->accentSwatchScript($case['scheme']));
++      foreach ($presets as $name => $info) {
++        $this->assertArrayHasKey($name, $ratios, sprintf('%s: swatch "%s" found.', $caseLabel, $name));
++        $this->assertGreaterThanOrEqual(
++          3.0,
++          $ratios[$name]['ratio'],
++          sprintf('%s: swatch "%s" preview %s vs adjacent %s must be >=3:1 (got %.2f:1).', $caseLabel, $name, $ratios[$name]['fill'], $ratios[$name]['adjacent'], $ratios[$name]['ratio'])
++        );
++        $fillByScheme[$case['scheme']][$name] = $ratios[$name]['fill'];
++      }
++    }
++    foreach ($presets as $name => $info) {
++      $this->assertEquals(
++        $fillByScheme['light'][$name],
++        $fillByScheme['auto-light'][$name],
++        sprintf('Auto-light swatch "%s" must equal the explicit Light preview (got %s vs %s).', $name, $fillByScheme['light'][$name], $fillByScheme['auto-light'][$name])
++      );
++      $this->assertEquals(
++        $fillByScheme['dark'][$name],
++        $fillByScheme['auto-dark'][$name],
++        sprintf('Auto-dark swatch "%s" must equal the explicit Dark preview (got %s vs %s).', $name, $fillByScheme['dark'][$name], $fillByScheme['auto-dark'][$name])
++      );
++    }
++  }
++
++  /**
++   * Script resolving every preset swatch preview against its adjacent surface.
++   *
++   * Forces the root colour-scheme so light-dark() resolves to the requested
++   * branch independently of the operating system (needed for Auto), reads each
++   * non-custom swatch's computed background plus the nearest opaque ancestor's
++   * background, and returns WCAG ratios of the two.
++   */
++  protected function accentSwatchScript(string $scheme): string {
++    $target = match ($scheme) {
++      'light', 'auto-light' => 'light',
++      'dark', 'auto-dark' => 'dark',
++    };
++    return <<<JS
++(function () {
++  document.documentElement.style.colorScheme = '$target';
++  function lum(s) {
++    if (!CSS.supports('color', s)) {
++      throw new Error('Unsupported computed color: ' + s);
++    }
++    const canvas = document.createElement('canvas');
++    canvas.width = canvas.height = 1;
++    const ctx = canvas.getContext('2d', { willReadFrequently: true });
++    if (!ctx) {
++      throw new Error('Canvas 2D context unavailable while resolving: ' + s);
++    }
++    ctx.fillStyle = s;
++    ctx.fillRect(0, 0, 1, 1);
++    const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
++    if (a !== 255) {
++      throw new Error('Expected opaque computed color, got: ' + s);
++    }
++    const f = value => {
++      const x = value / 255;
++      return x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
++    };
++    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
++  }
++  function ratio(a, b) { const A = Math.max(a, b), B = Math.min(a, b); return (A + 0.05) / (B + 0.05); }
++  const out = {};
++  document.querySelectorAll('input[name="preset_accent_color"]').forEach((inp) => {
++    const key = inp.getAttribute('data-gin-accent');
++    if (!key || key === 'custom') {
++      return;
++    }
++    const fill = getComputedStyle(inp).backgroundColor;
++    let el = inp, adjacent = null;
++    while (el && !adjacent) {
++      el = el.parentElement;
++      if (!el) {
++        break;
++      }
++      const bg = getComputedStyle(el).backgroundColor;
++      if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') {
++        adjacent = bg;
++      }
++    }
++    if (!adjacent) {
++      throw new Error('No adjacent opaque surface found for swatch: ' + key);
++    }
++    out[key] = {
++      fill,
++      adjacent,
++      ratio: ratio(lum(fill), lum(adjacent)),
++    };
++  });
++  return out;
++})()
++JS;
++  }
++
++  /**
++   * Script resolving the focus colour for a preset against the surfaces.
++   */
++  protected function focusPresetScript(string $preset): string {
++    $json = json_encode($preset);
++    return <<<'JS'
++(function () {
++  const preset = $json;
++  const temp = document.createElement('div');
++  temp.style.display = 'none';
++  temp.setAttribute('data-gin-focus', preset);
++  document.body.appendChild(temp);
++  function resolve(varName, property) {
++    temp.style[property] = 'var(' + varName + ')';
++    const v = getComputedStyle(temp)[property];
++    temp.style[property] = '';
++    return v;
++  }
++  function lum(s) {
++    if (!CSS.supports('color', s)) {
++      throw new Error('Unsupported computed color: ' + s);
++    }
++    const canvas = document.createElement('canvas');
++    canvas.width = canvas.height = 1;
++    const ctx = canvas.getContext('2d', { willReadFrequently: true });
++    if (!ctx) {
++      throw new Error('Canvas 2D context unavailable while resolving: ' + s);
++    }
++    ctx.fillStyle = s;
++    ctx.fillRect(0, 0, 1, 1);
++    const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
++    if (a !== 255) {
++      throw new Error('Expected opaque computed color, got: ' + s);
++    }
++    const f = value => {
++      const x = value / 255;
++      return x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
++    };
++    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
++  }
++  function ratio(a, b) { const A = Math.max(a, b), B = Math.min(a, b); return (A + 0.05) / (B + 0.05); }
++  const focus = lum(resolve('--admin-color-focus', 'color'));
++  const surfaces = {
++    bg: '--admin-color-bg',
++    surface: '--admin-color-bg-surface',
++    nested: '--admin-color-bg-surface-nested',
++    raised: '--admin-color-bg-raised',
++    input: '--admin-color-bg-input'
++  };
++  const out = {};
++  for (const key in surfaces) {
++    out[key] = ratio(focus, lum(resolve(surfaces[key], 'backgroundColor')));
++  }
++  return out;
++})()
++JS;
++  }
++
++  /**
++   * Script resolving the rendered icon-link icon vs its state backgrounds.
++   */
++  protected function iconStateScript(): string {
++    return <<<'JS'
++(function () {
++  const temp = document.createElement('div');
++  temp.style.display = 'none';
++  document.body.appendChild(temp);
++  function resolve(varName, property) {
++    temp.style[property] = 'var(' + varName + ')';
++    const v = getComputedStyle(temp)[property];
++    temp.style[property] = '';
++    return v;
++  }
++  function lum(s) {
++    if (!CSS.supports('color', s)) {
++      throw new Error('Unsupported computed color: ' + s);
++    }
++    const canvas = document.createElement('canvas');
++    canvas.width = canvas.height = 1;
++    const ctx = canvas.getContext('2d', { willReadFrequently: true });
++    if (!ctx) {
++      throw new Error('Canvas 2D context unavailable while resolving: ' + s);
++    }
++    ctx.fillStyle = s;
++    ctx.fillRect(0, 0, 1, 1);
++    const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
++    if (a !== 255) {
++      throw new Error('Expected opaque computed color, got: ' + s);
++    }
++    const f = value => {
++      const x = value / 255;
++      return x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
++    };
++    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
++  }
++  function ratio(a, b) { const A = Math.max(a, b), B = Math.min(a, b); return (A + 0.05) / (B + 0.05); }
++  const icon = lum(resolve('--admin-color-icon', 'color'));
++  const restBg = lum(resolve('--icon-link-bg-color', 'backgroundColor'));
++  const hoverBg = lum(resolve('--icon-link--hover-bg-color', 'backgroundColor'));
++  const activeBg = lum(resolve('--icon-link--active-bg-color', 'backgroundColor'));
++  const activeIcon = lum(resolve('--icon-link--active-icon-color', 'color'));
++  return {
++    rest: ratio(icon, restBg),
++    hover: ratio(icon, hoverBg),
++    active: ratio(activeIcon, activeBg)
++  };
++})()
++JS;
++  }
++
++  /**
++   * Resolves and returns a single computed CSS variable's used colour.
++   */
++  protected function resolveColor(string $var): string {
++    $script = '(() => { const t = document.createElement("div"); t.style.display = "none"; document.body.appendChild(t); t.style.backgroundColor = `var(' . $var . ')`; let c = getComputedStyle(t).backgroundColor; c = c || t.style.backgroundColor; t.remove(); return c; })()';
++    return (string) $this->getSession()->evaluateScript($script);
++  }
++
++  /**
++   * Script that resolves text / surface / accent pairs and returns WCAG ratios.
++   *
++   * Custom properties are not resolved by getPropertyValue(), so each variable
++   * is applied to a throwaway element and its used colour is read back. The
++   * active color-scheme selects the matching light-dark() branch.
++   */
++  protected function surfaceScript(): string {
++    return <<<'JS'
++(function () {
++  const temp = document.createElement('div');
++  temp.style.display = 'none';
++  document.body.appendChild(temp);
++  function resolve(varName, property) {
++    temp.style[property] = 'var(' + varName + ')';
++    const v = getComputedStyle(temp)[property];
++    temp.style[property] = '';
++    return v;
++  }
++  function lum(s) {
++    if (!CSS.supports('color', s)) {
++      throw new Error('Unsupported computed color: ' + s);
++    }
++    const canvas = document.createElement('canvas');
++    canvas.width = canvas.height = 1;
++    const ctx = canvas.getContext('2d', { willReadFrequently: true });
++    if (!ctx) {
++      throw new Error('Canvas 2D context unavailable while resolving: ' + s);
++    }
++    ctx.fillStyle = s;
++    ctx.fillRect(0, 0, 1, 1);
++    const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
++    if (a !== 255) {
++      throw new Error('Expected opaque computed color, got: ' + s);
++    }
++    const f = value => {
++      const x = value / 255;
++      return x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
++    };
++    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
++  }
++  function ratio(a, b) { const A = Math.max(a, b), B = Math.min(a, b); return (A + 0.05) / (B + 0.05); }
++  const text = lum(resolve('--admin-color-text', 'color'));
++  const acfg = lum(resolve('--admin-color-accent-fg', 'color'));
++  const bg = lum(resolve('--admin-color-bg', 'backgroundColor'));
++  const surface = lum(resolve('--admin-color-bg-surface', 'backgroundColor'));
++  const nested = lum(resolve('--admin-color-bg-surface-nested', 'backgroundColor'));
++  const raised = lum(resolve('--admin-color-bg-raised', 'backgroundColor'));
++  return {
++    textOnBg: ratio(text, bg),
++    textOnSurface: ratio(text, surface),
++    textOnNested: ratio(text, nested),
++    textOnRaised: ratio(text, raised),
++    accentFgOnSurface: ratio(acfg, surface)
++  };
++})()
++JS;
++  }
++
++}
+diff --git a/tests/playwright/tests/default-admin-contrast-matrix.spec.ts b/tests/playwright/tests/default-admin-contrast-matrix.spec.ts
+new file mode 100644
+index 00000000000..88f4b747bfc
+--- /dev/null
++++ b/tests/playwright/tests/default-admin-contrast-matrix.spec.ts
+@@ -0,0 +1,117 @@
++/**
++ * Default Admin contrast matrix — 8 appearance states × 11 fixed presets
++ * (10 chromatic + Neutral).
++ *
++ * Mechanically verifies WCAG 2.2 AA (4.5:1 text, 3:1 UI) and checks the
++ * 7:1 enhanced-contrast target via computed styles, plus axe-core on each page
++ * load. This catches the #0029a5 on #2d3755 (1.04:1) and accordion hover
++ * regressions that only appear when rendered.
++ *
++ * Run: cd tests/playwright && npx playwright test default-admin-contrast-matrix --project=chromium
++ * Or: yarn test:guidepup (runs all)
++ */
++import { test, expect } from '@playwright/test';
++import { AUTH_STATE_FILE } from '../lib/auth-setup';
++import { drush } from '../lib/drush-helpers';
++import AxeBuilder from '@axe-core/playwright';
++
++const PRESETS = ['blue','cerulean','teal','green','olive','yellow','orange','red','pink','purple','neutral'] as const;
++const MODES = [
++  { label: 'Light', enable_dark_mode: '0', hc: 0 },
++  { label: 'Dark', enable_dark_mode: '1', hc: 0 },
++  { label: 'Auto-light', enable_dark_mode: 'auto', hc: 0, colorScheme: 'light' as const },
++  { label: 'Auto-dark', enable_dark_mode: 'auto', hc: 0, colorScheme: 'dark' as const },
++  { label: 'HC-Light', enable_dark_mode: '0', hc: 1 },
++  { label: 'HC-Dark', enable_dark_mode: '1', hc: 1 },
++  { label: 'HC-Auto-light', enable_dark_mode: 'auto', hc: 1, colorScheme: 'light' as const },
++  { label: 'HC-Auto-dark', enable_dark_mode: 'auto', hc: 1, colorScheme: 'dark' as const },
++] as const;
++
++const ROUTE = '/admin/appearance/settings/default_admin';
++
++test.describe('Default Admin — contrast matrix + axe', () => {
++  test.use({ storageState: AUTH_STATE_FILE });
++
++  for (const preset of PRESETS) {
++    for (const mode of MODES) {
++      test(`${preset} — ${mode.label} — no axe color-contrast violations`, async ({ page }) => {
++        // Set theme config via drush before navigation.
++        drush(`config:set default_admin.settings preset_accent_color ${preset} -y > /dev/null`);
++        drush(`config:set default_admin.settings enable_dark_mode ${mode.enable_dark_mode} -y > /dev/null`);
++        drush(`config:set default_admin.settings high_contrast_mode ${mode.hc} -y > /dev/null`);
++        drush('cr > /dev/null');
++
++        if ((mode as any).colorScheme) {
++          await page.emulateMedia({ colorScheme: (mode as any).colorScheme });
++        }
++
++        await page.goto(ROUTE, { waitUntil: 'domcontentloaded' });
++        await page.waitForSelector('main', { timeout: 10000 });
++
++        // Mechanical computed-style checks (catch 1.04:1 before axe).
++        const ratios = await page.evaluate(() => {
++          function get(v: string, p: string) {
++            const t = document.createElement('div');
++            t.style.display = 'none';
++            document.body.appendChild(t);
++            (t.style as any)[p] = `var(${v})`;
++            const c = getComputedStyle(t)[p as any];
++            t.remove();
++            return c;
++          }
++          function lum(s: string) {
++            if (!CSS.supports('color', s)) {
++              throw new Error(`Unsupported computed color: ${s}`);
++            }
++            const canvas = document.createElement('canvas');
++            canvas.width = canvas.height = 1;
++            const ctx = canvas.getContext('2d', { willReadFrequently: true });
++            if (!ctx) {
++              throw new Error(`Canvas 2D context unavailable while resolving: ${s}`);
++            }
++            ctx.fillStyle = s;
++            ctx.fillRect(0, 0, 1, 1);
++            const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
++            if (a !== 255) {
++              throw new Error(`Expected opaque computed color, got: ${s}`);
++            }
++            const f = (value: number) => {
++              const x = value / 255;
++              return x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
++            };
++            return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
++          }
++          function ratio(a: number, b: number) { return (Math.max(a,b)+0.05)/(Math.min(a,b)+0.05); }
++          const link = lum(get('--admin-color-link','color'));
++          const focus = lum(get('--admin-color-focus','color'));
++          const acfg = lum(get('--admin-color-accent-fg','color'));
++          const bg = lum(get('--admin-color-bg','backgroundColor'));
++          const surf = lum(get('--admin-color-bg-surface','backgroundColor'));
++          return {
++            linkOnBg: ratio(link, bg),
++            linkOnSurf: ratio(link, surf),
++            focusOnBg: ratio(focus, bg),
++            acfgOnBg: ratio(acfg, bg),
++          };
++        });
++
++        expect(ratios.linkOnBg, `${preset} ${mode.label}: link on bg`).toBeGreaterThanOrEqual(4.5);
++        expect(ratios.linkOnSurf, `${preset} ${mode.label}: link on surface`).toBeGreaterThanOrEqual(4.5);
++        expect(ratios.focusOnBg, `${preset} ${mode.label}: focus on bg`).toBeGreaterThanOrEqual(3.0);
++        expect(ratios.acfgOnBg, `${preset} ${mode.label}: accent-fg on bg`).toBeGreaterThanOrEqual(4.5);
++        if (mode.hc) {
++          // HC uses the 7:1 enhanced text-contrast target on main surfaces.
++          expect(ratios.acfgOnBg, `${preset} ${mode.label} HC: accent-fg on bg 7:1 target`).toBeGreaterThanOrEqual(7.0);
++        }
++
++        // Axe color-contrast audit on the fully rendered page.
++        const results = await new AxeBuilder({ page })
++          .withTags(['wcag2a','wcag2aa'])
++          .analyze();
++
++        const contrastViolations = results.violations.filter(v => v.id === 'color-contrast');
++        expect(contrastViolations, `${preset} ${mode.label}: axe color-contrast violations: ${JSON.stringify(contrastViolations.map(v=>v.nodes.map(n=>n.html).join('|')), null, 2)}`).toEqual([]);
++      });
++    }
++  }
++});

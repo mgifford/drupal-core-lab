@@ -1,0 +1,130 @@
+/**
+ * @file
+ * Styling for the #2847425 diagnostics panel.
+ *
+ * Status is conveyed by the PASS/FAIL text badge first; colour and the border
+ * are secondary cues, so the panel does not rely on colour alone (WCAG 1.4.1).
+ */
+
+.scenario-heading {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 2px solid #d0d0d0;
+}
+
+.scenario-note {
+  margin: 0.25rem 0 0.75rem;
+  font-style: italic;
+}
+
+.state-diagnostics {
+  margin: 1rem 0 2rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #b8b8b8;
+  border-radius: 4px;
+  background: #fbfbfb;
+}
+
+.state-diagnostics h2 {
+  margin-top: 0;
+}
+
+.diag-summary {
+  font-weight: 700;
+  padding: 0.5rem 0.75rem;
+  border-left: 6px solid #6c6c6c;
+  background: #f0f0f0;
+}
+
+.diag-summary.diag-verdict-ok {
+  border-left-color: #1a7f37;
+  background: #e8f5ec;
+}
+
+.diag-summary.diag-verdict-bug {
+  border-left-color: #b02a37;
+  background: #fbeaec;
+}
+
+.diag-summary.diag-verdict-mixed {
+  border-left-color: #9a6700;
+  background: #fdf6e3;
+}
+
+.diag-results {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.diag-result {
+  margin: 0.35rem 0;
+  padding: 0.4rem 0.6rem;
+  border-left: 6px solid #6c6c6c;
+  background: #f4f4f4;
+}
+
+.diag-result.diag-pass {
+  border-left-color: #1a7f37;
+  background: #eef7f0;
+}
+
+.diag-result.diag-fail {
+  border-left-color: #b02a37;
+  background: #f9edee;
+}
+
+.diag-badge {
+  display: inline-block;
+  min-width: 3.4em;
+  padding: 0.05em 0.5em;
+  border-radius: 3px;
+  font-weight: 700;
+  font-size: 0.85em;
+  text-align: center;
+  color: #fff;
+  background: #6c6c6c;
+}
+
+.diag-pass .diag-badge {
+  background: #1a7f37;
+}
+
+.diag-fail .diag-badge {
+  background: #b02a37;
+}
+
+@media (prefers-color-scheme: dark) {
+  .state-diagnostics {
+    background: #1f2226;
+    border-color: #3a3f45;
+  }
+
+  .diag-summary {
+    background: #2a2e33;
+  }
+
+  .diag-summary.diag-verdict-ok {
+    background: #14351f;
+  }
+
+  .diag-summary.diag-verdict-bug {
+    background: #3a191c;
+  }
+
+  .diag-summary.diag-verdict-mixed {
+    background: #352a10;
+  }
+
+  .diag-result {
+    background: #26292e;
+  }
+
+  .diag-result.diag-pass {
+    background: #16301e;
+  }
+
+  .diag-result.diag-fail {
+    background: #33191c;
+  }
+}

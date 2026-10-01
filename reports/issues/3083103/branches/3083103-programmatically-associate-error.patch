@@ -1,0 +1,174 @@
+diff --git a/core/core.services.yml b/core/core.services.yml
+index 362f236792a..9ab626b5ace 100644
+--- a/core/core.services.yml
++++ b/core/core.services.yml
+@@ -531,6 +531,7 @@ services:
+   Drupal\Core\Form\FormSubmitterInterface: '@form_submitter'
+   form_error_handler:
+     class: Drupal\Core\Form\FormErrorHandler
++    arguments: ['@renderer']
+   Drupal\Core\Form\FormErrorHandlerInterface: '@form_error_handler'
+   form_cache:
+     class: Drupal\Core\Form\FormCache
+diff --git a/core/lib/Drupal/Core/Form/FormErrorHandler.php b/core/lib/Drupal/Core/Form/FormErrorHandler.php
+index a414439f8fd..878805ded68 100644
+--- a/core/lib/Drupal/Core/Form/FormErrorHandler.php
++++ b/core/lib/Drupal/Core/Form/FormErrorHandler.php
+@@ -5,6 +5,7 @@ namespace Drupal\Core\Form;
+ use Drupal\Component\Utility\NestedArray;
+ use Drupal\Core\Messenger\MessengerTrait;
+ use Drupal\Core\Render\Element;
++use Drupal\Core\Render\RendererInterface;
+ 
+ /**
+  * Handles form errors.
+@@ -13,6 +14,23 @@ class FormErrorHandler implements FormErrorHandlerInterface {
+ 
+   use MessengerTrait;
+ 
++  /**
++   * The renderer service.
++   *
++   * @var \Drupal\Core\Render\RendererInterface
++   */
++  protected $renderer;
++
++  /**
++   * Constructs a FormErrorHandler instance.
++   *
++   * @param \Drupal\Core\Render\RendererInterface $renderer
++   *   The renderer service.
++   */
++  public function __construct(RendererInterface $renderer) {
++    $this->renderer = $renderer;
++  }
++
+   /**
+    * {@inheritdoc}
+    */
+@@ -39,10 +57,26 @@ class FormErrorHandler implements FormErrorHandlerInterface {
+    */
+   protected function displayErrorMessages(array $form, FormStateInterface $form_state) {
+     $errors = $form_state->getErrors();
+-
+-    // Loop through all form errors and set an error message.
+-    foreach ($errors as $error) {
+-      $this->messenger()->addMessage($error, 'error');
++    // Loop through all form errors and sets an ID & error messages.
++    foreach ($errors as $name => $error) {
++      $form_element = FormElementHelper::getElementByName($name, $form);
++      if (isset($form_element['#id'])) {
++        // Render the error messages as HTML.
++        $message = [
++          '#type' => 'container',
++          '#attributes' => [
++            'id' => $form_element['#id'] . '--error-message',
++          ],
++          'message' => [
++            '#markup' => $error,
++          ],
++        ];
++        $message = $this->renderer->renderInIsolation($message);
++        $this->messenger()->addMessage($message, 'error');
++      }
++      else {
++        $this->messenger()->addMessage($error, 'error');
++      }
+     }
+   }
+ 
+@@ -164,6 +198,12 @@ class FormErrorHandler implements FormErrorHandlerInterface {
+ 
+     // Store the errors for this element on the element directly.
+     $elements['#errors'] = $form_state->getError($elements);
++
++    // Add aria-describedby attribute to the form element.
++    if (($elements['#errors']) !== NULL) {
++      $elements['#attributes']['aria-errormessage'] = $elements['#id'] . '--error-message';
++      $elements['#attributes']['aria-invalid'] = TRUE;
++    }
+   }
+ 
+ }
+diff --git a/core/lib/Drupal/Core/Render/Element/RenderElementBase.php b/core/lib/Drupal/Core/Render/Element/RenderElementBase.php
+index ec4ab6f89ae..94b6fc04e41 100644
+--- a/core/lib/Drupal/Core/Render/Element/RenderElementBase.php
++++ b/core/lib/Drupal/Core/Render/Element/RenderElementBase.php
+@@ -149,6 +149,9 @@ abstract class RenderElementBase extends PluginBase implements ElementInterface
+     if (isset($element['#parents']) && isset($element['#errors']) && !empty($element['#validated'])) {
+       $element['#attributes']['class'][] = 'error';
+       $element['#attributes']['aria-invalid'] = 'true';
++      if (isset($element['#id'])) {
++        $element['#attributes']['aria-errormessage'] = $element['#id'] . '--error-message';
++      }
+     }
+   }
+ 
+diff --git a/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php b/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php
+index d5d3dfad846..47d1a0df23c 100644
+--- a/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php
++++ b/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php
+@@ -196,8 +196,11 @@ class FormErrorHandlerTest extends UnitTestCase {
+         FALSE
+       );
+ 
+-    $this->renderer->expects($this->never())
+-      ->method('renderInIsolation');
++    $this->renderer->expects($this->any())
++      ->method('renderInIsolation')
++      ->willReturnCallback(function ($message) {
++        return $message['message']['#markup'];
++      });
+ 
+     $this->testForm['#disable_inline_form_errors'] = TRUE;
+ 
+diff --git a/core/tests/Drupal/Tests/Core/Form/FormErrorHandlerTest.php b/core/tests/Drupal/Tests/Core/Form/FormErrorHandlerTest.php
+index 0f1265c458c..f4c38c8302b 100644
+--- a/core/tests/Drupal/Tests/Core/Form/FormErrorHandlerTest.php
++++ b/core/tests/Drupal/Tests/Core/Form/FormErrorHandlerTest.php
+@@ -7,6 +7,7 @@ namespace Drupal\Tests\Core\Form;
+ use Drupal\Core\Form\FormErrorHandler;
+ use Drupal\Core\Form\FormState;
+ use Drupal\Core\Messenger\MessengerInterface;
++use Drupal\Core\Render\RendererInterface;
+ use Drupal\Tests\UnitTestCase;
+ use PHPUnit\Framework\Attributes\CoversClass;
+ use PHPUnit\Framework\Attributes\Group;
+@@ -32,6 +33,13 @@ class FormErrorHandlerTest extends UnitTestCase {
+    */
+   protected $messenger;
+ 
++  /**
++   * The renderer service.
++   *
++   * @var \Drupal\Core\Render\RendererInterface|\PHPUnit\Framework\MockObject\MockObject
++   */
++  protected $renderer;
++
+   /**
+    * {@inheritdoc}
+    */
+@@ -40,7 +48,10 @@ class FormErrorHandlerTest extends UnitTestCase {
+ 
+     $this->messenger = $this->createMock(MessengerInterface::class);
+ 
++    $this->renderer = $this->createMock(RendererInterface::class);
++
+     $this->formErrorHandler = $this->getMockBuilder('Drupal\Core\Form\FormErrorHandler')
++      ->setConstructorArgs([$this->renderer])
+       ->onlyMethods(['messenger'])
+       ->getMock();
+ 
+@@ -74,6 +85,12 @@ class FormErrorHandlerTest extends UnitTestCase {
+         'error',
+       );
+ 
++    $this->renderer->expects($this->any())
++      ->method('renderPlain')
++      ->willReturnCallback(function ($message) {
++        return $message['message']['#markup'];
++      });
++
+     $form = [
+       '#parents' => [],
+       '#array_parents' => [],

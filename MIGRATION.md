@@ -75,3 +75,22 @@ Date: 2026-10-01. Nothing from Drupal core itself was migrated.
    workspace (paths like `core/`, `modules/`). Rewrite it for this layout, or
    fold it into `AGENTS.md`.
 6. Two diffs under `reports/issues/3370946/` contain local `/Users/mgifford` paths.
+
+## Addendum 2026-10-01: testing material from the old checkout
+- **Issue-branch patches** for #2847425, #3083103, #3604037, #3617875, #3619127,
+  #3619387 and #3619933 are in `reports/issues/<nid>/branches/` with a
+  `BRANCHES.md` provenance table (source fork, tip, merge-base, date). Extracted
+  from the drupal.org issue forks (via `envs/core.git`), not from the old local
+  branches, whose histories were rewritten. Not rebased onto current `main`.
+- **#2847425 kit** (`reports/issues/2847425/kit/`): test module, recipe, a
+  **Guidepup** screen-reader spec and a screenshot tool.
+- **`reports/issues/_unassigned/default-admin-dark-mode-accent/`**: patches,
+  change record and contrast matrix. Issue number unknown; move it into the
+  right `reports/issues/<nid>/` once identified.
+- `tests/playwright` in the old checkout had no test sources outside
+  `node_modules` (those were migrated earlier). Its `reports/auth-state.json`
+  is a live session cookie and was deliberately **not** copied; `*auth-state*.json`
+  is now gitignored.
+- Not extracted: #3587680 and #3614293 (the fork branches had no usable diff
+  against `main`; their `.patch` files from the old backup are already in
+  `reports/issues/`), and #3370946 (patches already migrated).

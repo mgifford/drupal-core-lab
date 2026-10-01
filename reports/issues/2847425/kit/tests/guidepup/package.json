@@ -1,0 +1,19 @@
+{
+  "name": "file-managed-states-guidepup",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Guidepup (VoiceOver/NVDA) screen-reader capture for Drupal core issue #2847425.",
+  "scripts": {
+    "setup": "guidepup-setup",
+    "test:before": "SR_LABEL=before playwright test",
+    "test:after": "SR_LABEL=after playwright test",
+    "diff": "node diff.mjs"
+  },
+  "devDependencies": {
+    "@guidepup/guidepup": "^0.24.0",
+    "@guidepup/playwright": "^0.24.0",
+    "@guidepup/setup": "^0.19.0",
+    "@playwright/test": "^1.48.0"
+  }
+}

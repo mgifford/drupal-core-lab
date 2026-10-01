@@ -1,0 +1,200 @@
+diff --git a/core/themes/default_admin/default_admin.libraries.yml b/core/themes/default_admin/default_admin.libraries.yml
+index a867a9b8bb7..dda9e3e6808 100644
+--- a/core/themes/default_admin/default_admin.libraries.yml
++++ b/core/themes/default_admin/default_admin.libraries.yml
+@@ -442,6 +442,7 @@ sidebar:
+     migration/js/sidebar.js: { minified: false }
+   dependencies:
+     - core/once
++    - core/jquery
+ 
+ settings:
+   js:
+diff --git a/core/themes/default_admin/migration/js/sidebar.js b/core/themes/default_admin/migration/js/sidebar.js
+index 0e71454d840..c687d0a34d4 100644
+--- a/core/themes/default_admin/migration/js/sidebar.js
++++ b/core/themes/default_admin/migration/js/sidebar.js
+@@ -1,6 +1,6 @@
+ /* eslint-disable func-names, no-mutable-exports, comma-dangle, strict */
+ 
+-((Drupal, drupalSettings, once) => {
++((Drupal, drupalSettings, once, $) => {
+   const breakpoint = 1024;
+   const breakpointLarge = 1280;
+   const storageMobile = 'Drupal.defaultAdmin.sidebarExpanded.mobile';
+@@ -11,6 +11,26 @@
+   let isResizing = false;
+   let startX, startWidth;
+ 
++  /**
++   * Open parent details elements of a targeted page fragment.
++   *
++   * Opens all (nested) details element on a hash change or fragment link click
++   * when the target is a child element, in order to make sure the targeted
++   * element is visible. Aria attributes on the summary
++   * are set by triggering the click event listener in details-aria.js.
++   *
++   * @param {jQuery.Event} e
++   *   The event triggered.
++   * @param {jQuery} $target
++   *   The targeted node as a jQuery object.
++   */
++  const handleFragmentLinkClickOrHashChange = (e, $target) => {
++    // If $target is in the sidebar, open it.
++    if ($target.parents('#default_admin_sidebar').length) {
++      Drupal.adminSidebar.showSidebar();
++    }
++  };
++
+   Drupal.behaviors.adminSidebar = {
+     attach: function attach(context) {
+       Drupal.adminSidebar.init(context);
+@@ -19,6 +39,14 @@
+ 
+   Drupal.adminSidebar = {
+     init: function (context) {
++      /**
++       * Binds a listener to handle fragment link clicks and URL hash changes.
++       */
++      $(once('adminSidebarFragments', 'body')).on(
++        'formFragmentLinkClickOrHashChange.adminSidebar',
++        handleFragmentLinkClickOrHashChange,
++      );
++
+       once('adminSidebarInit', '#default_admin_sidebar', context).forEach(
+         () => {
+           // If variable does not exist, create it, default being to show sidebar.
+@@ -218,4 +246,4 @@
+       }
+     },
+   };
+-})(Drupal, drupalSettings, once);
++})(Drupal, drupalSettings, once, jQuery);
+diff --git a/core/themes/default_admin/tests/src/FunctionalJavascript/AdminInlineFormErrorsTest.php b/core/themes/default_admin/tests/src/FunctionalJavascript/AdminInlineFormErrorsTest.php
+new file mode 100644
+index 00000000000..fc6dee193fe
+--- /dev/null
++++ b/core/themes/default_admin/tests/src/FunctionalJavascript/AdminInlineFormErrorsTest.php
+@@ -0,0 +1,122 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\default_admin\FunctionalJavascript;
++
++use Behat\Mink\Element\NodeElement;
++use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
++use Drupal\FunctionalTests\Core\Recipe\RecipeTestTrait;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++
++/**
++ * Tests the Default Admin theme with the Inline Form Errors module.
++ */
++#[Group('default_admin')]
++#[RunTestsInSeparateProcesses]
++class AdminInlineFormErrorsTest extends WebDriverTestBase {
++
++  use RecipeTestTrait;
++
++  /**
++   * {@inheritdoc}
++   */
++  protected static $modules = [
++    'inline_form_errors',
++    'navigation',
++    'node',
++  ];
++
++  /**
++   * {@inheritdoc}
++   */
++  protected $defaultTheme = 'default_admin';
++
++  /**
++   * {@inheritdoc}
++   */
++  protected function setUp(): void {
++    parent::setUp();
++
++    $this->applyRecipe('core/tests/fixtures/recipes/article_content_type');
++
++    $admin = $this->drupalCreateUser([], NULL, TRUE);
++    $this->drupalLogin($admin);
++  }
++
++  /**
++   * Tests that Inline Form Errors links open sidebar and focus field.
++   */
++  public function testSidebarOpensForInlineFormErrorsLinks(): void {
++    $assert_session = $this->assertSession();
++    $session = $this->getSession();
++    $page = $session->getPage();
++
++    // Narrow viewport so sidebar starts closed.
++    $session->resizeWindow(
++      800,
++      823
++    );
++    $this->drupalGet('/node/add/article');
++
++    $toggle = $page->find('css', '[aria-controls="default_admin_sidebar"]');
++    $sidebar = $page->findById('default_admin_sidebar');
++    $url_alias_field = $sidebar->findField('URL alias');
++
++    $this->assertFalse($url_alias_field->isVisible());
++
++    // Open sidebar.
++    $toggle->press();
++    // Open URL alias details element to expose field.
++    $assert_session
++      ->waitForElementVisible('named', ['button', 'URL alias'])
++      ->press();
++    // Wait for details to open.
++    $session->wait(500);
++    $url_alias_field->setValue('no-slash');
++
++    // Close sidebar and submit form.
++    $toggle->press();
++    $page->pressButton('Save');
++
++    $error_alert = $assert_session
++      ->waitForElementVisible('css', '[role="alert"]');
++
++    $this->assertFalse($url_alias_field->isVisible());
++    $this->assertFalse($this->hasFocus($url_alias_field));
++
++    $error_alert
++      ->clickLink('URL alias');
++
++    $this->assertTrue($url_alias_field->isVisible());
++    $this->assertTrue($this->hasFocus($url_alias_field));
++  }
++
++  /**
++   * Checks the focus of a node.
++   *
++   * @param \Behat\Mink\Element\NodeElement $node
++   *   A valid node.
++   *
++   * @return bool
++   *   Returns TRUE if the node has focus, FALSE otherwise.
++   *
++   * @todo Replace with assertHasFocus() in https://drupal.org/i/3041768.
++   */
++  private function hasFocus(NodeElement $node): bool {
++    $xpath = str_replace("\n", '', $node->getXpath());
++
++    // This JavaScript tests if the given DOM node (as resolved by XPath) is
++    // also the active element of the current document. The active element is a
++    // standard property of the document object (or a shadow DOM root) pointing
++    // to the node that has focus. It's best to test this using vanilla
++    // JavaScript, not jQuery, since jQuery may not be available.
++    // @see https://developer.mozilla.org/en-US/docs/Web/API/DocumentOrShadowRoot/activeElement
++    $js = <<<JS
++return document.evaluate("$xpath", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue === document.activeElement;
++JS;
++    return $this->getSession()->evaluateScript($js);
++  }
++
++}

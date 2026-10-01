@@ -1,0 +1,311 @@
+diff --git a/core/profiles/demo_umami/tests/src/FunctionalJavascript/MultipleRequestsPerformanceTestAssertions/umamiNodeAddEditor.yml b/core/profiles/demo_umami/tests/src/FunctionalJavascript/MultipleRequestsPerformanceTestAssertions/umamiNodeAddEditor.yml
+index a64f9f0cd46..f11661a6b53 100644
+--- a/core/profiles/demo_umami/tests/src/FunctionalJavascript/MultipleRequestsPerformanceTestAssertions/umamiNodeAddEditor.yml
++++ b/core/profiles/demo_umami/tests/src/FunctionalJavascript/MultipleRequestsPerformanceTestAssertions/umamiNodeAddEditor.yml
+@@ -1,4 +1,4 @@
+ ScriptCount: 25
+ ScriptBytes: 3008189
+ StylesheetCount: 11
+-StylesheetBytes: 1075075
++StylesheetBytes: 1077876
+diff --git a/core/themes/default_admin/css/components/sidebar.css b/core/themes/default_admin/css/components/sidebar.css
+index dfb3c256d1e..dfaf198cdcb 100644
+--- a/core/themes/default_admin/css/components/sidebar.css
++++ b/core/themes/default_admin/css/components/sidebar.css
+@@ -113,6 +113,7 @@ body[data-meta-sidebar="open"] {
+ 
+ :is(#extra-specificity-hack, [data-drupal-admin-styles]) .meta-sidebar__trigger,
+ .meta-sidebar__trigger {
++  position: relative;
+   display: block;
+   width: 2rem;
+   height: 2rem;
+@@ -133,6 +134,37 @@ body[data-meta-sidebar="open"] {
+     mask-size: var(--admin-icon-size-sidebar-toggle) var(--admin-icon-size-sidebar-toggle);
+   }
+ 
++  &.has-error {
++    --container-size: 2rem;
++
++    width: 3.5rem;
++    padding-inline-start: 1.5rem;
++
++    &::before {
++      width: var(--container-size);
++      height: var(--container-size);
++      background-color: var(--admin-color-error);
++    }
++
++    &::after {
++      --mask-size: 1.125rem;
++
++      position: absolute;
++      display: inline-block;
++      width: var(--container-size);
++      height: var(--container-size);
++      content: "";
++      border-radius: 50%;
++      background-color: var(--admin-color-error);
++      inset-inline-start: 0;
++      inset-block-start: -1px;
++      mask-repeat: no-repeat;
++      mask-position: center center;
++      mask-image: var(--admin-icon-error);
++      mask-size: var(--mask-size) var(--mask-size);
++    }
++  }
++
+   &:hover,
+   &:focus,
+   &.is-active,
+diff --git a/core/themes/default_admin/css/components/sidebar.pcss.css b/core/themes/default_admin/css/components/sidebar.pcss.css
+index 2ca4098472c..57e2b9c8b29 100644
+--- a/core/themes/default_admin/css/components/sidebar.pcss.css
++++ b/core/themes/default_admin/css/components/sidebar.pcss.css
+@@ -108,6 +108,7 @@ body[data-meta-sidebar="open"] {
+ 
+ :is(#extra-specificity-hack, [data-drupal-admin-styles]) .meta-sidebar__trigger,
+ .meta-sidebar__trigger {
++  position: relative;
+   display: block;
+   width: 32px;
+   height: 32px;
+@@ -128,6 +129,37 @@ body[data-meta-sidebar="open"] {
+     mask-size: var(--admin-icon-size-sidebar-toggle) var(--admin-icon-size-sidebar-toggle);
+   }
+ 
++  &.has-error {
++    --container-size: 2rem;
++
++    width: 3.5rem;
++    padding-inline-start: 1.5rem;
++
++    &::before {
++      width: var(--container-size);
++      height: var(--container-size);
++      background-color: var(--admin-color-error);
++    }
++
++    &::after {
++      --mask-size: 1.125rem;
++
++      position: absolute;
++      display: inline-block;
++      width: var(--container-size);
++      height: var(--container-size);
++      content: "";
++      border-radius: 50%;
++      background-color: var(--admin-color-error);
++      inset-inline-start: 0;
++      inset-block-start: -1px;
++      mask-repeat: no-repeat;
++      mask-position: center center;
++      mask-image: var(--admin-icon-error);
++      mask-size: var(--mask-size) var(--mask-size);
++    }
++  }
++
+   &:hover,
+   &:focus,
+   &.is-active,
+diff --git a/core/themes/default_admin/migration/js/sidebar.js b/core/themes/default_admin/migration/js/sidebar.js
+index 0e71454d840..ba7547ece65 100644
+--- a/core/themes/default_admin/migration/js/sidebar.js
++++ b/core/themes/default_admin/migration/js/sidebar.js
+@@ -98,9 +98,14 @@
+     showSidebar: () => {
+       const chooseStorage =
+         window.innerWidth < breakpoint ? storageMobile : storageDesktop;
+-      const hideLabel = Drupal.t('Hide sidebar panel');
+       const sidebarTrigger = document.querySelector('.meta-sidebar__trigger');
+       if (sidebarTrigger) {
++        const hideLabel = Drupal.t('Hide sidebar panel@error_text', {
++          '@error_text': sidebarTrigger.classList.contains('has-error')
++            ? ' (sidebar contains error)'
++            : ''
++          });
++        sidebarTrigger.classList.contains('has-error')
+         sidebarTrigger.querySelector('span').innerHTML = hideLabel;
+         sidebarTrigger.setAttribute('title', hideLabel);
+         if (sidebarTrigger.nextSibling) {
+@@ -124,9 +129,13 @@
+     collapseSidebar: () => {
+       const chooseStorage =
+         window.innerWidth < breakpoint ? storageMobile : storageDesktop;
+-      const showLabel = Drupal.t('Show sidebar panel');
+       const sidebarTrigger = document.querySelector('.meta-sidebar__trigger');
+       if (sidebarTrigger) {
++        const showLabel = Drupal.t('Show sidebar panel@error_text', {
++          '@error_text': sidebarTrigger.classList.contains('has-error')
++            ? ' (sidebar contains error)'
++            : ''
++          });
+         sidebarTrigger.querySelector('span').innerHTML = showLabel;
+         sidebarTrigger.setAttribute('title', showLabel);
+         if (sidebarTrigger.nextSibling) {
+diff --git a/core/themes/default_admin/src/Hook/FormHooks.php b/core/themes/default_admin/src/Hook/FormHooks.php
+index 51fa35579ae..0be3b32ae09 100644
+--- a/core/themes/default_admin/src/Hook/FormHooks.php
++++ b/core/themes/default_admin/src/Hook/FormHooks.php
+@@ -715,13 +715,35 @@ class FormHooks {
+       ];
+     }
+ 
+-    $this->ensureAdvancedSettings($form);
+-
+     // Add sidebar toggle.
+     $hide_panel = $this->t('Hide sidebar panel');
++    // Render arrays for easier manipulation in ::preprocessForm().
+     $form['default_admin_sticky_actions']['default_admin_sidebar_toggle'] = [
+-      '#markup' => '<a href="#toggle-sidebar" class="meta-sidebar__trigger trigger" role="button" title="' . $hide_panel . '" aria-controls="default_admin_sidebar"><span class="visually-hidden">' . $hide_panel . '</span></a>',
++      '#type' => 'html_tag',
++      '#tag' => 'a',
++      'text' => [
++        '#type' => 'html_tag',
++        '#tag' => 'span',
++        '#value' => $hide_panel,
++        '#attributes' => [
++          'class' => 'visually-hidden',
++        ],
++      ],
++      '#attributes' => [
++        'class' => [
++          'meta-sidebar__trigger',
++          'trigger',
++        ],
++        'href' => '#toggle-sidebar',
++        'role' => 'button',
++        'title' => $hide_panel,
++        'aria-controls' => 'default_admin_sidebar',
++      ],
+       '#weight' => 1000,
++      '#cache' => [
++        // Don't cache so error indicator changes.
++        'max-age' => 0,
++      ],
+     ];
+     $form['#attached']['library'][] = 'default_admin/sidebar';
+ 
+diff --git a/core/themes/default_admin/src/Hook/PreprocessHooks.php b/core/themes/default_admin/src/Hook/PreprocessHooks.php
+index fe8578840da..ea13078845a 100644
+--- a/core/themes/default_admin/src/Hook/PreprocessHooks.php
++++ b/core/themes/default_admin/src/Hook/PreprocessHooks.php
+@@ -552,6 +552,20 @@ final class PreprocessHooks implements TrustedCallbackInterface {
+     $variables['#attached']['library'][] = 'filter/drupal.filter';
+   }
+ 
++  #[Hook('preprocess_form')]
++  public function preprocessForm(array &$variables): void {
++    // Indicate on sidebar toggle button that sidebar has errors.
++    if (!empty($variables['element']['advanced']['#children_errors'])) {
++      if (($form_actions = Helper::formActions()) && !empty($form_actions['default_admin_sidebar_toggle'])) {
++        $form_actions['default_admin_sidebar_toggle']['text']['#value'] = $this->t('@text (sidebar contains error)', [
++          '@text' => $form_actions['default_admin_sidebar_toggle']['text']['#value'],
++        ]);
++        $form_actions['default_admin_sidebar_toggle']['#attributes']['class'][] = 'has-error';
++        Helper::formActions($form_actions);
++      }
++    }
++  }
++
+   /**
+    * Implements hook_preprocess_HOOK() for form_element.
+    */
+diff --git a/core/themes/default_admin/tests/src/FunctionalJavascript/AdminTest.php b/core/themes/default_admin/tests/src/FunctionalJavascript/AdminTest.php
+new file mode 100644
+index 00000000000..f306b9930f8
+--- /dev/null
++++ b/core/themes/default_admin/tests/src/FunctionalJavascript/AdminTest.php
+@@ -0,0 +1,92 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\default_admin\FunctionalJavascript;
++
++use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
++use Drupal\FunctionalTests\Core\Recipe\RecipeTestTrait;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++
++/**
++ * Tests the Default Admin theme.
++ */
++#[Group('default_admin')]
++#[RunTestsInSeparateProcesses]
++class AdminTest extends WebDriverTestBase {
++
++  use RecipeTestTrait;
++
++  /**
++   * {@inheritdoc}
++   */
++  protected static $modules = [
++    'navigation',
++  ];
++
++  /**
++   * {@inheritdoc}
++   */
++  protected $defaultTheme = 'default_admin';
++
++  /**
++   * {@inheritdoc}
++   */
++  protected function setUp(): void {
++    parent::setUp();
++
++    $this->applyRecipe('core/tests/fixtures/recipes/article_content_type');
++
++    $admin = $this->drupalCreateUser([], NULL, TRUE);
++    $this->drupalLogin($admin);
++  }
++
++  /**
++   * Tests that the toggle indicates that sidebar has child errors.
++   */
++  public function testSidebarToggleIndicatesChildErrors(): void {
++    $assert_session = $this->assertSession();
++    $session = $this->getSession();
++    $page = $session->getPage();
++
++    // Narrow viewport so sidebar starts closed.
++    $session->resizeWindow(
++      1000,
++      823
++    );
++    $this->drupalGet('/node/add/article');
++
++    $toggle = $page->find('css', '[aria-controls="default_admin_sidebar"]');
++    $sidebar = $page->findById('default_admin_sidebar');
++
++    // Open sidebar.
++    $toggle->press();
++    // Open URL alias details element to expose field.
++    $assert_session
++      ->waitForElementVisible('named', ['button', 'URL alias'])
++      ->press();
++    // Wait for details to open.
++    $session->wait(500);
++    $sidebar->findField('URL alias')->setValue('no-slash');
++
++    // Close sidebar and submit form.
++    $toggle->press();
++    $this->assertFalse($toggle->hasClass('has-error'));
++
++    $page->pressButton('Save');
++
++    $assert_session
++      ->statusMessageContainsAfterWait('The alias path has to start with a slash.', 'error');
++
++    // Check that toggle has error indicators.
++    $this->assertTrue($toggle->hasClass('has-error'));
++    $this->assertStringEndsWith(' (sidebar contains error)', $toggle->getText());
++
++    // Check that error indicators aren't cached.
++    $this->drupalGet('/node/add/article');
++    $this->assertFalse($toggle->hasClass('has-error'));
++    $this->assertStringNotContainsString('(sidebar contains error)', $toggle->getText());
++  }
++
++}
