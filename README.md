@@ -25,7 +25,10 @@ Drupal**. Local development only; nothing is posted anywhere automatically.
 
 ## Quick start (needs Docker, DDEV 1.24+, git, Node 20+; about 10 GB; first run 10 to 20 minutes)
     node tools/compare/setup.mjs 3619127-pinned      # builds Before (upstream) and After (with the patches), applies the recipe
-    node tools/compare/serve.mjs 3619127-pinned      # open http://localhost:8100/ and follow the steps on the page
+    node scripts/lab-env.mjs start 3619127-pinned    # starts both sites and the viewer: https://drupal-compare.ddev.site or http://localhost:8100/
+    (or run the viewer alone: node tools/compare/serve.mjs 3619127-pinned)
+
+A read-only copy of the viewer's guide for each issue (no live sites) is the GitHub Pages site, built into `cloud/` by `node scripts/build-cloud.mjs`.
 
 ## Layout
     AGENTS.md  MIGRATION.md  ACCESSIBILITY.md  STYLES.md
@@ -35,7 +38,8 @@ Drupal**. Local development only; nothing is posted anywhere automatically.
     recipes/               Drupal recipes that create each issue's starting state
     tools/compare/         setup, viewer, diff report, variants.json (+ site/: optional DDEV address for the viewer)
     tools/playwright/      scripted walkthroughs, virtual screen reader, frame-load diagnostic
-    scripts/               new-issue, make-bundle, index-issues, lab-site.sh
+    cloud/                 GENERATED static site for GitHub Pages (scripts/build-cloud.mjs); do not edit by hand
+    scripts/               lab-env, new-issue, make-bundle, index-issues, build-cloud, coverage, lab-site.sh
     bundles/               built zips (a slice of this repository plus a setup command; no Drupal core)
     patches/ tests/ tools/*.js   scanners and collected patches migrated from the old fork (legacy; see MIGRATION.md)
     .agents/ .claude/      AI skills and agent definitions

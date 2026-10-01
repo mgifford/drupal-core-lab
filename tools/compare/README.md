@@ -23,7 +23,7 @@ Both have Inline Form Errors on, the Article content type (recipe
 Controls: **Compare upstream with** (variant), **Page**, **Go (both)**, **Log in both as admin**, **Clear Drupal caches (both)**,
 **Reset browser state (both)**, **Reload Before / Reload After**, **Open outside this tool** links, **Site theme**
 (Light / Dark / Follow OS), **Frame width** (Half, the default, / Phone / Tablet), **Sync scrolling**, **Sync navigation**,
-**Simulate a dark-mode OS**, **Mirror clicks and typing**, **Live accessibility checks (axe-core)**, and **View** (Side by side /
+**Simulate a dark-mode OS**, **Mirror clicks, typing and drags**, **Mirror hover and focus (marker)**, **Live accessibility checks (axe-core)**, and **View** (Side by side /
 Onion skin / Difference). Below the frames: the live accessibility panel, a **manual confirmation** panel, and **Run checks**.
 
 - Site theme sets or clears the Default Admin `dark-mode` class on `<html>`. Follow
@@ -34,10 +34,21 @@ Onion skin / Difference). Below the frames: the live accessibility panel, a **ma
 - Each site is reached through a small proxy on `before.localhost:8101` /
   `after.localhost:8102`. Separate hostnames keep the two admin sessions apart
   (cookies are scoped by host, not port), the proxy strips framing headers and
-  injects the sync script. The sites themselves are unchanged.
+  injects the sync script. The sites themselves are unchanged. The proxies reach the DDEV router over HTTPS (port 443, certificate not verified, local only): DDEV's plain-HTTP router port can reset connections.
+
+## Defaults and remembered choices
+Optional extras (live axe, best-practice rules, Lighthouse, performance, dark-mode OS simulation, hover/focus mirroring) start **off**. Your choices
+and the site theme are kept in this browser's `localStorage` (`compare.prefs`) and nowhere else. The Page field shows the page being viewed and
+accepts `node/add/article` or `/node/add/article`.
+
+## Static (GitHub Pages) mode
+The same `index.html` is published from `cloud/` (built by `node scripts/build-cloud.mjs`). It detects it is not served by `serve.mjs`
+(`*.github.io`, `?mode=static`, or a `variants.json` with `"static": true`) and hides every element marked `data-needs="live"`, leaving the
+steps, expected result and a "how to run it" panel. Any new element that needs the server must carry `data-needs="live"`, and server URLs
+must be relative (no leading `/`).
 
 ## Live accessibility checks (axe-core)
-axe-core runs inside both frames after every page load and, debounced, after interaction
+Tick **Live accessibility checks** to turn it on (off by default). axe-core runs inside both frames after every page load and, debounced, after interaction
 (clicks, focus, changes to the page). The panel shows violating elements by impact for each
 side, a verdict that is announced as an alert when After is **worse** (and as a status when it
 is better or the same), the rules and exact elements that differ, and a log of every change as you
@@ -115,10 +126,15 @@ reloads the frames. **Reset browser state (both)** clears `localStorage` and
 The proxies also send `Cache-Control: no-store`, so the browser never serves stale
 CSS or JS.
 
-## Mirror clicks and typing
-Repeats your real clicks, typed text, checkboxes, radios and selects from either
-frame in the other, to save setup time. Verified: typing in the Title field and
-collapsing a details section both appeared in the other frame.
+## Mirror clicks, typing and drags
+Repeats your real clicks, typed text, checkboxes, radios, selects and **drags** (for example Drupal table drag on /admin/structure/block)
+from either frame in the other, to save setup time. A drag is replayed as synthetic pointer and mouse events once the pointer has moved
+more than 5px, relative to the matching handle. Verified with `node tools/playwright/mirror-drag.mjs`. Typing in the Title field and
+collapsing a details section were also checked.
+
+**Mirror hover and focus** (separate, off by default) draws a marker on the matching element in the other frame (dashed for hover, solid
+blue for focus). A page cannot set the real `:hover` or `:focus-visible` style on another frame, so the marker shows where the pointer or
+focus is, not how it looks.
 
 - Only trusted user events are captured, so replayed events never loop.
 - It does **not** mirror Tab, Enter or focus. Script-generated key events do not
