@@ -45,6 +45,7 @@
     <label><input type="checkbox" id="syncscroll" checked> Sync scrolling</label>
     <label><input type="checkbox" id="syncnav" checked> Sync navigation</label>
     <label><input type="checkbox" id="darkos"> Simulate a dark-mode OS</label>
+    <label><input type="checkbox" id="mirror" checked> Mirror clicks and typing</label>
     <span id="status" role="status" aria-live="polite">Loading…</span>
   </div>
   <div class="panes">
@@ -52,6 +53,7 @@
     <section class="pane" aria-labelledby="ha"><h2 id="ha">After: with the change <span class="path" id="pa"></span></h2><iframe id="fa" title="After: with the change"></iframe></section>
   </div>
 </main>
+<p class="note"><strong>Mirror</strong> repeats real clicks, typed text, checkboxes and selects in the other frame to save setup time. It does not mirror the keyboard (Tab, Enter, focus), because script-generated key events do not behave like real ones. Do the final keyboard check in each frame yourself.</p>
 <p class="note">Frames are separate sites on <code>before.localhost</code> and <code>after.localhost</code>, so logins do not interfere. This compares behaviour in a browser. It is not a substitute for testing with a keyboard and a screen reader.</p>
 <script>
 const $ = (id) => document.getElementById(id);
@@ -90,6 +92,8 @@ $('login').addEventListener('click', async () => {
 addEventListener('message', (e) => {
   const m = e.data; if (!m || !m.compare) return;
   if (m.type === 'scroll' && $('syncscroll').checked) { const o = F[other(m.side)].contentWindow; o && o.postMessage({ compare: 1, type: 'scroll', x: m.x, y: m.y }, '*'); }
+  if (m.type === 'mirror' && $('mirror').checked) { const o = F[other(m.side)].contentWindow; o && o.postMessage(Object.assign({}, m, { compare: 1 }), '*'); }
+  if (m.type === 'mirror-miss') status(`Not mirrored: could not find "${m.label || m.kind}" in the ${m.side} frame. The two sides have diverged here.`);
   if (m.type === 'nav') {
     P[m.side].textContent = m.path; status('Ready.');
     if ($('syncnav').checked && last[m.side] !== m.path) { last[m.side] = m.path; if (last[other(m.side)] !== m.path) load(other(m.side), m.path); }

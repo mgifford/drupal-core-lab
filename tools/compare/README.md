@@ -23,7 +23,7 @@ Both have Inline Form Errors on, the Article content type (recipe
 Controls: **Compare upstream with** (variant), **Page**, **Go (both)**,
 **Log in both as admin**, **Site theme** (Light / Dark / Follow OS),
 **Frame width** (Half / Phone / Tablet), **Sync scrolling**, **Sync navigation**,
-**Simulate a dark-mode OS**.
+**Simulate a dark-mode OS**, **Mirror clicks and typing**.
 
 - Site theme sets or clears the Default Admin `dark-mode` class on `<html>`. Follow
   OS uses the real or simulated OS preference.
@@ -34,6 +34,21 @@ Controls: **Compare upstream with** (variant), **Page**, **Go (both)**,
   `after.localhost:8102`. Separate hostnames keep the two admin sessions apart
   (cookies are scoped by host, not port), the proxy strips framing headers and
   injects the sync script. The sites themselves are unchanged.
+
+## Mirror clicks and typing
+Repeats your real clicks, typed text, checkboxes, radios and selects from either
+frame in the other, to save setup time. Verified: typing in the Title field and
+collapsing a details section both appeared in the other frame.
+
+- Only trusted user events are captured, so replayed events never loop.
+- It does **not** mirror Tab, Enter or focus. Script-generated key events do not
+  move focus or type, and the replayed side never gets real focus (no
+  `:focus-visible`). Do the keyboard and focus checks in each frame yourself:
+  that is the thing being tested, and a mirror would hide a difference.
+- If the matching element is missing on the other side, the page says so
+  ("Not mirrored: ... The two sides have diverged here"). That is a finding.
+- Elements are matched by stable `id`, else by structural position. Rich widgets
+  (CKEditor, autocomplete, file upload) are untested.
 
 ## Diff report
 

@@ -38,7 +38,22 @@ new MutationObserver(applyOs).observe(document,{childList:true,subtree:true});
 addEventListener('scroll',()=>{if(!quiet)post({type:'scroll',x:scrollX,y:scrollY})},{passive:true});
 function nav(){post({type:'nav',path:location.pathname+location.search+location.hash})}
 addEventListener('hashchange',nav);addEventListener('popstate',nav);
+// Mirror setup actions: only real (trusted) user events are captured, so the synthetic events
+// we replay on the other side never loop. Keyboard focus and Tab/Enter are deliberately not mirrored.
+const pathOf=(el)=>{if(el.id&&!/\\d{6,}/.test(el.id)&&document.querySelectorAll('#'+CSS.escape(el.id)).length===1)return '#'+CSS.escape(el.id);
+ const parts=[];while(el&&el.nodeType===1&&el!==document.documentElement){const p=el.parentElement;if(!p)break;parts.unshift(el.tagName.toLowerCase()+':nth-child('+(Array.prototype.indexOf.call(p.children,el)+1)+')');el=p}return 'html>'+parts.join('>')};
+const find=(p)=>{try{return document.querySelector(p)}catch(e){return null}};
+const send=(kind,el,extra)=>post(Object.assign({type:'mirror',kind,path:pathOf(el),label:(el.getAttribute&&(el.getAttribute('aria-label')||el.textContent||el.name||el.id)||'').trim().slice(0,40)},extra));
+document.addEventListener('click',(e)=>{if(!e.isTrusted)return;const el=e.target.closest('a,button,summary,input,select,label,[role=button]')||e.target;if(el.tagName==='INPUT'&&/text|email|password|search|url|number|tel/.test(el.type||'text'))return;if(el.tagName==='SELECT'||el.tagName==='LABEL')return;send('click',el,{})},true);
+document.addEventListener('input',(e)=>{if(!e.isTrusted)return;const el=e.target;if(el.type==='checkbox'||el.type==='radio'||el.tagName==='SELECT')return;if('value' in el)send('value',el,{value:el.value})},true);
+document.addEventListener('change',(e)=>{if(!e.isTrusted)return;const el=e.target;if(el.tagName==='SELECT')send('value',el,{value:el.value});else if(el.type==='checkbox'||el.type==='radio')send('checked',el,{checked:el.checked})},true);
+const apply=(d)=>{const el=find(d.path);if(!el){post({type:'mirror-miss',kind:d.kind,label:d.label});return}
+ if(d.kind==='click'){el.click()}
+ else if(d.kind==='value'){const proto=el.tagName==='SELECT'?HTMLSelectElement.prototype:el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;
+  const set=Object.getOwnPropertyDescriptor(proto,'value').set;set.call(el,d.value);el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}))}
+ else if(d.kind==='checked'){if(el.checked!==d.checked)el.click()}};
 addEventListener('message',(e)=>{const d=e.data;if(!d||!d.compare)return;
+ if(d.type==='mirror')apply(d);
  if(d.type==='scroll'){quiet=true;scrollTo(d.x,d.y);setTimeout(()=>{quiet=false},80)}
  if(d.type==='state'){S=Object.assign(S,d.state);applyAll()}});
 })();</script>`;
