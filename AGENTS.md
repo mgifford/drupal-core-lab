@@ -28,6 +28,7 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/new-issue.mjs <nid> --branch <branch>   # start a new issue
     node scripts/make-bundle.mjs <slug>                  # a self-contained zip for someone else
     node scripts/index-issues.mjs                        # refresh reports/issues/README.md
+    node scripts/build-cloud.mjs                         # regenerate cloud/ (the GitHub Pages site); commit the result. CI fails if it is stale
 
 Details: `tools/compare/README.md`, `tools/playwright/README.md`, `docs/TESTING-TOOLS.md`. Each run is a **pinned** variant (exactly as
 verified) or a **latest** variant (follows current core `main`); see `docs/NEW-ISSUE.md`.

@@ -1,0 +1,598 @@
+{
+  "static": true,
+  "repo": "https://github.com/mgifford/drupal-core-lab",
+  "variants": [
+    {
+      "slug": "3619127-pinned",
+      "issue": "3619127",
+      "label": "#3619127: sidebar opens from Inline Form Errors links (MR + vanilla JS), pinned core",
+      "description": "Before: upstream main. After: MR !16895 with patch-0 (no jQuery) and patch-1 (no persist). Open /node/add/article in a narrow window, set a URL alias of 'no-slash' inside the sidebar, close the sidebar, Save, then use the error link. Before: nothing opens. After: the sidebar opens and the field gets focus.",
+      "steps": [
+        {
+          "text": "Default Admin is the admin theme.",
+          "how": "recipe"
+        },
+        {
+          "text": "Article content type and the Path module (URL alias field) are installed.",
+          "how": "recipe"
+        },
+        {
+          "text": "The Inline Form Errors module is enabled.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /node/add/article (the page is already loaded in both frames once you press Go).",
+          "how": "mirror"
+        },
+        {
+          "text": "Use the Tablet or Phone frame width, so the sidebar of advanced fields is collapsed.",
+          "how": "mirror"
+        },
+        {
+          "text": "Click \"Expand sidebar\" to open it.",
+          "how": "mirror"
+        },
+        {
+          "text": "Open \"URL alias\" and type a value without a leading slash, for example no-slash.",
+          "how": "mirror"
+        },
+        {
+          "text": "Close the sidebar.",
+          "how": "mirror"
+        },
+        {
+          "text": "Click Save. An error appears at the top: \"1 error has been found: URL alias\", with \"URL alias\" as a link.",
+          "how": "mirror",
+          "lookFor": "An error summary at the top of the page, with \"URL alias\" as a link. If you do not see it, the setup went wrong; try again from step 6."
+        },
+        {
+          "text": "Turn Mirror off. In EACH frame, click the \"URL alias\" link with a REAL mouse click (then repeat using only the keyboard: Tab to the link, press Enter). Do not use a script: script-generated clicks do not trigger the focus behaviour being tested.",
+          "how": "each",
+          "lookFor": "Before: nothing visibly happens. After: the sidebar opens and the URL alias box is outlined (it has keyboard focus). Then press Run checks."
+        }
+      ],
+      "expected": "The sidebar opens and keyboard focus moves to the invalid URL alias field.",
+      "actual": "Before (upstream main): nothing happens. After (with the change): the sidebar opens and the field has focus.",
+      "setup": "scripts/lab-site.sh reset <env> (or apply <env>) gives a site in the starting state for steps 1 to 3.",
+      "observe": [
+        {
+          "label": "The sidebar of advanced fields opened by itself",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "The \"URL alias\" section is open and the field is visible without scrolling",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "The \"URL alias\" field has a visible focus outline",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Anything else looks broken or different (layout, colours, errors)",
+          "expectBefore": false,
+          "expectAfter": false
+        }
+      ],
+      "checks": [
+        {
+          "label": "Setup reached: error link to URL alias is on the page",
+          "probe": "!!document.querySelector('a[href=\"#edit-path-0-alias\"]')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The error link was used with a real click or key press, not a script",
+          "probe": "!!window.__cmpTrustedFragmentClick",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Sidebar is open after using the error link",
+          "probe": "document.body.getAttribute('data-meta-sidebar') === 'open'",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "URL alias field received keyboard focus (recorded when it happens: only one frame can hold focus at a time)",
+          "probe": "(window.__cmpFocused || []).includes('path[0][alias]')",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Saved sidebar preference was not overwritten (phone/tablet key)",
+          "probe": "localStorage.getItem('Drupal.defaultAdmin.sidebarExpanded.mobile')",
+          "expect": "false",
+          "kind": "regression"
+        },
+        {
+          "label": "JavaScript errors on the page (ignoring the harmless \"ResizeObserver loop\" notice)",
+          "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+          "expect": 0,
+          "kind": "regression"
+        },
+        {
+          "label": "Number of open details sections matches the other side",
+          "probe": "document.querySelectorAll('details[open]').length",
+          "expect": "same",
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/node/add/article",
+        "/admin/content"
+      ],
+      "demo": {
+        "viewport": "narrow",
+        "start": "/node/add/article"
+      }
+    },
+    {
+      "slug": "3619127-latest",
+      "issue": "3619127",
+      "label": "#3619127: same steps against the LATEST Drupal core main",
+      "description": "Before: upstream main. After: MR !16895 with patch-0 (no jQuery) and patch-1 (no persist). Open /node/add/article in a narrow window, set a URL alias of 'no-slash' inside the sidebar, close the sidebar, Save, then use the error link. Before: nothing opens. After: the sidebar opens and the field gets focus.",
+      "steps": [
+        {
+          "text": "Default Admin is the admin theme.",
+          "how": "recipe"
+        },
+        {
+          "text": "Article content type and the Path module (URL alias field) are installed.",
+          "how": "recipe"
+        },
+        {
+          "text": "The Inline Form Errors module is enabled.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /node/add/article (the page is already loaded in both frames once you press Go).",
+          "how": "mirror"
+        },
+        {
+          "text": "Use the Tablet or Phone frame width, so the sidebar of advanced fields is collapsed.",
+          "how": "mirror"
+        },
+        {
+          "text": "Click \"Expand sidebar\" to open it.",
+          "how": "mirror"
+        },
+        {
+          "text": "Open \"URL alias\" and type a value without a leading slash, for example no-slash.",
+          "how": "mirror"
+        },
+        {
+          "text": "Close the sidebar.",
+          "how": "mirror"
+        },
+        {
+          "text": "Click Save. An error appears at the top: \"1 error has been found: URL alias\", with \"URL alias\" as a link.",
+          "how": "mirror",
+          "lookFor": "An error summary at the top of the page, with \"URL alias\" as a link. If you do not see it, the setup went wrong; try again from step 6."
+        },
+        {
+          "text": "Turn Mirror off. In EACH frame, click the \"URL alias\" link with a REAL mouse click (then repeat using only the keyboard: Tab to the link, press Enter). Do not use a script: script-generated clicks do not trigger the focus behaviour being tested.",
+          "how": "each",
+          "lookFor": "Before: nothing visibly happens. After: the sidebar opens and the URL alias box is outlined (it has keyboard focus). Then press Run checks."
+        }
+      ],
+      "expected": "The sidebar opens and keyboard focus moves to the invalid URL alias field.",
+      "actual": "Before (upstream main): nothing happens. After (with the change): the sidebar opens and the field has focus.",
+      "setup": "scripts/lab-site.sh reset <env> (or apply <env>) gives a site in the starting state for steps 1 to 3.",
+      "observe": [
+        {
+          "label": "The sidebar of advanced fields opened by itself",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "The \"URL alias\" section is open and the field is visible without scrolling",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "The \"URL alias\" field has a visible focus outline",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Anything else looks broken or different (layout, colours, errors)",
+          "expectBefore": false,
+          "expectAfter": false
+        }
+      ],
+      "checks": [
+        {
+          "label": "Setup reached: error link to URL alias is on the page",
+          "probe": "!!document.querySelector('a[href=\"#edit-path-0-alias\"]')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The error link was used with a real click or key press, not a script",
+          "probe": "!!window.__cmpTrustedFragmentClick",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Sidebar is open after using the error link",
+          "probe": "document.body.getAttribute('data-meta-sidebar') === 'open'",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "URL alias field received keyboard focus (recorded when it happens: only one frame can hold focus at a time)",
+          "probe": "(window.__cmpFocused || []).includes('path[0][alias]')",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Saved sidebar preference was not overwritten (phone/tablet key)",
+          "probe": "localStorage.getItem('Drupal.defaultAdmin.sidebarExpanded.mobile')",
+          "expect": "false",
+          "kind": "regression"
+        },
+        {
+          "label": "JavaScript errors on the page (ignoring the harmless \"ResizeObserver loop\" notice)",
+          "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+          "expect": 0,
+          "kind": "regression"
+        },
+        {
+          "label": "Number of open details sections matches the other side",
+          "probe": "document.querySelectorAll('details[open]').length",
+          "expect": "same",
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/node/add/article",
+        "/admin/content"
+      ],
+      "demo": {
+        "viewport": "narrow",
+        "start": "/node/add/article"
+      }
+    },
+    {
+      "slug": "3604037-pinned",
+      "issue": "3604037",
+      "label": "#3604037: groups (details, vertical tabs) that contain a field error say so, pinned core",
+      "description": "Forms group fields in closed <details> and vertical tabs. When a field inside a closed or inactive group has an error, nothing on the group says so. The change (MR !17078, Default Admin theme) marks such groups with a red border, an icon, red label text, a hidden \" (contains error)\" label for screen readers and a data-child-error-count attribute. Follow the steps on three pages, then press Run checks on each page: the checks apply to the page the frames are on.",
+      "steps": [
+        {
+          "text": "Default Admin is the admin theme.",
+          "how": "recipe"
+        },
+        {
+          "text": "An Article content type, the Path module and the form_test test module are installed (setup enables test extensions).",
+          "how": "recipe"
+        },
+        {
+          "text": "Type /form_test/details-contains-required-fields in Page and press Go (both). A form appears with a collapsible section that contains required fields.",
+          "how": "mirror",
+          "lookFor": "A details section titled something like \"Meta\" with two required text fields inside."
+        },
+        {
+          "text": "Press the form's submit button without filling in anything.",
+          "how": "mirror",
+          "lookFor": "Error messages for the required fields."
+        },
+        {
+          "text": "Close the details section by clicking its title.",
+          "how": "mirror",
+          "lookFor": "Before: a plain closed section, nothing says it contains errors. After: it is marked as containing errors (red border, error icon, red title). Then press Run checks."
+        },
+        {
+          "text": "Open /node/add/article. Open the sidebar, open \"URL alias\", type a value with no leading slash (no-slash), close the sidebar, press Save.",
+          "how": "mirror",
+          "lookFor": "Open the sidebar again: After marks the \"URL alias\" group as containing an error even though it is closed. Run checks."
+        },
+        {
+          "text": "Open /admin/config/people/accounts (each frame must be at least 650 px wide: use Half or Tablet). In the Emails section clear the required Subject, press Save, then click a different vertical tab.",
+          "how": "mirror",
+          "lookFor": "The tab that contains the error is marked in After but not in Before. Run checks."
+        },
+        {
+          "text": "Repeat step 5 with Site theme set to Dark, and note anything hard to see (borders, icon, text).",
+          "how": "each"
+        }
+      ],
+      "expected": "A closed details section or an inactive vertical tab that contains a field error is visibly marked (red border, icon, red text) and has hidden text \" (contains error)\" and a data-child-error-count attribute.",
+      "actual": "Before the change a closed or inactive group gives no sign that a field inside it has an error; the user must open each group to find it.",
+      "setup": "node tools/compare/setup.mjs 3604037-latest (the environments for a core and the same core with the patch).",
+      "observe": [
+        {
+          "label": "A group that contains an error (a closed section or an inactive tab) is visibly marked",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "The mark is more than colour: there is also an icon or a border",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "The keyboard focus outline on the group is still clearly visible",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Anything else looks broken, overlapped or unreadable (borders, icon, text, spacing)",
+          "expectBefore": false,
+          "expectAfter": false
+        }
+      ],
+      "checks": [
+        {
+          "label": "Setup reached: the test form shows required-field errors",
+          "probe": "document.querySelectorAll('.form-item__error-message, .form-item--error-message').length > 0",
+          "expect": true,
+          "kind": "precondition",
+          "onlyOn": "/form_test/details-contains-required-fields"
+        },
+        {
+          "label": "A group (details) that contains the errors is on the page",
+          "probe": "!!document.querySelector('details')",
+          "expect": true,
+          "kind": "precondition",
+          "onlyOn": "/form_test/details-contains-required-fields"
+        },
+        {
+          "label": "The details that contains errors has data-child-error-count",
+          "probe": "!!document.querySelector('details[data-child-error-count]')",
+          "expect": true,
+          "kind": "fix",
+          "onlyOn": "/form_test/details-contains-required-fields"
+        },
+        {
+          "label": "The count is 2 (two required fields inside)",
+          "probe": "(document.querySelector('details[data-child-error-count]') || document.body).getAttribute('data-child-error-count')",
+          "expect": "2",
+          "kind": "fix",
+          "onlyOn": "/form_test/details-contains-required-fields"
+        },
+        {
+          "label": "The summary carries the hidden text \"(contains error)\"",
+          "probe": "((document.querySelector('details > summary .child-error-indicator') || {}).textContent || '').trim()",
+          "expect": "(contains error)",
+          "kind": "fix",
+          "onlyOn": "/form_test/details-contains-required-fields"
+        },
+        {
+          "label": "Setup reached: the URL alias error is on the node form",
+          "probe": "!!document.querySelector('a[href$=\"#edit-path-0-alias\"]')",
+          "expect": true,
+          "kind": "precondition",
+          "onlyOn": "/node/add/article"
+        },
+        {
+          "label": "The closed URL alias group is marked (data-child-error-count)",
+          "probe": "!!(document.querySelector('#edit-path-0') || document.body).hasAttribute('data-child-error-count')",
+          "expect": true,
+          "kind": "fix",
+          "onlyOn": "/node/add/article"
+        },
+        {
+          "label": "Its summary carries the hidden text \"(contains error)\"",
+          "probe": "((document.querySelector('#edit-path-0 > summary .child-error-indicator') || {}).textContent || '').trim()",
+          "expect": "(contains error)",
+          "kind": "fix",
+          "onlyOn": "/node/add/article"
+        },
+        {
+          "label": "Setup reached: the account settings form shows an error",
+          "probe": "document.querySelectorAll('.form-item__error-message, .form-item--error-message').length > 0",
+          "expect": true,
+          "kind": "precondition",
+          "onlyOn": "/admin/config/people/accounts"
+        },
+        {
+          "label": "A vertical tab that contains an error is marked",
+          "probe": "!!document.querySelector('.vertical-tabs__menu-item.error')",
+          "expect": true,
+          "kind": "fix",
+          "onlyOn": "/admin/config/people/accounts"
+        },
+        {
+          "label": "That tab has the hidden \"(contains error)\" text",
+          "probe": "!!document.querySelector('.vertical-tabs__menu-item .child-error-indicator')",
+          "expect": true,
+          "kind": "fix",
+          "onlyOn": "/admin/config/people/accounts"
+        },
+        {
+          "label": "JavaScript errors on the page (ignoring the harmless \"ResizeObserver loop\" notice)",
+          "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+          "expect": 0,
+          "kind": "regression"
+        },
+        {
+          "label": "Number of open details sections matches the other side",
+          "probe": "document.querySelectorAll('details[open]').length",
+          "expect": "same",
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/form_test/details-contains-required-fields",
+        "/node/add/article",
+        "/admin/config/people/accounts"
+      ],
+      "demo": {
+        "start": "/form_test/details-contains-required-fields"
+      }
+    },
+    {
+      "slug": "3604037-latest",
+      "issue": "3604037",
+      "label": "#3604037: same steps against the LATEST core main",
+      "description": "Forms group fields in closed <details> and vertical tabs. When a field inside a closed or inactive group has an error, nothing on the group says so. The change (MR !17078, Default Admin theme) marks such groups with a red border, an icon, red label text, a hidden \" (contains error)\" label for screen readers and a data-child-error-count attribute. Follow the steps on three pages, then press Run checks on each page: the checks apply to the page the frames are on.",
+      "steps": [
+        {
+          "text": "Default Admin is the admin theme.",
+          "how": "recipe"
+        },
+        {
+          "text": "An Article content type, the Path module and the form_test test module are installed (setup enables test extensions).",
+          "how": "recipe"
+        },
+        {
+          "text": "Type /form_test/details-contains-required-fields in Page and press Go (both). A form appears with a collapsible section that contains required fields.",
+          "how": "mirror",
+          "lookFor": "A details section titled something like \"Meta\" with two required text fields inside."
+        },
+        {
+          "text": "Press the form's submit button without filling in anything.",
+          "how": "mirror",
+          "lookFor": "Error messages for the required fields."
+        },
+        {
+          "text": "Close the details section by clicking its title.",
+          "how": "mirror",
+          "lookFor": "Before: a plain closed section, nothing says it contains errors. After: it is marked as containing errors (red border, error icon, red title). Then press Run checks."
+        },
+        {
+          "text": "Open /node/add/article. Open the sidebar, open \"URL alias\", type a value with no leading slash (no-slash), close the sidebar, press Save.",
+          "how": "mirror",
+          "lookFor": "Open the sidebar again: After marks the \"URL alias\" group as containing an error even though it is closed. Run checks."
+        },
+        {
+          "text": "Open /admin/config/people/accounts (each frame must be at least 650 px wide: use Half or Tablet). In the Emails section clear the required Subject, press Save, then click a different vertical tab.",
+          "how": "mirror",
+          "lookFor": "The tab that contains the error is marked in After but not in Before. Run checks."
+        },
+        {
+          "text": "Repeat step 5 with Site theme set to Dark, and note anything hard to see (borders, icon, text).",
+          "how": "each"
+        }
+      ],
+      "expected": "A closed details section or an inactive vertical tab that contains a field error is visibly marked (red border, icon, red text) and has hidden text \" (contains error)\" and a data-child-error-count attribute.",
+      "actual": "Before the change a closed or inactive group gives no sign that a field inside it has an error; the user must open each group to find it.",
+      "setup": "node tools/compare/setup.mjs 3604037-latest (the environments for a core and the same core with the patch).",
+      "observe": [
+        {
+          "label": "A group that contains an error (a closed section or an inactive tab) is visibly marked",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "The mark is more than colour: there is also an icon or a border",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "The keyboard focus outline on the group is still clearly visible",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Anything else looks broken, overlapped or unreadable (borders, icon, text, spacing)",
+          "expectBefore": false,
+          "expectAfter": false
+        }
+      ],
+      "checks": [
+        {
+          "label": "Setup reached: the test form shows required-field errors",
+          "probe": "document.querySelectorAll('.form-item__error-message, .form-item--error-message').length > 0",
+          "expect": true,
+          "kind": "precondition",
+          "onlyOn": "/form_test/details-contains-required-fields"
+        },
+        {
+          "label": "A group (details) that contains the errors is on the page",
+          "probe": "!!document.querySelector('details')",
+          "expect": true,
+          "kind": "precondition",
+          "onlyOn": "/form_test/details-contains-required-fields"
+        },
+        {
+          "label": "The details that contains errors has data-child-error-count",
+          "probe": "!!document.querySelector('details[data-child-error-count]')",
+          "expect": true,
+          "kind": "fix",
+          "onlyOn": "/form_test/details-contains-required-fields"
+        },
+        {
+          "label": "The count is 2 (two required fields inside)",
+          "probe": "(document.querySelector('details[data-child-error-count]') || document.body).getAttribute('data-child-error-count')",
+          "expect": "2",
+          "kind": "fix",
+          "onlyOn": "/form_test/details-contains-required-fields"
+        },
+        {
+          "label": "The summary carries the hidden text \"(contains error)\"",
+          "probe": "((document.querySelector('details > summary .child-error-indicator') || {}).textContent || '').trim()",
+          "expect": "(contains error)",
+          "kind": "fix",
+          "onlyOn": "/form_test/details-contains-required-fields"
+        },
+        {
+          "label": "Setup reached: the URL alias error is on the node form",
+          "probe": "!!document.querySelector('a[href$=\"#edit-path-0-alias\"]')",
+          "expect": true,
+          "kind": "precondition",
+          "onlyOn": "/node/add/article"
+        },
+        {
+          "label": "The closed URL alias group is marked (data-child-error-count)",
+          "probe": "!!(document.querySelector('#edit-path-0') || document.body).hasAttribute('data-child-error-count')",
+          "expect": true,
+          "kind": "fix",
+          "onlyOn": "/node/add/article"
+        },
+        {
+          "label": "Its summary carries the hidden text \"(contains error)\"",
+          "probe": "((document.querySelector('#edit-path-0 > summary .child-error-indicator') || {}).textContent || '').trim()",
+          "expect": "(contains error)",
+          "kind": "fix",
+          "onlyOn": "/node/add/article"
+        },
+        {
+          "label": "Setup reached: the account settings form shows an error",
+          "probe": "document.querySelectorAll('.form-item__error-message, .form-item--error-message').length > 0",
+          "expect": true,
+          "kind": "precondition",
+          "onlyOn": "/admin/config/people/accounts"
+        },
+        {
+          "label": "A vertical tab that contains an error is marked",
+          "probe": "!!document.querySelector('.vertical-tabs__menu-item.error')",
+          "expect": true,
+          "kind": "fix",
+          "onlyOn": "/admin/config/people/accounts"
+        },
+        {
+          "label": "That tab has the hidden \"(contains error)\" text",
+          "probe": "!!document.querySelector('.vertical-tabs__menu-item .child-error-indicator')",
+          "expect": true,
+          "kind": "fix",
+          "onlyOn": "/admin/config/people/accounts"
+        },
+        {
+          "label": "JavaScript errors on the page (ignoring the harmless \"ResizeObserver loop\" notice)",
+          "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+          "expect": 0,
+          "kind": "regression"
+        },
+        {
+          "label": "Number of open details sections matches the other side",
+          "probe": "document.querySelectorAll('details[open]').length",
+          "expect": "same",
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/form_test/details-contains-required-fields",
+        "/node/add/article",
+        "/admin/config/people/accounts"
+      ],
+      "demo": {
+        "start": "/form_test/details-contains-required-fields"
+      }
+    }
+  ]
+}
