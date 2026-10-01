@@ -18,7 +18,7 @@ root; where it disagrees with this file, this file wins.)
 
     node scripts/doctor.mjs [slug]                       1. is this machine ready? fix what it reports (read-only)
     node tools/compare/setup.mjs <slug>                  2. FIRST TIME ONLY: build Before and After (10-20 min, resumable; re-run if it stops)
-    node scripts/lab-env.mjs start <slug>                3. every time: both sites + the viewer (https://drupal-compare.ddev.site or http://localhost:8100)
+    node scripts/lab-env.mjs start <slug> [--browser]    3. every time: both sites + the viewer (https://drupal-compare.ddev.site or http://localhost:8100); --browser opens it in the lab browser (forced-colours switch, own profile in .lab-browser)
     node tools/playwright/walkthrough.mjs <slug>         4. scripted replay with real input; evidence goes to reports/issues/<nid>/
     (write up: REPRODUCE/VALIDATION/STATUS, drafts only)  5. then: node scripts/coverage.mjs <nid>; node scripts/index-issues.mjs
     node scripts/lab-env.mjs stop <slug>                 6. when done (nothing is lost)

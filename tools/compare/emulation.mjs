@@ -13,20 +13,25 @@ export const MODES = {
   'forced-dark': { forcedColors: 'active', colorScheme: 'dark', contrast: null },
   contrast: { forcedColors: null, colorScheme: null, contrast: 'more' },
 };
-let browser = null, page = null, mode = 'normal';
+// The lab browser keeps its own profile folder, so the viewer's remembered choices, step ticks and notes (localStorage) survive between launches.
+// Delete it to start clean:  node scripts/lab-env.mjs browser --reset
+export const PROFILE = process.env.LAB_BROWSER_PROFILE || path.join(labRoot, '.lab-browser');
+let ctx = null, page = null, mode = 'normal';
 
 export const available = () => fs.existsSync(PW);
+export const windowPage = () => page;          // for tests
 
-export async function open(url, initial = 'forced-light') {
+export async function open(url, initial = 'normal') {
   if (!available()) throw new Error('Playwright is not installed: cd tools/playwright && npm install && npx playwright install chromium');
-  if (page && !page.isClosed()) { await page.bringToFront(); return; }
+  if (page && !page.isClosed()) { await page.bringToFront(); if (initial !== 'normal') await setMode(initial); return; }
   const { chromium } = await import(pathToFileURL(PW).href);
+  const headless = !!process.env.LAB_EMULATION_HEADLESS;
   // Playwright's own SIGINT/SIGTERM handlers would swallow the signal and keep the server alive; serve.mjs closes the window and exits itself.
-  browser = await chromium.launch({ headless: !!process.env.LAB_EMULATION_HEADLESS, args: ['--window-size=1500,1000'], handleSIGINT: false, handleSIGTERM: false, handleSIGHUP: false });
-  const ctx = await browser.newContext({ viewport: process.env.LAB_EMULATION_HEADLESS ? { width: 1500, height: 1000 } : null, ignoreHTTPSErrors: true });
-  page = await ctx.newPage();
-  await page.emulateMedia(MODES[initial]); mode = initial;      // open already in forced colours: that is what the button promises
-  page.on('close', () => { page = null; mode = 'normal'; browser && browser.close().catch(() => {}); browser = null; });
+  ctx = await chromium.launchPersistentContext(PROFILE, { headless, viewport: headless ? { width: 1500, height: 1000 } : null, args: ['--window-size=1500,1000'],
+    ignoreHTTPSErrors: true, handleSIGINT: false, handleSIGTERM: false, handleSIGHUP: false });
+  page = ctx.pages()[0] || await ctx.newPage();
+  await page.emulateMedia(MODES[initial]); mode = initial;
+  page.on('close', () => { page = null; mode = 'normal'; ctx && ctx.close().catch(() => {}); ctx = null; });
   await page.goto(url);
 }
 
@@ -48,4 +53,4 @@ export async function status() {
   return out;
 }
 
-export async function close() { if (browser) await browser.close().catch(() => {}); browser = null; page = null; }
+export async function close() { if (ctx) await ctx.close().catch(() => {}); ctx = null; page = null; }

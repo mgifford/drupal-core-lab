@@ -1,18 +1,24 @@
 // Start, stop and inspect the lab's DDEV environments by variant name. Two sites at a time is the normal state:
 // a core, and the same core with an issue's patch.
 //   node scripts/lab-env.mjs status                 what exists, what is running, which variant uses it
-//   node scripts/lab-env.mjs start <slug>           start both environments AND the side-by-side viewer (retries DDEV's router flake)
+//   node scripts/lab-env.mjs start <slug> [--browser]  start both environments AND the side-by-side viewer (retries DDEV's router flake);
+//                                                   --browser also opens the viewer in the lab browser (forced-colours switch built in, own profile in .lab-browser)
+//   node scripts/lab-env.mjs browser [--reset]      open the viewer in the lab browser (needs the viewer running); --reset deletes its saved profile
 //   node scripts/lab-env.mjs stop <slug|all>        stop the viewer and both environments (data is kept; start brings them back)
 //   Viewer: https://drupal-compare.ddev.site (needs `ddev start` once in tools/compare/site) or http://localhost:8100. Log: .lab-viewer.log; pid: .lab-viewer.pid (both gitignored).
 //   node scripts/lab-env.mjs delete <slug> --yes    DELETE both environments and their worktrees (rebuild with setup.mjs)
 // `stop all` stops every lab environment but leaves the small drupal-compare address project running.
 import fs from 'node:fs';
 import path from 'node:path';
+import http from 'node:http';
 import { spawnSync, execFileSync, spawn } from 'node:child_process';
 import { labRoot, variants, envDir } from '../tools/compare/lib.mjs';
 
 const [cmd, target] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const yes = process.argv.includes('--yes');
+const wantBrowser = process.argv.includes('--browser');
+const viewerApi = (body) => new Promise((resolve, reject) => { const q = http.request({ host: 'localhost', port: 8100, path: '/api/emulation', method: 'POST', timeout: 60000 }, (r) => { let b = ''; r.on('data', (c) => (b += c)); r.on('end', () => { if (r.statusCode === 200) resolve(b); else { const e = new Error(b || `HTTP ${r.statusCode}`); e.http = true; reject(e); } }); }); q.on('error', reject); q.on('timeout', () => q.destroy(new Error('timed out'))); q.end(JSON.stringify(body)); });
+async function openLabBrowser() { for (let i = 0; i < 30; i++) { try { await viewerApi({ open: true, mode: 'normal' }); console.log('Opened the viewer in the lab browser (Browser colour emulation switch is on the page).'); return; } catch (e) { if (e.http) { console.error('Could not open the lab browser: ' + e.message); return; } await new Promise((r) => setTimeout(r, 1000)); } } console.error('The viewer did not answer; start it first.'); }
 const vs = variants();
 const envsDir = path.join(labRoot, 'envs');
 const allEnvs = fs.existsSync(envsDir) ? fs.readdirSync(envsDir).filter((d) => fs.existsSync(path.join(envsDir, d, '.ddev/config.yaml'))) : [];
@@ -55,7 +61,11 @@ switch (cmd) {
       if (!ok) { console.error(`could not start ${e}`); process.exit(1); }
     }
     const url = startViewer(target);
+    if (wantBrowser) await openLabBrowser();
     console.log(`\nStarted both environments of ${target} and the viewer: ${url}\n(The viewer shows a "still loading" message until both sites answer.) Stop everything: node scripts/lab-env.mjs stop ${target}`); break; }
+  case 'browser': {
+    if (process.argv.includes('--reset')) { try { await viewerApi({ close: true }); } catch { /* viewer not running */ } fs.rmSync(path.join(labRoot, '.lab-browser'), { recursive: true, force: true }); console.log('Deleted the lab browser profile (saved choices, ticks and notes).'); break; }
+    await openLabBrowser(); break; }
   case 'stop': {
     if (!target) { console.error('usage: stop <slug|all>'); process.exit(2); }
     stopViewer();
@@ -66,5 +76,5 @@ switch (cmd) {
     const list = envsOf(target); if (!yes) { console.error(`This DELETES ${list.join(' and ')} (containers, database and worktree). Evidence in reports/ is kept. Re-run with --yes.`); process.exit(2); }
     for (const e of list) { if (!fs.existsSync(envDir(e))) continue; ddev(envDir(e), ['delete', '--omit-snapshot', '--yes']); spawnSync('git', ['-C', path.join(envsDir, 'core.git'), 'worktree', 'remove', '--force', envDir(e)], { stdio: 'inherit' }); }
     break; }
-  default: console.error('usage: lab-env.mjs status | start <slug> | stop <slug|all> | delete <slug> --yes'); process.exit(2);
+  default: console.error('usage: lab-env.mjs status | start <slug> [--browser] | browser [--reset] | stop <slug|all> | delete <slug> --yes'); process.exit(2);
 }

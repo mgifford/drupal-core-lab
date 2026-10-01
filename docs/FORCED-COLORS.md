@@ -6,7 +6,15 @@ yellow and blue on black). Author colours for text, backgrounds, borders and out
 that relies on colour alone (a red border) can vanish; shapes, icons and text survive. That is why it matters for #3604037, which marks a group that
 contains an error with a red bar, a red label and an icon.
 
-## The easy way: the viewer's forced-colours window
+## The easiest way: start the viewer in the lab browser
+    node scripts/lab-env.mjs start <slug> --browser        (or, with the viewer already running:  node scripts/lab-env.mjs browser)
+
+This opens the viewer straight into the **lab browser**, a Chromium window the lab server controls, so the **Browser colour emulation** switch is on the page and you
+need only one window. It opens in Normal; pick a forced mode when you want it. The lab browser has its **own saved profile** (`.lab-browser/`, not committed), so the
+viewer's remembered choices, step ticks and notes survive between launches; it does not use your everyday browser's extensions or logins. Start clean with
+`node scripts/lab-env.mjs browser --reset`. Test: `node tools/playwright/lab-browser.mjs`.
+
+## From a normal browser tab: the forced-colours window
 In the viewer press **Open forced-colours window**. A separate Chromium window opens on the viewer **already in forced colours (light)**, and in it a **Browser colour emulation** switch
 lets you move between *Normal*, *Forced colours, light*, *Forced colours, dark* (the black high-contrast palette) and *More contrast*, live, for
 **both frames at once**. The line beside the switch shows what each frame actually reports (for example "Before: forced colours on, dark"), so you can see the

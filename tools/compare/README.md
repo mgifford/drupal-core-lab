@@ -43,7 +43,7 @@ sites' own scripts (data blocks such as drupalSettings stay) and show `<noscript
 The viewer's own script still runs, so mirroring and scrolling keep working. Neither setting is remembered between visits.
 
 ## Forced colours
-A page cannot switch forced colours on, so **Open forced-colours window** asks the server (`emulation.mjs`, Playwright's `page.emulateMedia`) to open a separate Chromium window in which a
+A page cannot switch forced colours on, so `node scripts/lab-env.mjs start <slug> --browser` (or `... browser`) opens the viewer in a lab browser whose profile persists in `.lab-browser/` (`browser --reset` deletes it). From a normal tab, **Open forced-colours window** asks the server (`emulation.mjs`, Playwright's `page.emulateMedia`) to open a separate Chromium window in which a
 **Browser colour emulation** switch (Normal / Forced light / Forced dark / More contrast) changes the whole tab, both frames included, live. The page shows what each frame reports. It is emulation, not
 a real contrast theme. Server endpoints: `GET /api/emulation`, `POST /api/emulation` with `{open:true}`, `{mode}` or `{close:true}`. Set `LAB_EMULATION_HEADLESS=1` for tests. See `docs/FORCED-COLORS.md`.
 

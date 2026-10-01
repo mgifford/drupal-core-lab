@@ -245,7 +245,7 @@ http.createServer((req, res) => {
     // GET: state and what each frame reports. POST {mode}: forced-light | forced-dark | contrast | normal. POST /open: launch the controlled window.
     const send = (code, o) => { res.writeHead(code, { 'content-type': 'application/json' }); res.end(JSON.stringify(o)); };
     if (req.method === 'POST') { let b = ''; req.on('data', (c) => (b += c)); req.on('end', async () => {
-      try { const d = JSON.parse(b || '{}'); if (d.open) await emulation.open(`http://localhost:${PAGE}/?controlled=1`); else if (d.close) await emulation.close(); else await emulation.setMode(d.mode); send(200, await emulation.status()); }
+      try { const d = JSON.parse(b || '{}'); if (d.open) await emulation.open(`http://localhost:${PAGE}/?controlled=1`, d.mode || 'forced-light'); else if (d.close) await emulation.close(); else await emulation.setMode(d.mode); send(200, await emulation.status()); }
       catch (e) { send(400, { error: String(e.message).split('\n')[0] }); } }); }
     else emulation.status().then((s) => send(200, s)).catch((e) => send(500, { error: String(e.message) }));
   } else if (u.pathname === '/api/login') {
