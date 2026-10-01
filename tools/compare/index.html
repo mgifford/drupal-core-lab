@@ -87,7 +87,8 @@ html:not([data-runtime="static"]) [data-static-only] { display: none !important;
     <label data-needs="live"><input type="checkbox" id="syncscroll" checked> Sync scrolling</label>
     <label data-needs="live"><input type="checkbox" id="syncnav" checked> Sync navigation</label>
     <label data-needs="live"><input type="checkbox" id="darkos"> Simulate a dark-mode OS</label>
-    <label data-needs="live"><input type="checkbox" id="mirror" checked> Mirror clicks and typing</label>
+    <label data-needs="live"><input type="checkbox" id="mirror" checked> Mirror clicks, typing and drags</label>
+    <label data-needs="live"><input type="checkbox" id="mirrorhover"> Mirror hover and focus (marker)</label>
     <label data-needs="live"><input type="checkbox" id="axeon"> Live accessibility checks (axe-core)</label>
     <label data-needs="live"><input type="checkbox" id="axebest"> include best-practice rules</label>
     <span data-needs="live" id="axemini" role="status" aria-live="polite"></span>
@@ -179,13 +180,15 @@ const other = (s) => (s === 'before' ? 'after' : 'before');
 const status = (t) => { $('status').textContent = t; };
 const radio = (name) => document.querySelector(`input[name="${name}"]:checked`).value;
 const post = (body) => fetch('api/state', { method: 'POST', body: JSON.stringify(body) });
-function updateExternal() { for (const [side, id] of [['before', 'ob'], ['after', 'oa']]) { const a = $(id); a.href = (sites[side] || '') + (last[side] || $('goto').value || '/'); a.hidden = !sites[side]; } }
-function load(side, path) { path = String(path || '/').trim().replace(/^https?:\/\/[^/]+/, ''); if (!/^[/?#]/.test(path)) path = '/' + path; markStart(side); last[side] = path; P[side].textContent = path; F[side].src = origins[side] + path; updateExternal(); }
-function loadBoth(path) { status('Loading…'); load('before', path); load('after', path); }
+function updateExternal() { for (const [side, id] of [['before', 'ob'], ['after', 'oa']]) { const a = $(id); a.href = (sites[side] || '') + (last[side] || normPath($('goto').value)); a.hidden = !sites[side]; } }
+// Accepts "node/add/article", "/node/add/article" or a pasted full URL; always returns a path that starts with one slash.
+const normPath = (p) => { p = String(p || '').trim().replace(/^https?:\/\/[^/]+/, '').replace(/^\/{2,}/, '/'); return /^[/?#]/.test(p) ? (p || '/') : '/' + p; };
+function load(side, path) { path = normPath(path); markStart(side); last[side] = path; P[side].textContent = path; F[side].src = origins[side] + path; updateExternal(); }
+function loadBoth(path) { path = normPath(path); $('goto').value = path; status('Loading…'); load('before', path); load('after', path); }
 // In overlay views each frame must keep the width it has side by side (half of the page), or it would cross a responsive breakpoint and show a different layout.
 function applyWidth() { const w = radio('width'), overlay = radio('view') !== 'side'; for (const s of ['before', 'after']) F[s].style.width = w === 'half' ? (overlay ? 'calc(50% - .25rem)' : '100%') : w; }
 // Optional extras (live axe, Lighthouse, ...) are OFF until you turn them on. Choices are remembered in this browser (localStorage) only.
-const PREF_KEY = 'compare.prefs', PREF_CHECKS = ['axeon', 'axebest', 'lhon', 'lhperf', 'darkos'];
+const PREF_KEY = 'compare.prefs', PREF_CHECKS = ['axeon', 'axebest', 'lhon', 'lhperf', 'darkos', 'mirrorhover'];
 function applyPrefs() { let p = {}; try { p = JSON.parse(localStorage.getItem(PREF_KEY)) || {}; } catch (e) { /* none */ }
   PREF_CHECKS.forEach((id) => { if (typeof p[id] === 'boolean') $(id).checked = p[id]; });
   if (p.theme) { const r = document.querySelector(`input[name="theme"][value="${p.theme}"]`); if (r) r.checked = true; } }
@@ -237,6 +240,7 @@ document.querySelectorAll('input[name="width"]').forEach((r) => r.addEventListen
 document.querySelectorAll('input[name="theme"]').forEach((r) => r.addEventListener('change', sendState));
 $('darkos').addEventListener('change', sendState);
 $('go').addEventListener('click', () => loadBoth($('goto').value));
+$('goto').addEventListener('change', () => { $('goto').value = normPath($('goto').value); });
 $('goto').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('go').click(); });
 $('login').addEventListener('click', async () => {
   status('Logging in…');
@@ -246,7 +250,7 @@ $('login').addEventListener('click', async () => {
 addEventListener('message', (e) => {
   const m = e.data; if (!m || !m.compare) return;
   if (m.type === 'scroll' && $('syncscroll').checked) { const o = F[other(m.side)].contentWindow; o && o.postMessage({ compare: 1, type: 'scroll', x: m.x, y: m.y }, '*'); }
-  if (m.type === 'mirror' && $('mirror').checked) { const o = F[other(m.side)].contentWindow; o && o.postMessage(Object.assign({}, m, { compare: 1 }), '*'); }
+  if (m.type === 'mirror' && (/^hover/.test(m.kind) ? $('mirrorhover').checked : $('mirror').checked)) { const o = F[other(m.side)].contentWindow; o && o.postMessage(Object.assign({}, m, { compare: 1 }), '*'); }
   if (m.type === 'mirror-miss') status(`Not mirrored: could not find "${m.label || m.kind}" in the ${m.side} frame. The two sides have diverged here.`);
   if (m.type === 'axe') { AX[m.side] = { url: m.url, violations: m.violations }; logAxe(m.side, AX[m.side]); }
   if (m.type === 'axe-unavailable') { $('axeverdict').className = 'verdict warn'; $('axeverdict').textContent = 'axe-core is not installed. Run: npm install --prefix tools/compare/.deps axe-core@4 , then reload.'; }
@@ -255,7 +259,7 @@ addEventListener('message', (e) => {
   if (m.type === 'real-click') { realClick[m.side] = true; showRealClick(); }
   if (m.type === 'loaded') { realClick[m.side] = false; showRealClick(); loadedAt[m.side] = Date.now(); }
   if (m.type === 'nav') {
-    setPath(P[m.side], m.path); last[m.side] = m.path; updateExternal(); lhSchedule(); status('Ready.'); if (radio('view') !== 'side') applyView();
+    setPath(P[m.side], m.path); if (document.activeElement !== $('goto') && !/pass-reset-token|\/user\/reset/.test(m.path)) $('goto').value = m.path; last[m.side] = m.path; updateExternal(); lhSchedule(); status('Ready.'); if (radio('view') !== 'side') applyView();
     if ($('syncnav').checked && last[m.side] !== m.path) { last[m.side] = m.path; if (last[other(m.side)] !== m.path) load(other(m.side), m.path); }
   }
 });

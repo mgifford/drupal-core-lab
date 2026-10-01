@@ -79,7 +79,7 @@ const pathOf=(el)=>{if(el.id&&!/\\d{6,}/.test(el.id)&&document.querySelectorAll(
  const parts=[];while(el&&el.nodeType===1&&el!==document.documentElement){const p=el.parentElement;if(!p)break;parts.unshift(el.tagName.toLowerCase()+':nth-child('+(Array.prototype.indexOf.call(p.children,el)+1)+')');el=p}return 'html>'+parts.join('>')};
 const find=(p)=>{try{return document.querySelector(p)}catch(e){return null}};
 const send=(kind,el,extra)=>post(Object.assign({type:'mirror',kind,path:pathOf(el),label:(el.getAttribute&&(el.getAttribute('aria-label')||el.textContent||el.name||el.id)||'').trim().slice(0,40)},extra));
-document.addEventListener('click',(e)=>{if(!e.isTrusted)return;const el=e.target.closest('a,button,summary,input,select,label,[role=button]')||e.target;if(el.tagName==='INPUT'&&/text|email|password|search|url|number|tel/.test(el.type||'text'))return;if(el.tagName==='SELECT'||el.tagName==='LABEL')return;send('click',el,{})},true);
+document.addEventListener('click',(e)=>{if(!e.isTrusted||window.__cmpDragged)return;const el=e.target.closest('a,button,summary,input,select,label,[role=button]')||e.target;if(el.tagName==='INPUT'&&/text|email|password|search|url|number|tel/.test(el.type||'text'))return;if(el.tagName==='SELECT'||el.tagName==='LABEL')return;send('click',el,{})},true);
 document.addEventListener('input',(e)=>{if(!e.isTrusted)return;const el=e.target;if(el.type==='checkbox'||el.type==='radio'||el.tagName==='SELECT')return;if('value' in el)send('value',el,{value:el.value})},true);
 document.addEventListener('change',(e)=>{if(!e.isTrusted)return;const el=e.target;if(el.tagName==='SELECT')send('value',el,{value:el.value});else if(el.type==='checkbox'||el.type==='radio')send('checked',el,{checked:el.checked})},true);
 const apply=(d)=>{const el=find(d.path);if(!el){post({type:'mirror-miss',kind:d.kind,label:d.label});return}
@@ -87,6 +87,37 @@ const apply=(d)=>{const el=find(d.path);if(!el){post({type:'mirror-miss',kind:d.
  else if(d.kind==='value'){const proto=el.tagName==='SELECT'?HTMLSelectElement.prototype:el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;
   const set=Object.getOwnPropertyDescriptor(proto,'value').set;set.call(el,d.value);el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}))}
  else if(d.kind==='checked'){if(el.checked!==d.checked)el.click()}};
+
+// Pointer mirroring. Hover and focus (optional in the viewer) draw a marker on the matching element in the other frame: a real :hover or
+// :focus-visible style cannot be set from script. Drags (for example Drupal's table drag) are replayed as synthetic pointer and mouse
+// events once the pointer has moved more than 5px, so plain clicks are not duplicated.
+let ghost,ghostEl,ghostKind;
+const placeGhost=()=>{if(!ghost)return;if(!ghostEl||!ghostEl.isConnected){ghost.style.display='none';return}const r=ghostEl.getBoundingClientRect();ghost.style.cssText='position:fixed;pointer-events:none;z-index:2147483647;display:block;left:'+r.left+'px;top:'+r.top+'px;width:'+r.width+'px;height:'+r.height+'px;outline:3px '+(ghostKind==='focus'?'solid #0b5fff':'dashed #d0007f')+';outline-offset:2px;background:rgba(208,0,127,.07)'};
+const showGhost=(el,kind)=>{ghostEl=el;ghostKind=kind;if(!ghost){ghost=document.createElement('div');ghost.setAttribute('aria-hidden','true');document.documentElement.appendChild(ghost)}placeGhost()};
+addEventListener('scroll',placeGhost,{passive:true});addEventListener('resize',placeGhost);
+let hoverAt=0;
+document.addEventListener('mouseover',(e)=>{if(!e.isTrusted)return;const n=Date.now();if(n-hoverAt<60)return;hoverAt=n;send('hover',e.target,{})},true);
+document.addEventListener('focusin',(e)=>{if(e.isTrusted)send('hoverfocus',e.target,{})},true);
+let dn=null;window.__cmpDragged=false;
+const evd=(e)=>({t:e.type,b:e.button,bs:e.buttons});
+['pointerdown','mousedown'].forEach((t)=>document.addEventListener(t,(e)=>{if(!e.isTrusted||e.button!==0)return;
+ if(!dn){window.__cmpDragged=false;const r=e.target.getBoundingClientRect();dn={x:e.clientX,y:e.clientY,path:pathOf(e.target),fx:r.width?(e.clientX-r.left)/r.width:.5,fy:r.height?(e.clientY-r.top)/r.height:.5,downs:[],moved:false}}
+ dn.downs.push(evd(e))},true));
+['pointermove','mousemove'].forEach((t)=>document.addEventListener(t,(e)=>{if(!dn||!e.isTrusted||!e.buttons)return;
+ if(!dn.moved){if(Math.hypot(e.clientX-dn.x,e.clientY-dn.y)<5)return;dn.moved=true;window.__cmpDragged=true;post({type:'mirror',kind:'dragstart',path:dn.path,fx:dn.fx,fy:dn.fy,downs:dn.downs,label:'drag'})}
+ post({type:'mirror',kind:'dragmove',ev:evd(e),dx:e.clientX-dn.x,dy:e.clientY-dn.y})},true));
+['pointerup','mouseup'].forEach((t)=>document.addEventListener(t,(e)=>{if(!dn||!e.isTrusted)return;
+ if(dn.moved)post({type:'mirror',kind:'dragend',ev:evd(e),dx:e.clientX-dn.x,dy:e.clientY-dn.y});
+ if(t==='mouseup'){dn=null;setTimeout(()=>{window.__cmpDragged=false},50)}},true));
+let rp=null;
+const fire=(el,o,x,y)=>{const init={bubbles:true,cancelable:true,composed:true,view:window,clientX:x,clientY:y,button:o.b,buttons:o.bs,isPrimary:true,pointerId:1,pointerType:'mouse'};
+ try{el.dispatchEvent(/^pointer/.test(o.t)?new PointerEvent(o.t,init):new MouseEvent(o.t,init))}catch(err){}};
+const applyPtr=(d)=>{
+ if(d.kind==='hover'||d.kind==='hoverfocus'){const el=find(d.path);if(el)showGhost(el,d.kind==='hover'?'hover':'focus');return}
+ if(d.kind==='dragstart'){const el=find(d.path);if(!el){rp=null;post({type:'mirror-miss',kind:'drag',label:'the drag handle'});return}
+  const r=el.getBoundingClientRect();rp={x:r.left+d.fx*r.width,y:r.top+d.fy*r.height};d.downs.forEach((o)=>fire(el,o,rp.x,rp.y));return}
+ if(!rp)return;const x=rp.x+d.dx,y=rp.y+d.dy;const t=document.elementFromPoint(x,y)||document.body;fire(t,d.ev,x,y);
+ if(d.kind==='dragend')rp=null};
 // Live accessibility checks: run axe-core after load and, debounced, after interaction. Results go to the parent.
 let axeBusy=false,axeQueued=false,axeTimer;
 const loadAxe=()=>new Promise((res)=>{if(window.axe)return res();const sc=document.createElement('script');sc.src='/__compare/axe.js';sc.onload=()=>res();sc.onerror=()=>res();document.head.appendChild(sc)});
@@ -102,7 +133,7 @@ addEventListener('load',schedule);
 ['click','focusin','keyup','hashchange','transitionend','animationend'].forEach((t)=>addEventListener(t,schedule,true));
 new MutationObserver(schedule).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','open','hidden','aria-expanded','aria-hidden','data-meta-sidebar','disabled','role']});
 addEventListener('message',(e)=>{const d=e.data;if(!d||!d.compare)return;
- if(d.type==='mirror')apply(d);
+ if(d.type==='mirror'){if(/^(hover|drag)/.test(d.kind))applyPtr(d);else apply(d)}
  if(d.type==='clear-storage'){try{localStorage.clear();sessionStorage.clear()}catch(err){}location.reload()}
  if(d.type==='probe'){let value;try{value=(new Function('return ('+d.code+')'))()}catch(err){value='ERROR: '+err.message}post({type:'probe-result',id:d.id,value:(typeof value==='object'?JSON.stringify(value):value)})}
  if(d.type==='scroll'){quiet=true;scrollTo(d.x,d.y);setTimeout(()=>{quiet=false},80)}
