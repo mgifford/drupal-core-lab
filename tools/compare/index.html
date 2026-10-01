@@ -10,6 +10,7 @@
   header, .controls, .note { padding: .5rem 1rem; }
   h1 { font-size: 1.25rem; margin: 0; }
   .controls { display: flex; flex-wrap: wrap; gap: .75rem 1.25rem; align-items: center; border-block: 1px solid var(--line); }
+  [hidden] { display: none !important; }
   label { display: inline-flex; gap: .4rem; align-items: center; }
   select, button, input[type=text] { font: inherit; padding: .25rem .5rem; }
   :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
@@ -17,21 +18,35 @@
   fieldset { border: 1px solid var(--line); padding: .15rem .6rem .3rem; margin: 0; display: flex; gap: .75rem; align-items: center; }
   legend { font-size: .85rem; padding: 0 .25rem; }
   .pane { overflow-x: auto; }
+  .panes.overlay { grid-template-columns: 1fr; }
+  .panes.overlay .pane { grid-area: 1 / 1; overflow: hidden; position: relative; }
+  .panes.overlay .pane h2 { display: none; }
+  .panes.overlay.onion #fa { opacity: .5; }
+  .panes.overlay.diff { isolation: isolate; background: #fff; }
+  .panes.overlay.diff #fa { mix-blend-mode: difference; }
+  #legend { font-size: .9rem; padding: 0 1rem; }
+  table.checks { border-collapse: collapse; margin: .25rem 1rem; font-size: .9rem; } table.checks th, table.checks td { border: 1px solid var(--line); padding: .2rem .5rem; text-align: left; }
+  .lookfor { display: block; font-size: .85rem; margin-left: 1rem; }
   .pane h2 { font-size: 1rem; margin: 0 0 .25rem; }
   .pane iframe { width: 100%; height: 72vh; border: 1px solid var(--line); background: #fff; }
   .path { font-family: ui-monospace, monospace; font-size: .85rem; }
   .note { font-size: .9rem; max-width: 70rem; }
+  #stepsbox { padding: 0 1rem .5rem; } #stepsbox summary { font-weight: 600; cursor: pointer; }
+  #steps li { margin: .15rem 0; } .tag { font-size: .75rem; border: 1px solid var(--line); border-radius: .6rem; padding: 0 .4rem; margin-left: .4rem; }
   @media (max-width: 800px) { .panes { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
-<header><h1>Drupal core: before and after</h1><p id="desc" class="note"></p></header>
+<header><h1>Drupal core: before and after</h1><p id="desc" class="note"></p>
+<details id="stepsbox" open><summary>Steps to reproduce</summary><ol id="steps"></ol><p id="exp" class="note"></p><p id="act" class="note"></p><p id="setup" class="note"></p></details></header>
 <main>
   <div class="controls" role="group" aria-label="Comparison controls">
     <label>Compare upstream with <select id="variant"></select></label>
     <label>Page <input type="text" id="goto" size="26" value="/"></label>
     <button type="button" id="go">Go (both)</button>
     <button type="button" id="login">Log in both as admin</button>
+    <button type="button" id="cache">Clear Drupal caches (both)</button>
+    <button type="button" id="storage">Reset browser state (both)</button>
     <fieldset><legend>Site theme</legend>
       <label><input type="radio" name="theme" value="light"> Light</label>
       <label><input type="radio" name="theme" value="dark"> Dark</label>
@@ -46,13 +61,24 @@
     <label><input type="checkbox" id="syncnav" checked> Sync navigation</label>
     <label><input type="checkbox" id="darkos"> Simulate a dark-mode OS</label>
     <label><input type="checkbox" id="mirror" checked> Mirror clicks and typing</label>
+    <fieldset><legend>View</legend>
+      <label><input type="radio" name="view" value="side" checked> Side by side</label>
+      <label><input type="radio" name="view" value="onion"> Onion skin</label>
+      <label><input type="radio" name="view" value="diff"> Difference</label>
+    </fieldset>
+    <label id="opwrap" hidden>After opacity <input type="range" id="opacity" min="0" max="100" value="50"></label>
+    <label id="amwrap" hidden>Amplify <input type="range" id="amplify" min="1" max="12" value="4"></label>
     <span id="status" role="status" aria-live="polite">Loading…</span>
   </div>
-  <div class="panes">
+  <p id="legend" role="status" hidden></p>
+  <div class="panes" id="panes">
     <section class="pane" aria-labelledby="hb"><h2 id="hb">Before: upstream main <span class="path" id="pb"></span></h2><iframe id="fb" title="Before: upstream main"></iframe></section>
     <section class="pane" aria-labelledby="ha"><h2 id="ha">After: with the change <span class="path" id="pa"></span></h2><iframe id="fa" title="After: with the change"></iframe></section>
   </div>
 </main>
+<section aria-labelledby="chkh"><h2 id="chkh" style="font-size:1rem;margin:.5rem 1rem 0">Checks <button type="button" id="runchecks">Run checks</button></h2>
+<p class="note">After the last step, press Run checks. Each check runs inside both frames and says Pass or Fail against what is expected. "Fix" checks should differ between Before and After; "Regression" checks should pass on both.</p>
+<table class="checks" id="checks"><thead><tr><th>Type</th><th>Check</th><th>Expected</th><th>Before</th><th>After</th></tr></thead><tbody></tbody></table></section>
 <p class="note"><strong>Mirror</strong> repeats real clicks, typed text, checkboxes and selects in the other frame to save setup time. It does not mirror the keyboard (Tab, Enter, focus), because script-generated key events do not behave like real ones. Do the final keyboard check in each frame yourself.</p>
 <p class="note">Frames are separate sites on <code>before.localhost</code> and <code>after.localhost</code>, so logins do not interfere. This compares behaviour in a browser. It is not a substitute for testing with a keyboard and a screen reader.</p>
 <script>
@@ -68,7 +94,10 @@ function loadBoth(path) { status('Loading…'); load('before', path); load('afte
 function applyWidth() { const w = radio('width'); for (const s of ['before', 'after']) F[s].style.width = w === 'half' ? '100%' : w; }
 function sendState() { const state = { theme: radio('theme'), darkos: $('darkos').checked };
   post(state); for (const s of ['before', 'after']) F[s].contentWindow && F[s].contentWindow.postMessage({ compare: 1, type: 'state', state }, '*'); }
-function setVariant(slug) { v = variants.find((x) => x.slug === slug); $('desc').textContent = v.description; document.title = `Compare: ${v.slug}`;
+const TAGS = { recipe: 'set up by the recipe', mirror: 'mirrored to both frames', each: 'do in each frame' };
+function renderSteps() { const ol = $('steps'); ol.textContent = ''; for (const st of v.steps || []) { const li = document.createElement('li'); li.textContent = st.text; if (st.lookFor) { const lf = document.createElement('span'); lf.className = 'lookfor'; lf.textContent = 'Look for: ' + st.lookFor; li.append(lf); } const t = document.createElement('span'); t.className = 'tag'; t.textContent = TAGS[st.how] || st.how; li.append(t); ol.append(li); }
+  $('exp').textContent = v.expected ? 'Expected: ' + v.expected : ''; $('act').textContent = v.actual ? 'Actual: ' + v.actual : ''; $('setup').textContent = v.setup ? 'Setup: ' + v.setup : ''; $('stepsbox').hidden = !(v.steps && v.steps.length); }
+function setVariant(slug) { v = variants.find((x) => x.slug === slug); $('desc').textContent = v.description; renderSteps(); document.title = `Compare: ${v.slug}`;
   const start = (v.demo && v.demo.start) || v.pages[0] || '/'; $('goto').value = start;
   const w = v.demo && v.demo.viewport === 'narrow' ? '768px' : 'half'; document.querySelector(`input[name="width"][value="${w}"]`).checked = true; applyWidth(); }
 async function init() {
@@ -94,11 +123,50 @@ addEventListener('message', (e) => {
   if (m.type === 'scroll' && $('syncscroll').checked) { const o = F[other(m.side)].contentWindow; o && o.postMessage({ compare: 1, type: 'scroll', x: m.x, y: m.y }, '*'); }
   if (m.type === 'mirror' && $('mirror').checked) { const o = F[other(m.side)].contentWindow; o && o.postMessage(Object.assign({}, m, { compare: 1 }), '*'); }
   if (m.type === 'mirror-miss') status(`Not mirrored: could not find "${m.label || m.kind}" in the ${m.side} frame. The two sides have diverged here.`);
+  if (m.type === 'probe-result') { const p = pending[m.id]; if (p) { results[p.i][p.side] = m.value; showResult(p.i); } }
   if (m.type === 'nav') {
     P[m.side].textContent = m.path; status('Ready.');
     if ($('syncnav').checked && last[m.side] !== m.path) { last[m.side] = m.path; if (last[other(m.side)] !== m.path) load(other(m.side), m.path); }
   }
 });
+
+// View modes: side by side, onion skin (opacity), difference (identical pixels go black).
+function applyView() {
+  const mode = radio('view'), panes = $('panes'), fa = $('fa');
+  panes.classList.toggle('overlay', mode !== 'side'); panes.classList.toggle('onion', mode === 'onion'); panes.classList.toggle('diff', mode === 'diff');
+  $('opwrap').hidden = mode !== 'onion'; $('amwrap').hidden = mode !== 'diff';
+  fa.style.opacity = mode === 'onion' ? $('opacity').value / 100 : '';
+  panes.style.filter = mode === 'diff' ? `brightness(${$('amplify').value})` : '';
+  const L = $('legend'); L.hidden = mode === 'side';
+  L.textContent = mode === 'onion' ? 'Onion skin: Before underneath, After on top. Slide the opacity to fade between them. Input goes to the top (After) frame; Mirror repeats it underneath.'
+    : mode === 'diff' ? 'Difference: black means the two sides look identical; anything bright changed. Raise Amplify to reveal faint differences. Input goes to the top (After) frame; Mirror repeats it underneath.' : '';
+}
+document.querySelectorAll('input[name="view"]').forEach((r) => r.addEventListener('change', applyView));
+$('opacity').addEventListener('input', applyView); $('amplify').addEventListener('input', applyView);
+
+// Checks: run a probe inside each frame and compare with what is expected.
+const pending = {}; let probeId = 0; const results = {};
+function runChecks() {
+  const body = document.querySelector('#checks tbody'); body.textContent = ''; (v.checks || []).forEach((c, i) => {
+    const tr = document.createElement('tr'); tr.id = 'chk' + i;
+    for (const t of [c.kind, c.label, c.expect === 'same' ? 'same on both sides' : String(c.expect), '…', '…']) { const td = document.createElement('td'); td.textContent = t; tr.append(td); }
+    body.append(tr); results[i] = {};
+    for (const side of ['before', 'after']) { const id = ++probeId; pending[id] = { i, side }; F[side].contentWindow.postMessage({ compare: 1, type: 'probe', id, code: c.probe }, '*'); }
+  });
+}
+function showResult(i) {
+  const c = v.checks[i], r = results[i]; if (!('before' in r) || !('after' in r)) return;
+  const ok = (val, other) => (c.expect === 'same' ? String(val) === String(other) : String(val) === String(c.expect));
+  const cells = document.getElementById('chk' + i).children;
+  for (const [idx, side, other] of [[3, 'before', 'after'], [4, 'after', 'before']]) cells[idx].textContent = `${ok(r[side], r[other]) ? 'Pass' : 'Fail'}: ${r[side]}`;
+}
+$('runchecks').addEventListener('click', runChecks);
+$('cache').addEventListener('click', async () => {
+  status('Clearing caches on both sites…');
+  try { const r = await (await fetch('/api/cache')).json(); status(`Caches: before ${r.before}, after ${r.after}. Reloading.`); load('before', last.before || $('goto').value); load('after', last.after || $('goto').value); }
+  catch (e) { status('Cache clear failed: ' + e); }
+});
+$('storage').addEventListener('click', () => { for (const s of ['before', 'after']) F[s].contentWindow && F[s].contentWindow.postMessage({ compare: 1, type: 'clear-storage' }, '*'); status('Cleared localStorage and sessionStorage in both frames (the sidebar preference is stored there). Reloading.'); });
 init();
 </script>
 </body>

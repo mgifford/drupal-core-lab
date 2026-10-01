@@ -39,6 +39,14 @@ Static proof that jQuery is gone:
     git grep -n "jQuery\|\$(" core/themes/default_admin/migration/js/sidebar.js   # no matches
     git grep -n "core/jquery" core/themes/default_admin/default_admin.libraries.yml  # not under `sidebar:`
 
+## B2. Fastest way: the compare viewer
+    scripts/lab-site.sh apply baseline-main && scripts/lab-site.sh apply issue-3619127-vanilla
+    node tools/compare/serve.mjs     # open http://localhost:8100/
+Press Log in, use the Phone frame width, follow the numbered steps (Mirror does steps 4 to 9
+in both frames), then Mirror off for step 10 and Run checks. Difference view shows any
+visual change. `scripts/lab-site.sh reset <env>` reinstalls a site from scratch. Details:
+`tools/compare/README.md`.
+
 ## C. Manual pass (keyboard, then screen reader)
 
 Do this on a site with `inline_form_errors`, `node`, `navigation` enabled and

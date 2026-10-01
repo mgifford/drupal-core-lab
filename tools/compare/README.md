@@ -35,6 +35,36 @@ Controls: **Compare upstream with** (variant), **Page**, **Go (both)**,
   (cookies are scoped by host, not port), the proxy strips framing headers and
   injects the sync script. The sites themselves are unchanged.
 
+## Steps, expected result and checks
+Each variant in `variants.json` can carry `steps` (each tagged `recipe`, `mirror` or
+`each`, with an optional `lookFor`), `expected`, `actual`, `setup`, and `checks`.
+The viewer shows them above the frames so a newcomer knows what correct looks like.
+
+**Run checks** evaluates each check's `probe` (a JS expression) inside both frames and
+shows Pass or Fail against `expect` (a value, or `"same"` meaning it must equal the
+other side). Kinds: `precondition` (did you reach the right state?), `fix` (should
+differ between Before and After), `regression` (should pass on both). For #3619127:
+setup reached, sidebar open, focus in the URL alias field, saved preference not
+overwritten, no JavaScript errors, same number of open details sections.
+The harmless "ResizeObserver loop" browser notice is ignored in the error count.
+
+## View modes: finding differences
+- **Side by side** (default).
+- **Onion skin**: Before underneath, After on top, with an opacity slider.
+- **Difference**: the frames are blended so identical pixels are black and anything
+  that changed lights up. **Amplify** reveals faint differences. For #3619127 the
+  Create Article page is entirely black: pixel-identical before and after.
+In both overlay modes input goes to the top (After) frame; Mirror repeats it underneath.
+Compositing needs no pixel access, so it works across the two sites. Onion skin was
+not exercised in the browser yet; Difference was.
+
+## Caches and browser state
+**Clear Drupal caches (both)** runs `ddev drupal cache` on both sites at once and
+reloads the frames. **Reset browser state (both)** clears `localStorage` and
+`sessionStorage` in both frames (the sidebar open/closed preference lives there).
+The proxies also send `Cache-Control: no-store`, so the browser never serves stale
+CSS or JS.
+
 ## Mirror clicks and typing
 Repeats your real clicks, typed text, checkboxes, radios and selects from either
 frame in the other, to save setup time. Verified: typing in the Title field and

@@ -1,0 +1,14 @@
+name: 'Repro: Inline Form Errors link and the Default Admin sidebar (#3619127)'
+description: 'Puts a site in the starting state for the steps to reproduce: an Article content type with the Path module (URL alias field), and Inline Form Errors enabled. Safe to apply more than once.'
+type: 'Testing'
+# A dependency name containing '/' is resolved from the Drupal root, so this
+# recipe works when copied to <environment>/recipes/ife_sidebar_repro.
+# Default Admin as the admin theme comes from the Standard install (step 1).
+recipes:
+  - core/tests/fixtures/recipes/article_content_type
+install:
+  - node
+  - path
+  - path_alias
+  - navigation
+  - inline_form_errors

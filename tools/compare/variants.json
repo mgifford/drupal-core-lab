@@ -4,14 +4,111 @@
     "issue": "3619127",
     "label": "#3619127: sidebar opens from Inline Form Errors links (MR + vanilla JS)",
     "description": "Before: upstream main. After: MR !16895 with patch-0 (no jQuery) and patch-1 (no persist). Open /node/add/article in a narrow window, set a URL alias of 'no-slash' inside the sidebar, close the sidebar, Save, then use the error link. Before: nothing opens. After: the sidebar opens and the field gets focus.",
-    "before": { "env": "baseline-main" },
-    "after":  { "env": "issue-3619127-vanilla", "patches": [
-      "reports/issues/3619127/branches/3619127-forms-sidebar-with-ife.patch",
-      "reports/issues/3619127/patch-0-vanilla-js-no-jquery.patch",
-      "reports/issues/3619127/patch-1-no-persist-and-waits.patch"
-    ] },
-    "pages": ["/node/add/article", "/admin/content"],
+    "before": {
+      "env": "baseline-main"
+    },
+    "after": {
+      "env": "issue-3619127-vanilla",
+      "patches": [
+        "reports/issues/3619127/branches/3619127-forms-sidebar-with-ife.patch",
+        "reports/issues/3619127/patch-0-vanilla-js-no-jquery.patch",
+        "reports/issues/3619127/patch-1-no-persist-and-waits.patch"
+      ]
+    },
+    "pages": [
+      "/node/add/article",
+      "/admin/content"
+    ],
     "login": true,
-    "demo": { "viewport": "narrow", "start": "/node/add/article" }
+    "demo": {
+      "viewport": "narrow",
+      "start": "/node/add/article"
+    },
+    "recipe": "ife_sidebar_repro",
+    "steps": [
+      {
+        "text": "Default Admin is the admin theme.",
+        "how": "recipe"
+      },
+      {
+        "text": "Article content type and the Path module (URL alias field) are installed.",
+        "how": "recipe"
+      },
+      {
+        "text": "The Inline Form Errors module is enabled.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /node/add/article (the page is already loaded in both frames once you press Go).",
+        "how": "mirror"
+      },
+      {
+        "text": "Use the Tablet or Phone frame width, so the sidebar of advanced fields is collapsed.",
+        "how": "mirror"
+      },
+      {
+        "text": "Click \"Expand sidebar\" to open it.",
+        "how": "mirror"
+      },
+      {
+        "text": "Open \"URL alias\" and type a value without a leading slash, for example no-slash.",
+        "how": "mirror"
+      },
+      {
+        "text": "Close the sidebar.",
+        "how": "mirror"
+      },
+      {
+        "text": "Click Save. An error appears at the top: \"1 error has been found: URL alias\", with \"URL alias\" as a link.",
+        "how": "mirror",
+        "lookFor": "An error summary at the top of the page, with \"URL alias\" as a link. If you do not see it, the setup went wrong; try again from step 6."
+      },
+      {
+        "text": "Turn Mirror off. In EACH frame, click the \"URL alias\" link (then repeat using only the keyboard: Tab to the link, press Enter).",
+        "how": "each",
+        "lookFor": "Before: nothing visibly happens. After: the sidebar opens and the URL alias box is outlined (it has keyboard focus). Then press Run checks."
+      }
+    ],
+    "expected": "The sidebar opens and keyboard focus moves to the invalid URL alias field.",
+    "actual": "Before (upstream main): nothing happens. After (with the change): the sidebar opens and the field has focus.",
+    "setup": "scripts/lab-site.sh reset <env> (or apply <env>) gives a site in the starting state for steps 1 to 3.",
+    "checks": [
+      {
+        "label": "Setup reached: error link to URL alias is on the page",
+        "probe": "!!document.querySelector('a[href=\"#edit-path-0-alias\"]')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "Sidebar is open after using the error link",
+        "probe": "document.body.getAttribute('data-meta-sidebar') === 'open'",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "URL alias field has keyboard focus",
+        "probe": "!!document.activeElement && document.activeElement.name === 'path[0][alias]'",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "Saved sidebar preference was not overwritten (phone/tablet key)",
+        "probe": "localStorage.getItem('Drupal.defaultAdmin.sidebarExpanded.mobile')",
+        "expect": "false",
+        "kind": "regression"
+      },
+      {
+        "label": "JavaScript errors on the page (ignoring the harmless \"ResizeObserver loop\" notice)",
+        "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+        "expect": 0,
+        "kind": "regression"
+      },
+      {
+        "label": "Number of open details sections matches the other side",
+        "probe": "document.querySelectorAll('details[open]').length",
+        "expect": "same",
+        "kind": "regression"
+      }
+    ]
   }
 ]

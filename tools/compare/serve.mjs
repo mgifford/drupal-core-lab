@@ -5,7 +5,8 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
-import { labRoot, variants, envInfo, loginPath } from './lib.mjs';
+import { execFile } from 'node:child_process';
+import { labRoot, variants, envInfo, loginPath, envDir } from './lib.mjs';
 
 const PAGE = Number(process.env.PORT || 8100);
 const SIDES = {
@@ -37,6 +38,7 @@ document.addEventListener('DOMContentLoaded',applyAll);addEventListener('load',(
 new MutationObserver(applyOs).observe(document,{childList:true,subtree:true});
 addEventListener('scroll',()=>{if(!quiet)post({type:'scroll',x:scrollX,y:scrollY})},{passive:true});
 function nav(){post({type:'nav',path:location.pathname+location.search+location.hash})}
+window.__cmpErrors=[];addEventListener('error',(e)=>window.__cmpErrors.push(String(e.message)));
 addEventListener('hashchange',nav);addEventListener('popstate',nav);
 // Mirror setup actions: only real (trusted) user events are captured, so the synthetic events
 // we replay on the other side never loop. Keyboard focus and Tab/Enter are deliberately not mirrored.
@@ -54,6 +56,8 @@ const apply=(d)=>{const el=find(d.path);if(!el){post({type:'mirror-miss',kind:d.
  else if(d.kind==='checked'){if(el.checked!==d.checked)el.click()}};
 addEventListener('message',(e)=>{const d=e.data;if(!d||!d.compare)return;
  if(d.type==='mirror')apply(d);
+ if(d.type==='clear-storage'){try{localStorage.clear();sessionStorage.clear()}catch(err){}location.reload()}
+ if(d.type==='probe'){let value;try{value=(new Function('return ('+d.code+')'))()}catch(err){value='ERROR: '+err.message}post({type:'probe-result',id:d.id,value:(typeof value==='object'?JSON.stringify(value):value)})}
  if(d.type==='scroll'){quiet=true;scrollTo(d.x,d.y);setTimeout(()=>{quiet=false},80)}
  if(d.type==='state'){S=Object.assign(S,d.state);applyAll()}});
 })();</script>`;
@@ -69,6 +73,7 @@ function proxyFor(side) {
     const up = http.request({ host: '127.0.0.1', port: routerPort, path: req.url, method: req.method, headers }, (r) => {
       const h = { ...r.headers };
       delete h['x-frame-options']; delete h['content-security-policy']; delete h['content-length'];
+      delete h.etag; delete h['last-modified']; h['cache-control'] = 'no-store';
       if (h.location) h.location = swap(h.location);
       if (h['set-cookie']) h['set-cookie'] = h['set-cookie'].map((c) => c.replace(/;\s*domain=[^;]*/i, '').replace(/;\s*samesite=[^;]*/i, '').replace(/;\s*secure/i, '') + '; SameSite=None; Secure');
       const type = h['content-type'] || '';
@@ -96,6 +101,10 @@ http.createServer((req, res) => {
   } else if (u.pathname === '/api/state') {
     if (req.method === 'POST') { let b = ''; req.on('data', (c) => (b += c)); req.on('end', () => { try { Object.assign(state, JSON.parse(b)); } catch (e) { /* ignore */ } res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify(state)); }); }
     else { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify(state)); }
+  } else if (u.pathname === '/api/cache') {
+    const v = current();
+    const run = (env) => new Promise((resolve) => execFile('ddev', ['drupal', 'cache'], { cwd: envDir(env), timeout: 120000 }, (err, so, se) => resolve(err ? `failed: ${String(se || err.message).trim().slice(0, 200)}` : 'cleared')));
+    Promise.all([run(v.before.env), run(v.after.env)]).then(([before, after]) => { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify({ before, after })); });
   } else if (u.pathname === '/api/login') {
     const v = current();
     try {
