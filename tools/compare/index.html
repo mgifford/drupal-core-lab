@@ -163,7 +163,7 @@ const status = (t) => { $('status').textContent = t; };
 const radio = (name) => document.querySelector(`input[name="${name}"]:checked`).value;
 const post = (body) => fetch('/api/state', { method: 'POST', body: JSON.stringify(body) });
 function updateExternal() { for (const [side, id] of [['before', 'ob'], ['after', 'oa']]) { const a = $(id); a.href = (sites[side] || '') + (last[side] || $('goto').value || '/'); a.hidden = !sites[side]; } }
-function load(side, path) { markStart(side); last[side] = path; P[side].textContent = path; F[side].src = origins[side] + path; updateExternal(); }
+function load(side, path) { path = String(path || '/').trim().replace(/^https?:\/\/[^/]+/, ''); if (!/^[/?#]/.test(path)) path = '/' + path; markStart(side); last[side] = path; P[side].textContent = path; F[side].src = origins[side] + path; updateExternal(); }
 function loadBoth(path) { status('Loading…'); load('before', path); load('after', path); }
 // In overlay views each frame must keep the width it has side by side (half of the page), or it would cross a responsive breakpoint and show a different layout.
 function applyWidth() { const w = radio('width'), overlay = radio('view') !== 'side'; for (const s of ['before', 'after']) F[s].style.width = w === 'half' ? (overlay ? 'calc(50% - .25rem)' : '100%') : w; }
