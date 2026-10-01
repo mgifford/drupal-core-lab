@@ -79,6 +79,12 @@ html:not([data-runtime="static"]) [data-static-only] { display: none !important;
       <label data-needs="live"><input type="radio" name="theme" value="dark"> Dark</label>
       <label data-needs="live"><input type="radio" name="theme" value="auto" checked> Follow OS</label>
     </fieldset>
+    <fieldset data-needs="live"><legend>Text direction</legend>
+      <label><input type="radio" name="dir" value="auto" checked> Page default</label>
+      <label><input type="radio" name="dir" value="ltr"> Left to right</label>
+      <label><input type="radio" name="dir" value="rtl"> Right to left</label>
+    </fieldset>
+    <label data-needs="live"><input type="checkbox" id="nojs"> Turn the sites' JavaScript off (reloads both)</label>
     <fieldset data-needs="live"><legend>Frame width</legend>
       <label data-needs="live"><input type="radio" name="width" value="half" checked> Half</label>
       <label data-needs="live"><input type="radio" name="width" value="375px"> Phone</label>
@@ -188,13 +194,13 @@ function loadBoth(path) { path = normPath(path); $('goto').value = path; status(
 // In overlay views each frame must keep the width it has side by side (half of the page), or it would cross a responsive breakpoint and show a different layout.
 function applyWidth() { const w = radio('width'), overlay = radio('view') !== 'side'; for (const s of ['before', 'after']) F[s].style.width = w === 'half' ? (overlay ? 'calc(50% - .25rem)' : '100%') : w; }
 // Optional extras (live axe, Lighthouse, ...) are OFF until you turn them on. Choices are remembered in this browser (localStorage) only.
-const PREF_KEY = 'compare.prefs', PREF_CHECKS = ['axeon', 'axebest', 'lhon', 'lhperf', 'darkos', 'mirrorhover'];
+const PREF_KEY = 'compare.prefs', PREF_CHECKS = ['axeon', 'axebest', 'lhon', 'lhperf', 'darkos', 'mirrorhover'];   // not remembered on purpose: Text direction and JavaScript off (they reset each visit so nothing looks broken by surprise)
 function applyPrefs() { let p = {}; try { p = JSON.parse(localStorage.getItem(PREF_KEY)) || {}; } catch (e) { /* none */ }
   PREF_CHECKS.forEach((id) => { if (typeof p[id] === 'boolean') $(id).checked = p[id]; });
   if (p.theme) { const r = document.querySelector(`input[name="theme"][value="${p.theme}"]`); if (r) r.checked = true; } }
 function savePrefs() { try { const p = { theme: radio('theme') }; PREF_CHECKS.forEach((id) => { p[id] = $(id).checked; }); localStorage.setItem(PREF_KEY, JSON.stringify(p)); } catch (e) { /* storage unavailable */ } }
 document.addEventListener('change', (e) => { if (PREF_CHECKS.includes(e.target.id) || e.target.name === 'theme') savePrefs(); });
-function sendState() { const state = { theme: radio('theme'), darkos: $('darkos').checked, axe: $('axeon').checked, axeBest: $('axebest').checked };
+function sendState() { const state = { theme: radio('theme'), dir: radio('dir'), nojs: $('nojs').checked, darkos: $('darkos').checked, axe: $('axeon').checked, axeBest: $('axebest').checked };
   post(state); for (const s of ['before', 'after']) F[s].contentWindow && F[s].contentWindow.postMessage({ compare: 1, type: 'state', state }, '*'); }
 const TAGS = { recipe: 'set up by the recipe', mirror: 'mirrored to both frames', each: 'do in each frame' };
 // Long query values (one-time login tokens) are shortened; the full URL is the tooltip and shows when the pane is hovered or focused.
@@ -239,6 +245,8 @@ $('variant').addEventListener('change', async () => { if (STATIC) { setVariant($
 document.querySelectorAll('input[name="width"]').forEach((r) => r.addEventListener('change', applyWidth));
 document.querySelectorAll('input[name="theme"]').forEach((r) => r.addEventListener('change', sendState));
 $('darkos').addEventListener('change', sendState);
+document.querySelectorAll('input[name="dir"]').forEach((r) => r.addEventListener('change', sendState));
+$('nojs').addEventListener('change', async () => { await post({ nojs: $('nojs').checked }); status($('nojs').checked ? 'JavaScript is OFF in both sites. Reloading…' : 'JavaScript is back on. Reloading…'); loadBoth($('goto').value); });
 $('go').addEventListener('click', () => loadBoth($('goto').value));
 $('goto').addEventListener('change', () => { $('goto').value = normPath($('goto').value); });
 $('goto').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('go').click(); });

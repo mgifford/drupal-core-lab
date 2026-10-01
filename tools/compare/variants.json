@@ -229,8 +229,34 @@
         "lookFor": "The tab that contains the error is marked in After but not in Before. Run checks."
       },
       {
-        "text": "Repeat step 5 with Site theme set to Dark, and note anything hard to see (borders, icon, text).",
-        "how": "each"
+        "text": "Dark mode: set Site theme to Dark and repeat step 5 (and step 7). Compare the label, red bar and icon with the dark background.",
+        "how": "each",
+        "lookFor": "Everything is readable. Measured on current core: the dark error colour #ce6060 is 3.72:1 on the details summary and 4.48:1 on a tab label, both below the 4.5:1 needed for text; see reports/issues/3604037/EVALUATION-2026-10-01.md."
+      },
+      {
+        "text": "Hover and keyboard focus: hover the marked section's title, then press Tab until it has focus.",
+        "how": "each",
+        "lookFor": "The red bar and icon stay visible. While hovered the label turns link-blue (the error colour is lost for the label only). The focus ring is clearly visible and does not hide the error cue. Turn on 'Mirror hover and focus' to see where the pointer or focus is in the other frame."
+      },
+      {
+        "text": "Forced colours: turn on forced colours for the whole browser tab (docs/FORCED-COLORS.md: DevTools Rendering panel, or the operating system's contrast theme), reload both frames, and repeat step 5 and step 7.",
+        "how": "each",
+        "lookFor": "After's marked group is still distinguishable without colour (the icon), and the icon is visible. The MR paints the icon CanvasText (black or white) while the label is link-coloured; see the proposal in the evaluation."
+      },
+      {
+        "text": "Narrow width: set Frame width to Phone and repeat step 7 (below about 650 px the tabs become accordion sections).",
+        "how": "each",
+        "lookFor": "The same red bar and icon appear on the section with the error, and the bar is not covered when the section is focused."
+      },
+      {
+        "text": "JavaScript off: tick 'Turn the sites' JavaScript off', then repeat step 4.",
+        "how": "each",
+        "lookFor": "The server-rendered error markers still appear on After (class error and a data-child-error-count attribute); there are none on Before."
+      },
+      {
+        "text": "Right to left: set Text direction to Right to left and repeat step 5 and step 7.",
+        "how": "each",
+        "lookFor": "The red bar moves to the right (start) edge, the icon sits at the end of the label, and nothing overlaps."
       }
     ],
     "expected": "A closed details section or an inactive vertical tab that contains a field error is visibly marked (red border, icon, red text) and has hidden text \" (contains error)\" and a data-child-error-count attribute.",

@@ -39,3 +39,9 @@ See `../../docs/TESTING-TOOLS.md` for how this fits with axe-core, the viewer an
   system permissions that only the user can grant.
 - Automated checks find a subset of problems and are a DRAFT until a person has tested with a keyboard
   and a screen reader.
+
+## evaluate-3604037.mjs
+`node tools/playwright/evaluate-3604037.mjs 3604037-latest [--modes=light,dark,forced,...]` measures and photographs the #3604037 error indicators (details,
+sidebar accordion, vertical tabs, narrow tabs) in light, dark, forced-colour palettes, right-to-left and with JavaScript off, at rest, hover and keyboard focus,
+with WCAG contrast ratios, and can try CSS proposals on After without changing any environment. Output: `reports/issues/3604037/playwright/<run>-evaluate/`.
+Also `mirror-drag.mjs` and `mirror-ckeditor.mjs` (viewer mirroring tests).

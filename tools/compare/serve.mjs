@@ -21,7 +21,7 @@ const SIDES = DDEV
   : { before: { port: PAGE + 1, host: `before.localhost:${PAGE + 1}`, origin: `http://before.localhost:${PAGE + 1}` },
       after: { port: PAGE + 2, host: `after.localhost:${PAGE + 2}`, origin: `http://after.localhost:${PAGE + 2}` } };
 const list = variants();
-const state = { slug: process.argv.slice(2).find((x) => !x.startsWith('--')) || list[0].slug, theme: 'auto', darkos: false, axe: true, axeBest: false };
+const state = { slug: process.argv.slice(2).find((x) => !x.startsWith('--')) || list[0].slug, theme: 'auto', darkos: false, axe: false, axeBest: false, dir: 'auto', nojs: false };
 const current = () => list.find((x) => x.slug === state.slug) || list[0];
 // Lighthouse jobs run one at a time, each in its own Chrome, and never block the proxies (login and DDEV lookups are async or cached).
 const lh = { seq: 0, running: false, pending: null, jobs: new Map() };
@@ -62,7 +62,9 @@ const sweep=(rules)=>{for(const r of rules){try{
  if(r.cssRules)sweep(r.cssRules)}catch(e){}}};
 const applyOs=()=>{for(const sh of document.styleSheets){try{sweep(sh.cssRules)}catch(e){}}};
 const applyTheme=()=>{const h=document.documentElement;const dark=S.theme==='dark'||(S.theme==='auto'&&(S.darkos||real('(prefers-color-scheme: dark)').matches));h.classList.toggle('dark-mode',dark)};
-const applyAll=()=>{applyOs();applyTheme()};
+const origDir=document.documentElement.getAttribute('dir');
+const applyDir=()=>{const h=document.documentElement;if(S.dir==='rtl'||S.dir==='ltr')h.setAttribute('dir',S.dir);else if(origDir===null)h.removeAttribute('dir');else h.setAttribute('dir',origDir)};
+const applyAll=()=>{applyOs();applyTheme();applyDir()};
 applyTheme();
 document.addEventListener('DOMContentLoaded',applyAll);addEventListener('load',()=>{applyAll();nav()});
 new MutationObserver(applyOs).observe(document,{childList:true,subtree:true});
@@ -177,7 +179,12 @@ function proxyFor(side) {
       r.on('data', (c) => chunks.push(c));
       r.on('end', () => {
         let body = swap(Buffer.concat(chunks).toString('utf8'));
-        if (/text\/html/.test(type)) body = body.replace(/<head([^>]*)>/i, (m) => m + SYNC(side, state));
+        if (/text\/html/.test(type)) {
+          // "JavaScript off": drop the site's own scripts (data blocks such as drupalSettings stay) and show <noscript> content, as a browser without
+          // JavaScript would. The viewer's own injected script is added afterwards, so mirroring and scrolling still work.
+          if (state.nojs) body = body.replace(/<script\b(?![^>]*type=["']application\/json)[^>]*>[\s\S]*?<\/script>/gi, '').replace(/<link\b[^>]*rel=["']modulepreload["'][^>]*>/gi, '').replace(/<noscript>([\s\S]*?)<\/noscript>/gi, '$1');
+          body = body.replace(/<head([^>]*)>/i, (m) => m + SYNC(side, state));
+        }
         res.writeHead(r.statusCode, h); res.end(body); logSlow('');
       });
     });

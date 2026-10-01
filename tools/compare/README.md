@@ -36,6 +36,15 @@ Onion skin / Difference). Below the frames: the live accessibility panel, a **ma
   (cookies are scoped by host, not port), the proxy strips framing headers and
   injects the sync script. The sites themselves are unchanged. The proxies reach the DDEV router over HTTPS (port 443, certificate not verified, local only): DDEV's plain-HTTP router port can reset connections.
 
+## Text direction and JavaScript off
+**Text direction** (Page default / Left to right / Right to left) sets `dir` on the `<html>` element in both frames at once, to check layout in right-to-left
+languages without installing one. It is a simulation: the page's text stays in its own language. **Turn the sites' JavaScript off** makes the proxy drop the
+sites' own scripts (data blocks such as drupalSettings stay) and show `<noscript>` content, then reloads both frames, so you see what a visitor without JavaScript gets.
+The viewer's own script still runs, so mirroring and scrolling keep working. Neither setting is remembered between visits.
+
+## Forced colours
+A page cannot switch forced colours on. Set it for the whole tab (DevTools Rendering panel or the operating system); it applies to both frames. See `docs/FORCED-COLORS.md`.
+
 ## Defaults and remembered choices
 Optional extras (live axe, best-practice rules, Lighthouse, performance, dark-mode OS simulation, hover/focus mirroring) start **off**. Your choices
 and the site theme are kept in this browser's `localStorage` (`compare.prefs`) and nowhere else. The Page field shows the page being viewed and
