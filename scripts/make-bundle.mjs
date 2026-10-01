@@ -26,6 +26,7 @@ copy('scripts/lab-site.sh');
 copy('tools/compare/site/.ddev/config.yaml');
 copy('tools/compare/site/.ddev/nginx_full/compare.conf');
 copy('tools/compare/site/README.md');
+for (const f of ['package.json', 'package-lock.json', 'README.md', 'flow.mjs', 'walkthrough.mjs', 'screenreader.mjs']) copy(`tools/playwright/${f}`);
 copy(`recipes/${v.recipe}`);
 copy(`reports/issues/${v.issue}`);
 
