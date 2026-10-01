@@ -94,6 +94,17 @@ Trial notes and gotchas: `docs/ADDON-TRIAL-2026-10-01.md`.
 Note: SQLite, not MariaDB. A known-flaky upstream test is recorded in the trial
 notes. The manual MariaDB procedure above remains the fallback.
 
+### Current environments and URLs (local development; admin / admin)
+
+| Environment | URL |
+|---|---|
+| `envs/baseline-main` (upstream `main`) | https://drupal-core.ddev.site |
+| `envs/issue-3619127-vanilla` (MR + patches 0 and 1) | https://drupal-patch.ddev.site |
+| Side-by-side viewer (`tools/compare`) | http://localhost:8100 |
+
+Set with `ddev config --additional-hostnames=<name>`. The viewer and the diff
+report are documented in `tools/compare/README.md`.
+
 ### Common commands (per environment)
 
     ddev exec php core/scripts/dr cache:rebuild

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drupal core compare</title>
+<style>
+  :root { color-scheme: light dark; --line: #8a8f98; --focus: #0b5fff; }
+  body { margin: 0; font: 16px/1.4 system-ui, sans-serif; }
+  header, .controls, .note { padding: .5rem 1rem; }
+  h1 { font-size: 1.25rem; margin: 0; }
+  .controls { display: flex; flex-wrap: wrap; gap: .75rem 1.25rem; align-items: center; border-block: 1px solid var(--line); }
+  label { display: inline-flex; gap: .4rem; align-items: center; }
+  select, button, input[type=text] { font: inherit; padding: .25rem .5rem; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .panes { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; padding: .5rem 1rem; }
+  fieldset { border: 1px solid var(--line); padding: .15rem .6rem .3rem; margin: 0; display: flex; gap: .75rem; align-items: center; }
+  legend { font-size: .85rem; padding: 0 .25rem; }
+  .pane { overflow-x: auto; }
+  .pane h2 { font-size: 1rem; margin: 0 0 .25rem; }
+  .pane iframe { width: 100%; height: 72vh; border: 1px solid var(--line); background: #fff; }
+  .path { font-family: ui-monospace, monospace; font-size: .85rem; }
+  .note { font-size: .9rem; max-width: 70rem; }
+  @media (max-width: 800px) { .panes { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header><h1>Drupal core: before and after</h1><p id="desc" class="note"></p></header>
+<main>
+  <div class="controls" role="group" aria-label="Comparison controls">
+    <label>Compare upstream with <select id="variant"></select></label>
+    <label>Page <input type="text" id="goto" size="26" value="/"></label>
+    <button type="button" id="go">Go (both)</button>
+    <button type="button" id="login">Log in both as admin</button>
+    <fieldset><legend>Site theme</legend>
+      <label><input type="radio" name="theme" value="light"> Light</label>
+      <label><input type="radio" name="theme" value="dark"> Dark</label>
+      <label><input type="radio" name="theme" value="auto" checked> Follow OS</label>
+    </fieldset>
+    <fieldset><legend>Frame width</legend>
+      <label><input type="radio" name="width" value="half" checked> Half</label>
+      <label><input type="radio" name="width" value="375px"> Phone</label>
+      <label><input type="radio" name="width" value="768px"> Tablet</label>
+    </fieldset>
+    <label><input type="checkbox" id="syncscroll" checked> Sync scrolling</label>
+    <label><input type="checkbox" id="syncnav" checked> Sync navigation</label>
+    <label><input type="checkbox" id="darkos"> Simulate a dark-mode OS</label>
+    <span id="status" role="status" aria-live="polite">Loading…</span>
+  </div>
+  <div class="panes">
+    <section class="pane" aria-labelledby="hb"><h2 id="hb">Before: upstream main <span class="path" id="pb"></span></h2><iframe id="fb" title="Before: upstream main"></iframe></section>
+    <section class="pane" aria-labelledby="ha"><h2 id="ha">After: with the change <span class="path" id="pa"></span></h2><iframe id="fa" title="After: with the change"></iframe></section>
+  </div>
+</main>
+<p class="note">Frames are separate sites on <code>before.localhost</code> and <code>after.localhost</code>, so logins do not interfere. This compares behaviour in a browser. It is not a substitute for testing with a keyboard and a screen reader.</p>
+<script>
+const $ = (id) => document.getElementById(id);
+const F = { before: $('fb'), after: $('fa') }, P = { before: $('pb'), after: $('pa') };
+const last = { before: '', after: '' }; let origins; let variants = []; let v;
+const other = (s) => (s === 'before' ? 'after' : 'before');
+const status = (t) => { $('status').textContent = t; };
+const radio = (name) => document.querySelector(`input[name="${name}"]:checked`).value;
+const post = (body) => fetch('/api/state', { method: 'POST', body: JSON.stringify(body) });
+function load(side, path) { last[side] = path; P[side].textContent = path; F[side].src = origins[side] + path; }
+function loadBoth(path) { status('Loading…'); load('before', path); load('after', path); }
+function applyWidth() { const w = radio('width'); for (const s of ['before', 'after']) F[s].style.width = w === 'half' ? '100%' : w; }
+function sendState() { const state = { theme: radio('theme'), darkos: $('darkos').checked };
+  post(state); for (const s of ['before', 'after']) F[s].contentWindow && F[s].contentWindow.postMessage({ compare: 1, type: 'state', state }, '*'); }
+function setVariant(slug) { v = variants.find((x) => x.slug === slug); $('desc').textContent = v.description; document.title = `Compare: ${v.slug}`;
+  const start = (v.demo && v.demo.start) || v.pages[0] || '/'; $('goto').value = start;
+  const w = v.demo && v.demo.viewport === 'narrow' ? '768px' : 'half'; document.querySelector(`input[name="width"][value="${w}"]`).checked = true; applyWidth(); }
+async function init() {
+  const d = await (await fetch('/variants.json')).json(); origins = d.origins; variants = d.variants;
+  for (const x of variants) { const o = document.createElement('option'); o.value = x.slug; o.textContent = x.label; $('variant').append(o); }
+  $('variant').value = d.state.slug; setVariant(d.state.slug);
+  document.querySelector(`input[name="theme"][value="${d.state.theme}"]`).checked = true; $('darkos').checked = d.state.darkos;
+  loadBoth($('goto').value);
+}
+$('variant').addEventListener('change', async () => { await post({ slug: $('variant').value }); setVariant($('variant').value); loadBoth($('goto').value); });
+document.querySelectorAll('input[name="width"]').forEach((r) => r.addEventListener('change', applyWidth));
+document.querySelectorAll('input[name="theme"]').forEach((r) => r.addEventListener('change', sendState));
+$('darkos').addEventListener('change', sendState);
+$('go').addEventListener('click', () => loadBoth($('goto').value));
+$('goto').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('go').click(); });
+$('login').addEventListener('click', async () => {
+  status('Logging in…');
+  try { const r = await (await fetch('/api/login')).json(); F.before.src = r.before; F.after.src = r.after; status('Logged in. Use Go to open a page.'); }
+  catch (e) { status('Login failed: ' + e); }
+});
+addEventListener('message', (e) => {
+  const m = e.data; if (!m || !m.compare) return;
+  if (m.type === 'scroll' && $('syncscroll').checked) { const o = F[other(m.side)].contentWindow; o && o.postMessage({ compare: 1, type: 'scroll', x: m.x, y: m.y }, '*'); }
+  if (m.type === 'nav') {
+    P[m.side].textContent = m.path; status('Ready.');
+    if ($('syncnav').checked && last[m.side] !== m.path) { last[m.side] = m.path; if (last[other(m.side)] !== m.path) load(other(m.side), m.path); }
+  }
+});
+init();
+</script>
+</body>
+</html>

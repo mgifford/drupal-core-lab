@@ -1,0 +1,17 @@
+[
+  {
+    "slug": "3619127-vanilla",
+    "issue": "3619127",
+    "label": "#3619127: sidebar opens from Inline Form Errors links (MR + vanilla JS)",
+    "description": "Before: upstream main. After: MR !16895 with patch-0 (no jQuery) and patch-1 (no persist). Open /node/add/article in a narrow window, set a URL alias of 'no-slash' inside the sidebar, close the sidebar, Save, then use the error link. Before: nothing opens. After: the sidebar opens and the field gets focus.",
+    "before": { "env": "baseline-main" },
+    "after":  { "env": "issue-3619127-vanilla", "patches": [
+      "reports/issues/3619127/branches/3619127-forms-sidebar-with-ife.patch",
+      "reports/issues/3619127/patch-0-vanilla-js-no-jquery.patch",
+      "reports/issues/3619127/patch-1-no-persist-and-waits.patch"
+    ] },
+    "pages": ["/node/add/article", "/admin/content"],
+    "login": true,
+    "demo": { "viewport": "narrow", "start": "/node/add/article" }
+  }
+]

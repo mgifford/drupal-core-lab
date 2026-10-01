@@ -1,0 +1,95 @@
+// Side-by-side server for two DDEV environments.
+//   node tools/compare/serve.mjs            (page on :8100, before :8101, after :8102)
+// Each site is reached through a small proxy on its own *.localhost hostname so the two
+// sessions never share cookies, framing works, and a sync script can be injected.
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import { labRoot, variants, envInfo, loginPath } from './lib.mjs';
+
+const PAGE = Number(process.env.PORT || 8100);
+const SIDES = {
+  before: { port: PAGE + 1, name: 'before.localhost' },
+  after: { port: PAGE + 2, name: 'after.localhost' },
+};
+const list = variants();
+const state = { slug: process.argv[2] || list[0].slug, theme: 'auto', darkos: false };
+const current = () => list.find((x) => x.slug === state.slug) || list[0];
+const infoCache = {};
+const info = (env) => (infoCache[env] ||= envInfo(env));
+
+const SYNC = (side, st) => `<script>(()=>{if(window.parent===window)return;
+const side=${JSON.stringify(side)};let S=${JSON.stringify({ theme: st.theme, darkos: st.darkos })};
+const post=(m)=>parent.postMessage(Object.assign({compare:1,side},m),'*');let quiet=false;
+const fake=(m,q)=>({matches:m,media:q,onchange:null,addEventListener(){},removeEventListener(){},addListener(){},removeListener(){},dispatchEvent(){return false}});
+const real=window.matchMedia.bind(window);
+window.matchMedia=(q)=>{if(S.darkos&&/prefers-color-scheme:\\s*dark/.test(q))return fake(true,q);if(S.darkos&&/prefers-color-scheme:\\s*light/.test(q))return fake(false,q);return real(q)};
+const orig=new WeakMap();
+const sweep=(rules)=>{for(const r of rules){try{
+ if(r.media&&/prefers-color-scheme/.test(orig.get(r)||r.media.mediaText)){if(!orig.has(r))orig.set(r,r.media.mediaText);
+  r.media.mediaText=S.darkos?orig.get(r).replace(/\\(\\s*prefers-color-scheme:\\s*dark\\s*\\)/g,'all').replace(/\\(\\s*prefers-color-scheme:\\s*light\\s*\\)/g,'not all'):orig.get(r)}
+ if(r.cssRules)sweep(r.cssRules)}catch(e){}}};
+const applyOs=()=>{for(const sh of document.styleSheets){try{sweep(sh.cssRules)}catch(e){}}};
+const applyTheme=()=>{const h=document.documentElement;const dark=S.theme==='dark'||(S.theme==='auto'&&(S.darkos||real('(prefers-color-scheme: dark)').matches));h.classList.toggle('dark-mode',dark)};
+const applyAll=()=>{applyOs();applyTheme()};
+applyTheme();
+document.addEventListener('DOMContentLoaded',applyAll);addEventListener('load',()=>{applyAll();nav()});
+new MutationObserver(applyOs).observe(document,{childList:true,subtree:true});
+addEventListener('scroll',()=>{if(!quiet)post({type:'scroll',x:scrollX,y:scrollY})},{passive:true});
+function nav(){post({type:'nav',path:location.pathname+location.search+location.hash})}
+addEventListener('hashchange',nav);addEventListener('popstate',nav);
+addEventListener('message',(e)=>{const d=e.data;if(!d||!d.compare)return;
+ if(d.type==='scroll'){quiet=true;scrollTo(d.x,d.y);setTimeout(()=>{quiet=false},80)}
+ if(d.type==='state'){S=Object.assign(S,d.state);applyAll()}});
+})();</script>`;
+
+function proxyFor(side) {
+  const mine = `${SIDES[side].name}:${SIDES[side].port}`;
+  return http.createServer((req, res) => {
+    const env = current()[side].env;
+    const { hosts, host, routerPort } = info(env);
+    const swap = (t) => hosts.reduce((a, h) => a.split(`https://${h}`).join(`http://${mine}`).split(`http://${h}`).join(`http://${mine}`).split(h).join(mine), t);
+    const headers = { ...req.headers, host, 'accept-encoding': 'identity' };
+    delete headers.origin; delete headers.referer;
+    const up = http.request({ host: '127.0.0.1', port: routerPort, path: req.url, method: req.method, headers }, (r) => {
+      const h = { ...r.headers };
+      delete h['x-frame-options']; delete h['content-security-policy']; delete h['content-length'];
+      if (h.location) h.location = swap(h.location);
+      if (h['set-cookie']) h['set-cookie'] = h['set-cookie'].map((c) => c.replace(/;\s*domain=[^;]*/i, '').replace(/;\s*samesite=[^;]*/i, '').replace(/;\s*secure/i, '') + '; SameSite=None; Secure');
+      const type = h['content-type'] || '';
+      if (!/text|json|javascript|xml/.test(type)) { res.writeHead(r.statusCode, h); r.pipe(res); return; }
+      const chunks = [];
+      r.on('data', (c) => chunks.push(c));
+      r.on('end', () => {
+        let body = swap(Buffer.concat(chunks).toString('utf8'));
+        if (/text\/html/.test(type)) body = body.replace(/<head([^>]*)>/i, (m) => m + SYNC(side, state));
+        res.writeHead(r.statusCode, h); res.end(body);
+      });
+    });
+    up.on('error', (e) => { res.writeHead(502); res.end(`${env} is not reachable: ${e.message}. Is its DDEV project running?`); });
+    req.pipe(up);
+  });
+}
+
+for (const side of Object.keys(SIDES)) proxyFor(side).listen(SIDES[side].port, '127.0.0.1');
+
+http.createServer((req, res) => {
+  const u = new URL(req.url, 'http://x');
+  if (u.pathname === '/variants.json') {
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+    res.end(JSON.stringify({ variants: list, state, origins: { before: `http://${SIDES.before.name}:${SIDES.before.port}`, after: `http://${SIDES.after.name}:${SIDES.after.port}` } }));
+  } else if (u.pathname === '/api/state') {
+    if (req.method === 'POST') { let b = ''; req.on('data', (c) => (b += c)); req.on('end', () => { try { Object.assign(state, JSON.parse(b)); } catch (e) { /* ignore */ } res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify(state)); }); }
+    else { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify(state)); }
+  } else if (u.pathname === '/api/login') {
+    const v = current();
+    try {
+      const out = {};
+      for (const side of Object.keys(SIDES)) out[side] = `http://${SIDES[side].name}:${SIDES[side].port}${loginPath(v[side].env)}`;
+      res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify(out));
+    } catch (e) { res.writeHead(500); res.end(String(e.message)); }
+  } else {
+    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
+    res.end(fs.readFileSync(path.join(labRoot, 'tools/compare/index.html')));
+  }
+}).listen(PAGE, '127.0.0.1', () => console.log(`compare: http://localhost:${PAGE}/   (default variant ${state.slug})`));
