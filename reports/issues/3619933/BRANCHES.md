@@ -10,3 +10,9 @@ use: the MR on drupal.org is the source of truth. Apply to a core worktree with
 |---|---|---|---|---|---|---|
 | `branches/3619933-drupal-admin-theme.patch` | issue-fork drupal-3619933 | 63ea50be7c0 | f2d23228fad | 2026-09-01 | 25 | 19 |
 | `branches/3619933-drupal-admin-theme-local.patch` | issue-fork drupal-3619933 | a428a2e9f1b | 141cdc1f0a3 | 2026-09-01 | 22 | 12 |
+
+## Related material: `dark-mode-accent/`
+Patches (css, presets, src, tests), a change record draft, and a contrast matrix
+for Default Admin dark-mode accent colours. **Filed here by file overlap, not
+confirmed:** all 18 files it touches are among the 25 files in the #3619933
+branch patches above. Confirm the issue number and correct this note if wrong.

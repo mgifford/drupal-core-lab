@@ -84,9 +84,10 @@ Date: 2026-10-01. Nothing from Drupal core itself was migrated.
   branches, whose histories were rewritten. Not rebased onto current `main`.
 - **#2847425 kit** (`reports/issues/2847425/kit/`): test module, recipe, a
   **Guidepup** screen-reader spec and a screenshot tool.
-- **`reports/issues/_unassigned/default-admin-dark-mode-accent/`**: patches,
-  change record and contrast matrix. Issue number unknown; move it into the
-  right `reports/issues/<nid>/` once identified.
+- **`reports/issues/3619933/dark-mode-accent/`**: patches, change record and
+  contrast matrix. Filed under #3619933 by file overlap (all 18 of its files are
+  within that issue's branch patches); **unconfirmed**. If wrong, move it to the
+  right `reports/issues/<nid>/`.
 - `tests/playwright` in the old checkout had no test sources outside
   `node_modules` (those were migrated earlier). Its `reports/auth-state.json`
   is a live session cookie and was deliberately **not** copied; `*auth-state*.json`
