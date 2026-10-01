@@ -29,9 +29,12 @@ Login uses the one-time link from `ddev drupal login`, not a typed password.
 `playwright` server when asked. It lets an agent drive a browser step by step and describe what it
 sees, which is useful for documenting a new walkthrough before turning it into a script like the ones above.
 
+See `../../docs/TESTING-TOOLS.md` for how this fits with axe-core, the viewer and Accessibility Insights.
+
 ## Limits
 - The virtual screen reader documents semantics (name, role, state, description) on a DOM snapshot with no
-  layout engine. It is **not** VoiceOver or NVDA. Real VoiceOver via Guidepup on macOS needs system
-  permissions that only you can grant; that pass is still manual.
+  layout engine. It is **not** VoiceOver or NVDA. Decision (2026-10-01): the synthetic Guidepup run is enough for
+  comparing a change, and no real screen reader pass is planned for now. Real VoiceOver via Guidepup would need
+  system permissions that only the user can grant.
 - Automated checks find a subset of problems and are a DRAFT until a person has tested with a keyboard
   and a screen reader.

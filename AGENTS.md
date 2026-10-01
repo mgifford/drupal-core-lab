@@ -145,11 +145,12 @@ Reports are Markdown plus small artifacts. Do not commit large raw scan output
    Credentials are gitignored by pattern, but do not rely on that.
 6. **Do not add Drush or other dependencies** to a core checkout's
    `composer.json`. Use `core/scripts/dr`.
-7. **Say what was not verified.** Automated results do not replace a keyboard
+7. **Testing tools and scope:** see `docs/TESTING-TOOLS.md`. A synthetic Guidepup virtual screen reader is the agreed standard for comparing a change; real VoiceOver/NVDA passes are out of scope unless the user asks.
+8. **Say what was not verified.** Automated results do not replace a keyboard
    and screen-reader pass for accessibility changes. Evidence stays DRAFT until
    the manual rows are filled and a human has reviewed.
-8. **AI-assisted disclosure** on commits and drafted comments.
-9. Do not copy code from external projects without a compatible licence and
+9. **AI-assisted disclosure** on commits and drafted comments.
+10. Do not copy code from external projects without a compatible licence and
    attribution.
 
 ## Teardown
