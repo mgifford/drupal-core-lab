@@ -28,7 +28,7 @@ Drupal**. Local development only; nothing is posted anywhere automatically.
 | Work here as an agent (rules, environments, commands) | [AGENTS.md](AGENTS.md) |
 | Give someone a self-contained copy of one reproduction | `node scripts/make-bundle.mjs <slug>`, then `bundles/` |
 
-## Quick start (needs Docker, DDEV 1.24+, git, Node 20+; about 10 GB; first run 10 to 20 minutes)
+## Quick start (needs Docker, DDEV 1.24+, git, Node 20+; ~10 GB free disk space; first run 10 to 20 minutes)
     node tools/compare/setup.mjs 3619127-pinned      # builds Before (upstream) and After (with the patches), applies the recipe
     node scripts/lab-env.mjs start 3619127-pinned    # starts both sites and the viewer: https://drupal-compare.ddev.site or http://localhost:8100/
     (or run the viewer alone: node tools/compare/serve.mjs 3619127-pinned)
