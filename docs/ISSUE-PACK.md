@@ -34,6 +34,27 @@ chat assistant ──writes──▶ issue-pack-<nid>.yml ──upload / paste�
 Needs `js-yaml`, installed by `node tools/compare/setup.mjs <slug>` or `npm install --prefix tools/compare/.deps js-yaml@4`.
 A worked example is `docs/examples/issue-pack-3415961.yml`.
 
+## Working with the chat assistant
+
+How the assistant learns the format: `node scripts/issue-pack.mjs prompt` prints one message with four parts: the task and rules, a field-by-field description
+of the pack, **one complete valid pack** (the strongest signal of the shape you want), and the three inputs you fill in. Paste all of it as your first message.
+A chat tool that can browse may open the issue itself; otherwise paste the issue page text (all comments) and the merge request diff. Ask for the result as a
+downloadable file named `issue-pack-<nid>.yml`; if the tool cannot make files, ask for one code block and save it with that name.
+
+The first answer will usually need a round. Run the validator and send the errors back, in the same chat:
+
+    Your pack did not pass the validator. Fix ONLY these problems, keep everything else as it was, and send the complete corrected file again:
+
+    <paste the validator's ERROR lines>
+
+Then, after it validates, ask for the things a validator cannot check:
+
+    List every claim in summary, steps and checks that comes from your own reasoning and not from the issue text, the comments or the diff,
+    with the comment number or file for the ones that do. Add anything you were unsure of to review.unverified.
+
+Tips: give it one issue and one merge request at a time; tell it which branch the merge request uses; if it invents a selector or a config key, say so and ask it to move
+that check into review.unverified or into a manual question; never paste secrets or private data into the chat.
+
 ## What import writes
 
 | Where | What |
