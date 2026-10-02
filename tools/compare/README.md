@@ -200,6 +200,14 @@ The viewer raises an alert after 12 seconds and checks both sites; use **Reload 
 was fixed and how to measure it: `docs/FRAME-LOADING-2026-10-01.md`. If a DDEV project is not running, `ddev list`,
 then `ddev restart` in that environment.
 
+## Local security
+The viewer runs on your machine but is reachable by any web page you open in the same browser, so it defends itself:
+- The API accepts only its own hostnames and origins (`localhost:8100`, `127.0.0.1:8100`, `drupal-compare.ddev.site`), refuses cross-site requests (`Sec-Fetch-Site`), and every action that changes something (`/api/cache`, `/api/login`, `/api/lighthouse/run`, `/api/state`, `/api/emulation`) is POST-only.
+- The proxied sites send `Content-Security-Policy: frame-ancestors` for the viewer's origins only, so no other page can frame a logged-in site.
+- Inside a frame, the injected script talks only to the viewer (it checks `event.source` and `event.origin`, and posts to the viewer's origin, never `*`); the viewer talks only to its own frames, at their origin.
+- Listening sockets are bound to `127.0.0.1`.
+An IP allowlist would not add protection: the dangerous requests come from your own browser (so from 127.0.0.1) via another web page. To allow another origin (for example a cloud workspace) set `LAB_EXTRA_ORIGINS="https://host.example"` before starting the viewer. Regression test: `node tools/playwright/viewer-security.mjs`.
+
 ## Limits
 - It compares behaviour in a browser and the files served. It does not replace testing with a keyboard.
 - Only one variant's environments are proxied at a time (the page switches variants, but that variant's environments must be running).

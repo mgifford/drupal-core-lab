@@ -29,6 +29,8 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 
 10. **A dry run is not a test.** The Farsi step in `setup.mjs` had only been dry-run when I called it done; the first real `reset` found two bugs (`lab-site.sh language` validated `fa` as a recipe name; a file copied into a just-restarted DDEV project had not synced into the container yet, so wait until `ddev exec test -f` sees it). Run the real thing, once, on throw-away data.
 
+11. **An outside review of the public repo found four real problems I had not seen** (message bridge that ran code for any parent window, navigation sync that could never fire, cache clearing reachable by a cross-site GET, a leftover weekly workflow from the old fork with write access). Lessons: a local tool is still reachable by every web page the owner visits (source IP is 127.0.0.1 for those requests, so an IP allowlist does not help; Host, Origin, `Sec-Fetch-Site`, POST-only and `frame-ancestors` do); `postMessage` needs a specific target origin and a check of `event.source` and `event.origin`; and when copying a repo's workflows and config, read them (`weekly-sync.yml` and `dependabot.yml` were for the old fork). A line that sets a variable and then tests it for change is always false; the negative control (put the old line back, watch the test fail) proved the test.
+
 ## Technical traps (each cost real time)
 | Area | Learning |
 |---|---|

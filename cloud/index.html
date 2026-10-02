@@ -237,7 +237,7 @@ function applyPrefs() { let p = {}; try { p = JSON.parse(localStorage.getItem(PR
 function savePrefs() { try { const p = { theme: radio('theme') }; PREF_CHECKS.forEach((id) => { p[id] = $(id).checked; }); localStorage.setItem(PREF_KEY, JSON.stringify(p)); } catch (e) { /* storage unavailable */ } }
 document.addEventListener('change', (e) => { if (PREF_CHECKS.includes(e.target.id) || e.target.name === 'theme') savePrefs(); });
 function sendState() { const state = { theme: radio('theme'), dir: radio('dir'), nojs: $('nojs').checked, darkos: $('darkos').checked, axe: $('axeon').checked, axeBest: $('axebest').checked };
-  post(state); for (const s of ['before', 'after']) F[s].contentWindow && F[s].contentWindow.postMessage({ compare: 1, type: 'state', state }, '*'); }
+  post(state); for (const s of ['before', 'after']) toFrame(s, { compare: 1, type: 'state', state }); }
 const TAGS = { recipe: 'set up by the recipe', mirror: 'mirrored to both frames', each: 'do in each frame' };
 // Long query values (one-time login tokens) are shortened; the full URL is the tooltip and shows when the pane is hovered or focused.
 function setPath(el, p) { el.textContent = p.replace(/([?&][^=&]*(?:token|hash|key)[^=&]*=)[^&#]{12,}/gi, '$1…'); el.title = p; }
@@ -316,13 +316,17 @@ $('goto').addEventListener('change', () => { $('goto').value = normPath($('goto'
 $('goto').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('go').click(); });
 $('login').addEventListener('click', async () => {
   status('Logging in…');
-  try { const r = await (await fetch('api/login')).json(); markStart('before'); markStart('after'); F.before.src = r.before; F.after.src = r.after; status('Logged in. Use Go to open a page.'); }
+  try { const r = await (await fetch('api/login', { method: 'POST' })).json(); markStart('before'); markStart('after'); F.before.src = r.before; F.after.src = r.after; status('Logged in. Use Go to open a page.'); }
   catch (e) { status('Login failed: ' + e); }
 });
+// Talk only to our own frames, at their own origin: a frame that has navigated elsewhere neither receives typed text and probe code nor can send us commands.
+const toFrame = (side, msg) => { const w = F[side] && F[side].contentWindow; if (w && origins && origins[side]) w.postMessage(msg, origins[side]); };
 addEventListener('message', (e) => {
-  const m = e.data; if (!m || !m.compare) return;
-  if (m.type === 'scroll' && $('syncscroll').checked) { const o = F[other(m.side)].contentWindow; o && o.postMessage({ compare: 1, type: 'scroll', x: m.x, y: m.y }, '*'); }
-  if (m.type === 'mirror' && (/^hover/.test(m.kind) ? $('mirrorhover').checked : $('mirror').checked)) { const o = F[other(m.side)].contentWindow; o && o.postMessage(Object.assign({}, m, { compare: 1 }), '*'); }
+  const from = e.source === F.before.contentWindow ? 'before' : e.source === F.after.contentWindow ? 'after' : null;
+  if (!from || !origins || e.origin !== origins[from]) return;
+  const m = e.data; if (!m || !m.compare) return; m.side = from;
+  if (m.type === 'scroll' && $('syncscroll').checked) { toFrame(other(m.side), { compare: 1, type: 'scroll', x: m.x, y: m.y }); }
+  if (m.type === 'mirror' && (/^hover/.test(m.kind) ? $('mirrorhover').checked : $('mirror').checked)) { toFrame(other(m.side), Object.assign({}, m, { compare: 1 })); }
   if (m.type === 'mirror-miss') status(`Not mirrored: could not find "${m.label || m.kind}" in the ${m.side} frame. The two sides have diverged here.`);
   if (m.type === 'axe') { AX[m.side] = { url: m.url, violations: m.violations }; logAxe(m.side, AX[m.side]); }
   if (m.type === 'axe-unavailable') { $('axeverdict').className = 'verdict warn'; $('axeverdict').textContent = 'axe-core is not installed. Run: npm install --prefix tools/compare/.deps axe-core@4 , then reload.'; }
@@ -331,8 +335,8 @@ addEventListener('message', (e) => {
   if (m.type === 'real-click') { realClick[m.side] = true; showRealClick(); }
   if (m.type === 'loaded') { realClick[m.side] = false; showRealClick(); loadedAt[m.side] = Date.now(); }
   if (m.type === 'nav') {
-    setPath(P[m.side], m.path); if (document.activeElement !== $('goto') && !/pass-reset-token|\/user\/reset/.test(m.path)) $('goto').value = m.path; last[m.side] = m.path; updateExternal(); lhSchedule(); status('Ready.'); if (radio('view') !== 'side') applyView();
-    if ($('syncnav').checked && last[m.side] !== m.path) { last[m.side] = m.path; if (last[other(m.side)] !== m.path) load(other(m.side), m.path); }
+    setPath(P[m.side], m.path); if (document.activeElement !== $('goto') && !/pass-reset-token|\/user\/reset/.test(m.path)) $('goto').value = m.path; const changed = last[m.side] !== m.path; last[m.side] = m.path; updateExternal(); lhSchedule(); status('Ready.'); if (radio('view') !== 'side') applyView();
+    if ($('syncnav').checked && changed && last[other(m.side)] !== m.path) load(other(m.side), m.path);
   }
 });
 
@@ -366,7 +370,7 @@ function runChecks() {
     body.append(tr); results[i] = {};
     // A check with onlyOn (a path fragment) applies only while the frames are on that page; otherwise it is shown as not applicable.
     if (c.onlyOn && !((last.before || '').includes(c.onlyOn) && (last.after || '').includes(c.onlyOn))) { results[i].na = true; setCell(tr.children[3], 'na', 'n/a'); setCell(tr.children[4], 'na', 'n/a'); setCell(tr.children[5], 'na v', '\u2013 only on ' + c.onlyOn + ' (open that page, redo the steps, run again)'); continue; }
-    for (const side of ['before', 'after']) { const id = ++probeId; pending[id] = { i, side }; F[side].contentWindow.postMessage({ compare: 1, type: 'probe', id, code: c.probe }, '*'); }
+    for (const side of ['before', 'after']) { const id = ++probeId; pending[id] = { i, side }; toFrame(side, { compare: 1, type: 'probe', id, code: c.probe }); }
   }
 }
 function passes(c, val, other) { return c.expect === 'same' ? String(val) === String(other) : String(val) === String(c.expect); }
@@ -408,10 +412,10 @@ function showResult(i) { renderAll(); }
 $('runchecks').addEventListener('click', runChecks);
 $('cache').addEventListener('click', async () => {
   status('Clearing caches on both sites…');
-  try { const r = await (await fetch('api/cache')).json(); status(`Caches: before ${r.before}, after ${r.after}. Reloading.`); load('before', last.before || $('goto').value); load('after', last.after || $('goto').value); }
+  try { const r = await (await fetch('api/cache', { method: 'POST' })).json(); status(`Caches: before ${r.before}, after ${r.after}. Reloading.`); load('before', last.before || $('goto').value); load('after', last.after || $('goto').value); }
   catch (e) { status('Cache clear failed: ' + e); }
 });
-$('storage').addEventListener('click', () => { for (const s of ['before', 'after']) F[s].contentWindow && F[s].contentWindow.postMessage({ compare: 1, type: 'clear-storage' }, '*'); status('Cleared localStorage and sessionStorage in both frames (the sidebar preference is stored there). Reloading.'); });
+$('storage').addEventListener('click', () => { for (const s of ['before', 'after']) toFrame(s, { compare: 1, type: 'clear-storage' }); status('Cleared localStorage and sessionStorage in both frames (the sidebar preference is stored there). Reloading.'); });
 
 // ---- Live accessibility (axe-core) ----
 const AX = { before: null, after: null }; const axeLog = []; const baseTitle = document.title; let lastKey = '';
@@ -475,8 +479,8 @@ function logAxe(side, res) {
 }
 function sendAxeState() { sendState(); }
 $('axeon').addEventListener('change', () => { sendState(); if (!$('axeon').checked) renderAxe(); });
-$('axebest').addEventListener('change', () => { AX.before = AX.after = null; sendState(); setTimeout(() => { for (const s of ['before', 'after']) F[s].contentWindow && F[s].contentWindow.postMessage({ compare: 1, type: 'axe-now' }, '*'); }, 300); });
-$('axenow').addEventListener('click', () => { for (const s of ['before', 'after']) F[s].contentWindow && F[s].contentWindow.postMessage({ compare: 1, type: 'axe-now' }, '*'); });
+$('axebest').addEventListener('change', () => { AX.before = AX.after = null; sendState(); setTimeout(() => { for (const s of ['before', 'after']) toFrame(s, { compare: 1, type: 'axe-now' }); }, 300); });
+$('axenow').addEventListener('click', () => { for (const s of ['before', 'after']) toFrame(s, { compare: 1, type: 'axe-now' }); });
 $('axeclr').addEventListener('click', () => { axeLog.length = 0; $('axelog').querySelector('tbody').textContent = ''; $('axelogn').textContent = 0; lastKey = ''; });
 $('axedl').addEventListener('click', () => { const blob = new Blob([JSON.stringify({ variant: v && v.slug, exported: new Date().toISOString(), checklist: (v.steps || []).map((st, i) => ({ step: st.text, done: !!ticks[i] })), environmentTested: envTested(), lighthouse: lhLog, manualObservations: (v.observe || []).map((o, i) => ({ question: o.label, expected: { before: !!o.expectBefore, after: !!o.expectAfter }, answered: obsAns[i] || null })), notes: $('obsnote').value, entries: axeLog }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `axe-log-${v ? v.slug : 'compare'}.json`; a.click(); });
 

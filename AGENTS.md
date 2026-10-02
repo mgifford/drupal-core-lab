@@ -123,6 +123,7 @@ Use only if `setup.mjs` is not usable. `core/scripts/dr install` is SQLite-only;
 - The same `index.html` is the local viewer and the GitHub Pages guide. An element that needs the server (frames, logins, axe, Lighthouse,
   checks) must carry `data-needs="live"`; server URLs are relative (no leading `/`). Then run `node scripts/build-cloud.mjs` and commit `cloud/`
   (CI fails if it is stale). Do not edit `cloud/` by hand.
+- Security: the viewer is reachable by any page the owner visits. New API actions must be POST and go through the Host/Origin guard in `serve.mjs`; never post to a frame with `'*'` (use `toFrame`); never relax `frame-ancestors`. Run `node tools/playwright/viewer-security.mjs`.
 - Optional extras default **off**; user choices live in `localStorage` only (`compare.prefs`). Never add accounts or server-side storage.
 - The script injected into the proxied pages is a template literal in `serve.mjs`: double the backslashes in regexes, no backticks or `${}`.
 - The controls are collapsible blocks (`.opts details[data-sec]`): Device width and Colour mode open by default, the rest closed. Tests must open a block (`summary:has-text("Behaviour")`) before using a control inside it. A new control belongs in the block that matches its job; keep the top bar for page navigation.

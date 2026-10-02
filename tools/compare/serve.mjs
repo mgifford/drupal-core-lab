@@ -21,6 +21,11 @@ const SIDES = DDEV
       after: { port: PAGE + 2, host: 'drupal-compare-after.ddev.site', origin: 'https://drupal-compare-after.ddev.site' } }
   : { before: { port: PAGE + 1, host: `before.localhost:${PAGE + 1}`, origin: `http://before.localhost:${PAGE + 1}` },
       after: { port: PAGE + 2, host: `after.localhost:${PAGE + 2}`, origin: `http://after.localhost:${PAGE + 2}` } };
+// Origins allowed to use the viewer, to frame the proxied sites, and to send them commands. Everything else is refused.
+// Add more (for example a cloud workspace) with LAB_EXTRA_ORIGINS="https://host.example,https://other.example". An IP allowlist would not help here:
+// the requests that matter come from the owner's own browser (so from 127.0.0.1) via a web page they happen to visit; the Host, Origin and frame-ancestors checks are what stop those.
+const VIEWER_ORIGINS = [`http://localhost:${PAGE}`, `http://127.0.0.1:${PAGE}`, 'https://drupal-compare.ddev.site', ...(process.env.LAB_EXTRA_ORIGINS || '').split(',').map((x) => x.trim()).filter(Boolean)];
+const VIEWER_HOSTS = VIEWER_ORIGINS.map((o) => new URL(o).host);
 const list = variants();
 const state = { slug: process.argv.slice(2).find((x) => !x.startsWith('--')) || list[0].slug, theme: 'auto', darkos: false, axe: false, axeBest: false, dir: 'auto', nojs: false };
 const current = () => list.find((x) => x.slug === state.slug) || list[0];
@@ -52,7 +57,10 @@ const info = (env) => { const c = infoCache[env]; if (c) { if (Date.now() - c.t 
 
 const SYNC = (side, st) => `<script>(()=>{if(window.parent===window)return;
 const side=${JSON.stringify(side)};let S=${JSON.stringify({ theme: st.theme, darkos: st.darkos, axe: st.axe, axeBest: st.axeBest })};
-const post=(m)=>parent.postMessage(Object.assign({compare:1,side},m),'*');let quiet=false;
+const PARENTS=${JSON.stringify(VIEWER_ORIGINS)};
+const parentOrigin=(()=>{try{const a=location.ancestorOrigins;if(a&&a.length)return a[0];return new URL(document.referrer).origin}catch(e){return ''}})();
+const targets=PARENTS.includes(parentOrigin)?[parentOrigin]:(parentOrigin?[]:PARENTS);
+const post=(m)=>{const msg=Object.assign({compare:1,side},m);targets.forEach((o)=>{try{parent.postMessage(msg,o)}catch(e){}})};let quiet=false;
 const fake=(m,q)=>({matches:m,media:q,onchange:null,addEventListener(){},removeEventListener(){},addListener(){},removeListener(){},dispatchEvent(){return false}});
 const real=window.matchMedia.bind(window);
 window.matchMedia=(q)=>{if(S.darkos&&/prefers-color-scheme:\\s*dark/.test(q))return fake(true,q);if(S.darkos&&/prefers-color-scheme:\\s*light/.test(q))return fake(false,q);return real(q)};
@@ -144,7 +152,7 @@ async function runAxe(){if(!S.axe)return;if(axeBusy){axeQueued=true;return}axeBu
 addEventListener('load',schedule);
 ['click','focusin','keyup','hashchange','transitionend','animationend'].forEach((t)=>addEventListener(t,schedule,true));
 new MutationObserver(schedule).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','open','hidden','aria-expanded','aria-hidden','data-meta-sidebar','disabled','role']});
-addEventListener('message',(e)=>{const d=e.data;if(!d||!d.compare)return;
+addEventListener('message',(e)=>{if(e.source!==parent||!PARENTS.includes(e.origin))return;const d=e.data;if(!d||!d.compare)return;
  if(d.type==='mirror'){if(/^(hover|drag)/.test(d.kind))applyPtr(d);else apply(d)}
  if(d.type==='clear-storage'){try{localStorage.clear();sessionStorage.clear()}catch(err){}location.reload()}
  if(d.type==='probe'){let value;try{value=(new Function('return ('+d.code+')'))()}catch(err){value='ERROR: '+err.message}post({type:'probe-result',id:d.id,value:(typeof value==='object'?JSON.stringify(value):value)})}
@@ -172,7 +180,8 @@ function proxyFor(side) {
     const run = (attempt) => {
     const up = https.request({ host: '127.0.0.1', port: routerHttpsPort || 443, servername: host, rejectUnauthorized: false, path: req.url, method: req.method, headers, agent }, (r) => {
       const h = { ...r.headers };
-      delete h['x-frame-options']; delete h['content-security-policy']; delete h['content-length'];
+      delete h['x-frame-options']; delete h['content-length'];
+      h['content-security-policy'] = `frame-ancestors ${VIEWER_ORIGINS.join(' ')}`;   // replaces the site's own policy (the injected script needs inline code) and lets only the viewer frame it
       delete h.etag; delete h['last-modified']; h['cache-control'] = 'no-store';
       if (h.location) h.location = swap(h.location);
       if (h['set-cookie']) h['set-cookie'] = h['set-cookie'].map((c) => c.replace(/;\s*domain=[^;]*/i, '').replace(/;\s*samesite=[^;]*/i, '').replace(/;\s*secure/i, '') + '; SameSite=None; Secure');
@@ -207,10 +216,13 @@ for (const side of Object.keys(SIDES)) { const srv = proxyFor(side); srv.keepAli
 
 http.createServer((req, res) => {
   const u = new URL(req.url, 'http://x');
-  // Local tool, but any web page can send requests to localhost: accept only our own hostnames, and for POST only our own origin.
-  const hostOk = [`localhost:${PAGE}`, `127.0.0.1:${PAGE}`, 'drupal-compare.ddev.site'].includes(req.headers.host);
-  const origin = req.headers.origin; const originOk = !origin || [`http://localhost:${PAGE}`, `http://127.0.0.1:${PAGE}`, 'https://drupal-compare.ddev.site'].includes(origin);
-  if (!hostOk || (req.method === 'POST' && !originOk)) { res.writeHead(403, { 'content-type': 'text/plain' }); res.end('Forbidden: this request did not come from the viewer.'); return; }
+  // Local tool, but any web page can send requests to localhost: accept only our own hostnames and origin, refuse cross-site requests to /api, and make
+  // every action that changes something a POST (a cross-site GET cannot then trigger it). Non-browser clients (curl, node) send neither Origin nor Sec-Fetch-Site.
+  const origin = req.headers.origin, fetchSite = req.headers['sec-fetch-site'];
+  const hostOk = VIEWER_HOSTS.includes(req.headers.host), originOk = !origin || VIEWER_ORIGINS.includes(origin), crossSite = !!fetchSite && !['same-origin', 'none'].includes(fetchSite);
+  const ACTIONS = ['/api/cache', '/api/login', '/api/lighthouse/run'];
+  if (!hostOk || !originOk || (u.pathname.startsWith('/api/') && crossSite)) { res.writeHead(403, { 'content-type': 'text/plain' }); res.end('Forbidden: this request did not come from the viewer.'); return; }
+  if (ACTIONS.includes(u.pathname) && req.method !== 'POST') { res.writeHead(405, { 'content-type': 'text/plain', allow: 'POST' }); res.end('Use POST.'); return; }
   if (u.pathname === '/variants.json') {
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
     res.end(JSON.stringify({ variants: list, state, origins: { before: SIDES.before.origin, after: SIDES.after.origin }, sites: realSites() }));
