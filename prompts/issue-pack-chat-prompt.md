@@ -21,6 +21,9 @@ RULES
 8. Checks: probe is ONE read-only JavaScript expression run inside each frame. No assignment, no semicolons, no template strings (backticks), no network, no location or window.top, no method calls that change the page or focus (click, focus, setAttribute, remove ...). kind is precondition (must hold on both sides or nothing means anything), fix (should fail on Before and pass on After) or regression (should be equal). If you cannot know a selector, keep the check simple and say so in review.unverified, or leave checks empty and use manual questions instead.
 9. observe: yes/no questions for a person, with the answer expected on Before and on After, taken only from what the issue reports.
 10. Keep it small. Do not add steps or checks the issue does not need.
+11. Everything the steps rely on must be created by the recipe. Do not write "ensure X is configured" or "a file over the configured limit" unless the recipe sets that state (for example the size limit, the field or the setting). The recipe description may only describe what the recipe really does.
+12. Trace the scenario to the code the change touches. Say in the summary which code path that is (for example server-side validation, not browser-side), and offer another way to trigger the problem only if the sources show it reaches that same code. Anything you are unsure of goes in review.unverified, not in the steps.
+13. A "fix" check should compare something the change adds or alters (an element, an attribute, an announcement) and should be false on Before and true on After. Say in review.unverified when it can only be true after a user action.
 
 PACK FORMAT (every key shown is required unless marked optional)
 pack_version: 1
