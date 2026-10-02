@@ -1,6 +1,6 @@
-# Plan (idea stage): running the lab in DDEV Coder Workspaces
+# Plan and status: running the lab in DDEV Coder Workspaces
 
-Status: **proposal, nothing built.** Written 2026-10-01 after reading https://start.coder.ddev.com/ (landing page, issue picker,
+Status (2026-10-02): **partly built.** The workspace bootstrap (3B), the viewer at Coder app URLs and a smoke check exist and were tested in one workspace; see `tools/compare/cloud/README.md` for what was tested and what was not. The text below is the original proposal, written 2026-10-01 after reading https://start.coder.ddev.com/ (landing page, issue picker,
 quickstart). Items marked **VERIFY** are things I could not confirm from the public pages.
 
 ## 1. What the cloud service is (facts from its pages)

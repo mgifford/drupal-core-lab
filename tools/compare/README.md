@@ -5,7 +5,7 @@ produces a diff of what each serves. Modelled on the compare tool in
 FOSDEM-website, adapted to live Drupal sites.
 
 ## Environments
-Two DDEV projects from `envs/` (see `../../AGENTS.md`). Local development only.
+Two DDEV projects from `envs/` (see `../../AGENTS.md`). Local by default; an opt-in DDEV Coder workspace path is in `cloud/README.md`.
 
 | Site | Directory | URL | Login |
 |---|---|---|---|
@@ -204,8 +204,8 @@ The viewer runs on your machine but is reachable by any web page you open in the
 - The API accepts only its own hostnames and origins (`localhost:8100`, `127.0.0.1:8100`, `drupal-compare.ddev.site`), refuses cross-site requests (`Sec-Fetch-Site`), and every action that changes something (`/api/cache`, `/api/login`, `/api/lighthouse/run`, `/api/state`, `/api/emulation`) is POST-only.
 - The proxied sites send `Content-Security-Policy: frame-ancestors` for the viewer's origins only, so no other page can frame a logged-in site.
 - Inside a frame, the injected script talks only to the viewer (it checks `event.source` and `event.origin`, and posts to the viewer's origin, never `*`); the viewer talks only to its own frames, at their origin.
-- Listening sockets are bound to `127.0.0.1`.
-An IP allowlist would not add protection: the dangerous requests come from your own browser (so from 127.0.0.1) via another web page. To allow another origin (for example a cloud workspace) set `LAB_EXTRA_ORIGINS="https://host.example"` before starting the viewer. Regression test: `node tools/playwright/viewer-security.mjs`.
+- Listening sockets are bound to `127.0.0.1` unless `LAB_BIND` is set (the Coder workspace path sets `LAB_BIND=0.0.0.0`, which is reachable only on that workspace's Docker network).
+An IP allowlist would not add protection: the dangerous requests come from your own browser (so from 127.0.0.1) via another web page. To allow another origin (for example a cloud workspace) set `LAB_EXTRA_ORIGINS="https://host.example"` before starting the viewer. For frames served at their own hostnames set `LAB_BEFORE_ORIGIN` and `LAB_AFTER_ORIGIN` (full origins); `tools/compare/cloud/start-viewer.sh` sets all three for a Coder workspace. None of these relaxes the Host, Origin or frame-ancestors checks. Regression test: `node tools/playwright/viewer-security.mjs`.
 
 ## Limits
 - It compares behaviour in a browser and the files served. It does not replace testing with a keyboard.

@@ -7,7 +7,7 @@
 A workspace for **evaluating Drupal core changes**, kept separate from Drupal core itself. For an issue it can: build upstream core
 and a patched copy side by side, let a person reproduce the problem and confirm the fix, replay the steps with real input and
 axe-core, compare what each site serves, and keep the evidence so the work can be **repeated later, on the same core or on updated
-Drupal**. Local development only; nothing is posted anywhere automatically.
+Drupal**. Runs locally with DDEV. An opt-in path for a DDEV Coder (coder.ddev.com) workspace is in `tools/compare/cloud/README.md` (partly tested; see its status table). Nothing is posted anywhere automatically.
 
 ![Two Drupal sites side by side: upstream Drupal on the left, where clicking the error link does nothing, and the same page with the change on the right, where the sidebar opened to show the invalid field.](docs/images/viewer-frames.png)
 

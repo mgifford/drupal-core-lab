@@ -54,6 +54,23 @@ for (const tool of CHECK ? ['git'] : ['git', 'ddev', 'docker']) {
   if (spawnSync(tool, ['--version'], { stdio: 'ignore' }).status !== 0) { console.error(`Missing prerequisite: ${tool}`); if (!dry) process.exit(1); }
 }
 
+// One setup at a time. Two runs against the same envs/ start the same DDEV project twice (container name conflict)
+// and fetch into envs/core.git at once ("shallow file has changed"). A lock left by a run that died is taken over.
+if (!dry) {
+  const lock = path.join(labRoot, 'envs/.setup.lock');
+  fs.mkdirSync(path.dirname(lock), { recursive: true });
+  try { fs.writeFileSync(lock, String(process.pid), { flag: 'wx' }); }
+  catch (e) {
+    const other = Number(fs.readFileSync(lock, 'utf8')) || 0;
+    let alive = false; if (other) { try { process.kill(other, 0); alive = true; } catch { /* not running */ } }
+    if (alive) { console.error(`Another setup is already running (pid ${other}). Wait for it to finish; do not start a second one.`); process.exit(2); }
+    fs.writeFileSync(lock, String(process.pid));
+  }
+  const unlock = () => { try { if (fs.readFileSync(lock, 'utf8') === String(process.pid)) fs.unlinkSync(lock); } catch { /* already gone */ } };
+  process.on('exit', unlock);
+  for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => process.exit(130));
+}
+
 step(`Drupal core: ${core.commit ? `pinned commit ${core.commit.slice(0, 12)}` : `branch ${core.ref} (latest)`} from ${core.url}`);
 fs.mkdirSync(path.join(labRoot, 'envs'), { recursive: true });
 if (!have(bare)) { run('git', ['init', '--bare', bare]); run('git', ['-C', bare, 'remote', 'add', 'origin', core.url]); }

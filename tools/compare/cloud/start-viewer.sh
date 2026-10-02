@@ -13,6 +13,7 @@ export LAB_BIND=0.0.0.0
 export LAB_EXTRA_ORIGINS="$(APP drupal-compare)"
 export LAB_BEFORE_ORIGIN="$(APP drupal-compare-before)"
 export LAB_AFTER_ORIGIN="$(APP drupal-compare-after)"
-nohup node tools/compare/serve.mjs "$@" > "$HOME/viewer.log" 2>&1 < /dev/null &
+nohup node tools/compare/serve.mjs "$@" > .lab-viewer.log 2>&1 < /dev/null &
+echo $! > .lab-viewer.pid   # same files scripts/lab-env.mjs uses, so `lab-env.mjs stop` stops this viewer
 sleep 3
 echo "Viewer: $LAB_EXTRA_ORIGINS/"

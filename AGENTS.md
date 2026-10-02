@@ -59,7 +59,7 @@ Never switch one checkout between "before" and "after". One worktree per variant
     envs/issue-<...>/             the same core plus the issue's patches
 
 Both run the same PHP, theme and modules, so the only difference is the code under test. Keep two or three DDEV projects running at
-most (`ddev stop` the rest). Local development only; sites use `admin` / `admin`.
+most (`ddev stop` the rest). Sites use `admin` / `admin`, so keep them private: local, or an owner-only Coder workspace.
 
 The normal state is **two sites running: a core, and the same core with an issue's patch.** Each issue has a `-latest` variant (current
 core `main` when built: the day-to-day pair) and a `-pinned` one (an exact commit, for reproducing the original result). Build and run only
@@ -128,7 +128,7 @@ Use only if `setup.mjs` is not usable. `core/scripts/dr install` is SQLite-only;
 - The script injected into the proxied pages is a template literal in `serve.mjs`: double the backslashes in regexes, no backticks or `${}`.
 - The conditions toolbar keeps Device width, Colour mode and Compare as always visible; the rest sit in popovers (`details.pop`: Conditions, Input, Audits, plus Tools in the top bar). Tests must open a popover (`summary:has-text("Input")`) before using a control inside it, and press Escape to close it before touching the frames. Results live in the dock (`#dock`, tabs `#tab-steps`, `#tab-checks`, `#tab-manual`, `#tab-axe`, `#tab-lh`, `#tab-env`); click the tab before reading a result. Keep every element id: the script and the tests depend on them. Layout proposal and rationale: `docs/ui-proposal/index.html`. A new control belongs in the block that matches its job; keep the top bar for page navigation.
 - Verify with real input: `node tools/playwright/mirror-drag.mjs` (viewer must be running), plus `node scripts/doctor.mjs`.
-- Cloud (DDEV Coder workspaces) is a **proposal on hold**: `docs/CLOUD-PLAN.md`. Do not build it or sign in to it without the user.
+- Cloud (DDEV Coder workspaces) is an opt-in path, partly built and tested: `tools/compare/cloud/README.md` (setup, smoke check, status table), `scripts/cloud-bootstrap.mjs`, `scripts/cloud-smoke.mjs`; the original proposal is `docs/CLOUD-PLAN.md`. Local use is unchanged. Do not sign in to Coder, create or change workspaces, or publish anything without the user.
 
 ## Where results go
 
