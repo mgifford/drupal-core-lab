@@ -20,12 +20,11 @@ Both have Inline Form Errors on, the Article content type (recipe
 
     node tools/compare/serve.mjs [slug]       # then open http://localhost:8100/
 
-The **top bar** always shows page navigation: **Compare upstream with** (variant), **Page**, **Go (both)**, **Log in both as admin**, **Reload Before / Reload After**, plus the status line.
-Below it are blocks that flow to fit the window. Open by default: **Device width** (Mobile / Tablet / Desktop, the default) and **Colour mode** (Light / Dark / Follow OS).
-Closed by default: **Display** (View: Side by side / Onion skin / Difference, Text direction, Simulate a dark-mode OS, the forced-colours window), **Behaviour** (Sync scrolling, Sync navigation,
-Mirror clicks, typing and drags, Mirror hover and focus, JavaScript off), **Accessibility checks** (Live axe-core, best-practice rules) and **Tools** (Clear Drupal caches, Reset browser state,
-Open outside this tool). A closed block shows a hint when something inside is not at its default, and which blocks you opened is remembered. Below the frames: the live accessibility panel,
-a **manual confirmation** panel, and **Run checks**.
+The **top bar** always shows page navigation: **Compare upstream with** (variant), **Page**, **Go (both)**, **Log in both as admin**, **Reload Before / Reload After**, **Tools** (Clear Drupal caches, Reset browser state, Open outside this tool) and the status line.
+Below it, the **conditions toolbar** keeps the three choices you change most always visible: **Device width** (Mobile / Tablet / Desktop, the default), **Colour mode** (Light / Dark / Follow OS) and **Compare as** (Side by side / Onion skin / Difference). Three popovers hold the rest:
+**Conditions** (Text direction, Simulate a dark-mode OS, JavaScript off, the forced-colours window), **Input** (Sync scrolling, Sync navigation, Mirror clicks, typing and drags, Mirror hover and focus) and **Audits** (live axe-core, best-practice rules, Lighthouse).
+A popover button shows how many settings inside it are not at their default, a strip above the frames lists everything that is not default (with Reset all), and each changed setting in a popover has its own Reset link. Escape closes a popover.
+The frames fill the window. Under them is the **dock**, one tab per result: **Steps**, **Checks** (Run checks), **Manual** (manual confirmation), **Accessibility** (axe), **Lighthouse** and **Environment**. Each tab carries a badge (for example 2/13, ✓ pass, ✗ fail, off). Hide panel and Larger resize the dock; the chosen tab and size are remembered in this browser only.
 
 - Colour mode (formerly "Site theme") sets or clears the Default Admin `dark-mode` class on `<html>`. Follow
   OS uses the real or simulated OS preference.
@@ -60,7 +59,7 @@ steps, expected result and a "how to run it" panel. Any new element that needs t
 must be relative (no leading `/`).
 
 ## Live accessibility checks (axe-core)
-Tick **Live accessibility checks** to turn it on (off by default). axe-core runs inside both frames after every page load and, debounced, after interaction
+Open **Audits** and switch on **Live accessibility checks** (off by default); results appear in the **Accessibility** tab of the dock. axe-core runs inside both frames after every page load and, debounced, after interaction
 (clicks, focus, changes to the page). The panel shows violating elements by impact for each
 side, a verdict that is announced as an alert when After is **worse** (and as a status when it
 is better or the same), the rules and exact elements that differ, and a log of every change as you
@@ -71,7 +70,7 @@ After frame only: the alert appeared within about five seconds.
 
 axe-core is installed from npm by `setup.mjs` into `tools/compare/.deps/` (MPL-2.0, not committed);
 to install it by hand: `npm install --prefix tools/compare/.deps axe-core@4`. Rules: WCAG 2.0, 2.1
-and 2.2 A/AA by default; tick "include best-practice rules" for more. Automated checks find only
+and 2.2 A/AA by default; switch on "Include best-practice rules" for more. Automated checks find only
 a subset of barriers.
 
 ## Open outside the viewer
@@ -88,7 +87,7 @@ Without `--ddev` it uses http://localhost:8100 and `*.localhost`.
 ## Steps, expected result and checks
 Each variant in `variants.json` can carry `steps` (each tagged `recipe`, `mirror` or
 `each`, with an optional `lookFor`), `expected`, `actual`, `setup`, and `checks`.
-The viewer shows them above the frames so a newcomer knows what correct looks like.
+The viewer shows them in the **Steps** tab under the frames so a newcomer knows what correct looks like.
 
 **Run checks** shows a banner (green when the old version fails where the fix applies, the new one passes and nothing else changed) and a Verdict column per row, with an icon and words as well as colour. Setup preconditions must pass first: the error link must be on the page and must have been used with a **real** click or key press in each frame (turn Mirror off first). It evaluates each check's `probe` (a JS expression) inside both frames and
 shows Pass or Fail against `expect` (a value, or `"same"` meaning it must equal the
@@ -109,7 +108,7 @@ the modes and browsers not yet recorded (dark mode, forced colours, other browse
 and run `node scripts/coverage.mjs <nid>`.
 
 ## Lighthouse (optional)
-Tick **Run Lighthouse audits** (or press **Audit this page now**). The server runs Lighthouse for Before then After, one at a time, in its
+Open **Audits** and switch on **Run Lighthouse audits** (or press **Audit this page now** in the **Lighthouse** tab). The server runs Lighthouse for Before then After, one at a time, in its
 own headless Chrome that logs in first, and shows accessibility and best-practice scores, a banner (an alert when After is worse), and the
 audits that fail on one side or both. It audits the page as it **loads**: not an error summary after Save, and not a state you reach by
 clicking. Install with `node tools/compare/setup.mjs <slug> --with-lighthouse` or `npm install --prefix tools/compare/.deps lighthouse`

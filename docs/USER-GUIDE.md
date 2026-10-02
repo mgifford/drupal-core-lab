@@ -40,7 +40,7 @@ done for you), *mirrored to both frames* (do it once, the viewer repeats it on t
 frame, because that is the thing being tested). "Look for" lines say what you should see. **Expected** and **Actual** say what the issue
 claims.
 
-**Layout.** The top bar always shows page navigation (variant, Page, Go, log in, reload). Below it are blocks that flow to fit your window: **Device width** (Mobile, Tablet, Desktop) and **Colour mode** (Light, Dark, Follow OS) are open by default; **Display**, **Behaviour**, **Accessibility checks** and **Tools** start closed. A closed block shows a hint when something inside it is changed from its default (for example "Behaviour (JavaScript off)"), and the viewer remembers which blocks you opened.
+**Layout.** The top bar always shows page navigation (variant, Page, Go, log in, reload, Tools). Under it the conditions toolbar always shows **Device width** (Mobile, Tablet, Desktop), **Colour mode** (Light, Dark, Follow OS) and **Compare as** (Side by side, Onion skin, Difference); the **Conditions**, **Input** and **Audits** popovers hold the rest. A popover button shows how many of its settings are changed from the default, and a strip above the frames lists every changed setting with **Reset all**. The frames fill the window; under them the dock has one tab each for **Steps**, **Checks**, **Manual**, **Accessibility**, **Lighthouse** and **Environment**, each with a badge showing how that result stands. The viewer remembers your last tab and dock size.
 
 **Controls.** *Log in both as admin*; *Go (both)* opens the same page on both sides; *Clear Drupal caches (both)* and *Reset browser state
 (both)* fix most "it should have worked" surprises (the second clears the saved sidebar preference); *Reload Before / After* for a stuck
@@ -84,7 +84,7 @@ The **Manual confirmation** panel asks yes/no questions for each side, compares 
 in the downloaded log. It does not depend on the automated checks.
 
 ## 7. Watch for accessibility regressions as you click around
-**Accessibility, live (axe-core)** re-checks both frames after every page load and interaction and tells you when After has **more or
+**Accessibility, live (axe-core)** (switch it on under **Audits**; results are in the **Accessibility** tab) re-checks both frames after every page load and interaction and tells you when After has **more or
 fewer** violations than Before, with the exact elements. A tab-title prefix (⚠) warns you if you are in another tab. Optionally,
 **Lighthouse** audits the page as it loads (accessibility and best practices; performance is opt-in). Lighthouse needs
 `npm install --prefix tools/compare/.deps lighthouse` and Node 22.19+, and sees fresh page loads only, not states you reach by clicking.
@@ -102,7 +102,7 @@ reminds you what is still missing for this issue.
 
 ![The "Where did you test?" panel with a reminder listing the colour modes and other browsers not yet recorded for this issue, and fields for browser, operating system, viewport, assistive technology, colour modes and input used.](images/viewer-environment.png)
 
-Click **Download log** (in the accessibility panel) and save it in `reports/issues/<nid>/manual/`. Then:
+Click **Download log** (in the **Accessibility** tab) and save it in `reports/issues/<nid>/manual/`. Then:
 
     node scripts/coverage.mjs 3619127      # writes reports/issues/3619127/COVERAGE.md
 

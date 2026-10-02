@@ -30,36 +30,40 @@ await fa.locator('[name="path[0][alias]"]').fill('no-slash'); await page.waitFor
 await fa.locator('.meta-sidebar__trigger').click(); await page.waitForTimeout(1500);
 t = Date.now(); await fa.locator('#edit-submit').click(); await bothLoaded(t); await page.waitForTimeout(1500);
 // step 10: Mirror off, a real click in each frame
-await page.locator('#mirror').uncheck();
+const popSet = async (name, id, on) => { await page.locator('summary', { hasText: name }).click(); await page.locator(id)[on ? 'check' : 'uncheck'](); await page.keyboard.press('Escape'); };   // these controls live in popovers
+await popSet('Input', '#mirror', false);
 await fa.locator('a[href$="#edit-path-0-alias"]').first().click(); await fb.locator('a[href$="#edit-path-0-alias"]').first().click();
 await page.waitForTimeout(2500);
 await page.locator('#tickrecipe').click();
 for (let i = 3; i < 9; i++) await page.locator('#steps input[type=checkbox]').nth(i).check();
-await page.locator('#runchecks').click(); await page.waitForTimeout(3500);
+if ((await page.locator('#dock').getAttribute('data-size')) !== 'large') await page.locator('#docksize').click();   // the results need room
+await page.locator('#tab-checks').click(); await page.locator('#runchecks').click(); await page.waitForTimeout(3500);
+await page.locator('#tab-manual').click();
 for (const [i, a] of [['0', 'yes'], ['1', 'yes'], ['2', 'yes'], ['3', 'no']]) { await page.locator(`input[name="obs-${i}-before"][value="no"]`).check(); await page.locator(`input[name="obs-${i}-after"][value="${a}"]`).check(); }
 
 await page.evaluate(() => scrollTo(0, 0)); await page.waitForTimeout(300);
 await page.screenshot({ path: path.join(out, 'viewer-overview.png') }); console.log('saved viewer-overview.png');
 await shot(page.locator('#panes'), 'viewer-frames.png');
-await shot(page.locator('section[aria-labelledby="chkh"]'), 'viewer-checks.png');
-await shot(page.locator('section[aria-labelledby="obsh"]'), 'viewer-manual.png');
-await shot(page.locator('section[aria-labelledby="envh"]'), 'viewer-environment.png');
+await page.locator('#tab-checks').click(); await shot(page.locator('#dock'), 'viewer-checks.png');
+await page.locator('#tab-manual').click(); await shot(page.locator('#dock'), 'viewer-manual.png');
+await page.locator('#tab-env').click(); await shot(page.locator('#dock'), 'viewer-environment.png');
 
 // Difference view: Before closed sidebar versus After open sidebar lights up
-await page.locator('input[name="view"][value="diff"]').check(); await page.waitForTimeout(1500);
+await page.locator('label:has(input[name="view"][value="diff"])').click(); await page.waitForTimeout(1500);
 await page.locator('#panes').scrollIntoViewIfNeeded(); await page.waitForTimeout(2500);
 const box = await page.locator('#fa').boundingBox();   // one frame wide: the overlay is half the page
 await page.screenshot({ path: path.join(out, 'viewer-difference.png'), clip: box }); console.log('saved viewer-difference.png');
-await page.locator('input[name="view"][value="side"]').check();
+await page.locator('label:has(input[name="view"][value="side"])').click();
+await popSet('Audits', '#axeon', true);   // live axe on, so the alert below can appear
 
 // Live accessibility alert: add two defects to the After frame only
 const after = page.frames().find((f) => /compare-after/.test(f.url()));
 await after.evaluate(() => { const i = document.createElement('img'); i.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACw='; i.width = 20; i.height = 20; const x = document.createElement('input'); x.type = 'text'; document.body.append(i, x); });
 await page.waitForTimeout(6000);
-await shot(page.locator('section.axe'), 'viewer-axe-alert.png');
+await page.locator('#tab-axe').click(); await shot(page.locator('#dock'), 'viewer-axe-alert.png');
 if (LH) {
-  await page.locator('#lhon').check();
+  await popSet('Audits', '#lhon', true); await page.locator('#tab-lh').click();
   await page.waitForFunction(() => { const v = document.getElementById('lhverdict'); return v && !v.hidden && !/Running/.test(v.textContent); }, null, { timeout: 120000 }).catch(() => {});
-  await shot(page.locator('section[aria-labelledby="lhh"]'), 'viewer-lighthouse.png');
+  await shot(page.locator('#dock'), 'viewer-lighthouse.png');
 }
 await browser.close();

@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Viewer UI proposal</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f4f5f8; --surface: #fff; --surface2: #eceef3; --text: #1a1e26; --muted: #546070; --line: #cfd4dd;
+  --accent: #0b5fff; --accent-ink: #fff; --focus: #0b5fff;
+  --ok: #0d5f27; --ok-bg: #ddf2e2; --bad: #8f1111; --bad-bg: #fadede; --warn: #5f4500; --warn-bg: #fcefc0;
+  --r: 8px; --pad: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #14171c; --surface: #1d2128; --surface2: #272c35; --text: #e8ebf0; --muted: #a3adbb; --line: #3a414d;
+    --accent: #6c9bff; --accent-ink: #0b1220; --focus: #8fb2ff;
+    --ok: #a8eab9; --ok-bg: #123a1d; --bad: #ffc2c2; --bad-bg: #4a1616; --warn: #ffe08a; --warn-bg: #483808; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, sans-serif; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+button, select, input[type=text] { font: inherit; color: inherit; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+h1, h2, h3 { margin: 0; line-height: 1.2; }
+code { font: .9em ui-monospace, monospace; background: var(--surface2); padding: 0 .3em; border-radius: 4px; }
+
+/* ---- proposal page chrome ---- */
+.intro { max-width: 78rem; margin: 0 auto; padding: 20px 16px 8px; }
+.intro h1 { font-size: 1.5rem; } .intro p { color: var(--muted); max-width: 62rem; margin: .4rem 0; }
+.switch { display: flex; gap: 8px; margin: 14px 0 0; flex-wrap: wrap; }
+.wrap { max-width: 78rem; margin: 0 auto; padding: 0 16px 24px; }
+.note-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 16px; margin: 12px 0; }
+.note-card h2 { font-size: 1rem; margin-bottom: 4px; } .note-card ul { margin: .3rem 0 0; padding-left: 1.2rem; } .note-card li { margin: .15rem 0; }
+table.spec { border-collapse: collapse; width: 100%; background: var(--surface); border: 1px solid var(--line); }
+table.spec th, table.spec td { text-align: left; vertical-align: top; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+table.spec th { background: var(--surface2); font-size: .85rem; }
+
+/* ---- shared components ---- */
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 5px 12px; cursor: pointer; min-height: 32px; }
+.btn:hover { background: var(--surface2); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn[aria-pressed=true], .btn[aria-selected=true] { background: var(--text); color: var(--bg); border-color: var(--text); }
+.btn.ghost { border-color: transparent; background: transparent; }
+.chip { display: inline-flex; gap: 4px; align-items: center; font-size: .78rem; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface2); white-space: nowrap; }
+.chip.ok { background: var(--ok-bg); color: var(--ok); border-color: transparent; } .chip.bad { background: var(--bad-bg); color: var(--bad); border-color: transparent; }
+.chip.warn { background: var(--warn-bg); color: var(--warn); border-color: transparent; } .chip.live { border-style: dashed; }
+.muted { color: var(--muted); } .small { font-size: .82rem; }
+
+/* row: label + control + hint (the one pattern for every setting) */
+.row { display: grid; gap: 4px; padding: 8px 0; border-top: 1px solid var(--line); }
+.row:first-of-type { border-top: 0; }
+.row > legend, .row .lab { font-weight: 600; font-size: .86rem; padding: 0; float: left; width: 100%; }
+.row > .hint { font-size: .78rem; color: var(--muted); }
+fieldset.row { border: 0; margin: 0; min-width: 0; }
+.row .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.row .reset { font-size: .75rem; color: var(--accent); background: none; border: 0; cursor: pointer; padding: 0 2px; text-decoration: underline; }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.seg label { flex: 1 1 0; text-align: center; padding: 5px 8px; cursor: pointer; font-size: .85rem; border-left: 1px solid var(--line); white-space: nowrap; }
+.seg label:first-child { border-left: 0; }
+.seg label:hover { background: var(--surface2); }
+.seg label:has(input:checked) { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.seg label:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: -3px; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.sw { display: flex; justify-content: space-between; align-items: center; gap: 10px; cursor: pointer; }
+.sw input { appearance: none; width: 36px; height: 20px; border-radius: 999px; background: var(--line); position: relative; flex: none; margin: 0; cursor: pointer; }
+.sw input::after { content: ""; position: absolute; inset: 2px auto 2px 2px; width: 16px; border-radius: 50%; background: var(--surface); transition: transform .12s; }
+.sw input:checked { background: var(--accent); } .sw input:checked::after { transform: translateX(16px); }
+.sw input:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .sw input::after { transition: none; } }
+.group { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+.group > summary { list-style: none; cursor: pointer; padding: 8px var(--pad); display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.group > summary::-webkit-details-marker { display: none; }
+.group > summary::before { content: "\25B8"; color: var(--muted); transition: transform .12s; } .group[open] > summary::before { transform: rotate(90deg); }
+.group > summary .sum { font-weight: 400; font-size: .8rem; color: var(--muted); margin-left: auto; text-align: right; }
+.group .body { padding: 0 var(--pad) 8px; }
+
+/* ---- the app mock ---- */
+.app { border: 1px solid var(--line); border-radius: 10px; background: var(--bg); overflow: hidden; display: grid; height: 720px; min-width: 0; }
+.topbar { display: flex; gap: 8px; align-items: center; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.topbar select, .topbar input[type=text] { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 5px 8px; min-height: 32px; }
+.topbar .grow { flex: 1 1 14rem; min-width: 0; display: flex; gap: 6px; } .topbar .grow input { flex: 1; min-width: 6rem; }
+.brand { font-weight: 800; }
+.statuspill { margin-left: auto; }
+.mid { display: grid; min-height: 0; }
+.rail { background: var(--bg); border-right: 1px solid var(--line); padding: 10px; overflow: auto; display: grid; gap: 8px; align-content: start; }
+.stagecol { display: grid; grid-template-rows: auto 1fr; min-height: 0; min-width: 0; }
+.activebar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 6px 12px; border-bottom: 1px solid var(--line); background: var(--surface); font-size: .82rem; }
+.stage { padding: 10px 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; min-height: 0; overflow: auto; }
+.stage[data-view=onion], .stage[data-view=diff] { grid-template-columns: 1fr; }
+.stage[data-view=onion] .pane, .stage[data-view=diff] .pane { grid-area: 1 / 1; }
+.stage[data-view=onion] .pane.after { opacity: .5; } .stage[data-view=diff] .pane.after { mix-blend-mode: difference; }
+.stage[data-view=diff] { isolation: isolate; background: #fff; }
+.pane { display: grid; grid-template-rows: auto 1fr; min-height: 0; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); overflow: hidden; }
+.pane header { display: flex; gap: 8px; align-items: center; padding: 6px 10px; border-bottom: 1px solid var(--line); font-size: .85rem; min-width: 0; }
+.pane header b { white-space: nowrap; } .pane header .path { color: var(--muted); font: .8rem ui-monospace, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.pane header .chips { display: flex; gap: 4px; }
+.stage[data-view=diff] .pane header, .stage[data-view=onion] .pane.after header { display: none; }
+.frame { overflow: auto; background: #e9ebef; padding: 0; display: flex; justify-content: center; }
+.mock { background: #fff; color: #1a1a1a; width: 100%; padding: 14px; font-size: 14px; min-height: 100%; }
+.stage[data-width="375"] .mock { max-width: 375px; } .stage[data-width="768"] .mock { max-width: 768px; }
+.stage[data-colour=dark] .mock { background: #1c1c21; color: #e8e8ee; }
+@media (prefers-color-scheme: dark) { .stage[data-colour=auto] .mock { background: #1c1c21; color: #e8e8ee; } }
+.stage[data-emul^=forced] .mock { background: Canvas; color: CanvasText; } /* stand-in only */
+.mock h4 { margin: 0 0 8px; font-size: 1.1rem; } .mock .field { border: 1px solid #888; border-radius: 4px; height: 26px; margin: 4px 0 10px; }
+.mock details { border: 1px solid #888; border-radius: 4px; } .mock summary { padding: 8px 10px; cursor: pointer; font-weight: 600; }
+.mock details.err { border-left: 5px solid #c62828; } .mock details.err summary { color: #c62828; } .stage[data-colour=dark] .mock details.err summary { color: #ff8a8a; }
+.mock details.err summary::after { content: " \26A0  (contains error)"; font-weight: 400; }
+.dock { border-top: 1px solid var(--line); background: var(--surface); display: grid; grid-template-rows: auto 1fr; min-height: 0; }
+.dock[data-collapsed=true] { grid-template-rows: auto 0; }
+.tabs { display: flex; gap: 2px; padding: 4px 8px 0; border-bottom: 1px solid var(--line); overflow-x: auto; align-items: end; }
+.tabs [role=tab] { border: 1px solid transparent; border-bottom: 0; background: none; padding: 6px 12px; border-radius: 6px 6px 0 0; cursor: pointer; display: flex; gap: 6px; align-items: center; white-space: nowrap; margin-bottom: -1px; }
+.tabs [role=tab][aria-selected=true] { background: var(--surface); border-color: var(--line); font-weight: 700; }
+.tabs .collapse { margin-left: auto; margin-bottom: 4px; }
+.panel { padding: 10px 14px; overflow: auto; min-height: 0; } .dock[data-collapsed=true] .panel { display: none; }
+.panel table { border-collapse: collapse; width: 100%; font-size: .85rem; } .panel th, .panel td { text-align: left; padding: 5px 10px; border-bottom: 1px solid var(--line); } .panel th { color: var(--muted); font-weight: 600; font-size: .78rem; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; } .steps li { display: flex; gap: 8px; align-items: baseline; padding: 4px 0; border-bottom: 1px solid var(--line); }
+.steps .lf { color: var(--muted); font-size: .8rem; display: block; }
+.matrix td, .matrix th { text-align: center; } .matrix td:first-child, .matrix th:first-child { text-align: left; }
+.matrix .cell { display: inline-flex; gap: 6px; align-items: center; }
+.stats { display: flex; gap: 10px; flex-wrap: wrap; } .stat { border: 1px solid var(--line); border-radius: var(--r); padding: 8px 14px; min-width: 9rem; } .stat b { font-size: 1.4rem; display: block; }
+.envgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 8px 14px; } .envgrid label { display: grid; gap: 2px; font-size: .8rem; color: var(--muted); } .envgrid input { border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; background: var(--surface); color: var(--text); }
+
+/* layout A: left rail */
+.app.a .mid { grid-template-columns: 300px 1fr; } .app.a { grid-template-rows: auto 1fr 230px; }
+.app.a .dock { grid-row: 3; } .app.a .tb-inline { display: none; }
+/* layout B: toolbar with popovers */
+.app.b { grid-template-rows: auto auto 1fr 230px; } .app.b .rail { display: none; } .app.b .mid { grid-template-columns: 1fr; }
+.toolbar { display: none; gap: 10px 14px; align-items: end; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.app.b .toolbar { display: flex; }
+.toolbar .row { padding: 0; border: 0; min-width: 11rem; } .toolbar .row .hint, .toolbar .row .reset { display: none; }
+.toolbar .row > legend, .toolbar .lab { float: none; font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.pop { position: relative; } .pop > summary { list-style: none; cursor: pointer; } .pop > summary::-webkit-details-marker { display: none; }
+.pop .panelp { position: absolute; z-index: 5; top: calc(100% + 6px); left: 0; width: 20rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 6px 12px; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+.app.b .tb-inline { display: contents; }
+@media (max-width: 900px) { .app.a .mid { grid-template-columns: 1fr; } .app { height: auto; } .app.a { grid-template-rows: auto auto auto; } .stage { grid-template-columns: 1fr; } .rail { border-right: 0; } }
+</style>
+</head>
+<body>
+<div class="intro">
+  <h1>Viewer UI proposal</h1>
+  <p>A clickable mock of the compare viewer with the <strong>real controls and wording</strong>, arranged two ways. Everything here is sample data and nothing is wired to the lab; the controls do change the mock frames so you can feel the pattern. Pick a layout, then read the pattern table at the bottom, which applies to both.</p>
+  <div class="switch" role="group" aria-label="Layout option">
+    <button class="btn" type="button" data-layout="a" aria-pressed="true">Option A: control rail</button>
+    <button class="btn" type="button" data-layout="b" aria-pressed="false">Option B: toolbar and popovers</button>
+  </div>
+</div>
+<div class="wrap">
+  <div class="note-card" id="layoutnote"></div>
+
+  <div class="app a" id="app">
+    <div class="topbar">
+      <span class="brand">Core compare</span>
+      <label class="sr" for="variant">Compare upstream with</label>
+      <select id="variant"><option>#3604037 latest core main</option><option>#3604037 pinned c321043</option><option>#3619127 latest</option></select>
+      <div class="grow"><label class="sr" for="goto">Page</label><input type="text" id="goto" value="/form_test/details-contains-required-fields"><button class="btn primary" type="button">Go (both)</button></div>
+      <button class="btn" type="button">Log in both</button>
+      <button class="btn" type="button" aria-label="Reload Before">Reload Before</button>
+      <button class="btn" type="button" aria-label="Reload After">Reload After</button>
+      <span class="chip ok statuspill" role="status">Both sites ready</span>
+    </div>
+    <div class="toolbar" id="toolbar"></div>
+    <div class="mid">
+      <div class="rail" id="rail" aria-label="Test controls"></div>
+      <div class="stagecol">
+        <div class="activebar" id="activebar" role="status" aria-live="polite"></div>
+        <div class="stage" id="stage" data-width="half" data-colour="auto" data-view="side" data-emul="normal">
+          <section class="pane before" aria-label="Before: upstream main"><header><b>Before</b><span class="path">/form_test/details-contains-required-fields</span><span class="chips"><span class="chip">axe 0</span></span></header><div class="frame"><div class="mock"></div></div></section>
+          <section class="pane after" aria-label="After: with the change"><header><b>After</b><span class="path">/form_test/details-contains-required-fields</span><span class="chips"><span class="chip">axe 0</span></span></header><div class="frame"><div class="mock"></div></div></section>
+        </div>
+      </div>
+    </div>
+    <div class="dock" id="dock" data-collapsed="false">
+      <div class="tabs" role="tablist" aria-label="Evidence" id="tabs"></div>
+      <div class="panel" id="panel" role="tabpanel" tabindex="0"></div>
+    </div>
+  </div>
+
+  <h2 style="margin:22px 0 8px;font-size:1.15rem">The pattern: every control follows one of four shapes</h2>
+  <table class="spec">
+    <thead><tr><th scope="col">Shape</th><th scope="col">Use for</th><th scope="col">Today</th><th scope="col">Proposed</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Segmented choice</th><td>One of 2 to 4 options (width, colour mode, direction, view, colour emulation)</td><td>Radio buttons, laid out differently in each block</td><td>One joined strip, current value always readable, arrow keys work like radios</td></tr>
+      <tr><th scope="row">Switch</th><td>A behaviour on or off (mirror, sync, axe, Lighthouse, JavaScript)</td><td>Checkboxes with long labels</td><td>Label left, switch right, one line of hint underneath</td></tr>
+      <tr><th scope="row">Action button</th><td>Does something once (Go, Log in, Reload, Clear caches)</td><td>Mixed in with settings</td><td>Only in the top bar or the Tools menu, never inside a settings group</td></tr>
+      <tr><th scope="row">Result tab</th><td>Evidence you read or fill in (Steps, Matrix, Checks, Accessibility, Environment)</td><td>Seven sections stacked in a 2,700 px scroll, frames start below the fold</td><td>Tabs in a dock under the frames; each tab shows a count or verdict so you do not have to open it</td></tr>
+    </tbody>
+  </table>
+  <div class="note-card" style="margin-top:12px"><h2>Rules that make it feel uniform</h2><ul>
+    <li><strong>Settings are grouped by the question they answer</strong>: <em>Conditions</em> (what is rendered), <em>View</em> (how you compare), <em>Input</em> (how the two sides are driven), <em>Automated checks</em> (what is measured). Results and records live in the dock.</li>
+    <li><strong>Defaults are marked, changes are visible.</strong> A group's header summarises its non-default values, a Reset link appears on any changed row, and a strip above the frames lists everything that is not default. This replaces the grey hint text.</li>
+    <li><strong>Frames come first.</strong> They fill the window; nothing scrolls the page.</li>
+    <li><strong>Status is never colour alone</strong>: every chip carries text or a symbol (Pass, Fail, Not run).</li>
+    <li><strong>Optional extras stay off by default and are remembered in <code>localStorage</code> only</strong>, as now. Settings that need the lab browser carry a dashed "lab browser" chip instead of disappearing.</li>
+    <li><strong>Test matrix.</strong> Width by colour mode (extendable to direction and forced colours) with a status per cell and an Apply button that sets both frames to that combination, so "what have I covered?" is answered in one glance and the coverage can be saved with the log.</li></ul></div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const S = {};   // current values
+const CTRL = {  // one config drives both layouts
+  groups: [
+    { id: 'conditions', title: 'Conditions', rows: ['width', 'colour', 'dir', 'emul', 'nojs'] },
+    { id: 'view', title: 'View', rows: ['view', 'opacity'] },
+    { id: 'input', title: 'Input', rows: ['syncscroll', 'syncnav', 'mirror', 'mirrorhover'] },
+    { id: 'checks', title: 'Automated checks', rows: ['axe', 'axebest', 'lh', 'lhperf'] },
+  ],
+  rows: {
+    width:  { kind: 'seg', label: 'Device width', hint: 'Frames keep this width in every view.', def: 'half', opts: [['375', 'Mobile'], ['768', 'Tablet'], ['half', 'Desktop']], data: 'width' },
+    colour: { kind: 'seg', label: 'Colour mode', hint: 'Sets prefers-color-scheme in both sites.', def: 'auto', opts: [['light', 'Light'], ['dark', 'Dark'], ['auto', 'OS']], data: 'colour' },
+    dir:    { kind: 'seg', label: 'Text direction', hint: 'Page default, left to right or right to left.', def: 'auto', opts: [['auto', 'Default'], ['ltr', 'LTR'], ['rtl', 'RTL']] },
+    emul:   { kind: 'seg', label: 'Forced colours', hint: 'Emulated; needs the lab browser.', def: 'normal', lab: true, opts: [['normal', 'Off'], ['forced-light', 'Light'], ['forced-dark', 'Dark'], ['contrast', 'More']], data: 'emul' },
+    nojs:   { kind: 'switch', label: 'JavaScript off', hint: 'Reloads both sites.', def: false },
+    view:   { kind: 'seg', label: 'Compare as', hint: 'Onion skin overlays; Difference highlights changed pixels.', def: 'side', opts: [['side', 'Side by side'], ['onion', 'Onion'], ['diff', 'Difference']], data: 'view' },
+    opacity:{ kind: 'switch', label: 'After at 50%', hint: 'Only in Onion view.', def: true, hidden: () => S.view !== 'onion' },
+    syncscroll: { kind: 'switch', label: 'Sync scrolling', hint: 'Scroll one side, the other follows.', def: true },
+    syncnav:    { kind: 'switch', label: 'Sync navigation', hint: 'Follow links in both frames.', def: true },
+    mirror:     { kind: 'switch', label: 'Mirror clicks, typing, drags', hint: 'Not the keyboard: test Tab and Enter yourself.', def: true },
+    mirrorhover:{ kind: 'switch', label: 'Mirror hover and focus', hint: 'Marker only.', def: false },
+    axe:     { kind: 'switch', label: 'Live accessibility checks', hint: 'axe-core after every load and interaction.', def: false },
+    axebest: { kind: 'switch', label: 'Include best-practice rules', hint: 'Beyond WCAG A/AA.', def: false },
+    lh:      { kind: 'switch', label: 'Lighthouse audits', hint: 'Audits the loaded page, about 10 s per site.', def: false },
+    lhperf:  { kind: 'switch', label: 'Include performance', hint: 'Slower and noisier.', def: false },
+  },
+};
+for (const [k, r] of Object.entries(CTRL.rows)) S[k] = r.def;
+
+function rowEl(id) {
+  const r = CTRL.rows[id], el = document.createElement(r.kind === 'seg' ? 'fieldset' : 'div'); el.className = 'row'; el.dataset.row = id;
+  const top = document.createElement('div'); top.className = 'top';
+  const lab = document.createElement(r.kind === 'seg' ? 'legend' : 'span'); lab.className = 'lab'; lab.textContent = r.label;
+  if (r.lab) { const c = document.createElement('span'); c.className = 'chip live'; c.textContent = 'lab browser'; lab.append(' ', c); }
+  const reset = document.createElement('button'); reset.type = 'button'; reset.className = 'reset'; reset.hidden = true; reset.textContent = 'Reset'; reset.setAttribute('aria-label', 'Reset ' + r.label);
+  reset.addEventListener('click', () => { S[id] = r.def; sync(); });
+  if (r.kind === 'seg') {
+    const seg = document.createElement('div'); seg.className = 'seg';
+    r.opts.forEach(([v, t]) => { const l = document.createElement('label'); const i = document.createElement('input'); i.type = 'radio'; i.name = 'c-' + id + '-' + Math.random().toString(36).slice(2, 5); i.value = v; i.dataset.k = id;
+      i.addEventListener('change', () => { S[id] = v; sync(); }); l.append(i, t); seg.append(l); });
+    top.append(lab, reset); el.append(top, seg);
+  } else {
+    const l = document.createElement('label'); l.className = 'sw'; const t = document.createElement('span'); t.textContent = r.label; const i = document.createElement('input'); i.type = 'checkbox'; i.setAttribute('role', 'switch'); i.dataset.k = id;
+    i.addEventListener('change', () => { S[id] = i.checked; sync(); }); l.append(t, i); top.append(l, reset); el.append(top);
+  }
+  const h = document.createElement('div'); h.className = 'hint'; h.textContent = r.hint; el.append(h);
+  return el;
+}
+const fmt = (id) => { const r = CTRL.rows[id]; return r.kind === 'seg' ? r.opts.find((o) => o[0] === S[id])[1] : (S[id] ? 'on' : 'off'); };
+const changed = (id) => S[id] !== CTRL.rows[id].def;
+function summary(g, skip = []) { const rows = g.rows.filter((id) => !skip.includes(id)); const ch = rows.filter(changed).map((id) => CTRL.rows[id].kind === 'seg' ? fmt(id) : CTRL.rows[id].label.toLowerCase()); return ch.length ? ch.join(', ') : 'defaults'; }
+
+const INLINE = ['width', 'colour', 'view'];
+function build(layout) {
+  const rail = $('rail'), tb = $('toolbar'); rail.textContent = ''; tb.textContent = '';
+  if (layout === 'a') {
+    CTRL.groups.forEach((g, n) => { const d = document.createElement('details'); d.className = 'group'; d.dataset.g = g.id; d.open = n < 2; const s = document.createElement('summary'); s.innerHTML = '<span></span><span class="sum"></span>'; s.firstChild.textContent = g.title; d.append(s); const b = document.createElement('div'); b.className = 'body'; g.rows.forEach((id) => b.append(rowEl(id))); d.append(b); rail.append(d); });
+  } else {
+    INLINE.forEach((id) => tb.append(rowEl(id)));
+    CTRL.groups.forEach((g) => { const rows = g.rows.filter((id) => !INLINE.includes(id)); if (!rows.length) return; const d = document.createElement('details'); d.className = 'pop'; d.dataset.g = g.id; const s = document.createElement('summary'); s.className = 'btn'; s.innerHTML = '<span></span> <span class="chip"></span>'; s.firstChild.textContent = g.id === 'conditions' ? 'More conditions' : g.title; d.append(s); const p = document.createElement('div'); p.className = 'panelp'; rows.forEach((id) => p.append(rowEl(id))); d.append(p);
+      d.addEventListener('toggle', () => { if (d.open) document.querySelectorAll('.pop[open]').forEach((o) => { if (o !== d) o.open = false; }); }); tb.append(d); });
+  }
+  sync();
+}
+function sync() {
+  const st = $('stage'); st.dataset.width = S.width; st.dataset.colour = S.colour; st.dataset.view = S.view; st.dataset.emul = S.emul;
+  document.querySelectorAll('.mock').forEach((m) => { m.dir = S.dir === 'auto' ? 'ltr' : S.dir; });
+  document.querySelectorAll('[data-k]').forEach((i) => { const id = i.dataset.k; if (i.type === 'radio') i.checked = i.value === S[id]; else i.checked = !!S[id]; });
+  document.querySelectorAll('.row[data-row]').forEach((el) => { const id = el.dataset.row, r = CTRL.rows[id]; el.hidden = !!(r.hidden && r.hidden()); el.querySelector('.reset').hidden = !changed(id); });
+  CTRL.groups.forEach((g) => { const d = document.querySelector(`[data-g="${g.id}"]`); if (!d) return; const inl = $('app').classList.contains('b') ? INLINE : [];
+    const sm = d.querySelector('.sum') || d.querySelector('.chip'); const n = g.rows.filter((id) => !inl.includes(id) && changed(id)).length; sm.textContent = d.classList.contains('pop') ? (n ? n + ' changed' : 'defaults') : summary(g); });
+  const ch = Object.keys(CTRL.rows).filter(changed); const bar = $('activebar'); bar.textContent = '';
+  const lead = document.createElement('span'); lead.className = 'muted'; lead.textContent = ch.length ? 'Not default:' : 'All conditions at their defaults.'; bar.append(lead);
+  ch.forEach((id) => { const c = document.createElement('span'); c.className = 'chip warn'; c.textContent = CTRL.rows[id].kind === 'seg' ? CTRL.rows[id].label + ': ' + fmt(id) : CTRL.rows[id].label + ' ' + fmt(id); bar.append(c); });
+  if (ch.length) { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn ghost small'; b.textContent = 'Reset all'; b.addEventListener('click', () => { for (const k in CTRL.rows) S[k] = CTRL.rows[k].def; sync(); }); bar.append(b); }
+  const ax = $('axetab'); if (ax) ax.querySelector('.chip').textContent = S.axe ? 'on' : 'off';
+}
+
+/* ---- dock ---- */
+const STEPS = [['Default Admin is the admin theme.', 'recipe', 1], ['Article type, Path module and form_test module are installed.', 'recipe', 1], ['Open /form_test/details-contains-required-fields and press Go.', 'mirrored', 0, 'A collapsible Meta section with two required text fields.'], ['Press submit without filling in anything.', 'mirrored', 0, 'Error messages for the required fields.'], ['Close the details section by clicking its title.', 'mirrored', 0, 'After: red border, error icon and red title on the closed section.']];
+const MATRIX = { widths: [['375', 'Mobile'], ['768', 'Tablet'], ['half', 'Desktop']], modes: [['light', 'Light'], ['dark', 'Dark'], ['auto', 'OS']], res: { '375-light': 'pass', '375-dark': 'fail', '768-light': 'pass', 'half-light': 'pass', 'half-dark': 'fail', 'half-auto': 'pass' } };
+const CHECKS = [['Precondition', 'Two required fields present', 'pass', 'pass', 'ok', 'Valid'], ['Fix', 'Closed group marked as containing errors', 'fail', 'pass', 'ok', 'Fixed'], ['Regression', 'Open group unchanged', 'pass', 'pass', 'ok', 'No change'], ['Fix', 'Label contrast 4.5:1 in dark mode', 'fail', 'fail', 'bad', 'Not fixed']];
+const sym = { pass: 'Pass ✓', fail: 'Fail ✕', none: 'Not run –' };
+const cls = { pass: 'ok', fail: 'bad', none: '' };
+const TABS = [
+  ['steps', 'Steps', () => `${STEPS.filter((s) => s[2]).length}/${STEPS.length}`, ''],
+  ['matrix', 'Test matrix', () => `${Object.keys(MATRIX.res).length}/9`, 'warn'],
+  ['checks', 'Checks', () => '1 fail', 'bad'],
+  ['axe', 'Accessibility', () => (S.axe ? 'on' : 'off'), ''],
+  ['env', 'Environment', () => 'incomplete', 'warn'],
+];
+function renderTabs() { const t = $('tabs'); t.textContent = ''; TABS.forEach(([id, name, badge, c], n) => { const b = document.createElement('button'); b.type = 'button'; b.role = 'tab'; b.id = 'tab-' + id; if (id === 'axe') b.id = 'axetab'; b.dataset.tab = id; b.setAttribute('aria-selected', String(id === curTab)); b.tabIndex = id === curTab ? 0 : -1; b.innerHTML = '<span></span><span class="chip ' + c + '"></span>'; b.firstChild.textContent = name; b.lastChild.textContent = badge(); b.addEventListener('click', () => { curTab = id; $('dock').dataset.collapsed = 'false'; renderTabs(); renderPanel(); }); b.addEventListener('keydown', (e) => { const k = { ArrowRight: 1, ArrowLeft: -1 }[e.key]; if (!k) return; const nx = TABS[(n + k + TABS.length) % TABS.length][0]; curTab = nx; renderTabs(); renderPanel(); $('tab-' + nx === 'tab-axe' ? 'axetab' : 'tab-' + nx).focus(); e.preventDefault(); }); t.append(b); });
+  const c = document.createElement('button'); c.type = 'button'; c.className = 'btn ghost collapse small'; const col = $('dock').dataset.collapsed === 'true'; c.textContent = col ? 'Show panel' : 'Hide panel'; c.setAttribute('aria-expanded', String(!col)); c.addEventListener('click', () => { $('dock').dataset.collapsed = String(!col); renderTabs(); }); t.append(c);
+  $('panel').setAttribute('aria-labelledby', curTab === 'axe' ? 'axetab' : 'tab-' + curTab); }
+let curTab = 'matrix';
+function renderPanel() { const p = $('panel'); const sd = '<p class="small muted" style="margin:0 0 6px">Sample data for the mock.</p>';
+  if (curTab === 'steps') p.innerHTML = sd + '<ol class="steps">' + STEPS.map((s, i) => `<li><input type="checkbox" id="st${i}" ${s[2] ? 'checked' : ''}><label for="st${i}">${s[0]}${s[3] ? '<span class="lf">Look for: ' + s[3] + '</span>' : ''}</label><span class="chip" style="margin-left:auto">${s[1]}</span></li>`).join('') + '</ol>';
+  if (curTab === 'matrix') { p.innerHTML = sd + '<table class="matrix"><thead><tr><th scope="col">Width \\ Colour mode</th>' + MATRIX.modes.map((m) => `<th scope="col">${m[1]}</th>`).join('') + '</tr></thead><tbody>' + MATRIX.widths.map((w) => `<tr><th scope="row">${w[1]}</th>` + MATRIX.modes.map((m) => { const r = MATRIX.res[w[0] + '-' + m[0]] || 'none'; return `<td><span class="cell"><span class="chip ${cls[r]}">${sym[r]}</span><button class="btn small" type="button" data-w="${w[0]}" data-m="${m[0]}" aria-label="Apply ${w[1]}, ${m[1]} to both frames">Apply</button></span></td>`; }).join('') + '</tr>').join('') + '</tbody></table>';
+    p.querySelectorAll('[data-w]').forEach((b) => b.addEventListener('click', () => { S.width = b.dataset.w; S.colour = b.dataset.m; sync(); })); }
+  if (curTab === 'checks') p.innerHTML = sd + '<table><thead><tr><th scope="col">Type</th><th scope="col">Check</th><th scope="col">Before</th><th scope="col">After</th><th scope="col">Verdict</th></tr></thead><tbody>' + CHECKS.map((c) => `<tr><td>${c[0]}</td><td>${c[1]}</td><td><span class="chip ${cls[c[2]]}">${sym[c[2]]}</span></td><td><span class="chip ${cls[c[3]]}">${sym[c[3]]}</span></td><td><span class="chip ${c[4]}">${c[5]}</span></td></tr>`).join('') + '</tbody></table>';
+  if (curTab === 'axe') p.innerHTML = sd + (S.axe ? '<div class="stats"><div class="stat"><span class="muted small">Before</span><b>0</b>violations</div><div class="stat"><span class="muted small">After</span><b>0</b>violations</div><div class="stat"><span class="muted small">Difference</span><b>None</b>rules differ</div></div>' : '<p>Live checks are off. Turn them on under <strong>Automated checks</strong>.</p>');
+  if (curTab === 'env') p.innerHTML = sd + '<div class="envgrid"><label>Browser<input type="text" value="Chromium 140"></label><label>OS<input type="text" value="macOS 27"></label><label>Assistive technology<input type="text" placeholder="none"></label><label>Viewport<input type="text" value="1440 x 900"></label></div>'; }
+renderTabs(); renderPanel(); $('dock').addEventListener('change', () => { renderTabs(); });
+
+/* ---- layout switch ---- */
+const NOTES = {
+  a: '<h2>Option A: control rail</h2><ul><li><strong>Best for:</strong> long sessions where you keep changing conditions. Every setting is visible in one scannable column and nothing hides behind a click.</li><li><strong>Cost:</strong> the frames lose about 300 px of width (the rail collapses on narrow windows).</li><li>Conditions and View open by default, Input and Automated checks collapsed; the summary on each header shows what is changed inside.</li></ul>',
+  b: '<h2>Option B: toolbar and popovers</h2><ul><li><strong>Best for:</strong> maximum frame width and a quick glance. The three controls you change most (Device width, Colour mode, Compare as) are always on the toolbar; the rest sit in three popovers with a count of changed settings.</li><li><strong>Cost:</strong> less discoverable; one extra click for direction, forced colours, mirror and axe.</li></ul>',
+};
+function setLayout(l) { $('app').className = 'app ' + l; document.querySelectorAll('[data-layout]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.layout === l))); $('layoutnote').innerHTML = NOTES[l]; build(l); }
+document.querySelectorAll('[data-layout]').forEach((b) => b.addEventListener('click', () => setLayout(b.dataset.layout)));
+document.querySelectorAll('.mock').forEach((m, i) => { m.innerHTML = '<h4>Create Article</h4><div class="field"></div><div class="field"></div><details class="' + (i ? 'err' : '') + '"><summary>Meta</summary><div style="padding:10px">Two required fields</div></details>'; });
+setLayout('a');
+</script>
+</body>
+</html>

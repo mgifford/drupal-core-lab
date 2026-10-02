@@ -21,7 +21,7 @@ const page = await ctx.newPage();
 await page.goto('http://localhost:8100/'); await page.waitForTimeout(3000);
 await page.check('input[name="theme"][value="auto"]'); await page.check('input[name="width"][value="half"]');     // start from the defaults
 // Keep only the bar and the two frames: hide the long header (steps) and everything below the frames.
-await page.addStyleTag({ content: 'header, .opts details:not([data-sec="width"]):not([data-sec="colour"]), body > section, body > p, footer { display: none !important; } .pane iframe { height: calc(100vh - 275px) !important; } #legend { display: none !important; } .opts { grid-template-columns: 1fr 1fr !important; } .opts .secbody label { display: inline-flex !important; margin-right: 1rem !important; }' });
+await page.addStyleTag({ content: '.dock, #activebar, .toolbar .pop, .toolbar > .row[data-label="Compare as"], #loaddlg { display: none !important; } body { height: calc(100vh - 44px) !important; } #legend { display: none !important; }' });
 await page.evaluate(() => { document.getElementById('cap')?.remove(); const c = document.createElement('div'); c.id = 'cap'; c.setAttribute('aria-hidden', 'true');
   c.style.cssText = 'position:fixed;left:0;right:0;bottom:0;background:#111;color:#fff;font:600 17px system-ui;padding:9px 14px;z-index:99999'; document.body.append(c); });
 const caption = (t) => page.evaluate((x) => { document.getElementById('cap').textContent = x; }, t);

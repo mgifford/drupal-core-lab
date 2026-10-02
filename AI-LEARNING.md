@@ -57,7 +57,7 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 
 ## Where the owner's judgement changed the design
 - Single-window use beats "open another window": the viewer can start in a lab browser with its own persistent profile (`.lab-browser/`) so saved choices survive.
-- UI grouped into collapsible blocks that flow to the window width, with Device width and Colour mode open by default.
+- UI: first collapsible blocks, then (2026-10-02) the owner chose Option B of `docs/ui-proposal/`: a conditions toolbar (Device width, Colour mode, Compare as always visible; Conditions, Input, Audits as popovers), frames filling the window, and a tabbed dock for steps and results.
 - GIF and screenshots for the project page and docs; the GIF needs a text alternative and a still image for reduced motion (WCAG 2.2.2).
 - The cloud idea (DDEV Coder workspaces) is **on hold** pending the maintainer's answers; see `docs/CLOUD-PLAN.md`. Access needs a sponsoring GitHub org or a contributor request, so the local path must stay fully usable.
 
@@ -66,6 +66,24 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 - Next AI action: manual walkthrough with the owner (`node scripts/lab-env.mjs start 3604037-latest --browser`); then re-check both MRs for new commits, re-run `evaluate-3604037.mjs`, and run the MR's PHPUnit tests with proposals A and B applied (not done).
 - Not done anywhere: Firefox and Safari; a real Windows contrast theme; a real screen reader; Farsi interface translations (the layout and direction are real, the strings are English); the viewer scrolls sideways at about 420 px.
 - Test the documentation cold: give another LLM only the repo and ask it to reproduce #3604037; every question it asks or command that fails is a missing line in `AGENTS.md`.
+
+## TODO for the week of 2026-10-09 (session scheduled; owner approves any push or posting)
+1. Check both MRs for new commits (`node tools/compare/setup.mjs <slug> --check-patches`, and the issue/MR if the owner pastes new text). If the CSS changed, re-run `node tools/playwright/evaluate-3604037.mjs 3604037-latest` and rebase the proposal patches if they no longer apply.
+2. Run the MR's PHPUnit tests on the patched site with proposals A and B applied (not done yet). Record results in `reports/issues/3604037/phpunit/`; update the draft if anything changes.
+3. Walk through the #3604037 steps with the owner in the viewer, including keyboard and focus by a person, and forced colours with the built-in switch. Record it (viewer Download log, then `node scripts/coverage.mjs 3604037`).
+4. Tighten the two comment drafts from what we learn, still unposted.
+5. Viewer redesign: Option B is implemented (2026-10-02). Still to do: the **test matrix** tab from `docs/ui-proposal/index.html` (width by colour mode, status per cell, Apply button; needs a place to store results and a way into the downloaded log); regenerate the stale screenshots in `docs/images/` (`viewer-checks`, `viewer-manual`, `viewer-environment`, `viewer-axe-alert`, `viewer-lighthouse`, `viewer-overview`, `viewer-frames`, `viewer-difference` still show the old layout) with `node tools/playwright/screenshots.mjs`, which was edited but **not run** because it expects the #3619127 variant (start that one first); keyboard and screen-reader pass on the popovers and tabs by a person; `forced-window.mjs` edited but not run (needs `LAB_EMULATION_HEADLESS=1`).
+6. If time: Firefox and Safari, a real Windows contrast theme, a real screen-reader pass, Farsi interface translations, the viewer scrolling sideways at about 420 px (the redesign may fix it).
+7. Finish: commit and push to drupal-core-lab (with approval), update this file, stop the sites and viewer.
+
+## Learnings from the viewer redesign (2026-10-02)
+- Verified on the live sites with real input: popovers open one at a time and close on Escape (focus returns to the button), tabs work with arrow keys, Reset all restores defaults, dock hide/size, badges. `viewer-security.mjs`, `mirror-drag.mjs`, `mirror-ckeditor.mjs` and `make-demo-gif.mjs` pass or run on the new layout. Not verified: Firefox, Safari, a real screen reader.
+- **A hidden grid child shifts the others up a row.** With `display:none` on the activity strip or dock, the frames fell into an `auto` row and shrank to a sliver (the GIF script could not click Submit). Fix: give `main` and `.dock` explicit `grid-row`s. Check the layout with each optional part hidden.
+- **A flex or grid parent that also contains a hidden sibling needs care:** `main` holds the static panel (hidden when live), so it is a flex column, not a grid.
+- Radio buttons restyled as a segmented strip should keep the real input, stretched over its label with `opacity:0`, not `pointer-events:none`: real clicks, Playwright and the keyboard all keep working.
+- Playwright scripts: import `@playwright/test` (the lab's pinned browsers match it); the bare `playwright` package in `tools/playwright/node_modules` is a newer alpha whose browser build is not installed. `... | tail` hides a script's exit code; read the PASS lines.
+- Kept every element id, so the script, the tests and the Pages guide kept working; tests only needed to open a popover or click a tab first.
+- The rationale and both layouts are in `docs/ui-proposal/index.html` (Option A, the left rail, was not chosen).
 
 ## Handoff note (template: `~/.ai/HANDOFF_NOTE_TEMPLATE.md`)
 - **Summary of changes:** see "What was built" and `git log`; evidence and drafts in `reports/issues/3619127/` and `reports/issues/3604037/` (`proposals/`, `STATUS-2026-10-02.md`).
