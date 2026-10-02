@@ -1,0 +1,112 @@
+pack_version: 1
+
+issue:
+  nid: "3415961"
+  title: "[drupalMedia] Using the Insert Media button causes the window to scroll to the bottom of the page"
+  url: https://www.drupal.org/project/drupal/issues/3415961
+  fork_branch: 3415961-drupalmedia-using-the
+  merge_request: "!12348"
+
+sources:
+  - url: https://www.drupal.org/project/drupal/issues/3415961
+    note: "Issue page with comments #1 to #27 (status Needs work in the newest comment, #27)"
+    date: 2026-10-02
+  - url: https://git.drupalcode.org/project/drupal/-/merge_requests/12348
+    note: "Merge request !12348, opened, target branch main; its diff is one added line"
+    date: 2026-10-02
+  - url: https://www.drupal.org/project/drupal/issues/3410598
+    note: "Related issue \"CKEditor 5: scroll jump after dialog close\", named in comment #6"
+
+summary: |
+  Reported problem: in CKEditor 5 with the Insert Media button, pressing "Insert selected" in the media library dialog makes the
+  window scroll to the bottom of the page. The reporter first suspected the Claro theme but saw it with a different admin theme too
+  (issue summary). Comment #17 reports the same focus problem in Layout Builder, and comment #22 reports the Insert selected button
+  being focused at the bottom of the page after inserting.
+
+  The merge request (!12348, one added line) adds 'disable-refocus' => TRUE to the AJAX settings of the "Insert selected" button in
+  core/modules/media_library/src/Plugin/views/field/MediaLibrarySelectForm.php. Several commenters say a similar patch fixes the jump
+  for them (#10, #12, #22, #24). Comment #9 says it does not change the jump when the dialog is closed with the X button, and #11 says the
+  patch moves focus to the Insert Media button, which can still scroll a page with a sticky toolbar.
+
+  Open points from the discussion (not decisions): comment #3 asked for tests and the newest comment (#27, today) says it still needs tests;
+  comment #6 asked whether this duplicates #3410598 and whether changing the media library dialog affects non-CKEditor contexts; comment #26
+  suggests the real cause may be a nested modals issue in core. Whether the problem still happens on current main with the Default Admin theme is not
+  stated anywhere in the issue, and Olivero (used in some reports) is not available there.
+
+review:
+  status: draft
+  generated_by: "Claude (chat), from the issue page and the MR diff read on 2026-10-02"
+  unverified:
+    - "Whether the scroll jump still reproduces on current core main with the Default Admin theme"
+    - "Whether the fix check (editor still in view) fails on Before and passes on After: it passes on both sites before any insertion, so it only means something after the dialog interaction on a tall, scrolled page"
+    - "The X-button behaviour in comment #9 is reported by one commenter and was not reproduced"
+
+recipe:
+  name: repro_3415961
+  files:
+    recipe.yml: |
+      name: 'Repro: #3415961 Insert Media scroll jump'
+      description: 'Adds the Article content type and an Image media type. The Standard install already has CKEditor 5 with the Insert Media button on Full HTML.'
+      type: 'Testing'
+      recipes:
+        - core/tests/fixtures/recipes/article_content_type
+        - core/recipes/image_media_type
+
+variant:
+  description: >-
+    Open the Insert Media dialog from a CKEditor 5 body field on a tall node form, add an image and press Insert selected, in both frames.
+    Before: the window is reported to jump away from the editor. After (MR !12348): the window should stay where it was. Also try closing the
+    dialog with the X button, which one commenter says the change does not fix.
+  pages:
+    - /node/add/article
+  login: true
+  demo:
+    start: /node/add/article
+  steps:
+    - text: "Full HTML uses CKEditor 5 with an Insert Media button, and an Image media type exists."
+      how: recipe
+    - text: "Open /node/add/article (already loaded in both frames once you press Go). Choose Full HTML in the Text format menu under Body."
+      how: mirror
+    - text: "Type or paste enough lines into Body that the page is tall, then scroll so the editor is in the middle of the window."
+      how: mirror
+    - text: >-
+        Have a small .png or .jpg on your own computer. In EACH frame click Insert Media in the editor toolbar (in a narrow frame it is hidden: click Show more items first), open the Add media tab, upload the image
+        (add alt text if asked), then press Insert selected. A file chooser cannot be mirrored, so do this by hand in each frame.
+      how: each
+      lookFor: "Before is reported to scroll the window away from the editor. After should leave the window where it was. Press Run checks afterwards."
+    - text: "Repeat once more, but close the dialog with the X button instead of Insert selected, in each frame."
+      how: each
+      lookFor: "Comment #9 says the page still jumps in this case. Note what you see on each side."
+  expected: "After inserting media from the dialog the window stays where it was and the editor stays in view."
+  actual: "Before, the window is reported to jump after Insert selected. After (MR !12348) it should not. Closing with X may still jump (comment #9, not reproduced)."
+  checks:
+    - label: "CKEditor 5 on the Body field has the Insert Media (drupalMedia) button configured"
+      probe: "Drupal.CKEditor5Instances ? [...Drupal.CKEditor5Instances.values()].some((e) => e.ui.componentFactory.has('drupalMedia')) : false"
+      expect: true
+      kind: precondition
+    - label: "The Body editor is still in view after inserting (the page did not scroll away)"
+      probe: "((r) => r.bottom > 0 && r.top < window.innerHeight)(document.querySelector('.ck-editor').getBoundingClientRect())"
+      expect: true
+      kind: fix
+    - label: "JavaScript errors on the page (ignoring the harmless ResizeObserver loop notice)"
+      probe: "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length"
+      expect: 0
+      kind: regression
+  observe:
+    - label: "The window jumped away from the editor after Insert selected"
+      expectBefore: true
+      expectAfter: false
+    - label: "The media appears in the editor after Insert selected"
+      expectBefore: true
+      expectAfter: true
+    - label: "The page jumped after closing the dialog with the X button"
+      expectBefore: true
+      expectAfter: true
+
+notes: |
+  Loaded with Playwright on 2026-10-02 (Standard install, current main, Default Admin): the precondition probe is true on both sites, the text format
+  defaults to Basic HTML, and Insert Media sits behind the toolbar's "Show more items" menu. The upload and Insert selected steps were not automated.
+  Building the first draft of this pack showed that its recipe guessed too much: the Standard install already has the drupalMedia toolbar item and the
+  media_embed filter on Full HTML, so the recipe only adds the Article type and the Image media type. Expect to correct a first draft this way.
+  The MR is a one-line change with no test (the issue is tagged Needs tests). Related: #3410598. If the nested modals theory in comment #26 is right,
+  this symptom may belong to a broader issue; the Before and After results here only speak to what MR !12348 changes.

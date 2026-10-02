@@ -9,8 +9,21 @@ import { fileURLToPath } from 'node:url';
 export const labRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 // A variant may `extends` another by slug: it inherits every field and overrides the ones it sets
 // (`core`, `before` and `after` are merged one level deep, so `after.patches` is inherited unless replaced).
-export const variants = () => {
+// The raw list: tools/compare/variants.json plus any reports/issues/<nid>/variants.json (written by scripts/issue-pack.mjs), unresolved.
+// A per-issue entry whose slug already exists is ignored, so the main file always wins.
+export const rawVariants = () => {
   const all = JSON.parse(fs.readFileSync(path.join(labRoot, 'tools/compare/variants.json'), 'utf8'));
+  const issuesDir = path.join(labRoot, 'reports/issues');
+  const dirs = fs.existsSync(issuesDir) ? fs.readdirSync(issuesDir).sort() : [];
+  for (const d of dirs) {
+    const f = path.join(issuesDir, d, 'variants.json');
+    if (!fs.existsSync(f)) continue;
+    for (const x of JSON.parse(fs.readFileSync(f, 'utf8'))) if (!all.some((y) => y.slug === x.slug)) all.push(x);
+  }
+  return all;
+};
+export const variants = () => {
+  const all = rawVariants();
   const bySlug = Object.fromEntries(all.map((x) => [x.slug, x]));
   const resolve = (x) => {
     if (!x.extends) return x;

@@ -100,8 +100,11 @@ if (CHECK) {
 
 step('axe-core (live accessibility checks), installed from npm, not vendored');
 const deps = path.join(labRoot, 'tools/compare/.deps');
-const want = ['axe-core@4', ...(args.includes('--with-lighthouse') ? ['lighthouse'] : [])];
-if (!have(path.join(deps, 'node_modules/axe-core/axe.min.js')) || (args.includes('--with-lighthouse') && !have(path.join(deps, 'node_modules/lighthouse')))) run('npm', ['install', '--prefix', deps, '--no-audit', '--no-fund', '--no-save', ...want]);
+// Everything is recorded in .deps/package.json (no --no-save): npm removes installed packages it does not know about, so an
+// untracked install would be pruned by the next one. js-yaml reads issue packs (scripts/issue-pack.mjs); Lighthouse is kept once installed.
+const withLighthouse = args.includes('--with-lighthouse') || have(path.join(deps, 'node_modules/lighthouse'));
+const want = ['axe-core@4', 'js-yaml@4', ...(withLighthouse ? ['lighthouse'] : [])];
+if (!have(path.join(deps, 'node_modules/axe-core/axe.min.js')) || !have(path.join(deps, 'node_modules/js-yaml')) || (withLighthouse && !have(path.join(deps, 'node_modules/lighthouse')))) run('npm', ['install', '--prefix', deps, '--no-audit', '--no-fund', ...want]);
 
 const sides = [['before', v.before], ['after', v.after]];
 for (const [side, spec] of sides) {

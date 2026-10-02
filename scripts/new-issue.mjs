@@ -13,10 +13,12 @@ const flag = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[
 const nid = args.find((a) => /^\d{5,8}$/.test(a));
 const branch = flag('branch'); const title = flag('title', `Issue ${nid}`); const depth = flag('depth', '300');
 const dry = args.includes('--dry-run');
-if (!nid || !branch) { console.error('usage: node scripts/new-issue.mjs <nid> --branch <fork-branch> [--title "<title>"] [--depth 300] [--dry-run]'); process.exit(2); }
+if (!nid || !branch) { console.error('usage: node scripts/new-issue.mjs <nid> --branch <fork-branch> [--title "<title>"] [--depth 300] [--variants-file <path>] [--dry-run]'); process.exit(2); }
 const bare = path.join(labRoot, 'envs/core.git');
 if (!fs.existsSync(bare)) { console.error('envs/core.git does not exist yet. Run: node tools/compare/setup.mjs <any-slug> (it creates the shared core clone), or: git init --bare envs/core.git && git -C envs/core.git remote add origin https://git.drupalcode.org/project/drupal.git'); process.exit(1); }
-const git = (a, o = {}) => spawnSync('git', ['-C', bare, ...a], { encoding: 'utf8', ...o });
+// Auto-gc and maintenance off: after the first shallow fetch git starts a background cleanup, which makes the second fetch fail
+// with "shallow file has changed since we read it".
+const git = (a, o = {}) => spawnSync('git', ['-c', 'gc.auto=0', '-c', 'maintenance.auto=false', '-C', bare, ...a], { encoding: 'utf8', ...o });
 const must = (r, what) => { if (r.status !== 0) { console.error(`${what} failed:\n${r.stderr || r.stdout}`); process.exit(1); } return r.stdout.trim(); };
 const dir = path.join(labRoot, 'reports/issues', nid);
 const date = new Date().toISOString().slice(0, 10);
@@ -52,7 +54,12 @@ const recipe = `repro_${nid}`; const rdir = path.join(labRoot, 'recipes', recipe
 if (!fs.existsSync(rdir)) { fs.mkdirSync(rdir, { recursive: true }); fs.writeFileSync(path.join(rdir, 'recipe.yml'), `name: 'Repro: #${nid} ${title.replace(/'/g, '')}'\ndescription: 'Starting state for the steps to reproduce #${nid}. Edit: list the modules to install and any content types or config the steps need.'\ntype: 'Testing'\n# A dependency name containing '/' is resolved from the Drupal root, for example:\n# recipes:\n#   - core/tests/fixtures/recipes/article_content_type\ninstall: []\n`); }
 
 // variants: pinned (to the commit the patch was based on) and latest
-const vf = path.join(labRoot, 'tools/compare/variants.json'); const all = JSON.parse(fs.readFileSync(vf, 'utf8'));
+// --variants-file <path> (relative to the lab root) writes the two new variants there instead of into tools/compare/variants.json;
+// scripts/issue-pack.mjs uses reports/issues/<nid>/variants.json so the shared file is never edited by an import.
+const vfArg = flag('variants-file');
+const vf = vfArg ? path.join(labRoot, vfArg) : path.join(labRoot, 'tools/compare/variants.json');
+fs.mkdirSync(path.dirname(vf), { recursive: true });
+const all = fs.existsSync(vf) ? JSON.parse(fs.readFileSync(vf, 'utf8')) : [];
 const pinned = `${nid}-pinned`, latest = `${nid}-latest`;
 if (!all.some((x) => x.slug === pinned)) {
   all.push({ slug: pinned, issue: nid, label: `#${nid}: ${title}, pinned core`, description: 'TODO: what to do and what to look for.', status: 'stub: fill in pages, steps, expected, checks, observe',

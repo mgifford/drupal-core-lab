@@ -7,9 +7,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
-import { labRoot } from '../tools/compare/lib.mjs';
+import { labRoot, rawVariants } from '../tools/compare/lib.mjs';
 
-const all = JSON.parse(fs.readFileSync(path.join(labRoot, 'tools/compare/variants.json'), 'utf8'));
+const all = rawVariants();
 const v = all.find((x) => x.slug === (process.argv[2] || all[0].slug));
 if (!v) { console.error('unknown variant'); process.exit(1); }
 const name = `drupal-repro-${v.issue}`;
@@ -35,7 +35,7 @@ copy(`recipes/${v.recipe}`);
 copy(`reports/issues/${v.issue}`, (f) => !/\/(playwright|compare|screenreader)\/.*\.(png|gif|jpe?g|webp)$/i.test(f));
 
 fs.mkdirSync(path.join(root, 'tools/compare'), { recursive: true });
-const rawAll = JSON.parse(fs.readFileSync(path.join(labRoot, 'tools/compare/variants.json'), 'utf8'));
+const rawAll = rawVariants();
 const issueVariants = rawAll.filter((x) => String(x.issue || '') === String(v.issue) || rawAll.some((y) => y.slug === x.extends && String(y.issue) === String(v.issue)));
 fs.writeFileSync(path.join(root, 'tools/compare/variants.json'), JSON.stringify(issueVariants, null, 2) + '\n');
 const latestSlug = (issueVariants.find((x) => /-latest$/.test(x.slug)) || {}).slug;
