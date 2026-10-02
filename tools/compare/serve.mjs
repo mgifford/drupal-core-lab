@@ -21,6 +21,17 @@ const SIDES = DDEV
       after: { port: PAGE + 2, host: 'drupal-compare-after.ddev.site', origin: 'https://drupal-compare-after.ddev.site' } }
   : { before: { port: PAGE + 1, host: `before.localhost:${PAGE + 1}`, origin: `http://before.localhost:${PAGE + 1}` },
       after: { port: PAGE + 2, host: `after.localhost:${PAGE + 2}`, origin: `http://after.localhost:${PAGE + 2}` } };
+// Address the viewer and both proxies listen on. Loopback by default. In a Linux Docker host (such as a Coder workspace) the DDEV proxy
+// containers reach the host over the Docker bridge, not loopback, so set LAB_BIND=0.0.0.0 there (reachable only inside that workspace).
+const BIND = process.env.LAB_BIND || '127.0.0.1';
+// Cloud (DDEV Coder): the browser reaches each frame at its own app URL, so the frame host and origin can be set explicitly.
+// LAB_BEFORE_ORIGIN / LAB_AFTER_ORIGIN are full origins such as https://drupal-compare-before--<workspace>--<owner>.coder.ddev.com.
+// The viewer's own origin goes in LAB_EXTRA_ORIGINS (below). Neither relaxes the Host, Origin or frame-ancestors checks.
+for (const [side, key] of [['before', 'LAB_BEFORE_ORIGIN'], ['after', 'LAB_AFTER_ORIGIN']]) {
+  if (!process.env[key]) continue;
+  const o = new URL(process.env[key]);
+  SIDES[side].host = o.host; SIDES[side].origin = o.origin;
+}
 // Origins allowed to use the viewer, to frame the proxied sites, and to send them commands. Everything else is refused.
 // Add more (for example a cloud workspace) with LAB_EXTRA_ORIGINS="https://host.example,https://other.example". An IP allowlist would not help here:
 // the requests that matter come from the owner's own browser (so from 127.0.0.1) via a web page they happen to visit; the Host, Origin and frame-ancestors checks are what stop those.
@@ -212,7 +223,7 @@ function proxyFor(side) {
 }
 
 for (const x of list) for (const side of ['before', 'after']) { if (!fs.existsSync(envDir(x[side].env))) continue; try { info(x[side].env); } catch (e) { console.log(`could not look up ${x[side].env} yet (${String(e.message).split('\n')[0]}); will retry on first use`); } }
-for (const side of Object.keys(SIDES)) { const srv = proxyFor(side); srv.keepAliveTimeout = 65000; srv.headersTimeout = 66000; srv.listen(SIDES[side].port, '127.0.0.1'); }
+for (const side of Object.keys(SIDES)) { const srv = proxyFor(side); srv.keepAliveTimeout = 65000; srv.headersTimeout = 66000; srv.listen(SIDES[side].port, BIND); }
 
 http.createServer((req, res) => {
   const u = new URL(req.url, 'http://x');
@@ -272,7 +283,7 @@ http.createServer((req, res) => {
     const file = path.join(labRoot, 'tools/compare/index.html');
     res.end(fs.readFileSync(file, 'utf8').replace('__BUILD__', fs.statSync(file).mtime.toISOString()));
   }
-}).listen(PAGE, '127.0.0.1', () => console.log(`compare: ${DDEV ? 'https://drupal-compare.ddev.site/  (via the drupal-compare DDEV project; also' : ''} http://localhost:${PAGE}/   (default variant ${state.slug}${DDEV ? ', DDEV hostnames' : ''})`));
+}).listen(PAGE, BIND, () => console.log(`compare: ${DDEV ? 'https://drupal-compare.ddev.site/  (via the drupal-compare DDEV project; also' : ''} http://localhost:${PAGE}/   (default variant ${state.slug}${DDEV ? ', DDEV hostnames' : ''})`));
 
 // Close the forced-colours window when the server stops, so it is not left running on its own.
 for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, async () => { await emulation.close().catch(() => {}); process.exit(0); });
