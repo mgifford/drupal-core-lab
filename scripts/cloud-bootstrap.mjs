@@ -1,8 +1,10 @@
 // Bring a DDEV Coder Freeform workspace to a working cloud comparison, safe to run again.
-//   node scripts/cloud-bootstrap.mjs <slug> [--check] [--rebuild] [--no-smoke-deps]
+//   node scripts/cloud-bootstrap.mjs <slug> [--check] [--rebuild] [--no-smoke-deps] [--install-autostart]
 //     --check           preflight only: report what is missing and change nothing
 //     --rebuild         run tools/compare/setup.mjs even when both sites already exist
 //     --no-smoke-deps   do not install Playwright and Chromium (the smoke check then reports its frame check as NOT RUN)
+//     --install-autostart  write ~/.coder-startup.sh so this script runs again at every workspace start (a workspace restart stops
+//                       all DDEV projects and the viewer). The template runs that file detached after Docker is ready; log: /tmp/lab-cloud-bootstrap.log
 // Steps: preflight, build both sites (setup.mjs, skipped when they exist), register and start the three proxy projects
 // with `ddev coder-setup`, start the sites and the viewer with the Coder origins, smoke check (scripts/cloud-smoke.mjs).
 // Prerequisite that this script cannot do: the workspace's "DDEV project names" must include drupal-compare,
@@ -87,13 +89,29 @@ say('Start the sites and the viewer');
 run('node', [path.join(labRoot, 'scripts/lab-env.mjs'), 'start', slug]);
 run('bash', [path.join(labRoot, 'tools/compare/cloud/start-viewer.sh'), slug]);
 
+if (args.includes('--install-autostart')) {
+  say('Install the workspace startup hook');
+  const hook = path.join(os.homedir(), '.coder-startup.sh'), marker = '# lab-cloud-bootstrap';
+  const line = `cd ${labRoot} && node scripts/cloud-bootstrap.mjs ${slug} >> /tmp/lab-cloud-bootstrap.log 2>&1`;
+  const existing = fs.existsSync(hook) ? fs.readFileSync(hook, 'utf8') : '';
+  if (existing && !existing.includes(marker)) console.log(`${hook} exists and was not written by this script, so it is left alone. Add this line to it:\n  ${line}`);
+  else {
+    fs.writeFileSync(hook, `#!/usr/bin/env bash\n${marker}: bring the cloud comparison back after a workspace restart (written by scripts/cloud-bootstrap.mjs --install-autostart)\n${line}\n`, { mode: 0o755 });
+    console.log(`Wrote ${hook}: ${slug} comes back by itself at each workspace start.`);
+  }
+}
+
 if (!NO_DEPS) {
   say('Smoke check dependencies (Playwright and Chromium)');
   const pw = path.join(labRoot, 'tools/playwright');
   if (!fs.existsSync(path.join(pw, 'node_modules/@playwright/test'))) run('npm', ['install'], { cwd: pw });
   run('npx', ['playwright', 'install', 'chromium'], { cwd: pw });
-  if (sh('sudo', ['-n', 'true']).status === 0) run('sudo', ['-n', 'npx', 'playwright', 'install-deps', 'chromium'], { cwd: pw });
-  else console.log('Passwordless sudo is not available; if Chromium reports missing libraries, run `npx playwright install-deps chromium` in tools/playwright.');
+  // Chromium's files live in the persistent home directory, but the system libraries it needs do not survive a workspace restart
+  // (the container is recreated), so check for them each time and reinstall only when some are missing.
+  const missingLibs = sh('bash', ['-c', 'ldd ~/.cache/ms-playwright/chromium_headless_shell-*/chrome-headless-shell-linux64/chrome-headless-shell 2>&1 | grep -c "not found"']);
+  if (Number(missingLibs.stdout.trim()) === 0) console.log('Chromium system libraries are present.');
+  else if (sh('sudo', ['-n', 'true']).status === 0) run('sudo', ['-n', 'npx', 'playwright', 'install-deps', 'chromium'], { cwd: pw });
+  else console.log('Chromium system libraries are missing and passwordless sudo is not available; run `npx playwright install-deps chromium` in tools/playwright.');
 }
 
 say('Smoke check');
