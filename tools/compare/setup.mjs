@@ -2,6 +2,7 @@
 // starting state (Standard install, admin/admin, recipe applied, patches on the "after" side).
 //   node tools/compare/setup.mjs [slug] [--dry-run]
 //   node tools/compare/setup.mjs [slug] --check-patches    only report whether the patches still apply to that core
+//   node tools/compare/setup.mjs [slug] --reinstall        reset both sites (database and files) and reapply recipe and languages; keeps the checkout, vendor and patches
 //   (a variant with "testExtensions": true gets `ddev drupal test:extensions-enable` before its recipe, so it can install test modules)
 //   node tools/compare/setup.mjs [slug] --with-lighthouse   also install Lighthouse (optional background audits in the viewer; Node 22.19+)
 //
@@ -23,6 +24,7 @@ if (!v) { console.error('unknown variant'); process.exit(1); }
 const core = { url: 'https://git.drupalcode.org/project/drupal.git', ref: 'main', ...(v.core || {}) };
 const coreRef = `refs/lab/${core.commit ? core.commit.slice(0, 12) : core.ref}`;   // where the chosen core lives in envs/core.git
 const CHECK = args.includes('--check-patches');
+const REINSTALL = args.includes('--reinstall');   // wipe each site's database and files and install again (no re-clone, no composer): the cheap way to reset
 const bare = path.join(labRoot, 'envs/core.git');
 
 function run(cmd, argv, opts = {}) {
@@ -121,7 +123,16 @@ for (const [side, spec] of sides) {
   // .ddev/core-dev/.env and says to copy it; without it every PHPUnit run errors before its first assertion.
   if (!dry && !have(path.join(dir, 'core/.env')) && have(path.join(dir, '.ddev/core-dev/.env'))) fs.copyFileSync(path.join(dir, '.ddev/core-dev/.env'), path.join(dir, 'core/.env'));
   if (!dry) fs.mkdirSync(path.join(dir, 'sites/simpletest/browser_output'), { recursive: true });
-  const installed = !dry && have(path.join(dir, 'sites/default/settings.php')) && spawnSync('ddev', ['drupal', 'login'], { cwd: dir, stdio: 'ignore' }).status === 0;
+  if (REINSTALL && !dry && have(path.join(dir, 'sites/default/settings.php'))) {
+    // Local test data only. The add-on has no db container (SQLite), so a snapshot is attempted but usually unavailable.
+    spawnSync('ddev', ['snapshot', '--name', `before-reset-${Date.now()}`], { cwd: dir, stdio: 'ignore' });
+    spawnSync('ddev', ['drupal', 'uninstall'], { cwd: dir, stdio: 'inherit' });
+    try { fs.chmodSync(path.join(dir, 'sites/default'), 0o755); } catch { /* already writable */ }
+    fs.rmSync(path.join(dir, 'sites/default/files'), { recursive: true, force: true });
+    fs.rmSync(path.join(dir, 'sites/default/settings.php'), { force: true });
+    runRetry('ddev', ['restart'], { cwd: dir });
+  }
+  const installed = !REINSTALL && !dry && have(path.join(dir, 'sites/default/settings.php')) && spawnSync('ddev', ['drupal', 'login'], { cwd: dir, stdio: 'ignore' }).status === 0;
   if (installed) console.log('already installed; applying the recipe again (safe)');
   else run('ddev', ['drupal', 'install', 'standard', '--password=admin', '--site-name=Drupal core test site'], { cwd: dir });
   if (v.testExtensions) run('ddev', ['drupal', 'test:extensions-enable'], { cwd: dir });   // lets the recipe install test modules such as form_test

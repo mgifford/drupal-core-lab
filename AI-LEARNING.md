@@ -27,11 +27,13 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 8. **A CSS rule that hid "everything below the controls" for the GIF also hid the frames themselves.** Check a screenshot after every scripted layout change, do not assume.
 9. **A viewer test passed while the thing it tested was wrong** (the script click did not trigger focus behaviour). For focus and activation use trusted input (Playwright `click()`), never script events. Mirror replays script clicks, so turn it off for the final step.
 
+10. **A dry run is not a test.** The Farsi step in `setup.mjs` had only been dry-run when I called it done; the first real `reset` found two bugs (`lab-site.sh language` validated `fa` as a recipe name; a file copied into a just-restarted DDEV project had not synced into the container yet, so wait until `ddev exec test -f` sees it). Run the real thing, once, on throw-away data.
+
 ## Technical traps (each cost real time)
 | Area | Learning |
 |---|---|
 | DDEV router | Flaky: `ddev-router failed to become ready`. Retry; `setup.mjs` and `lab-env.mjs start` do. The viewer's proxies talk to the router over **HTTPS (443)**; plain HTTP got `ECONNRESET`. |
-| Disk | The Mac ran down to 398 MB. Biggest regenerable wins: `npm cache clean --force`, `~/.npm/_npx`, `docker builder prune -af` (freed 7 GB). `~/.cache/puppeteer` is 6 GB and was left alone. Playwright's Chromium (150 MB) was deleted once and reinstalled. |
+| Disk | Per environment: about 630 MB, of which 393 MB is `core/node_modules` and under 10 MB is site data, so `lab-env.mjs reset` costs no disk and `trim --deep` frees the most. The Mac ran down to 398 MB. Biggest regenerable wins: `npm cache clean --force`, `~/.npm/_npx`, `docker builder prune -af` (freed 7 GB). `~/.cache/puppeteer` is 6 GB and was left alone. Playwright's Chromium (150 MB) was deleted once and reinstalled. |
 | Node | `fetch` ignores a custom `Host` header: use `node:http(s)`. `ddev describe` is synchronous and blocks the event loop: cache and use the async version. macOS has no `timeout`; zsh does not word-split `$var`. Node's connection-refused error can have an **empty message** (check `e.code`, not the text). |
 | Drupal recipes | A recipe that installs the Language module does **not** create its locked languages (`und`, `zxx`), so adding a language crashes (`setWeight() on null`). Use `scripts/add-language.php` (API) via `lab-site.sh language`. Rebuilding routes inside that CLI bootstrap also fails; clear caches afterwards instead. |
 | Forced colours | A web page cannot turn it on. Emulation set on the **whole tab** (Playwright `page.emulateMedia`, DevTools Rendering) reaches iframes; that is what the lab's "lab browser" does. Forced colours overrides plain colours (a mask icon's `background-color`) unless the value is a system colour or `forced-color-adjust` says otherwise. Emulation is not a real contrast theme. |

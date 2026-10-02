@@ -34,6 +34,8 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
 `main`), which two environments, which patches, the recipe that creates the starting state, the steps, and the checks.
 
     node scripts/doctor.mjs [slug]                       # preflight: prerequisites, disk, what is running
+    node scripts/lab-env.mjs reset <slug> --yes          # cheapest reset: reinstall both SITES (database, files, recipe, languages); keeps checkout and patches
+    node scripts/lab-env.mjs disk | trim <slug|all> [--deep]   # what uses disk; free regenerable space (--deep also removes core/node_modules, ~400 MB each)
     node scripts/lab-env.mjs status | start <slug> | stop <slug|all> | delete <slug> --yes   # manage environments (two at a time); start also launches the viewer
     node tools/compare/setup.mjs <slug>                  # build Before and After from scratch (resumable, idempotent)
     node tools/compare/setup.mjs <slug> --check-patches  # only: do the patches still apply to that core?
@@ -113,6 +115,7 @@ Use only if `setup.mjs` is not usable. `core/scripts/dr install` is SQLite-only;
 | macOS: no `timeout`; zsh does not word-split `$var` | Use real exit codes; run multi-word variables through `bash`. |
 | The built-in browser pane shows blank frames or `ERR_BLOCKED_BY_CLIENT` | It blocks cross-site frames and requests to some hosts. Verify with Playwright (`tools/playwright/mirror-drag.mjs` is a model), not the pane. |
 | Adding a language with a recipe crashes (`setWeight() on null`) | A recipe that installs the Language module does not create its locked languages (und, zxx). Use `scripts/lab-site.sh language <env> <code>` (API script `scripts/add-language.php`); it also sets the `/<code>` prefix. |
+| Disk tight | `node scripts/lab-env.mjs disk` shows what uses space (each environment is about 630 MB, 393 MB of it `core/node_modules`; site data is under 10 MB). `trim all --deep` frees the node_modules; `reset` costs no disk. |
 | Disk almost full (under 1 GB) | Regenerable caches first: `npm cache clean --force`, `rm -rf ~/.npm/_npx`, `docker builder prune -af`. Then see the disk row above. Check what is big with `du -sh ~/.cache/* ~/.npm`. |
 | Before is not pristine | Only if the variant lists `before.patches` (a declared test-support change, e.g. #3604037's form_test page). |
 

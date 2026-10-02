@@ -13,7 +13,7 @@ cmd="${1:-}"; env="${2:-}"; recipe="${3:-ife_sidebar_repro}"
 [ -n "$cmd" ] && [ -n "$env" ] || { sed -n '2,8p' "$0"; exit 2; }
 dir="$lab/envs/$env"
 [ -d "$dir" ] || { echo "no such environment: $dir" >&2; exit 1; }
-[ -f "$lab/recipes/$recipe/recipe.yml" ] || { echo "no such recipe: recipes/$recipe" >&2; exit 1; }
+case "$cmd" in apply|reset) [ -f "$lab/recipes/$recipe/recipe.yml" ] || { echo "no such recipe: recipes/$recipe" >&2; exit 1; } ;; esac
 cd "$dir"
 
 apply() {
@@ -37,6 +37,8 @@ case "$cmd" in
   language)
     code="${3:-fa}"
     cp "$lab/scripts/add-language.php" .lab-add-language.php
+    ddev mutagen sync >/dev/null 2>&1 || true
+    for _ in $(seq 1 30); do ddev exec test -f .lab-add-language.php 2>/dev/null && break; sleep 1; done   # wait for the file to reach the container
     ddev exec php .lab-add-language.php "$code"; rm -f .lab-add-language.php
     ddev drupal cache; echo "$env: browse /$code/..."; exit 0 ;;
   *) echo "unknown command: $cmd" >&2; exit 2 ;;

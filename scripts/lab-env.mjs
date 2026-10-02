@@ -7,6 +7,9 @@
 //   node scripts/lab-env.mjs stop <slug|all>        stop the viewer and both environments (data is kept; start brings them back)
 //   Viewer: https://drupal-compare.ddev.site (needs `ddev start` once in tools/compare/site) or http://localhost:8100. Log: .lab-viewer.log; pid: .lab-viewer.pid (both gitignored).
 //   node scripts/lab-env.mjs delete <slug> --yes    DELETE both environments and their worktrees (rebuild with setup.mjs)
+//   node scripts/lab-env.mjs reset <slug> --yes     reset both SITES (database and files) to the variant's starting state: minutes, almost no disk, keeps checkout and patches
+//   node scripts/lab-env.mjs trim <slug|all> [--deep]  free regenerable disk space (test output, snapshots); --deep also removes core/node_modules (about 400 MB each)
+//   node scripts/lab-env.mjs disk                   free space, what each environment uses, and what is safe to remove
 // `stop all` stops every lab environment but leaves the small drupal-compare address project running.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -66,6 +69,37 @@ switch (cmd) {
   case 'browser': {
     if (process.argv.includes('--reset')) { try { await viewerApi({ close: true }); } catch { /* viewer not running */ } fs.rmSync(path.join(labRoot, '.lab-browser'), { recursive: true, force: true }); console.log('Deleted the lab browser profile (saved choices, ticks and notes).'); break; }
     await openLabBrowser(); break; }
+  case 'reset': {
+    if (!target) { console.error('usage: reset <slug> --yes'); process.exit(2); }
+    if (!yes) { console.error(`This RESETS the sites of ${envsOf(target).join(' and ')}: all content and settings made in them are lost (the Drupal checkout, vendor and patches stay). Re-run with --yes.`); process.exit(2); }
+    const r = spawnSync('node', [path.join(labRoot, 'tools/compare/setup.mjs'), target, '--reinstall'], { cwd: labRoot, stdio: 'inherit' });
+    process.exit(r.status ?? 1); }
+  case 'trim': {
+    if (!target) { console.error('usage: trim <slug|all> [--deep]'); process.exit(2); }
+    const deep = process.argv.includes('--deep'); const dirs = (target === 'all' ? allEnvs : envsOf(target)).map(envDir).filter((d) => fs.existsSync(d));
+    const kb = (p) => { try { return Number(execFileSync('du', ['-sk', p], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).split('\t')[0]); } catch { return 0; } };
+    let freed = 0;
+    for (const d of dirs) {
+      const targets = [path.join(d, 'sites/simpletest/browser_output'), path.join(d, 'core/phpunit-results'), ...(deep ? [path.join(d, 'core/node_modules')] : [])];
+      for (const t of targets) { if (!fs.existsSync(t)) continue; const k = kb(t); fs.rmSync(t, { recursive: true, force: true }); if (t.endsWith('browser_output')) fs.mkdirSync(t, { recursive: true }); freed += k; }
+      spawnSync('ddev', ['snapshot', '--cleanup', '--yes'], { cwd: d, stdio: 'ignore' });
+      console.log(`${path.basename(d)}: trimmed${deep ? ' (including node_modules)' : ''}`);
+    }
+    console.log(`\nFreed about ${(freed / 1024).toFixed(0)} MB.${deep ? ' To use CSS builds or lint again: cd envs/<name>/core && yarn install (needs network).' : ' --deep also removes core/node_modules (about 400 MB each).'}`); break; }
+  case 'disk': {
+    const df = spawnSync('df', ['-k', labRoot], { encoding: 'utf8' }).stdout.trim().split('\n').pop().split(/\s+/);
+    console.log(`Free disk: ${(Number(df[3]) / 1048576).toFixed(1)} GB\n`);
+    const kb = (p) => { try { return Number(execFileSync('du', ['-sk', p], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).split('\t')[0]); } catch { return 0; } };
+    const st = state();
+    for (const e of allEnvs) { const d = envDir(e); console.log(`${e.padEnd(30)} ${String(Math.round(kb(d) / 1024)).padStart(5)} MB  (node_modules ${String(Math.round(kb(path.join(d, 'core/node_modules')) / 1024)).padStart(4)} MB, site files ${String(Math.round(kb(path.join(d, 'sites/default/files')) / 1024)).padStart(3)} MB)  ${(st[d] || {}).status || 'unknown'}`); }
+    console.log(`${'envs/core.git (shared clone)'.padEnd(30)} ${String(Math.round(kb(path.join(envsDir, 'core.git')) / 1024)).padStart(5)} MB`);
+    const dk = spawnSync('docker', ['system', 'df'], { encoding: 'utf8' }); if (dk.status === 0) console.log(`\nDocker:\n${dk.stdout.trim()}`);
+    console.log(`\nSafe things to free, smallest effort first:
+  node scripts/lab-env.mjs trim all            test output and snapshots
+  node scripts/lab-env.mjs trim all --deep     also core/node_modules (about 400 MB per environment, reinstallable)
+  node scripts/lab-env.mjs delete <slug> --yes an unused pair (about 0.6 GB each; rebuild with setup.mjs, 10-20 min)
+  docker builder prune -af                     unused build cache
+  npm cache clean --force                      npm's cache (reinstalls on demand)`); break; }
   case 'stop': {
     if (!target) { console.error('usage: stop <slug|all>'); process.exit(2); }
     stopViewer();
@@ -76,5 +110,5 @@ switch (cmd) {
     const list = envsOf(target); if (!yes) { console.error(`This DELETES ${list.join(' and ')} (containers, database and worktree). Evidence in reports/ is kept. Re-run with --yes.`); process.exit(2); }
     for (const e of list) { if (!fs.existsSync(envDir(e))) continue; ddev(envDir(e), ['delete', '--omit-snapshot', '--yes']); spawnSync('git', ['-C', path.join(envsDir, 'core.git'), 'worktree', 'remove', '--force', envDir(e)], { stdio: 'inherit' }); }
     break; }
-  default: console.error('usage: lab-env.mjs status | start <slug> [--browser] | browser [--reset] | stop <slug|all> | delete <slug> --yes'); process.exit(2);
+  default: console.error('usage: lab-env.mjs status | disk | start <slug> [--browser] | browser [--reset] | stop <slug|all> | reset <slug> --yes | trim <slug|all> [--deep] | delete <slug> --yes'); process.exit(2);
 }
