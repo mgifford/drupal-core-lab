@@ -64,3 +64,10 @@ Not yet done: the recipe (`recipes/repro_3604037`), the variant's steps, checks 
 
 ## Same test page on both sides
 The MR also changes the `form_test` page (adds a second required field so its test can check a count of 2). So that both sites show the same page, that one change is applied to **Before** as `branches/support-fixture-two-required-fields.patch` (listed as `before.patches`). It is a test-support file, not the code under test; the code differences are everything else in the MR patch.
+
+## Replication recipes and what is where (added 2026-10-02)
+- Starting state: `recipes/repro_3604037/recipe.yml`; real right-to-left language: `scripts/lab-site.sh language <env> fa` (setup does it; browse `/fa/...`).
+- Follow-up patches to the MR: `proposals/` (README explains them). Measurements: `EVALUATION-2026-10-01.md`. MR tests: `phpunit/`.
+- Forced colours: `docs/FORCED-COLORS.md`; start with `node scripts/lab-env.mjs start 3604037-latest --browser` for a built-in switch.
+- One zip: `bundles/drupal-repro-3604037-<date>.zip`.
+

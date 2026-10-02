@@ -25,7 +25,7 @@ Drupal**. Local development only; nothing is posted anywhere automatically.
 | See what has and has not been tested (browsers, colour modes) | `reports/issues/<nid>/COVERAGE.md`, e.g. [3619127](reports/issues/3619127/COVERAGE.md) |
 | Run the scripted walkthroughs and the virtual screen reader | [tools/playwright/README.md](tools/playwright/README.md) |
 | Know what each tool can and cannot tell me | [docs/TESTING-TOOLS.md](docs/TESTING-TOOLS.md) |
-| Work here as an agent (rules, environments, commands) | [AGENTS.md](AGENTS.md) |
+| Work here as an agent (rules, environments, commands) | [AGENTS.md](AGENTS.md), and [AI-LEARNING.md](AI-LEARNING.md) for what earlier sessions learned |
 | Give someone a self-contained copy of one reproduction | `node scripts/make-bundle.mjs <slug>`, then `bundles/` |
 
 ## Quick start (needs Docker, DDEV 1.24+, git, Node 20+; ~10 GB free disk space; first run 10 to 20 minutes)

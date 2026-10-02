@@ -21,17 +21,18 @@ const copy = (rel, filter = () => true) => {
   if (!fs.existsSync(src)) { console.error(`missing: ${rel}`); process.exit(1); }
   fs.cpSync(src, dst, { recursive: true, filter: (f) => !/\.DS_Store$|node_modules/.test(f) && filter(f) });
 };
-for (const f of ['serve.mjs', 'index.html', 'lib.mjs', 'diff.mjs', 'setup.mjs', 'lighthouse.mjs', 'README.md']) copy(`tools/compare/${f}`);
-copy('scripts/coverage.mjs');
-copy('docs/USER-GUIDE.md');
+for (const f of ['serve.mjs', 'index.html', 'lib.mjs', 'diff.mjs', 'setup.mjs', 'lighthouse.mjs', 'emulation.mjs', 'README.md']) copy(`tools/compare/${f}`);
+for (const f of ['coverage.mjs', 'lab-env.mjs', 'doctor.mjs', 'add-language.php']) copy(`scripts/${f}`);
+for (const f of ['USER-GUIDE.md', 'FORCED-COLORS.md']) copy(`docs/${f}`);
 copy('docs/images');
 copy('scripts/lab-site.sh');
 copy('tools/compare/site/.ddev/config.yaml');
 copy('tools/compare/site/.ddev/nginx_full/compare.conf');
 copy('tools/compare/site/README.md');
-for (const f of ['package.json', 'package-lock.json', 'README.md', 'flow.mjs', 'walkthrough.mjs', 'screenreader.mjs', 'frameload.mjs']) copy(`tools/playwright/${f}`);
+for (const f of fs.readdirSync(path.join(labRoot, 'tools/playwright')).filter((n) => /\.mjs$|^package(-lock)?\.json$|^README\.md$/.test(n) && n !== 'make-demo-gif.mjs')) copy(`tools/playwright/${f}`);
 copy(`recipes/${v.recipe}`);
-copy(`reports/issues/${v.issue}`);
+// Evidence images stay in the repository (they are large); the zip keeps the written reports, patches, proposals and JSON.
+copy(`reports/issues/${v.issue}`, (f) => !/\/(playwright|compare|screenreader)\/.*\.(png|gif|jpe?g|webp)$/i.test(f));
 
 fs.mkdirSync(path.join(root, 'tools/compare'), { recursive: true });
 const rawAll = JSON.parse(fs.readFileSync(path.join(labRoot, 'tools/compare/variants.json'), 'utf8'));

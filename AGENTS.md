@@ -1,5 +1,7 @@
 # AGENTS.md
 
+> New session? Read `AI-LEARNING.md` first (mistakes made, traps, how this owner works, open items), then this file.
+
 ## What this repository is
 
 A **workspace for evaluating Drupal core changes**. Drupal core is not part of this repository. Core checkouts live in `envs/`
