@@ -9,7 +9,7 @@ variant `3619127-pinned`; the status table says exactly what was and was not tes
 | Item | Status | Evidence |
 |---|---|---|
 | Create a workspace with the five project names at creation (`coder create --rich-parameter-file`) | **Tested** | `lab-fresh-1`, template version `impromptu_wise78`; names appeared in `CODER_PROJECT_NAMES`, all apps redirect to Coder sign-in (owner-only) |
-| One command builds, registers, starts and smoke-checks (`scripts/cloud-bootstrap.mjs`) in a fresh workspace | **Tested** (smoke passed; about 7 minutes from clone to smoke on that run; its exit code was not logged) | `lab-fresh-1`, branch `cloud-bootstrap` at commit `72c25a6` |
+| One command builds, registers, starts and smoke-checks (`scripts/cloud-bootstrap.mjs`) in a fresh workspace | **Tested** (smoke passed; about 7 minutes from clone to smoke on that run; its exit code was not logged) | `lab-fresh-1`, tested from local commit `72c25a6` (the same changes are `1ff7a09` and `0f968b7` on `main`) |
 | Safe to run again (skips the build, restarts what is stopped) | **Tested** | three reruns on two workspaces, one after a restart |
 | Setup refuses a second concurrent run | **Tested locally** | live lock exits 2 with a message; stale lock taken over |
 | Smoke check fails when something is broken | **Tested** | Before proxy stopped gives FAIL and exit 1; started again gives PASS |
@@ -50,7 +50,6 @@ variant `3619127-pinned`; the status table says exactly what was and was not tes
        git clone https://github.com/mgifford/drupal-core-lab.git && cd drupal-core-lab
        node scripts/cloud-bootstrap.mjs 3619127-pinned --install-autostart
 
-   (Until the cloud scripts are on `main`, check out the branch that has them first.)
 3. Open `https://drupal-compare--<workspace>--<owner>.coder.ddev.com/` in a browser signed in to Coder. The bootstrap prints the exact URL.
 4. When finished, stop the workspace (`coder stop <name>`). Autostop is a 24-hour deadline that activity extends, so it does not stop within minutes of idleness.
 
