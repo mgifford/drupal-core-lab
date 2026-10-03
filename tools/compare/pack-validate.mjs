@@ -237,3 +237,41 @@ export function validatePack(text, { yaml } = {}) {
 
   return { errors, warnings, pack };
 }
+
+// ---- a message to paste back into the chat: what to fix, in the validator's own words, with what to do about each ----
+const HINTS = [
+  [/recipe sets no configuration/, 'Either (a) add the configuration to the recipe so the setup really exists (only if you know the correct Drupal config: do not invent config keys), or (b) change the step to say the person sets it up by hand, and name it in review.unverified.'],
+  [/no fix check/, 'Add one fix check that compares something the change adds or alters (an element, an attribute or an announcement) and is false on Before and true on After; if you cannot know one, say why in review.unverified.'],
+  [/no precondition check/, 'Add a precondition check that must hold on both sides, so a passing result means the setup was reached.'],
+  [/HTML-like tags/, 'Rewrite it in plain words. Do not write angle brackets around tag names, not even inside backticks (for example write "a div with the class x").'],
+  [/anchors\/aliases/, 'Write every value out in full: no YAML anchors or aliases.'],
+  [/not valid YAML/, 'Fix the YAML syntax. Put every one-line text value in double quotes and use | for multi-line text.'],
+  [/review\.unverified/, 'List at least one thing you could not verify.'],
+];
+
+export function repairMessage({ errors = [], warnings = [] }, { recipeFiles = null } = {}) {
+  const items = [...errors.map((e) => ({ kind: 'error', ...e })), ...warnings.map((w) => ({ kind: 'warning', ...w }))];
+  if (!items.length) return '';
+  const lines = [`${errors.length ? 'Your issue pack did not pass the validator.' : 'Your issue pack passed the validator, with warnings.'} Fix ONLY these problems, keep everything else exactly as it was, and send the complete corrected file again:`, ''];
+  items.forEach((it, i) => {
+    lines.push(`${i + 1}. [${it.kind}] ${it.at}: ${it.msg}`);
+    const hint = HINTS.find(([re]) => re.test(it.msg));
+    if (hint) lines.push(`   What to do: ${hint[1]}`);
+  });
+  if (recipeFiles && Object.keys(recipeFiles).length) {
+    lines.push('', 'Use exactly these recipe files in recipe.files (replace the current ones). The person supplies these files and says they build on current Drupal core; you have not checked them. Copy them exactly, then make the recipe description and the first step say what they add, and add to review.unverified that the recipe config was supplied by the person:');
+    for (const [name, body] of Object.entries(recipeFiles)) lines.push('', `--- ${name}`, body.trimEnd());
+    lines.push('', '--- end of recipe files');
+  }
+  return lines.join('\n');
+}
+
+// Read a recipe folder the person supplies: recipe.yml and config/*.yml only, small files only.
+export function readRecipeDir(dir) {
+  const files = {}; const rd = (rel) => { const p = path.join(dir, rel); const t = fs.readFileSync(p, 'utf8'); if (t.length > 20000) throw new Error(`${rel} is larger than 20000 characters`); files[rel] = t; };
+  if (!fs.existsSync(path.join(dir, 'recipe.yml'))) throw new Error(`${dir} has no recipe.yml`);
+  rd('recipe.yml');
+  const cfg = path.join(dir, 'config');
+  if (fs.existsSync(cfg)) for (const f of fs.readdirSync(cfg).sort()) if (/^[A-Za-z0-9_.-]+\.yml$/.test(f)) rd(`config/${f}`);
+  return files;
+}

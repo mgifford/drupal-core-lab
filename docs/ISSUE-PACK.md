@@ -46,13 +46,18 @@ of the pack, **one complete valid pack** (the strongest signal of the shape you 
 A chat tool that can browse may open the issue itself; otherwise paste the issue page text (all comments) and the merge request diff. Ask for the result as a
 downloadable file named `issue-pack-<nid>.yml`; if the tool cannot make files, ask for one code block and save it with that name.
 
-The first answer will usually need a round. Run the validator and send the errors back, in the same chat:
+The first answer will usually need a round. Save it to a file, and let the validator write the message for you:
 
-    Your pack did not pass the validator. Fix ONLY these problems, keep everything else as it was, and send the complete corrected file again:
+    node scripts/issue-pack.mjs validate issue-pack-<nid>.yml --repair
 
-    <paste the validator's ERROR lines>
+It prints the problems in the validator's own words, each with what to do about it, and copies the whole message to your clipboard (`--no-copy` to skip). Paste it into the **same chat**.
+A chat assistant cannot know your Drupal configuration, so when the validator warns that the steps rely on a limit or setting the recipe never sets, attach a recipe folder you trust
+(one that builds on current core, for example one you already used for this issue):
 
-Then, after it validates, ask for the things a validator cannot check:
+    node scripts/issue-pack.mjs validate issue-pack-<nid>.yml --repair --attach-recipe recipes/<recipe folder>
+
+The message then tells the assistant to copy those files exactly into `recipe.files` and to say in `review.unverified` that you supplied them. The files are yours: the lab does not know that they work until you build them.
+Repeat until the validator reports nothing to repair, then ask for the things a validator cannot check:
 
     List every claim in summary, steps and checks that comes from your own reasoning and not from the issue text, the comments or the diff,
     with the comment number or file for the ones that do. Add anything you were unsure of to review.unverified.

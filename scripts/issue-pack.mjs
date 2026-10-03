@@ -2,7 +2,9 @@
 //   node scripts/issue-pack.mjs prepare <issue URL or number> [--mr N] [--out FILE] [--no-copy]
 //                                                               fetch the issue text and merge request diff, fill in the prompt, write it to a file, copy it, print the path
 //   node scripts/issue-pack.mjs prompt                          print the blank chat prompt (prompts/issue-pack-chat-prompt.md with the current example filled in)
-//   node scripts/issue-pack.mjs validate <pack.yml>             check only: no network, nothing is written
+//   node scripts/issue-pack.mjs validate <pack.yml> [--repair [--attach-recipe <dir>] [--no-copy]]
+//                                                               check only: no network, nothing is written. --repair also prints (and copies) a message to paste back
+//                                                               into the chat that fixes what the validator found; --attach-recipe adds a recipe folder you trust to that message
 //   node scripts/issue-pack.mjs import <pack.yml> [--dry-run] [--depth 300]
 // import validates, then runs scripts/new-issue.mjs (fetches the issue fork branch and writes the patch and the issue folder),
 // writes the recipe to recipes/repro_<nid>/ with a copy in reports/issues/<nid>/recipe/, merges the pack's steps and checks into
@@ -12,9 +14,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { labRoot } from '../tools/compare/lib.mjs';
-import { validatePack, loadYaml } from '../tools/compare/pack-validate.mjs';
+import { validatePack, loadYaml, repairMessage, readRecipeDir } from '../tools/compare/pack-validate.mjs';
 
 const args = process.argv.slice(2);
+const copyToClipboard = (text) => { for (const c of [['pbcopy'], ['wl-copy'], ['xclip', '-selection', 'clipboard'], ['xsel', '--clipboard', '--input']]) { if (spawnSync(c[0], c.slice(1), { input: text }).status === 0) return c[0]; } return null; };
 const [cmd, file] = args.filter((a) => !a.startsWith('--'));
 if (cmd === 'prepare') {
   const { parseIssue, gather, composePrompt } = await import('../tools/compare/pack-prepare.mjs');
@@ -32,8 +35,7 @@ if (cmd === 'prepare') {
   const outArg = valueOf('--out') ?? null;
   const out = path.resolve(outArg || path.join(fs.existsSync(desktop) ? desktop : process.cwd(), `issue-pack-prompt-${nid}.txt`));
   fs.writeFileSync(out, text);
-  let copied = null;
-  if (!args.includes('--no-copy')) for (const c of [['pbcopy'], ['wl-copy'], ['xclip', '-selection', 'clipboard'], ['xsel', '--clipboard', '--input']]) { if (spawnSync(c[0], c.slice(1), { input: text }).status === 0) { copied = c[0]; break; } }
+  const copied = args.includes('--no-copy') ? null : copyToClipboard(text);
   console.log(`\nIssue #${nid}: ${g.issueText.split('\n')[0].replace(/^ISSUE #\d+: /, '')}`);
   console.log(g.mr ? `Merge request !${g.mr.iid} (${g.mr.state}), branch ${g.mr.branch}${g.diff ? `, diff ${Math.round(g.diff.length / 1024) || 1} KB` : ', diff NOT fetched'}` : `Merge request: NOT FOUND (${g.missing.mr})`);
   for (const n of g.notes) console.log(`Note: ${n}`);
@@ -57,6 +59,18 @@ const text = fs.readFileSync(file, 'utf8');
 const { errors, warnings, pack } = validatePack(text, { yaml });
 for (const w of warnings) console.log(`warning  ${w.at}: ${w.msg}`);
 for (const e of errors) console.log(`ERROR    ${e.at}: ${e.msg}`);
+if (cmd === 'validate' && args.includes('--repair')) {
+  const ri = args.indexOf('--attach-recipe');
+  let recipeFiles = null;
+  if (ri >= 0) { const d = args[ri + 1]; if (!d || d.startsWith('--')) { console.error('--attach-recipe needs a folder'); process.exit(2); } try { recipeFiles = readRecipeDir(path.resolve(d)); } catch (e) { console.error(`--attach-recipe: ${e.message}`); process.exit(2); } }
+  const msg = repairMessage({ errors, warnings }, { recipeFiles });
+  if (!msg) console.log('\nNothing to repair: no errors and no warnings.');
+  else {
+    console.log('\n----- COPY EVERYTHING BETWEEN THESE LINES INTO THE SAME CHAT -----\n' + msg + '\n----- END -----');
+    const c = args.includes('--no-copy') ? null : copyToClipboard(msg);
+    console.log(c ? `\n(Copied to the clipboard with ${c}. Paste it into the chat that wrote the pack.)` : '\n(Not copied to the clipboard: select the text above.)');
+  }
+}
 if (errors.length) { console.error(`\nNot valid: ${errors.length} error(s), ${warnings.length} warning(s). Nothing was written.`); process.exit(1); }
 console.log(`\nValid issue pack for #${pack.issue.nid} (${warnings.length} warning(s)). This is a DRAFT: its steps and checks have not been confirmed by a person.`);
 if (cmd === 'validate') process.exit(0);
