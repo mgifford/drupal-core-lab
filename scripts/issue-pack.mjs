@@ -20,7 +20,8 @@ if (cmd === 'prepare') {
   const { parseIssue, gather, composePrompt } = await import('../tools/compare/pack-prepare.mjs');
   const os = await import('node:os');
   let nid; try { nid = parseIssue(file); } catch (e) { console.error(e.message); process.exit(2); }
-  const mr = args.includes('--mr') ? args[args.indexOf('--mr') + 1] : undefined;
+  const valueOf = (flag) => { const i = args.indexOf(flag); if (i < 0) return undefined; const v = args[i + 1]; if (v === undefined || v.startsWith('--')) { console.error(`${flag} needs a value`); process.exit(2); } return v; };
+  const mr = valueOf('--mr');
   if (mr !== undefined && !/^\d{1,7}$/.test(mr)) { console.error('--mr must be the merge request number, for example 16777'); process.exit(2); }
   let g; try { g = await gather(nid, { mr, log: (m) => console.log(m) }); } catch (e) { console.error(`Could not fetch: ${e.message}`); process.exit(1); }
   if (g.missing.issue) { console.error(g.missing.issue); process.exit(1); }
@@ -28,7 +29,7 @@ if (cmd === 'prepare') {
   const ex = fs.readFileSync(path.join(labRoot, 'docs/examples/issue-pack-3415961.yml'), 'utf8').trimEnd();
   const { text, missing } = composePrompt(tpl, ex, g);
   const desktop = path.join(os.homedir(), 'Desktop');
-  const outArg = args.includes('--out') ? args[args.indexOf('--out') + 1] : null;
+  const outArg = valueOf('--out') ?? null;
   const out = path.resolve(outArg || path.join(fs.existsSync(desktop) ? desktop : process.cwd(), `issue-pack-prompt-${nid}.txt`));
   fs.writeFileSync(out, text);
   let copied = null;

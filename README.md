@@ -19,6 +19,8 @@ Drupal**. Runs locally with DDEV. An opt-in path for a DDEV Coder (coder.ddev.co
 | Reproduce #3619127 (the worked example) | [reports/issues/3619127/REPRODUCE.md](reports/issues/3619127/REPRODUCE.md) |
 | See every issue evaluated, and how to come back to it | [reports/issues/README.md](reports/issues/README.md) |
 | Start a new issue | [docs/NEW-ISSUE.md](docs/NEW-ISSUE.md) |
+| **Start from a Drupal.org issue URL with a chat assistant** (generate the prompt, validate and import the answer) | [docs/ISSUE-PACK.md](docs/ISSUE-PACK.md), and `node scripts/issue-pack.mjs prepare <issue URL>` |
+| Run the viewer in a Coder (coder.ddev.com) workspace instead of locally | [tools/compare/cloud/README.md](tools/compare/cloud/README.md) |
 | **First time here? Fresh clone to first comparison** | [docs/FIRST-RUN.md](docs/FIRST-RUN.md) |
 | **Learn to use the viewer to test an issue** (with screenshots) | [docs/USER-GUIDE.md](docs/USER-GUIDE.md) |
 | Look up viewer options and the variants.json format | [tools/compare/README.md](tools/compare/README.md) |

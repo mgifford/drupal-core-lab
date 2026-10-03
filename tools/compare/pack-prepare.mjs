@@ -44,15 +44,40 @@ export function neutralize(text) {
   return String(text).split('\n').map((l) => (/^\s*(>>> INPUT|={3,}|@@MISSING@@|END OF INPUTS|FOR THE PERSON|RULES\b)/.test(l) ? `[quoted] ${l}` : l)).join('\n');
 }
 
+const allowed = (u) => u.protocol === 'https:' && HOSTS.has(u.hostname);
+const REDIRECTS = new Set([301, 302, 303, 307, 308]);
+
+// GET with the allowlist enforced on every hop (a redirect to another host is refused, never followed), a time limit, and a byte cap
+// that is applied while reading, so an oversized response is not held in memory.
 export async function getText(url, { fetchImpl = fetch, timeoutMs = 30000, maxBytes = 5 * 1024 * 1024 } = {}) {
-  const u = new URL(url);
-  if (u.protocol !== 'https:' || !HOSTS.has(u.hostname)) throw new Error(`refusing to fetch ${u.hostname}: only ${[...HOSTS].join(' and ')}`);
   const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), timeoutMs);
   try {
-    const res = await fetchImpl(url, { headers: { 'user-agent': USER_AGENT, accept: '*/*' }, signal: ctl.signal, redirect: 'follow' });
-    const text = await res.text();
-    if (text.length > maxBytes) throw new Error(`response from ${u.hostname} is larger than ${maxBytes / 1024 / 1024} MB`);
-    return { status: res.status, text };
+    let current = new URL(url);
+    for (let hop = 0; hop <= 3; hop++) {
+      if (!allowed(current)) throw new Error(`refusing to fetch ${current.protocol}//${current.hostname}: only https on ${[...HOSTS].join(' and ')}`);
+      const res = await fetchImpl(current.href, { headers: { 'user-agent': USER_AGENT, accept: '*/*' }, signal: ctl.signal, redirect: 'manual' });
+      if (REDIRECTS.has(res.status)) {
+        const loc = res.headers && res.headers.get && res.headers.get('location');
+        if (!loc) throw new Error(`${current.hostname} answered a redirect with no Location`);
+        current = new URL(loc, current); continue;
+      }
+      const declared = Number(res.headers && res.headers.get ? res.headers.get('content-length') : NaN);
+      if (declared > maxBytes) throw new Error(`response from ${current.hostname} is larger than ${maxBytes / 1024 / 1024} MB`);
+      if (res.body && typeof res.body.getReader === 'function') {
+        const reader = res.body.getReader(), chunks = []; let total = 0;
+        for (;;) {
+          const { done, value } = await reader.read(); if (done) break;
+          total += value.length;
+          if (total > maxBytes) { await reader.cancel().catch(() => {}); throw new Error(`response from ${current.hostname} is larger than ${maxBytes / 1024 / 1024} MB`); }
+          chunks.push(value);
+        }
+        return { status: res.status, text: Buffer.concat(chunks).toString('utf8') };
+      }
+      const text = await res.text();
+      if (text.length > maxBytes) throw new Error(`response from ${current.hostname} is larger than ${maxBytes / 1024 / 1024} MB`);
+      return { status: res.status, text };
+    }
+    throw new Error('too many redirects');
   } finally { clearTimeout(t); }
 }
 const getJson = async (url, opts) => { const r = await getText(url, opts); if (r.status === 404) return null; if (r.status !== 200) throw new Error(`${url} answered HTTP ${r.status}`); try { return JSON.parse(r.text); } catch { throw new Error(`${url} did not return JSON`); } };
@@ -61,6 +86,8 @@ const day = (epoch) => new Date(Number(epoch) * 1000).toISOString().slice(0, 10)
 const kb = (n) => `${Math.max(1, Math.round(Number(n) / 1024))} KB`;
 
 export async function gather(nid, { fetchImpl = fetch, mr: mrOverride, log = () => {}, now = new Date() } = {}) {
+  if (!/^\d{5,8}$/.test(String(nid))) throw new Error('the issue number must be 5 to 8 digits');
+  if (mrOverride !== undefined && !/^\d{1,7}$/.test(String(mrOverride))) throw new Error('the merge request number must be 1 to 7 digits');
   const o = { fetchImpl };
   const out = { nid, url: `https://www.drupal.org/project/drupal/issues/${nid}`, issueText: null, mr: null, diff: null, notes: [], missing: {} };
 
