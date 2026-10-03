@@ -1,0 +1,18 @@
+name: 'Repro: #3618230 Adopt the ajax MessageCommand for file uploads'
+description: 'Starting state for the steps to reproduce: the Article content type has an optional file field with a 1 KB size limit, shown on the node form, so a larger file triggers the upload error. Safe to apply more than once.'
+type: 'Testing'
+recipes:
+  - core/tests/fixtures/recipes/article_content_type
+install:
+  - file
+  - node
+config:
+  actions:
+    core.entity_form_display.node.article.default:
+      setComponent:
+        name: field_attachment
+        options:
+          type: file_generic
+          weight: 10
+          settings:
+            progress_indicator: throbber

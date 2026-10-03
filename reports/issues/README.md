@@ -21,6 +21,7 @@ one: `node scripts/new-issue.mjs <nid> --branch <fork-branch>` (see `docs/NEW-IS
 | [3604037](3604037/) | Indicate that grouping elements have child element errors | [yes](3604037/REPRODUCE.md) | 4 | 2026-10-02 | 6 | `3604037-pinned`, `3604037-latest` |
 | [3614293](3614293/) | Issue #3614293 Update: Automated Form Validation Accessibility Testing | no | 1 |  |  |  |
 | [3617875](3617875/) | Branch patches for #3617875 | no | 3 |  |  |  |
+| [3618230](3618230/) | Adopt the ajax MessageCommand for file uploads | [yes](3618230/REPRODUCE.md) | 1 | 2026-10-03 |  | `3618230-pinned`, `3618230-latest` |
 | [3619127](3619127/) | forms sidebar does not open from Inline Form Errors links | [yes](3619127/REPRODUCE.md) | 4 | 2026-10-02 | 8 | `3619127-pinned`, `3619127-latest` |
 | [3619387](3619387/) | Branch patches for #3619387 | no | 4 |  |  |  |
 | [3619933](3619933/) | Branch patches for #3619933 | no | 6 |  |  |  |

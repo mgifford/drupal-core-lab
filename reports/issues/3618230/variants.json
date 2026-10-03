@@ -1,0 +1,94 @@
+[
+  {
+    "slug": "3618230-pinned",
+    "issue": "3618230",
+    "label": "#3618230: Adopt the ajax MessageCommand for file uploads, pinned core",
+    "description": "Upload a .txt file larger than 1 KB (for example 2 KB) in the Attachment field on a node form in both frames. Before: error message renders inside the file widget via standard insert AJAX command, bypassing theme message handling and aria live announcements. After (MR !16777): error messages are delivered via the dedicated AJAX MessageCommand into a placeholder wrapper.\n",
+    "status": "draft: written from an issue pack; steps and checks have not been confirmed by a person",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "f5e265802542d80c04c1f33eb457bae70fa2d4e9"
+    },
+    "before": {
+      "env": "baseline-3618230"
+    },
+    "after": {
+      "env": "issue-3618230",
+      "patches": [
+        "reports/issues/3618230/branches/3618230-adopt-the-ajax.patch"
+      ]
+    },
+    "pages": [
+      "/node/add/article"
+    ],
+    "login": true,
+    "recipe": "repro_3618230",
+    "steps": [
+      {
+        "text": "The Article content type has an optional file field called Attachment, limited to 1 KB and .txt only.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /node/add/article in both frames.",
+        "how": "mirror"
+      },
+      {
+        "text": "Choose a .txt file larger than 1 KB (for example 2 KB) in the Attachment field in EACH frame. A file chooser cannot be mirrored, so do this by hand.",
+        "how": "each",
+        "lookFor": "Before: error message renders inside the widget. After: message is delivered via MessageCommand targeting the file upload messages wrapper."
+      }
+    ],
+    "expected": "Error messages during file upload are delivered via the AJAX MessageCommand instead of being baked into the replaced widget markup.",
+    "actual": "Before, status messages are server-rendered inside the widget via insert command. After (MR !16777), MessageCommand is used.",
+    "checks": [
+      {
+        "label": "File upload input element is present on the node form",
+        "probe": "document.querySelector('input[type=\"file\"]') !== null",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "The file upload messages wrapper element exists",
+        "probe": "document.querySelector('.file-upload-messages') !== null",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "JavaScript errors on the page",
+        "probe": "(window.__cmpErrors || []).length",
+        "expect": 0,
+        "kind": "regression"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Error message appears when uploading an oversized file",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Error message uses the dedicated message container or AJAX MessageCommand structure",
+        "expectBefore": false,
+        "expectAfter": true
+      }
+    ],
+    "demo": {
+      "start": "/node/add/article"
+    }
+  },
+  {
+    "slug": "3618230-latest",
+    "extends": "3618230-pinned",
+    "label": "#3618230: same steps against the LATEST core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3618230-latest"
+    },
+    "after": {
+      "env": "issue-3618230-latest"
+    }
+  }
+]
