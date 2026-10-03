@@ -23,6 +23,8 @@ and prints the path. Then paste the whole prompt into a new chat with an assista
 
 Open the issue page, select all and copy for input 2; open the merge request's URL with `.diff` added for input 3.
 
+If your chat tool turns the pasted prompt into an attachment and answers with a description of it (it did in ChatGPT), add one line of your own: *Follow the instructions in the attached text and reply with the issue pack YAML only.*
+
 ### After the assistant answers
 
     node scripts/issue-pack.mjs validate issue-pack-<number>.yml

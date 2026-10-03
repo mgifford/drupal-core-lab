@@ -65,6 +65,8 @@ Repeat until the validator reports nothing to repair, then ask for the things a 
     List every claim in summary, steps and checks that comes from your own reasoning and not from the issue text, the comments or the diff,
     with the comment number or file for the ones that do. Add anything you were unsure of to review.unverified.
 
+If your chat tool turns the long paste into an attachment (ChatGPT often does) it may describe the text instead of acting on it: type one line next to the attachment, for example *Follow the instructions in the attached text and reply with the issue pack YAML only.* The prompt itself now begins by telling the assistant that the whole message is its task, and ends with the instruction to write the pack. Use the same chat for the repair rounds.
+
 Tips: give it one issue and one merge request at a time; tell it which branch the merge request uses; if it invents a selector or a config key, say so and ask it to move
 that check into review.unverified or into a manual question; never paste secrets or private data into the chat.
 

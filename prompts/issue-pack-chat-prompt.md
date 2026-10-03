@@ -3,6 +3,8 @@
  Replace each placeholder line below (the lines that start with two at-signs). Nothing else needs changing.
 ==================================================================
 
+FOR THE AI ASSISTANT: this whole message is your task. It is not a document to summarise, review or comment on. It has three parts: the person's inputs (next), then your instructions, then a worked example. Do what the instructions say and reply with the issue pack, nothing else.
+
 >>> INPUT 1 OF 3: THE DRUPAL.ORG ISSUE URL
 @@MISSING@@ (replace this line with the issue URL)
 
@@ -50,3 +52,5 @@ WORKED EXAMPLE (for issue 3415961; yours must follow the same shape but describe
 ```yaml
 {{EXAMPLE}}
 ```
+
+END OF INSTRUCTIONS. NOW WRITE THE ISSUE PACK for the issue in INPUT 1, using INPUT 2 and INPUT 3 as your only sources. Reply with the YAML pack only. If an input is marked @@MISSING@@, reply only with what is missing.

@@ -23,9 +23,9 @@ test('the assistant is told to stop and ask while any input is still missing', (
   assert.match(prompt, /0\. FIRST check the three inputs[^\n]*@@MISSING@@[^\n]*do not write a pack/);
 });
 
-test('@@MISSING@@ appears only on the placeholder lines and once in rule 0, so a filled-in prompt has none left outside that rule', () => {
+test('@@MISSING@@ appears only on the placeholder lines, in rule 0 and in the closing instruction, so a filled-in prompt has none left outside those', () => {
   const filled = prompt.replace(/^@@MISSING@@ \([^\n]*\)$/gm, 'FILLED');
-  assert.equal((filled.match(/@@MISSING@@/g) || []).length, 1, 'only the mention in rule 0 remains');
+  assert.equal((filled.match(/@@MISSING@@/g) || []).length, 2, 'only rule 0 and the closing instruction mention it');
 });
 
 test('the worked example inside the prompt validates', () => {
@@ -38,4 +38,14 @@ test('rule 11 is a checklist: list the state each step needs, find where the rec
   assert.match(prompt, /^11\. Before you write the steps, list for yourself the exact state/m);
   assert.match(prompt, /find where the recipe creates it/);
   assert.match(prompt, /Never write "the configured limit" or "ensure X is configured" unless the recipe sets it/);
+});
+
+test('the assistant is told first that the whole message is its task, and the last line tells it to write the pack', () => {
+  const lines = prompt.split('\n');
+  const lead = lines.findIndex((l) => l.startsWith('FOR THE AI ASSISTANT: this whole message is your task'));
+  assert.ok(lead > 0 && lead < lines.findIndex((l) => l.startsWith('>>> INPUT 1 OF 3')), 'the lead comes before the inputs');
+  assert.match(lines[lead], /not a document to summarise, review or comment on/);
+  const last = lines.filter((l) => l.trim()).at(-1);
+  assert.match(last, /^END OF INSTRUCTIONS\. NOW WRITE THE ISSUE PACK for the issue in INPUT 1/);
+  assert.match(last, /Reply with the YAML pack only/);
 });

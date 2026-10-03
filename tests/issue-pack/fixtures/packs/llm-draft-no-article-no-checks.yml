@@ -1,0 +1,71 @@
+pack_version: 1
+
+issue:
+  nid: "3618230"
+  title: "Adopt the ajax MessageCommand for file uploads"
+  url: "https://www.drupal.org/project/drupal/issues/3618230"
+  fork_branch: "3618230-adopt-the-ajax"
+  merge_request: "!16777"
+
+sources:
+  - url: "https://www.drupal.org/project/drupal/issues/3618230"
+    note: "Issue page with comments #1 to #10 (status Postponed)"
+    date: "2026-10-02"
+  - url: "https://git.drupalcode.org/project/drupal/-/merge_requests/16777"
+    note: "Merge request !16777, source branch 3618230-adopt-the-ajax"
+    date: "2026-08-20"
+
+summary: |
+  Reported problem: ManagedFile::uploadAjaxCallback() renders status_messages into the replaced widget prefix and ships it inside the insert AJAX command. This causes issues with XSS filtering stripping theme elements like SVG message icons, relies on inline markup instead of proper aria-live announcements, places errors inside the widget between the Save button and field instead of the theme message region, and hinders decoupled frontends.
+
+  Proposed resolution and merge request (!16777): Adopts the AJAX MessageCommand in ManagedFile::uploadAjaxCallback(), creating a placeholder wrapper in the replaced markup and delivering messages via MessageCommand. Also adds a kernel test in ManagedFileTest.php.
+
+  Open points and discussion: Comment #9 notes mgifford added AI-generated tests and guidepup logs. Comment #10 notes Olivero theme was removed from core (issue #3595089) and asks if the problem occurs in the Default Admin theme. The issue is currently postponed.
+
+review:
+  status: draft
+  generated_by: "Gemini, from the issue page and MR diff read on 2026-10-03"
+  unverified:
+    - "Whether the issue still reproduces on current core main given the removal of the Olivero theme"
+    - "Whether the file upload error message placement in Default Admin theme matches the reported behavior in Olivero"
+
+recipe:
+  name: repro_3618230
+  files:
+    recipe.yml: |
+      name: "Repro: #3618230 Managed file message command"
+      description: "Ensures file module is enabled and sets up a content type with a file field."
+      type: "Testing"
+      install:
+        - file
+
+variant:
+  description: >
+    Upload a file exceeding the size limit on a file field via AJAX and check where the error message appears and how it is delivered in the AJAX response.
+  pages:
+    - "/node/add/article"
+  login: true
+  demo:
+    start: "/node/add/article"
+  steps:
+    - text: "File module is installed and a file field is available on a node form."
+      how: "recipe"
+    - text: "Open a node form with a file field (already loaded in both frames)."
+      how: "mirror"
+    - text: "Upload a file that exceeds the configured file size limit using the file field upload button."
+      how: "each"
+      lookFor: "Before: error renders inside the widget prefix via insert command. After (MR !16777): error is delivered via AJAX MessageCommand targeting the message wrapper."
+  expected: "Error messages are delivered via the dedicated AJAX MessageCommand rather than being server-rendered inside the widget HTML."
+  actual: "Before, error messages are server-rendered inside the widget via insert command. After (MR !16777), MessageCommand is used."
+  checks:
+    - label: "ManagedFile upload AJAX callback response contains MessageCommand"
+      probe: "typeof Drupal !== 'undefined'"
+      expect: true
+      kind: "precondition"
+  observe:
+    - label: "Error message is rendered via AJAX MessageCommand"
+      expectBefore: false
+      expectAfter: true
+
+notes: |
+  Created based on issue #3618230 and MR !16777. Olivero theme was removed from core in Drupal 11/main, so testing relies on current core themes (such as Claro or default admin).

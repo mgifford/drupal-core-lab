@@ -225,6 +225,15 @@ export function validatePack(text, { yaml } = {}) {
     }
   }
 
+  // The lab's Standard install of current core does not create the Article content type (both 3415961 and 3618230 failed to apply a recipe until
+  // core/tests/fixtures/recipes/article_content_type was added), so a pack that visits /node/add/article must create it.
+  if (isObj(pack.variant) && isObj(pack.recipe) && isObj(pack.recipe.files)) {
+    const v2 = pack.variant, doc2 = (() => { try { const d = yaml.load(pack.recipe.files['recipe.yml'] || '', { schema: yaml.CORE_SCHEMA }); return isObj(d) ? d : {}; } catch { return {}; } })();
+    const mentions = [...(Array.isArray(v2.pages) ? v2.pages : []), v2.demo && v2.demo.start, ...(Array.isArray(v2.steps) ? v2.steps.map((x) => x && x.text) : [])].some((t) => str(t) && /\/node\/add\/article\b/.test(t));
+    const creates = (Array.isArray(doc2.recipes) ? doc2.recipes : []).some((r) => /article_content_type/.test(String(r))) || Object.keys(pack.recipe.files).some((f) => /node\.type\.article\.yml$/.test(f));
+    if (mentions && !creates) warn('recipe.files.recipe.yml', 'the pack uses /node/add/article but the recipe does not create the Article content type, which the lab\'s Standard install of current core does not have: add core/tests/fixtures/recipes/article_content_type under recipes:');
+  }
+
   // Secrets anywhere, and URLs in the parts the lab acts on (recipe and variant; summary and notes only warn).
   (function scan(x, at) {
     if (str(x)) {
@@ -241,6 +250,7 @@ export function validatePack(text, { yaml } = {}) {
 // ---- a message to paste back into the chat: what to fix, in the validator's own words, with what to do about each ----
 const HINTS = [
   [/recipe sets no configuration/, 'Either (a) add the configuration to the recipe so the setup really exists (only if you know the correct Drupal config: do not invent config keys), or (b) change the step to say the person sets it up by hand, and name it in review.unverified.'],
+  [/does not create the Article content type/, 'Add core/tests/fixtures/recipes/article_content_type to the recipes: list in recipe.yml (or tell the person to supply the recipe).'],
   [/no fix check/, 'Add one fix check that compares something the change adds or alters (an element, an attribute or an announcement) and is false on Before and true on After; if you cannot know one, say why in review.unverified.'],
   [/no precondition check/, 'Add a precondition check that must hold on both sides, so a passing result means the setup was reached.'],
   [/HTML-like tags/, 'Rewrite it in plain words. Do not write angle brackets around tag names, not even inside backticks (for example write "a div with the class x").'],

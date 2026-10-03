@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { labRoot, variants } from '../../tools/compare/lib.mjs';
-import { validatePack, checkProbe, loadYaml } from '../../tools/compare/pack-validate.mjs';
+import { validatePack, checkProbe, loadYaml, repairMessage } from '../../tools/compare/pack-validate.mjs';
 
 const yaml = loadYaml();
 const example = fs.readFileSync(path.join(labRoot, 'docs/examples/issue-pack-3415961.yml'), 'utf8');
@@ -159,4 +159,27 @@ test('no warning when the pack admits the setup is by hand in review.unverified'
 
 test('the worked example and a repaired real draft stay free of warnings', () => {
   assert.deepEqual(run(example).warnings, []);
+});
+
+// ---- the Article content type (the lab's Standard install of current core does not have it) ----
+const articleWarning = (res) => res.warnings.find((w) => /does not create the Article content type/.test(w.msg));
+
+test('a real chat draft that visits /node/add/article without creating the Article type gets the warning, plus the others it earned', () => {
+  const r = run(fs.readFileSync(path.join(labRoot, 'tests/issue-pack/fixtures/packs/llm-draft-no-article-no-checks.yml'), 'utf8'));
+  assert.deepEqual(r.errors, []);
+  assert.ok(articleWarning(r)); assert.ok(stateWarning(r)); assert.ok(r.warnings.some((w) => /no fix check/.test(w.msg)));
+  assert.equal(articleWarning(r).at, 'recipe.files.recipe.yml');
+});
+
+test('no Article warning when the recipe applies the fixture recipe or ships the node type config, or the pack does not use the page', () => {
+  const draftNo = () => { const p = base(); p.recipe.files['recipe.yml'] = "name: 'x'\ntype: 'Testing'\ninstall:\n  - file\n"; p.variant.pages = ['/node/add/article']; return p; };
+  assert.ok(articleWarning(run(draftNo())));
+  const a = draftNo(); a.recipe.files['recipe.yml'] += 'recipes:\n  - core/tests/fixtures/recipes/article_content_type\n'; assert.equal(articleWarning(run(a)), undefined);
+  const b = draftNo(); b.recipe.files['config/node.type.article.yml'] = 'type: article\n'; assert.equal(articleWarning(run(b)), undefined);
+  const c = draftNo(); c.variant.pages = ['/admin/content']; c.variant.demo = { start: '/admin/content' }; c.variant.steps = c.variant.steps.map((x) => ({ ...x, text: x.text.replace('/node/add/article', '/admin/content') })); assert.equal(articleWarning(run(c)), undefined);
+});
+
+test('the repair message gives the plain instruction for the Article warning', () => {
+  const m = repairMessage(run(fs.readFileSync(path.join(labRoot, 'tests/issue-pack/fixtures/packs/llm-draft-no-article-no-checks.yml'), 'utf8')));
+  assert.match(m, /does not create the Article content type[^\n]*\n   What to do: Add core\/tests\/fixtures\/recipes\/article_content_type to the recipes: list/);
 });
