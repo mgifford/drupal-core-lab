@@ -119,3 +119,44 @@ test('size: a pack over 200 KB is rejected before parsing', () => { assert.ok(ha
 test('a pack cannot execute anything while being validated', () => {
   const p = base(); p.variant.checks[1].probe = "(globalThis.__packRan = true)"; run(p); assert.equal(globalThis.__packRan, undefined);
 });
+
+// ---- steps must not rely on state the recipe never creates (warning heuristic) ----
+const stateWarning = (res) => res.warnings.find((w) => /recipe sets no configuration/.test(w.msg));
+const withStep = (p, text) => { p.variant.steps[3].text = `${p.variant.steps[3].text} ${text}`; return p; };
+
+test('a real chat draft whose steps say "the configured limit" but whose recipe sets none gets the warning (and is still valid)', () => {
+  const text = fs.readFileSync(path.join(labRoot, 'tests/issue-pack/fixtures/packs/llm-draft-recipe-sets-no-state.yml'), 'utf8');
+  const r = run(text);
+  assert.deepEqual(r.errors, []);
+  const w = stateWarning(r);
+  assert.ok(w, 'warns that the recipe sets nothing');
+  assert.equal(w.at, 'variant.steps[2].text');
+  assert.match(w.msg, /"configured"/);
+  assert.ok(r.warnings.some((x) => /no fix check/.test(x.msg)), 'its other gap is still reported');
+});
+
+test('the warning also fires on lookFor and on the description, and names the word that triggered it', () => {
+  const a = run(withStep(base(), 'Use a file that exceeds the maximum size.'));
+  assert.equal(stateWarning(a).at, 'variant.steps[3].text'); assert.match(stateWarning(a).msg, /"maximum"/);
+  const b = base(); b.variant.steps[3].lookFor = 'The upload limit message appears.'; assert.equal(stateWarning(run(b)).at, 'variant.steps[3].lookFor');
+  const c = base(); c.variant.description += ' Uses the default threshold.'; assert.equal(stateWarning(run(c)).at, 'variant.description');
+});
+
+test('no warning when the recipe sets configuration, as a config section or as config files', () => {
+  const p = withStep(base(), 'Use a file over the configured limit.');
+  assert.ok(stateWarning(run(p)), 'sanity: it warns without configuration');
+  const withSection = structuredClone(p); const doc = yaml.load(withSection.recipe.files['recipe.yml']); doc.config = { actions: {} }; withSection.recipe.files['recipe.yml'] = yaml.dump(doc);
+  assert.equal(stateWarning(run(withSection)), undefined);
+  const withFile = structuredClone(p); withFile.recipe.files['config/x.yml'] = 'a: 1';
+  assert.equal(stateWarning(run(withFile)), undefined);
+});
+
+test('no warning when the pack admits the setup is by hand in review.unverified', () => {
+  const p = withStep(base(), 'Use a file over the configured limit.');
+  p.review.unverified.push('The size limit is not set by the recipe; the person must set it by hand');
+  assert.equal(stateWarning(run(p)), undefined);
+});
+
+test('the worked example and a repaired real draft stay free of warnings', () => {
+  assert.deepEqual(run(example).warnings, []);
+});

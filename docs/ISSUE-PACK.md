@@ -76,7 +76,7 @@ It refuses to overwrite an existing `reports/issues/<nid>/` or recipe. If you co
 Checks: known keys only; the issue number, URL, branch and recipe name agree; text is plain (no HTML-like tags); site paths only (no hosts); recipe files limited to
 `recipe.yml` and `config/*.yml`, valid YAML, known recipe keys, dependencies only from core or this repo's recipes, module names that look like machine names;
 URLs only on drupal.org, git.drupalcode.org and api.drupal.org (an error in the recipe and variant, a warning in the summary); no secrets or keys; no YAML anchors
-or aliases; at most 200 KB; `review.status` must be `draft` and `review.unverified` may not be empty; every check's `probe` must be a single read-only expression.
+or aliases; at most 200 KB; `review.status` must be `draft` and `review.unverified` may not be empty; every check's `probe` must be a single read-only expression. It also **warns** (does not reject) when a step or the description mentions a "configured" limit or setting while the recipe only applies stock recipes and sets no configuration of its own, because then the tester cannot follow the step; adding configuration to the recipe, or naming the setup in `review.unverified`, silences it.
 
 It does **not** prove the pack is correct or safe to trust. In particular:
 - A `probe` is evaluated inside the Before and After frames. The probe check rejects network calls, cookies, navigation, DOM-writing and focus-changing calls, assignments and

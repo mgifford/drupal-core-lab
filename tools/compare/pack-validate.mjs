@@ -208,6 +208,23 @@ export function validatePack(text, { yaml } = {}) {
     });
   }
 
+  // The steps must not rely on state the recipe never creates. A common failure: a step says "a file over the configured limit" while the recipe
+  // only applies stock recipes, so nothing sets a limit and a tester cannot follow the step. Heuristic, so a warning; any config in the recipe,
+  // or an unverified item that mentions the recipe or the setting, silences it.
+  if (isObj(pack.variant) && isObj(pack.recipe) && isObj(pack.recipe.files) && Array.isArray(pack.variant.steps)) {
+    const recipeDoc = (() => { try { const d = yaml.load(pack.recipe.files['recipe.yml'] || '', { schema: yaml.CORE_SCHEMA }); return isObj(d) ? d : {}; } catch { return {}; } })();
+    const setsConfig = recipeDoc.config !== undefined || Object.keys(pack.recipe.files).some((f) => f.startsWith('config/'));
+    const acknowledged = Array.isArray(pack.review && pack.review.unverified) && pack.review.unverified.some((u) => /recipe|limit|setting|config/i.test(String(u)));
+    if (!setsConfig && !acknowledged) {
+      const STATE = /\b(configured|configuration|limit|maximum|threshold|setting|settings)\b/i;
+      const texts = [...pack.variant.steps.flatMap((x, i) => (isObj(x) ? [[`variant.steps[${i}].text`, x.text], [`variant.steps[${i}].lookFor`, x.lookFor]] : [])), ['variant.description', pack.variant.description]];
+      for (const [at, t] of texts) {
+        const m = str(t) && t.match(STATE);
+        if (m) { warn(at, `mentions "${m[1]}", but the recipe sets no configuration (it only applies stock recipes). Add the configuration to the recipe, or say in review.unverified that the person must set it up by hand`); break; }
+      }
+    }
+  }
+
   // Secrets anywhere, and URLs in the parts the lab acts on (recipe and variant; summary and notes only warn).
   (function scan(x, at) {
     if (str(x)) {
