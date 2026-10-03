@@ -14,7 +14,7 @@ chat assistant ──writes──▶ issue-pack-<nid>.yml ──upload / paste�
 
        node scripts/issue-pack.mjs prompt
 
-   Send it once, with the three inputs filled in at the very end of the prompt (between the marker lines): the issue URL, the issue page text (select all on the issue page and copy) and the merge request diff (open the merge request's URL with .diff added). It needs the **issue fork branch name**
+   Send it once, with the three inputs filled in at the very top of the prompt (each placeholder line starts with @@MISSING@@, so a missing input is easy to see, and the assistant is told to stop and ask if one is left): the issue URL, the issue page text (select all on the issue page and copy) and the merge request diff (open the merge request's URL with .diff added). It needs the **issue fork branch name**
    (the merge request's source branch, shown on the issue page).
 2. Get the file into your workspace. In the workspace's web VS Code, drag it into the file explorer, or paste it into a new file.
 3. Check it (no network, nothing is written, nothing from the pack is run):
