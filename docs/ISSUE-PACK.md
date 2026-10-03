@@ -51,12 +51,15 @@ The first answer will usually need a round. Save it to a file, and let the valid
     node scripts/issue-pack.mjs validate issue-pack-<nid>.yml --repair
 
 It prints the problems in the validator's own words, each with what to do about it, and copies the whole message to your clipboard (`--no-copy` to skip). Paste it into the **same chat**.
-A chat assistant cannot know your Drupal configuration, so when the validator warns that the steps rely on a limit or setting the recipe never sets, attach a recipe folder you trust
-(one that builds on current core, for example one you already used for this issue):
+A chat assistant cannot know your Drupal configuration, and it may not copy config back faithfully even when you paste it in. So do not rely on it for the recipe: give the validator and the importer a recipe folder you trust
+(one that builds on current core, for example one you already used for this issue), and it replaces the assistant's own recipe files before checking or importing:
 
-    node scripts/issue-pack.mjs validate issue-pack-<nid>.yml --repair --attach-recipe recipes/<recipe folder>
+    node scripts/issue-pack.mjs validate issue-pack-<nid>.yml --recipe recipes/<recipe folder> --repair
+    node scripts/issue-pack.mjs import   issue-pack-<nid>.yml --recipe recipes/<recipe folder>
 
-The message then tells the assistant to copy those files exactly into `recipe.files` and to say in `review.unverified` that you supplied them. The files are yours: the lab does not know that they work until you build them.
+The assistant keeps the summary, steps, checks and questions; your folder (`recipe.yml` and `config/*.yml`) supplies the starting state. The pack's `review.unverified` gets a line saying the recipe was supplied by you, and the steps may
+describe your recipe imperfectly, so read them against it. Your folder is yours to vouch for: the lab does not know that it works until you build it. (`--attach-recipe <folder>` on `--repair` instead asks the assistant to copy your files
+into its pack; that works only if the assistant follows the instruction exactly.)
 Repeat until the validator reports nothing to repair, then ask for the things a validator cannot check:
 
     List every claim in summary, steps and checks that comes from your own reasoning and not from the issue text, the comments or the diff,

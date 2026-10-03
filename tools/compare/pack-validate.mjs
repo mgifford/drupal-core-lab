@@ -275,3 +275,18 @@ export function readRecipeDir(dir) {
   if (fs.existsSync(cfg)) for (const f of fs.readdirSync(cfg).sort()) if (/^[A-Za-z0-9_.-]+\.yml$/.test(f)) rd(`config/${f}`);
   return files;
 }
+
+// Replace the pack's recipe files with a folder the person trusts, and record that in review.unverified. Used by --recipe on validate and import:
+// a chat assistant cannot know Drupal configuration, so the person supplies the recipe and the assistant keeps the narrative, steps and checks.
+// Returns the new pack text, or the original text unchanged if it is not YAML the validator can read (the validator will then report that).
+export function graftRecipe(text, yaml, files, dirLabel) {
+  let doc; try { doc = yaml.load(text, { schema: yaml.CORE_SCHEMA }); } catch { return text; }
+  if (!isObj(doc)) return text;
+  const nid = isObj(doc.issue) && doc.issue.nid !== undefined ? String(doc.issue.nid) : '';
+  doc.recipe = { name: (isObj(doc.recipe) && doc.recipe.name) || `repro_${nid}`, files };
+  if (!isObj(doc.review)) doc.review = { status: 'draft', generated_by: 'unknown', unverified: [] };
+  if (!Array.isArray(doc.review.unverified)) doc.review.unverified = [];
+  doc.review.unverified.push(`The recipe files were supplied by the person (from ${dirLabel}) and replace the assistant's own; the assistant did not write or check them, and the steps may describe them imperfectly`);
+  return `# The recipe in this pack was replaced by issue-pack.mjs --recipe ${dirLabel}\n${yaml.dump(doc, { lineWidth: -1, noRefs: true })}`;
+}
+

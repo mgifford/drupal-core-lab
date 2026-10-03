@@ -28,4 +28,4 @@ Open the issue page, select all and copy for input 2; open the merge request's U
     node scripts/issue-pack.mjs validate issue-pack-<number>.yml
     node scripts/issue-pack.mjs import issue-pack-<number>.yml
 
-If the validator reports errors or warnings, run it again with `--repair`: it prints a message (and copies it to your clipboard) to paste back into the same chat; `--attach-recipe <folder>` adds a recipe you trust ([docs/ISSUE-PACK.md](../docs/ISSUE-PACK.md)). A pack is a draft until you have run it and confirmed it.
+If the validator reports errors or warnings, run it again with `--repair`: it prints a message (and copies it to your clipboard) to paste back into the same chat; `--recipe <folder>` (on `validate` and `import`) swaps in a recipe you trust for the assistant's own ([docs/ISSUE-PACK.md](../docs/ISSUE-PACK.md)). A pack is a draft until you have run it and confirmed it.

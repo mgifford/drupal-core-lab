@@ -2,10 +2,11 @@
 //   node scripts/issue-pack.mjs prepare <issue URL or number> [--mr N] [--out FILE] [--no-copy]
 //                                                               fetch the issue text and merge request diff, fill in the prompt, write it to a file, copy it, print the path
 //   node scripts/issue-pack.mjs prompt                          print the blank chat prompt (prompts/issue-pack-chat-prompt.md with the current example filled in)
-//   node scripts/issue-pack.mjs validate <pack.yml> [--repair [--attach-recipe <dir>] [--no-copy]]
+//   node scripts/issue-pack.mjs validate <pack.yml> [--recipe <dir>] [--repair [--attach-recipe <dir>] [--no-copy]]
+//                                                               --recipe <dir> checks the pack with a recipe folder you trust in place of the assistant's own recipe
 //                                                               check only: no network, nothing is written. --repair also prints (and copies) a message to paste back
 //                                                               into the chat that fixes what the validator found; --attach-recipe adds a recipe folder you trust to that message
-//   node scripts/issue-pack.mjs import <pack.yml> [--dry-run] [--depth 300]
+//   node scripts/issue-pack.mjs import <pack.yml> [--recipe <dir>] [--dry-run] [--depth 300]
 // import validates, then runs scripts/new-issue.mjs (fetches the issue fork branch and writes the patch and the issue folder),
 // writes the recipe to recipes/repro_<nid>/ with a copy in reports/issues/<nid>/recipe/, merges the pack's steps and checks into
 // reports/issues/<nid>/variants.json (never tools/compare/variants.json) and keeps the pack and a SUMMARY.md next to them.
@@ -14,7 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { labRoot } from '../tools/compare/lib.mjs';
-import { validatePack, loadYaml, repairMessage, readRecipeDir } from '../tools/compare/pack-validate.mjs';
+import { validatePack, loadYaml, repairMessage, readRecipeDir, graftRecipe } from '../tools/compare/pack-validate.mjs';
 
 const args = process.argv.slice(2);
 const copyToClipboard = (text) => { for (const c of [['pbcopy'], ['wl-copy'], ['xclip', '-selection', 'clipboard'], ['xsel', '--clipboard', '--input']]) { if (spawnSync(c[0], c.slice(1), { input: text }).status === 0) return c[0]; } return null; };
@@ -55,7 +56,15 @@ if (!fs.existsSync(file)) { console.error(`No such file: ${file}`); process.exit
 
 const yaml = loadYaml();
 if (!yaml) { console.error('js-yaml is not installed. Run: npm install --prefix tools/compare/.deps js-yaml@4'); process.exit(2); }
-const text = fs.readFileSync(file, 'utf8');
+let text = fs.readFileSync(file, 'utf8');
+const ri0 = args.indexOf('--recipe');
+if (ri0 >= 0) {
+  const d = args[ri0 + 1];
+  if (!d || d.startsWith('--')) { console.error('--recipe needs a folder'); process.exit(2); }
+  let files; try { files = readRecipeDir(path.resolve(d)); } catch (e) { console.error(`--recipe: ${e.message}`); process.exit(2); }
+  text = graftRecipe(text, yaml, files, d);
+  console.log(`Using the recipe from ${d} (${Object.keys(files).length} file(s)) instead of the one in the pack.`);
+}
 const { errors, warnings, pack } = validatePack(text, { yaml });
 for (const w of warnings) console.log(`warning  ${w.at}: ${w.msg}`);
 for (const e of errors) console.log(`ERROR    ${e.at}: ${e.msg}`);
