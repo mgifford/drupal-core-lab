@@ -1,6 +1,7 @@
 // Tests for the issue pack validator. Run: node --test tests/issue-pack/
 // Needs js-yaml: npm install --prefix tools/compare/.deps js-yaml@4. No network, no Docker, nothing is written.
 import test from 'node:test';
+import { spawnSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -182,4 +183,48 @@ test('no Article warning when the recipe applies the fixture recipe or ships the
 test('the repair message gives the plain instruction for the Article warning', () => {
   const m = repairMessage(run(fs.readFileSync(path.join(labRoot, 'tests/issue-pack/fixtures/packs/llm-draft-no-article-no-checks.yml'), 'utf8')));
   assert.match(m, /does not create the Article content type[^\n]*\n   What to do: Add core\/tests\/fixtures\/recipes\/article_content_type to the recipes: list/);
+});
+
+// ---- probes that read nothing, and packs in which nothing tells Before from After ----
+const FIXP = (n) => fs.readFileSync(path.join(labRoot, `tests/issue-pack/fixtures/packs/${n}`), 'utf8');
+const wMsg = (res, re) => res.warnings.find((w) => re.test(w.msg));
+
+test('a real chat draft whose only check is the probe "true" gets the warning against that check', () => {
+  const r = run(FIXP('llm-draft-constant-probe.yml'));
+  assert.deepEqual(r.errors, []);
+  const w = wMsg(r, /does not read anything from the page/);
+  assert.ok(w); assert.equal(w.at, 'variant.checks[0].probe');
+});
+
+test('probes that name the page are not flagged, including every check already in the repo and the worked example', () => {
+  for (const v of variants()) for (const [i, c] of (v.checks || []).entries()) { const r = run((() => { const p = base(); p.variant.checks[0].probe = c.probe; return p; })()); assert.equal(wMsg(r, /does not read anything/), undefined, `${v.slug} check ${i}`); }
+  assert.deepEqual(run(example).warnings, []);
+});
+
+test('other constant probes are flagged too: false, a number, a comparison of literals, typeof of a literal', () => {
+  for (const probe of ['false', '1 === 1', "'a' === 'a'", '42', "typeof 'x' === 'string'"]) {
+    const p = base(); p.variant.checks[0].probe = probe; assert.ok(wMsg(run(p), /does not read anything from the page/), probe);
+  }
+});
+
+test('a real chat draft in which both manual questions expect the same answer on both sides and there is no check gets the warning', () => {
+  const r = run(FIXP('llm-draft-nothing-tells-before-from-after.yml'));
+  assert.deepEqual(r.errors, []);
+  const w = wMsg(r, /nothing in this pack can tell Before from After/); assert.ok(w); assert.equal(w.at, 'variant');
+});
+
+test('the warning goes away with a fix check or with a question whose answer differs, and the repair message explains it', () => {
+  const p = JSON.parse(JSON.stringify(yaml.load(FIXP('llm-draft-nothing-tells-before-from-after.yml'), { schema: yaml.CORE_SCHEMA })));
+  const a = structuredClone(p); a.variant.observe[0].expectAfter = false; assert.equal(wMsg(run(a), /nothing in this pack can tell/), undefined);
+  const b = structuredClone(p); b.variant.checks = [{ label: 'the wrapper exists', probe: "document.querySelector('.x') !== null", expect: true, kind: 'fix' }]; assert.equal(wMsg(run(b), /nothing in this pack can tell/), undefined);
+  assert.match(repairMessage(run(FIXP('llm-draft-nothing-tells-before-from-after.yml'))), /nothing in this pack can tell Before from After[^\n]*\n   What to do: Add a fix check that compares something the change adds or alters, or a manual question/);
+  assert.match(repairMessage(run(FIXP('llm-draft-constant-probe.yml'))), /does not read anything from the page[^\n]*\n   What to do: Replace it with a probe that looks at the page/);
+});
+
+test('validate prints what the pack can test: counts of automatic checks, differing questions and recipe content', () => {
+  const out = (n) => spawnSync('node', [path.join(labRoot, 'scripts/issue-pack.mjs'), 'validate', path.join(labRoot, `tests/issue-pack/fixtures/packs/${n}`)], { encoding: 'utf8' }).stdout;
+  const a = out('llm-draft-nothing-tells-before-from-after.yml');
+  assert.match(a, /What this pack can test:\n  automatic checks: 0 \(precondition 0, fix 0, regression 0\)\n  manual questions that expect a different answer on Before and After: 0 of 2\n  recipe: applies 0 other recipe\(s\), no config section, 0 config file\(s\)/);
+  const b = out('llm-draft-constant-probe.yml');
+  assert.match(b, /automatic checks: 1 \(precondition 1, fix 0, regression 0\)/); assert.match(b, /different answer on Before and After: 1 of 1/); assert.match(b, /applies 1 other recipe\(s\)/);
 });

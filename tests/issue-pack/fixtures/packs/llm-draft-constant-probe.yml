@@ -1,0 +1,73 @@
+pack_version: 1
+
+issue:
+  nid: "3618230"
+  title: "Adopt the ajax MessageCommand for file uploads"
+  url: https://www.drupal.org/project/drupal/issues/3618230
+  fork_branch: 3618230-adopt-the-ajax
+  merge_request: "!16777"
+
+sources:
+  - url: https://www.drupal.org/project/drupal/issues/3618230
+    note: "Issue page with comments #1 to #10 (status Postponed (maintainer needs more info) in comment #10)"
+    date: 2026-10-02
+  - url: https://git.drupalcode.org/project/drupal/-/merge_requests/16777
+    note: "Merge request !16777, opened, target branch main; modifies ManagedFile.php and ManagedFileTest.php"
+    date: 2026-08-20
+
+summary: |
+  Reported problem: ManagedFile::uploadAjaxCallback() renders a status_messages element into the replaced widget's #prefix and sends it inside the insert AJAX command. This causes issues with XSS filtering stripping things like theme icons (e.g., Olivero's SVG message icon), lacks proper aria-live accessibility announcements, places errors inside the file widget rather than the theme message region, and complicates decoupled rendering.
+  
+  The merge request (!16777) modifies ManagedFile.php to use a placeholder container for file upload messages and delivers messages using the dedicated AJAX MessageCommand instead of baking them into the replaced markup. It also adds a kernel test in ManagedFileTest.php.
+  
+  Open points from the discussion: comment #10 notes that Olivero has been removed from core via issue #3595089, and asks whether this problem occurs in the Default Admin theme.
+
+review:
+  status: draft
+  generated_by: "Gemini, from the issue page and the MR diff read on 2026-10-03"
+  unverified:
+    - "Whether the issue and fix behave as expected using themes other than Olivero given Olivero's removal from core in #3595089"
+    - "Whether the fix check (message command present in AJAX response) passes correctly in a live browser environment"
+
+recipe:
+  name: repro_3618230
+  files:
+    recipe.yml: |
+      name: 'Repro: #3618230 Adopt ajax MessageCommand for file uploads'
+      description: 'Adds an Article content type with a file field to test managed file AJAX uploads.'
+      type: 'Testing'
+      recipes:
+        - core/tests/fixtures/recipes/article_content_type
+
+variant:
+  description: >-
+    Upload a file exceeding the size limit on a node form using a managed file field, in both frames.
+    Before: the error message is rendered inside the widget via an insert command.
+    After (MR !16777): the error message is delivered using the AJAX MessageCommand.
+  pages:
+    - /node/add/article
+  login: true
+  demo:
+    start: /node/add/article
+  steps:
+    - text: "Article content type with a file field is available."
+      how: recipe
+    - text: "Open /node/add/article in both frames."
+      how: mirror
+    - text: "Upload a file that exceeds the upload size limit using the file field upload button, in each frame."
+      how: each
+      lookFor: "Observe where and how the error message is rendered."
+  expected: "Error messages are delivered via the AJAX MessageCommand targeting the message wrapper container."
+  actual: "Before, error messages are server-rendered inside the widget via the insert command."
+  checks:
+    - label: "Managed file upload callback uses MessageCommand"
+      probe: "true"
+      expect: true
+      kind: precondition
+  observe:
+    - label: "Error message is rendered via AJAX MessageCommand rather than server-rendered HTML inside the insert command"
+      expectBefore: false
+      expectAfter: true
+
+notes: |
+  The merge request introduces a kernel test (ManagedFileTest::testUploadAjaxCallbackMessages) which verifies that the AJAX response contains a message command instead of rendering the error directly inside the insert command data.

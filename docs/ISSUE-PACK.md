@@ -70,6 +70,17 @@ If your chat tool turns the long paste into an attachment (ChatGPT often does) i
 Tips: give it one issue and one merge request at a time; tell it which branch the merge request uses; if it invents a selector or a config key, say so and ask it to move
 that check into review.unverified or into a manual question; never paste secrets or private data into the chat.
 
+## Is this pack any good? Check it before you build anything
+
+Run `node scripts/issue-pack.mjs validate <file>` and read three things.
+
+1. **Errors.** Any error means the pack cannot be imported. Fix it (`--repair` writes the message for the chat).
+2. **"What this pack can test".** The summary after the warnings says how many automatic checks there are by kind, how many manual questions expect a *different* answer on Before and After, and what the recipe creates.
+   A pack is worth building when it has a `fix` check or at least one differing question (otherwise nothing can show a difference), a `precondition` check, and a recipe whose config matches what the steps rely on (a limit, a field, a setting).
+3. **Warnings.** Each says what to change. The ones that matter most: a probe that reads nothing from the page (it always gives the same answer), steps that rely on state the recipe never sets, a recipe that never creates the Article type for `/node/add/article`, and "nothing can tell Before from After".
+
+A clean validator run is necessary, not sufficient. It cannot tell whether a check's label matches its probe, whether a selector exists, or whether the steps describe the recipe. Only then, import and build it, do the steps by hand in the viewer, press **Run checks**, and see that the `fix` check fails on Before and passes on After.
+
 ## What import writes
 
 | Where | What |

@@ -1,0 +1,78 @@
+pack_version: 1
+
+issue:
+  nid: "3618230"
+  title: "Adopt the ajax MessageCommand for file uploads"
+  url: https://www.drupal.org/project/drupal/issues/3618230
+  fork_branch: "3618230-adopt-the-ajax"
+  merge_request: "!16777"
+
+sources:
+  - url: https://www.drupal.org/project/drupal/issues/3618230
+    note: "Issue summary and comments #1 to #10; status Postponed, with comment #10 asking whether the problem occurs in Default Admin after Olivero was removed"
+    date: "2026-10-03"
+  - url: https://git.drupalcode.org/project/drupal/-/merge_requests/16777
+    note: "Merge request !16777 diff, source branch 3618230-adopt-the-ajax, target branch main; changes ManagedFile::uploadAjaxCallback() and adds one kernel test"
+    date: "2026-08-20"
+
+summary: |
+  Reported problem: ManagedFile::uploadAjaxCallback() renders status messages into the replaced file widget markup and returns that markup through an AJAX insert command. The issue summary says this can cause message markup such as Olivero's SVG icon to be stripped by XSS filtering, does not use the AJAX message command's live announcement handling, and places upload errors inside the widget rather than the theme message region. The issue's reproduction report is Drupal 11.4 with Olivero and a file field: uploading a file over the limit shows the error inside the widget and leaves the page message region empty (issue summary). This is a server-side managed-file AJAX callback path, not a browser-side file-size validation path.
+
+  MR !16777 stops rendering status messages into the replaced markup. It adds a uniquely identified message container to the callback's output, deletes queued messenger messages, and adds one MessageCommand per message targeting that container, with the existing in-widget placement retained for backwards compatibility (MR diff). The new kernel test checks the response command sequence and that a messenger error is consumed (MR diff). The MR's proposed placement does not test placement in the theme message region.
+
+  The issue is Postponed. Comment #10 (2026-10-02) asks whether the reported problem occurs in Default Admin because Olivero has been removed from core. No answer or current-core reproduction with Default Admin is included in the supplied issue text. Comment #9 says Guidepup runs and AI-generated tests were added, but the supplied MR diff contains only the kernel test shown here.
+
+  The repro below exercises the reported oversized-upload path. The supplied sources do not identify a core recipe that creates a file field with an upload size limit, nor the configuration needed to set that limit. The recipe therefore does not claim to create the complete state; those setup details must be resolved before the lab can run this recipe reliably.
+
+review:
+  status: "draft"
+  generated_by: "OpenAI, from the supplied issue text, comments #1 to #10, and MR !16777 diff on 2026-10-03"
+  unverified:
+    - "Which core recipe, if any, reliably creates an Article content type with a managed file field and a usable upload-size limit on the lab's current core version"
+    - "How the lab can set a deterministic file-size limit and ensure the uploaded test file exceeds it using core-only recipe configuration"
+    - "Whether this problem still reproduces on current core with Default Admin; comment #10 asks this and the supplied sources do not answer"
+    - "Whether the issue's reported Olivero icon stripping is observable with a theme available in the lab; Olivero was removed from core according to comment #10"
+    - "Whether the AJAX MessageCommand reaches an assistive technology live region as intended in this scenario; the issue summary asserts this benefit, but the supplied evidence does not include an independently verified assistive technology result"
+    - "Whether the selector generated from form parents is unique and valid for all managed-file widget structures; the MR adds a unique ID and targets it, but broader cases are not demonstrated in the supplied test"
+    - "Whether queued unrelated messenger messages can be consumed by this callback; the MR calls deleteAll(), and the supplied test covers only one upload error"
+    - "Whether the callback's file-size error is always produced through this exact uploadAjaxCallback() path in the current core version"
+
+recipe:
+  name: "repro_3618230"
+  files:
+    recipe.yml: |
+      name: 'Repro: #3618230 Managed file upload messages'
+      description: 'The required managed file field and upload-size configuration have not been identified in the supplied sources; see review.unverified.'
+      type: 'Testing'
+      recipes: []
+
+variant:
+  description: >-
+    Attempt to upload a file that exceeds the managed file field's configured upload limit. The reported Before behaviour is that the error appears inside the widget and the page message region stays empty. MR !16777 routes the message through a MessageCommand targeting a container in the replaced widget markup. The setup is not yet reproducible from the supplied core-only recipe information, so use this as a draft scenario pending a deterministic recipe.
+  pages:
+    - "/node/add/article"
+  login: true
+  demo:
+    start: "/node/add/article"
+  steps:
+    - text: "The required article content type, managed file field, and upload-size limit are not established by this recipe; the issue sources do not specify a core recipe or configuration action for them."
+      how: recipe
+    - text: "Open the article form in both frames and locate its managed file upload control."
+      how: mirror
+      lookFor: "Confirm that the form exposes the same managed file field in both frames."
+    - text: "In each frame, upload a file whose size exceeds the managed file field's configured limit. Select the file manually in each frame."
+      how: each
+      lookFor: "Observe where the upload error appears and whether a message is inserted into the page message region."
+  expected: "An oversized upload produces an error message through the managed-file AJAX response. The sources do not report a change to the placement: MR !16777 retains the message within the widget."
+  actual: "The issue summary reports that on Drupal 11.4 with Olivero, an oversized upload error appears inside the widget and the page message region stays empty. Whether this reproduces on current core with Default Admin is unanswered in comment #10."
+  checks: []
+  observe:
+    - label: "Does uploading a file over the configured limit show an error inside the managed file widget?"
+      expectBefore: true
+      expectAfter: true
+    - label: "Does uploading a file over the configured limit leave the page message region empty?"
+      expectBefore: true
+      expectAfter: true
+
+notes: |
+  No automated probe is included. The supplied sources do not establish a recipe that creates the file field and its upload limit, and the placement retained by the MR is within the widget. The central change is the response mechanism for queued messages: an insert command replaces widget markup, then MessageCommand commands target a container inside that markup. The issue's claim about accessible live announcements is not a conformance finding and has not been verified here.

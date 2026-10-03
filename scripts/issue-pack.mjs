@@ -68,6 +68,15 @@ if (ri0 >= 0) {
 const { errors, warnings, pack } = validatePack(text, { yaml });
 for (const w of warnings) console.log(`warning  ${w.at}: ${w.msg}`);
 for (const e of errors) console.log(`ERROR    ${e.at}: ${e.msg}`);
+if (pack) {
+  const checks = pack.variant.checks || [], obs = pack.variant.observe || [], kinds = (k) => checks.filter((c) => c.kind === k).length;
+  let rdoc = {}; try { rdoc = yaml.load(pack.recipe.files['recipe.yml'], { schema: yaml.CORE_SCHEMA }) || {}; } catch { /* reported above */ }
+  const cfgFiles = Object.keys(pack.recipe.files).filter((f) => f.startsWith('config/')).length;
+  console.log('\nWhat this pack can test:');
+  console.log(`  automatic checks: ${checks.length} (precondition ${kinds('precondition')}, fix ${kinds('fix')}, regression ${kinds('regression')})`);
+  console.log(`  manual questions that expect a different answer on Before and After: ${obs.filter((o) => o.expectBefore !== o.expectAfter).length} of ${obs.length}`);
+  console.log(`  recipe: applies ${(rdoc.recipes || []).length} other recipe(s), ${rdoc.config ? 'has a config section' : 'no config section'}, ${cfgFiles} config file(s)`);
+}
 if (cmd === 'validate' && args.includes('--repair')) {
   const ri = args.indexOf('--attach-recipe');
   let recipeFiles = null;
