@@ -1,5 +1,7 @@
 // Check and import an issue pack (docs/ISSUE-PACK.md): one YAML file that describes how to reproduce a Drupal core issue.
-//   node scripts/issue-pack.mjs prompt                          print the chat prompt (prompts/issue-pack-chat-prompt.md with the current example filled in)
+//   node scripts/issue-pack.mjs prepare <issue URL or number> [--mr N] [--out FILE] [--no-copy]
+//                                                               fetch the issue text and merge request diff, fill in the prompt, write it to a file, copy it, print the path
+//   node scripts/issue-pack.mjs prompt                          print the blank chat prompt (prompts/issue-pack-chat-prompt.md with the current example filled in)
 //   node scripts/issue-pack.mjs validate <pack.yml>             check only: no network, nothing is written
 //   node scripts/issue-pack.mjs import <pack.yml> [--dry-run] [--depth 300]
 // import validates, then runs scripts/new-issue.mjs (fetches the issue fork branch and writes the patch and the issue folder),
@@ -14,6 +16,30 @@ import { validatePack, loadYaml } from '../tools/compare/pack-validate.mjs';
 
 const args = process.argv.slice(2);
 const [cmd, file] = args.filter((a) => !a.startsWith('--'));
+if (cmd === 'prepare') {
+  const { parseIssue, gather, composePrompt } = await import('../tools/compare/pack-prepare.mjs');
+  const os = await import('node:os');
+  let nid; try { nid = parseIssue(file); } catch (e) { console.error(e.message); process.exit(2); }
+  const mr = args.includes('--mr') ? args[args.indexOf('--mr') + 1] : undefined;
+  if (mr !== undefined && !/^\d{1,7}$/.test(mr)) { console.error('--mr must be the merge request number, for example 16777'); process.exit(2); }
+  let g; try { g = await gather(nid, { mr, log: (m) => console.log(m) }); } catch (e) { console.error(`Could not fetch: ${e.message}`); process.exit(1); }
+  if (g.missing.issue) { console.error(g.missing.issue); process.exit(1); }
+  const tpl = fs.readFileSync(path.join(labRoot, 'prompts/issue-pack-chat-prompt.md'), 'utf8');
+  const ex = fs.readFileSync(path.join(labRoot, 'docs/examples/issue-pack-3415961.yml'), 'utf8').trimEnd();
+  const { text, missing } = composePrompt(tpl, ex, g);
+  const desktop = path.join(os.homedir(), 'Desktop');
+  const outArg = args.includes('--out') ? args[args.indexOf('--out') + 1] : null;
+  const out = path.resolve(outArg || path.join(fs.existsSync(desktop) ? desktop : process.cwd(), `issue-pack-prompt-${nid}.txt`));
+  fs.writeFileSync(out, text);
+  let copied = null;
+  if (!args.includes('--no-copy')) for (const c of [['pbcopy'], ['wl-copy'], ['xclip', '-selection', 'clipboard'], ['xsel', '--clipboard', '--input']]) { if (spawnSync(c[0], c.slice(1), { input: text }).status === 0) { copied = c[0]; break; } }
+  console.log(`\nIssue #${nid}: ${g.issueText.split('\n')[0].replace(/^ISSUE #\d+: /, '')}`);
+  console.log(g.mr ? `Merge request !${g.mr.iid} (${g.mr.state}), branch ${g.mr.branch}${g.diff ? `, diff ${Math.round(g.diff.length / 1024) || 1} KB` : ', diff NOT fetched'}` : `Merge request: NOT FOUND (${g.missing.mr})`);
+  for (const n of g.notes) console.log(`Note: ${n}`);
+  console.log(`\nWrote ${out} (${Math.round(text.length / 1024)} KB)${copied ? `\nCopied to the clipboard (${copied}).` : '\nNot copied to the clipboard: open the file and copy it.'}`);
+  console.log(missing ? `\n${missing} of 3 inputs are still marked @@MISSING@@ in the file: paste them in before sending.` : '\nAll three inputs are filled in. Check them, then paste the whole prompt into a new chat with your assistant.');
+  process.exit(0);
+}
 if (cmd === 'prompt') {
   const tpl = fs.readFileSync(path.join(labRoot, 'prompts/issue-pack-chat-prompt.md'), 'utf8');
   const ex = fs.readFileSync(path.join(labRoot, 'docs/examples/issue-pack-3415961.yml'), 'utf8').trimEnd();
@@ -21,7 +47,7 @@ if (cmd === 'prompt') {
   process.exit(0);
 }
 const flag = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
-if (!['validate', 'import'].includes(cmd) || !file) { console.error('usage: node scripts/issue-pack.mjs prompt | validate <pack.yml> | import <pack.yml> [--dry-run] [--depth 300]'); process.exit(2); }
+if (!['validate', 'import'].includes(cmd) || !file) { console.error('usage: node scripts/issue-pack.mjs prepare <issue URL or number> | prompt | validate <pack.yml> | import <pack.yml> [--dry-run] [--depth 300]'); process.exit(2); }
 if (!fs.existsSync(file)) { console.error(`No such file: ${file}`); process.exit(2); }
 
 const yaml = loadYaml();

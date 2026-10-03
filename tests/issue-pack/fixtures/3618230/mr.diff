@@ -1,0 +1,95 @@
+diff --git a/core/modules/file/src/Element/ManagedFile.php b/core/modules/file/src/Element/ManagedFile.php
+index aae40978cb18361fdeef13d4d87aaa71bece1eef..5f475d9ac5bd686bf71664bf373b148486d34450 100644
+--- a/core/modules/file/src/Element/ManagedFile.php
++++ b/core/modules/file/src/Element/ManagedFile.php
+@@ -6,6 +6,7 @@
+ use Drupal\Component\Utility\Html;
+ use Drupal\Component\Utility\NestedArray;
+ use Drupal\Core\Ajax\AjaxResponse;
++use Drupal\Core\Ajax\MessageCommand;
+ use Drupal\Core\Ajax\ReplaceCommand;
+ use Drupal\Core\Form\FormStateInterface;
+ use Drupal\Core\Render\Attribute\FormElement;
+@@ -203,14 +204,28 @@ public static function uploadAjaxCallback(&$form, FormStateInterface &$form_stat
+       $form[$current_file_count]['#attributes']['class'][] = 'ajax-new-content';
+     }
+ 
+-    $status_messages = ['#type' => 'status_messages'];
+-    $form['#prefix'] .= $renderer->renderRoot($status_messages);
++    // Placeholder for where the messages shall appear. Being part of the
++    // replaced markup, the next upload attempt replaces the messages away
++    // with the widget. The unique ID also works when the replaced element is
++    // a whole multi-value field widget, which has no upload button of its
++    // own to derive a selector from.
++    $message_wrapper_id = Html::getUniqueId('file-upload-messages-' . implode('-', $form_parents));
++    $form['#prefix'] .= '<div id="' . $message_wrapper_id . '" class="file-upload-messages"></div>';
+     $output = $renderer->renderRoot($form);
+ 
+     $response = new AjaxResponse();
+     $response->setAttachments($form['#attached']);
+-
+-    return $response->addCommand(new ReplaceCommand(NULL, $output));
++    $response->addCommand(new ReplaceCommand(NULL, $output));
++
++    // Deliver messages with the dedicated AJAX command instead of baking them
++    // into the replaced markup.
++    $message_selector = '#' . $message_wrapper_id;
++    foreach (\Drupal::messenger()->deleteAll() as $type => $messages) {
++      foreach ($messages as $message) {
++        $response->addCommand(new MessageCommand($message, $message_selector, ['type' => $type], FALSE));
++      }
++    }
++    return $response;
+   }
+ 
+   /**
+diff --git a/core/modules/file/tests/src/Kernel/ManagedFileTest.php b/core/modules/file/tests/src/Kernel/ManagedFileTest.php
+index 7aa6e4e11681c479895fae85c83ba5c1fbd31dba..6027382f30b5dc026a17babff68c1f390d323478 100644
+--- a/core/modules/file/tests/src/Kernel/ManagedFileTest.php
++++ b/core/modules/file/tests/src/Kernel/ManagedFileTest.php
+@@ -7,8 +7,10 @@
+ use Drupal\Core\Form\FormInterface;
+ use Drupal\Core\Form\FormState;
+ use Drupal\Core\Form\FormStateInterface;
++use Drupal\file\Element\ManagedFile;
+ use PHPUnit\Framework\Attributes\Group;
+ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++use Symfony\Component\HttpFoundation\Request;
+ 
+ /**
+  * Managed file element test.
+@@ -58,4 +60,34 @@ public function testManagedFileElement(): void {
+     $this->assertEquals(0, count($form_state->getErrors()));
+   }
+ 
++  /**
++   * Tests that the upload AJAX callback delivers messages as AJAX commands.
++   */
++  public function testUploadAjaxCallbackMessages(): void {
++    $messenger = $this->container->get('messenger');
++    $messenger->addError('The file is too big.');
++
++    $form_state = new FormState();
++    $form = $this->container->get('form_builder')->buildForm($this, $form_state);
++    $request = new Request(['element_parents' => 'managed_file']);
++    $commands = ManagedFile::uploadAjaxCallback($form, $form_state, $request)->getCommands();
++
++    // The replaced markup only carries the container the messages go into, so
++    // that the next upload replaces stale messages away with the element.
++    $this->assertSame('insert', $commands[0]['command']);
++    $this->assertStringContainsString('file-upload-messages', (string) $commands[0]['data']);
++    $this->assertStringNotContainsString('The file is too big.', (string) $commands[0]['data']);
++
++    // The message itself is delivered as a command targeting that container.
++    $this->assertSame('message', $commands[1]['command']);
++    $this->assertSame('The file is too big.', (string) $commands[1]['message']);
++    $this->assertSame('error', $commands[1]['messageOptions']['type']);
++    $this->assertStringStartsWith('#file-upload-messages-managed-file', $commands[1]['messageWrapperQuerySelector']);
++    $this->assertFalse($commands[1]['clearPrevious']);
++    $this->assertCount(2, $commands);
++
++    // The messages were consumed by the response.
++    $this->assertSame([], $messenger->all());
++  }
++
+ }

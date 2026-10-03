@@ -10,12 +10,17 @@ chat assistant ──writes──▶ issue-pack-<nid>.yml ──upload / paste�
 
 ## Quick start
 
-1. Print the prompt and paste it into a chat assistant that can make a downloadable text file (it does not need to run code):
+1. Prepare the prompt for your issue. This fetches the issue text and comments from the drupal.org API, finds the issue fork branch and the merge request on
+   git.drupalcode.org, fetches the diff, fills in the prompt's three inputs, saves the result (`~/Desktop/issue-pack-prompt-<nid>.txt`, or the current folder
+   if there is no Desktop), copies it to the clipboard and prints the path:
 
-       node scripts/issue-pack.mjs prompt
+       node scripts/issue-pack.mjs prepare https://www.drupal.org/project/drupal/issues/<nid>
 
-   Send it once, with the three inputs filled in at the very top of the prompt (each placeholder line starts with @@MISSING@@, so a missing input is easy to see, and the assistant is told to stop and ask if one is left): the issue URL, the issue page text (select all on the issue page and copy) and the merge request diff (open the merge request's URL with .diff added). It needs the **issue fork branch name**
-   (the merge request's source branch, shown on the issue page).
+   It only reads public pages (drupal.org and git.drupalcode.org) and sends nothing about you. Anything it cannot find is left marked `@@MISSING@@` in the file,
+   with the reason, and the banner at the top says how many inputs are missing. Options: `--mr <number>` to pick a merge request when several match, `--out <file>`,
+   `--no-copy`. A diff over 300 KB is cut and says so. Only Drupal core issues are supported. Check the filled-in inputs, then paste the whole prompt into a new chat
+   with an assistant that can make a downloadable text file (it does not need to run code). Without a network, `node scripts/issue-pack.mjs prompt` prints the blank prompt
+   and you fill in the three inputs yourself.
 2. Get the file into your workspace. In the workspace's web VS Code, drag it into the file explorer, or paste it into a new file.
 3. Check it (no network, nothing is written, nothing from the pack is run):
 
@@ -78,7 +83,7 @@ It does **not** prove the pack is correct or safe to trust. In particular:
   template strings, but it is a heuristic, not a sandbox. Read the checks of any pack you did not write.
 - A recipe and a patch run code in your workspace. Use a throwaway workspace and store no tokens in it.
 - A syntactically valid pack can still describe the wrong steps, selectors or config. That is what the manual run is for.
-- Tests: `node --test tests/issue-pack/validate.test.mjs`.
+- Tests (offline, 56 of them, including hostile packs and a replayed copy of real drupal.org responses): `node --test tests/issue-pack/*.test.mjs`.
 
 ## Contributing a pack back
 
