@@ -29,14 +29,17 @@ RULES
 3. review.status must be the word draft. Do not claim the problem is fixed, that the patch works, or that anything meets WCAG or any other standard.
 4. Output exactly one YAML document in a file named issue-pack-<issue number>.yml (or one code block if you cannot make files). No text inside the file other than the pack.
 5. YAML rules: indent with 2 spaces and no tabs; put every one-line text value in double quotes (an unquoted value with ": " breaks the file and one with " #" is silently cut off); use | for multi-line text; no anchors or aliases; no HTML tags anywhere in the file, not even inside backticks or quotes: never write a less-than sign followed by a letter, a slash, ! or ?; describe a tag in words instead (for example "a div with the class x"). Comparison operators inside a probe are fine.
-6. Recipe: it sets up the starting state with Drupal core only (modules, content types, text formats). recipes: entries are core/recipes/<name> or core/tests/fixtures/recipes/<name>. install: lists module machine names. Use only config actions you know exist in core, and name any you are unsure of in review.unverified. No passwords, tokens or keys. No URLs other than drupal.org, git.drupalcode.org and api.drupal.org.
+6. Setup: do NOT write recipe files or Drupal configuration. Choose building blocks from the SETUP CATALOGUE below: each entry is use: <block name> with optional params whose values match the form shown. Use only those blocks. If the scenario needs something the catalogue does not have, list it under needs (the block you wish existed, and why) and write the step as "set X by hand". Never invent configuration. No passwords, tokens or keys. No URLs other than drupal.org, git.drupalcode.org and api.drupal.org.
 7. Steps: how is recipe (the recipe already did it), mirror (do it once and the viewer repeats it in both frames) or each (the person does it by hand in each frame). The step that is the thing being tested must be each, with real input. Say what to look for.
 8. Checks: probe is ONE read-only JavaScript expression run inside each frame. No assignment, no semicolons, no template strings (backticks), no network, no location or window.top, no method calls that change the page or focus (click, focus, setAttribute, remove ...). kind is precondition (must hold on both sides or nothing means anything), fix (should fail on Before and pass on After) or regression (should be equal). If you cannot know a selector, keep the check simple and say so in review.unverified, or leave checks empty and use manual questions instead.
 9. observe: yes/no questions for a person, with the answer expected on Before and on After, taken only from what the issue reports.
 10. Keep it small. Do not add steps or checks the issue does not need.
-11. Before you write the steps, list for yourself the exact state the step marked each needs (which field, which limit, which setting, which content). For every item on that list, find where the recipe creates it. If the recipe does not create it and you do not know the correct config, do not write the step as if it were set up: say "set X by hand" in the step and name it in review.unverified. Never write "the configured limit" or "ensure X is configured" unless the recipe sets it. The recipe description may only describe what the recipe really does.
+11. Before you write the steps, list for yourself the exact state the step marked each needs (which field, which limit, which setting, which content). For every item on that list, find the catalogue block that creates it. If no block does, put it under needs and write the step as "set X by hand". Never write "the configured limit" or "ensure X is configured" unless a block sets it. A block's description says what it adds; do not claim more.
 12. Trace the scenario to the code the change touches. Say in the summary which code path that is (for example server-side validation, not browser-side), and offer another way to trigger the problem only if the sources show it reaches that same code. Anything you are unsure of goes in review.unverified, not in the steps.
 13. A "fix" check should compare something the change adds or alters (an element, an attribute, an announcement) and should be false on Before and true on After. Say in review.unverified when it can only be true after a user action.
+
+SETUP CATALOGUE (the only things you may use under setup)
+{{CATALOGUE}}
 
 PACK FORMAT (every key shown is required unless marked optional)
 pack_version: 1
@@ -44,7 +47,8 @@ issue: nid (string of 5-8 digits), title, url (exactly https://www.drupal.org/pr
 sources: list of url, note, date (optional YYYY-MM-DD)
 summary: plain text, 50 to 6000 characters: the problem, expected and observed behaviour, what the change does, open questions. No decisions that the discussion has not made.
 review: status (draft), generated_by, unverified (list)
-recipe: name (repro_<nid>), files (recipe.yml, and optionally config/<name>.yml)
+setup: list of building blocks from the catalogue, each use (the block name) and params (optional)
+needs: optional list of block (a block you wish existed, lowercase_with_underscores) and why
 variant: description, pages (site paths such as /node/add/article), login (optional), demo.start (optional), steps (text, how, lookFor optional), expected, actual, checks (label, probe, expect, kind; may be empty), observe (label, expectBefore, expectAfter)
 notes: optional plain text
 

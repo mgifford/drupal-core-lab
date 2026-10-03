@@ -1,0 +1,88 @@
+name: file_field_with_size_limit
+title: "Optional file field with a size limit on the Article form"
+description: "Adds an optional file field to the Article content type, shown on the node form, that only accepts the listed extensions and rejects files over a size limit. Choose a file over the limit to trigger the server-side upload error. A disallowed extension is rejected in the browser before any request, so it does not reach server-side upload code."
+once: true
+requires:
+  - article_content_type
+params:
+  field:
+    type: machine_name
+    default: attachment
+    description: "machine name of the field without the field_ prefix: lowercase letters, digits and underscores"
+  label:
+    type: text
+    default: Attachment
+    description: "label shown on the form"
+  limit:
+    type: size
+    default: "1 KB"
+    description: "maximum file size, for example 1 KB or 2 MB"
+  extensions:
+    type: extensions
+    default: txt
+    description: "allowed extensions, lowercase, separated by spaces"
+verified: "Applied on core a19dfee86688 (commit date 2026-10-01) in the #3618230 build; a 2 KB .txt file in the field produced the server-side upload error on Before and After (scripted run, 2026-10-03)."
+recipe:
+  install:
+    - file
+    - node
+  config_actions:
+    core.entity_form_display.node.article.default:
+      setComponent:
+        name: "field_{{field}}"
+        options:
+          type: file_generic
+          weight: 10
+          settings:
+            progress_indicator: throbber
+files:
+  "config/field.storage.node.field_{{field}}.yml": |
+    langcode: en
+    status: true
+    dependencies:
+      module:
+        - file
+        - node
+    id: node.field_{{field}}
+    field_name: field_{{field}}
+    entity_type: node
+    type: file
+    settings:
+      target_type: file
+      display_field: false
+      display_default: false
+      uri_scheme: public
+    module: file
+    locked: false
+    cardinality: 1
+    translatable: true
+    indexes: {  }
+    persist_with_no_fields: false
+    custom_storage: false
+  "config/field.field.node.article.field_{{field}}.yml": |
+    langcode: en
+    status: true
+    dependencies:
+      config:
+        - field.storage.node.field_{{field}}
+        - node.type.article
+      module:
+        - file
+    id: node.article.field_{{field}}
+    field_name: field_{{field}}
+    entity_type: node
+    bundle: article
+    label: '{{label}}'
+    description: ''
+    required: false
+    translatable: false
+    default_value: {  }
+    default_value_callback: ''
+    settings:
+      handler: 'default:file'
+      handler_settings: {  }
+      file_directory: '[date:custom:Y]-[date:custom:m]'
+      file_extensions: '{{extensions}}'
+      max_filesize: '{{limit}}'
+      description_field: false
+    field_type: file

@@ -51,8 +51,10 @@ The first answer will usually need a round. Save it to a file, and let the valid
     node scripts/issue-pack.mjs validate issue-pack-<nid>.yml --repair
 
 It prints the problems in the validator's own words, each with what to do about it, and copies the whole message to your clipboard (`--no-copy` to skip). Paste it into the **same chat**.
-A chat assistant cannot know your Drupal configuration, and it may not copy config back faithfully even when you paste it in. So do not rely on it for the recipe: give the validator and the importer a recipe folder you trust
-(one that builds on current core, for example one you already used for this issue), and it replaces the assistant's own recipe files before checking or importing:
+A chat assistant cannot know your Drupal configuration, so the prompt does not ask it to write recipe files. It chooses **setup blocks** from a catalogue (`tools/compare/blocks/`, listed in the prompt) and the importer expands them into the recipe;
+anything the catalogue lacks goes under `needs`, and the step is written as "set X by hand". See `tools/compare/blocks/README.md`, including how to add a block.
+
+If you know the configuration yourself, or a block is missing, give the validator and the importer a recipe folder you trust (one that builds on current core, for example one you already used for this issue) and it replaces the setup:
 
     node scripts/issue-pack.mjs validate issue-pack-<nid>.yml --recipe recipes/<recipe folder> --repair
     node scripts/issue-pack.mjs import   issue-pack-<nid>.yml --recipe recipes/<recipe folder>
@@ -95,7 +97,7 @@ It refuses to overwrite an existing `reports/issues/<nid>/` or recipe. If you co
 ## What the validator checks, and what it does not
 
 Checks: known keys only; the issue number, URL, branch and recipe name agree; text is plain (no HTML-like tags); site paths only (no hosts); recipe files limited to
-`recipe.yml` and `config/*.yml`, valid YAML, known recipe keys, dependencies only from core or this repo's recipes, module names that look like machine names;
+`recipe.yml` and `config/*.yml`, valid YAML, known recipe keys, dependencies only from core or this repo's recipes, module names that look like machine names; or, for `setup`, only blocks that exist in the catalogue with parameter values that match the block's pattern (a value cannot add YAML), at most 10 blocks, `once` blocks only once, and `needs` entries with a block name and a reason (each is a warning: the step must be done by hand);
 URLs only on drupal.org, git.drupalcode.org and api.drupal.org (an error in the recipe and variant, a warning in the summary); no secrets or keys; no YAML anchors
 or aliases; at most 200 KB; `review.status` must be `draft` and `review.unverified` may not be empty; every check's `probe` must be a single read-only expression. It also **warns** (does not reject) when a step or the description mentions a "configured" limit or setting while the recipe only applies stock recipes and sets no configuration of its own, because then the tester cannot follow the step; adding configuration to the recipe, or naming the setup in `review.unverified`, silences it.
 

@@ -36,8 +36,8 @@ test('the worked example inside the prompt validates', () => {
 
 test('rule 11 is a checklist: list the state each step needs, find where the recipe creates it, never write "the configured limit" otherwise', () => {
   assert.match(prompt, /^11\. Before you write the steps, list for yourself the exact state/m);
-  assert.match(prompt, /find where the recipe creates it/);
-  assert.match(prompt, /Never write "the configured limit" or "ensure X is configured" unless the recipe sets it/);
+  assert.match(prompt, /find the catalogue block that creates it/);
+  assert.match(prompt, /Never write "the configured limit" or "ensure X is configured" unless a block sets it/);
 });
 
 test('the assistant is told first that the whole message is its task, and the last line tells it to write the pack', () => {

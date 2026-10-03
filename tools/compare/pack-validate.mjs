@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { labRoot } from './lib.mjs';
+import { loadCatalogue, validateSetup, expandSetup } from './pack-blocks.mjs';
 
 export const PACK_VERSION = 1;
 export const MAX_PACK_BYTES = 200 * 1024;
@@ -22,7 +23,7 @@ export function loadYaml() {
 }
 
 const URL_HOSTS = new Set(['www.drupal.org', 'drupal.org', 'git.drupalcode.org', 'api.drupal.org', 'project.pages.drupalcode.org']);
-const TOP_KEYS = ['pack_version', 'issue', 'sources', 'summary', 'recipe', 'variant', 'review', 'notes'];
+const TOP_KEYS = ['pack_version', 'issue', 'sources', 'summary', 'setup', 'needs', 'recipe', 'variant', 'review', 'notes'];
 const VARIANT_KEYS = ['description', 'pages', 'login', 'demo', 'steps', 'expected', 'actual', 'checks', 'observe'];
 const RECIPE_YML_KEYS = ['name', 'description', 'type', 'recipes', 'install', 'config', 'input'];
 const PATH_RE = /^\/[A-Za-z0-9._~\/%-]*(\?[A-Za-z0-9._~=&%-]*)?$/;
@@ -67,7 +68,7 @@ export function checkProbe(probe) {
   return problems;
 }
 
-export function validatePack(text, { yaml } = {}) {
+export function validatePack(text, { yaml, catalogue } = {}) {
   const errors = [], warnings = [];
   const err = (at, msg) => errors.push({ at, msg }), warn = (at, msg) => warnings.push({ at, msg });
   if (!yaml) { err('pack', 'js-yaml is not installed: npm install --prefix tools/compare/.deps js-yaml@4'); return { errors, warnings, pack: null }; }
@@ -136,9 +137,39 @@ export function validatePack(text, { yaml } = {}) {
     else rv.unverified.forEach((u, i) => plain(`review.unverified[${i}]`, u, 3, 300));
   }
 
+  // setup (building blocks from the catalogue, preferred) or recipe (hand-written files, for people who know the configuration)
+  const hasSetup = pack.setup !== undefined;
+  let setupUsed = null;
+  if (hasSetup && pack.recipe !== undefined) err('setup', 'use either setup (building blocks) or recipe (hand-written files), not both');
+  else if (hasSetup) {
+    const cat = catalogue || loadCatalogue(yaml);
+    if (cat.problems.length) err('setup', `the building-block catalogue in this repository is broken: ${cat.problems[0]}`);
+    else {
+      const sv = validateSetup(pack.setup, cat);
+      for (const e of sv.errors) errors.push(e);
+      if (!sv.errors.length) {
+        try {
+          const ex = expandSetup(sv.entries, cat, { nid: nid || 'unknown', title: str(pack.issue && pack.issue.title) ? pack.issue.title : 'issue' }, yaml);
+          pack.recipe = { name: `repro_${nid}`, files: ex.files }; setupUsed = ex.used;
+        } catch (e) { err('setup', e.message); }
+      }
+    }
+  }
+  if (pack.needs !== undefined) {
+    if (!Array.isArray(pack.needs) || pack.needs.length > 10) err('needs', 'must be a list of at most 10 entries, each with block and why');
+    else pack.needs.forEach((n, i) => {
+      const at = `needs[${i}]`;
+      if (!isObj(n) || Object.keys(n).some((k) => !['block', 'why'].includes(k))) return err(at, 'must have block and why, and nothing else');
+      if (!str(n.block) || !/^[a-z][a-z0-9_]{0,40}$/.test(n.block)) err(`${at}.block`, 'must be a lowercase name for the building block you wish existed');
+      plain(`${at}.why`, n.why, 3, 300);
+      if (str(n.block) && (catalogue || loadCatalogue(yaml)).blocks.has(n.block)) warn(at, `${n.block} already exists in the catalogue: use it under setup instead of listing it as a need`);
+      else if (str(n.block)) warn(at, `needs a building block that does not exist yet: ${n.block}. The setup is built without it, so the step that relies on it must say the person sets it up by hand; a maintainer can add the block to tools/compare/blocks/`);
+    });
+  }
+
   // recipe
   const rc = pack.recipe;
-  if (!isObj(rc)) err('recipe', 'is required');
+  if (!isObj(rc)) { if (!hasSetup) err('setup', 'is required: list the building blocks the steps need under setup (or, if you know the Drupal configuration, give recipe files)'); }
   else {
     if (nid && rc.name !== `repro_${nid}`) err('recipe.name', `must be repro_${nid}`);
     if (!isObj(rc.files) || !Object.keys(rc.files).length) err('recipe.files', 'is required and must map file names to their contents');
@@ -253,11 +284,14 @@ export function validatePack(text, { yaml } = {}) {
     else if (x && typeof x === 'object') for (const [k, val] of Object.entries(x)) scan(val, at ? `${at}.${k}` : k);
   })(pack, '');
 
-  return { errors, warnings, pack };
+  return { errors, warnings, pack, setupUsed };
 }
 
 // ---- a message to paste back into the chat: what to fix, in the validator's own words, with what to do about each ----
 const HINTS = [
+  [/not a building block in the catalogue/, 'Use only blocks from the SETUP CATALOGUE in the prompt, with their exact names. If the scenario needs something else, list it under needs and write the step as "set X by hand".'],
+  [/is not a parameter of|is not valid: /, 'Use only the parameters the catalogue lists for that block, with values in the shown form.'],
+  [/not both/, 'Remove the recipe section and describe the setup under setup, using catalogue blocks.'],
   [/recipe sets no configuration/, 'Either (a) add the configuration to the recipe so the setup really exists (only if you know the correct Drupal config: do not invent config keys), or (b) change the step to say the person sets it up by hand, and name it in review.unverified.'],
   [/does not create the Article content type/, 'Add core/tests/fixtures/recipes/article_content_type to the recipes: list in recipe.yml (or tell the person to supply the recipe).'],
   [/does not read anything from the page/, 'Replace it with a probe that looks at the page (it must name document, window or Drupal), or remove the check and say why in review.unverified.'],
@@ -304,6 +338,7 @@ export function graftRecipe(text, yaml, files, dirLabel) {
   let doc; try { doc = yaml.load(text, { schema: yaml.CORE_SCHEMA }); } catch { return text; }
   if (!isObj(doc)) return text;
   const nid = isObj(doc.issue) && doc.issue.nid !== undefined ? String(doc.issue.nid) : '';
+  delete doc.setup;
   doc.recipe = { name: (isObj(doc.recipe) && doc.recipe.name) || `repro_${nid}`, files };
   if (!isObj(doc.review)) doc.review = { status: 'draft', generated_by: 'unknown', unverified: [] };
   if (!Array.isArray(doc.review.unverified)) doc.review.unverified = [];

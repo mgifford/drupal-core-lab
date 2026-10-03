@@ -41,9 +41,16 @@ review:
     - "Whether the fix check (editor still in view) fails on Before and passes on After: it passes on both sites before any insertion, so it only means something after the dialog interaction on a tall, scrolled page"
     - "The X-button behaviour in comment #9 is reported by one commenter and was not reproduced"
 
-setup:
-  - use: article_content_type
-  - use: image_media_type
+recipe:
+  name: repro_3415961
+  files:
+    recipe.yml: |
+      name: 'Repro: #3415961 Insert Media scroll jump'
+      description: 'Adds the Article content type and an Image media type. The Standard install already has CKEditor 5 with the Insert Media button on Full HTML.'
+      type: 'Testing'
+      recipes:
+        - core/tests/fixtures/recipes/article_content_type
+        - core/recipes/image_media_type
 
 variant:
   description: >-
@@ -100,6 +107,6 @@ notes: |
   Loaded with Playwright on 2026-10-02 (Standard install, current main, Default Admin): the precondition probe is true on both sites, the text format
   defaults to Basic HTML, and Insert Media sits behind the toolbar's "Show more items" menu. The upload and Insert selected steps were not automated.
   Building the first draft of this pack showed that its recipe guessed too much: the Standard install already has the drupalMedia toolbar item and the
-  media_embed filter on Full HTML, so the setup only needs the Article type and the Image media type, which are catalogue blocks.
+  media_embed filter on Full HTML, so the recipe only adds the Article type and the Image media type. Expect to correct a first draft this way.
   The MR is a one-line change with no test (the issue is tagged Needs tests). Related: #3410598. If the nested modals theory in comment #26 is right,
   this symptom may belong to a broader issue; the Before and After results here only speak to what MR !12348 changes.

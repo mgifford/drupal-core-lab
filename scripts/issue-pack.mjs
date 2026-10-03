@@ -16,6 +16,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { labRoot } from '../tools/compare/lib.mjs';
 import { validatePack, loadYaml, repairMessage, readRecipeDir, graftRecipe } from '../tools/compare/pack-validate.mjs';
+import { loadCatalogue, catalogueText, describeSetup } from '../tools/compare/pack-blocks.mjs';
 
 const args = process.argv.slice(2);
 const copyToClipboard = (text) => { for (const c of [['pbcopy'], ['wl-copy'], ['xclip', '-selection', 'clipboard'], ['xsel', '--clipboard', '--input']]) { if (spawnSync(c[0], c.slice(1), { input: text }).status === 0) return c[0]; } return null; };
@@ -31,7 +32,8 @@ if (cmd === 'prepare') {
   if (g.missing.issue) { console.error(g.missing.issue); process.exit(1); }
   const tpl = fs.readFileSync(path.join(labRoot, 'prompts/issue-pack-chat-prompt.md'), 'utf8');
   const ex = fs.readFileSync(path.join(labRoot, 'docs/examples/issue-pack-3415961.yml'), 'utf8').trimEnd();
-  const { text, missing } = composePrompt(tpl, ex, g);
+  const yamlP = loadYaml(); if (!yamlP) { console.error('js-yaml is not installed. Run: npm install --prefix tools/compare/.deps js-yaml@4'); process.exit(2); }
+  const { text, missing } = composePrompt(tpl, ex, g, { catalogue: catalogueText(loadCatalogue(yamlP)) });
   const desktop = path.join(os.homedir(), 'Desktop');
   const outArg = valueOf('--out') ?? null;
   const out = path.resolve(outArg || path.join(fs.existsSync(desktop) ? desktop : process.cwd(), `issue-pack-prompt-${nid}.txt`));
@@ -47,7 +49,8 @@ if (cmd === 'prepare') {
 if (cmd === 'prompt') {
   const tpl = fs.readFileSync(path.join(labRoot, 'prompts/issue-pack-chat-prompt.md'), 'utf8');
   const ex = fs.readFileSync(path.join(labRoot, 'docs/examples/issue-pack-3415961.yml'), 'utf8').trimEnd();
-  process.stdout.write(tpl.replace('{{EXAMPLE}}', () => ex));
+  const yamlP = loadYaml(); if (!yamlP) { console.error('js-yaml is not installed. Run: npm install --prefix tools/compare/.deps js-yaml@4'); process.exit(2); }
+  process.stdout.write(tpl.replace('{{CATALOGUE}}', () => catalogueText(loadCatalogue(yamlP))).replace('{{EXAMPLE}}', () => ex));
   process.exit(0);
 }
 const flag = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
@@ -65,7 +68,7 @@ if (ri0 >= 0) {
   text = graftRecipe(text, yaml, files, d);
   console.log(`Using the recipe from ${d} (${Object.keys(files).length} file(s)) instead of the one in the pack.`);
 }
-const { errors, warnings, pack } = validatePack(text, { yaml });
+const { errors, warnings, pack, setupUsed } = validatePack(text, { yaml });
 for (const w of warnings) console.log(`warning  ${w.at}: ${w.msg}`);
 for (const e of errors) console.log(`ERROR    ${e.at}: ${e.msg}`);
 if (pack) {
@@ -75,6 +78,7 @@ if (pack) {
   console.log('\nWhat this pack can test:');
   console.log(`  automatic checks: ${checks.length} (precondition ${kinds('precondition')}, fix ${kinds('fix')}, regression ${kinds('regression')})`);
   console.log(`  manual questions that expect a different answer on Before and After: ${obs.filter((o) => o.expectBefore !== o.expectAfter).length} of ${obs.length}`);
+  if (setupUsed) console.log(`  setup blocks: ${setupUsed.map((u) => u.name + (u.auto ? ' (added automatically)' : '')).join(', ')}`);
   console.log(`  recipe: applies ${(rdoc.recipes || []).length} other recipe(s), ${rdoc.config ? 'has a config section' : 'no config section'}, ${cfgFiles} config file(s)`);
 }
 if (cmd === 'validate' && args.includes('--repair')) {
@@ -132,7 +136,9 @@ fs.writeFileSync(vf, JSON.stringify(all, null, 2) + '\n');
 fs.writeFileSync(path.join(issueDir, 'PACK.yml'), text.endsWith('\n') ? text : `${text}\n`);
 const md = [`# #${nid}: ${pack.issue.title}`, '', `**DRAFT.** Written from an issue pack (${pack.review.generated_by}). A person has not yet confirmed the steps or the checks.`, '',
   `Issue: ${pack.issue.url}${pack.issue.merge_request ? `  \nMerge request: ${pack.issue.merge_request}` : ''}  \nFork branch: \`${pack.issue.fork_branch}\``, '', '## Summary', '', pack.summary.trim(), '',
-  '## Sources', '', ...pack.sources.map((s) => `- ${s.url}${s.date ? ` (${s.date})` : ''}: ${s.note}`), '', '## Not verified', '', ...pack.review.unverified.map((u) => `- ${u}`),
+  '## Sources', '', ...pack.sources.map((s) => `- ${s.url}${s.date ? ` (${s.date})` : ''}: ${s.note}`), '',
+  ...(setupUsed ? ['## Setup blocks', '', ...describeSetup(setupUsed), ''] : []),
+  '## Not verified', '', ...pack.review.unverified.map((u) => `- ${u}`), ...(pack.needs || []).map((n) => `- Needs a building block that does not exist yet: ${n.block}: ${n.why}`),
   ...(pack.notes ? ['', '## Notes', '', pack.notes.trim()] : []), ''].join('\n');
 fs.writeFileSync(path.join(issueDir, 'SUMMARY.md'), md);
 

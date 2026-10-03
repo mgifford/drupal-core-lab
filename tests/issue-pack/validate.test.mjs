@@ -9,13 +9,15 @@ import { labRoot, variants } from '../../tools/compare/lib.mjs';
 import { validatePack, checkProbe, loadYaml, repairMessage } from '../../tools/compare/pack-validate.mjs';
 
 const yaml = loadYaml();
-const example = fs.readFileSync(path.join(labRoot, 'docs/examples/issue-pack-3415961.yml'), 'utf8');
+// A free-form recipe pack (the original example). Most tests below change its recipe files, so they use this fixture; the worked example in docs/ now uses setup blocks.
+const example = fs.readFileSync(path.join(labRoot, 'tests/issue-pack/fixtures/packs/example-free-form-recipe.yml'), 'utf8');
+const docsExample = fs.readFileSync(path.join(labRoot, 'docs/examples/issue-pack-3415961.yml'), 'utf8');
 const base = () => yaml.load(example, { schema: yaml.CORE_SCHEMA });
 const run = (obj) => validatePack(typeof obj === 'string' ? obj : yaml.dump(obj, { lineWidth: -1 }), { yaml });
 const has = (res, at, re) => res.errors.some((e) => e.at.startsWith(at) && re.test(e.msg));
 
-test('the example pack for #3415961 is valid, with no warnings', () => {
-  const r = run(example);
+test('the worked example in docs/ (setup blocks) is valid, with no warnings', () => {
+  const r = run(docsExample);
   assert.deepEqual(r.errors, []);
   assert.deepEqual(r.warnings, []);
 });

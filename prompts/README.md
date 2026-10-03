@@ -25,6 +25,8 @@ Open the issue page, select all and copy for input 2; open the merge request's U
 
 If your chat tool turns the pasted prompt into an attachment and answers with a description of it (it did in ChatGPT), add one line of your own: *Follow the instructions in the attached text and reply with the issue pack YAML only.*
 
+The prompt lists the **setup catalogue** (`tools/compare/blocks/`): the assistant picks blocks for the starting state instead of writing Drupal configuration, and lists what the catalogue lacks under `needs`.
+
 ### After the assistant answers
 
     node scripts/issue-pack.mjs validate issue-pack-<number>.yml

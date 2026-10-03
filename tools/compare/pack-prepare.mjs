@@ -158,9 +158,9 @@ export async function gather(nid, { fetchImpl = fetch, mr: mrOverride, log = () 
 }
 
 // Put the gathered text into the template's three inputs and say in the banner what is still missing.
-export function composePrompt(template, example, g, { now = new Date() } = {}) {
+export function composePrompt(template, example, g, { now = new Date(), catalogue = '' } = {}) {
   const inputs = [g.url, g.issueText, g.diff];
-  const lines = template.replace('{{EXAMPLE}}', () => example).split('\n'); const out = [];
+  const lines = template.replace('{{CATALOGUE}}', () => catalogue).replace('{{EXAMPLE}}', () => example).split('\n'); const out = [];
   let missing = 0;
   for (let i = 0; i < lines.length; i++) {
     out.push(lines[i]);
