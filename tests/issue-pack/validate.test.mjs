@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { labRoot, variants } from '../../tools/compare/lib.mjs';
-import { validatePack, checkProbe, loadYaml, repairMessage } from '../../tools/compare/pack-validate.mjs';
+import { validatePack, checkProbe, loadYaml, repairMessage, VIEWER_GLOBALS } from '../../tools/compare/pack-validate.mjs';
 
 const yaml = loadYaml();
 // A free-form recipe pack (the original example). Most tests below change its recipe files, so they use this fixture; the worked example in docs/ now uses setup blocks.
@@ -229,4 +229,31 @@ test('validate prints what the pack can test: counts of automatic checks, differ
   assert.match(a, /What this pack can test:\n  automatic checks: 0 \(precondition 0, fix 0, regression 0\)\n  manual questions that expect a different answer on Before and After: 0 of 2\n  recipe: applies 0 other recipe\(s\), no config section, 0 config file\(s\)/);
   const b = out('llm-draft-constant-probe.yml');
   assert.match(b, /automatic checks: 1 \(precondition 1, fix 0, regression 0\)/); assert.match(b, /different answer on Before and After: 1 of 1/); assert.match(b, /applies 1 other recipe\(s\)/);
+});
+
+// ---- probes that read a window.__ value nothing defines ----
+const phantom = (res) => res.warnings.filter((w) => /which neither Drupal nor the viewer defines/.test(w.msg));
+
+test('a real chat draft whose fix and regression probes read window.__lastAjaxResponse gets a warning for each, naming the global and what a probe can see', () => {
+  const r = run(FIXP('llm-draft-phantom-global.yml'));
+  assert.deepEqual(r.errors, [], 'the pack itself is well formed');
+  const w = phantom(r);
+  assert.deepEqual(w.map((x) => x.at), ['variant.checks[1].probe', 'variant.checks[2].probe']);
+  assert.match(w[0].msg, /reads window\.__lastAjaxResponse, which neither Drupal nor the viewer defines/);
+  assert.match(w[0].msg, /window\.__cmpErrors, window\.__cmpFocused/); assert.match(w[0].msg, /cannot see network or AJAX responses/);
+});
+
+test('the four values the viewer provides are not flagged, and a __ name inside a string is not a global', () => {
+  for (const g of VIEWER_GLOBALS) { const p = base(); p.variant.checks[0].probe = `(window.${g} || []).length >= 0`; assert.equal(phantom(run(p)).length, 0, g); }
+  const q = base(); q.variant.checks[0].probe = "document.querySelector('[data-name=\"__lastAjaxResponse\"]') !== null"; assert.equal(phantom(run(q)).length, 0);
+  const r = base(); r.variant.checks[0].probe = '(window.__totally_made_up || []).length === 0'; assert.equal(phantom(run(r)).length, 1);
+});
+
+test('VIEWER_GLOBALS is exactly the set of window.__cmp values the viewer script defines (no drift in either direction)', () => {
+  const defined = [...new Set(fs.readFileSync(path.join(labRoot, 'tools/compare/serve.mjs'), 'utf8').match(/__cmp[A-Za-z]*/g))].sort();
+  assert.deepEqual([...VIEWER_GLOBALS].sort(), defined);
+});
+
+test('the repair message tells the assistant to read the DOM instead of invented globals', () => {
+  assert.match(repairMessage(run(FIXP('llm-draft-phantom-global.yml'))), /neither Drupal nor the viewer defines[^\n]*\n   What to do: Replace the probe with one that reads the DOM[^\n]*Do not read network responses or any window\.__ name except the four the viewer provides/);
 });

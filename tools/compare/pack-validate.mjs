@@ -36,6 +36,9 @@ const ALWAYS = /\b(fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon|importS
 const CALLS = /\b(click|submit|focus|blur|remove|removeChild|append|appendChild|prepend|insertBefore|replaceWith|write|writeln|setAttribute|removeAttribute|play|pause|scrollTo|scrollBy|scrollIntoView|reload|assign|open|close|clear)\s*\(/;
 const GLOBALS = /(^|[^.\w$])(top|parent|opener|frames|location|history|navigator)\b|\b(window|self|globalThis|document)\s*\.\s*(top|parent|opener|frames|location|history|navigator)\b/;
 
+// The only window.__ values that exist: the ones the viewer's injected script defines (tools/compare/serve.mjs). A test keeps this list equal to the script.
+export const VIEWER_GLOBALS = ['__cmpDragged', '__cmpErrors', '__cmpFocused', '__cmpTrustedFragmentClick'];
+
 // A probe that never names one of these cannot be reading the page.
 const PAGE_ROOTS = /\b(document|window|Drupal|drupalSettings|jQuery|localStorage|sessionStorage|self|globalThis|performance|screen|matchMedia|getComputedStyle)\b/;
 
@@ -225,6 +228,10 @@ export function validatePack(text, { yaml, catalogue } = {}) {
         if (!isObj(c)) return err(at, 'must have label, probe, expect and kind');
         plain(`${at}.label`, c.label, 3, 200);
         for (const p of checkProbe(c.probe)) err(`${at}.probe`, p);
+        if (str(c.probe)) {
+          const phantom = [...new Set((stripLiterals(c.probe).match(/\b__[A-Za-z0-9_]+/g) || []).filter((g) => !VIEWER_GLOBALS.includes(g)))];
+          if (phantom.length) warn(`${at}.probe`, `reads ${phantom.map((g) => `window.${g}`).join(', ')}, which neither Drupal nor the viewer defines, so the probe gives undefined and cannot hold on either side. A probe sees only the page (the DOM) and these viewer values: ${VIEWER_GLOBALS.map((g) => `window.${g}`).join(', ')}. It cannot see network or AJAX responses: check the DOM that the response produces instead (for example an element the change adds)`);
+        }
         if (str(c.probe) && c.probe.trim() && !PAGE_ROOTS.test(stripLiterals(c.probe))) warn(`${at}.probe`, 'does not read anything from the page (for example "true"), so it gives the same answer on Before and After and shows nothing. Write a probe that looks at the page, or leave the check out and say why in review.unverified');
         if (!(typeof c.expect === 'boolean' || typeof c.expect === 'number' || (str(c.expect) && c.expect.length <= 100 && !/<[A-Za-z\/!?]/.test(c.expect)))) err(`${at}.expect`, 'must be true, false, a number, short text, or "same"');
         if (!['precondition', 'fix', 'regression'].includes(c.kind)) err(`${at}.kind`, 'must be precondition, fix or regression');
@@ -294,6 +301,7 @@ const HINTS = [
   [/not both/, 'Remove the recipe section and describe the setup under setup, using catalogue blocks.'],
   [/recipe sets no configuration/, 'Either (a) add the configuration to the recipe so the setup really exists (only if you know the correct Drupal config: do not invent config keys), or (b) change the step to say the person sets it up by hand, and name it in review.unverified.'],
   [/does not create the Article content type/, 'Add core/tests/fixtures/recipes/article_content_type to the recipes: list in recipe.yml (or tell the person to supply the recipe).'],
+  [/which neither Drupal nor the viewer defines/, 'Replace the probe with one that reads the DOM, for example whether an element the change adds exists after the action (document.querySelector(...) !== null). Do not read network responses or any window.__ name except the four the viewer provides.'],
   [/does not read anything from the page/, 'Replace it with a probe that looks at the page (it must name document, window or Drupal), or remove the check and say why in review.unverified.'],
   [/nothing in this pack can tell Before from After/, 'Add a fix check that compares something the change adds or alters, or a manual question whose expected answer differs between Before and After and comes only from what the issue reports.'],
   [/no fix check/, 'Add one fix check that compares something the change adds or alters (an element, an attribute or an announcement) and is false on Before and true on After; if you cannot know one, say why in review.unverified.'],

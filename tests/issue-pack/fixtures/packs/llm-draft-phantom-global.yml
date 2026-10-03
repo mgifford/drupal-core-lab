@@ -1,0 +1,91 @@
+pack_version: 1
+
+issue:
+  nid: "3618230"
+  title: "Adopt the ajax MessageCommand for file uploads"
+  url: https://www.drupal.org/project/drupal/issues/3618230
+  fork_branch: 3618230-adopt-the-ajax
+  merge_request: "!16777"
+
+sources:
+  - url: https://www.drupal.org/project/drupal/issues/3618230
+    note: "Issue page with comments #1 to #10; status Postponed (maintainer needs more info)"
+    date: 2026-10-03
+  - url: https://git.drupalcode.org/project/drupal/-/merge_requests/16777
+    note: "Merge request !16777, source branch 3618230-adopt-the-ajax, target branch main; changes ManagedFile AJAX upload messages and adds a kernel test"
+    date: 2026-10-03
+
+summary: |
+  Reported problem: ManagedFile::uploadAjaxCallback() currently renders status messages into the replaced file widget markup. The issue says this markup passes through AJAX XSS filtering, which can remove theme-provided HTML such as Olivero's SVG message icon. It also does not use the AJAX message command's live announcement support, and places upload errors inside the widget rather than in a theme-selected message region (issue summary).
+
+  Merge request !16777 changes the callback to add an empty message container to the replaced markup, then sends each queued messenger message with a MessageCommand targeting that container. It deletes the messages from the messenger after adding them to the response. The MR keeps messages inside the widget area for backward compatibility (comment #7 and MR diff). Its kernel test checks for the container in the replacement markup, the separate message command and its selector, message type and text, and that the messages are consumed.
+
+  The issue demonstrates the behavior using Drupal 11.4, a content type with a file field, and an upload exceeding the size limit. The newest comment (#10) asks whether the problem occurs in the Default Admin theme, following Olivero's removal from core. The supplied issue text does not answer that question. The issue is Postponed pending more information.
+
+review:
+  status: draft
+  generated_by: "ChatGPT, from the supplied issue page text and MR diff"
+  unverified:
+    - "Whether the problem reproduces in the Default Admin theme on current core main; comment #10 asks this and the supplied discussion does not answer it"
+    - "Whether the MR's MessageCommand produces the intended live announcement and preserves theme-specific message presentation in a browser or assistive technology"
+    - "The supplied issue text does not establish whether the MR diff has been applied or tested against current core main"
+
+setup:
+  - use: article_content_type
+  - use: file_field_with_size_limit
+    params:
+      field: attachment
+      label: Attachment
+      limit: 1 KB
+      extensions: txt
+
+variant:
+  description: >-
+    On an Article form, upload a permitted .txt file larger than the configured
+    1 KB limit. Compare the error placement and AJAX response behavior before
+    and after MR !16777. The issue reports the error appearing inside the widget
+    and the page message region remaining empty; the MR routes it through a
+    MessageCommand into a container included in the replaced widget.
+  pages:
+    - /node/add/article
+  login: true
+  demo:
+    start: /node/add/article
+  steps:
+    - text: "Open the Article form, locate the Attachment file field, and choose a .txt file larger than 1 KB."
+      how: each
+    - text: "Submit the upload using the file field's AJAX upload control."
+      how: each
+      lookFor: "Before: the error is reported inside the widget and the page message region stays empty. After: the error is delivered through an AJAX message command to a container in the replaced widget."
+  expected: "The upload error is delivered using the AJAX MessageCommand and appears in the message container targeted by that command. With this MR, the container remains inside the file widget for backward compatibility."
+  actual: "The issue reports server-rendered status markup inside the replaced widget, with upload errors appearing there and the page message region empty. It also reports that AJAX filtering can strip theme HTML and that the existing approach does not use the MessageCommand live announcement behavior."
+  checks:
+    - label: "Attachment field is present on the Article form"
+      probe: "!!document.querySelector('input[type=\"file\"]')"
+      expect: true
+      kind: precondition
+    - label: "A MessageCommand for the upload error targets the file upload message container"
+      probe: "((r) => r && r.commands.some((c) => c.command === 'message' && /file-upload-messages/.test(c.messageWrapperQuerySelector || '')))(window.__lastAjaxResponse)"
+      expect: true
+      kind: fix
+    - label: "The upload error text is present in the rendered response"
+      probe: "((r) => r && JSON.stringify(r.commands).includes('exceeds'))(window.__lastAjaxResponse)"
+      expect: true
+      kind: regression
+  observe:
+    - label: "The oversized upload error appears inside the file widget"
+      expectBefore: true
+      expectAfter: true
+    - label: "The upload error is delivered through a MessageCommand"
+      expectBefore: false
+      expectAfter: true
+    - label: "The upload error is announced by assistive technology"
+      expectBefore: false
+      expectAfter: true
+
+notes: |
+  The setup uses the catalogue's Article content type and file field with a size limit. The allowed extension is txt so the file reaches the server-side upload path; the issue materials state that a disallowed extension is rejected in the browser before that code runs.
+
+  The browser checks for MessageCommand require access to the AJAX response before Drupal processes it; `window.__lastAjaxResponse` is not established by the supplied sources and would need instrumentation. The response message text is not specified as containing “exceeds,” so that probe is only illustrative and should be replaced with a reliable check against the configured upload limit. Live announcement behavior requires observation with assistive technology.
+
+  The issue's original example uses Drupal 11.4 and Olivero. The supplied sources do not confirm reproduction on current main or in Default Admin, and comment #10 explicitly asks about Default Admin.
