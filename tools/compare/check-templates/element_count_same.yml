@@ -1,0 +1,11 @@
+name: element_count_same
+title: "The number of matching elements equals the other side"
+description: "Passes when the count of elements matching the selector is the same on Before and After. Use it as a regression check, for example that the number of open sections did not change."
+kinds: [regression]
+params:
+  selector: { type: selector, description: "a simple CSS selector: tag, .class, #id, [attribute] or [attribute=value], optionally combined with a space or >" }
+  what: { type: text, description: "what is being counted, in plain words, for the check's label" }
+label: "The number of {{what}} matches the other side"
+probe: "document.querySelectorAll({{selector|js}}).length"
+expect: same
+verified: "Evaluated in Chromium against a fixture page by tests/issue-pack/check-templates.test.mjs: returns the number of matches; the viewer compares it with the other side."

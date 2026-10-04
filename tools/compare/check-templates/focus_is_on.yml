@@ -1,0 +1,11 @@
+name: focus_is_on
+title: "Keyboard focus is on an element now"
+description: "True when the element that has keyboard focus matches the selector at the moment the check runs. Only one frame can hold focus at a time, so this can hold in one frame only; to ask whether a field ever received focus, use focus_was_on."
+kinds: [precondition, fix, regression]
+params:
+  selector: { type: selector, description: "a simple CSS selector: tag, .class, #id, [attribute] or [attribute=value], optionally combined with a space or >" }
+  what: { type: text, description: "what the element is, in plain words, for the check's label" }
+label: "Keyboard focus is on {{what}}"
+probe: "((a) => !!a && a.matches({{selector|js}}))(document.activeElement)"
+expect: true
+verified: "Evaluated in Chromium against a fixture page by tests/issue-pack/check-templates.test.mjs: true after the element is focused, false before."

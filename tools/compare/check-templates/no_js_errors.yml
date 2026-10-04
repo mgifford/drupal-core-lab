@@ -1,0 +1,9 @@
+name: no_js_errors
+title: "No JavaScript errors on the page"
+description: "Passes when the viewer recorded no JavaScript errors since the page loaded, ignoring the harmless ResizeObserver loop notice. Use it as a regression check."
+kinds: [regression]
+params: {}
+label: "No JavaScript errors on the page (ignoring the harmless ResizeObserver loop notice)"
+probe: "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length"
+expect: 0
+verified: "Evaluated in Chromium against a fixture page by tests/issue-pack/check-templates.test.mjs with window.__cmpErrors set as the viewer sets it; the same probe is used by the committed variants."

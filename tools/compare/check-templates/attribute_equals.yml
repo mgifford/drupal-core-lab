@@ -1,0 +1,13 @@
+name: attribute_equals
+title: "An element's attribute has a value"
+description: "True when the first element matching the selector has the attribute set to exactly the value. Use it for aria attributes, roles, states such as aria-expanded, and data attributes."
+kinds: [precondition, fix, regression]
+params:
+  selector: { type: selector, description: "a simple CSS selector: tag, .class, #id, [attribute] or [attribute=value], optionally combined with a space or >" }
+  what: { type: text, description: "what the element is, in plain words, for the check's label" }
+  attribute: { type: attribute, description: "the attribute name, lowercase, for example aria-expanded" }
+  value: { type: value, description: "the exact value the attribute should have" }
+label: "{{what}} has {{attribute}} equal to {{value}}"
+probe: "((e) => !!e && e.getAttribute({{attribute|js}}) === {{value|js}})(document.querySelector({{selector|js}}))"
+expect: true
+verified: "Evaluated in Chromium against a fixture page by tests/issue-pack/check-templates.test.mjs: true on a match, false for another value, a missing attribute or a missing element."

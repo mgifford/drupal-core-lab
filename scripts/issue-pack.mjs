@@ -17,6 +17,7 @@ import { spawnSync } from 'node:child_process';
 import { labRoot } from '../tools/compare/lib.mjs';
 import { validatePack, loadYaml, repairMessage, readRecipeDir, graftRecipe } from '../tools/compare/pack-validate.mjs';
 import { loadCatalogue, catalogueText, describeSetup } from '../tools/compare/pack-blocks.mjs';
+import { loadChecks, checkCatalogueText } from '../tools/compare/pack-checks.mjs';
 
 const args = process.argv.slice(2);
 const copyToClipboard = (text) => { for (const c of [['pbcopy'], ['wl-copy'], ['xclip', '-selection', 'clipboard'], ['xsel', '--clipboard', '--input']]) { if (spawnSync(c[0], c.slice(1), { input: text }).status === 0) return c[0]; } return null; };
@@ -33,7 +34,7 @@ if (cmd === 'prepare') {
   const tpl = fs.readFileSync(path.join(labRoot, 'prompts/issue-pack-chat-prompt.md'), 'utf8');
   const ex = fs.readFileSync(path.join(labRoot, 'docs/examples/issue-pack-3415961.yml'), 'utf8').trimEnd();
   const yamlP = loadYaml(); if (!yamlP) { console.error('js-yaml is not installed. Run: npm install --prefix tools/compare/.deps js-yaml@4'); process.exit(2); }
-  const { text, missing } = composePrompt(tpl, ex, g, { catalogue: catalogueText(loadCatalogue(yamlP)) });
+  const { text, missing } = composePrompt(tpl, ex, g, { catalogue: catalogueText(loadCatalogue(yamlP)), checks: checkCatalogueText(loadChecks(yamlP)) });
   const desktop = path.join(os.homedir(), 'Desktop');
   const outArg = valueOf('--out') ?? null;
   const out = path.resolve(outArg || path.join(fs.existsSync(desktop) ? desktop : process.cwd(), `issue-pack-prompt-${nid}.txt`));
@@ -50,7 +51,7 @@ if (cmd === 'prompt') {
   const tpl = fs.readFileSync(path.join(labRoot, 'prompts/issue-pack-chat-prompt.md'), 'utf8');
   const ex = fs.readFileSync(path.join(labRoot, 'docs/examples/issue-pack-3415961.yml'), 'utf8').trimEnd();
   const yamlP = loadYaml(); if (!yamlP) { console.error('js-yaml is not installed. Run: npm install --prefix tools/compare/.deps js-yaml@4'); process.exit(2); }
-  process.stdout.write(tpl.replace('{{CATALOGUE}}', () => catalogueText(loadCatalogue(yamlP))).replace('{{EXAMPLE}}', () => ex));
+  process.stdout.write(tpl.replace('{{CATALOGUE}}', () => catalogueText(loadCatalogue(yamlP))).replace('{{CHECKS}}', () => checkCatalogueText(loadChecks(yamlP))).replace('{{EXAMPLE}}', () => ex));
   process.exit(0);
 }
 const flag = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };

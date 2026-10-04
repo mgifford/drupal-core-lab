@@ -1,0 +1,11 @@
+name: element_absent
+title: "An element is not on the page"
+description: "True when the page has no element matching the selector. Use it when the change removes something."
+kinds: [precondition, fix, regression]
+params:
+  selector: { type: selector, description: "a simple CSS selector: tag, .class, #id, [attribute] or [attribute=value], optionally combined with a space or >" }
+  what: { type: text, description: "what the element is, in plain words, for the check's label" }
+label: "{{what}} is not on the page"
+probe: "document.querySelector({{selector|js}}) === null"
+expect: true
+verified: "Evaluated in Chromium against a fixture page by tests/issue-pack/check-templates.test.mjs: true when no element matches, false when one does."

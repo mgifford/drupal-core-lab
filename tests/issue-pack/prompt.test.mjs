@@ -50,8 +50,9 @@ test('the assistant is told first that the whole message is its task, and the la
   assert.match(last, /Reply with the YAML pack only/);
 });
 
-test('the prompt tells the assistant what a probe can see, what to expect on Before, and where to find the fix check\'s selector', () => {
-  assert.match(prompt, /A probe sees only the page \(document, window, Drupal\) and these values the viewer provides: window\.__cmpErrors[^\n]*window\.__cmpFocused[^\n]*It cannot see network or AJAX responses, and no other window\.__ name exists/);
+test('the prompt tells the assistant that checks come from templates, what to expect on Before, and where to find the fix check\'s selector', () => {
+  assert.match(prompt, /do NOT write probes[^\n]*chosen from the CHECK TEMPLATES[^\n]*it cannot see network or AJAX responses/);
+  assert.match(prompt, /CHECK TEMPLATES \(the only things you may use under checks\)\n- attribute_equals:[^\n]*\n    kinds:[^\n]*\n    params: selector \(selector:/);
   assert.match(prompt, /If the issue says Before already did something[^\n]*role=\\?"alert[^\n]*expect that on Before/);
   assert.match(prompt, /Look in the diff for an element, class, id or attribute that the change adds and use it for the fix check/);
 });

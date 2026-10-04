@@ -73,17 +73,17 @@ variant:
   expected: "After inserting media from the dialog the window stays where it was and the editor stays in view."
   actual: "Before, the window is reported to jump after Insert selected. After (MR !12348) it should not. Closing with X may still jump (comment #9, not reproduced)."
   checks:
-    - label: "CKEditor 5 on the Body field has the Insert Media (drupalMedia) button configured"
-      probe: "Drupal.CKEditor5Instances ? [...Drupal.CKEditor5Instances.values()].some((e) => e.ui.componentFactory.has('drupalMedia')) : false"
-      expect: true
+    - use: element_exists
       kind: precondition
-    - label: "The Body editor is still in view after inserting (the page did not scroll away)"
-      probe: "((r) => r.bottom > 0 && r.top < window.innerHeight)(document.querySelector('.ck-editor').getBoundingClientRect())"
-      expect: true
+      params:
+        selector: ".ck-editor"
+        what: "The CKEditor 5 editor on the Body field"
+    - use: element_in_view
       kind: fix
-    - label: "JavaScript errors on the page (ignoring the harmless ResizeObserver loop notice)"
-      probe: "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length"
-      expect: 0
+      params:
+        selector: ".ck-editor"
+        what: "The Body editor"
+    - use: no_js_errors
       kind: regression
   observe:
     - label: "The window jumped away from the editor after Insert selected"

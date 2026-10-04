@@ -1,0 +1,11 @@
+name: element_exists
+title: "An element exists on the page"
+description: "True when the page has an element matching the selector. Use it for a precondition (the setup was reached) or as a fix check for something the change adds, such as a wrapper, class or attribute that the diff introduces."
+kinds: [precondition, fix, regression]
+params:
+  selector: { type: selector, description: "a simple CSS selector: tag, .class, #id, [attribute] or [attribute=value], optionally combined with a space or >" }
+  what: { type: text, description: "what the element is, in plain words, for the check's label" }
+label: "{{what}} exists on the page"
+probe: "document.querySelector({{selector|js}}) !== null"
+expect: true
+verified: "Evaluated in Chromium against a fixture page by tests/issue-pack/check-templates.test.mjs: true when the element exists, false when it does not."

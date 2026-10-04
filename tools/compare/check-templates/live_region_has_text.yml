@@ -1,0 +1,10 @@
+name: live_region_has_text
+title: "A live region or alert holds some words"
+description: "True when some element with aria-live, role=alert or role=status contains the text, ignoring case. Use it to see that a message is exposed to assistive technology. Announcements can be cleared after a short time, so press Run checks soon after the action. This shows markup, not that a screen reader spoke it."
+kinds: [fix, regression]
+params:
+  text: { type: text, description: "the words the live region should contain" }
+label: "A live region or alert contains the text {{text}}"
+probe: "[...document.querySelectorAll('[aria-live], [role=alert], [role=status]')].some((e) => e.textContent.toLowerCase().includes({{text|js_lower}}))"
+expect: true
+verified: "Evaluated in Chromium against a fixture page by tests/issue-pack/check-templates.test.mjs: true for aria-live, role=alert and role=status elements holding the text, false otherwise."

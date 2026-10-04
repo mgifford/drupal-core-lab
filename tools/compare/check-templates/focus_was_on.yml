@@ -1,0 +1,10 @@
+name: focus_was_on
+title: "A form field received keyboard focus"
+description: "True when the viewer recorded keyboard focus on the form field with this name since the page loaded. The viewer records focus in each frame, so this works in both frames even though only one can hold focus at a time."
+kinds: [fix, regression]
+params:
+  field: { type: field_name, description: "the field's name attribute, for example title[0][value] or path[0][alias]" }
+label: "The field named {{field}} received keyboard focus"
+probe: "(window.__cmpFocused || []).includes({{field|js}})"
+expect: true
+verified: "Evaluated in Chromium against a fixture page by tests/issue-pack/check-templates.test.mjs with window.__cmpFocused set as the viewer sets it; the same probe shape is used by the committed 3619127 variant."

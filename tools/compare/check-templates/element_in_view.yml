@@ -1,0 +1,11 @@
+name: element_in_view
+title: "An element is in view in the window"
+description: "True when the first element matching the selector is at least partly inside the visible window. Use it for scroll jumps: after the action the editor, field or button should still be in view."
+kinds: [precondition, fix, regression]
+params:
+  selector: { type: selector, description: "a simple CSS selector: tag, .class, #id, [attribute] or [attribute=value], optionally combined with a space or >" }
+  what: { type: text, description: "what the element is, in plain words, for the check's label" }
+label: "{{what}} is in view in the window"
+probe: "((e) => !!e && ((r) => r.bottom > 0 && r.top < window.innerHeight)(e.getBoundingClientRect()))(document.querySelector({{selector|js}}))"
+expect: true
+verified: "Evaluated in Chromium against a fixture page by tests/issue-pack/check-templates.test.mjs: true for an element on screen, false for one far below the fold or missing."

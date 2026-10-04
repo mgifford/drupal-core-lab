@@ -83,6 +83,13 @@ Run `node scripts/issue-pack.mjs validate <file>` and read three things.
 
 A clean validator run is necessary, not sufficient. It cannot tell whether a check's label matches its probe, whether a selector exists, or whether the steps describe the recipe. Only then, import and build it, do the steps by hand in the viewer, press **Run checks**, and see that the `fix` check fails on Before and passes on After.
 
+## Check templates
+
+The automatic checks in a pack come from a menu of check templates (`tools/compare/check-templates/`, see its README) rather than
+probes the assistant writes: `use: element_exists`, `element_text_contains`, `attribute_equals`, `live_region_has_text`,
+`focus_is_on`, `focus_was_on`, `element_in_view`, `element_count_same`, `no_js_errors` and `element_absent`. The validator expands each entry
+into a label and probe, so what you see in the viewer matches what the template says. Hand-written probes are still accepted.
+
 ## What import writes
 
 | Where | What |

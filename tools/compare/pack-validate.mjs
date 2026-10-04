@@ -11,6 +11,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { labRoot } from './lib.mjs';
 import { loadCatalogue, validateSetup, expandSetup } from './pack-blocks.mjs';
+import { loadChecks, expandChecks } from './pack-checks.mjs';
 
 export const PACK_VERSION = 1;
 export const MAX_PACK_BYTES = 200 * 1024;
@@ -71,7 +72,7 @@ export function checkProbe(probe) {
   return problems;
 }
 
-export function validatePack(text, { yaml, catalogue } = {}) {
+export function validatePack(text, { yaml, catalogue, checkCatalogue } = {}) {
   const errors = [], warnings = [];
   const err = (at, msg) => errors.push({ at, msg }), warn = (at, msg) => warnings.push({ at, msg });
   if (!yaml) { err('pack', 'js-yaml is not installed: npm install --prefix tools/compare/.deps js-yaml@4'); return { errors, warnings, pack: null }; }
@@ -220,6 +221,11 @@ export function validatePack(text, { yaml, catalogue } = {}) {
         for (const k of Object.keys(s)) if (!['text', 'how', 'lookFor'].includes(k)) err(`${at}.${k}`, 'is not a known key');
       });
       if (!v.steps.some((s) => s && s.how === 'each')) warn('variant.steps', 'no step has how: each; the step that is the thing being tested should be done by hand in each frame');
+    }
+    if (Array.isArray(v.checks) && v.checks.length <= 20 && v.checks.some((c) => isObj(c) && c.use !== undefined)) {
+      const cc = checkCatalogue || loadChecks(yaml);
+      if (cc.problems.length) err('variant.checks', `the check-template catalogue in this repository is broken: ${cc.problems[0]}`);
+      else { const ex = expandChecks(v.checks, cc); for (const e of ex.errors) errors.push(e); v.checks = ex.checks; }
     }
     if (!Array.isArray(v.checks) || v.checks.length > 20) err('variant.checks', 'must be a list of at most 20 checks (it may be empty)');
     else {

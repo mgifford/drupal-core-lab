@@ -31,7 +31,7 @@ RULES
 5. YAML rules: indent with 2 spaces and no tabs; put every one-line text value in double quotes (an unquoted value with ": " breaks the file and one with " #" is silently cut off); use | for multi-line text; no anchors or aliases; no HTML tags anywhere in the file, not even inside backticks or quotes: never write a less-than sign followed by a letter, a slash, ! or ?; describe a tag in words instead (for example "a div with the class x"). Comparison operators inside a probe are fine.
 6. Setup: do NOT write recipe files or Drupal configuration. Choose building blocks from the SETUP CATALOGUE below: each entry is use: <block name> with optional params whose values match the form shown. Use only those blocks. If the scenario needs something the catalogue does not have, list it under needs (the block you wish existed, and why) and write the step as "set X by hand". Never invent configuration. No passwords, tokens or keys. No URLs other than drupal.org, git.drupalcode.org and api.drupal.org.
 7. Steps: how is recipe (the recipe already did it), mirror (do it once and the viewer repeats it in both frames) or each (the person does it by hand in each frame). The step that is the thing being tested must be each, with real input. Say what to look for.
-8. Checks: probe is ONE read-only JavaScript expression run inside each frame. No assignment, no semicolons, no template strings (backticks), no network, no location or window.top, no method calls that change the page or focus (click, focus, setAttribute, remove ...). kind is precondition (must hold on both sides or nothing means anything), fix (should fail on Before and pass on After) or regression (should be equal). A probe sees only the page (document, window, Drupal) and these values the viewer provides: window.__cmpErrors (JavaScript error messages since page load), window.__cmpFocused (names of fields that received focus), window.__cmpTrustedFragmentClick and window.__cmpDragged. It cannot see network or AJAX responses, and no other window.__ name exists: check the DOM that a response produces instead (for example an element the change adds). If you cannot know a selector, keep the check simple and say so in review.unverified, or leave checks empty and use manual questions instead.
+8. Checks: do NOT write probes. Each check is use: <template name> with kind (precondition, fix or regression) and params, chosen from the CHECK TEMPLATES below; the label and the probe are generated from them. kind precondition must hold on both sides or nothing means anything, fix should fail on Before and pass on After, regression should be equal. A check sees only the page (the DOM) and the focus and error values the viewer records; it cannot see network or AJAX responses, so check the DOM that a response produces (for example an element the change adds). Selectors must come from the issue text or the diff, never from guesses about the theme. If no template fits or you cannot know a selector, leave that check out and say why in review.unverified, or leave checks empty and use manual questions instead.
 9. observe: yes/no questions for a person, with the answer expected on Before and on After, taken only from what the issue reports. If the issue says Before already did something (for example that the old markup had role="alert"), expect that on Before.
 10. Keep it small. Do not add steps or checks the issue does not need.
 11. Before you write the steps, list for yourself the exact state the step marked each needs (which field, which limit, which setting, which content). For every item on that list, find the catalogue block that creates it. If no block does, put it under needs and write the step as "set X by hand". Never write "the configured limit" or "ensure X is configured" unless a block sets it. A block's description says what it adds; do not claim more.
@@ -41,6 +41,9 @@ RULES
 SETUP CATALOGUE (the only things you may use under setup)
 {{CATALOGUE}}
 
+CHECK TEMPLATES (the only things you may use under checks)
+{{CHECKS}}
+
 PACK FORMAT (every key shown is required unless marked optional)
 pack_version: 1
 issue: nid (string of 5-8 digits), title, url (exactly https://www.drupal.org/project/drupal/issues/<nid>), fork_branch, merge_request (optional, like "!12345")
@@ -49,7 +52,7 @@ summary: plain text, 50 to 6000 characters: the problem, expected and observed b
 review: status (draft), generated_by, unverified (list)
 setup: list of building blocks from the catalogue, each use (the block name) and params (optional)
 needs: optional list of block (a block you wish existed, lowercase_with_underscores) and why
-variant: description, pages (site paths such as /node/add/article), login (optional), demo.start (optional), steps (text, how, lookFor optional), expected, actual, checks (label, probe, expect, kind; may be empty), observe (label, expectBefore, expectAfter)
+variant: description, pages (site paths such as /node/add/article), login (optional), demo.start (optional), steps (text, how, lookFor optional), expected, actual, checks (a list of: use, kind, params; may be empty), observe (label, expectBefore, expectAfter)
 notes: optional plain text
 
 WORKED EXAMPLE (for issue 3415961; yours must follow the same shape but describe YOUR issue)

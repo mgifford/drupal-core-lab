@@ -1,0 +1,12 @@
+name: element_text_contains
+title: "An element's text contains some words"
+description: "True when the first element matching the selector contains the text, ignoring upper and lower case. Use it for an error message, a label or a status line."
+kinds: [precondition, fix, regression]
+params:
+  selector: { type: selector, description: "a simple CSS selector: tag, .class, #id, [attribute] or [attribute=value], optionally combined with a space or >" }
+  what: { type: text, description: "what the element is, in plain words, for the check's label" }
+  text: { type: text, description: "the words to look for" }
+label: "{{what}} contains the text {{text}}"
+probe: "((e) => !!e && e.textContent.toLowerCase().includes({{text|js_lower}}))(document.querySelector({{selector|js}}))"
+expect: true
+verified: "Evaluated in Chromium against a fixture page by tests/issue-pack/check-templates.test.mjs: true when the text is there (any case), false when it is not or the element is missing."
