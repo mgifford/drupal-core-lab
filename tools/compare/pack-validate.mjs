@@ -11,7 +11,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { labRoot } from './lib.mjs';
 import { loadCatalogue, validateSetup, expandSetup } from './pack-blocks.mjs';
-import { loadChecks, expandChecks } from './pack-checks.mjs';
+import { loadChecks, expandChecks, FAILED } from './pack-checks.mjs';
 
 export const PACK_VERSION = 1;
 export const MAX_PACK_BYTES = 200 * 1024;
@@ -231,6 +231,7 @@ export function validatePack(text, { yaml, catalogue, checkCatalogue } = {}) {
     else {
       v.checks.forEach((c, i) => {
         const at = `variant.checks[${i}]`;
+        if (isObj(c) && c[FAILED]) return;
         if (!isObj(c)) return err(at, 'must have label, probe, expect and kind');
         plain(`${at}.label`, c.label, 3, 200);
         for (const p of checkProbe(c.probe)) err(`${at}.probe`, p);
@@ -304,14 +305,15 @@ export function validatePack(text, { yaml, catalogue, checkCatalogue } = {}) {
 const HINTS = [
   [/not a building block in the catalogue/, 'Use only blocks from the SETUP CATALOGUE in the prompt, with their exact names. If the scenario needs something else, list it under needs and write the step as "set X by hand".'],
   [/is not a parameter of|is not valid: /, 'Use only the parameters the catalogue lists for that block, with values in the shown form.'],
+  [/must be (a simple CSS selector|letters, digits|a lowercase attribute|a form field name)/, 'Shorten or simplify that parameter value so it fits the stated pattern; keep the check template and the other parameters as they are.'],
   [/not both/, 'Remove the recipe section and describe the setup under setup, using catalogue blocks.'],
   [/recipe sets no configuration/, 'Either (a) add the configuration to the recipe so the setup really exists (only if you know the correct Drupal config: do not invent config keys), or (b) change the step to say the person sets it up by hand, and name it in review.unverified.'],
   [/does not create the Article content type/, 'Add core/tests/fixtures/recipes/article_content_type to the recipes: list in recipe.yml (or tell the person to supply the recipe).'],
   [/which neither Drupal nor the viewer defines/, 'Replace the probe with one that reads the DOM, for example whether an element the change adds exists after the action (document.querySelector(...) !== null). Do not read network responses or any window.__ name except the four the viewer provides.'],
   [/does not read anything from the page/, 'Replace it with a probe that looks at the page (it must name document, window or Drupal), or remove the check and say why in review.unverified.'],
   [/nothing in this pack can tell Before from After/, 'Add a fix check that compares something the change adds or alters, or a manual question whose expected answer differs between Before and After and comes only from what the issue reports.'],
-  [/no fix check/, 'Add one fix check that compares something the change adds or alters (an element, an attribute or an announcement) and is false on Before and true on After; if you cannot know one, say why in review.unverified.'],
-  [/no precondition check/, 'Add a precondition check that must hold on both sides, so a passing result means the setup was reached.'],
+  [/no fix check/, 'Add one fix check from the CHECK TEMPLATES (for example element_exists, element_text_contains, attribute_equals or live_region_has_text with kind: fix) on something the change adds or alters, taking the selector from the diff; it should be false on Before and true on After; if you cannot know one, say why in review.unverified.'],
+  [/no precondition check/, 'Add a precondition check (use: element_exists with kind: precondition) on an element the setup puts on the page, so a passing result means the setup was reached.'],
   [/HTML-like tags/, 'Rewrite it in plain words. Do not write angle brackets around tag names, not even inside backticks (for example write "a div with the class x").'],
   [/anchors\/aliases/, 'Write every value out in full: no YAML anchors or aliases.'],
   [/not valid YAML/, 'Fix the YAML syntax. Put every one-line text value in double quotes and use | for multi-line text.'],

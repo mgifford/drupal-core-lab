@@ -20,7 +20,7 @@ test('warnings only: a numbered list with the validator\'s own words and what to
   assert.match(m, /^Your issue pack passed the validator, with warnings\. Fix ONLY these problems/);
   assert.match(m, /\n1\. \[warning\] /); assert.match(m, /\n2\. \[warning\] /);
   assert.match(m, /recipe sets no configuration/); assert.match(m, /What to do: Either \(a\) add the configuration to the recipe[^\n]*do not invent config keys[^\n]*\(b\) change the step/);
-  assert.match(m, /no fix check[^\n]*\n   What to do: Add one fix check that compares something the change adds/);
+  assert.match(m, /no fix check[^\n]*\n   What to do: Add one fix check from the CHECK TEMPLATES/);
 });
 
 test('errors: says it did not pass, lists errors before warnings, and gives the plain-words hint for tags', () => {

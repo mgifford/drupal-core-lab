@@ -22,6 +22,8 @@ export const CHECK_PARAM_TYPES = {
   value: { re: /^[A-Za-z0-9][A-Za-z0-9 _.:-]{0,39}$/, hint: 'letters, digits, spaces and _ . : - only, at most 40 characters' },
   field_name: { re: /^[A-Za-z_][A-Za-z0-9_\[\]-]{0,59}$/, hint: 'a form field name such as title[0][value]' },
 };
+// Marks a template entry that could not be expanded. A Symbol, so a pack (YAML) can never carry it.
+export const FAILED = Symbol('failed template check');
 const isObj = (x) => x && typeof x === 'object' && !Array.isArray(x);
 const str = (x) => typeof x === 'string';
 const ESCAPES = { js: (v) => JSON.stringify(v), js_lower: (v) => JSON.stringify(v.toLowerCase()) };
@@ -65,6 +67,7 @@ export function loadChecks(yaml, dir = CHECKS_DIR) {
 
 const fill = (tpl, values, escaped) => tpl.replace(/\{\{([a-z0-9_]+)(?:\|([a-z_]+))?\}\}/g, (_, n, esc) => (escaped ? ESCAPES[esc](values[n]) : values[n]));
 
+// A template entry that cannot be expanded comes back as { [FAILED]: true }, so later checks do not pile errors on it.
 // Expands the template entries of a checks list. Entries that do not use a template pass through unchanged. Returns { checks, errors }.
 export function expandChecks(checks, cat) {
   const errors = [], err = (at, msg) => errors.push({ at, msg });
@@ -72,12 +75,13 @@ export function expandChecks(checks, cat) {
   const out = checks.map((c, i) => {
     if (!isObj(c) || c.use === undefined) return c;
     const at = `variant.checks[${i}]`;
-    if (!str(c.use) || !cat.templates.has(c.use)) { err(`${at}.use`, `"${c.use}" is not a check template. Available: ${names}`); return c; }
+    if (!str(c.use) || !cat.templates.has(c.use)) { err(`${at}.use`, `"${c.use}" is not a check template. Available: ${names}`); return { [FAILED]: true }; }
     const t = cat.templates.get(c.use);
     for (const k of Object.keys(c)) if (!['use', 'kind', 'params'].includes(k)) err(`${at}.${k}`, 'is not a known key for a template check (use, kind, params)');
+    const failed = { [FAILED]: true, kind: c.kind };
     if (!t.kinds.includes(c.kind)) err(`${at}.kind`, `${c.use} can be used as ${t.kinds.join(', ')}`);
     const given = c.params === undefined ? {} : c.params;
-    if (!isObj(given)) { err(`${at}.params`, 'must be a mapping of parameter names to values'); return c; }
+    if (!isObj(given)) { err(`${at}.params`, 'must be a mapping of parameter names to values'); return failed; }
     const values = {};
     for (const k of Object.keys(given)) if (!(k in t.params)) err(`${at}.params.${k}`, `${c.use} has no parameter "${k}"${Object.keys(t.params).length ? ` (it takes ${Object.keys(t.params).join(', ')})` : ' (it takes none)'}`);
     for (const [k, p] of Object.entries(t.params)) {
@@ -87,7 +91,7 @@ export function expandChecks(checks, cat) {
       if (!str(s) || !CHECK_PARAM_TYPES[p.type].re.test(s)) { err(`${at}.params.${k}`, `must be ${CHECK_PARAM_TYPES[p.type].hint}`); continue; }
       values[k] = s;
     }
-    if (errors.some((e) => e.at.startsWith(at))) return c;
+    if (errors.some((e) => e.at.startsWith(at))) return failed;
     return { label: fill(t.label, values, false), probe: fill(t.probe, values, true), expect: t.expect, kind: c.kind };
   });
   return { checks: out, errors };

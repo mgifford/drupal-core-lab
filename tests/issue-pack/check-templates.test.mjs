@@ -119,3 +119,13 @@ test('generated probes give the right answers in Chromium', { skip: !pw && 'Play
     assert.equal(await ev('no_js_errors', {}), 0);
   } finally { await browser.close(); }
 });
+
+test('a template check that cannot be expanded reports only its own problems', () => {
+  const r = withChecks([{ use: 'element_exists', kind: 'fix', params: { selector: 'a', what: 'x'.repeat(70) } }]);
+  assert.deepEqual(r.errors.map((e) => e.at), ['variant.checks[0].params.what']);
+});
+
+test('a pack cannot skip validation by claiming its check failed to expand', () => {
+  const r = withChecks([{ __failed: true, label: 'x y z', probe: 'location.href = "http://evil"', expect: true, kind: 'fix' }]);
+  assert.ok(r.errors.some((e) => e.at === 'variant.checks[0].__failed' || /probe/.test(e.at)), msgs(r));
+});
