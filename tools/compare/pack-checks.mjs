@@ -14,10 +14,10 @@ import { labRoot } from './lib.mjs';
 export const CHECKS_DIR = path.join(labRoot, 'tools/compare/check-templates');
 const KINDS = ['precondition', 'fix', 'regression'];
 const NAME_RE = /^[a-z][a-z0-9_]{0,40}$/;
-const SIMPLE = '(?:[a-z][a-z0-9-]*)?(?:[.#][A-Za-z_][A-Za-z0-9_-]*|\\[[a-z][a-z0-9-]*(?:=(?:[A-Za-z0-9_.:-]+|"[A-Za-z0-9_. \\[\\]-]*"))?\\])*';
+const SIMPLE = '(?:[a-z][a-z0-9-]*)?(?:[.#][A-Za-z_][A-Za-z0-9_-]*|\\[[a-z][a-z0-9-]*(?:=(?:[A-Za-z0-9_.:-]+|"[A-Za-z0-9_. \\[\\]-]*"|\'[A-Za-z0-9_. \\[\\]-]*\'))?\\])*';
 export const CHECK_PARAM_TYPES = {
   selector: { re: new RegExp(`^(?=.)${SIMPLE}(?: (?:> )?${SIMPLE}){0,3}$`), hint: 'a simple CSS selector: tag, .class, #id, [attribute] or [attribute=value], combined with a space or " > " (at most 4 parts, no pseudo-classes)' },
-  text: { re: /^[A-Za-z0-9][A-Za-z0-9 ,.()-]{0,59}$/, hint: 'letters, digits, spaces and , . ( ) - only, at most 60 characters' },
+  text: { re: /^[A-Za-z0-9][A-Za-z0-9 ,.()!#:-]{0,79}$/, hint: 'letters, digits, spaces and , . ( ) ! # : - only, at most 80 characters' },
   attribute: { re: /^[a-z][a-z-]{1,30}$/, hint: 'a lowercase attribute name such as aria-expanded' },
   value: { re: /^[A-Za-z0-9][A-Za-z0-9 _.:-]{0,39}$/, hint: 'letters, digits, spaces and _ . : - only, at most 40 characters' },
   field_name: { re: /^[A-Za-z_][A-Za-z0-9_\[\]-]{0,59}$/, hint: 'a form field name such as title[0][value]' },

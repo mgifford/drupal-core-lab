@@ -68,10 +68,11 @@ test('bad template use is explained', () => {
 });
 
 test('parameter patterns reject anything that could change the probe', () => {
-  const ok = ['a', '.x', '#x', 'div.x > p', 'input[type=file]', 'input[name="title[0][value]"]', '[aria-live]', 'ul li a'];
+  const ok = ['a', '.x', '#x', 'div.x > p', 'input[type=file]', 'input[name="title[0][value]"]', '[aria-live]', 'ul li a', "input[type='file']"];
   const no = ['', 'a;b', 'a, b', 'a:hover', 'a"b', "a'b", 'a`b', 'a\\b', '*', 'a)b', 'a b c d e', '[onclick=alert(1)]', 'a\nb'];
   for (const s of ok) assert.ok(CHECK_PARAM_TYPES.selector.re.test(s), s);
   for (const s of no) assert.ok(!CHECK_PARAM_TYPES.selector.re.test(s), JSON.stringify(s));
+  assert.ok(CHECK_PARAM_TYPES.text.re.test('Added by MR !16777: the wrapper'));
   for (const s of ['x"y', 'a\nb', 'a`b', '<b>']) { assert.ok(!CHECK_PARAM_TYPES.text.re.test(s), s); assert.ok(!CHECK_PARAM_TYPES.value.re.test(s), s); }
 });
 
@@ -121,7 +122,7 @@ test('generated probes give the right answers in Chromium', { skip: !pw && 'Play
 });
 
 test('a template check that cannot be expanded reports only its own problems', () => {
-  const r = withChecks([{ use: 'element_exists', kind: 'fix', params: { selector: 'a', what: 'x'.repeat(70) } }]);
+  const r = withChecks([{ use: 'element_exists', kind: 'fix', params: { selector: 'a', what: 'x'.repeat(90) } }]);
   assert.deepEqual(r.errors.map((e) => e.at), ['variant.checks[0].params.what']);
 });
 
