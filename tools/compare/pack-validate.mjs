@@ -362,3 +362,10 @@ export function graftRecipe(text, yaml, files, dirLabel) {
   return `# The recipe in this pack was replaced by issue-pack.mjs --recipe ${dirLabel}\n${yaml.dump(doc, { lineWidth: -1, noRefs: true })}`;
 }
 
+
+// The scaffold's REPRODUCE.md says the pinned core is "the commit the evidence here was produced on" and gives a "Last verified" date. After
+// an import nothing has been run, so say that instead.
+export function markReproduceUnverified(text) {
+  return text.replace(/Pinned core: `([^`]+)` \(the commit the evidence here was produced on\)\. Last verified: [^\n]*?\./,
+    'Pinned core: `$1` (the commit the pack was imported against; nothing has been run on it yet). Last verified: never.');
+}

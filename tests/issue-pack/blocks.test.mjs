@@ -29,7 +29,7 @@ test('the catalogue loads with no problems and has the three prototype blocks, e
 
 test('the blocks expand into exactly the recipes that were verified on real core (#3618230: all three files; #3415961: recipe.yml)', () => {
   const e = expand([FILE_FIELD]);
-  const committed = (f) => read(`reports/issues/3618230/recipe/${f}`);
+  const committed = (f) => read(`tests/issue-pack/fixtures/verified-3618230/recipe/${f}`);
   assert.deepEqual(Object.keys(e.files).sort(), ['config/field.field.node.article.field_attachment.yml', 'config/field.storage.node.field_attachment.yml', 'recipe.yml']);
   assert.deepEqual(noName(data(e.files['recipe.yml'])), noName(data(committed('recipe.yml'))));
   for (const f of ['config/field.storage.node.field_attachment.yml', 'config/field.field.node.article.field_attachment.yml']) assert.deepEqual(data(e.files[f]), data(committed(f)), f);
@@ -188,8 +188,8 @@ test('describeSetup tells the reader which blocks built the setup and where each
   assert.match(lines[1], /^- file_field_with_size_limit \(field: attachment, label: Attachment, limit: 1 KB, extensions: txt\)\. Verified: Applied on core a19dfee86688/);
 });
 
-test('REAL PACK: the committed #3618230 pack, with its recipe swapped for one setup block, validates clean and builds the same recipe', () => {
-  const real = yaml.load(read('reports/issues/3618230/PACK.yml'), { schema: yaml.CORE_SCHEMA });
+test('REAL PACK: the earlier hand-verified #3618230 pack (a fixture), with its recipe swapped for one setup block, validates clean and builds the same recipe', () => {
+  const real = yaml.load(read('tests/issue-pack/fixtures/verified-3618230/PACK.yml'), { schema: yaml.CORE_SCHEMA });
   const committedFiles = real.recipe.files; delete real.recipe; real.setup = [FILE_FIELD];
   const r = run(real);
   assert.deepEqual(r.errors, []); assert.deepEqual(r.warnings, []);

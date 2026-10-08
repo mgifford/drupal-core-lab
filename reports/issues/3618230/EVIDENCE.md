@@ -1,42 +1,32 @@
 # Evidence: issue 3618230 (Adopt the ajax MessageCommand for file uploads)
 
-Status: DRAFT. Scripted checks only. No manual, keyboard, screen-reader or forced-colours run has been done, and a human has not reviewed it.
-Date: 2026-10-03   Author/agent: Claude Code (scripted run). The issue pack was drafted by Gemini and its recipe was replaced by one the maintainer supplied.
+Status: DRAFT. One scripted run on current core with the checks of this pack. No manual, keyboard, screen-reader or forced-colours run has been done, and a human has not reviewed it.
+Date: 2026-10-08   Author/agent: Claude Code (scripted run). The pack was drafted by Gemini from the prompt built by `issue-pack.mjs prepare`, and its checks come from the check templates.
 
-## Environments (record exact commits)
+## Environments
 | Env | Directory | Commit | Notes |
 |-----|-----------|--------|-------|
 | Baseline | envs/baseline-3618230-latest | `a19dfee86688` | upstream `main` (commit date 2026-10-01), recipe `repro_3618230` applied |
-| Patched  | envs/issue-3618230-latest | `a19dfee86688` + patch | MR !16777 (branch tip `2d600f40b97`), applied cleanly; same recipe |
+| Patched  | envs/issue-3618230-latest | `a19dfee86688` + patch | MR !16777, `branches/3618230-adopt-the-ajax.patch`; the working tree shows 2 changed files (ManagedFile.php and its kernel test) |
 
-Where: a DDEV Freeform workspace on coder.ddev.com, Standard install, admin/admin. Browser: headless Chromium driven by Playwright (Linux). The active theme was not recorded.
-The recipe adds an optional **Attachment** file field to the Article form with a 1 KB size limit (.txt only).
+Where: DDEV Freeform workspace `lab-3619127` on coder.ddev.com, fresh `scripts/cloud-bootstrap.mjs 3618230-latest` run (smoke check passed: 6 passed, 0 failed, 1 not checked: frames at the Coder app URLs need a signed-in browser). Browser: headless Chromium driven by Playwright, reaching the two sites on the viewer's local ports 8101 and 8102. Login admin/admin. The active theme was not recorded. The pinned core in `variants.json` (`f5e265802542`) was NOT run.
 
-## Automated results (2026-10-03, one run)
-Scenario: log in, open `/node/add/article`, choose a 2 KB `.txt` file in the Attachment field, wait for the AJAX response. The checks are the pack's own probes.
+## Automated results (one run)
+Scenario: log in, open `/node/add/article`, choose a 2 KB `.txt` file in the Attachment field (1 KB limit), wait 4 seconds. The checks are the pack's own probes, evaluated with `page.evaluate`, not through the viewer's Run checks button.
 
 | Check | Before | After |
 |-------|--------|-------|
-| precondition: a file input is present | holds | holds |
+| precondition: a file input exists | true | true |
 | fix: `.file-upload-messages` exists, before any upload | false | false |
-| fix: `.file-upload-messages` exists, after the failed upload | **false** (does not hold) | **true** (holds) |
-| regression: JavaScript errors on the page | 0 | 0 |
-| question: an error appears when an oversized file is uploaded | yes | yes |
-| question: the message sits in the dedicated container | no | yes |
+| fix: `.file-upload-messages` exists, after the oversized upload (AJAX response 200) | **false** | **true** |
+| regression: JavaScript errors | 0 | 0 |
 
-An earlier scripted run on 2026-10-02 against the same two sites also recorded: Before, the error is inline with a `role="alert"` region and nothing else; After, the `.file-upload-messages` wrapper (id like `file-upload-messages-field-attachment-widget-0--<suffix>`) holds the message, and there is an additional `aria-live="assertive"` element with the same text.
-Choosing a disallowed extension (a `.txt` file in the image field) is rejected in the browser with no AJAX request on both sites, so that path does not reach the changed code.
-
-## Manual results (keyboard, screen reader, forced colours)
-NOT RUN. AT/browser/OS versions: none.
+Markup seen after the upload: Before, the error is inline in a `role="alert"` list item and there is no wrapper element. After, a `div.file-upload-messages` with an id like `file-upload-messages-field-attachment-widget-0-…` holds the error item, which also has `role="alert"`.
 
 ## Findings
-- On current core `main`, with this recipe, the merge request changes how the upload error is delivered: it appears through a `MessageCommand` into a wrapper inside the widget, as the issue describes. This is an observation of markup, not an accessibility conformance finding.
-- The message stays inside the widget on both sides; the MR does not move it to the page's message region.
-- Whether a screen reader announces the message was not tested. The extra `aria-live` element on After is evidence of markup only.
+- The fix check distinguishes Before from After, but only after the failed upload. Before the upload it is false on both sides, so Run checks pressed too early shows no difference.
+- The form has three file inputs and the Image field comes first. An upload into it (png, gif, jpg, jpeg, webp only) is rejected by the browser before any server code runs: a first run did exactly that and made no AJAX request. The precondition `input[type='file']` is therefore too weak: it holds even if the Attachment field is missing.
+- This agrees with the earlier hand-built run for this issue (wrapper only on After).
 
 ## Not verified
-- The pinned pair (`3618230-pinned`, core `f5e265802542`) was never built.
-- Comment #10's question (does the problem occur in the Default Admin theme) is not answered: the theme was not recorded.
-- No assistive technology, keyboard-only, forced-colours or other-browser (Firefox, WebKit) run.
-- The checks were run by a script on each site's page, not inside the viewer's frames, and from one run.
+- The pinned core pair; the viewer's Run checks button and the frames at the Coder app URLs; keyboard, screen-reader announcement, forced colours; the Default Admin theme question in comment #10 (the active theme was not recorded); the wording of the upload error; any step by a person.

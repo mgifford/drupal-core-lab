@@ -1,6 +1,6 @@
 # #3618230: Adopt the ajax MessageCommand for file uploads
 
-**DRAFT.** Written from an issue pack (AI collaborator from the issue page and MR diff on 2026-10-03). A person has not yet confirmed the steps or the checks.
+**DRAFT.** Written from an issue pack (Gemini (chat), from issue page #3618230 and MR !16777). A person has not yet confirmed the steps or the checks.
 
 Issue: https://www.drupal.org/project/drupal/issues/3618230  
 Merge request: !16777  
@@ -8,26 +8,29 @@ Fork branch: `3618230-adopt-the-ajax`
 
 ## Summary
 
-Reported problem: ManagedFile::uploadAjaxCallback() renders a status_messages element into the replaced widget's prefix and ships it inside the insert AJAX command. This causes server-rendered messages to go through XSS filtering (stripping things like Olivero's SVG message icon, related to issue #3457067), prevents proper accessibility aria live announcements, forces errors inside the widget instead of the theme's message region, and complicates decoupled frontends.
+Reported problem: ManagedFile::uploadAjaxCallback() renders status messages directly into the replaced widget prefix inside the insert AJAX command instead of using the AJAX MessageCommand (introduced in Drupal 8.8). This causes HTML filtering issues with inline icons (e.g. SVG icons stripped in Olivero, issue #3457067), relies on inline markup for screen reader announcements rather than aria-live, and hardcodes message placement inside the widget instead of giving the theme control over rendering.
 
-The changed code runs in server-side validation after an AJAX upload. Note that a disallowed file extension is rejected in the browser before any request, so it does not reach this code; thus using an oversized allowed extension (.txt exceeding 1 KB) triggers the server-side size validation.
+The merge request (!16777) alters ManagedFile::uploadAjaxCallback() to append a unique container (div with class file-upload-messages) in the widget prefix and sends error messages using MessageCommand targeted at that container via its wrapperQuerySelector.
 
-The merge request (!16777) updates core/modules/file/src/Element/ManagedFile.php to use a placeholder container div (file-upload-messages) in the replaced markup and delivers messages using the dedicated MessageCommand via Drupal::messenger()->deleteAll(). It also adds a kernel test in core/modules/file/tests/src/Kernel/ManagedFileTest.php.
-
-Comment #10 notes that Olivero has not been in core since #3595089 and asks whether the problem occurs in the Default Admin theme.
+Open points: comment #10 notes that Olivero has been removed from core (#3595089) and asks whether this problem still occurs in the Default Admin theme. The issue is postponed for maintainer feedback.
 
 ## Sources
 
-- https://www.drupal.org/project/drupal/issues/3618230 (2026-10-02): Issue page with comments #1 to #10, status Postponed
-- https://git.drupalcode.org/project/drupal/-/merge_requests/16777 (2026-08-20): Merge request !16777, source branch 3618230-adopt-the-ajax, target branch main
+- https://www.drupal.org/project/drupal/issues/3618230 (2026-10-04): Issue page with comments #1 to #10 (status Postponed)
+- https://git.drupalcode.org/project/drupal/-/merge_requests/16777 (2026-10-04): Merge request !16777, opened, source branch 3618230-adopt-the-ajax, target branch main
+
+## Setup blocks
+
+- article_content_type [added automatically]. Verified: Core fixture recipe; applied on core a19dfee86688 (commit date 2026-10-01) in the #3618230 and #3415961 builds.
+- file_field_with_size_limit (field: attachment, label: Attachment, limit: 1 KB, extensions: txt). Verified: Applied on core a19dfee86688 (commit date 2026-10-01) in the #3618230 build; a 2 KB .txt file in the field produced the server-side upload error on Before and After (scripted run, 2026-10-03).
 
 ## Not verified
 
-- Whether the problem still occurs in the Default Admin theme following the removal of Olivero from core
-- Whether decoupled frontends correctly receive and render the AJAX message command
-- The fix check (.file-upload-messages element) is false before any upload and can only be true on After after a failed upload.
-- The recipe config was supplied by the person and not checked by you.
+- Whether the error message renders properly in the Default Admin theme on current main
+- Whether the fix check (element .file-upload-messages) only exists in the DOM after triggering a server-side file upload error
+- Assistive technology live announcement behavior in different admin themes
 
 ## Notes
 
-The issue is currently postponed (maintainer needs more info regarding Olivero removal in core #3595089).
+The issue was created by fago and postponed pending information on how it behaves with the Default Admin theme following Olivero's removal.
+The MR changes ManagedFile::uploadAjaxCallback to output a wrapper container with an ID matching file-upload-messages-* and sends messages via MessageCommand targeting that selector.

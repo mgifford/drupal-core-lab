@@ -15,7 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { labRoot } from '../tools/compare/lib.mjs';
-import { validatePack, loadYaml, repairMessage, readRecipeDir, graftRecipe } from '../tools/compare/pack-validate.mjs';
+import { validatePack, loadYaml, repairMessage, readRecipeDir, graftRecipe, markReproduceUnverified } from '../tools/compare/pack-validate.mjs';
 import { loadCatalogue, catalogueText, describeSetup } from '../tools/compare/pack-blocks.mjs';
 import { loadChecks, checkCatalogueText } from '../tools/compare/pack-checks.mjs';
 
@@ -134,6 +134,8 @@ Object.assign(pinned, {
 fs.writeFileSync(vf, JSON.stringify(all, null, 2) + '\n');
 
 // 4. the pack and a readable summary
+const repro = path.join(issueDir, 'REPRODUCE.md');
+if (fs.existsSync(repro)) fs.writeFileSync(repro, markReproduceUnverified(fs.readFileSync(repro, 'utf8')));
 fs.writeFileSync(path.join(issueDir, 'PACK.yml'), text.endsWith('\n') ? text : `${text}\n`);
 const md = [`# #${nid}: ${pack.issue.title}`, '', `**DRAFT.** Written from an issue pack (${pack.review.generated_by}). A person has not yet confirmed the steps or the checks.`, '',
   `Issue: ${pack.issue.url}${pack.issue.merge_request ? `  \nMerge request: ${pack.issue.merge_request}` : ''}  \nFork branch: \`${pack.issue.fork_branch}\``, '', '## Summary', '', pack.summary.trim(), '',

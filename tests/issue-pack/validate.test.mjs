@@ -257,3 +257,9 @@ test('VIEWER_GLOBALS is exactly the set of window.__cmp values the viewer script
 test('the repair message tells the assistant to read the DOM instead of invented globals', () => {
   assert.match(repairMessage(run(FIXP('llm-draft-phantom-global.yml'))), /neither Drupal nor the viewer defines[^\n]*\n   What to do: Replace the probe with one that reads the DOM[^\n]*Do not read network responses or any window\.__ name except the four the viewer provides/);
 });
+
+test('an imported REPRODUCE.md does not claim the pinned core was verified', async () => {
+  const { markReproduceUnverified } = await import('../../tools/compare/pack-validate.mjs');
+  const src = 'Pinned core: `f5e265802542` (the commit the evidence here was produced on). Last verified: 2026-10-08.\n';
+  assert.equal(markReproduceUnverified(src), 'Pinned core: `f5e265802542` (the commit the pack was imported against; nothing has been run on it yet). Last verified: never.\n');
+});

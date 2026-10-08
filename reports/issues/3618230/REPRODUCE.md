@@ -1,26 +1,20 @@
 # Reproduce #3618230: Adopt the ajax MessageCommand for file uploads
 
 Issue: https://www.drupal.org/project/drupal/issues/3618230
-Pinned core: `f5e265802542` (the commit the merge request was based on). **The pinned pair has not been built or verified.** Scripted checks were run on 2026-10-03 against current core `main` (`a19dfee86688`, commit date 2026-10-01) using the `-latest` variant; see [EVIDENCE.md](EVIDENCE.md).
+Pinned core: `f5e265802542` (the commit the pack was imported against; nothing has been run on it yet). Last verified: never.
 
 ## The problem in one paragraph
-`ManagedFile::uploadAjaxCallback()` renders a status messages element into the replaced file widget's prefix and ships it inside the insert AJAX command. The merge request leaves a placeholder container in the widget instead and sends each message as a separate AJAX `MessageCommand`. The reporter's reasons: server-rendered messages lose theme markup (such as an SVG icon) to XSS filtering, the message command uses aria-live announcements, and themes get control of how messages render. The issue is Postponed (maintainer needs more info): comment #10 asks whether the problem occurs in the Default Admin theme. No accessibility conformance claim is made here. See [SUMMARY.md](SUMMARY.md).
+When a file upload fails server-side validation, the upload error is rendered into the replaced file widget and sent in an insert AJAX command instead of the AJAX MessageCommand (issue summary). MR !16777 adds a message wrapper inside the widget and delivers the messages with MessageCommand. Which WCAG criterion applies has not been established.
 
 ## Reproduce it (pinned core, exactly as verified)
     node tools/compare/setup.mjs 3618230-pinned        # builds Before and After, applies the recipe and patches
     node tools/compare/serve.mjs 3618230-pinned        # side-by-side viewer
-
-## Steps by hand in the viewer
-1. Make a test file bigger than 1 KB on your own computer: `yes aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa | head -c 2048 > too-big.txt`
-2. Open `/node/add/article` in both frames (it is already loaded after **Go**).
-3. In EACH frame, choose `too-big.txt` in the **Attachment** field (a file chooser cannot be mirrored, so do this by hand).
-4. Press **Run checks**: the `fix` check (the `.file-upload-messages` wrapper exists) should fail on Before and pass on After.
-
-No scripted walkthrough has been written for this issue.
+    node tools/playwright/walkthrough.mjs 3618230-pinned   # scripted replay with real input
 
 ## Try it on the latest core
     node tools/compare/setup.mjs 3618230-pinned --check-patches    # (use 3618230-latest to check the current core)
     node tools/compare/setup.mjs 3618230-latest
+    node tools/playwright/walkthrough.mjs 3618230-latest
 
 ## If the result is not what you expect
 | What you see | What it probably means | What to do |
@@ -31,9 +25,9 @@ No scripted walkthrough has been written for this issue.
 | Everything as expected | Still reproducible | Record the new core commit (see "Re-pin" below). |
 
 ## Re-pin to a newer core after verifying
-1. Run the `-latest` variant to the end and confirm in the viewer that the `fix` check fails on Before and passes on After.
+1. Run the `-latest` variant to the end and confirm the walkthrough reports "Reproduced and fixed".
 2. Put the verified commit (`git -C envs/<after-env> rev-parse HEAD`) in `core.commit` of the `-pinned` variant in `tools/compare/variants.json`.
-3. Re-run the checks and the diff report, commit the new evidence, update the date above.
+3. Re-run the walkthrough and the diff report, commit the new evidence, update "Last verified" above.
 
 ## What is in this folder
 | Path | What |
