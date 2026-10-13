@@ -88,6 +88,7 @@
   .dock { grid-row: 5; background: var(--surface); border-top: 1px solid var(--line); display: grid; grid-template-rows: auto minmax(0, 1fr); height: var(--dock-h, 17rem); min-height: 0; }
   .dock[data-size="large"] { height: 55vh; } .dock[data-collapsed="true"] { height: auto; }
   .tabs { display: flex; gap: 2px; padding: .3rem .5rem 0; border-bottom: 1px solid var(--line); overflow-x: auto; align-items: end; }
+  .tabs .tablist { display: flex; gap: 2px; align-items: end; }
   .tabs [role=tab] { border: 1px solid transparent; border-bottom: 0; background: none; border-radius: 6px 6px 0 0; padding: .3rem .75rem; display: flex; gap: .4rem; align-items: center; white-space: nowrap; margin-bottom: -1px; }
   .tabs [role=tab][aria-selected=true] { background: var(--surface); border-color: var(--line); font-weight: 700; }
   .tabs .sp { margin-left: auto; display: flex; gap: .25rem; } .tabs .sp button { border-color: transparent; background: none; font-size: .8rem; margin-bottom: .25rem; min-height: 1.7rem; }
@@ -196,13 +197,15 @@
 </dialog>
 
 <section class="dock" id="dock" data-collapsed="false" data-size="normal" aria-label="Steps and results">
-  <div class="tabs" role="tablist" id="tabs" aria-label="Steps and results">
-    <button type="button" role="tab" id="tab-steps" aria-controls="p-steps" data-tab="steps">Steps <span class="chip" id="bd-steps"></span></button>
-    <button type="button" role="tab" id="tab-checks" aria-controls="p-checks" data-tab="checks" data-needs="live">Checks <span class="chip" id="bd-checks"></span></button>
-    <button type="button" role="tab" id="tab-manual" aria-controls="p-manual" data-tab="manual" data-needs="live">Manual <span class="chip" id="bd-manual"></span></button>
-    <button type="button" role="tab" id="tab-axe" aria-controls="p-axe" data-tab="axe" data-needs="live">Accessibility <span class="chip" id="bd-axe"></span></button>
-    <button type="button" role="tab" id="tab-lh" aria-controls="p-lh" data-tab="lh" data-needs="live">Lighthouse <span class="chip" id="bd-lh"></span></button>
-    <button type="button" role="tab" id="tab-env" aria-controls="p-env" data-tab="env" data-needs="live">Environment <span class="chip" id="bd-env"></span></button>
+  <div class="tabs" id="tabs">
+    <div class="tablist" role="tablist" aria-label="Steps and results">
+      <button type="button" role="tab" id="tab-steps" aria-controls="p-steps" data-tab="steps">Steps <span class="chip" id="bd-steps"></span></button>
+      <button type="button" role="tab" id="tab-checks" aria-controls="p-checks" data-tab="checks" data-needs="live">Checks <span class="chip" id="bd-checks"></span></button>
+      <button type="button" role="tab" id="tab-manual" aria-controls="p-manual" data-tab="manual" data-needs="live">Manual <span class="chip" id="bd-manual"></span></button>
+      <button type="button" role="tab" id="tab-axe" aria-controls="p-axe" data-tab="axe" data-needs="live">Accessibility <span class="chip" id="bd-axe"></span></button>
+      <button type="button" role="tab" id="tab-lh" aria-controls="p-lh" data-tab="lh" data-needs="live">Lighthouse <span class="chip" id="bd-lh"></span></button>
+      <button type="button" role="tab" id="tab-env" aria-controls="p-env" data-tab="env" data-needs="live">Environment <span class="chip" id="bd-env"></span></button>
+    </div>
     <span class="sp"><button type="button" id="docksize" aria-pressed="false">Larger</button><button type="button" id="dockhide" aria-expanded="true">Hide panel</button></span>
   </div>
   <div class="panels" id="panels">
