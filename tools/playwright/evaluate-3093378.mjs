@@ -1,25 +1,34 @@
 // Evidence for #3093378: ARIA disclosure for vertical toolbar submenu buttons (contrib toolbar 2.x).
-//   node tools/playwright/evaluate-3093378.mjs [slug]   (default 3093378-latest)
-// For each side: logs in, opens the "Manage" tray, and inspects the submenu disclosure button for
-// "Structure". Records its markup, its aria-expanded state (before and after a real click), its
-// accessible name, its computed text-indent, an axe scan and any JavaScript errors, plus screenshots.
-// Writes reports/issues/3093378/playwright/<stamp>/ (results.json, SUMMARY.md, *.png).
+//   node tools/playwright/evaluate-3093378.mjs [slug] [--browser=chromium|firefox|webkit] [--scheme=light|dark] [--forced-colors] [--viewport=WxH]
+// Defaults: slug 3093378-latest, chromium, light, 480x900 (below 1024 px, so the toolbar tray is vertical and the
+// disclosure buttons render). Each run records its environment in results.json; `node scripts/coverage.mjs 3093378`
+// turns those into a matrix of what has and has not been tested.
+// For each side: logs in, opens the "Manage" tray, and inspects the submenu disclosure button for "Structure" with a
+// real click and with real keys. Records its markup, its aria-expanded state, its accessible name, its computed
+// text-indent, an axe scan and any JavaScript errors, plus screenshots.
+// Writes reports/issues/3093378/playwright/<stamp>-<envTag>/ (results.json, SUMMARY.md, *.png).
 // Specific to #3093378; copy and adapt it for another variant.
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { chromium } from '@playwright/test';
+import { chromium, firefox, webkit } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { PNG } from 'pngjs';
 import { labRoot, variants, envInfo, loginPath, envDir } from '../compare/lib.mjs';
 
-const slug = process.argv.slice(2).find((a) => !a.startsWith('-')) || '3093378-latest';
+const argv = process.argv.slice(2);
+const opt = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); return a ? a.split('=')[1] : d; };
+const BROWSER = opt('browser', 'chromium'); const SCHEME = opt('scheme', 'light'); const FORCED = argv.includes('--forced-colors');
+const [VW, VH] = opt('viewport', '480x900').split('x').map(Number);
+if (!{ chromium, firefox, webkit }[BROWSER]) { console.error('--browser must be chromium, firefox or webkit'); process.exit(1); }
+const slug = argv.find((a) => !a.startsWith('-')) || '3093378-latest';
 const v = variants().find((x) => x.slug === slug);
 if (!v) { console.error(`variant ${slug} not found`); process.exit(1); }
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-const out = path.join(labRoot, 'reports/issues', v.issue, 'playwright', `${stamp}-chromium-480x900`);
+const envTag = `${BROWSER}-${SCHEME}${FORCED ? '-forced' : ''}-${VW}x${VH}`;
+const out = path.join(labRoot, 'reports/issues', v.issue, 'playwright', `${stamp}-${envTag}`);
 fs.mkdirSync(out, { recursive: true });
-const VIEWPORT = { width: 480, height: 900 };
+const VIEWPORT = { width: VW, height: VH };
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
 const gitInfo = (env) => { try { return execFileSync('git', ['-C', envDir(env), 'log', '-1', '--format=%H %cs'], { encoding: 'utf8' }).trim(); } catch { return 'unknown'; } };
@@ -29,7 +38,7 @@ async function runSide(browser, side) {
   const info = envInfo(spec.env);
   const host = info.hosts.slice().sort((a, b) => a.length - b.length)[0];
   const base = `https://${host}`;
-  const ctx = await browser.newContext({ viewport: VIEWPORT, colorScheme: 'light', forcedColors: 'none', ignoreHTTPSErrors: true });
+  const ctx = await browser.newContext({ viewport: VIEWPORT, colorScheme: SCHEME, forcedColors: FORCED ? 'active' : 'none', ignoreHTTPSErrors: true });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e.message)));
@@ -85,8 +94,8 @@ function pixelDiff(aPng, bPng) {
   return { width: a.width, height: a.height, diffPixels: diff, totalPixels: a.width * a.height, pct: +(100 * diff / (a.width * a.height)).toFixed(3), png: out };
 }
 
-const browser = await chromium.launch();
-const environment = { browser: 'chromium', browserVersion: browser.version(), colorScheme: 'light', forcedColors: false, viewport: VIEWPORT, os: `${process.platform} ${process.arch}` };
+const browser = await { chromium, firefox, webkit }[BROWSER].launch();
+const environment = { browser: BROWSER, browserVersion: browser.version(), colorScheme: SCHEME, forcedColors: FORCED, viewport: VIEWPORT, os: `${process.platform} ${process.arch}` };
 const results = {
   variant: v.slug, issue: v.issue, when: new Date().toISOString(), environment,
   core: v.core, contrib: v.contrib || [], patches: (v.after.contribPatches || []).map((p) => p.patch),
@@ -114,7 +123,7 @@ const checks = [
   ['regression', 'JavaScript errors', B.jsErrors.length, A.jsErrors.length, eq(B.jsErrors.length, A.jsErrors.length)],
 ];
 let unexpected = 0;
-let md = `# Playwright evidence: #${v.issue} (${v.slug})\n\nRun ${results.when}. Core Before \`${results.commits.before}\`, After \`${results.commits.after}\`. Contrib toolbar \`${(v.contrib[0] || {}).commit || ''}\`; patch on After: \`${(results.patches[0] || 'none').split('/').pop()}\`. Environment: **chromium ${environment.browserVersion}**, viewport ${VIEWPORT.width}x${VIEWPORT.height} (vertical toolbar — the disclosure handles only render when the tray is vertical, below the 1024px breakpoint), ${environment.os}. Trusted input (Playwright click), axe-core WCAG 2.0–2.2 A/AA.\n\nRule: **fix** checks fail on Before and pass on After; **regression** checks are equal.\n\n| Type | Check | Before | After | Verdict |\n|---|---|---|---|---|\n`;
+let md = `# Playwright evidence: #${v.issue} (${v.slug})\n\nRun ${results.when}. Core Before \`${results.commits.before}\`, After \`${results.commits.after}\`. Contrib toolbar \`${(v.contrib[0] || {}).commit || ''}\`; patch on After: \`${(results.patches[0] || 'none').split('/').pop()}\`. Environment: **${environment.browser} ${environment.browserVersion}**, colour scheme **${environment.colorScheme}**${environment.forcedColors ? ', **forced colours**' : ''}, viewport ${VIEWPORT.width}x${VIEWPORT.height} (vertical toolbar — the disclosure handles only render when the tray is vertical, below the 1024px breakpoint), ${environment.os}. Trusted input (Playwright click), axe-core WCAG 2.0–2.2 A/AA.\n\nRule: **fix** checks fail on Before and pass on After; **regression** checks are equal.\n\n| Type | Check | Before | After | Verdict |\n|---|---|---|---|---|\n`;
 for (const [t, label, b, a, good] of checks) { if (!good) unexpected++; md += `| ${t} | ${label} | ${b} | ${a} | ${good ? '✓ as expected' : '✗ NOT as expected'} |\n`; }
 
 md += `\n## Markup of the "Structure" disclosure button\n\nBefore (closed):\n\n\`\`\`html\n${B.closed.html}\n\`\`\`\n\nBefore (open):\n\n\`\`\`html\n${B.opened.html}\n\`\`\`\n\nAfter (closed):\n\n\`\`\`html\n${A.closed.html}\n\`\`\`\n\nAfter (open):\n\n\`\`\`html\n${A.opened.html}\n\`\`\`\n\n`;

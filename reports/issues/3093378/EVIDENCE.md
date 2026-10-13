@@ -1,7 +1,7 @@
 # Evidence: issue 3093378 (Use ARIA disclosure pattern for submenu buttons in vertical toolbar orientation)
 
-Status: **DRAFT**. One scripted run on current core main with the contrib toolbar `2.x` + MR !6. No manual, keyboard, screen-reader or forced-colours run has been done, and a human has not reviewed it.
-Date: 2026-10-13   Author/agent: Claude Code (scripted Playwright run).
+Status: **DRAFT**. Scripted runs on current core main and on pinned core `4f9558d8`, with contrib toolbar `2.x` + MR !6, across Chromium (light, dark, forced colours) and WebKit (light, dark), plus a Guidepup virtual screen-reader pass. No keyboard-only or real screen-reader pass by a person, and no human review yet.
+Date: 2026-10-13   Author/agent: AI-assisted (opencode / big-pickle); scripted Playwright and Guidepup runs.
 
 ## Environments
 | Env | Directory | Core commit | Contrib toolbar | Notes |
@@ -15,7 +15,7 @@ module entirely (`ToolbarHooks::pageTop()`). See `REPRODUCE.md`.
 Where: local DDEV on macOS (`darwin arm64`). Browser: headless Chromium `153.0.8010.12` driven by Playwright; viewport
 **480x900** (below the 1024px breakpoint, so the toolbar tray is vertical and the disclosure buttons render).
 
-## Automated results (one run)
+## Automated results (Chromium light, 480x900)
 Scenario: log in as user 1 (one-time link), open the home page, open the "Manage" tray, then inspect the disclosure button
 for the "Structure" submenu and click it once (real Playwright click). The checks below are the variant's own checks.
 
@@ -58,13 +58,49 @@ when tested with the Default Admin theme) exactly.
   `Drupal.t()`, so the name is HTML-escaped as before. Optional: the APG disclosure pattern recommends `aria-controls`
   linking the button to the submenu it toggles.
 
+## Test matrix
+
+`node scripts/coverage.mjs 3093378` produced `COVERAGE.md`. Every non-Firefox environment in the matrix now has a run on
+**both** pinned core (`4f9558d8`) and current core main, all `reproduced-and-fixed` with 0 unexpected checks:
+
+| Environment (480x900) | Pinned | Latest |
+|---|---|---|
+| Chromium · light | ✓ | ✓ |
+| Chromium · dark | ✓ | ✓ |
+| Chromium · light · forced colours | ✓ | ✓ |
+| WebKit · light | ✓ | ✓ |
+| WebKit · dark | ✓ | ✓ |
+| Firefox · light | blocked | — |
+| Firefox · dark | blocked | — |
+
+Firefox is a declared, attempted block: Playwright's Firefox fails to launch on this machine (macOS 27), so Firefox must be
+checked by hand in the viewer or on another machine. Emulated forced colours and WebKit are not Windows High Contrast or
+Safari itself. Full run list and links: `COVERAGE.md` (generated).
+
+## Virtual screen reader (Guidepup)
+
+`tools/playwright/screenreader-3093378.mjs` drives the toolbar in the browser (open the "Manage" tray, real click on the
+"Structure" handle) and then reads a jsdom snapshot of that button with the Guidepup virtual screen reader. It is
+synthetic: it documents role, accessible name and expanded state, and is **not** a real VoiceOver/NVDA run. Run on both
+pinned and current core main, with the same result:
+
+| Side | Closed | Open |
+|------|--------|------|
+| Before | `button, Extend Structure` | `button, Collapse Structure` |
+| After  | `button, Structure menu, not expanded` | `button, Structure menu, expanded` |
+
+Before, the announcement changes with the state and never names it; After, one stable name is followed by the expanded/
+collapsed state. Raw output: `screenreader/<stamp>/` (`results.json`, `SUMMARY.md`).
+
 ## Not verified
-Keyboard-only and screen-reader passes; forced-colours; the Nightwatch test in the MR
-(`ddev nightwatch` is not available in this add-on); Firefox (blocked here); any step by a person.
+Keyboard-only and real screen-reader passes by a person (the Guidepup run is synthetic); the Nightwatch test in the MR
+(`ddev nightwatch` is not available in this add-on); Firefox (Playwright's Firefox fails to launch on this machine);
+any step by a person.
 
 ## Raw output
-`playwright/2026-10-13T18-22-29-401Z-chromium-480x900/` (variant `3093378-latest`) and
-`playwright/2026-10-13T18-38-03-220Z-chromium-480x900/` (variant `3093378-pinned`, core frozen to
-`4f9558d85e7d`) — each has `SUMMARY.md`, `results.json`, `before-1-tray.png`, `after-1-tray.png`,
-`before-2-structure-open.png`, `after-2-structure-open.png`, `pixel-diff.png`. Both report
-`verdict: reproduced-and-fixed`, `unexpected: 0`, and the same 0-pixel diff.
+Ten Playwright run directories under `playwright/` — five on variant `3093378-pinned` (core frozen to `4f9558d85e7d`) and
+five on `3093378-latest`: Chromium light (`18-38-03` / `18-22-29`), Chromium dark (`18-58-52` / `19-34-21`), Chromium light
+forced colours (`18-59-13` / `19-34-29`), WebKit light (`18-59-43` / `19-34-35`), WebKit dark (`18-59-56` / `19-34-46`).
+Each has `SUMMARY.md`, `results.json`, `before-1-tray.png`, `after-1-tray.png`, `before-2-structure-open.png`,
+`after-2-structure-open.png` and `pixel-diff.png`; each reports `verdict: reproduced-and-fixed` and `unexpected: 0`.
+Two Guidepup runs under `screenreader/` (`19-33-05` pinned / `19-34-57` latest), each with `results.json` and `SUMMARY.md`.

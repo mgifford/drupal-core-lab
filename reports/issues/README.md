@@ -13,7 +13,7 @@ one: `node scripts/new-issue.mjs <nid> --branch <fork-branch>` (see `docs/NEW-IS
 | [3046089](3046089/) | ISSUE-3046089: Accessibility of Main toolbar items and internal editing | no | 0 |  |  |  |
 | [3083103](3083103/) | Issue #3083103: Programmatically associate error messages with inputs | no | 4 |  |  |  |
 | [3087389](3087389/) | ISSUE-3087389: Media Library selection text is confusing for screen readers | no | 0 |  |  |  |
-| [3093378](3093378/) | Use ARIA disclosure pattern for submenu buttons in vertical toolbar orientation | [yes](3093378/REPRODUCE.md) | 1 | 2026-10-13 | 2 | `3093378-latest`, `3093378-pinned` |
+| [3093378](3093378/) | Use ARIA disclosure pattern for submenu buttons in vertical toolbar orientation | [yes](3093378/REPRODUCE.md) | 1 | 2026-10-13 | 12 | `3093378-latest`, `3093378-pinned` |
 | [3155130](3155130/) | ISSUE-3155130: "Edit summary" toggle accessibility issues | no | 0 |  |  |  |
 | [3243173](3243173/) | Issue #3243173: HTML5 validation disabled in Drupal 12 | no | 2 |  |  |  |
 | [3370946](3370946/) | 3370946 refresh notes (against current main) | no | 3 |  |  |  |
@@ -22,7 +22,7 @@ one: `node scripts/new-issue.mjs <nid> --branch <fork-branch>` (see `docs/NEW-IS
 | [3604037](3604037/) | Indicate that grouping elements have child element errors | [yes](3604037/REPRODUCE.md) | 4 | 2026-10-02 | 6 | `3604037-pinned`, `3604037-latest` |
 | [3614293](3614293/) | Issue #3614293 Update: Automated Form Validation Accessibility Testing | no | 1 |  |  |  |
 | [3617875](3617875/) | Branch patches for #3617875 | no | 3 |  |  |  |
-| [3618230](3618230/) | Adopt the ajax MessageCommand for file uploads | [yes](3618230/REPRODUCE.md) | 1 | 2026-10-03 |  | `3618230-pinned`, `3618230-latest` |
+| [3618230](3618230/) | Adopt the ajax MessageCommand for file uploads | [yes](3618230/REPRODUCE.md) | 1 | 2026-10-08 |  | `3618230-pinned`, `3618230-latest` |
 | [3619127](3619127/) | forms sidebar does not open from Inline Form Errors links | [yes](3619127/REPRODUCE.md) | 4 | 2026-10-02 | 8 | `3619127-pinned`, `3619127-latest` |
 | [3619387](3619387/) | Branch patches for #3619387 | no | 4 |  |  |  |
 | [3619933](3619933/) | Branch patches for #3619933 | no | 6 |  |  |  |

@@ -12,12 +12,18 @@ When the Manage toolbar is open in the **vertical** orientation (narrow viewport
     node scripts/lab-env.mjs start 3093378-latest     # both sites + viewer
     node tools/playwright/evaluate-3093378.mjs        # scripted evidence: markup, aria-expanded, accessible name, axe, screenshots
 
-Then read `playwright/<stamp>-chromium-480x900/SUMMARY.md`.
+Then read `playwright/<stamp>-<env>/SUMMARY.md` (the folder name records browser, colour mode and viewport, e.g.
+`…-chromium-dark-480x900`). Options: `--browser=chromium|firefox|webkit`, `--scheme=light|dark`, `--forced-colors`,
+`--viewport=1280x900`. `node scripts/coverage.mjs 3093378` turns all runs into the matrix in `COVERAGE.md`.
+
+For a synthetic screen-reader pass (Guidepup virtual screen reader over a jsdom snapshot of the button):
+    node tools/playwright/screenreader-3093378.mjs 3093378-latest
 
 ## Reproduce it on the pinned commit
     node tools/compare/setup.mjs 3093378-pinned
-    node tools/playwright/evaluate-3093378.mjs
-(Not built yet; the `-pinned` variant pins core to `4f9558d85e7db3f2fc0e4a5cde195a1834cb6206`, the commit this was verified on.)
+    node tools/playwright/evaluate-3093378.mjs 3093378-pinned
+    node tools/playwright/screenreader-3093378.mjs 3093378-pinned
+The `-pinned` variant pins core to `4f9558d85e7db3f2fc0e4a5cde195a1834cb6206`, the commit this was verified on.
 
 ## Environment note: core `navigation` must be off
 Core ships the **Navigation** module and the Standard profile requires it. The contrib Toolbar module yields to it:

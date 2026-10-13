@@ -1,5 +1,5 @@
 <!-- DRAFT for a human to review and post to https://www.drupal.org/project/toolbar/issues/3093378. Do not post automatically. -->
-**AI-assisted:** yes. Tool: Claude Code. External code copied: no.
+**AI-assisted:** yes. Tool: opencode (big-pickle). External code copied: no.
 
 ### What I tested
 MR !6 (`3093378-use-aria-disclosure`, tip `d1e97b5`) against the contrib `toolbar` `2.x` branch (`871ce78`) on current
@@ -24,6 +24,21 @@ The name no longer encodes the state, the state is exposed with `aria-expanded`,
 (the `text-indent: -9999px` removal is safe now the label is `.visually-hidden`). Number of buttons, axe violations
 (2 `color-contrast`, already present on both sides) and JavaScript errors are unchanged.
 
+Repeated on pinned core `4f9558d8` and on current `main`, in Chromium (light, dark, forced colours) and WebKit (light,
+dark): every environment reproduced the defect before and fixed it after, with the same result. Firefox could not be
+launched by Playwright on this machine and is not claimed.
+
+### What a screen reader announces (Guidepup virtual screen reader, synthetic)
+Reading the "Structure" button from the DOM, closed then after a real click:
+
+| | Closed | Open |
+|---|---|---|
+| Before | `button, Extend Structure` | `button, Collapse Structure` |
+| After | `button, Structure menu, not expanded` | `button, Structure menu, expanded` |
+
+Before, the name changes with the state and the state is never announced; After, the name is stable and the state is
+announced. This is a virtual screen reader (no operating-system AT); a person should still confirm with VoiceOver/NVDA.
+
 ### Steps to reproduce
 Open the home page, open the **Manage** tray, and inspect the disclosure button next to **Structure** at a viewport under
 1024px (vertical toolbar); expand it and re-inspect. Compare the button's markup and accessibility tree, not the pixels.
@@ -36,5 +51,6 @@ Open the home page, open the **Manage** tray, and inspect the disclosure button 
 - Optional: the APG disclosure pattern recommends `aria-controls` linking the button to the submenu it toggles.
 
 ### Not verified
-Keyboard-only and screen-reader passes, forced-colours, the MR's Nightwatch test (no `ddev nightwatch` in this toolchain),
-Firefox (blocked on this machine), and the pinned-core pair. One scripted run, not reviewed by a person.
+Keyboard-only and real screen-reader passes (the Guidepup run is synthetic), the MR's Nightwatch test (no `ddev
+nightwatch` in this toolchain), Firefox (Playwright's Firefox fails to launch on this machine), and any step by a person.
+Automated and virtual-AT evidence only; not reviewed by a person.
