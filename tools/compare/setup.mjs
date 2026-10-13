@@ -50,6 +50,18 @@ const have = (p) => fs.existsSync(p);
 const out = (cmd, argv, cwd) => execFileSync(cmd, argv, { cwd, encoding: 'utf8' }).trim();
 const step = (t) => console.log(`\n== ${t}`);
 
+// A variant may list contrib modules whose code is not in Drupal core (an issue that moved to a
+// contrib project). Each is cloned once into envs/.contrib/<name>.git and its pinned commit is
+// extracted, without a .git directory, into <env>/modules/contrib/<name>. The After side can then
+// carry `contribPatches` (applied inside the module directory) instead of core `patches`.
+function materializeContrib(m, dest) {
+  const shared = path.join(labRoot, 'envs/.contrib', `${m.name}.git`);
+  if (!have(shared)) { fs.mkdirSync(path.dirname(shared), { recursive: true }); run('git', ['clone', '--bare', m.url, shared]); }
+  if (spawnSync('git', ['-C', shared, 'rev-parse', '--verify', '-q', `${m.commit}^{commit}`], { stdio: 'ignore' }).status !== 0) run('git', ['-C', shared, 'fetch', '--depth', '1', 'origin', m.commit]);
+  fs.mkdirSync(dest, { recursive: true });
+  run('bash', ['-c', `git -C '${shared}' archive '${m.commit}' | tar -x -C '${dest}'`]);
+}
+
 for (const tool of CHECK ? ['git'] : ['git', 'ddev', 'docker']) {
   if (spawnSync(tool, ['--version'], { stdio: 'ignore' }).status !== 0) { console.error(`Missing prerequisite: ${tool}`); if (!dry) process.exit(1); }
 }
@@ -138,6 +150,27 @@ for (const [side, spec] of sides) {
     if (!dry && !have(path.join(dir, '.ddev/commands/web/drupal'))) { console.error('The add-on was not installed (see output above).'); process.exit(1); }
     runRetry('ddev', ['restart'], { cwd: dir });
   }
+  // Contrib modules (same on both sides), then the After side's patches inside the module.
+  for (const m of v.contrib || []) {
+    const dest = path.join(dir, 'modules/contrib', m.name);
+    const cmarker = path.join(dir, `.lab-contrib-${m.name}`);
+    if (have(cmarker)) { console.log(`contrib module already in place: ${m.name} @ ${m.commit.slice(0, 12)}`); continue; }
+    step(`${side}: contrib ${m.name} @ ${m.commit.slice(0, 12)} (${m.url})`);
+    materializeContrib(m, dest);
+    if (!dry) fs.writeFileSync(cmarker, `${m.commit}\n`);
+  }
+  const cpMarker = path.join(dir, '.lab-contrib-patches-applied');
+  for (const cp of spec.contribPatches || []) {
+    const moddir = path.join(dir, 'modules/contrib', cp.module);
+    const done = have(cpMarker) ? fs.readFileSync(cpMarker, 'utf8').split('\n') : [];
+    if (done.includes(cp.patch)) { console.log(`contrib patch already applied: ${cp.patch}`); continue; }
+    if (!have(path.join(labRoot, cp.patch))) { console.error(`contrib patch missing: ${cp.patch}`); process.exit(1); }
+    // Run from the environment root, not the module directory: git apply in a subdirectory of a
+    // work tree silently skips every path. --directory prefixes the module's relative path.
+    run('git', ['apply', `--directory=${path.posix.join('modules/contrib', cp.module)}`, path.join(labRoot, cp.patch)], { cwd: dir });
+    if (!dry) fs.appendFileSync(cpMarker, cp.patch + '\n');
+  }
+
   if (!have(path.join(dir, 'core/phpunit.xml')) && !dry) fs.copyFileSync(path.join(dir, 'core/phpunit.xml.dist'), path.join(dir, 'core/phpunit.xml'));
   // `ddev phpunit` sources core/.env (SIMPLETEST_BASE_URL and the browser settings). The add-on ships the template in
   // .ddev/core-dev/.env and says to copy it; without it every PHPUnit run errors before its first assertion.

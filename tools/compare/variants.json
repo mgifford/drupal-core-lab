@@ -397,5 +397,150 @@
     "after": {
       "env": "issue-3604037-latest"
     }
+  },
+  {
+    "slug": "3093378-latest",
+    "issue": "3093378",
+    "label": "#3093378: ARIA disclosure for vertical toolbar submenu buttons (contrib toolbar 2.x, current core main)",
+    "description": "The toolbar module has moved out of Drupal core into the contrib project 'toolbar'. Both sites run current core main with contrib toolbar 2.x at commit 871ce78 checked out into modules/contrib/toolbar and enabled. Before: the module as-is. After: the module with merge request !6 applied (a real ARIA disclosure: aria-expanded plus a '<name> menu' accessible name, and no text-indent hack). The change is meant to be visually identical, so the difference is in the markup and the accessibility tree, not the pixels.",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "ref": "main",
+      "commit": null
+    },
+    "contrib": [
+      {
+        "name": "toolbar",
+        "url": "https://git.drupalcode.org/project/toolbar.git",
+        "commit": "871ce7810a90c0e664b59df83ed64d250da3a626"
+      }
+    ],
+    "before": {
+      "env": "baseline-3093378-latest"
+    },
+    "after": {
+      "env": "issue-3093378-latest",
+      "contribPatches": [
+        {
+          "module": "toolbar",
+          "patch": "reports/issues/3093378/branches/3093378-use-aria-disclosure.patch"
+        }
+      ]
+    },
+    "pages": [
+      "/",
+      "/admin/structure"
+    ],
+    "login": true,
+    "recipe": "repro_3093378",
+    "demo": {
+      "start": "/"
+    },
+    "steps": [
+      {
+        "text": "Standard install on current core main with the contrib toolbar module (2.x, commit 871ce78) in modules/contrib and enabled. Default Admin is the admin theme.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open the home page. The administration toolbar runs across the top of the page.",
+        "how": "mirror"
+      },
+      {
+        "text": "Open the 'Manage' tray (click the Manage tab in the toolbar).",
+        "how": "mirror",
+        "lookFor": "A bar of administration menu links: Content, Structure, Appearance, Extend, Configuration, People, Reports."
+      },
+      {
+        "text": "Expand a section that has a submenu by clicking its disclosure button (the chevron next to 'Structure').",
+        "how": "mirror",
+        "lookFor": "The submenu opens. Visually nothing about the button changes: an icon, no visible text."
+      },
+      {
+        "text": "In EACH frame, inspect the disclosure button's markup and accessibility (or press Run checks). Before: a hidden span flips between 'Extend' and 'Collapse' and there is no aria-expanded. After: aria-expanded is 'false' then 'true' and the hidden name is 'Structure menu'.",
+        "how": "each",
+        "lookFor": "Before the name of the button is the opposite of its state (a toggle label); After the state is separate (aria-expanded) and the name stays 'Structure menu'."
+      }
+    ],
+    "expected": "The disclosure button reports its state with aria-expanded and its accessible name is the submenu's link text followed by ' menu' (for example 'Structure menu'). No visual change.",
+    "actual": "Before, the same button carries no aria-expanded and its name flips between 'Extend' and 'Collapse', conflating the name with the state.",
+    "checks": [
+      {
+        "label": "Setup reached: the toolbar renders disclosure buttons",
+        "probe": "document.querySelectorAll('.toolbar-handle').length > 0",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "A disclosure button carries aria-expanded (the machine-readable state)",
+        "probe": "document.querySelector('.toolbar-handle').hasAttribute('aria-expanded')",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "The toggle button's label ends with ' menu' (not 'Extend'/'Collapse')",
+        "probe": "((document.querySelector('#toolbar-item-administration-tray .toolbar-handle .label') || {}).textContent || '').trim()",
+        "expect": "Structure menu",
+        "kind": "fix"
+      },
+      {
+        "label": "The old 'Extend'/'Collapse' action span is gone",
+        "probe": "!!document.querySelector('.toolbar-handle .action')",
+        "expect": false,
+        "kind": "fix"
+      },
+      {
+        "label": "JavaScript errors on the page (ignoring the harmless \"ResizeObserver loop\" notice)",
+        "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+        "expect": 0,
+        "kind": "regression"
+      },
+      {
+        "label": "The same number of disclosure buttons is rendered on both sides",
+        "probe": "document.querySelectorAll('.toolbar-handle').length",
+        "expect": "same",
+        "kind": "regression"
+      }
+    ],
+    "observe": [
+      {
+        "label": "The toolbar and its submenu buttons look the same as before the change (same icon, no visible text)",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Clicking the disclosure button opens and closes the submenu",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "The button's state is exposed to assistive tech as aria-expanded",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Anything else looks broken, overlapped or different (layout, colours, spacing)",
+        "expectBefore": false,
+        "expectAfter": false
+      }
+    ],
+    "coverage": {
+      "blocked": {
+        "firefox": "Playwright's Firefox fails to launch on this machine (macOS 27). Test Firefox by hand in the viewer (it records the browser), or on another machine."
+      }
+    }
+  },
+  {
+    "slug": "3093378-pinned",
+    "extends": "3093378-latest",
+    "label": "#3093378: ARIA disclosure for vertical toolbar submenu buttons (contrib toolbar 2.x, core pinned to the verified commit)",
+    "core": {
+      "commit": "4f9558d85e7db3f2fc0e4a5cde195a1834cb6206"
+    },
+    "before": {
+      "env": "baseline-3093378-pinned"
+    },
+    "after": {
+      "env": "issue-3093378-pinned"
+    }
   }
 ]

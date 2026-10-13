@@ -5,6 +5,9 @@
 #   scripts/lab-site.sh language <env> [code]  add a language with a /<code> URL prefix (default fa, Farsi: right to left); see scripts/add-language.php
 #   scripts/lab-site.sh reset <env> [recipe]   DESTROYS the site: reinstall Standard (admin/admin), then apply
 #
+# A recipe may include an optional apply.sh; if present it is run inside the environment after the
+# recipe, for setup that recipes cannot express (they only install, never uninstall).
+#
 # <env> is a directory under envs/ (for example baseline-main). Needs the DDEV add-on
 # (see AGENTS.md). Both environments of a comparison should be given the same recipe.
 set -euo pipefail
@@ -23,6 +26,12 @@ apply() {
   local php='$a=require "autoload.php"; $r=Symfony\Component\HttpFoundation\Request::create("/"); $k=Drupal\Core\DrupalKernel::createFromRequest($r,$a,"prod"); $k->boot(); $k->preHandle($r); \Drupal::configFactory()->getEditable("system.performance")->set("css.preprocess",false)->set("js.preprocess",false)->save(); \Drupal::configFactory()->getEditable("system.site")->set("name","Drupal core test site")->save();'
   ddev exec "php -r '$php'"
   ddev drupal cache
+  if [ -f "recipes/$recipe/apply.sh" ]; then
+    # Recipes install only, never uninstall; run the recipe's own post-step if it has one.
+    for _ in $(seq 1 30); do ddev exec test -f "recipes/$recipe/apply.sh" 2>/dev/null && break; sleep 1; done   # wait for the file to reach the container
+    ddev exec bash "recipes/$recipe/apply.sh"
+    ddev drupal cache
+  fi
 }
 
 case "$cmd" in

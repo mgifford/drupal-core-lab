@@ -13,6 +13,7 @@ one: `node scripts/new-issue.mjs <nid> --branch <fork-branch>` (see `docs/NEW-IS
 | [3046089](3046089/) | ISSUE-3046089: Accessibility of Main toolbar items and internal editing | no | 0 |  |  |  |
 | [3083103](3083103/) | Issue #3083103: Programmatically associate error messages with inputs | no | 4 |  |  |  |
 | [3087389](3087389/) | ISSUE-3087389: Media Library selection text is confusing for screen readers | no | 0 |  |  |  |
+| [3093378](3093378/) | Use ARIA disclosure pattern for submenu buttons in vertical toolbar orientation | [yes](3093378/REPRODUCE.md) | 1 | 2026-10-13 | 2 | `3093378-latest`, `3093378-pinned` |
 | [3155130](3155130/) | ISSUE-3155130: "Edit summary" toggle accessibility issues | no | 0 |  |  |  |
 | [3243173](3243173/) | Issue #3243173: HTML5 validation disabled in Drupal 12 | no | 2 |  |  |  |
 | [3370946](3370946/) | 3370946 refresh notes (against current main) | no | 3 |  |  |  |

@@ -1,0 +1,110 @@
+{
+  "variant": "3093378-latest",
+  "issue": "3093378",
+  "when": "2026-10-13T18:22:29.881Z",
+  "environment": {
+    "browser": "chromium",
+    "browserVersion": "153.0.8010.12",
+    "colorScheme": "light",
+    "forcedColors": false,
+    "viewport": {
+      "width": 480,
+      "height": 900
+    },
+    "os": "darwin arm64"
+  },
+  "core": {
+    "url": "https://git.drupalcode.org/project/drupal.git",
+    "ref": "main",
+    "commit": null
+  },
+  "contrib": [
+    {
+      "name": "toolbar",
+      "url": "https://git.drupalcode.org/project/toolbar.git",
+      "commit": "871ce7810a90c0e664b59df83ed64d250da3a626"
+    }
+  ],
+  "patches": [
+    "reports/issues/3093378/branches/3093378-use-aria-disclosure.patch"
+  ],
+  "commits": {
+    "before": "4f9558d85e7db3f2fc0e4a5cde195a1834cb6206 2026-10-12",
+    "after": "4f9558d85e7db3f2fc0e4a5cde195a1834cb6206 2026-10-12"
+  },
+  "sides": {
+    "before": {
+      "side": "before",
+      "env": "baseline-3093378-latest",
+      "host": "repro-baseline-3093378-latest.ddev.site",
+      "closed": {
+        "html": "<button class=\"toolbar-icon toolbar-handle\" style=\"opacity: 0;\"><span class=\"action\">Extend</span> <span class=\"label\">Structure</span></button>",
+        "ariaExpanded": null,
+        "textIndent": "-9999px",
+        "hasAction": true,
+        "labelText": "Structure",
+        "labelVisuallyHidden": false,
+        "handleCount": 12
+      },
+      "opened": {
+        "html": "<button class=\"toolbar-icon toolbar-handle open\" style=\"\"><span class=\"action\">Collapse</span> <span class=\"label\">Structure</span></button>",
+        "ariaExpanded": null,
+        "textIndent": "-9999px",
+        "hasAction": true,
+        "labelText": "Structure",
+        "labelVisuallyHidden": false,
+        "handleCount": 12
+      },
+      "accessibleNameClosed": "- button \"Extend Structure\"",
+      "accessibleNameOpened": "- button \"Collapse Structure\"",
+      "axe": {
+        "total": 2,
+        "rules": {
+          "color-contrast": 2
+        }
+      },
+      "jsErrors": []
+    },
+    "after": {
+      "side": "after",
+      "env": "issue-3093378-latest",
+      "host": "repro-issue-3093378-latest.ddev.site",
+      "closed": {
+        "html": "<button aria-expanded=\"false\" class=\"toolbar-icon toolbar-handle\" style=\"opacity: 0;\"><span class=\"label visually-hidden\">Structure menu</span></button>",
+        "ariaExpanded": "false",
+        "textIndent": "0px",
+        "hasAction": false,
+        "labelText": "Structure menu",
+        "labelVisuallyHidden": true,
+        "handleCount": 12
+      },
+      "opened": {
+        "html": "<button aria-expanded=\"true\" class=\"toolbar-icon toolbar-handle open\" style=\"\"><span class=\"label visually-hidden\">Structure menu</span></button>",
+        "ariaExpanded": "true",
+        "textIndent": "0px",
+        "hasAction": false,
+        "labelText": "Structure menu",
+        "labelVisuallyHidden": true,
+        "handleCount": 12
+      },
+      "accessibleNameClosed": "- button \"Structure menu\"",
+      "accessibleNameOpened": "- button \"Structure menu\" [expanded]",
+      "axe": {
+        "total": 2,
+        "rules": {
+          "color-contrast": 2
+        }
+      },
+      "jsErrors": []
+    }
+  },
+  "pixelDiff": {
+    "width": 480,
+    "height": 900,
+    "diffPixels": 0,
+    "totalPixels": 432000,
+    "pct": 0
+  },
+  "verdict": "reproduced-and-fixed",
+  "unexpected": 0
+}
