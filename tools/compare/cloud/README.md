@@ -53,6 +53,7 @@ owner — are unchanged and still gate whether this is usable by anyone but its 
 
    **Web UI (recommended):** After selecting the template, fill the parameters (UI label → Terraform name):
 
+   - **Workspace name** → (none): e.g. `drupal-lab-3619127` (simple name, no commas; used in the app URL)
    - **DDEV project names** → `project_names`: `drupal-compare,drupal-compare-before,drupal-compare-after` (add `repro-<env>` names only if you want a direct URL to each site; they match a variant's environments)
    - **Public Sharing** → `share_projects`: unchecked / `false`
    - **Enable Claude Code remote control** → `enable_claude_code`: unchecked / `false`

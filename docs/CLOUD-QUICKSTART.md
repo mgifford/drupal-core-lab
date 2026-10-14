@@ -30,13 +30,14 @@ rows into tested ones.
 
    | UI Label | Terraform Name | Value |
    |---|---|---|
+   | **Workspace name** | — | e.g. `drupal-lab-3619127` (simple name, no commas; used in the app URL) |
    | **DDEV project names** | `project_names` | `drupal-compare,drupal-compare-before,drupal-compare-after` (add `repro-<env>` names only if you want a direct URL to each site) |
    | **Public Sharing** | `share_projects` | Unchecked / `false` — keep the workspace owner-only; the sites use `admin` / `admin` |
    | **Enable Claude Code remote control** | `enable_claude_code` | Unchecked / `false` |
    | **Claude Code: skip permission prompts** | `claude_code_skip_permissions` | Unchecked / `false` |
    | **VS Code Extensions** | `vscode_extensions` | Leave empty / `[]` |
 
-   The three `drupal-compare*` names are required: two give each frame its own hostname and the third is the viewer's own address.
+   The three `drupal-compare*` names in **DDEV project names** are required: two give each frame its own hostname and the third is the viewer's own address.
    Set `project_names` at creation; changing it afterwards was unreliable in the 2026-10-02 trial.
 
 ## 2. In the workspace web terminal
