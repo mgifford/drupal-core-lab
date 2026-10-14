@@ -76,6 +76,12 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 6. If time: Firefox and Safari, a real Windows contrast theme, a real screen-reader pass, Farsi interface translations, the viewer scrolling sideways at about 420 px (the redesign may fix it).
 7. Finish: commit and push to drupal-core-lab (with approval), update this file, stop the sites and viewer.
 
+## Learnings from adding the lint step (2026-10-14, cloud session)
+- **A lint "fail" can be a tool that never ran.** The first run reported CSpell, ESLint, Stylelint and four `.pcss.css` files as failed. The real cause: core pins `yarn@4.18.0` and the global Yarn 1.22 refused to start, and core's script hides that. `scripts/lint.mjs` now calls this ERROR, not FAIL. Rule 9 again: find the cause before reporting.
+- **Use core's own script, not a contrib add-on.** `commit-code-check.sh --cached` against a throwaway index (`GIT_DIR=<env>/.lab-lint/git`) checks exactly the patched files. Its working-tree mode would also pick up `.ddev/` and `settings.php`, and it changes nothing in the checkout.
+- **Negative controls on both languages** (a JS/CSS edit and a PHP edit) showed every check can fail. Without them, the first ERROR would have looked like a real result.
+- Cloud-container network (not the owner's Mac): git.drupalcode.org, drupal.org and repo.yarnpkg.com are blocked; GitHub zip downloads are cut off. What worked: `setup.mjs --checkout-only --core-url=https://github.com/drupal/drupal.git`, `COREPACK_NPM_REGISTRY=https://registry.npmjs.org`, and Composer falling back to git sources. `phpstan/phpstan` ships only as a zip, so it was built from its git repo into Composer's cache by hand; that is not part of the lab.
+
 ## Learnings from the viewer redesign (2026-10-02)
 - Verified on the live sites with real input: popovers open one at a time and close on Escape (focus returns to the button), tabs work with arrow keys, Reset all restores defaults, dock hide/size, badges. `viewer-security.mjs`, `mirror-drag.mjs`, `mirror-ckeditor.mjs` and `make-demo-gif.mjs` pass or run on the new layout. Not verified: Firefox, Safari, a real screen reader.
 - **A hidden grid child shifts the others up a row.** With `display:none` on the activity strip or dock, the frames fell into an `auto` row and shrank to a sliver (the GIF script could not click Submit). Fix: give `main` and `.dock` explicit `grid-row`s. Check the layout with each optional part hidden.

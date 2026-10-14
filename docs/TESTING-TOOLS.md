@@ -40,3 +40,27 @@ own panel; none is installed.
 - Lighthouse: page-load audits only; scores are coarse and its accessibility audits are a subset of axe's.
 - Browser and colour-mode matrix: emulated colour scheme and forced colours (not a real OS setting); WebKit is Safari's engine, not Safari.
 - Manual confirmation panel in the viewer: your own observation of both sides, recorded with the log.
+- Lint (`node scripts/lint.mjs <slug>`): whether the patch passes core's own code checks (CSpell, PHPCS, PHPStan, ESLint, Stylelint,
+  twig-cs-fixer, `.pcss.css` versus `.css`, file modes). Nothing about accessibility.
+
+## Code checks: the same ones core's CI runs (`scripts/lint.mjs`)
+Runs `core/scripts/dev/commit-code-check.sh`, the script core's GitLab CI uses, with core's own configuration, on **only the files the
+variant's patches change**, and writes `reports/issues/<nid>/lint/<date>-<slug>-<side>.md`. Contrib-oriented add-ons
+(`ddev-drupal-code-quality`, the Kalamuna post of 2026-10-13) are not used: they `composer require` into the project, which the lab forbids
+for a core checkout, and they target the contrib GitLab templates, not core.
+
+    node scripts/lint.mjs <slug>                     # After side, inside its DDEV environment
+    node tools/compare/setup.mjs <slug> --checkout-only && node scripts/lint.mjs <slug> --host   # no Docker: host PHP, Composer, Node
+
+- Files are chosen from the patches (`+++ b/...`), through a throwaway git index in `<env>/.lab-lint/` (removed afterwards). The core
+  checkout's git state is not changed, and local files (`.ddev/`, `settings.php`) are never checked.
+- A tool that did not start (wrong Yarn, missing module, PHP fatal error) is reported as **ERROR, not FAIL**: core's script would
+  otherwise mark every later JS and CSS check failed, including a false ".pcss.css does not match".
+- Core pins Yarn (`packageManager`); if the global Yarn differs, the script uses Corepack's through a shim. `core/node_modules`
+  (about 400 MB) is installed if missing; `lab-env.mjs trim --deep` removes it again.
+- Host PHP older than core requires stops the run unless `--ignore-php-version` is given; the report then says PHPStan and PHPCS
+  may differ from CI. Prefer the DDEV environment (PHP 8.5).
+- **Verified only with `--host`** (2026-10-14, a cloud container with no Docker and PHP 8.3). The DDEV path (`ddev exec` in the web
+  container, PHP 8.5) is written but has not been run yet; run it once and record the result before relying on it.
+- Negative control (2026-10-14, #3604037): a misspelt, unformatted JS line, an uncompiled `.pcss.css` rule and a badly formatted PHP
+  function made CSpell, ESLint, Stylelint, the `.pcss.css` check, PHPCS and PHPStan fail; restoring the files made them pass.

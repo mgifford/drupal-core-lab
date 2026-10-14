@@ -37,5 +37,6 @@ macOS, Docker Desktop. Add-on: https://github.com/justafish/ddev-drupal-core-dev
    reliable check.
 
 ## Not verified
-Nightwatch, the lint commands, `ddev drupal uninstall` followed by reinstall,
+(2026-10-14: the lab lints with core's own `commit-code-check.sh` instead, through `scripts/lint.mjs`; see `docs/TESTING-TOOLS.md`.)
+Nightwatch, the add-on's lint commands, `ddev drupal uninstall` followed by reinstall,
 Firefox, and running two environments at once.
