@@ -26,6 +26,12 @@ issue URL ──prepare──▶ chat prompt ──(a chat writes)──▶ issu
 
 One command stands in for the first four arrows: `scripts/issue-from-url.mjs`.
 
+## Where this runs (browser vs Docker)
+
+- **Pure Node (no Docker needed):** `issue-from-url.mjs prepare` (fetches the issue/MR), `issue-pack.mjs validate`, and `issue-pack.mjs import` (which only fetches patches and writes files to the repo). These run in any Node environment, including a Coder workspace web terminal or Codespaces.
+- **Docker + DDEV required:** `tools/compare/setup.mjs`, `serve.mjs`, `scripts/lab-env.mjs`, `cloud-bootstrap.mjs`, Playwright/evaluators and `lint.mjs`. These build and run the two Drupal sites and the viewer.
+- **Cloud path:** use a DDEV Coder workspace (browser) and run `cloud-bootstrap.mjs` there. See `tools/compare/cloud/README.md` for the browser-first procedure.
+
 ## What exists, what this adds
 
 | Stage | Command | State before 2026-10-14 | This change |

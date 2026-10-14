@@ -11,6 +11,7 @@ Current documentation for this lab (written or verified 2026-10-01), plus a `leg
 | [ISSUE-TO-LAB.md](ISSUE-TO-LAB.md) | The shortest path: an issue URL with an open merge request to a built Before/After. The glue (`scripts/issue-from-url.mjs`), AI-drafted recipes (`--ai-recipe`) and the cloud hooks (`--core-url`, `--use-existing-core`). |
 | [TESTING-TOOLS.md](TESTING-TOOLS.md) | Each tool (axe-core, Playwright, Guidepup virtual screen reader, the viewer, the diff report, Accessibility Insights) and what it can and cannot tell you. |
 | [CLOUD-PLAN.md](CLOUD-PLAN.md) | Plan and status for running the lab in DDEV Coder workspaces (opt-in; access is gated). Opt-in only; see `../tools/compare/cloud/README.md` for the tested steps. |
+| [CLOUD-QUICKSTART.md](CLOUD-QUICKSTART.md) | Browser-only walkthrough: create a DDEV Coder workspace, bootstrap before/after, open the viewer, handle lifespan/restarts. |
 | [ADDON-TRIAL-2026-10-01.md](ADDON-TRIAL-2026-10-01.md) | Trial of the DDEV add-on `justafish/ddev-drupal-core-dev`, with gotchas (Mutagen, router, SQLite). |
 | [FRAME-LOADING-2026-10-01.md](FRAME-LOADING-2026-10-01.md) | Why viewer frames sometimes did not load, what was measured and fixed, how to diagnose it. |
 

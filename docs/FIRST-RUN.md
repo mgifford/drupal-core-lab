@@ -1,7 +1,6 @@
 # First run: from a fresh clone to your first comparison
 
-For someone who has just cloned this repository. About 30 minutes, most of it waiting for Drupal to install. Everything runs on your own
-computer; nothing is posted anywhere.
+For someone who has just cloned this repository. About 30 minutes, most of it waiting for Drupal to install. **No local Docker?** Run in a browser instead: see [tools/compare/cloud/README.md](../tools/compare/cloud/README.md). Everything else runs on your own computer; nothing is posted anywhere.
 
 ## 1. Install the prerequisites
 - [Docker](https://www.docker.com/) (running), [DDEV](https://ddev.com/get-started/) 1.24 or newer, git, Node.js 20 or newer (22.19+ only for the optional Lighthouse panel).

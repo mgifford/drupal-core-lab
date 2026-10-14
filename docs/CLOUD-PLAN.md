@@ -3,7 +3,7 @@
 Status (2026-10-02): **partly built.** The workspace bootstrap (3B), the viewer at Coder app URLs and a smoke check exist and were tested in one workspace; see `tools/compare/cloud/README.md` for what was tested and what was not. The text below is the original proposal, written 2026-10-01 after reading https://start.coder.ddev.com/ (landing page, issue picker,
 quickstart). Items marked **VERIFY** are things I could not confirm from the public pages.
 
-Status (2026-10-14): **unchanged in code; documentation refreshed.** The repository now has 14 variants, but only `3619127-pinned`
+Status (2026-10-14): **unchanged in code; documentation refreshed.** Browser-only walkthrough: `docs/CLOUD-QUICKSTART.md`. The repository now has 14 variants, but only `3619127-pinned`
 has ever been built in the cloud, so the cloud path is still a single-variant trial. Before using it:
 - The guide published from `cloud/` points "Run in the cloud" at the issue picker (`tools/compare/index.html`), which is *not* the
   Freeform path the lab built. The bridge — `cloud-bootstrap.mjs --use-existing-core` (phase 3) — was added on 2026-10-14 and seeds
@@ -120,6 +120,23 @@ read-only panel gives the local command, a DDEV cloud link, the reports and the 
 replace it. `.github/workflows/pages.yml` publishes `cloud/` (set Pages > Source to "GitHub Actions"); `pages-check.yml` fails CI if
 `cloud/` is stale. Any new server-dependent element must carry `data-needs="live"` and any new server URL must be relative (no
 leading `/`).
+
+## 5c. Browser facts recorded 2026-10-14
+
+The DDEV Coder manual has the user-facing half of this, which section 1 (written from the landing page) did not capture:
+
+- https://start.coder.ddev.com/user/getting-started.html — create a workspace, the `freeform` template, prerequisites.
+- https://github.com/ddev/coder-ddev/blob/main/docs/user/using-workspaces.md — the workspace page: apps, terminal, restart, update.
+- Sign in and manage workspaces at https://coder.ddev.com/workspaces; templates at https://coder.ddev.com/templates.
+
+Which template to pick: the lab needs **Freeform** (the lab runs *two* DDEV projects side by side plus the viewer). The
+"Drupal Issue picker" (`https://start.coder.ddev.com/drupal-issue`) is a different, single-site template; a workspace created from it
+can still be adopted with `cloud-bootstrap.mjs --use-existing-core` (phase 3), but it is not the comparison path.
+
+Workspace and app URLs: apps are routed as `{project}--{workspace}--{owner}.{domain}`, so the viewer for a workspace `lab-3619127`
+owned by `mgifford` is `https://drupal-compare--lab-3619127--mgifford.coder.ddev.com/`. A workspace has a **timed lifespan** (a
+deadline that activity extends, distinct from the idle autostop), so it can expire: recreate it, and use `--core-url` or
+`--use-existing-core` to avoid a fresh core clone under the filtered egress.
 
 ## 6. Phased plan (each phase usable on its own; stop whenever it stops being worth it)
 | Phase | Deliverable | Effort | Needs from you | Status (2026-10-14) |

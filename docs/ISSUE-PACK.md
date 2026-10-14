@@ -29,7 +29,7 @@ chat assistant ──writes──▶ issue-pack-<nid>.yml ──upload / paste�
        node scripts/issue-from-url.mjs <nid>
 
    Options: `--pack <file>` to point at a pack saved elsewhere, `--out <file>`, `--mr <n>`, `--ai-recipe`, `--no-import` or `--dry-run` to stop after validating.
-2. Get the file into your workspace. In the workspace's web VS Code, drag it into the file explorer, or paste it into a new file.
+2. Get the file into your workspace. In the workspace's web VS Code or web terminal editor, drag it into the file explorer, or paste it into a new file. (The earlier steps `prepare`/`validate` run in Node, so they work in a browser terminal; building the sites needs Docker — see `docs/ISSUE-TO-LAB.md` "Where this runs".)
 3. Check it (no network, nothing is written, nothing from the pack is run):
 
        node scripts/issue-pack.mjs validate issue-pack-3415961.yml

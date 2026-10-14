@@ -1,7 +1,8 @@
 # Compare viewer in a DDEV Coder workspace (browser only)
 
 Runs the existing Before/After viewer in a DDEV Coder **Freeform** workspace and opens it at Coder app URLs, with no local
-Docker and no `coder port-forward`. The local workflow is unchanged. Everything here is opt-in.
+Docker and no `coder port-forward`. The local workflow is unchanged. Everything here is opt-in. A step-by-step browser-only
+walkthrough is `docs/CLOUD-QUICKSTART.md`; this file is the reference, including what is and is not tested.
 
 The end-to-end run was tested on **2026-10-02** with variant `3619127-pinned` (the repository then had fewer variants); the status
 table says exactly what was and was not tested. **Documentation refreshed 2026-10-14** against the current repository (14
@@ -47,29 +48,34 @@ owner — are unchanged and still gate whether this is usable by anyone but its 
 
 ## Procedure
 
-1. Create the workspace. The DDEV project names must include the three proxy projects (`drupal-compare`, `drupal-compare-before`,
-   `drupal-compare-after`), and every template parameter must be supplied (the CLI stops at any it is not given). Put them in a file, for example `params.yaml`:
+1. Create the workspace. Choose **Freeform** (not the Drupal Issue picker) from https://coder.ddev.com/templates or https://coder.ddev.com/workspaces.
 
-       project_names: "repro-baseline-main,repro-issue-3619127-vanilla,drupal-compare,drupal-compare-before,drupal-compare-after"
-       share_projects: "false"
-       enable_claude_code: "false"
-       claude_code_skip_permissions: "false"
-       vscode_extensions: "[]"
+   **Web UI (recommended):** Create a new workspace → select **Freeform** → fill the parameters:
 
-       coder create --template freeform <name> --rich-parameter-file params.yaml --yes
+   - `project_names`: `repro-baseline-main,repro-issue-3619127-vanilla,drupal-compare,drupal-compare-before,drupal-compare-after` (the two `repro-` names are only needed if you want a direct URL to each site; they match a variant's environments)
+   - `share_projects`: `false`
+   - `enable_claude_code`: `false` (optional)
+   - `claude_code_skip_permissions`: `false`
+   - `vscode_extensions`: `[]`
 
+   **CLI (alternative):** put them in `params.yaml` and run `coder create --template freeform <name> --rich-parameter-file params.yaml --yes`.
+
+   The DDEV project names must include the three proxy projects (`drupal-compare`, `drupal-compare-before`, `drupal-compare-after`).
    The two `repro-` names are the variant's environments; they are only needed if you also want a direct Coder URL to each site.
-   The `project_names` parameter is declared `mutable = true` in `freeform/template.tf` (checked 2026-10-14), so it *should* be
-   changeable after creation; the earlier finding that only `coder update <name> --always-prompt` (interactive) worked, and that
-   `coder restart --parameter` and `--rich-parameter-file` did not, may be a Coder-CLI/version issue. Re-test on your Coder CLI
-   version before relying on either behaviour.
+   `project_names` is declared `mutable = true` in `freeform/template.tf` (checked 2026-10-14), so it *should* be changeable later,
+   but changing it after creation was unreliable in the 2026-10-02 test (only interactive `coder update <name> --always-prompt`
+   worked; `coder restart --parameter` and `--rich-parameter-file` did not), so set it at creation and re-test on your Coder CLI
+   version before relying on a later change.
+
+   Creating the workspace from the web form rather than the CLI was **not tested** in the 2026-10-02 run (see the status table); the
+   field names above are the template's, which the form shows directly. Record a run if you are the first to use it.
 2. `coder ssh <name>`, wait for the startup scripts to finish, then:
 
        git clone https://github.com/mgifford/drupal-core-lab.git && cd drupal-core-lab
        node scripts/cloud-bootstrap.mjs 3619127-pinned --install-autostart
 
 3. Open `https://drupal-compare--<workspace>--<owner>.coder.ddev.com/` in a browser signed in to Coder. The bootstrap prints the exact URL.
-4. When finished, stop the workspace (`coder stop <name>`). Autostop is a 24-hour deadline that activity extends, so it does not stop within minutes of idleness.
+4. When finished, stop the workspace (`coder stop <name>`). **Lifespan/autostop:** the workspace has a timed lifespan (a deadline), not just idle timeout; activity extends it. The app URL is `https://drupal-compare--<workspace>--<owner>.coder.ddev.com/` (derived from `{project}--{workspace}--{owner}.{domain}`), so if a workspace expires or is deleted, recreate it — you can reuse the `--use-existing-core` path if the `drupal-core` issue-picker checkout exists, or `--core-url` otherwise.
 
 `node scripts/cloud-bootstrap.mjs <slug> --check` only reports what is missing. Its preflight names the exact fix for each problem
 (missing project names, no Docker, no `ddev coder-setup`, missing files).
