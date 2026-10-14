@@ -32,6 +32,7 @@ const measure = () => {
   return {
     formFound: !!form,
     ariaLabel: form ? form.getAttribute('aria-label') : null,
+    formRole: form ? form.getAttribute('role') : null,
     headingTag: h2 ? h2.tagName.toLowerCase() : null,
     headingText: h2 ? h2.textContent.trim().replace(/\s+/g, ' ') : null,
     headingFontSize: h2 ? getComputedStyle(h2).fontSize : null,
@@ -93,6 +94,7 @@ Page: /admin/content (Default Admin theme). Logged in as user 1.
 | Visible heading | ${b.headingTag ? `\`<${b.headingTag}>\` "${b.headingText}"` : '—'} | ${a.headingTag ? `\`<${a.headingTag}>\` "${a.headingText}"` : '—'} |
 | Heading font-size (computed) | ${b.headingFontSize || '—'} | ${a.headingFontSize || '—'} |
 | aria-label on form | ${b.ariaLabel ? `"${b.ariaLabel}"` : '—'} | ${a.ariaLabel ? `"${a.ariaLabel}"` : '—'} |
+| role on form | ${b.formRole || '—'} | ${a.formRole || '—'} |
 | Theme tokens | h2=${b.tokenH2 || '?'} / h3=${b.tokenH3 || '?'} | h2=${a.tokenH2 || '?'} / h3=${a.tokenH3 || '?'} |
 
 ## Heading outline (main region, in order)
