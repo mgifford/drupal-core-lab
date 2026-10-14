@@ -13,7 +13,7 @@ Swap the orientation toggle's **rest-state** push icons (`push-left`/`push-right
 - `css/claro/theme/toolbar.icons.theme.pcss.css` + `.css`
 - `css/default_admin/theme/toolbar.icons.theme.pcss.css` + `.css`
 
-Hover/focus already used `#787878` (unchanged). No other icons touched. 6 files, 18 lines.
+Hover/focus already used `#787878`. Because the toggle button's outline is suppressed (`.toolbar-lining button:focus { outline: none }`) and the icon darkening was the only focus cue, the fix **also adds a `:focus-visible` outline** to the toggle so keyboard focus stays visible (WCAG 2.4.7) instead of regressing. No other icons touched.
 
 Patch: [`branches/3273806-orientation-icon-contrast.patch`](branches/3273806-orientation-icon-contrast.patch) (see [BRANCHES.md](BRANCHES.md)).
 

@@ -15,21 +15,22 @@ The orientation toggle icon on the toolbar background (`#f5f5f5`), rest state:
 
 Proof: `proof/contrast-before-after.png`, data in `proof/contrast.json`. Matches the reporter's measured 1.7:1. Regenerate: `node tools/playwright/proof-3273806.mjs`.
 
-## States (rest vs hover/focus)
+## States, and the focus indicator
 
-Hover and focus **already used `#787878`** before this fix, and the toggle has **no background-color change** in any state (hover/focus only swap the icon image), so all states contrast against the same `#f5f5f5` surface:
+The rest-state icon was the contrast failure. Fixing it to `#787878` matches the colour hover/focus already used — which would have removed the **only** focus cue (the icon darkening), because the toggle button's outline is suppressed (`.toolbar-lining button:focus { outline: none }`). So the fix **also adds a `:focus-visible` outline** to the toggle, keeping keyboard focus clearly visible (WCAG 2.4.7).
 
 | State | Before | After |
 |-------|--------|-------|
-| Rest  | `#bebebe` → 1.7:1 ✗ | `#787878` → 4.05:1 ✓ |
-| Hover | `#787878` → 4.05:1 ✓ (already) | `#787878` → 4.05:1 ✓ (unchanged) |
-| Focus | `#787878` → 4.05:1 ✓ (already) | `#787878` → 4.05:1 ✓ (unchanged) |
+| Rest | icon `#bebebe` → 1.7:1 ✗ | icon `#787878` → 4.05:1 ✓ |
+| Hover | icon `#787878` → 4.05:1 ✓ | icon `#787878` → 4.05:1 ✓ (unchanged) |
+| Keyboard focus | icon darkens `#bebebe`→`#787878` (subtle; outline suppressed) | icon `#787878` + **`:focus-visible` outline → 7.52:1** ✓ |
 
-The fix brings the rest state up to the colour hover/focus already used; nothing regresses. The rendered proof covers the rest state (the only state that changes); the DDEV step below will confirm all three states live, in both orientations.
+The focus ring uses `--admin-color-focus` where available (light/dark-aware under Default Admin) with a high-contrast `#003ecc` fallback (7.52:1 on `#f5f5f5`). The rendered proof shows all three panels.
 
 ## Scope of the change
-- Only the orientation toggle's **rest-state** push icons (`push-left`/`push-right`/`push-up`) change; hover/focus already used `#787878`.
-- 6 files, 18 lines (3 icons × {base, claro, default_admin} × {source `.pcss.css`, compiled `.css`}).
+- The orientation toggle's **rest-state** push icons (`push-left`/`push-right`/`push-up`) change `#bebebe` → `#787878`; hover/focus icon rules unchanged (already `#787878`).
+- A `:focus-visible` outline is added to `.toolbar-toggle-orientation button` so keyboard focus is visible after the rest/focus colours converge.
+- Across base + claro + default_admin theme copies, source `.pcss.css` and compiled `.css`.
 - The darker icon assets already exist in the module (`icons/787878/push-*.svg`), so no new assets.
 
 ## Not yet verified

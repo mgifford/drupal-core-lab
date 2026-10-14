@@ -19,15 +19,22 @@ const svg = (fill) => `<svg xmlns='http://www.w3.org/2000/svg' width='16' height
 const BG = '#f5f5f5';        // toolbar background the reporter measured
 const OLD = '#bebebe';       // rgb(190,190,190) -- the failing rest-state colour
 const NEW = '#787878';       // the darker variant already used on hover/focus
+const RING = '#003ecc';      // the :focus-visible outline fallback colour
 
 const html = `<!doctype html><meta charset="utf-8"><body style="margin:0;font:14px system-ui;background:#fff">
-<div id="panel" style="display:flex;gap:0;width:760px">
-  ${[['Before', OLD], ['After', NEW]].map(([label, fill]) => `
+<div id="panel" style="display:flex;gap:0;width:900px">
+  ${[['Before (rest)', OLD], ['After (rest)', NEW]].map(([label, fill]) => `
   <div style="flex:1;padding:24px;text-align:center;background:${BG};border:1px solid #ddd">
     <div style="font-weight:600;margin-bottom:12px">${label}: icon ${fill} on ${BG}</div>
     <div style="width:64px;height:64px;margin:0 auto;background:no-repeat center/48px url(&quot;data:image/svg+xml,${encodeURIComponent(svg(fill))}&quot;)"></div>
     <div data-fill="${fill}" class="ratio" style="margin-top:12px;font-size:18px"></div>
   </div>`).join('')}
+  <div style="flex:1;padding:24px;text-align:center;background:${BG};border:1px solid #ddd">
+    <div style="font-weight:600;margin-bottom:12px">After (keyboard :focus-visible)</div>
+    <div style="width:56px;height:56px;margin:0 auto;display:grid;place-items:center;outline:2px solid ${RING};outline-offset:-2px;background:no-repeat center/48px url(&quot;data:image/svg+xml,${encodeURIComponent(svg(NEW))}&quot;)"></div>
+    <div data-fill="${RING}" class="ratio" style="margin-top:12px;font-size:18px"></div>
+    <div style="margin-top:4px;color:#555">focus ring ${RING}</div>
+  </div>
 </div></body>`;
 
 const browser = await chromium.launch();
@@ -52,7 +59,8 @@ const ratios = await page.evaluate((bg) => {
 
 await page.locator('#panel').screenshot({ path: path.join(out, 'contrast-before-after.png') });
 await browser.close();
-fs.writeFileSync(path.join(out, 'contrast.json'), JSON.stringify({ background: BG, before: { color: OLD, ...ratios[OLD] }, after: { color: NEW, ...ratios[NEW] }, criterion: 'WCAG 2.2 SC 1.4.11 Non-text Contrast (3:1)' }, null, 2) + '\n');
-console.log('Before', OLD, 'on', BG, '=>', ratios[OLD].ratio + ':1', ratios[OLD].pass ? 'pass' : 'FAIL');
-console.log('After ', NEW, 'on', BG, '=>', ratios[NEW].ratio + ':1', ratios[NEW].pass ? 'pass' : 'FAIL');
+fs.writeFileSync(path.join(out, 'contrast.json'), JSON.stringify({ background: BG, before: { color: OLD, ...ratios[OLD] }, after: { color: NEW, ...ratios[NEW] }, focusRing: { color: RING, ...ratios[RING] }, criterion: 'WCAG 2.2 SC 1.4.11 Non-text Contrast (3:1); SC 2.4.7 Focus Visible' }, null, 2) + '\n');
+console.log('Before (rest)', OLD, 'on', BG, '=>', ratios[OLD].ratio + ':1', ratios[OLD].pass ? 'pass' : 'FAIL');
+console.log('After  (rest)', NEW, 'on', BG, '=>', ratios[NEW].ratio + ':1', ratios[NEW].pass ? 'pass' : 'FAIL');
+console.log('Focus ring   ', RING, 'on', BG, '=>', ratios[RING].ratio + ':1', ratios[RING].pass ? 'pass' : 'FAIL');
 console.log('Wrote', path.relative(labRoot, out) + '/contrast-before-after.png');
