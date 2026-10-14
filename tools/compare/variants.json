@@ -675,7 +675,7 @@
       { "label": "The toggle exposes aria-expanded", "probe": "document.querySelector('.meta-sidebar__trigger') && document.querySelector('.meta-sidebar__trigger').hasAttribute('aria-expanded')", "expect": true, "kind": "precondition" },
       { "label": "The toggle is a real <button> (not an <a role=button>)", "probe": "(document.querySelector('.meta-sidebar__trigger') || {}).tagName === 'BUTTON'", "expect": true, "kind": "fix" },
       { "label": "The close control is a real <button> (not an <a role=button>)", "probe": "(document.querySelector('.meta-sidebar__close') || {}).tagName === 'BUTTON'", "expect": true, "kind": "fix" },
-      { "label": "The close button is the first focusable element in the sidebar (focus order)", "probe": "(function(){var t=document.querySelector('.meta-sidebar__trigger');var sb=t&&document.getElementById(t.getAttribute('aria-controls'));if(!sb)return false;var f=sb.querySelector('a[href],button,input,select,textarea,[tabindex]:not([tabindex=\"-1\"])');return !!f&&f.classList.contains('meta-sidebar__close')})()", "expect": true, "kind": "fix" }
+      { "label": "The close button is the first focusable element in the sidebar (focus order)", "probe": "document.getElementById(document.querySelector('.meta-sidebar__trigger')?.getAttribute('aria-controls'))?.querySelector('a[href],button,input,select,textarea,[tabindex]:not([tabindex=\"-1\"])')?.classList.contains('meta-sidebar__close') ?? false", "expect": true, "kind": "fix" }
     ],
     "observe": [
       "Toggle and close are <button> elements and operable with the Space key (after), vs <a role=button> that ignores Space (before).",
@@ -743,5 +743,41 @@
     "after": {
       "env": "issue-3619154-latest"
     }
+  },
+  {
+    "slug": "3273806-latest",
+    "issue": "3273806",
+    "label": "#3273806: Toolbar orientation icon contrast (core main + Toolbar 2.x)",
+    "description": "Toolbar (contrib) orientation toggle icon fails WCAG 1.4.11 (1.7:1). The After side carries the fix: rest icon #bebebe -> #787878 plus a :focus-visible outline. Open the admin toolbar's Manage tray and look at the orientation (push) toggle icon.",
+    "status": "ready: before = faint #bebebe icon (1.7:1), no focus ring; after = #787878 icon (4.05:1) + :focus-visible outline",
+    "core": { "ref": "main", "commit": null },
+    "contrib": [
+      { "name": "toolbar", "url": "https://git.drupalcode.org/project/toolbar.git", "commit": "40434c4223dc61405127414d7ed088d25a6c18d3" }
+    ],
+    "before": { "env": "baseline-3273806" },
+    "after": {
+      "env": "issue-3273806",
+      "contribPatches": [
+        { "module": "toolbar", "patch": "reports/issues/3273806/branches/3273806-orientation-icon-contrast.patch" }
+      ]
+    },
+    "pages": ["/admin/content"],
+    "login": true,
+    "recipe": "repro_3273806",
+    "steps": [
+      { "text": "Core main with the contrib Toolbar module (2.x @ 40434c42) installed.", "how": "recipe" },
+      { "text": "Open /admin/content, then click \"Manage\" in the toolbar to open its tray.", "how": "mirror" },
+      { "text": "Look at the orientation toggle (the push/arrow icon at the end of the toolbar) and Tab to it.", "how": "each", "lookFor": "After: the icon is clearly darker (passes 3:1) and keyboard focus shows a visible outline. Before: the icon is faint (1.7:1) and focus is barely indicated." }
+    ],
+    "expected": "After: the orientation toggle icon is #787878 (4.05:1) and a :focus-visible outline appears on keyboard focus. Before: the icon is #bebebe (1.7:1) and the only focus cue was a subtle icon darkening (outline suppressed).",
+    "actual": "TODO after running",
+    "checks": [
+      { "label": "Setup reached: the Toolbar module is installed (toolbar bar present)", "probe": "!!document.querySelector('#toolbar-administration, .toolbar-oriented, .toolbar')", "expect": true, "kind": "precondition" }
+    ],
+    "observe": [
+      "Is the orientation toggle icon clearly visible against the toolbar background (after) vs faint (before)?",
+      "On keyboard focus, is there a visible focus indicator on the toggle (after = outline; before = none/subtle)?",
+      "Any regression in the toolbar layout or other toolbar icons?"
+    ]
   }
 ]
