@@ -24,7 +24,8 @@ const handWritten = (f) => {
     || /^reports\/(issues\/README|_templates\/[^/]+)\.md$/.test(r) || /^reports\/issues\/\d+\/(REPRODUCE|VALIDATION|FINDINGS[^/]*|STATUS[^/]*|BRANCHES)\.md$/.test(r);
 };
 // Paths that are intentionally absent (MIGRATION.md lists what was left out on purpose) or are examples.
-const INTENTIONALLY_ABSENT = /(\/shards\/|reports\/auth-state\.json|reports\/axe-results\/|scripts\/reset-site\.sh)/;
+// tools/compare/.deps/ is installed by setup.mjs and never committed (see tools/compare/README.md).
+const INTENTIONALLY_ABSENT = /(\/shards\/|reports\/auth-state\.json|reports\/axe-results\/|scripts\/reset-site\.sh|tools\/compare\/\.deps)/;
 let bad = 0, checked = 0;
 const tops = '(?:tools|scripts|reports|docs|recipes|bundles)';
 for (const f of files.filter(handWritten)) {
