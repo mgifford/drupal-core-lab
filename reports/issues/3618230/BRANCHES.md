@@ -6,3 +6,4 @@ Not rebased onto current `main`. The MR on drupal.org is the source of truth.
 | Patch | Source | Tip | Base | Base date and subject | Files |
 |---|---|---|---|---|---|
 | `branches/3618230-adopt-the-ajax.patch` | https://git.drupalcode.org/issue/drupal-3618230.git `3618230-adopt-the-ajax` | 2d600f40 | f5e265802542 | 2026-08-20 task: #3586835 Fix outdated exclude-pattern in phpcs config | 2 |
+| `branches/3618230-tests-messagecommand.patch` | written in the lab 2026-10-14 (tests only; sources in `tests-proposal/`) | applies to 2d600f40 | | | 2 |

@@ -66,6 +66,12 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 - Next AI action: manual walkthrough with the owner (`node scripts/lab-env.mjs start 3604037-latest --browser`); then re-check both MRs for new commits, re-run `evaluate-3604037.mjs`, and run the MR's PHPUnit tests with proposals A and B applied (not done).
 - Not done anywhere: Firefox and Safari; a real Windows contrast theme; a real screen reader; Farsi interface translations (the layout and direction are real, the strings are English); the viewer scrolls sideways at about 420 px.
 - Test the documentation cold: give another LLM only the repo and ask it to reproduce #3604037; every question it asks or command that fails is a missing line in `AGENTS.md`.
+- **Deferred by the owner (2026-10-14): harness level 2, a generic runner.** Level 1 is built: `tools/playwright/lib/lab-run.mjs`, where an
+  `evaluate-<nid>.mjs` holds only its steps and checks. Level 2 would read the steps from `variants.json` (or an issue pack's `run:` section)
+  and need no per-issue script for simple issues. **When:** after two or three more issues have an evaluator on the library. **First step:**
+  list the actions those evaluators repeat (for example: upload a file into a field, press Tab until X is focused, submit, wait for an AJAX
+  response) and build the runner from that list only, not from a guess. Per-issue scripts stay for evidence a generic step cannot collect
+  (#3618230 needed the raw `insert` markup and a keyboard check of one button). Reasoning: the 2026-10-14 session; ask the owner before starting.
 
 ## TODO for the week of 2026-10-09 (session scheduled; owner approves any push or posting)
 1. Check both MRs for new commits (`node tools/compare/setup.mjs <slug> --check-patches`, and the issue/MR if the owner pastes new text). If the CSS changed, re-run `node tools/playwright/evaluate-3604037.mjs 3604037-latest` and rebase the proposal patches if they no longer apply.

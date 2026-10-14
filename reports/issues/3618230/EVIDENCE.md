@@ -78,6 +78,34 @@ Why:
 
 So the tests patch, as written, fails on unpatched and patched core alike in this setup, and it would not test the MR's change even if its selectors matched. Not checked: whether the over-limit path keeps the Hide button in Default Admin (it does not pass through `#prefix`), and the test in any theme other than `stark`. Afterwards both checkouts had unchanged `git status`, and the site databases gained only ordinary cache and log rows.
 
+## Tests proposed for the MR (2026-10-14)
+`branches/3618230-tests-messagecommand.patch` adds two FunctionalJavascript classes, tests only (sources in `tests-proposal/`). It applies
+cleanly to the MR tip `2d600f40`. Run on core `3b94128e929` with `ddev phpunit`, the files copied into each checkout and removed
+afterwards (both checkouts' tracked files unchanged).
+
+| Test | Before | After |
+|---|---|---|
+| `FileUploadAjaxMessageTest::testErrorIsReplaced` (Stark): the error is inside the widget; a second over-limit upload shows it once; a valid upload clears it | pass | pass |
+| `FileUploadAjaxMessageTest::testErrorIsAnnounced` (Stark): `#drupal-live-announce` gets the error text | **fail** | pass |
+| `FileUploadAjaxMessageAdminThemeTest` (Default Admin): the two tests above | pass, **fail** | pass, pass |
+| `FileUploadAjaxMessageAdminThemeTest::testErrorKeepsThemeMarkup`: the error has its `button.js-message-button-hide` | **fail** | pass |
+
+Totals: Before 2 of 5 fail as intended; After `OK (2 tests, 17 assertions)` and `OK (3 tests, 26 assertions)`. PHPCS (`core/phpcs.xml.dist`) and
+PHPStan (`core/phpstan.neon.dist`) report nothing on the two files.
+
+Why these and not the existing tests:
+- Core's `FunctionalJavascript\FileFieldValidateTest::testAjaxValidationMessage` uploads a wrong file type. `js/file.js` rejects that in the
+  browser, with no AJAX request, so it never reaches `ManagedFile::uploadAjaxCallback()`. Before writing the tests above, a first draft made
+  the same mistake and failed on both sides; the proposal uses a 1 KB `max_filesize` instead, which the server checks.
+- Stark's server-side message has no `messages--error` class, while the JavaScript message theme adds one, so the tests count the error
+  text, not a class. Only the dismiss-button test uses a Default Admin selector, on purpose.
+- The existing suites give the same results with and without the MR: file `FunctionalJavascript` (11 tests; `MaximumFileSizeExceededUploadTest`
+  fails on both sides because DDEV's web server keeps `display_errors` on, the same cause as the Nightwatch run above),
+  `Kernel/ManagedFileTest`, `Functional/FileManagedFileElementTest`, `Functional/FileFieldValidateTest` all pass on both.
+
+Not covered by the proposal: the possible double announcement (the error element keeps `role="alert"` and `Drupal.announce()` is also
+called); the test checks that the announcement happens, not that it happens once. Not run in CI on drupal.org.
+
 ## Findings
 1. The problem in the issue still happens in the Default Admin theme. It shows as a missing dismiss button, where Olivero showed a missing icon.
 2. The MR fixes it: the message is built in JavaScript by the theme, keeps the button, and the button works by keyboard.
