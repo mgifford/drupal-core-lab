@@ -74,6 +74,8 @@
   .pane { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); overflow-x: auto; overflow-y: hidden; }
   .pane h2 { margin: 0; padding: .3rem .6rem; border-bottom: 1px solid var(--line); font-size: .9rem; display: flex; align-items: baseline; gap: .5rem; min-width: 0; }
   .pane h2 .path { flex: 1 1 auto; min-width: 0; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pane h2 .openext { flex: 0 0 auto; margin-left: .1rem; color: var(--muted); text-decoration: none; line-height: 1; padding: .1rem .3rem; border-radius: 4px; font-size: .95rem; }
+  .pane h2 .openext:hover, .pane h2 .openext:focus-visible { color: var(--accent); background: var(--surface2); }
   .pane:hover h2 .path, .pane:focus-within h2 .path, .pane:focus h2 .path { white-space: normal; overflow-wrap: anywhere; overflow: visible; }
   .pane iframe { width: 100%; height: 100%; border: 0; background: #fff; display: block; }
   .panes.overlay { grid-template-columns: 1fr; }
@@ -183,8 +185,8 @@
   </section>
   <p data-needs="live" id="legend" role="status" hidden></p>
   <div class="panes" id="panes" data-needs="live">
-    <section class="pane" aria-labelledby="hb" tabindex="0"><h2 id="hb">Before: upstream main <span class="path" id="pb"></span></h2><iframe id="fb" title="Before: upstream main"></iframe></section>
-    <section class="pane" aria-labelledby="ha" tabindex="0"><h2 id="ha">After: with the change <span class="path" id="pa"></span></h2><iframe id="fa" title="After: with the change"></iframe></section>
+    <section class="pane" aria-labelledby="hb" tabindex="0"><h2 id="hb">Before: upstream main <span class="path" id="pb"></span><a class="openext" id="pob" target="_blank" rel="noopener" href="#" title="Open the Before page in a new window" aria-label="Open the Before page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fb" title="Before: upstream main"></iframe></section>
+    <section class="pane" aria-labelledby="ha" tabindex="0"><h2 id="ha">After: with the change <span class="path" id="pa"></span><a class="openext" id="poa" target="_blank" rel="noopener" href="#" title="Open the After page in a new window" aria-label="Open the After page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fa" title="After: with the change"></iframe></section>
   </div>
 </main>
 
@@ -279,7 +281,7 @@ const other = (s) => (s === 'before' ? 'after' : 'before');
 const status = (t) => { $('status').textContent = t; };
 const radio = (name) => document.querySelector(`input[name="${name}"]:checked`).value;
 const post = (body) => fetch('api/state', { method: 'POST', body: JSON.stringify(body) });
-function updateExternal() { for (const [side, id] of [['before', 'ob'], ['after', 'oa']]) { const a = $(id); a.href = (sites[side] || '') + (last[side] || normPath($('goto').value)); a.hidden = !sites[side]; } }
+function updateExternal() { for (const [side, ids] of [['before', ['ob', 'pob']], ['after', ['oa', 'poa']]]) { const p = (sites[side] || '') + (last[side] || normPath($('goto').value)); for (const id of ids) { const a = $(id); if (a) { a.href = p; a.hidden = !sites[side]; } } } }
 // Accepts "node/add/article", "/node/add/article" or a pasted full URL; always returns a path that starts with one slash.
 const normPath = (p) => { p = String(p || '').trim().replace(/^https?:\/\/[^/]+/, '').replace(/^\/{2,}/, '/'); return /^[/?#]/.test(p) ? (p || '/') : '/' + p; };
 function load(side, path) { path = normPath(path); markStart(side); last[side] = path; P[side].textContent = path; F[side].src = origins[side] + path; updateExternal(); }
