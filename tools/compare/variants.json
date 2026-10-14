@@ -542,5 +542,96 @@
     "after": {
       "env": "issue-3093378-pinned"
     }
+  },
+  {
+    "slug": "3618405-pinned",
+    "issue": "3618405",
+    "label": "#3618405: Purpose of views exposed filters form is unclear when zoomed in, pinned core",
+    "description": "MR !17043 replaces the exposed filter form's screen-reader-only aria-label with a visible <h2> heading (\"Filter <view title>\") in the Default Admin theme. Compare /admin/content before and after.",
+    "status": "ready: before = aria-label only (no visible heading); after = visible h2 heading, aria-label removed",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "263b7b802ce79a8717739969fb44cc55235b826f"
+    },
+    "before": {
+      "env": "baseline-3618405"
+    },
+    "after": {
+      "env": "issue-3618405",
+      "patches": [
+        "reports/issues/3618405/branches/3618405-purpose-of-filters.patch"
+      ]
+    },
+    "pages": [
+      "/admin/content"
+    ],
+    "login": true,
+    "recipe": "repro_3618405",
+    "steps": [],
+    "expected": "After: a visible <h2>Filter Content</h2> heading sits above the exposed filter fields on /admin/content, the heading appears in the screen-reader heading rotor, and the form no longer carries an aria-label. Before: no visible heading; the form carries only an aria-label.",
+    "actual": "TODO after running",
+    "checks": [],
+    "observe": [
+      "Is a visible heading shown above the exposed filters on /admin/content (after) and absent (before)?",
+      "Does the heading appear in the screen-reader heading list, and is there no longer a duplicated aria-label announcement?",
+      "Heading level/style: the h2 is sized as an h3 (open question in the issue). Note any heading-hierarchy concern.",
+      "Does the patched CSS affect only the exposed form, or does the h2 rule leak to other headings?"
+    ],
+    "coverage": {
+      "note": "The combinations that count as tested for this issue (scripts/coverage.mjs). Edit to fit the question the issue asks.",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 480
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ]
+    }
+  },
+  {
+    "slug": "3618405-latest",
+    "extends": "3618405-pinned",
+    "label": "#3618405: same steps against the LATEST core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3618405-latest"
+    },
+    "after": {
+      "env": "issue-3618405-latest"
+    }
   }
 ]
