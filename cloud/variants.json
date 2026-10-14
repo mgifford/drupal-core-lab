@@ -885,6 +885,190 @@
       ]
     },
     {
+      "slug": "3619154-pinned",
+      "issue": "3619154",
+      "label": "#3619154: Sidebar toggle fixes, pinned core",
+      "description": "MR !16911 reworks the Default Admin node add/edit meta sidebar: sidebar.js is split into a sidebar-toggle SDC + edit-sidebar.js; the toggle and close controls become <button> elements with aria-expanded; open/closed state and width persist across reloads with no flash; below 1024px the overlay content is inert with a focus trap and Escape-to-close; the sidebar is positioned with CSS variables; resizing works after AJAX, with touch and in RTL. Test on a node edit form across widths.",
+      "steps": [
+        {
+          "text": "Default Admin is the admin theme.",
+          "how": "recipe"
+        },
+        {
+          "text": "Article content type, the Navigation module and one article node are installed.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /node/1/edit (loaded in both frames once you press Go).",
+          "how": "mirror"
+        },
+        {
+          "text": "Focus the sidebar toggle (top of the meta sidebar) and press the Space key.",
+          "how": "each",
+          "lookFor": "After: the sidebar toggles. Before: nothing happens — an <a role=button> does not activate on Space."
+        },
+        {
+          "text": "Desktop (>=1024px): toggle the sidebar closed, then reload the frame.",
+          "how": "each",
+          "lookFor": "After: it stays closed with no flash of the open sidebar. Before: it flashes open on load."
+        },
+        {
+          "text": "Toggle the sidebar open, drag the resize handle, then reload.",
+          "how": "each",
+          "lookFor": "After: open state and the chosen width persist after reload."
+        },
+        {
+          "text": "Expand a details section in the form.",
+          "how": "each",
+          "lookFor": "After: the Navigation sidebar does not collapse when content height changes."
+        },
+        {
+          "text": "Narrow the frame below 1024px and open the sidebar.",
+          "how": "each",
+          "lookFor": "After: focus moves to the close button; Tab stays within the sidebar (content behind is inert); Escape closes it and returns focus to the toggle. The resize handle is hidden below 976px."
+        }
+      ],
+      "expected": "After: the toggle and close are <button> elements operable with Enter and Space; aria-expanded tracks the sidebar state; closed/open state and width persist across reloads with no flash; expanding a details element does not collapse Navigation; below 1024px the content under the overlay is inert, focus moves to the close button, and Escape closes the sidebar and returns focus to the toggle. Before: <a href=\"#\" role=\"button\"> controls, Space does not operate them, the sidebar flashes open, and there is no inert overlay or focus trap.",
+      "actual": "TODO after running",
+      "observe": [
+        "Toggle and close are <button> elements and operable with the Space key (after), vs <a role=button> that ignores Space (before).",
+        "aria-expanded on the toggle tracks the open/closed state.",
+        "No flash of the open sidebar on load; closed/open state persists across reload.",
+        "Desktop: the dragged sidebar width persists after reload; resizing works after AJAX, with touch, and in RTL.",
+        "Expanding a details element does not collapse the Navigation sidebar.",
+        "Below 1024px: content under the overlay is inert; focus moves to the close button on open; Escape closes the sidebar and returns focus to the toggle.",
+        "Sidebar top aligns with the bottom of the top bar (976-1023px and >=1024px); no jump or top-bar overlap on load.",
+        "The resize handle is hidden below 976px."
+      ],
+      "checks": [
+        {
+          "label": "Setup reached: the sidebar toggle is on the page",
+          "probe": "!!document.querySelector('.meta-sidebar__trigger')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The toggle exposes aria-expanded",
+          "probe": "document.querySelector('.meta-sidebar__trigger') && document.querySelector('.meta-sidebar__trigger').hasAttribute('aria-expanded')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The toggle is a real <button> (not an <a role=button>)",
+          "probe": "(document.querySelector('.meta-sidebar__trigger') || {}).tagName === 'BUTTON'",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "The close control is a real <button> (not an <a role=button>)",
+          "probe": "(document.querySelector('.meta-sidebar__close') || {}).tagName === 'BUTTON'",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "The close button is the first focusable element in the sidebar (focus order)",
+          "probe": "document.getElementById(document.querySelector('.meta-sidebar__trigger')?.getAttribute('aria-controls'))?.querySelector('a[href],button,input,select,textarea,[tabindex]:not([tabindex=\"-1\"])')?.classList.contains('meta-sidebar__close') ?? false",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/node/1/edit"
+      ]
+    },
+    {
+      "slug": "3619154-latest",
+      "issue": "3619154",
+      "label": "#3619154: same steps against the LATEST core main",
+      "description": "MR !16911 reworks the Default Admin node add/edit meta sidebar: sidebar.js is split into a sidebar-toggle SDC + edit-sidebar.js; the toggle and close controls become <button> elements with aria-expanded; open/closed state and width persist across reloads with no flash; below 1024px the overlay content is inert with a focus trap and Escape-to-close; the sidebar is positioned with CSS variables; resizing works after AJAX, with touch and in RTL. Test on a node edit form across widths.",
+      "steps": [
+        {
+          "text": "Default Admin is the admin theme.",
+          "how": "recipe"
+        },
+        {
+          "text": "Article content type, the Navigation module and one article node are installed.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /node/1/edit (loaded in both frames once you press Go).",
+          "how": "mirror"
+        },
+        {
+          "text": "Focus the sidebar toggle (top of the meta sidebar) and press the Space key.",
+          "how": "each",
+          "lookFor": "After: the sidebar toggles. Before: nothing happens — an <a role=button> does not activate on Space."
+        },
+        {
+          "text": "Desktop (>=1024px): toggle the sidebar closed, then reload the frame.",
+          "how": "each",
+          "lookFor": "After: it stays closed with no flash of the open sidebar. Before: it flashes open on load."
+        },
+        {
+          "text": "Toggle the sidebar open, drag the resize handle, then reload.",
+          "how": "each",
+          "lookFor": "After: open state and the chosen width persist after reload."
+        },
+        {
+          "text": "Expand a details section in the form.",
+          "how": "each",
+          "lookFor": "After: the Navigation sidebar does not collapse when content height changes."
+        },
+        {
+          "text": "Narrow the frame below 1024px and open the sidebar.",
+          "how": "each",
+          "lookFor": "After: focus moves to the close button; Tab stays within the sidebar (content behind is inert); Escape closes it and returns focus to the toggle. The resize handle is hidden below 976px."
+        }
+      ],
+      "expected": "After: the toggle and close are <button> elements operable with Enter and Space; aria-expanded tracks the sidebar state; closed/open state and width persist across reloads with no flash; expanding a details element does not collapse Navigation; below 1024px the content under the overlay is inert, focus moves to the close button, and Escape closes the sidebar and returns focus to the toggle. Before: <a href=\"#\" role=\"button\"> controls, Space does not operate them, the sidebar flashes open, and there is no inert overlay or focus trap.",
+      "actual": "TODO after running",
+      "observe": [
+        "Toggle and close are <button> elements and operable with the Space key (after), vs <a role=button> that ignores Space (before).",
+        "aria-expanded on the toggle tracks the open/closed state.",
+        "No flash of the open sidebar on load; closed/open state persists across reload.",
+        "Desktop: the dragged sidebar width persists after reload; resizing works after AJAX, with touch, and in RTL.",
+        "Expanding a details element does not collapse the Navigation sidebar.",
+        "Below 1024px: content under the overlay is inert; focus moves to the close button on open; Escape closes the sidebar and returns focus to the toggle.",
+        "Sidebar top aligns with the bottom of the top bar (976-1023px and >=1024px); no jump or top-bar overlap on load.",
+        "The resize handle is hidden below 976px."
+      ],
+      "checks": [
+        {
+          "label": "Setup reached: the sidebar toggle is on the page",
+          "probe": "!!document.querySelector('.meta-sidebar__trigger')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The toggle exposes aria-expanded",
+          "probe": "document.querySelector('.meta-sidebar__trigger') && document.querySelector('.meta-sidebar__trigger').hasAttribute('aria-expanded')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The toggle is a real <button> (not an <a role=button>)",
+          "probe": "(document.querySelector('.meta-sidebar__trigger') || {}).tagName === 'BUTTON'",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "The close control is a real <button> (not an <a role=button>)",
+          "probe": "(document.querySelector('.meta-sidebar__close') || {}).tagName === 'BUTTON'",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "The close button is the first focusable element in the sidebar (focus order)",
+          "probe": "document.getElementById(document.querySelector('.meta-sidebar__trigger')?.getAttribute('aria-controls'))?.querySelector('a[href],button,input,select,textarea,[tabindex]:not([tabindex=\"-1\"])')?.classList.contains('meta-sidebar__close') ?? false",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/node/1/edit"
+      ]
+    },
+    {
       "slug": "3273806-latest",
       "issue": "3273806",
       "label": "#3273806: Toolbar orientation icon contrast (core main + Toolbar 2.x)",

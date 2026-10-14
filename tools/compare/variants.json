@@ -675,7 +675,7 @@
       { "label": "The toggle exposes aria-expanded", "probe": "document.querySelector('.meta-sidebar__trigger') && document.querySelector('.meta-sidebar__trigger').hasAttribute('aria-expanded')", "expect": true, "kind": "precondition" },
       { "label": "The toggle is a real <button> (not an <a role=button>)", "probe": "(document.querySelector('.meta-sidebar__trigger') || {}).tagName === 'BUTTON'", "expect": true, "kind": "fix" },
       { "label": "The close control is a real <button> (not an <a role=button>)", "probe": "(document.querySelector('.meta-sidebar__close') || {}).tagName === 'BUTTON'", "expect": true, "kind": "fix" },
-      { "label": "The close button is the first focusable element in the sidebar (focus order)", "probe": "(function(){var t=document.querySelector('.meta-sidebar__trigger');var sb=t&&document.getElementById(t.getAttribute('aria-controls'));if(!sb)return false;var f=sb.querySelector('a[href],button,input,select,textarea,[tabindex]:not([tabindex=\"-1\"])');return !!f&&f.classList.contains('meta-sidebar__close')})()", "expect": true, "kind": "fix" }
+      { "label": "The close button is the first focusable element in the sidebar (focus order)", "probe": "document.getElementById(document.querySelector('.meta-sidebar__trigger')?.getAttribute('aria-controls'))?.querySelector('a[href],button,input,select,textarea,[tabindex]:not([tabindex=\"-1\"])')?.classList.contains('meta-sidebar__close') ?? false", "expect": true, "kind": "fix" }
     ],
     "observe": [
       "Toggle and close are <button> elements and operable with the Space key (after), vs <a role=button> that ignores Space (before).",
