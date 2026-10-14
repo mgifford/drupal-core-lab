@@ -35,7 +35,6 @@ the button to the submenu it toggles; the MR's own Nightwatch test cannot be run
 | Scripted runs and screenshots | [`playwright/`](playwright/) |
 | Virtual screen-reader runs | [`screenreader/`](screenreader/) |
 | Browser and colour-mode matrix | [COVERAGE.md](COVERAGE.md) |
-| Diff report | [`compare/`](compare/) |
 | Draft comment (do not post) | [ISSUE-COMMENT-DRAFT.md](ISSUE-COMMENT-DRAFT.md) |
 | Status snapshot | [STATUS-2026-10-13.md](STATUS-2026-10-13.md) |
 
