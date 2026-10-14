@@ -41,7 +41,7 @@ const baseInfo = must(git(['log', '-1', '--format=%cs %s', base]), 'log');
 
 fs.mkdirSync(path.join(dir, 'branches'), { recursive: true });
 fs.writeFileSync(path.join(dir, 'branches', `${branch}.patch`), patch + '\n');
-fs.writeFileSync(path.join(dir, 'BRANCHES.md'), `# Branch patches for #${nid}\n\nExtracted ${date} from ${forkUrl} with \`git diff <merge-base> <branch tip>\`: only the branch's own changes.\nNot rebased onto current \`main\`. The MR on drupal.org is the source of truth.\n\n| Patch | Source | Tip | Base | Base date and subject | Files |\n|---|---|---|---|---|---|\n| \`branches/${branch}.patch\` | ${forkUrl} \`${branch}\` | ${tip} | ${base.slice(0, 12)} | ${baseInfo} | ${files.length} |\n`);
+fs.writeFileSync(path.join(dir, 'BRANCHES.md'), `# Branch patches for #${nid}\n\nExtracted ${date} from ${forkUrl} with \`git diff <merge-base> <branch tip>\`: only the branch's own changes.\nNot rebased onto current \`main\`. The MR on drupal.org is the source of truth.\n\n| Patch | Source | Tip | Base | Base date and subject | Files |\n|---|---|---|---|---|---|\n| [\`branches/${branch}.patch\`](branches/${branch}.patch) | ${forkUrl} \`${branch}\` | ${tip} | ${base.slice(0, 12)} | ${baseInfo} | ${files.length} |\n`);
 const sub = (t) => t.replaceAll('<NID>', nid).replaceAll('<TITLE>', title).replaceAll('<PINNED>', base.slice(0, 12)).replaceAll('<DATE>', date).replaceAll('<nid>', nid);
 for (const [tpl, out] of [['REPRODUCE.md', 'REPRODUCE.md'], ['EVIDENCE.md', 'EVIDENCE.md'], ['ISSUE-COMMENT-DRAFT.md', 'ISSUE-COMMENT-DRAFT.md']]) {
   const dst = path.join(dir, out); if (fs.existsSync(dst)) { console.log(`kept existing ${out}`); continue; }

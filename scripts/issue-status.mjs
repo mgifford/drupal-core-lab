@@ -23,7 +23,7 @@ const today = new Date().toISOString().slice(0, 10);
 function recorded(nid) {
   const f = path.join(labRoot, 'reports/issues', nid, 'BRANCHES.md');
   if (!fs.existsSync(f)) return null;
-  const row = fs.readFileSync(f, 'utf8').split('\n').find((l) => /^\| `branches\//.test(l));
+  const row = fs.readFileSync(f, 'utf8').split('\n').find((l) => /^\| \[?`branches\//.test(l));   // the patch name may be a link
   if (!row) return null;
   const cells = row.split('|').map((c) => c.trim());
   return { branch: (cells[2].match(/`([^`]+)`\s*$/) || [])[1] || null, tip: cells[3] || null };
