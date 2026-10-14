@@ -1,0 +1,87 @@
+# Cloud quickstart: before/after in a DDEV Coder workspace (browser only)
+
+The shortest browser-only path to a side-by-side Before/After, for someone who has a Coder account on https://coder.ddev.com and no
+local Docker. The full procedure, the status table and what is *not* verified live in
+[`../tools/compare/cloud/README.md`](../tools/compare/cloud/README.md); this page is the walkthrough.
+
+**Honesty first:** the steps below are assembled from the tested 2026-10-02 run plus the 2026-10-14 documentation
+refresh. Creating the workspace *from the web form* (rather than the CLI) is **not tested** — the cloud README's status table records
+that — and `--core-url` / `--use-existing-core` are dry-run tested only. One person running this once and recording it turns those
+rows into tested ones.
+
+## What needs what
+
+| Step | Needs |
+|---|---|
+| Pick the issue, write and validate the issue pack (`issue-from-url.mjs`, `issue-pack.mjs validate`) | Node only — any bask terminal, no Docker |
+| Build the two sites and run the viewer | Docker + DDEV — i.e. inside the Coder workspace |
+
+## 1. Create the workspace (web UI)
+
+1. Sign in at https://coder.ddev.com/workspaces and choose **Create workspace**, or open the template at
+   https://coder.ddev.com/templates.
+2. Select the **Freeform** template. Do **not** pick "Drupal Issue picker": the lab runs two DDEV projects side by side plus the
+   viewer, and the picker is a single-site template (it can still be adopted later with `--use-existing-core`).
+3. Fill the parameters:
+
+   | Parameter | Value |
+   |---|---|
+   | `project_names` | `drupal-compare,drupal-compare-before,drupal-compare-after` (add `repro-<env>` names only if you want a direct URL to each site) |
+   | `share_projects` | `false` — keep the workspace owner-only; the sites use `admin` / `admin` |
+   | `enable_claude_code` | `false` |
+   | `claude_code_skip_permissions` | `false` |
+   | `vscode_extensions` | `[]` |
+
+   The three `drupal-compare*` names are required: two give each frame its own hostname and the third is the viewer's own address.
+   Set `project_names` at creation; changing it afterwards was unreliable in the 2026-10-02 trial.
+
+## 2. In the workspace web terminal
+
+    git clone https://github.com/mgifford/drupal-core-lab.git && cd drupal-core-lab
+    node scripts/cloud-bootstrap.mjs 3619127-pinned --install-autostart --core-url=https://github.com/drupal/drupal.git
+
+- Replace `3619127-pinned` with the variant you want (a `-latest` slug follows current core `main`).
+- `--core-url` points at the GitHub mirror: the workspace's egress filter blocks `git.drupalcode.org` and `drupal.org`.
+- If a `drupal-core` issue-picker checkout already exists in the workspace, use `--use-existing-core` instead of `--core-url` to seed
+  the same core revision with no clone at all.
+- `--install-autostart` writes `~/.coder-startup.sh`, so a workspace restart brings both sites and the viewer back by itself.
+- For core's Yarn 4, also `export COREPACK_NPM_REGISTRY=https://registry.npmjs.org` if you plan to lint.
+- `--check` only reports what is missing, if the bootstrap stops.
+
+Expect roughly 7 minutes from clone to smoke check in a fresh workspace (measured 2026-10-02). `cloud-smoke.mjs` runs at the end and
+prints PASS/FAIL/NOT CHECKED.
+
+## 3. Open and use the viewer
+
+The bootstrap prints the exact URL, of the form
+
+    https://drupal-compare--<workspace>--<owner>.coder.ddev.com/
+
+Open it in a browser signed in to Coder (apps are owner-only). The viewer, both frames and the logins work exactly as in
+`docs/USER-GUIDE.md`. **The smoke check cannot check the frames at the real Coder URLs** — it reports NOT CHECKED — so confirm them
+by hand in the signed-in browser.
+
+## 4. Lifespan, restarts and coming back
+
+- A workspace has a **timed lifespan** (a deadline that activity extends) plus an idle autostop; it can expire. The app URL is
+  derived from the workspace name, so recreating the workspace changes it.
+- After any restart, `--install-autostart` (or running the bootstrap again) brings everything back; a restart stops every DDEV
+  project and the viewer otherwise.
+- If the workspace is gone, recreate it (step 1) and run the bootstrap again. Prefer `--use-existing-core` when a `drupal-core`
+  checkout is already there.
+
+## 5. Bring your own issue (optional)
+
+The pack flow (`docs/ISSUE-TO-LAB.md`) runs in the workspace terminal too:
+
+    node scripts/issue-from-url.mjs https://www.drupal.org/project/drupal/issues/<nid> --ai-recipe
+
+It prepares the chat prompt, you save the assistant's reply as `issue-pack-<nid>.yml`, run it again to validate and import, then
+`cloud-bootstrap.mjs <nid>-latest`. Nothing here posts, pushes or signs in to anything on its own.
+
+## What is not covered
+
+- Frames and login at the real Coder URLs from a signed-in browser (section 3) — confirm by hand.
+- The 3619127 reproduction steps and keyboard behaviour inside the cloud frames.
+- The web-form creation itself (this page documents the intended values; nobody has recorded a run).
+- Any user other than the pilot owner; the access gate is described in `docs/CLOUD-PLAN.md`.

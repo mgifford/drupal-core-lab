@@ -18,10 +18,18 @@ chat assistant ──writes──▶ issue-pack-<nid>.yml ──upload / paste�
 
    It only reads public pages (drupal.org and git.drupalcode.org) and sends nothing about you. Anything it cannot find is left marked `@@MISSING@@` in the file,
    with the reason, and the banner at the top says how many inputs are missing. Options: `--mr <number>` to pick a merge request when several match, `--out <file>`,
-   `--no-copy`. A diff over 300 KB is cut and says so. Only Drupal core issues are supported. Check the filled-in inputs, then paste the whole prompt into a new chat
+   `--no-copy`, `--ai-recipe` (let the assistant draft the recipe; see "Working with the chat assistant"). A diff over 300 KB is cut and says so. Only Drupal core issues are supported. Check the filled-in inputs, then paste the whole prompt into a new chat
    with an assistant that can make a downloadable text file (it does not need to run code). Without a network, `node scripts/issue-pack.mjs prompt` prints the blank prompt
    and you fill in the three inputs yourself.
-2. Get the file into your workspace. In the workspace's web VS Code, drag it into the file explorer, or paste it into a new file.
+
+   `scripts/issue-from-url.mjs` wraps steps 1, 3 and 4 into one command that you run twice: once to prepare the prompt, and again after you save the assistant's reply.
+
+       node scripts/issue-from-url.mjs https://www.drupal.org/project/drupal/issues/<nid> --ai-recipe
+       # second run, once the reply is saved as issue-pack-<nid>.yml: it validates and imports
+       node scripts/issue-from-url.mjs <nid>
+
+   Options: `--pack <file>` to point at a pack saved elsewhere, `--out <file>`, `--mr <n>`, `--ai-recipe`, `--no-import` or `--dry-run` to stop after validating.
+2. Get the file into your workspace. In the workspace's web VS Code or web terminal editor, drag it into the file explorer, or paste it into a new file. (The earlier steps `prepare`/`validate` run in Node, so they work in a browser terminal; building the sites needs Docker — see `docs/ISSUE-TO-LAB.md` "Where this runs".)
 3. Check it (no network, nothing is written, nothing from the pack is run):
 
        node scripts/issue-pack.mjs validate issue-pack-3415961.yml
@@ -51,8 +59,10 @@ The first answer will usually need a round. Save it to a file, and let the valid
     node scripts/issue-pack.mjs validate issue-pack-<nid>.yml --repair
 
 It prints the problems in the validator's own words, each with what to do about it, and copies the whole message to your clipboard (`--no-copy` to skip). Paste it into the **same chat**.
-A chat assistant cannot know your Drupal configuration, so the prompt does not ask it to write recipe files. It chooses **setup blocks** from a catalogue (`tools/compare/blocks/`, listed in the prompt) and the importer expands them into the recipe;
+An AI assistant cannot know your Drupal configuration, so by default the prompt does not ask it to write recipe files. It chooses **setup blocks** from a catalogue (`tools/compare/blocks/`, listed in the prompt) and the importer expands them into the recipe;
 anything the catalogue lacks goes under `needs`, and the step is written as "set X by hand". See `tools/compare/blocks/README.md`, including how to add a block.
+
+If the merge request diff or the issue text shows the configuration, you can instead let the assistant **draft the recipe**. `prepare --ai-recipe` (and `prompt --ai-recipe`) swaps that one rule for a stricter recipe-drafting rule (`prompts/issue-pack-recipe-rule.md`) and shows the `recipe.files` shape: the assistant may write `recipe.yml` and `config/*.yml`, but only from keys it can see in the sources, never invented, and it must say in `review.unverified` that the configuration was drafted and not checked. The pack is still imported as a draft and the recipe is yours to verify on the first build. This is the "AI-generated recipe" path; `docs/ISSUE-TO-LAB.md` explains when it is a good idea and when the person-supplied recipe below is safer.
 
 If you know the configuration yourself, or a block is missing, give the validator and the importer a recipe folder you trust (one that builds on current core, for example one you already used for this issue) and it replaces the setup:
 

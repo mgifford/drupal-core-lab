@@ -9,6 +9,8 @@
 //                                                           a later run without the flag carries on from there
 //   node tools/compare/setup.mjs [slug] --core-url=<url>    fetch core from another remote (e.g. https://github.com/drupal/drupal.git when
 //                                                           git.drupalcode.org is unreachable); a pinned commit must exist there too
+//   node tools/compare/setup.mjs [slug] --core-from=<path>  seed the core commit from a checkout already on disk (a Coder issue-picker
+//                                                           workspace, or a mirror) instead of the network; falls back to --core-url
 //
 // A variant's `core` says which Drupal core to use: `{ "ref": "main" }` follows the branch (fetched when an
 // environment is first created), `{ "commit": "<sha>" }` pins one exact commit so a reproduction can be repeated
@@ -26,6 +28,7 @@ const dry = args.includes('--dry-run');
 const v = variants().find((x) => x.slug === (args.find((a) => !a.startsWith('--')) || variants()[0].slug));
 if (!v) { console.error('unknown variant'); process.exit(1); }
 const coreUrl = (args.find((a) => a.startsWith('--core-url=')) || '').slice('--core-url='.length);
+const coreFrom = (args.find((a) => a.startsWith('--core-from=')) || '').slice('--core-from='.length);   // seed the core commit from a local checkout instead of the network
 const core = { url: 'https://git.drupalcode.org/project/drupal.git', ref: 'main', ...(v.core || {}), ...(coreUrl ? { url: coreUrl } : {}) };
 const coreRef = `refs/lab/${core.commit ? core.commit.slice(0, 12) : core.ref}`;   // where the chosen core lives in envs/core.git
 const CHECK = args.includes('--check-patches');
@@ -89,7 +92,7 @@ if (!dry) {
   for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => process.exit(130));
 }
 
-step(`Drupal core: ${core.commit ? `pinned commit ${core.commit.slice(0, 12)}` : `branch ${core.ref} (latest)`} from ${core.url}`);
+step(`Drupal core: ${core.commit ? `pinned commit ${core.commit.slice(0, 12)}` : `branch ${core.ref} (latest)`}${coreFrom ? ` from the local checkout ${coreFrom}` : ` from ${core.url}`}`);
 fs.mkdirSync(path.join(labRoot, 'envs'), { recursive: true });
 if (!have(bare)) { run('git', ['init', '--bare', bare]); run('git', ['-C', bare, 'remote', 'add', 'origin', core.url]); }
 else if (coreUrl && !dry) run('git', ['-C', bare, 'remote', 'set-url', 'origin', core.url]);
@@ -97,7 +100,20 @@ const hasRef = () => !dry && spawnSync('git', ['-C', bare, 'rev-parse', '--verif
 // A pinned commit is fetched once. A branch is fetched again whenever an environment still has to be created,
 // so a new environment starts from current core while existing ones are left alone.
 const needEnv = [v.before, v.after].some((x) => !have(envDir(x.env)));
-if (core.commit ? !hasRef() : (CHECK || needEnv || !hasRef())) run('git', ['-C', bare, 'fetch', '--depth', '1', 'origin', `${core.commit ? core.commit : `+refs/heads/${core.ref}`}:${coreRef}`]);
+const fetchSpec = `${core.commit ? core.commit : `+refs/heads/${core.ref}`}:${coreRef}`;
+if (core.commit ? !hasRef() : (CHECK || needEnv || !hasRef())) {
+  // --core-from seeds the commit from a checkout already on disk (a Coder issue-picker workspace, or a mirror) so no network
+  // clone is needed; a non-tip commit can be fetched from a local path directly. It falls back to the origin remote, and
+  // --core-url=<mirror> is the other way to survive filtered egress (see tools/compare/cloud/README.md).
+  let done = false;
+  if (coreFrom && !dry) {
+    const src = path.resolve(coreFrom);
+    if (!have(path.join(src, 'HEAD')) && !have(path.join(src, '.git'))) { console.error(`--core-from=${coreFrom} is not a git checkout (no HEAD or .git directory).`); process.exit(1); }
+    done = spawnSync('git', ['-C', bare, 'fetch', '--depth', '1', src, fetchSpec], { stdio: 'inherit' }).status === 0;
+    if (!done) console.log(`\n--core-from: could not fetch ${core.commit || core.ref} from ${src}; trying ${core.url}. Pass --core-url=<mirror> if the network is filtered.`);
+  }
+  if (!done) run('git', ['-C', bare, 'fetch', '--depth', '1', 'origin', fetchSpec]);
+}
 if (!dry) console.log('core is at: ' + out('git', ['-C', bare, 'log', '-1', '--format=%H %cs %s', coreRef]));
 
 if (CHECK) {

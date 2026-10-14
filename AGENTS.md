@@ -55,6 +55,10 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/run-mark.mjs <run> --superseded --reason "<why>" [--by <run>]   # keep a run as history; coverage stops counting it
     node scripts/lab-env.mjs retire <slug> --yes         # delete a pair only once reports/issues/<nid>/ is committed and pushed
     node scripts/selftest.mjs [--live <slug>] [--network]   # does the lab itself work: syntax, unit tests, variants, docs; --live runs lint and the evaluator
+    node scripts/issue-from-url.mjs <url> [--pack <file>] [--ai-recipe] [--mr <n>] [--no-import] [--dry-run]  # start from a Drupal.org issue URL (prepare→validate→import)
+    node scripts/issue-pack.mjs validate <pack> | import <pack> [--recipe <dir>] [--depth 2000] [--dry-run]  # validate/import an issue pack; --ai-recipe at prepare time
+    node tools/compare/setup.mjs <slug> --core-from=<path>  # seed core from a local checkout (filtered egress / existing worktree)
+    node scripts/cloud-bootstrap.mjs <slug> [--install-autostart] [--rebuild] [--core-url=<url>] [--use-existing-core[=<path>]] [--check]  # DDEV Coder workspace bootstrap
     node scripts/build-cloud.mjs                         # regenerate cloud/ (the GitHub Pages site); commit the result. CI fails if it is stale
 
 Details: `tools/compare/README.md`, `tools/playwright/README.md`, `docs/TESTING-TOOLS.md`. Each run is a **pinned** variant (exactly as
@@ -141,7 +145,7 @@ Use only if `setup.mjs` is not usable. `core/scripts/dr install` is SQLite-only;
 - The script injected into the proxied pages is a template literal in `serve.mjs`: double the backslashes in regexes, no backticks or `${}`.
 - The conditions toolbar keeps Device width, Colour mode and Compare as always visible; the rest sit in popovers (`details.pop`: Conditions, Input, Audits, plus Tools in the top bar). Tests must open a popover (`summary:has-text("Input")`) before using a control inside it, and press Escape to close it before touching the frames. Results live in the dock (`#dock`, tabs `#tab-steps`, `#tab-checks`, `#tab-manual`, `#tab-axe`, `#tab-lh`, `#tab-env`); click the tab before reading a result. Keep every element id: the script and the tests depend on them. Layout proposal and rationale: `docs/ui-proposal/index.html`. A new control belongs in the block that matches its job; keep the top bar for page navigation.
 - Verify with real input: `node tools/playwright/mirror-drag.mjs` (viewer must be running), plus `node scripts/doctor.mjs`.
-- Cloud (DDEV Coder workspaces) is an opt-in path, partly built and tested: `tools/compare/cloud/README.md` (setup, smoke check, status table), `scripts/cloud-bootstrap.mjs`, `scripts/cloud-smoke.mjs`; the original proposal is `docs/CLOUD-PLAN.md`. Local use is unchanged. Do not sign in to Coder, create or change workspaces, or publish anything without the user.
+- Cloud (DDEV Coder workspaces) is an opt-in path, partly built and tested: `tools/compare/cloud/README.md` (browser-first setup, smoke check, status table), `scripts/cloud-bootstrap.mjs`, `scripts/cloud-smoke.mjs`; the original proposal is `docs/CLOUD-PLAN.md`. Create workspaces in the web UI at https://coder.ddev.com/workspaces (or from a template at https://coder.ddev.com/templates). Local use is unchanged. Do not sign in to Coder, create or change workspaces, or publish anything without the user.
 
 ## Where results go
 

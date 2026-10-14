@@ -54,7 +54,7 @@ setup: list of building blocks from the catalogue, each use (the block name) and
 needs: optional list of block (a block you wish existed, lowercase_with_underscores) and why
 variant: description, pages (site paths such as /node/add/article), login (optional), demo.start (optional), steps (text, how, lookFor optional), expected, actual, checks (a list of: use, kind, params; may be empty), observe (label, expectBefore, expectAfter)
 notes: optional plain text
-
+{{RECIPE_FORMAT}}
 WORKED EXAMPLE (for issue 3415961; yours must follow the same shape but describe YOUR issue)
 ```yaml
 {{EXAMPLE}}

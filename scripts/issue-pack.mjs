@@ -1,7 +1,8 @@
 // Check and import an issue pack (docs/ISSUE-PACK.md): one YAML file that describes how to reproduce a Drupal core issue.
-//   node scripts/issue-pack.mjs prepare <issue URL or number> [--mr N] [--out FILE] [--no-copy]
+//   node scripts/issue-pack.mjs prepare <issue URL or number> [--mr N] [--out FILE] [--no-copy] [--ai-recipe]
 //                                                               fetch the issue text and merge request diff, fill in the prompt, write it to a file, copy it, print the path
-//   node scripts/issue-pack.mjs prompt                          print the blank chat prompt (prompts/issue-pack-chat-prompt.md with the current example filled in)
+//                                                               --ai-recipe lets the assistant draft recipe.yml and config/*.yml (prompts/issue-pack-recipe-rule.md) instead of catalogue blocks only
+//   node scripts/issue-pack.mjs prompt [--ai-recipe]            print the blank chat prompt (prompts/issue-pack-chat-prompt.md with the current example filled in)
 //   node scripts/issue-pack.mjs validate <pack.yml> [--recipe <dir>] [--repair [--attach-recipe <dir>] [--no-copy]]
 //                                                               --recipe <dir> checks the pack with a recipe folder you trust in place of the assistant's own recipe
 //                                                               check only: no network, nothing is written. --repair also prints (and copies) a message to paste back
@@ -22,6 +23,39 @@ import { loadChecks, checkCatalogueText } from '../tools/compare/pack-checks.mjs
 const args = process.argv.slice(2);
 const copyToClipboard = (text) => { for (const c of [['pbcopy'], ['wl-copy'], ['xclip', '-selection', 'clipboard'], ['xsel', '--clipboard', '--input']]) { if (spawnSync(c[0], c.slice(1), { input: text }).status === 0) return c[0]; } return null; };
 const [cmd, file] = args.filter((a) => !a.startsWith('--'));
+// --ai-recipe swaps rule 6 (catalogue blocks only) for the recipe-drafting rule (prompts/issue-pack-recipe-rule.md) and shows the
+// recipe.files shape. Nothing else in the prompt changes.
+const RECIPE_FORMAT = [
+  'RECIPE FORMAT (recipe-drafting mode only; the worked example below uses setup blocks instead)',
+  'recipe:',
+  '  name: "repro_<nid>"                     the issue number, exactly this form',
+  '  files:',
+  '    recipe.yml: |',
+  '      name: "<short title of the starting state>"',
+  '      description: "<what the state is and that it is safe to apply more than once>"',
+  '      type: "Testing"',
+  '      recipes:                            optional: other recipes to apply first, for example core/tests/fixtures/recipes/article_content_type',
+  '        - <a recipe name in this repo, or a core/recipes/... path>',
+  '      install:                            optional: module machine names to install',
+  '        - <module>',
+  '      config:                             optional: change configuration that a module or recipe already provides',
+  '        actions:',
+  '          <config object name>:',
+  '            <method>: ...',
+  '    config/<config object name>.yml: |   optional: a whole config object, for example config/system.site.yml',
+  '      <the config object>',
+].join('\n');
+const promptTemplate = () => {
+  let tpl = fs.readFileSync(path.join(labRoot, 'prompts/issue-pack-chat-prompt.md'), 'utf8');
+  const ai = args.includes('--ai-recipe');
+  if (ai) {
+    const rule = fs.readFileSync(path.join(labRoot, 'prompts/issue-pack-recipe-rule.md'), 'utf8').trimEnd();
+    const out = tpl.replace(/^6\. Setup: do NOT write recipe files.*$/m, () => rule);
+    if (out === tpl) { console.error('--ai-recipe: could not find rule 6 in prompts/issue-pack-chat-prompt.md'); process.exit(2); }
+    tpl = out;
+  }
+  return tpl.replace('{{RECIPE_FORMAT}}\n', () => (ai ? `${RECIPE_FORMAT}\n` : ''));
+};
 if (cmd === 'prepare') {
   const { parseIssue, gather, composePrompt } = await import('../tools/compare/pack-prepare.mjs');
   const os = await import('node:os');
@@ -31,7 +65,7 @@ if (cmd === 'prepare') {
   if (mr !== undefined && !/^\d{1,7}$/.test(mr)) { console.error('--mr must be the merge request number, for example 16777'); process.exit(2); }
   let g; try { g = await gather(nid, { mr, log: (m) => console.log(m) }); } catch (e) { console.error(`Could not fetch: ${e.message}`); process.exit(1); }
   if (g.missing.issue) { console.error(g.missing.issue); process.exit(1); }
-  const tpl = fs.readFileSync(path.join(labRoot, 'prompts/issue-pack-chat-prompt.md'), 'utf8');
+  const tpl = promptTemplate();
   const ex = fs.readFileSync(path.join(labRoot, 'docs/examples/issue-pack-3415961.yml'), 'utf8').trimEnd();
   const yamlP = loadYaml(); if (!yamlP) { console.error('js-yaml is not installed. Run: npm install --prefix tools/compare/.deps js-yaml@4'); process.exit(2); }
   const { text, missing } = composePrompt(tpl, ex, g, { catalogue: catalogueText(loadCatalogue(yamlP)), checks: checkCatalogueText(loadChecks(yamlP)) });
@@ -48,14 +82,14 @@ if (cmd === 'prepare') {
   process.exit(0);
 }
 if (cmd === 'prompt') {
-  const tpl = fs.readFileSync(path.join(labRoot, 'prompts/issue-pack-chat-prompt.md'), 'utf8');
+  const tpl = promptTemplate();
   const ex = fs.readFileSync(path.join(labRoot, 'docs/examples/issue-pack-3415961.yml'), 'utf8').trimEnd();
   const yamlP = loadYaml(); if (!yamlP) { console.error('js-yaml is not installed. Run: npm install --prefix tools/compare/.deps js-yaml@4'); process.exit(2); }
   process.stdout.write(tpl.replace('{{CATALOGUE}}', () => catalogueText(loadCatalogue(yamlP))).replace('{{CHECKS}}', () => checkCatalogueText(loadChecks(yamlP))).replace('{{EXAMPLE}}', () => ex));
   process.exit(0);
 }
 const flag = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
-if (!['validate', 'import'].includes(cmd) || !file) { console.error('usage: node scripts/issue-pack.mjs prepare <issue URL or number> | prompt | validate <pack.yml> | import <pack.yml> [--dry-run] [--depth 300]'); process.exit(2); }
+if (!['validate', 'import'].includes(cmd) || !file) { console.error('usage: node scripts/issue-pack.mjs prepare <issue URL or number> [--ai-recipe] | prompt [--ai-recipe] | validate <pack.yml> | import <pack.yml> [--dry-run] [--depth 300]'); process.exit(2); }
 if (!fs.existsSync(file)) { console.error(`No such file: ${file}`); process.exit(2); }
 
 const yaml = loadYaml();

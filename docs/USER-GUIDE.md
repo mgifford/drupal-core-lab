@@ -17,6 +17,8 @@ Docker, [DDEV](https://ddev.com/) 1.24 or newer, git and Node.js 20+ (22.19+ for
 of memory. The first setup takes 10 to 20 minutes because it downloads Drupal core and installs it twice.
 
 ## 2. Build once, then start with one command
+
+**No local Docker?** Use a browser-only Coder workspace: [tools/compare/cloud/README.md](../tools/compare/cloud/README.md).
     node tools/compare/setup.mjs 3604037-latest      # first time only: builds Before (core) and After (core + the change); safe to re-run
     node scripts/lab-env.mjs start 3604037-latest    # every time: starts both sites AND the viewer
     node scripts/lab-env.mjs stop 3604037-latest     # when you are done (nothing is lost)
