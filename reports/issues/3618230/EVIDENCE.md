@@ -59,6 +59,25 @@ Mike Gifford, in the side-by-side viewer (http://localhost:8100) on `3618230-lat
 
 This agrees with the scripted results above. Not done in this check: Hide by keyboard, a screen reader, and the After input's `aria-invalid`.
 
+## The tests-only patch (2026-08-24), run on Before and After
+`https://www.drupal.org/files/issues/2026-08-24/3618230-managed-file-message-placement-tests.patch` adds tests only, no core code: a Nightwatch test (`core/modules/file/tests/src/Nightwatch/Tests/managedFileOverLimitMessageRegionTest.js`), plus a Playwright config, spec and Guidepup script under a new top-level `tests/playwright/` that call `ddev drush`. It uploads a file larger than PHP's `post_max_size` to `/form_test/form-state-values-clean-advanced` (profile `minimal`, so theme `stark`), with Inline Form Errors off and on, and asserts the error is inside `.js-form-managed-file .messages--error` and that no error is in the page message region. It does not mention MessageCommand, `file-upload-messages` or the Hide button. The MR diff (`merge_requests/16777.diff`) is identical, line for line, to `branches/3618230-adopt-the-ajax.patch`.
+
+Only the Nightwatch test was run (the Playwright and Guidepup parts need Drush, which is not added to core checkouts here). It was copied into an untracked `.lab-nightwatch/` folder in each checkout and run with `ddev nightwatch`, on core `3b94128e929`, Before and After. Two run settings, not changes to the test: `TMPDIR=/mnt/ddev-global-cache/lab-nightwatch` (the browser runs in a separate container and must see the file) and `DRUPAL_OVERSIZED_UPLOAD_BYTES` = `post_max_size` + 1024 (DDEV's `post_max_size` is 100M; the test's own Playwright helper uses the same rule). A lab diagnostic did the same upload and recorded where every error landed.
+
+| Run | Before | After |
+|---|---|---|
+| DDEV default (`display_errors` On) | FAIL (both scenarios); the page shows "Oops, something went wrong" | the same |
+| `display_errors` Off on both sites (temporary `.ddev/php/` setting, removed afterwards) | FAIL (both scenarios) | FAIL (both scenarios) |
+| Error shown with `display_errors` Off | "An unrecoverable error occurred. The uploaded file likely exceeded the maximum file size (100 MB) that this server supports." | identical |
+| Where it is | `div[data-drupal-messages]` inside `#ajax-wrapper`, before the file element | identical; no `file-upload-messages` |
+
+Why:
+1. With `display_errors` On, PHP prints its "POST Content-Length ... exceeds the limit" startup warning into the AJAX response, the JSON breaks and `ajax.js` shows its generic error. That is the environment, not the code under test.
+2. With it Off, the test still fails on both sides: `stark` (core's base template) renders the message without the `messages--error` class, and the message sits in the AJAX wrapper before `.js-form-managed-file`, not inside it.
+3. The over-limit upload takes a different code path from the MR. PHP discards the body, and `FormAjaxSubscriber` (`core/lib/Drupal/Core/Form/EventSubscriber/FormAjaxSubscriber.php:90-95`) adds the message and sends `status_messages` with a `PrependCommand`. The MR changes only `ManagedFile::uploadAjaxCallback()`, so this path is the same with or without it. The lab's own scenario (a 1 KB field limit) is a validation error that goes through `uploadAjaxCallback()`.
+
+So the tests patch, as written, fails on unpatched and patched core alike in this setup, and it would not test the MR's change even if its selectors matched. Not checked: whether the over-limit path keeps the Hide button in Default Admin (it does not pass through `#prefix`), and the test in any theme other than `stark`. Afterwards both checkouts had unchanged `git status`, and the site databases gained only ordinary cache and log rows.
+
 ## Findings
 1. The problem in the issue still happens in the Default Admin theme. It shows as a missing dismiss button, where Olivero showed a missing icon.
 2. The MR fixes it: the message is built in JavaScript by the theme, keeps the button, and the button works by keyboard.
@@ -74,6 +93,7 @@ After pressing Hide, Default Admin adds `visually-hidden` to the message (`core/
 - The pinned core pair (`f5e265802542`).
 - A multi-value file field (the MR comment says the unique ID handles it).
 - Any step by a person other than the manual check of step 4 above (no keyboard pass, no review of the evidence as a whole).
+- The tests-only patch's Playwright and Guidepup files (they need Drush), and its Nightwatch test in a theme other than `stark`.
 - Whether the After file input keeps `aria-invalid="true"` after a failed upload (the MR does not touch it; not checked).
 
 ## Earlier run (2026-10-08, superseded)
