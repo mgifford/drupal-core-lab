@@ -1,0 +1,39 @@
+diff --git a/core/modules/ckeditor5/tests/src/FunctionalJavascript/MediaLibraryTest.php b/core/modules/ckeditor5/tests/src/FunctionalJavascript/MediaLibraryTest.php
+index f666e994f4a..72fd64e89a9 100644
+--- a/core/modules/ckeditor5/tests/src/FunctionalJavascript/MediaLibraryTest.php
++++ b/core/modules/ckeditor5/tests/src/FunctionalJavascript/MediaLibraryTest.php
+@@ -225,6 +225,34 @@ public function testButton(): void {
+     $this->assertFalse($drupal_media->hasAttribute('data-align'));
+   }
+ 
++  /**
++   * Tests that focus stays in the editor after media is inserted.
++   *
++   * When the media library dialog closes, the AJAX framework tries to restore
++   * focus to the element that triggered the request, or to one of its parents.
++   * The submit button is removed with the dialog, so focus moves to the node
++   * form's submit button, which scrolls the page away from the editor.
++   *
++   * @see https://www.drupal.org/project/drupal/issues/3415961
++   */
++  public function testFocusStaysInEditorAfterInsert(): void {
++    $media_preview_selector = '.ck-content .ck-widget.drupal-media .media';
++    $this->drupalGet('/node/add/blog');
++    $this->waitForEditor();
++    $this->pressEditorButton('Insert Media');
++    $assert_session = $this->assertSession();
++    $assert_session->waitForElementVisible('css', '#drupal-modal #media-library-content');
++    $assert_session->elementExists('css', '.js-media-library-item')->click();
++    $assert_session->elementExists('css', '.ui-dialog-buttonpane')->pressButton('Insert selected');
++    $assert_session->waitForElementVisible('css', $media_preview_selector);
++
++    // The editor must keep focus so a keyboard user can carry on editing.
++    $this->assertTrue(
++      $this->getSession()->wait(5000, "!!(document.activeElement && document.activeElement.closest('.ck-editor'))"),
++      'Focus stays in the text editor after the media library dialog closes.'
++    );
++  }
++
+   /**
+    * Tests the allowed media types setting on the MediaEmbed filter.
+    */

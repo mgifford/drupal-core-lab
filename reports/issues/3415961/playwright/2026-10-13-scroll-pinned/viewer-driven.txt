@@ -1,0 +1,20 @@
+# #3415961 — viewer-driven reproduction (pinned envs)
+
+Date: 2026-10-13
+Viewer: http://localhost:8100/ variant `3415961-pinned` (core 33a306844561)
+Method: drove the viewer's own frames (#fb = baseline-3415961, #fa = issue-3415961) with
+Playwright — set the Body editor to ~60 lines, scrolled the editor to the top of the frame,
+then Insert Media → pick the seeded "Lab image" → Insert selected. Mirror off.
+
+Result (frame viewport height 511 px):
+
+| Frame | scrollY before → after | editor top after | focus after |
+|---|---|---|---|
+| Before (#fb) | 497 → 1583 | -1027 | #edit-submit (the Save button) |
+| After (#fa)  | 497 → 497  | 59    | CKEditor button |
+
+Before jumps about 1086 px and the editor leaves the frame; After does not move.
+
+Condition that matters: the page must be much taller than the frame (many Body lines) and the
+editor scrolled near the top, so the Save button is below the fold. With a short Body, the Save
+button is already on screen, focus does not need to scroll, and neither side jumps.

@@ -1,0 +1,112 @@
+[
+  {
+    "slug": "3415961-pinned",
+    "issue": "3415961",
+    "label": "#3415961: [drupalMedia] Using the Insert Media button causes the window to scroll to the bottom of the page, pinned core",
+    "description": "Open the Insert Media dialog from a CKEditor 5 body field on a tall node form, add an image and press Insert selected, in both frames. Before: the window is reported to jump away from the editor. After (MR !12348): the window should stay where it was. Also try closing the dialog with the X button, which one commenter says the change does not fix.",
+    "status": "draft: the automated test and the browser reproduction were confirmed by the lab on 2026-10-13 (see TEST-EVIDENCE.md); the interactive viewer walkthrough checks have not been run by a person",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "33a306844561b9f10bde368e3d8a5ab2611b15df"
+    },
+    "before": {
+      "env": "baseline-3415961",
+      "patches": [
+        "reports/issues/3415961/branches/3415961-test-focus-stays-in-editor.patch"
+      ]
+    },
+    "after": {
+      "env": "issue-3415961",
+      "patches": [
+        "reports/issues/3415961/branches/3415961-drupalmedia-using-the.patch",
+        "reports/issues/3415961/branches/3415961-test-focus-stays-in-editor.patch"
+      ]
+    },
+    "pages": [
+      "/node/add/article"
+    ],
+    "login": true,
+    "recipe": "repro_3415961",
+    "steps": [
+      {
+        "text": "Full HTML uses CKEditor 5 with an Insert Media button, and an Image media type exists.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /node/add/article (already loaded in both frames once you press Go). The recipe sets the Body text format to Full HTML, so the Insert Media button is already in the toolbar (Basic HTML has no such button).",
+        "how": "mirror"
+      },
+      {
+        "text": "Paste about 60 lines into Body so the form is much taller than the frame, then scroll so the editor's top is near the top of the frame. The Save button must be below the fold, or focus cannot scroll the page when the dialog closes and nothing will jump.",
+        "how": "mirror"
+      },
+      {
+        "text": "Have a small .png or .jpg on your own computer. In EACH frame click Insert Media in the editor toolbar (in a narrow frame it is hidden: click Show more items first), open the Add media tab, upload the image (add alt text if asked), then press Insert selected. A file chooser cannot be mirrored, so do this by hand in each frame.",
+        "how": "each",
+        "lookFor": "Before is reported to scroll the window away from the editor. After should leave the window where it was. Press Run checks afterwards."
+      },
+      {
+        "text": "Repeat once more, but close the dialog with the X button instead of Insert selected, in each frame.",
+        "how": "each",
+        "lookFor": "Comment #9 says the page still jumps in this case. Note what you see on each side."
+      }
+    ],
+    "expected": "After inserting media from the dialog the window stays where it was and the editor stays in view.",
+    "actual": "Before, the window is reported to jump after Insert selected. After (MR !12348) it should not. Closing with X may still jump (comment #9, not reproduced).",
+    "checks": [
+      {
+        "label": "CKEditor 5 on the Body field has the Insert Media (drupalMedia) button configured",
+        "probe": "Drupal.CKEditor5Instances ? [...Drupal.CKEditor5Instances.values()].some((e) => e.ui.componentFactory.has('drupalMedia')) : false",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "The Body editor is still in view after inserting (its top edge is inside the window)",
+        "probe": "((r) => r.top >= 0 && r.top < window.innerHeight)(document.querySelector('.ck-editor').getBoundingClientRect())",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "JavaScript errors on the page (ignoring the harmless ResizeObserver loop notice)",
+        "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+        "expect": 0,
+        "kind": "regression"
+      }
+    ],
+    "observe": [
+      {
+        "label": "The window jumped away from the editor after Insert selected",
+        "expectBefore": true,
+        "expectAfter": false
+      },
+      {
+        "label": "The media appears in the editor after Insert selected",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "The page jumped after closing the dialog with the X button",
+        "expectBefore": true,
+        "expectAfter": true
+      }
+    ],
+    "demo": {
+      "start": "/node/add/article"
+    }
+  },
+  {
+    "slug": "3415961-latest",
+    "extends": "3415961-pinned",
+    "label": "#3415961: same steps against the LATEST core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3415961-latest"
+    },
+    "after": {
+      "env": "issue-3415961-latest"
+    }
+  }
+]

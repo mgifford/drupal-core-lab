@@ -21,7 +21,13 @@ cd "$dir"
 
 apply() {
   mkdir -p recipes && rm -rf "recipes/$recipe" && cp -R "$lab/recipes/$recipe" "recipes/$recipe"
-  ddev exec php core/scripts/dr recipe:apply "recipes/$recipe"
+  # Newer core checkouts ship `core/scripts/dr` (command `recipe:apply`); older ones
+  # only `core/scripts/drupal` (command `recipe`).
+  if ddev exec test -f core/scripts/dr; then
+    ddev exec php core/scripts/dr recipe:apply "recipes/$recipe"
+  else
+    ddev exec php core/scripts/drupal recipe "recipes/$recipe"
+  fi
   # Plain files, not minified aggregates, so a changed CSS/JS file can be compared as source.
   local php='$a=require "autoload.php"; $r=Symfony\Component\HttpFoundation\Request::create("/"); $k=Drupal\Core\DrupalKernel::createFromRequest($r,$a,"prod"); $k->boot(); $k->preHandle($r); \Drupal::configFactory()->getEditable("system.performance")->set("css.preprocess",false)->set("js.preprocess",false)->save(); \Drupal::configFactory()->getEditable("system.site")->set("name","Drupal core test site")->save();'
   ddev exec "php -r '$php'"

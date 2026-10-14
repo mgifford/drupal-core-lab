@@ -1,0 +1,12 @@
+diff --git a/core/modules/media_library/src/Plugin/views/field/MediaLibrarySelectForm.php b/core/modules/media_library/src/Plugin/views/field/MediaLibrarySelectForm.php
+index 2e233cab5e4..994a891af84 100644
+--- a/core/modules/media_library/src/Plugin/views/field/MediaLibrarySelectForm.php
++++ b/core/modules/media_library/src/Plugin/views/field/MediaLibrarySelectForm.php
+@@ -132,6 +132,7 @@ class MediaLibrarySelectForm extends FieldPluginBase implements WorkspaceSafeFor
+         'query' => $query,
+       ],
+       'callback' => [static::class, 'updateWidget'],
++      'disable-refocus' => TRUE,
+     ];
+ 
+     $form['actions']['submit']['#value'] = $this->t('Insert selected');
