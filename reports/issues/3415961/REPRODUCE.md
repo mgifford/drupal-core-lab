@@ -38,7 +38,7 @@ The test patch is applied to both sides, so the same command runs on each:
 
 Expected: Before FAILS (`activeElement` is the node Save button), After PASSES
 (`activeElement` is inside `.ck-editor`). Confirmed on `-pinned` and `-latest`;
-details in `TEST-EVIDENCE.md`.
+details in `EVIDENCE.md`.
 
 ## Browser reproduction of the scroll itself
     node tools/playwright/scroll-3415961.mjs baseline-3415961-latest issue-3415961-latest
@@ -62,8 +62,12 @@ not. Needs both `-latest` sites running. Evidence in `playwright/2026-10-13-scro
 ## What is in this folder
 | Path | What |
 |---|---|
-| `branches/*.patch`, `BRANCHES.md` | Patches from the issue fork, with source, tip, base and date. Includes the test patch and the combined fix+test patch. |
-| `STATUS-<date>.md` | Related issues and review threads, dated. Re-check on drupal.org before relying on it. |
-| `TEST-EVIDENCE.md` | Test and browser results with exact commits. DRAFT until a person has reviewed it. |
+| `SUMMARY.md` | **Entry point.** Summary of the issue and links to every file below. |
+| `REPRODUCE.md` | This file: how to reproduce, pinned and on latest core, and how to re-pin. |
+| `branches/*.patch`, `BRANCHES.md` | Patches from the issue fork and the lab test patch, with source, tip, base and date. |
+| `recipe/` | Copy of the recipe (`recipes/repro_3415961/` is the one the build uses). |
+| `EVIDENCE.md` | Test and browser results with exact commits. DRAFT until a person has reviewed it. |
 | `playwright/` | Generated evidence from the browser reproduction. |
 | `ISSUE-COMMENT-DRAFT.md` | A draft for a human to review and post. Nothing is posted automatically. |
+| `STATUS.md` | Current status snapshot. `STATUS-2026-10-02.md` is the earlier placeholder (superseded). |
+| `PACK.yml` | The issue pack as received (2026-10-02), kept for provenance. |

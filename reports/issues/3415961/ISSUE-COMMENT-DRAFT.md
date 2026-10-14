@@ -1,6 +1,6 @@
 <!-- DRAFT for a human to review and post. Do not post automatically.
      Operator: rewrite the text below in your own words before publishing.
-     Evidence: TEST-EVIDENCE.md, playwright/2026-10-13-scroll/, branches/3415961-test-focus-stays-in-editor.patch -->
+     Evidence: EVIDENCE.md, playwright/2026-10-13-scroll/, branches/3415961-test-focus-stays-in-editor.patch -->
 
 A FunctionalJavascript test for this change is ready.
 

@@ -11,6 +11,6 @@ Not rebased onto current `main`. The MR on drupal.org is the source of truth.
 
 | Patch | What | Verified |
 |---|---|---|
-| `branches/3415961-test-focus-stays-in-editor.patch` | Adds `MediaLibraryTest::testFocusStaysInEditorAfterInsert()`. Applies cleanly to core `33a306844561` and `main` `4f9558d85e7`. | 2026-10-13: Before fails, After passes on both cores (see `TEST-EVIDENCE.md`) |
+| `branches/3415961-test-focus-stays-in-editor.patch` | Adds `MediaLibraryTest::testFocusStaysInEditorAfterInsert()`. Applies cleanly to core `33a306844561` and `main` `4f9558d85e7`. | 2026-10-13: Before fails, After passes on both cores (see `EVIDENCE.md`) |
 | `branches/3415961-fix-and-test.patch` | The fix patch and the test patch concatenated, for attaching the full MR state at once. | 2026-10-13: both hunks apply cleanly to `33a306844561` and `main` |
 

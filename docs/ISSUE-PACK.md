@@ -96,7 +96,7 @@ into a label and probe, so what you see in the viewer matches what the template 
 |---|---|
 | `reports/issues/<nid>/variants.json` | the `<nid>-pinned` and `<nid>-latest` variants (core commit the patch was based on, patch, environments, your steps and checks). `tools/compare/variants.json` is never edited. |
 | `recipes/repro_<nid>/` and `reports/issues/<nid>/recipe/` | the recipe (the second is a copy that stays with the report) |
-| `reports/issues/<nid>/PACK.yml`, `SUMMARY.md` | the pack as received and a readable summary with sources and what was not verified |
+| `reports/issues/<nid>/PACK.yml`, `SUMMARY.md` | the pack as received, and the per-issue **entry point**: a readable summary with sources, what was not verified, and links to the patches, recipe, evidence and comment draft |
 | `reports/issues/<nid>/branches/…patch`, `REPRODUCE.md`, `EVIDENCE.md`, … | what `scripts/new-issue.mjs` always writes |
 
 It refuses to overwrite an existing `reports/issues/<nid>/` or recipe. If you commit an import, run `node scripts/build-cloud.mjs` and commit `cloud/` too (CI fails if it is stale).
