@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
- * Tests the messages of a file widget's AJAX upload.
+ * Tests the messages of a file widget's AJAX upload in the admin theme.
  */
 #[Group('file')]
 #[RunTestsInSeparateProcesses]
@@ -28,7 +28,7 @@ class FileUploadAjaxMessageTest extends WebDriverTestBase {
   /**
    * {@inheritdoc}
    */
-  protected $defaultTheme = 'stark';
+  protected $defaultTheme = 'default_admin';
 
   /**
    * The name of the file field on the article form.
@@ -122,6 +122,21 @@ class FileUploadAjaxMessageTest extends WebDriverTestBase {
     $script = "(document.getElementById('drupal-live-announce') || {}).textContent || ''";
     $announced = $this->getSession()->getPage()->waitFor(10, fn() => str_contains($this->getSession()->evaluateScript($script), 'exceeding the maximum file size'));
     $this->assertTrue($announced, 'The upload error is announced through Drupal.announce().');
+  }
+
+  /**
+   * Tests that the theme's message markup is not filtered out.
+   *
+   * The theme renders a dismiss button in each message. Messages placed in
+   * the replaced markup lose it to the admin XSS filter.
+   */
+  public function testErrorKeepsThemeMarkup(): void {
+    $this->drupalGet('node/add/article');
+    $this->uploadTestFile(TRUE);
+    $this->assertSame(1, $this->waitForErrorCount(1));
+    $error = $this->getSession()->getPage()->find('css', '.messages--error');
+    $this->assertNotNull($error);
+    $this->assertNotNull($error->find('css', 'button.js-message-button-hide'), 'The error keeps its dismiss button.');
   }
 
 }
