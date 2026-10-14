@@ -25,6 +25,15 @@ async function openLabBrowser() { for (let i = 0; i < 30; i++) { try { await vie
 const vs = variants();
 const envsDir = path.join(labRoot, 'envs');
 const allEnvs = fs.existsSync(envsDir) ? fs.readdirSync(envsDir).filter((d) => fs.existsSync(path.join(envsDir, d, '.ddev/config.yaml'))) : [];
+// Environments live in envs/ of the checkout they were built in. A git worktree of this repository (for example
+// .claude/worktrees/<name>) has none, so a command run there used to skip every environment and exit 0 without a word.
+const noEnvsHere = () => {
+  let main = '';
+  try { main = path.dirname(path.resolve(labRoot, execFileSync('git', ['rev-parse', '--git-common-dir'], { cwd: labRoot, encoding: 'utf8' }).trim())); } catch { /* not a git checkout */ }
+  return `No lab environments in ${envsDir}.${main && main !== labRoot ? ` This is a git worktree; the environments are probably in the main checkout. Run it there:\n  cd ${main} && node scripts/lab-env.mjs ${process.argv.slice(2).join(' ')}` : ''}`;
+};
+// The environments of a command that exist here; stops with an error when there are none, instead of doing nothing.
+const present = (list) => { const found = list.filter((e) => fs.existsSync(envDir(e))); if (!found.length) { console.error(`${list.length ? `${list.join(' and ')}: not found. ` : ''}${noEnvsHere()}`); process.exit(1); } return found; };
 const envsOf = (slug) => { const v = vs.find((x) => x.slug === slug); if (!v) { console.error(`unknown variant: ${slug}. Variants: ${vs.map((x) => x.slug).join(', ')}`); process.exit(1); } return [v.before.env, v.after.env]; };
 const ddev = (dir, args, opts = {}) => spawnSync('ddev', args, { cwd: dir, stdio: 'inherit', ...opts });
 const pidFile = path.join(labRoot, '.lab-viewer.pid'), logFile = path.join(labRoot, '.lab-viewer.log');
@@ -51,6 +60,7 @@ function status() {
   console.log('Environment                    State     Project / URL                                     Used by');
   for (const e of allEnvs) { const p = st[envDir(e)] || {}; console.log(`${e.padEnd(30)} ${(p.status || 'unknown').padEnd(9)} ${(p.name ? p.name + ' ' + (p.httpsurl || '') : '').padEnd(49).slice(0, 49)} ${(usedBy[e] || ['(no variant)']).join(', ')}`); }
   const running = allEnvs.filter((e) => (st[envDir(e)] || {}).status === 'running').length;
+  if (!allEnvs.length) console.log(noEnvsHere());
   console.log(`\n${running} lab environment(s) running. Normal state: 2 (a core and the same core with an issue's patch).`);
 }
 
@@ -76,7 +86,7 @@ switch (cmd) {
     process.exit(r.status ?? 1); }
   case 'trim': {
     if (!target) { console.error('usage: trim <slug|all> [--deep]'); process.exit(2); }
-    const deep = process.argv.includes('--deep'); const dirs = (target === 'all' ? allEnvs : envsOf(target)).map(envDir).filter((d) => fs.existsSync(d));
+    const deep = process.argv.includes('--deep'); const dirs = present(target === 'all' ? allEnvs : envsOf(target)).map(envDir);
     const kb = (p) => { try { return Number(execFileSync('du', ['-sk', p], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).split('\t')[0]); } catch { return 0; } };
     let freed = 0;
     for (const d of dirs) {
@@ -102,13 +112,14 @@ switch (cmd) {
   npm cache clean --force                      npm's cache (reinstalls on demand)`); break; }
   case 'stop': {
     if (!target) { console.error('usage: stop <slug|all>'); process.exit(2); }
+    const list = present(target === 'all' ? allEnvs : envsOf(target));   // before stopViewer: it stops every viewer on the machine
     stopViewer();
-    for (const e of target === 'all' ? allEnvs : envsOf(target)) { if (fs.existsSync(envDir(e))) { process.stdout.write(`${e}: `); ddev(envDir(e), ['stop']); } }
+    for (const e of list) { process.stdout.write(`${e}: `); ddev(envDir(e), ['stop']); }
     break; }
   case 'delete': {
     if (!target) { console.error('usage: delete <slug> --yes'); process.exit(2); }
-    const list = envsOf(target); if (!yes) { console.error(`This DELETES ${list.join(' and ')} (containers, database and worktree). Evidence in reports/ is kept. Re-run with --yes.`); process.exit(2); }
-    for (const e of list) { if (!fs.existsSync(envDir(e))) continue; ddev(envDir(e), ['delete', '--omit-snapshot', '--yes']); spawnSync('git', ['-C', path.join(envsDir, 'core.git'), 'worktree', 'remove', '--force', envDir(e)], { stdio: 'inherit' }); }
+    const list = present(envsOf(target)); if (!yes) { console.error(`This DELETES ${list.join(' and ')} (containers, database and worktree). Evidence in reports/ is kept. Re-run with --yes.`); process.exit(2); }
+    for (const e of list) { ddev(envDir(e), ['delete', '--omit-snapshot', '--yes']); spawnSync('git', ['-C', path.join(envsDir, 'core.git'), 'worktree', 'remove', '--force', envDir(e)], { stdio: 'inherit' }); }
     break; }
   default: console.error('usage: lab-env.mjs status | disk | start <slug> [--browser] | browser [--reset] | stop <slug|all> | reset <slug> --yes | trim <slug|all> [--deep] | delete <slug> --yes'); process.exit(2);
 }
