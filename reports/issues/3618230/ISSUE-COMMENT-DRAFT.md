@@ -1,14 +1,15 @@
-<!-- DRAFT for a human to review and post. Do not post automatically. -->
-**AI-assisted:** yes. Tool: Claude Code. External code copied: no.
+<!-- DRAFT for a human to review and post. Do not post automatically.
+     Core's AGENTS.md asks the operator to rewrite LLM-drafted drupal.org prose in their own words before posting,
+     and to keep the disclosure line below. Written to its rules: at most 180 words, no headers, facts only.
+     Every sentence is backed by EVIDENCE.md (2026-10-14), including its "Manual check" section. Attach before-1-error.png and after-1-error.png from
+     playwright/2026-10-14T09-27-29-357Z-chromium-light-1280x900/ if you want the screenshots on the issue. -->
 
-### What I tested
-MR !16777 against current core `main` (`a19dfee86688`, 2026-10-01) in a Standard install with an Attachment file field (1 KB limit, txt) added to Article, using a scripted headless Chromium. Before is `main`, After is `main` plus the MR patch.
+Tested on main (3b94128e929), where the node form uses Default Admin. I added a file field with a 1 KB limit and uploaded a 2 KB file. I also checked it by hand.
 
-### Result
-After an oversized upload (2 KB), Before shows the error inline in a role="alert" item with no wrapper element. After adds a `div.file-upload-messages` wrapper that holds the error. One scripted run, not reviewed by a person.
+Without the MR, the error shows the word "Hide" as plain text, and the dismiss button is missing. The template renders a `<button>`, so it should be there. The messages are added to `#prefix`, which goes through `Xss::filterAdmin()`, and that does not allow `button`. So the stripping is a side effect, not intended. This is the same cause as the stripped Olivero SVG.
 
-### Steps to reproduce
-Open /node/add/article, choose a .txt file over 1 KB in the Attachment field, and look at where the error appears.
+With the MR, the error shows the Hide button. Tab reaches it and Enter hides the message. The error stays inside the widget. A second failed upload replaces the first error, and a valid upload removes it. The new kernel test passes. axe reports no violations on either side.
 
-### Not verified
-Pinned core, the Default Admin theme question in comment #10 (theme not recorded), keyboard and screen-reader behavior, the error wording, any run by a person.
+With the MR, the message element has `role="alert"`, and `Drupal.announce()` is also called with the error text (assertive). I did not test this with a screen reader.
+
+Generated with the help of an LLM.

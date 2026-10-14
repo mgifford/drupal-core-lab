@@ -1,0 +1,424 @@
+{
+  "variant": "3618230-latest",
+  "issue": "3618230",
+  "when": "2026-10-14T09:27:29.659Z",
+  "environment": {
+    "browser": "chromium",
+    "browserVersion": "153.0.8010.12",
+    "colorScheme": "light",
+    "forcedColors": false,
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "os": "darwin arm64"
+  },
+  "core": {
+    "url": "https://git.drupalcode.org/project/drupal.git",
+    "commit": null,
+    "ref": "main"
+  },
+  "patches": [
+    "reports/issues/3618230/branches/3618230-adopt-the-ajax.patch"
+  ],
+  "commits": {
+    "before": "3b94128e929 2026-10-14",
+    "after": "3b94128e929 2026-10-14"
+  },
+  "sides": {
+    "before": {
+      "side": "before",
+      "env": "baseline-3618230-latest",
+      "host": "repro-baseline-3618230-latest.ddev.site",
+      "frontTheme": "default_admin",
+      "formTheme": "default_admin",
+      "announceHooked": true,
+      "commands1": [
+        {
+          "command": "settings",
+          "selector": null,
+          "messageWrapperQuerySelector": null,
+          "clearPrevious": null,
+          "type": null,
+          "message": null,
+          "dataHasError": false,
+          "dataHasSvg": false
+        },
+        {
+          "command": "update_build_id",
+          "selector": null,
+          "messageWrapperQuerySelector": null,
+          "clearPrevious": null,
+          "type": null,
+          "message": null,
+          "dataHasError": false,
+          "dataHasSvg": false
+        },
+        {
+          "command": "insert",
+          "method": "replaceWith",
+          "selector": null,
+          "messageWrapperQuerySelector": null,
+          "clearPrevious": null,
+          "type": null,
+          "message": null,
+          "dataHasError": true,
+          "dataHasSvg": false,
+          "data": "<div id=\"ajax-wrapper--CRpzXl0d3sE\"><div data-drupal-messages class=\"messages-list\">\n  <div class=\"messages__wrapper\">\n                      \n      <div role=\"alert\" aria-labelledby=\"message-error-title--YwmUohKlEoI\" class=\"messages-list__item messages messages--error\">\n                  <div class=\"messages__header\">\n                          <h2 id=\"message-error-title--YwmUohKlEoI\" class=\"messages__title\">\n                Error message\n              </h2>\n                      </div>\n                <div class=\"messages__content\">\n                      The specified file <em class=\"placeholder\">too-big.txt</em> could not be uploaded.<div class=\"item-list\"><ul><li>The file is <em class=\"placeholder\">2 KB</em> exceeding the maximum file size of <em class=\"placeholder\">1 KB</em>.</li></ul></div>\n                  </div>\n        \n          <span class=\"icon-close\"></span>\n          Hide\n        \n      </div>\n                  </div>\n</div>\n<details open class=\"details\">    <summary role=\"button\" aria-expanded=\"true\" class=\"details__summary\">Attachment<span class=\"required-mark\"></span>\n          </summary><div class=\"details__wrapper details-wrapper\">\n    \n      <div data-drupal-wrapper-selector=\"edit-field-attachment-0\" class=\"js-form-item form-item js-form-type-managed-file form-type--managed-file js-form-item-field-attachment-0 form-item--field-attachment-0\">\n            <label class=\"has-error form-item__label\" for=\"edit-field-attachment-0-upload--wLj8rMYy-KE\" id=\"edit-field-attachment-0--DTu7BF-mRkI--label\">Add a new file</label>\n              <div id=\"edit-field-attachment-0--DTu7BF-mRkI\" class=\"js-form-managed-file form-managed-file is-single has-upload no-value no-meta\">\n  <div class=\"form-managed-file__main\">\n    \n      <input aria-describedby=\"edit-field-attachment-0--DTu7BF-mRkI--description\" data-drupal-selector=\"edit-field-attachment-0-upload-wlj8rmyy-ke\" type=\"file\" id=\"edit-field-attachment-0-upload--wLj8rMYy-KE\" name=\"files[field_attachment_0]\" size=\"22\" class=\"js-form-file form-file error form-element form-element--type-file form-element--api-file\" aria-invalid=\"true\"/>  <input class=\"js-hide upload-button button js-form-submit form-submit\" data-drupal-selector=\"edit-field-attachment-0-upload-button\" formnovalidate=\"formnovalidate\" type=\"submit\" id=\"edit-field-attachment-0-upload-button--1yuR84jkSYc\" name=\"field_attachment_0_upload_button\" value=\"Upload\"/>\n  </div>\n\n  \n      <input data-drupal-selector=\"edit-field-attachment-0-fids\" type=\"hidden\" name=\"field_attachment[0][fids]\"/>\n</div>\n\n              <div id=\"edit-field-attachment-0--DTu7BF-mRkI--description\" class=\"form-item__description\">\n      One file only.<br />1 KB limit.<br />Allowed types: txt.\n\n    </div>\n  </div>\n  </div>\n</details>\n</div>"
+        }
+      ],
+      "after1": {
+        "errorCount": 1,
+        "errors": [
+          {
+            "html": "<div role=\"alert\" aria-labelledby=\"message-error-title--YwmUohKlEoI\" class=\"messages-list__item messages messages--error\"> <div class=\"messages__header\"> <h2 id=\"message-error-title--YwmUohKlEoI\" class=\"messages__title\"> Error message </h2> </div> <div class=\"messages__content\"> The specified file <em class=\"placeholder\">too-big.txt</em> could not be uploaded.<div class=\"item-list\"><ul><li>The file is <em class=\"placeholder\">2 KB</em> exceeding the maximum file size of <em class=\"placeholder\">1 KB</em>.</li></ul></div> </div> <span class=\"icon-close\"></span> Hide </div>",
+            "text": "Error message The specified file too-big.txt could not be uploaded.The file is 2 KB exceeding the maximum file size of 1 KB. Hide",
+            "role": "alert",
+            "ariaLive": null,
+            "inWidget": true,
+            "inUploadMessages": false,
+            "hasSvg": false,
+            "hasHideButton": false,
+            "hasHeading": true,
+            "iconCss": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3ccircle cx='12' cy='12' r='10'%3e%3c/circle%3e    %3cline x1='4.93' y1='4.93' x2='19.07' y2='19.07'%3e%3c/line%3e  %3c/g%3e%3c/svg%3e\")"
+          }
+        ],
+        "uploadMessageContainers": 0,
+        "liveRegion": {
+          "text": "",
+          "ariaLive": "polite"
+        },
+        "announces": [],
+        "activeElement": "body",
+        "fileInputPresent": true,
+        "fileLink": false
+      },
+      "aria": "- alert \"Error message\":\n  - heading \"Error message\" [level=2]\n  - text: The specified file\n  - emphasis: too-big.txt\n  - text: could not be uploaded.\n  - list:\n    - listitem:\n      - text: The file is\n      - emphasis: 2 KB\n      - text: exceeding the maximum file size of\n      - emphasis: 1 KB\n      - text: .\n  - text: Hide\n- group:\n  - button \"Attachment\" [expanded]\n  - text: Add a new file\n  - button \"Add a new file\"\n  - text: \"One file only. 1 KB limit. Allowed types: txt.\"",
+      "axe": {
+        "total": 0,
+        "rules": {}
+      },
+      "commands2": [
+        {
+          "command": "settings",
+          "selector": null,
+          "messageWrapperQuerySelector": null,
+          "clearPrevious": null,
+          "type": null,
+          "message": null,
+          "dataHasError": false,
+          "dataHasSvg": false
+        },
+        {
+          "command": "update_build_id",
+          "selector": null,
+          "messageWrapperQuerySelector": null,
+          "clearPrevious": null,
+          "type": null,
+          "message": null,
+          "dataHasError": false,
+          "dataHasSvg": false
+        },
+        {
+          "command": "insert",
+          "method": "replaceWith",
+          "selector": null,
+          "messageWrapperQuerySelector": null,
+          "clearPrevious": null,
+          "type": null,
+          "message": null,
+          "dataHasError": true,
+          "dataHasSvg": false,
+          "data": "<div id=\"ajax-wrapper--SWp0Jk2Ckrk\"><div data-drupal-messages class=\"messages-list\">\n  <div class=\"messages__wrapper\">\n                      \n      <div role=\"alert\" aria-labelledby=\"message-error-title--5Fw8b5d81S0\" class=\"messages-list__item messages messages--error\">\n                  <div class=\"messages__header\">\n                          <h2 id=\"message-error-title--5Fw8b5d81S0\" class=\"messages__title\">\n                Error message\n              </h2>\n                      </div>\n                <div class=\"messages__content\">\n                      The specified file <em class=\"placeholder\">too-big.txt</em> could not be uploaded.<div class=\"item-list\"><ul><li>The file is <em class=\"placeholder\">2 KB</em> exceeding the maximum file size of <em class=\"placeholder\">1 KB</em>.</li></ul></div>\n                  </div>\n        \n          <span class=\"icon-close\"></span>\n          Hide\n        \n      </div>\n                  </div>\n</div>\n<details open class=\"details\">    <summary role=\"button\" aria-expanded=\"true\" class=\"details__summary\">Attachment<span class=\"required-mark\"></span>\n          </summary><div class=\"details__wrapper details-wrapper\">\n    \n      <div data-drupal-wrapper-selector=\"edit-field-attachment-0\" class=\"js-form-item form-item js-form-type-managed-file form-type--managed-file js-form-item-field-attachment-0 form-item--field-attachment-0\">\n            <label class=\"has-error form-item__label\" for=\"edit-field-attachment-0-upload--vsdcTdbyCFg\" id=\"edit-field-attachment-0--25VFOwWqqVw--label\">Add a new file</label>\n              <div id=\"edit-field-attachment-0--25VFOwWqqVw\" class=\"js-form-managed-file form-managed-file is-single has-upload no-value no-meta\">\n  <div class=\"form-managed-file__main\">\n    \n      <input aria-describedby=\"edit-field-attachment-0--25VFOwWqqVw--description\" data-drupal-selector=\"edit-field-attachment-0-upload-vsdctdbycfg\" type=\"file\" id=\"edit-field-attachment-0-upload--vsdcTdbyCFg\" name=\"files[field_attachment_0]\" size=\"22\" class=\"js-form-file form-file error form-element form-element--type-file form-element--api-file\" aria-invalid=\"true\"/>  <input class=\"js-hide upload-button button js-form-submit form-submit\" data-drupal-selector=\"edit-field-attachment-0-upload-button\" formnovalidate=\"formnovalidate\" type=\"submit\" id=\"edit-field-attachment-0-upload-button--nerkko3bPeI\" name=\"field_attachment_0_upload_button\" value=\"Upload\"/>\n  </div>\n\n  \n      <input data-drupal-selector=\"edit-field-attachment-0-fids\" type=\"hidden\" name=\"field_attachment[0][fids]\"/>\n</div>\n\n              <div id=\"edit-field-attachment-0--25VFOwWqqVw--description\" class=\"form-item__description\">\n      One file only.<br />1 KB limit.<br />Allowed types: txt.\n\n    </div>\n  </div>\n  </div>\n</details>\n</div>"
+        }
+      ],
+      "after2": {
+        "errorCount": 1,
+        "errors": [
+          {
+            "html": "<div role=\"alert\" aria-labelledby=\"message-error-title--5Fw8b5d81S0\" class=\"messages-list__item messages messages--error\"> <div class=\"messages__header\"> <h2 id=\"message-error-title--5Fw8b5d81S0\" class=\"messages__title\"> Error message </h2> </div> <div class=\"messages__content\"> The specified file <em class=\"placeholder\">too-big.txt</em> could not be uploaded.<div class=\"item-list\"><ul><li>The file is <em class=\"placeholder\">2 KB</em> exceeding the maximum file size of <em class=\"placeholder\">1 KB</em>.</li></ul></div> </div> <span class=\"icon-close\"></span> Hide </div>",
+            "text": "Error message The specified file too-big.txt could not be uploaded.The file is 2 KB exceeding the maximum file size of 1 KB. Hide",
+            "role": "alert",
+            "ariaLive": null,
+            "inWidget": true,
+            "inUploadMessages": false,
+            "hasSvg": false,
+            "hasHideButton": false,
+            "hasHeading": true,
+            "iconCss": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3ccircle cx='12' cy='12' r='10'%3e%3c/circle%3e    %3cline x1='4.93' y1='4.93' x2='19.07' y2='19.07'%3e%3c/line%3e  %3c/g%3e%3c/svg%3e\")"
+          }
+        ],
+        "uploadMessageContainers": 0,
+        "liveRegion": {
+          "text": "",
+          "ariaLive": "polite"
+        },
+        "announces": [],
+        "activeElement": "body",
+        "fileInputPresent": true,
+        "fileLink": false
+      },
+      "commands3": [
+        {
+          "command": "settings",
+          "selector": null,
+          "messageWrapperQuerySelector": null,
+          "clearPrevious": null,
+          "type": null,
+          "message": null,
+          "dataHasError": false,
+          "dataHasSvg": false
+        },
+        {
+          "command": "update_build_id",
+          "selector": null,
+          "messageWrapperQuerySelector": null,
+          "clearPrevious": null,
+          "type": null,
+          "message": null,
+          "dataHasError": false,
+          "dataHasSvg": false
+        },
+        {
+          "command": "insert",
+          "method": "replaceWith",
+          "selector": null,
+          "messageWrapperQuerySelector": null,
+          "clearPrevious": null,
+          "type": null,
+          "message": null,
+          "dataHasError": false,
+          "dataHasSvg": false,
+          "data": "<div id=\"ajax-wrapper--lWH2iNGjqNg\"><details open class=\"details\">    <summary role=\"button\" aria-expanded=\"true\" class=\"details__summary\">Attachment<span class=\"required-mark\"></span>\n          </summary><div class=\"details__wrapper details-wrapper\">\n    \n      <div data-drupal-wrapper-selector=\"edit-field-attachment-0\" class=\"js-form-item form-item js-form-type-managed-file form-type--managed-file js-form-item-field-attachment-0 form-item--field-attachment-0 form-item--no-label\">\n            <label for=\"edit-field-attachment-0-upload--W7uZXYQdQ90\" id=\"edit-field-attachment-0--hQ97H4LEz3Q--label\" class=\"form-item__label visually-hidden\">Attachment</label>\n              <div id=\"edit-field-attachment-0--hQ97H4LEz3Q\" class=\"js-form-managed-file form-managed-file is-single no-upload has-value no-meta\">\n  <div class=\"form-managed-file__main\">\n    <span data-drupal-selector=\"edit-field-attachment-0-file-2-filename\" class=\"file file--mime-text-plain file--text\"><a href=\"/sites/default/files/2026-10/small_0.txt\" type=\"text/plain\">small_0.txt</a> <span class=\"file__size\">(11 bytes)</span></span>\n\n      <input data-drupal-selector=\"edit-field-attachment-0-remove-button\" formnovalidate=\"formnovalidate\" class=\"button--extrasmall remove-button button js-form-submit form-submit\" type=\"submit\" id=\"edit-field-attachment-0-remove-button--cjZG7n6Qol8\" name=\"field_attachment_0_remove_button\" value=\"Remove\"/>\n  </div>\n\n  \n      <input data-drupal-selector=\"edit-field-attachment-0-fids\" type=\"hidden\" name=\"field_attachment[0][fids]\" value=\"2\"/>\n</div>\n\n          </div>\n  </div>\n</details>\n</div>"
+        }
+      ],
+      "after3": {
+        "errorCount": 0,
+        "errors": [],
+        "uploadMessageContainers": 0,
+        "liveRegion": {
+          "text": "",
+          "ariaLive": "polite"
+        },
+        "announces": [],
+        "activeElement": "body",
+        "fileInputPresent": false,
+        "fileLink": true
+      },
+      "jsErrors": []
+    },
+    "after": {
+      "side": "after",
+      "env": "issue-3618230-latest",
+      "host": "repro-issue-3618230-latest.ddev.site",
+      "frontTheme": "default_admin",
+      "formTheme": "default_admin",
+      "announceHooked": true,
+      "commands1": [
+        {
+          "command": "settings",
+          "selector": null,
+          "messageWrapperQuerySelector": null,
+          "clearPrevious": null,
+          "type": null,
+          "message": null,
+          "dataHasError": false,
+          "dataHasSvg": false
+        },
+        {
+          "command": "update_build_id",
+          "selector": null,
+          "messageWrapperQuerySelector": null,
+          "clearPrevious": null,
+          "type": null,
+          "message": null,
+          "dataHasError": false,
+          "dataHasSvg": false
+        },
+        {
+          "command": "insert",
+          "method": "replaceWith",
+          "selector": null,
+          "messageWrapperQuerySelector": null,
+          "clearPrevious": null,
+          "type": null,
+          "message": null,
+          "dataHasError": false,
+          "dataHasSvg": false,
+          "data": "<div id=\"ajax-wrapper--U0WH9daiht0\"><div id=\"file-upload-messages-field-attachment-widget-0--XdUVh5O0Rmw\" class=\"file-upload-messages\"></div><details open class=\"details\">    <summary role=\"button\" aria-expanded=\"true\" class=\"details__summary\">Attachment<span class=\"required-mark\"></span>\n          </summary><div class=\"details__wrapper details-wrapper\">\n    \n      <div data-drupal-wrapper-selector=\"edit-field-attachment-0\" class=\"js-form-item form-item js-form-type-managed-file form-type--managed-file js-form-item-field-attachment-0 form-item--field-attachment-0\">\n            <label class=\"has-error form-item__label\" for=\"edit-field-attachment-0-upload--YIuyivhzJTg\" id=\"edit-field-attachment-0--y10WVNn3a5M--label\">Add a new file</label>\n              <div id=\"edit-field-attachment-0--y10WVNn3a5M\" class=\"js-form-managed-file form-managed-file is-single has-upload no-value no-meta\">\n  <div class=\"form-managed-file__main\">\n    \n      <input aria-describedby=\"edit-field-attachment-0--y10WVNn3a5M--description\" data-drupal-selector=\"edit-field-attachment-0-upload-yiuyivhzjtg\" type=\"file\" id=\"edit-field-attachment-0-upload--YIuyivhzJTg\" name=\"files[field_attachment_0]\" size=\"22\" class=\"js-form-file form-file error form-element form-element--type-file form-element--api-file\" aria-invalid=\"true\"/>  <input class=\"js-hide upload-button button js-form-submit form-submit\" data-drupal-selector=\"edit-field-attachment-0-upload-button\" formnovalidate=\"formnovalidate\" type=\"submit\" id=\"edit-field-attachment-0-upload-button--XvRK9F_FMGI\" name=\"field_attachment_0_upload_button\" value=\"Upload\"/>\n  </div>\n\n  \n      <input data-drupal-selector=\"edit-field-attachment-0-fids\" type=\"hidden\" name=\"field_attachment[0][fids]\"/>\n</div>\n\n              <div id=\"edit-field-attachment-0--y10WVNn3a5M--description\" class=\"form-item__description\">\n      One file only.<br />1 KB limit.<br />Allowed types: txt.\n\n    </div>\n  </div>\n  </div>\n</details>\n</div>"
+        },
+        {
+          "command": "message",
+          "selector": null,
+          "messageWrapperQuerySelector": "#file-upload-messages-field-attachment-widget-0--XdUVh5O0Rmw",
+          "clearPrevious": false,
+          "type": "error",
+          "message": "The specified file <em class=\"placeholder\">too-big.txt</em> could not be uploaded.<div class=\"item-list\"><ul><li>The file is <em class=\"placeholder\">2 KB</em> exceeding the maximum file size of <em class=\"placeholder\">1 KB</em>.</li></ul></div>",
+          "dataHasError": false,
+          "dataHasSvg": false
+        }
+      ],
+      "after1": {
+        "errorCount": 1,
+        "errors": [
+          {
+            "html": "<div class=\"messages-list__item messages messages--error\" role=\"alert\" data-drupal-message-id=\"error-655758433235792\" data-drupal-message-type=\"error\" aria-label=\"Error message\"> <div class=\"messages__header\"> <h2 id=\"error-655758433235792-title\" class=\"messages__title\"> Error message </h2> </div> <div class=\"messages__content\"> The specified file <em class=\"placeholder\">too-big.txt</em> could not be uploaded.<div class=\"item-list\"><ul><li>The file is <em class=\"placeholder\">2 KB</em> exceeding the maximum file size of <em class=\"placeholder\">1 KB</em>.</li></ul></div> </div> <button type=\"button\" class=\"button button--dismiss js-message-button-hide\" title=\"Hide\" data-once=\"messages-dismiss\"> <span class=\"icon-close\"></span> Hide </button> </div>",
+            "text": "Error message The specified file too-big.txt could not be uploaded.The file is 2 KB exceeding the maximum file size of 1 KB. Hide",
+            "role": "alert",
+            "ariaLive": null,
+            "inWidget": true,
+            "inUploadMessages": true,
+            "hasSvg": false,
+            "hasHideButton": true,
+            "hasHeading": true,
+            "iconCss": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3ccircle cx='12' cy='12' r='10'%3e%3c/circle%3e    %3cline x1='4.93' y1='4.93' x2='19.07' y2='19.07'%3e%3c/line%3e  %3c/g%3e%3c/svg%3e\")"
+          }
+        ],
+        "uploadMessageContainers": 1,
+        "liveRegion": {
+          "text": "The specified file too-big.txt could not be uploaded.The file is 2 KB exceeding the maximum file size of 1 KB.",
+          "ariaLive": "assertive"
+        },
+        "announces": [
+          {
+            "text": "The specified file <em class=\"placeholder\">too-big.txt</em> could not be uploaded.<div class=\"item-list\"><ul><li>The file is <em class=\"placeholder\">2 KB</em> exceeding the maximum file size of <em class=\"placeholder\">1 KB</em>.</li></ul></div>",
+            "priority": "assertive"
+          }
+        ],
+        "activeElement": "body",
+        "fileInputPresent": true,
+        "fileLink": false
+      },
+      "aria": "- alert \"Error message\":\n  - heading \"Error message\" [level=2]\n  - text: The specified file\n  - emphasis: too-big.txt\n  - text: could not be uploaded.\n  - list:\n    - listitem:\n      - text: The file is\n      - emphasis: 2 KB\n      - text: exceeding the maximum file size of\n      - emphasis: 1 KB\n      - text: .\n  - button \"Hide\"\n- group:\n  - button \"Attachment\" [expanded]\n  - text: Add a new file\n  - button \"Add a new file\"\n  - text: \"One file only. 1 KB limit. Allowed types: txt.\"",
+      "axe": {
+        "total": 0,
+        "rules": {}
+      },
+      "commands2": [
+        {
+          "command": "settings",
+          "selector": null,
+          "messageWrapperQuerySelector": null,
+          "clearPrevious": null,
+          "type": null,
+          "message": null,
+          "dataHasError": false,
+          "dataHasSvg": false
+        },
+        {
+          "command": "update_build_id",
+          "selector": null,
+          "messageWrapperQuerySelector": null,
+          "clearPrevious": null,
+          "type": null,
+          "message": null,
+          "dataHasError": false,
+          "dataHasSvg": false
+        },
+        {
+          "command": "insert",
+          "method": "replaceWith",
+          "selector": null,
+          "messageWrapperQuerySelector": null,
+          "clearPrevious": null,
+          "type": null,
+          "message": null,
+          "dataHasError": false,
+          "dataHasSvg": false,
+          "data": "<div id=\"ajax-wrapper--08WhR8aQ3T8\"><div id=\"file-upload-messages-field-attachment-widget-0--i0zJp_2oyHI\" class=\"file-upload-messages\"></div><details open class=\"details\">    <summary role=\"button\" aria-expanded=\"true\" class=\"details__summary\">Attachment<span class=\"required-mark\"></span>\n          </summary><div class=\"details__wrapper details-wrapper\">\n    \n      <div data-drupal-wrapper-selector=\"edit-field-attachment-0\" class=\"js-form-item form-item js-form-type-managed-file form-type--managed-file js-form-item-field-attachment-0 form-item--field-attachment-0\">\n            <label class=\"has-error form-item__label\" for=\"edit-field-attachment-0-upload--pgjo3RRD2x4\" id=\"edit-field-attachment-0--evZ93R3oAfI--label\">Add a new file</label>\n              <div id=\"edit-field-attachment-0--evZ93R3oAfI\" class=\"js-form-managed-file form-managed-file is-single has-upload no-value no-meta\">\n  <div class=\"form-managed-file__main\">\n    \n      <input aria-describedby=\"edit-field-attachment-0--evZ93R3oAfI--description\" data-drupal-selector=\"edit-field-attachment-0-upload-pgjo3rrd2x4\" type=\"file\" id=\"edit-field-attachment-0-upload--pgjo3RRD2x4\" name=\"files[field_attachment_0]\" size=\"22\" class=\"js-form-file form-file error form-element form-element--type-file form-element--api-file\" aria-invalid=\"true\"/>  <input class=\"js-hide upload-button button js-form-submit form-submit\" data-drupal-selector=\"edit-field-attachment-0-upload-button\" formnovalidate=\"formnovalidate\" type=\"submit\" id=\"edit-field-attachment-0-upload-button--QiTm4RupBzc\" name=\"field_attachment_0_upload_button\" value=\"Upload\"/>\n  </div>\n\n  \n      <input data-drupal-selector=\"edit-field-attachment-0-fids\" type=\"hidden\" name=\"field_attachment[0][fids]\"/>\n</div>\n\n              <div id=\"edit-field-attachment-0--evZ93R3oAfI--description\" class=\"form-item__description\">\n      One file only.<br />1 KB limit.<br />Allowed types: txt.\n\n    </div>\n  </div>\n  </div>\n</details>\n</div>"
+        },
+        {
+          "command": "message",
+          "selector": null,
+          "messageWrapperQuerySelector": "#file-upload-messages-field-attachment-widget-0--i0zJp_2oyHI",
+          "clearPrevious": false,
+          "type": "error",
+          "message": "The specified file <em class=\"placeholder\">too-big.txt</em> could not be uploaded.<div class=\"item-list\"><ul><li>The file is <em class=\"placeholder\">2 KB</em> exceeding the maximum file size of <em class=\"placeholder\">1 KB</em>.</li></ul></div>",
+          "dataHasError": false,
+          "dataHasSvg": false
+        }
+      ],
+      "after2": {
+        "errorCount": 1,
+        "errors": [
+          {
+            "html": "<div class=\"messages-list__item messages messages--error\" role=\"alert\" data-drupal-message-id=\"error-015438940986829\" data-drupal-message-type=\"error\" aria-label=\"Error message\"> <div class=\"messages__header\"> <h2 id=\"error-015438940986829-title\" class=\"messages__title\"> Error message </h2> </div> <div class=\"messages__content\"> The specified file <em class=\"placeholder\">too-big.txt</em> could not be uploaded.<div class=\"item-list\"><ul><li>The file is <em class=\"placeholder\">2 KB</em> exceeding the maximum file size of <em class=\"placeholder\">1 KB</em>.</li></ul></div> </div> <button type=\"button\" class=\"button button--dismiss js-message-button-hide\" title=\"Hide\" data-once=\"messages-dismiss\"> <span class=\"icon-close\"></span> Hide </button> </div>",
+            "text": "Error message The specified file too-big.txt could not be uploaded.The file is 2 KB exceeding the maximum file size of 1 KB. Hide",
+            "role": "alert",
+            "ariaLive": null,
+            "inWidget": true,
+            "inUploadMessages": true,
+            "hasSvg": false,
+            "hasHideButton": true,
+            "hasHeading": true,
+            "iconCss": "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3ccircle cx='12' cy='12' r='10'%3e%3c/circle%3e    %3cline x1='4.93' y1='4.93' x2='19.07' y2='19.07'%3e%3c/line%3e  %3c/g%3e%3c/svg%3e\")"
+          }
+        ],
+        "uploadMessageContainers": 1,
+        "liveRegion": {
+          "text": "The specified file too-big.txt could not be uploaded.The file is 2 KB exceeding the maximum file size of 1 KB.",
+          "ariaLive": "assertive"
+        },
+        "announces": [
+          {
+            "text": "The specified file <em class=\"placeholder\">too-big.txt</em> could not be uploaded.<div class=\"item-list\"><ul><li>The file is <em class=\"placeholder\">2 KB</em> exceeding the maximum file size of <em class=\"placeholder\">1 KB</em>.</li></ul></div>",
+            "priority": "assertive"
+          }
+        ],
+        "activeElement": "body",
+        "fileInputPresent": true,
+        "fileLink": false
+      },
+      "commands3": [
+        {
+          "command": "settings",
+          "selector": null,
+          "messageWrapperQuerySelector": null,
+          "clearPrevious": null,
+          "type": null,
+          "message": null,
+          "dataHasError": false,
+          "dataHasSvg": false
+        },
+        {
+          "command": "update_build_id",
+          "selector": null,
+          "messageWrapperQuerySelector": null,
+          "clearPrevious": null,
+          "type": null,
+          "message": null,
+          "dataHasError": false,
+          "dataHasSvg": false
+        },
+        {
+          "command": "insert",
+          "method": "replaceWith",
+          "selector": null,
+          "messageWrapperQuerySelector": null,
+          "clearPrevious": null,
+          "type": null,
+          "message": null,
+          "dataHasError": false,
+          "dataHasSvg": false,
+          "data": "<div id=\"ajax-wrapper--61909I4GZKI\"><div id=\"file-upload-messages-field-attachment-widget-0--1iWR_YXm3JY\" class=\"file-upload-messages\"></div><details open class=\"details\">    <summary role=\"button\" aria-expanded=\"true\" class=\"details__summary\">Attachment<span class=\"required-mark\"></span>\n          </summary><div class=\"details__wrapper details-wrapper\">\n    \n      <div data-drupal-wrapper-selector=\"edit-field-attachment-0\" class=\"js-form-item form-item js-form-type-managed-file form-type--managed-file js-form-item-field-attachment-0 form-item--field-attachment-0 form-item--no-label\">\n            <label for=\"edit-field-attachment-0-upload--tt2fJilsSjo\" id=\"edit-field-attachment-0--8mLdFzUNHgM--label\" class=\"form-item__label visually-hidden\">Attachment</label>\n              <div id=\"edit-field-attachment-0--8mLdFzUNHgM\" class=\"js-form-managed-file form-managed-file is-single no-upload has-value no-meta\">\n  <div class=\"form-managed-file__main\">\n    <span data-drupal-selector=\"edit-field-attachment-0-file-2-filename\" class=\"file file--mime-text-plain file--text\"><a href=\"/sites/default/files/2026-10/small_0.txt\" type=\"text/plain\">small_0.txt</a> <span class=\"file__size\">(11 bytes)</span></span>\n\n      <input data-drupal-selector=\"edit-field-attachment-0-remove-button\" formnovalidate=\"formnovalidate\" class=\"button--extrasmall remove-button button js-form-submit form-submit\" type=\"submit\" id=\"edit-field-attachment-0-remove-button--e0kAd2PFs2E\" name=\"field_attachment_0_remove_button\" value=\"Remove\"/>\n  </div>\n\n  \n      <input data-drupal-selector=\"edit-field-attachment-0-fids\" type=\"hidden\" name=\"field_attachment[0][fids]\" value=\"2\"/>\n</div>\n\n          </div>\n  </div>\n</details>\n</div>"
+        }
+      ],
+      "after3": {
+        "errorCount": 0,
+        "errors": [],
+        "uploadMessageContainers": 1,
+        "liveRegion": {
+          "text": "The specified file too-big.txt could not be uploaded.The file is 2 KB exceeding the maximum file size of 1 KB.",
+          "ariaLive": "assertive"
+        },
+        "announces": [],
+        "activeElement": "body",
+        "fileInputPresent": false,
+        "fileLink": true
+      },
+      "jsErrors": []
+    }
+  },
+  "unexpected": 0,
+  "verdict": "reproduced-and-fixed"
+}

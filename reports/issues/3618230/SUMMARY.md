@@ -7,7 +7,7 @@
 Issue: https://www.drupal.org/project/drupal/issues/3618230  
 Merge request: !16777  
 Fork branch: `3618230-adopt-the-ajax`  
-Status snapshot: [STATUS-2026-10-08.md](STATUS-2026-10-08.md)
+Status snapshot: [STATUS-2026-10-14.md](STATUS-2026-10-14.md)
 
 ## Summary
 
@@ -15,7 +15,7 @@ Reported problem: ManagedFile::uploadAjaxCallback() renders status messages dire
 
 The merge request (!16777) alters ManagedFile::uploadAjaxCallback() to append a unique container (div with class file-upload-messages) in the widget prefix and sends error messages using MessageCommand targeted at that container via its wrapperQuerySelector.
 
-Open points: comment #10 notes that Olivero has been removed from core (#3595089) and asks whether this problem still occurs in the Default Admin theme. The issue is postponed for maintainer feedback.
+Open points: comment #10 asked whether the problem still occurs in the Default Admin theme now that Olivero is removed (#3595089). **Lab answer (2026-10-14, DRAFT): yes.** On `main` `3b94128e929` the node form uses `default_admin`; without the MR its error loses the Hide dismiss `<button>` (stripped by `Xss::filterAdmin()` on `#prefix`, the same cause as Olivero's SVG). With the MR the button is there and works by keyboard. See [EVIDENCE.md](EVIDENCE.md).
 
 ## Files and links
 
@@ -26,7 +26,9 @@ Open points: comment #10 notes that Olivero has been removed from core (#3595089
 | Recipe (starting state) | [`recipes/repro_3618230/`](../../../recipes/repro_3618230/) (copy: [`recipe/`](recipe/)) |
 | Evidence, exact commits | [EVIDENCE.md](EVIDENCE.md) |
 | Draft comment (do not post) | [ISSUE-COMMENT-DRAFT.md](ISSUE-COMMENT-DRAFT.md) |
-| Status snapshot | [STATUS-2026-10-08.md](STATUS-2026-10-08.md) |
+| Status snapshot | [STATUS-2026-10-14.md](STATUS-2026-10-14.md) (earlier: [2026-10-08](STATUS-2026-10-08.md)) |
+| Playwright evidence, 2026-10-14 | [`playwright/2026-10-14T09-27-29-357Z-chromium-light-1280x900/`](playwright/2026-10-14T09-27-29-357Z-chromium-light-1280x900/SUMMARY.md) (`tools/playwright/evaluate-3618230.mjs`) |
+| Lint report | [`lint/`](lint/) |
 | Original pack as received | [PACK.yml](PACK.yml) |
 
 ## Sources
@@ -41,9 +43,10 @@ Open points: comment #10 notes that Olivero has been removed from core (#3595089
 
 ## Not verified
 
-- Whether the error message renders properly in the Default Admin theme on current main
-- Whether the fix check (element .file-upload-messages) only exists in the DOM after triggering a server-side file upload error
-- Assistive technology live announcement behavior in different admin themes
+- A screen reader: with the MR the error has `role="alert"` and is also sent to `Drupal.announce()` (assertive); a double announcement is possible and untested
+- Firefox, WebKit, dark mode, forced colours, zoom and reflow
+- The pinned core pair (`f5e265802542`); a multi-value file field
+- Any step by a person
 
 ## Notes
 
