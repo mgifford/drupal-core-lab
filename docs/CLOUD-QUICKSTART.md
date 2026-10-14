@@ -66,6 +66,21 @@ Open it in a browser signed in to Coder (apps are owner-only). The viewer, both 
 `docs/USER-GUIDE.md`. **The smoke check cannot check the frames at the real Coder URLs** — it reports NOT CHECKED — so confirm them
 by hand in the signed-in browser.
 
+### Troubleshooting: frames show 403 / origin mismatch / "Log in" fails
+
+If the frames show 403 errors, the "Log in both as admin" button does nothing, or the console shows:
+
+> Failed to execute 'postMessage' ... target origin provided ('https://drupal-compare-before--...') does not match the recipient window's origin ('https://drupal-compare--...')
+
+**The frames are loading the viewer's error page, not the Drupal sites.** This means the Drupal environments aren't reachable from the viewer's proxy.
+
+**Checklist:**
+1. **Drupal environments running?** In the workspace terminal: `ddev list` — you should see `baseline-<nid>` and `issue-<nid>` (or `baseline-latest`/`issue-latest`) with status `running`. If not: `node scripts/lab-env.mjs start <slug>`.
+2. **Viewer proxy ports listening?** `curl -s http://127.0.0.1:8101/ | head -5` should return a Drupal page (or redirect to `/user/login`), not the viewer HTML. If it returns the viewer page or 502, the Drupal environment isn't built or isn't running.
+3. **Environments exist?** `ls envs/` should show `baseline-...` and `issue-...` directories with `.ddev/config.yaml`. If missing: `node tools/compare/setup.mjs <slug> --rebuild`.
+4. **Workspace name:** Use a unique name like `drupal-lab-3619127` (not `compare`). The app URL is `https://drupal-compare--<workspace>--<owner>.coder.ddev.com/`.
+5. **Re-run bootstrap:** `node scripts/cloud-bootstrap.mjs <slug> --rebuild` (rebuilds sites, restarts everything).
+
 ## 4. Lifespan, restarts and coming back
 
 - A workspace has a **timed lifespan** (a deadline that activity extends) plus an idle autostop; it can expire. The app URL is
