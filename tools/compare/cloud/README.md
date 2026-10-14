@@ -48,17 +48,18 @@ owner — are unchanged and still gate whether this is usable by anyone but its 
 
 ## Procedure
 
-1. Create the workspace. Choose **Freeform** (not the Drupal Issue picker) from https://coder.ddev.com/templates or https://coder.ddev.com/workspaces.
+1. Create the workspace. Go to https://coder.ddev.com/workspaces and click **New workspace**, then search for and select **DDEV Freeform** from the dropdown.
+   (Or open the template list at https://coder.ddev.com/templates and pick **DDEV Freeform**.)
 
-   **Web UI (recommended):** Create a new workspace → select **Freeform** → fill the parameters:
+   **Web UI (recommended):** After selecting the template, fill the parameters (UI label → Terraform name):
 
-   - `project_names`: `repro-baseline-main,repro-issue-3619127-vanilla,drupal-compare,drupal-compare-before,drupal-compare-after` (the two `repro-` names are only needed if you want a direct URL to each site; they match a variant's environments)
-   - `share_projects`: `false`
-   - `enable_claude_code`: `false` (optional)
-   - `claude_code_skip_permissions`: `false`
-   - `vscode_extensions`: `[]`
+   - **DDEV project names** → `project_names`: `drupal-compare,drupal-compare-before,drupal-compare-after` (add `repro-<env>` names only if you want a direct URL to each site; they match a variant's environments)
+   - **Public Sharing** → `share_projects`: unchecked / `false`
+   - **Enable Claude Code remote control** → `enable_claude_code`: unchecked / `false`
+   - **Claude Code: skip permission prompts** → `claude_code_skip_permissions`: unchecked / `false`
+   - **VS Code Extensions** → `vscode_extensions`: leave empty / `[]`
 
-   **CLI (alternative):** put them in `params.yaml` and run `coder create --template freeform <name> --rich-parameter-file params.yaml --yes`.
+   **CLI (alternative):** put them in `params.yaml` (using Terraform names) and run `coder create --template freeform <name> --rich-parameter-file params.yaml --yes`.
 
    The DDEV project names must include the three proxy projects (`drupal-compare`, `drupal-compare-before`, `drupal-compare-after`).
    The two `repro-` names are the variant's environments; they are only needed if you also want a direct Coder URL to each site.

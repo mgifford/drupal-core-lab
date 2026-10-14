@@ -18,19 +18,23 @@ rows into tested ones.
 
 ## 1. Create the workspace (web UI)
 
-1. Sign in at https://coder.ddev.com/workspaces and choose **Create workspace**, or open the template at
-   https://coder.ddev.com/templates.
-2. Select the **Freeform** template. Do **not** pick "Drupal Issue picker": the lab runs two DDEV projects side by side plus the
-   viewer, and the picker is a single-site template (it can still be adopted later with `--use-existing-core`).
-3. Fill the parameters:
+1. Sign in at https://coder.ddev.com/workspaces and click **New workspace**.
+2. In the template search box, type "DDEV Freeform" and select **DDEV Freeform** from the dropdown.
+   (Or click **See all templates** at the bottom, then pick **DDEV Freeform**.)
 
-   | Parameter | Value |
-   |---|---|
-   | `project_names` | `drupal-compare,drupal-compare-before,drupal-compare-after` (add `repro-<env>` names only if you want a direct URL to each site) |
-   | `share_projects` | `false` — keep the workspace owner-only; the sites use `admin` / `admin` |
-   | `enable_claude_code` | `false` |
-   | `claude_code_skip_permissions` | `false` |
-   | `vscode_extensions` | `[]` |
+   ⚠ Do **not** pick **Drupal Core Development** (at `/templates/drupal-core`) or **Drupal Contrib Development**: those are
+   single-site templates with issue/branch/profile parameters. The lab needs **DDEV Freeform**, which has the Freeform
+   parameters (`project_names`, `share_projects`, `enable_claude_code`, etc.). A "Drupal Core Development" workspace can still be adopted later
+   with `--use-existing-core`.
+3. Fill the **DDEV Freeform** parameters (these are the Freeform template's fields; the UI labels differ from the Terraform names):
+
+   | UI Label | Terraform Name | Value |
+   |---|---|---|
+   | **DDEV project names** | `project_names` | `drupal-compare,drupal-compare-before,drupal-compare-after` (add `repro-<env>` names only if you want a direct URL to each site) |
+   | **Public Sharing** | `share_projects` | Unchecked / `false` — keep the workspace owner-only; the sites use `admin` / `admin` |
+   | **Enable Claude Code remote control** | `enable_claude_code` | Unchecked / `false` |
+   | **Claude Code: skip permission prompts** | `claude_code_skip_permissions` | Unchecked / `false` |
+   | **VS Code Extensions** | `vscode_extensions` | Leave empty / `[]` |
 
    The three `drupal-compare*` names are required: two give each frame its own hostname and the third is the viewer's own address.
    Set `project_names` at creation; changing it afterwards was unreliable in the 2026-10-02 trial.
