@@ -1,0 +1,21 @@
+name: Lab self-test
+
+# The static part of scripts/selftest.mjs: syntax of every script, unit tests, variants, documentation links and cloud/.
+# No DDEV and no network to drupal.org. The live part (--live <slug>) needs built sites and runs on a person's machine.
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --prefix tools/compare/.deps js-yaml@4
+      - run: node scripts/selftest.mjs

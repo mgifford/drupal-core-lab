@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { labRoot } from '../tools/compare/lib.mjs';
+import { NEW_ISSUE_MATRIX } from '../tools/compare/coverage-matrix.mjs';
 
 const args = process.argv.slice(2);
 const flag = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
@@ -65,7 +66,8 @@ if (!all.some((x) => x.slug === pinned)) {
   all.push({ slug: pinned, issue: nid, label: `#${nid}: ${title}, pinned core`, description: 'TODO: what to do and what to look for.', status: 'stub: fill in pages, steps, expected, checks, observe',
     core: { url: 'https://git.drupalcode.org/project/drupal.git', commit: base },
     before: { env: `baseline-${nid}` }, after: { env: `issue-${nid}`, patches: [`reports/issues/${nid}/branches/${branch}.patch`] },
-    pages: ['/'], login: true, recipe, steps: [], expected: 'TODO', actual: 'TODO', checks: [], observe: [] });
+    pages: ['/'], login: true, recipe, steps: [], expected: 'TODO', actual: 'TODO', checks: [], observe: [],
+    coverage: { note: 'The combinations that count as tested for this issue (scripts/coverage.mjs). Edit to fit the question the issue asks.', matrix: NEW_ISSUE_MATRIX } });
   all.push({ slug: latest, extends: pinned, label: `#${nid}: same steps against the LATEST core main`, core: { ref: 'main', commit: null }, before: { env: `baseline-${nid}-latest` }, after: { env: `issue-${nid}-latest` } });
   fs.writeFileSync(vf, JSON.stringify(all, null, 2) + '\n');
 }

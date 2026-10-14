@@ -21,9 +21,10 @@ root; where it disagrees with this file, this file wins.)
     node scripts/doctor.mjs [slug]                       1. is this machine ready? fix what it reports (read-only)
     node tools/compare/setup.mjs <slug>                  2. FIRST TIME ONLY: build Before and After (10-20 min, resumable; re-run if it stops)
     node scripts/lab-env.mjs start <slug> [--browser]    3. every time: both sites + the viewer (https://drupal-compare.ddev.site or http://localhost:8100); --browser opens it in the lab browser (forced-colours switch, own profile in .lab-browser)
-    node tools/playwright/walkthrough.mjs <slug>         4. scripted replay with real input; evidence goes to reports/issues/<nid>/
+    node tools/playwright/evaluate-<nid>.mjs <slug>      4. scripted replay with real input, on tools/playwright/lib/lab-run.mjs (records theme, modules, AJAX
+                                                         commands and announcements on every run); evidence goes to reports/issues/<nid>/. walkthrough.mjs is #3619127's.
     node scripts/lint.mjs <slug>                         4b. core's own code checks (the CI ones) on the patched files; report in reports/issues/<nid>/lint/
-    (write up: REPRODUCE/VALIDATION/STATUS, drafts only)  5. then: node scripts/coverage.mjs <nid>; node scripts/index-issues.mjs
+    (write up: REPRODUCE/EVIDENCE/STATUS, drafts only)    5. then: node scripts/coverage.mjs <nid>; node scripts/check-draft.mjs <nid>; node scripts/index-issues.mjs
     node scripts/lab-env.mjs stop <slug>                 6. when done (nothing is lost)
 
 New issue: `node scripts/new-issue.mjs <nid> --branch <fork-branch>`, then `docs/NEW-ISSUE.md`. People: `docs/FIRST-RUN.md`, `docs/USER-GUIDE.md`.
@@ -48,6 +49,12 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/new-issue.mjs <nid> --branch <branch>   # start a new issue
     node scripts/make-bundle.mjs <slug>                  # a self-contained zip for someone else
     node scripts/index-issues.mjs                        # refresh reports/issues/README.md
+    node scripts/issue-status.mjs <nid> [--write] | --all  # read-only: status, comments, MR head vs the patch the lab tested (flags a stale patch)
+    node scripts/check-draft.mjs <nid>                   # the comment draft against core's AGENTS.md rules (180 words, no headers, disclosure line)
+    node scripts/findings.mjs add | from-run <run> | set | list   # barriers spotted outside the issue (reports/findings/); every entry starts unconfirmed
+    node scripts/run-mark.mjs <run> --superseded --reason "<why>" [--by <run>]   # keep a run as history; coverage stops counting it
+    node scripts/lab-env.mjs retire <slug> --yes         # delete a pair only once reports/issues/<nid>/ is committed and pushed
+    node scripts/selftest.mjs [--live <slug>] [--network]   # does the lab itself work: syntax, unit tests, variants, docs; --live runs lint and the evaluator
     node scripts/build-cloud.mjs                         # regenerate cloud/ (the GitHub Pages site); commit the result. CI fails if it is stale
 
 Details: `tools/compare/README.md`, `tools/playwright/README.md`, `docs/TESTING-TOOLS.md`. Each run is a **pinned** variant (exactly as
@@ -148,7 +155,11 @@ One directory per issue: `reports/issues/<nid>/`.
 - `STATUS.md`: the current status snapshot; `STATUS-<date>.md` is a dated snapshot kept for history. Related issues and review threads. Statuses go stale; re-check on drupal.org.
 - `playwright/`, `screenreader/`, `compare/`: generated, dated evidence. Each summary records the core commits.
 - `variants.json`: the issue's own variants (written by a pack import). Older issues keep theirs in `tools/compare/variants.json`; `tools/compare/lib.mjs` merges both.
-- `ISSUE-COMMENT-DRAFT.md`: a draft for the human to post.
+- `ISSUE-COMMENT-DRAFT.md`: a draft for the human to post. New drafts follow core's `AGENTS.md` rules for drupal.org prose (template in `reports/_templates/`); check with `scripts/check-draft.mjs`.
+- `status.json`: the last `scripts/issue-status.mjs --write` fetch, so the next one can say what changed.
+- `variants.json` of a new issue carries `coverage.matrix`: the browser, scheme and width combinations that count as tested (`tools/compare/coverage-matrix.mjs`).
+
+Barriers found outside an issue's question go in `reports/findings/` (`scripts/findings.mjs`), not in the issue's folder.
 
 Reports are Markdown plus small artifacts. Do not commit large raw scan output (multi-MB JSON); summarise it and say where it lives.
 Built zips go in `bundles/`.

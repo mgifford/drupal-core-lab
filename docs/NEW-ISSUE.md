@@ -36,15 +36,19 @@ Environments are named `baseline-<nid>` and `issue-<nid>`. Two issues may share 
 give them the same `before.env`. Keep two or three DDEV projects running at most (`ddev stop` the others).
 
 ## 4. Script it and record evidence
-Copy `tools/playwright/walkthrough.mjs` and `flow.mjs` and adapt the selectors (the #3619127 versions are the pattern: real input,
-mouse then keyboard-only, axe at each stage). Run it and `screenreader.mjs`. They write dated folders under
+Write `tools/playwright/evaluate-<nid>.mjs` on `tools/playwright/lib/lab-run.mjs` (`evaluate-3618230.mjs` is the example; see
+`tools/playwright/README.md`). The library records the theme, modules, AJAX commands and announcements of every run, so the script
+only holds the issue's steps and checks: real input, axe at each stage. Run it and `screenreader.mjs`. Barriers you notice that are
+not this issue's go in `node scripts/findings.mjs add ...` (or `from-run <run folder>` for axe results), not in the issue folder. They write dated folders under
 `reports/issues/<nid>/`. Fill in `EVIDENCE.md` (exact commits) and a `STATUS.md` snapshot (keep older ones as `STATUS-<date>.md`). Nothing is posted to drupal.org by any
 script; `ISSUE-COMMENT-DRAFT.md` is a draft for a person to review and post.
 
 ## 4b. Record what has and has not been tested
     node tools/playwright/walkthrough.mjs <nid>-pinned --browser=webkit --scheme=dark     # also --forced-colors, --viewport=1280x900
     node scripts/coverage.mjs <nid>                                                        # writes COVERAGE.md
-Run the standard matrix (Chromium, Firefox, WebKit; light and dark; forced colours). A missing row is a gap, shown as NOT TESTED. Save
+Run the issue's own matrix: `coverage.matrix` in its pinned variant (new issues get a default from `tools/compare/coverage-matrix.mjs`;
+edit it to fit the question the issue asks). A missing row is a gap, shown as NOT TESTED. A run that turned out wrong is kept and marked:
+`node scripts/run-mark.mjs <run folder> --superseded --reason "<why>" --by <newer run>`. Save
 viewer logs from people who tested by hand in `reports/issues/<nid>/manual/` and re-run `coverage.mjs`.
 
 ## 5. Package it
@@ -54,6 +58,7 @@ The zip holds the viewer, recipe, patches, steps, checks and evidence, and a set
 
 ## 6. Come back later, including on updated Drupal core
 Everything is in `reports/issues/<nid>/`: start with `SUMMARY.md` (the entry point), then `REPRODUCE.md`. In short:
+    node scripts/issue-status.mjs <nid> --write                 # what changed on drupal.org; is the MR newer than the tested patch?
     node tools/compare/setup.mjs <nid>-pinned  --check-patches   # still applies to the pinned core?
     node tools/compare/setup.mjs <nid>-latest  --check-patches   # ...and to current core main?
     node tools/compare/setup.mjs <nid>-latest                    # build on current main

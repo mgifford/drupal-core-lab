@@ -129,6 +129,7 @@ const v = pack.variant;
 Object.assign(pinned, {
   description: v.description, pages: v.pages, login: v.login ?? true, ...(v.demo ? { demo: v.demo } : {}), recipe: pack.recipe.name,
   steps: v.steps, expected: v.expected, actual: v.actual, checks: v.checks, observe: v.observe,
+  ...(v.coverage ? { coverage: v.coverage } : {}),   // otherwise keep the matrix new-issue.mjs wrote
   status: 'draft: written from an issue pack; steps and checks have not been confirmed by a person',
 });
 fs.writeFileSync(vf, JSON.stringify(all, null, 2) + '\n');

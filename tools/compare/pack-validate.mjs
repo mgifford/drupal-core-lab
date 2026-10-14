@@ -7,6 +7,7 @@
 // The probe check is a read-only heuristic (it rejects network, cookie, navigation and DOM-writing calls, assignments and template
 // strings), not a sandbox. A probe still runs inside the framed site, so a person must read the checks before trusting them.
 import fs from 'node:fs';
+import { matrixProblems } from './coverage-matrix.mjs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { labRoot } from './lib.mjs';
@@ -25,7 +26,7 @@ export function loadYaml() {
 
 const URL_HOSTS = new Set(['www.drupal.org', 'drupal.org', 'git.drupalcode.org', 'api.drupal.org', 'project.pages.drupalcode.org']);
 const TOP_KEYS = ['pack_version', 'issue', 'sources', 'summary', 'setup', 'needs', 'recipe', 'variant', 'review', 'notes'];
-const VARIANT_KEYS = ['description', 'pages', 'login', 'demo', 'steps', 'expected', 'actual', 'checks', 'observe'];
+const VARIANT_KEYS = ['description', 'pages', 'login', 'demo', 'steps', 'expected', 'actual', 'checks', 'observe', 'coverage'];
 const RECIPE_YML_KEYS = ['name', 'description', 'type', 'recipes', 'install', 'config', 'input'];
 const PATH_RE = /^\/[A-Za-z0-9._~\/%-]*(\?[A-Za-z0-9._~=&%-]*)?$/;
 
@@ -260,6 +261,7 @@ export function validatePack(text, { yaml, catalogue, checkCatalogue } = {}) {
       if (typeof o.expectBefore !== 'boolean' || typeof o.expectAfter !== 'boolean') err(at, 'expectBefore and expectAfter must be true or false');
       for (const k of Object.keys(o)) if (!['label', 'expectBefore', 'expectAfter'].includes(k)) err(`${at}.${k}`, 'is not a known key');
     });
+    if (v.coverage !== undefined) for (const [at, msg] of matrixProblems(v.coverage, 'variant.coverage')) err(at, msg);
   }
 
   // The steps must not rely on state the recipe never creates. A common failure: a step says "a file over the configured limit" while the recipe

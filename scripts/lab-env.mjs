@@ -7,6 +7,8 @@
 //   node scripts/lab-env.mjs stop <slug|all>        stop the viewer and both environments (data is kept; start brings them back)
 //   Viewer: https://drupal-compare.ddev.site (needs `ddev start` once in tools/compare/site) or http://localhost:8100. Log: .lab-viewer.log; pid: .lab-viewer.pid (both gitignored).
 //   node scripts/lab-env.mjs delete <slug> --yes    DELETE both environments and their worktrees (rebuild with setup.mjs)
+//   node scripts/lab-env.mjs retire <slug> --yes    delete, but only once the issue's evidence is safe: refuses while reports/issues/<nid>/ has
+//                                                   uncommitted or unpushed changes, or while the baseline has undeclared edits (--force overrides)
 //   node scripts/lab-env.mjs reset <slug> --yes     reset both SITES (database and files) to the variant's starting state: minutes, almost no disk, keeps checkout and patches
 //   node scripts/lab-env.mjs trim <slug|all> [--deep]  free regenerable disk space (test output, snapshots); --deep also removes core/node_modules (about 400 MB each)
 //   node scripts/lab-env.mjs disk                   free space, what each environment uses, and what is safe to remove
@@ -116,10 +118,29 @@ switch (cmd) {
     stopViewer();
     for (const e of list) { process.stdout.write(`${e}: `); ddev(envDir(e), ['stop']); }
     break; }
+  case 'retire': {
+    if (!target) { console.error('usage: retire <slug> --yes [--force]'); process.exit(2); }
+    const v = vs.find((x) => x.slug === target); const list = present(envsOf(target));
+    const rel = `reports/issues/${v.issue}`; const git = (a) => spawnSync('git', ['-C', labRoot, ...a], { encoding: 'utf8' });
+    const why = [];
+    const dirty = git(['status', '--porcelain', '--', rel]).stdout.trimEnd();
+    if (dirty) why.push(`${rel}/ has uncommitted changes:\n${dirty.split('\n').map((l) => '    ' + l).join('\n')}`);
+    const up = git(['rev-parse', '--abbrev-ref', '@{u}']);
+    if (up.status !== 0) why.push('this branch has no upstream, so it cannot tell whether the evidence is pushed');
+    else { const ahead = git(['log', '--oneline', '@{u}..HEAD', '--', rel]).stdout.trim(); if (ahead) why.push(`commits touching ${rel}/ are not pushed to ${up.stdout.trim()}:\n${ahead.split('\n').map((l) => '    ' + l).join('\n')}`); }
+    if (!(v.before.patches || []).length && fs.existsSync(envDir(v.before.env))) {
+      const t = spawnSync('git', ['-C', envDir(v.before.env), 'status', '--porcelain', '--untracked-files=no'], { encoding: 'utf8' }).stdout.trimEnd();
+      if (t) why.push(`the baseline ${v.before.env} has tracked changes that the variant does not declare (rule 1); find out why before deleting it:\n${t.split('\n').map((l) => '    ' + l).join('\n')}`);
+    }
+    if (why.length && !process.argv.includes('--force')) { console.error(`Not retiring ${target}:\n- ${why.join('\n- ')}\nCommit and push the evidence (or use --force to delete anyway).`); process.exit(1); }
+    if (!yes) { console.error(`Evidence for #${v.issue} is safe${why.length ? ' (checks overridden with --force)' : ''}. This DELETES ${list.join(' and ') || 'nothing (not built)'}. Re-run with --yes.`); process.exit(2); }
+    for (const e of list) { ddev(envDir(e), ['delete', '--omit-snapshot', '--yes']); spawnSync('git', ['-C', path.join(envsDir, 'core.git'), 'worktree', 'remove', '--force', envDir(e)], { stdio: 'inherit' }); }
+    console.log(`Retired ${target}. Evidence stays in ${rel}/; rebuild with node tools/compare/setup.mjs ${target}`);
+    break; }
   case 'delete': {
     if (!target) { console.error('usage: delete <slug> --yes'); process.exit(2); }
     const list = present(envsOf(target)); if (!yes) { console.error(`This DELETES ${list.join(' and ')} (containers, database and worktree). Evidence in reports/ is kept. Re-run with --yes.`); process.exit(2); }
     for (const e of list) { ddev(envDir(e), ['delete', '--omit-snapshot', '--yes']); spawnSync('git', ['-C', path.join(envsDir, 'core.git'), 'worktree', 'remove', '--force', envDir(e)], { stdio: 'inherit' }); }
     break; }
-  default: console.error('usage: lab-env.mjs status | disk | start <slug> [--browser] | browser [--reset] | stop <slug|all> | reset <slug> --yes | trim <slug|all> [--deep] | delete <slug> --yes'); process.exit(2);
+  default: console.error('usage: lab-env.mjs status | disk | start <slug> [--browser] | browser [--reset] | stop <slug|all> | reset <slug> --yes | trim <slug|all> [--deep] | delete <slug> --yes | retire <slug> --yes [--force]'); process.exit(2);
 }

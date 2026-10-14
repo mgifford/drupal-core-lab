@@ -97,3 +97,18 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 - **Risks:** all findings are Chromium-only and DRAFT; the proposals are untested against the MR's PHPUnit tests; sites and the viewer may still be running (`node scripts/lab-env.mjs status`; stop with `... stop 3604037-latest`).
 - **Owner of the next step:** the repository owner (posting); an AI session for the walkthrough.
 - **AI-assisted:** yes. Tool: Claude Code. External code copied: no. Dev dependencies `gifenc` and `pngjs` (MIT) were installed from npm for the demo GIF.
+
+## Learnings from #3618230 and the tool improvements (2026-10-14)
+- **Record the context on every run, not on request.** The 2026-10-08 run could not answer the maintainer's question ("does this happen in
+  Default Admin?") because it never recorded the theme. `tools/playwright/lib/lab-run.mjs` now records theme, modules, PHP and Drupal for each side.
+- **The decisive evidence was in the AJAX response, not the DOM.** Before stripped the Hide `<button>` on the server (`Xss::filterAdmin()` on
+  `#prefix`); only the raw `insert` markup proved where. Every run now keeps the AJAX commands and the `Drupal.announce()` calls.
+- **`walkthrough.mjs` was never generic**: it is #3619127's script. Each issue gets an `evaluate-<nid>.mjs` on the shared library instead.
+- **Two of my own checks were wrong before the patch was**: a regex that matched "size" anywhere, and counting elements where the theme only hides
+  them. Rule 9 again. A run that turned out wrong is now marked superseded (`scripts/run-mark.mjs`), not deleted.
+- **A trailing `//` comment swallowed a declaration again** (mistake 5), and `node --check` passed because the result was still valid syntax.
+  Only the unit test caught it. Run the tests, not only the syntax check.
+- **Core has its own rules for LLM-assisted drupal.org prose** (`AGENTS.md` in any core checkout): at most 180 words, no headers, the line
+  "Generated with the help of an LLM.". New drafts follow them; `scripts/check-draft.mjs` checks the form.
+- **Status goes stale silently.** `scripts/issue-status.mjs --all` found #3604037 RTBC with five MR commits newer than the patch the lab tested.
+

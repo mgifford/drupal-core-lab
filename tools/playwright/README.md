@@ -24,6 +24,16 @@ Login uses the one-time link from `ddev drupal login`, not a typed password.
 
 `flow.mjs` holds the shared steps. The selectors are specific to #3619127; copy and adapt for another issue.
 
+## Writing an evaluator for a new issue (`evaluate-<nid>.mjs`)
+Build it on `lib/lab-run.mjs`; `evaluate-3618230.mjs` is the example. The library gives every run, without the issue script asking:
+- **context** per side: PHP, Drupal, profile, default and admin theme, enabled modules, languages (`lib/site-context.php`, piped
+  into the container, read-only), and the theme that rendered every page loaded;
+- **AJAX**: every Drupal AJAX response, its commands summarised in the results, raw in `ajax-before.json` / `ajax-after.json`;
+- **speech**: every `Drupal.announce()` call and every text change inside a live region (`role` alert/status/log, `aria-live`);
+- `axeScan()` with the violations kept (so `scripts/findings.mjs from-run` can harvest them), JavaScript errors, and
+  `writeRun()`, which refuses a `results.json` without verdict, context, AJAX or speech (`lib/run-schema.mjs`).
+The issue script supplies only its steps and its checks. `--out=<dir>` sends a trial run elsewhere (used by `scripts/selftest.mjs --live`).
+
 ## Playwright MCP
 `@playwright/mcp` is installed here, and `../../.mcp.json` registers it for this project only
 (it does not touch your global Claude settings). Start Claude Code from the lab root and approve the

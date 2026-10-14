@@ -80,7 +80,7 @@ export async function getText(url, { fetchImpl = fetch, timeoutMs = 30000, maxBy
     throw new Error('too many redirects');
   } finally { clearTimeout(t); }
 }
-const getJson = async (url, opts) => { const r = await getText(url, opts); if (r.status === 404) return null; if (r.status !== 200) throw new Error(`${url} answered HTTP ${r.status}`); try { return JSON.parse(r.text); } catch { throw new Error(`${url} did not return JSON`); } };
+export const getJson = async (url, opts) => { const r = await getText(url, opts); if (r.status === 404) return null; if (r.status !== 200) throw new Error(`${url} answered HTTP ${r.status}`); try { return JSON.parse(r.text); } catch { throw new Error(`${url} did not return JSON`); } };
 
 const day = (epoch) => new Date(Number(epoch) * 1000).toISOString().slice(0, 10);
 const kb = (n) => `${Math.max(1, Math.round(Number(n) / 1024))} KB`;
