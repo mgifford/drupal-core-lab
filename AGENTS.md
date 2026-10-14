@@ -22,6 +22,7 @@ root; where it disagrees with this file, this file wins.)
     node tools/compare/setup.mjs <slug>                  2. FIRST TIME ONLY: build Before and After (10-20 min, resumable; re-run if it stops)
     node scripts/lab-env.mjs start <slug> [--browser]    3. every time: both sites + the viewer (https://drupal-compare.ddev.site or http://localhost:8100); --browser opens it in the lab browser (forced-colours switch, own profile in .lab-browser)
     node tools/playwright/walkthrough.mjs <slug>         4. scripted replay with real input; evidence goes to reports/issues/<nid>/
+    node scripts/lint.mjs <slug>                         4b. core's own code checks (the CI ones) on the patched files; report in reports/issues/<nid>/lint/
     (write up: REPRODUCE/VALIDATION/STATUS, drafts only)  5. then: node scripts/coverage.mjs <nid>; node scripts/index-issues.mjs
     node scripts/lab-env.mjs stop <slug>                 6. when done (nothing is lost)
 
@@ -41,6 +42,8 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node tools/compare/setup.mjs <slug> --check-patches  # only: do the patches still apply to that core?
     node tools/compare/serve.mjs <slug> [--ddev]         # side-by-side viewer (http://localhost:8100 or https://drupal-compare.ddev.site)
     node tools/compare/diff.mjs <slug>                   # which served files and pages differ
+    node scripts/lint.mjs <slug> [--host]                # core's commit-code-check.sh on only the patched files (CSpell, PHPCS, PHPStan, ESLint, Stylelint, .pcss.css)
+    node tools/compare/setup.mjs <slug> --checkout-only  # worktrees and patches only, no DDEV (enough for lint --host); --core-url=<mirror> if drupalcode is unreachable
     node tools/playwright/walkthrough.mjs <slug>         # scripted replay with real input; writes evidence and an interpretation
     node scripts/new-issue.mjs <nid> --branch <branch>   # start a new issue
     node scripts/make-bundle.mjs <slug>                  # a self-contained zip for someone else
@@ -117,6 +120,7 @@ Use only if `setup.mjs` is not usable. `core/scripts/dr install` is SQLite-only;
 | Adding a language with a recipe crashes (`setWeight() on null`) | A recipe that installs the Language module does not create its locked languages (und, zxx). Use `scripts/lab-site.sh language <env> <code>` (API script `scripts/add-language.php`); it also sets the `/<code>` prefix. |
 | Disk tight | `node scripts/lab-env.mjs disk` shows what uses space (each environment is about 630 MB, 393 MB of it `core/node_modules`; site data is under 10 MB). `trim all --deep` frees the node_modules; `reset` costs no disk. |
 | Disk almost full (under 1 GB) | Regenerable caches first: `npm cache clean --force`, `rm -rf ~/.npm/_npx`, `docker builder prune -af`. Then see the disk row above. Check what is big with `du -sh ~/.cache/* ~/.npm`. |
+| Lint fails every JS and CSS check, or says a `.pcss.css` "does not match" | A tool did not run (usually Yarn: core pins `yarn@4` and a global Yarn 1 refuses). `scripts/lint.mjs` now reports this as ERROR and uses Corepack's Yarn. If Corepack cannot reach repo.yarnpkg.com, set `COREPACK_NPM_REGISTRY=https://registry.npmjs.org`. |
 | Before is not pristine | Only if the variant lists `before.patches` (a declared test-support change, e.g. #3604037's form_test page). |
 
 ## Changing the viewer (`tools/compare/index.html`, `serve.mjs`)

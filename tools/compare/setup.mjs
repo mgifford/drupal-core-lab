@@ -5,6 +5,10 @@
 //   node tools/compare/setup.mjs [slug] --reinstall        reset both sites (database and files) and reapply recipe and languages; keeps the checkout, vendor and patches
 //   (a variant with "testExtensions": true gets `ddev drupal test:extensions-enable` before its recipe, so it can install test modules)
 //   node tools/compare/setup.mjs [slug] --with-lighthouse   also install Lighthouse (optional background audits in the viewer; Node 22.19+)
+//   node tools/compare/setup.mjs [slug] --checkout-only     only the git worktrees with their patches: no DDEV, no site (enough for scripts/lint.mjs --host);
+//                                                           a later run without the flag carries on from there
+//   node tools/compare/setup.mjs [slug] --core-url=<url>    fetch core from another remote (e.g. https://github.com/drupal/drupal.git when
+//                                                           git.drupalcode.org is unreachable); a pinned commit must exist there too
 //
 // A variant's `core` says which Drupal core to use: `{ "ref": "main" }` follows the branch (fetched when an
 // environment is first created), `{ "commit": "<sha>" }` pins one exact commit so a reproduction can be repeated
@@ -21,9 +25,11 @@ const args = process.argv.slice(2);
 const dry = args.includes('--dry-run');
 const v = variants().find((x) => x.slug === (args.find((a) => !a.startsWith('--')) || variants()[0].slug));
 if (!v) { console.error('unknown variant'); process.exit(1); }
-const core = { url: 'https://git.drupalcode.org/project/drupal.git', ref: 'main', ...(v.core || {}) };
+const coreUrl = (args.find((a) => a.startsWith('--core-url=')) || '').slice('--core-url='.length);
+const core = { url: 'https://git.drupalcode.org/project/drupal.git', ref: 'main', ...(v.core || {}), ...(coreUrl ? { url: coreUrl } : {}) };
 const coreRef = `refs/lab/${core.commit ? core.commit.slice(0, 12) : core.ref}`;   // where the chosen core lives in envs/core.git
 const CHECK = args.includes('--check-patches');
+const CHECKOUT_ONLY = args.includes('--checkout-only');   // worktrees and patches only, no DDEV
 const REINSTALL = args.includes('--reinstall');   // wipe each site's database and files and install again (no re-clone, no composer): the cheap way to reset
 const bare = path.join(labRoot, 'envs/core.git');
 
@@ -62,7 +68,7 @@ function materializeContrib(m, dest) {
   run('bash', ['-c', `git -C '${shared}' archive '${m.commit}' | tar -x -C '${dest}'`]);
 }
 
-for (const tool of CHECK ? ['git'] : ['git', 'ddev', 'docker']) {
+for (const tool of CHECK || CHECKOUT_ONLY ? ['git'] : ['git', 'ddev', 'docker']) {
   if (spawnSync(tool, ['--version'], { stdio: 'ignore' }).status !== 0) { console.error(`Missing prerequisite: ${tool}`); if (!dry) process.exit(1); }
 }
 
@@ -86,6 +92,7 @@ if (!dry) {
 step(`Drupal core: ${core.commit ? `pinned commit ${core.commit.slice(0, 12)}` : `branch ${core.ref} (latest)`} from ${core.url}`);
 fs.mkdirSync(path.join(labRoot, 'envs'), { recursive: true });
 if (!have(bare)) { run('git', ['init', '--bare', bare]); run('git', ['-C', bare, 'remote', 'add', 'origin', core.url]); }
+else if (coreUrl && !dry) run('git', ['-C', bare, 'remote', 'set-url', 'origin', core.url]);
 const hasRef = () => !dry && spawnSync('git', ['-C', bare, 'rev-parse', '--verify', '-q', `${coreRef}^{commit}`], { stdio: 'ignore' }).status === 0;
 // A pinned commit is fetched once. A branch is fetched again whenever an environment still has to be created,
 // so a new environment starts from current core while existing ones are left alone.
@@ -110,13 +117,13 @@ if (CHECK) {
   process.exit(failed ? 3 : 0);
 }
 
-step('axe-core (live accessibility checks), installed from npm, not vendored');
+if (!CHECKOUT_ONLY) step('axe-core (live accessibility checks), installed from npm, not vendored');
 const deps = path.join(labRoot, 'tools/compare/.deps');
 // Everything is recorded in .deps/package.json (no --no-save): npm removes installed packages it does not know about, so an
 // untracked install would be pruned by the next one. js-yaml reads issue packs (scripts/issue-pack.mjs); Lighthouse is kept once installed.
 const withLighthouse = args.includes('--with-lighthouse') || have(path.join(deps, 'node_modules/lighthouse'));
 const want = ['axe-core@4', 'js-yaml@4', ...(withLighthouse ? ['lighthouse'] : [])];
-if (!have(path.join(deps, 'node_modules/axe-core/axe.min.js')) || !have(path.join(deps, 'node_modules/js-yaml')) || (withLighthouse && !have(path.join(deps, 'node_modules/lighthouse')))) run('npm', ['install', '--prefix', deps, '--no-audit', '--no-fund', ...want]);
+if (!CHECKOUT_ONLY && (!have(path.join(deps, 'node_modules/axe-core/axe.min.js')) || !have(path.join(deps, 'node_modules/js-yaml')) || (withLighthouse && !have(path.join(deps, 'node_modules/lighthouse'))))) run('npm', ['install', '--prefix', deps, '--no-audit', '--no-fund', ...want]);
 
 const sides = [['before', v.before], ['after', v.after]];
 for (const [side, spec] of sides) {
@@ -137,6 +144,7 @@ for (const [side, spec] of sides) {
     run('git', ['apply', file], { cwd: dir });
     if (!dry) fs.appendFileSync(marker, p + '\n');
   }
+  if (CHECKOUT_ONLY) { console.log(`checkout only: ${path.relative(labRoot, dir)} at ${dry ? coreRef : out('git', ['rev-parse', '--short', 'HEAD'], dir)}${(spec.patches || []).length ? ' plus its patches' : ''}`); continue; }
 
   if (!have(path.join(dir, '.ddev/config.yaml'))) {
     run('ddev', ['config', '--project-type=drupal12', '--docroot=.', '--php-version=8.5', `--project-name=${name}`, '--omit-containers=db', '--disable-settings-management'], { cwd: dir });
@@ -194,4 +202,5 @@ for (const [side, spec] of sides) {
   for (const code of v.languages || []) run('bash', [path.join(labRoot, 'scripts/lab-site.sh'), 'language', spec.env, code]);   // e.g. fa: right-to-left, browse /fa/...
 }
 
+if (CHECKOUT_ONLY) { console.log(`\nDone (checkouts only, no sites). Lint the change: node scripts/lint.mjs ${v.slug} --host`); process.exit(0); }
 console.log(`\nDone. Both sites: log in as admin / admin.\nStart the viewer:  node tools/compare/serve.mjs ${v.slug}   then open http://localhost:8100/`);

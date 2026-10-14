@@ -59,6 +59,7 @@ Not yet done: the recipe (`recipes/repro_3604037`), the variant's steps, checks 
 | `STATUS-<date>.md` | Related issues and review threads, dated. Re-check on drupal.org before relying on it. |
 | `EVIDENCE.md` | Results with exact commits. DRAFT until a person has reviewed it. |
 | `playwright/`, `compare/`, `screenreader/` | Generated evidence from the scripts. |
+| `lint/` | Core's own code checks on the patched files (`node scripts/lint.mjs 3604037-latest`). Not accessibility evidence. |
 | `ISSUE-COMMENT-DRAFT.md` | A draft for a human to review and post. Nothing is posted automatically. |
 
 
