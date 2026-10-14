@@ -1,8 +1,15 @@
 # Compare viewer in a DDEV Coder workspace (browser only)
 
 Runs the existing Before/After viewer in a DDEV Coder **Freeform** workspace and opens it at Coder app URLs, with no local
-Docker and no `coder port-forward`. The local workflow is unchanged. Everything here is opt-in and was tested on 2026-10-02 with
-variant `3619127-pinned`; the status table says exactly what was and was not tested.
+Docker and no `coder port-forward`. The local workflow is unchanged. Everything here is opt-in.
+
+The end-to-end run was tested on **2026-10-02** with variant `3619127-pinned` (the repository then had fewer variants); the status
+table says exactly what was and was not tested. **Documentation refreshed 2026-10-14** against the current repository (14
+variants). Three things changed or were re-checked since that run and are called out below: the Freeform `project_names`
+parameter is now `mutable = true` in the template source, the core fetch needs a GitHub mirror under Coder's egress rules, and
+the guide's "Run in the cloud" link still points at the issue picker rather than at this path (see `docs/CLOUD-PLAN.md`).
+The status table's "Not tested" rows — frames at the real Coder URLs in a signed-in browser, and any user other than the pilot
+owner — are unchanged and still gate whether this is usable by anyone but its author.
 
 ## Status
 
@@ -28,6 +35,15 @@ variant `3619127-pinned`; the status table says exactly what was and was not tes
 - The Coder CLI (v2.37.2 matched the server) on your own machine, to create and stop the workspace.
 - Do not enable **Public Sharing**: the sites use `admin` / `admin` and the viewer can drive them. Leave the workspace owner-only.
 - The template defaults are 4 CPU and 8 GB (`variable "cpu"` and `"memory"` in the template source); the live workspace page showed the same. Quotas for other accounts are not verified.
+- **Network egress from the workspace container is filtered.** A 2026-10-14 session inside a workspace found `git.drupalcode.org`,
+  `drupal.org` and `repo.yarnpkg.com` unreachable and GitHub zip downloads cut off; Composer fell back to git sources and
+  `phpstan/phpstan` (zip-only) could not be fetched normally (see `AI-LEARNING.md`, "Learnings from adding the lint step").
+  Since 2026-10-14 the bootstrap passes the mirror through: `node scripts/cloud-bootstrap.mjs <slug> --core-url=https://github.com/drupal/drupal.git`
+  (or `$LAB_CORE_URL`). If a `drupal-core` issue-picker clone is already in the workspace, `--use-existing-core[=<path>]`
+  (default `~/drupal-core`, or `$LAB_EXISTING_CORE`) seeds the core commit from it with `setup.mjs --core-from=` and needs no clone
+  at all. For core's Yarn 4, also export `COREPACK_NPM_REGISTRY=https://registry.npmjs.org`. This is an environment limitation, not a
+  lab bug. **`--core-url` and `--core-from` are new and were not run in a workspace**: they are dry-run/on-disk tested only. Re-run
+  them in a workspace before trusting the 2026-10-02 result.
 
 ## Procedure
 
@@ -43,8 +59,10 @@ variant `3619127-pinned`; the status table says exactly what was and was not tes
        coder create --template freeform <name> --rich-parameter-file params.yaml --yes
 
    The two `repro-` names are the variant's environments; they are only needed if you also want a direct Coder URL to each site.
-   Names are fixed at creation: changing them later worked only with `coder update <name> --always-prompt` (interactive).
-   `coder restart --parameter` and `--rich-parameter-file` did not change them.
+   The `project_names` parameter is declared `mutable = true` in `freeform/template.tf` (checked 2026-10-14), so it *should* be
+   changeable after creation; the earlier finding that only `coder update <name> --always-prompt` (interactive) worked, and that
+   `coder restart --parameter` and `--rich-parameter-file` did not, may be a Coder-CLI/version issue. Re-test on your Coder CLI
+   version before relying on either behaviour.
 2. `coder ssh <name>`, wait for the startup scripts to finish, then:
 
        git clone https://github.com/mgifford/drupal-core-lab.git && cd drupal-core-lab
@@ -85,8 +103,11 @@ variant `3619127-pinned`; the status table says exactly what was and was not tes
 ## Known limitations
 
 - A workspace restart stops every DDEV project and the viewer. Use `--install-autostart`, or run the bootstrap again.
-- Project names are fixed at creation (see the procedure).
-- Routing assumes the template's `ddev coder-setup` behaviour, verified against the `ddev/coder-ddev` freeform source of 2026-09-27: one app per project name, routed to ddev-router by Host as `{project}--{workspace}--{owner}.{domain}`.
+- Project names: the parameter is `mutable = true` in the template, but changing it after creation was not reliable in the 2026-10-02 test (see the procedure). Plan for them to be set at creation.
+- Routing assumes the template's `ddev coder-setup` behaviour, verified against the `ddev/coder-ddev` freeform source of 2026-09-27: one app per project name, routed to ddev-router by Host as `{project}--{workspace}--{owner}.{domain}`. Re-checked against `freeform/template.tf` on 2026-10-14: still one `coder_app` per name, `subdomain = true`, `url = http://localhost:8080`, and `CODER_PROJECT_NAMES` is still exported for the bootstrap to read.
+- Only `3619127-pinned` has ever been built in the cloud. Nothing else has been tried; the 14 variants in the repository are local-only until someone repeats the trial.
+- `--core-url` and `--use-existing-core`/`setup.mjs --core-from` are new on 2026-10-14 and were only dry-run and tested against a local checkout, never inside a workspace. Whether a `drupal-core` issue-picker clone is shallow (so its base commit is missing) is unverified; when seeding fails, the run says so and falls back to the origin remote.
+- The guide published from `cloud/` is generated and can go stale: `scripts/build-cloud.mjs --check` (run by `pages-check.yml` and `scripts/selftest.mjs`) fails until `cloud/` is rebuilt. Its "Run in the cloud" line currently links to the issue picker, which is **not** this Freeform path; treat it as a starting point until `docs/CLOUD-PLAN.md` phase 4 is done.
 - The sites use `admin` / `admin`. Patches, recipes and test modules run code in the workspace: use a throwaway workspace and store no tokens in it.
 - Variant `checks[].probe` expressions run inside the Before and After frames. Treat a variant from someone else as untrusted code.
 - Not covered: issue scraping, patch selection, importing issues from elsewhere (see `docs/NEW-ISSUE.md` for the existing local scaffolding).

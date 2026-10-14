@@ -3,6 +3,21 @@
 Status (2026-10-02): **partly built.** The workspace bootstrap (3B), the viewer at Coder app URLs and a smoke check exist and were tested in one workspace; see `tools/compare/cloud/README.md` for what was tested and what was not. The text below is the original proposal, written 2026-10-01 after reading https://start.coder.ddev.com/ (landing page, issue picker,
 quickstart). Items marked **VERIFY** are things I could not confirm from the public pages.
 
+Status (2026-10-14): **unchanged in code; documentation refreshed.** The repository now has 14 variants, but only `3619127-pinned`
+has ever been built in the cloud, so the cloud path is still a single-variant trial. Before using it:
+- The guide published from `cloud/` points "Run in the cloud" at the issue picker (`tools/compare/index.html`), which is *not* the
+  Freeform path the lab built. The bridge — `cloud-bootstrap.mjs --use-existing-core` (phase 3) — was added on 2026-10-14 and seeds
+  the core commit from a workspace checkout (`setup.mjs --core-from`); it is dry-run tested only, not run in a workspace.
+- Inside a workspace the container's egress is filtered (`git.drupalcode.org`, `drupal.org`, `repo.yarnpkg.com` were unreachable on
+  2026-10-14). `cloud-bootstrap.mjs` now passes the `--core-url` GitHub mirror that `setup.mjs` supports (or `$LAB_CORE_URL`), and
+  `--use-existing-core` avoids the clone entirely. See `tools/compare/cloud/README.md`; both flags are new and unrun in a workspace.
+- The Freeform `project_names` parameter is declared `mutable = true` in `freeform/template.tf`, so the "names are fixed at creation"
+  finding from 2026-10-02 may be a Coder-CLI artefact; re-test.
+- The two rows that decide whether anyone but the pilot owner can use it are still untested: frames at the real Coder URLs in a
+  signed-in browser, and a second person's access/quota.
+- `cloud/` is generated and can go stale; `scripts/build-cloud.mjs --check` (run by `pages-check.yml` and `scripts/selftest.mjs`) is
+  red until it is rebuilt.
+
 ## 1. What the cloud service is (facts from its pages)
 - Browser-based DDEV + Docker workspaces on coder.ddev.com, "ready in about a minute". Source: https://github.com/ddev/coder-ddev.
 - Two guided entries: **Drupal Issue picker** (paste an issue URL; it checks out the issue fork branch and installs a site; core issues
@@ -13,7 +28,8 @@ quickstart). Items marked **VERIFY** are things I could not confirm from the pub
 - **Access is not "any ddev.com account".** It needs sign-in with GitHub **and** membership of a sponsoring GitHub organisation
   ($100+/month sponsors of DDEV) or of the `ddev` / `coder-ddev-com` orgs. Individuals can *request contributor access* through an
   issue in `coder-ddev-com/access-requests`. So "free for anyone with an account" is not how it works today. Anything we build must
-  assume some people cannot use it, and must not depend on it.
+  assume some people cannot use it, and must not depend on it. **Confirmed 2026-10-14** on the live start page: "you must be a member
+  of a sponsoring GitHub organization, or of the `ddev` or `coder-ddev-com` org", and individuals may request contributor access.
 
 ## 2. What we would be offering
 A sister capability, not a replacement: **"open this lab issue in a cloud workspace"** for people who cannot or do not want to run
@@ -49,8 +65,10 @@ Goal: in a fresh workspace, one command gives the same two sites and viewer.
    workspace apps are declared in the templates; we may need a Freeform template variant maintained with DDEV) or by running the
    viewer behind the workspace's DDEV Web hostname the way `tools/compare/site` does locally.
 5. Known differences to handle: the cloud add-on set is `ddev-drupal-dev` + Drush, ours is `justafish/ddev-drupal-core-dev` with no
-   Drush (lab rule 6 forbids adding Drush to a core checkout; inside a disposable workspace we should still keep to the rule, so
-   `setup.mjs` needs a `--use-existing-core` mode that adopts the workspace's checkout and skips the add-on install).
+   Drush (lab rule 6 forbids adding Drush to a core checkout; inside a disposable workspace we should still keep to the rule). The
+   `--use-existing-core` mode that was planned here was added on 2026-10-14 and does the bounded half: it seeds the lab's core
+   objects from the workspace checkout (`setup.mjs --core-from=<path>`) so no network clone is needed, but it does **not** yet adopt
+   the picker's DDEV project or skip the add-on install — the lab still builds its own two environments from the same core.
 
 ### C. Getting a person's own issue and recipe into the workspace
 Options, from simplest:
@@ -84,30 +102,34 @@ Options, from simplest:
    The Pages site must not embed deep links that carry personal data.
 4. **Local-only rule:** the lab's standing rule is local development only. Cloud use is opt-in, per person, per issue; it is not
    enabled by default and not used by me without your say-so.
-5. **Deep-link parameters (VERIFY):** can the picker be opened pre-filled (`?issue=3604037`)? Only the page URLs are public; if not,
-   the button links to the picker and shows the issue URL to paste.
+5. **Deep-link parameters (VERIFY, still unresolved 2026-10-14):** can the picker be opened pre-filled (`?issue=3604037`)? The
+   picker at https://start.coder.ddev.com/drupal-issue is a form with an "Issue URL or project name" field and a Load button; no
+   query parameter is documented. Treat deep links as unavailable: link to the picker and show the issue URL to paste (which is what
+   `cloud/` does today).
 6. **Resources:** two Drupal sites plus Chrome for Lighthouse may exceed a default workspace; may need a "light" profile
    (viewer + axe, no Lighthouse) for cloud.
 7. **Maintenance:** one more environment to keep working. Keep the bootstrap thin; fail with a clear message rather than adapt to every
    template change.
 
-## 5b. Phase 1 status (built 2026-10-01, not yet published)
+## 5b. Phase 1 status (built 2026-10-01, published since)
 `cloud/` is generated by `node scripts/build-cloud.mjs` from the same `tools/compare/index.html` and `variants.json` the local viewer
 uses, so nothing is duplicated. The page detects where it runs (`github.io`, `?mode=static`, or a `variants.json` marked `static`) and
 hides everything marked `data-needs="live"` (frames, logins, cache clearing, Mirror, live axe, Lighthouse, checks, manual panel). A
-read-only panel gives the local command, the DDEV cloud picker link, the reports and the drupal.org issue. `.github/workflows/pages.yml`
-publishes `cloud/` (set Pages > Source to "GitHub Actions"); `pages-check.yml` fails CI if `cloud/` is stale. Any new server-dependent
-element must carry `data-needs="live"` and any new server URL must be relative (no leading `/`).
+read-only panel gives the local command, a DDEV cloud link, the reports and the drupal.org issue. That cloud link points at the
+**issue picker**, which is the single-site `drupal-core` template, not the Freeform comparison path in section 3B; phase 4 should
+replace it. `.github/workflows/pages.yml` publishes `cloud/` (set Pages > Source to "GitHub Actions"); `pages-check.yml` fails CI if
+`cloud/` is stale. Any new server-dependent element must carry `data-needs="live"` and any new server URL must be relative (no
+leading `/`).
 
 ## 6. Phased plan (each phase usable on its own; stop whenever it stops being worth it)
-| Phase | Deliverable | Effort | Needs from you |
-|---|---|---|---|
-| 0 | Ask DDEV about fit, limits, deep links, port exposure. Request contributor access for you (or confirm your org's). | small | a decision to ask; you do the asking and the sign-in |
-| 1 | Pages catalogue from existing reports + "run locally" instructions. No cloud dependency. | small | approval to enable Pages on the repo |
-| 2 | Manual trial: in a workspace, clone the lab, run `setup.mjs` for #3604037, record what breaks. Written up like `docs/ADDON-TRIAL-2026-10-01.md`. | small-medium | you sign in; I drive only what you allow |
-| 3 | `cloud-bootstrap.mjs` + `--use-existing-core`, viewer exposed. | medium | results of phase 2 |
-| 4 | Recipe-from-URL and the "bring your own issue" flow; Pages "Run in the cloud" buttons. | medium | |
-| 5 | Evidence host column in coverage; docs; optional separate sister repo if the cloud parts grow. | small | |
+| Phase | Deliverable | Effort | Needs from you | Status (2026-10-14) |
+|---|---|---|---|---|
+| 0 | Ask DDEV about fit, limits, deep links, port exposure. Request contributor access for you (or confirm your org's). | small | a decision to ask; you do the asking and the sign-in | partly: access gate and limits are understood from the public pages; deep links unresolved; "ask DDEV" still open |
+| 1 | Pages catalogue from existing reports + "run locally" instructions. No cloud dependency. | small | approval to enable Pages on the repo | **done**; `cloud/` can go stale and is currently behind |
+| 2 | Manual trial: in a workspace, clone the lab, run `setup.mjs` for #3604037, record what breaks. Written up like `docs/ADDON-TRIAL-2026-10-01.md`. | small-medium | you sign in; I drive only what you allow | **done for #3619127**, not #3604037; see `tools/compare/cloud/README.md` |
+| 3 | `cloud-bootstrap.mjs` + `--use-existing-core`, viewer exposed. | medium | results of phase 2 | bootstrap + viewer **done and smoke-tested**; `--use-existing-core` + `--core-url` **added 2026-10-14, dry-run only** |
+| 4 | Recipe-from-URL and the "bring your own issue" flow; Pages "Run in the cloud" buttons. | medium | | **partly**: `scripts/issue-from-url.mjs` + `issue-pack prepare --ai-recipe` do the "bring your own issue + AI recipe" flow locally (see `docs/ISSUE-TO-LAB.md`); recipe-from-URL and the Pages button are not started |
+| 5 | Evidence host column in coverage; docs; optional separate sister repo if the cloud parts grow. | small | | not started |
 
 Sister repository or same repository? Start in this repo (`scripts/`, `docs/`, `site/`), so the data stays single-sourced. Split into
 `drupal-core-lab-cloud` only if the template or Action code outgrows it.

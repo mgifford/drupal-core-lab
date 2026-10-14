@@ -1,10 +1,15 @@
 // Bring a DDEV Coder Freeform workspace to a working cloud comparison, safe to run again.
 //   node scripts/cloud-bootstrap.mjs <slug> [--check] [--rebuild] [--no-smoke-deps] [--install-autostart]
+//                                          [--core-url=<url>] [--use-existing-core[=<path>]]
 //     --check           preflight only: report what is missing and change nothing
 //     --rebuild         run tools/compare/setup.mjs even when both sites already exist
 //     --no-smoke-deps   do not install Playwright and Chromium (the smoke check then reports its frame check as NOT RUN)
 //     --install-autostart  write ~/.coder-startup.sh so this script runs again at every workspace start (a workspace restart stops
 //                       all DDEV projects and the viewer). The template runs that file detached after Docker is ready; log: /tmp/lab-cloud-bootstrap.log
+//     --core-url=<url>  fetch core from a mirror (e.g. https://github.com/drupal/drupal.git) when git.drupalcode.org is filtered.
+//                       Also read from $LAB_CORE_URL. Forwarded to tools/compare/setup.mjs.
+//     --use-existing-core[=<path>]  seed the core commit from a checkout already in the workspace (a drupal-core issue-picker clone;
+//                       default ~/drupal-core, or $LAB_EXISTING_CORE) instead of the network. Forwarded as setup.mjs --core-from.
 // Steps: preflight, build both sites (setup.mjs, skipped when they exist), register and start the three proxy projects
 // with `ddev coder-setup`, start the sites and the viewer with the Coder origins, smoke check (scripts/cloud-smoke.mjs).
 // Prerequisite that this script cannot do: the workspace's "DDEV project names" must include drupal-compare,
@@ -21,6 +26,12 @@ const all = variants();
 const slug = args.find((a) => !a.startsWith('--')) || all[0].slug;
 const v = all.find((x) => x.slug === slug);
 if (!v) { console.error(`Unknown variant: ${slug}. Variants: ${all.map((x) => x.slug).join(', ')}`); process.exit(2); }
+
+// Filtered egress inside a workspace often cannot reach git.drupalcode.org; a mirror (--core-url/$LAB_CORE_URL) or a checkout
+// already in the workspace (--use-existing-core/$LAB_EXISTING_CORE, such as a drupal-core issue-picker clone) is the way round it.
+const coreUrl = (args.find((a) => a.startsWith('--core-url=')) || '').slice('--core-url='.length) || process.env.LAB_CORE_URL || '';
+const existingArg = args.find((a) => a === '--use-existing-core' || a.startsWith('--use-existing-core='));
+const existingCore = existingArg ? ((existingArg.includes('=') ? existingArg.slice(existingArg.indexOf('=') + 1) : '') || process.env.LAB_EXISTING_CORE || path.join(os.homedir(), 'drupal-core')) : null;
 
 const PROXY_PROJECTS = [
   { name: 'drupal-compare', dir: 'tools/compare/site' },
@@ -54,6 +65,8 @@ if (inCoder) {
 for (const p of PROXY_PROJECTS) need(have(`${p.dir}/.ddev/config.yaml`), `Missing ${p.dir}/.ddev/config.yaml (is this checkout the cloud branch?).`);
 need(have('tools/compare/site/.ddev/nginx_full/compare-cloud.conf'), 'Missing tools/compare/site/.ddev/nginx_full/compare-cloud.conf.');
 need(have('tools/compare/cloud/start-viewer.sh'), 'Missing tools/compare/cloud/start-viewer.sh.');
+if (existingCore) need(fs.existsSync(path.join(existingCore, 'HEAD')) || fs.existsSync(path.join(existingCore, '.git')),
+  `--use-existing-core: ${existingCore} is not a git checkout. Pass the path to a Drupal core clone (the issue picker uses ~/drupal-core), or drop the flag and use --core-url=<mirror>.`);
 
 if (problems.length) {
   console.error('\nPreflight failed:');
@@ -72,7 +85,12 @@ const run = (cmd, argv, opts = {}) => {
 say('Build both sites');
 const built = (env) => have(`envs/${env}/vendor/autoload.php`) && have(`envs/${env}/sites/default/settings.php`);
 if (!REBUILD && built(v.before.env) && built(v.after.env)) console.log('Both sites already exist; skipping setup.mjs (use --rebuild to run it again).');
-else run('node', [path.join(labRoot, 'tools/compare/setup.mjs'), slug]);
+else {
+  const setupArgs = [path.join(labRoot, 'tools/compare/setup.mjs'), slug];
+  if (coreUrl) setupArgs.push(`--core-url=${coreUrl}`);
+  if (existingCore) setupArgs.push(`--core-from=${existingCore}`);
+  run('node', setupArgs);
+}
 
 say('Register and start the proxy projects');
 for (const p of PROXY_PROJECTS) {
