@@ -405,7 +405,10 @@ $('goto').addEventListener('change', () => { $('goto').value = normPath($('goto'
 $('goto').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('go').click(); });
 $('login').addEventListener('click', async () => {
   status('Logging in…');
-  try { const r = await (await fetch('api/login', { method: 'POST' })).json(); markStart('before'); markStart('after'); F.before.src = r.before; F.after.src = r.after; status('Logged in. Use Go to open a page.'); }
+  // Land on the page in the address box (the variant's start page), so the test can begin at once. Drupal follows ?destination= on the one-time login redirect; it accepts only a path on the same site.
+  const dest = /^\/(?!\/)/.test($('goto').value) ? $('goto').value : '';
+  const to = (u) => dest ? `${u}?destination=${encodeURIComponent(dest)}` : u;
+  try { const r = await (await fetch('api/login', { method: 'POST' })).json(); markStart('before'); markStart('after'); F.before.src = to(r.before); F.after.src = to(r.after); status(dest ? `Logged in; opening ${dest}.` : 'Logged in. Use Go to open a page.'); }
   catch (e) { status('Login failed: ' + e); }
 });
 // Talk only to our own frames, at their own origin: a frame that has navigated elsewhere neither receives typed text and probe code nor can send us commands.
