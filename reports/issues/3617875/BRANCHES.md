@@ -10,3 +10,7 @@ use: the MR on drupal.org is the source of truth. Apply to a core worktree with
 |---|---|---|---|---|---|---|
 | `branches/3617875-better-dark-mode.patch` | issue-fork drupal-3617875 | e87837c4715 | f5e26580254 | 2026-08-27 | 5 | 2 |
 | `branches/3617875-herchels-branch.patch` | issue-fork drupal-3617875 | 71cd2aca16e | 141cdc1f0a3 | 2026-09-01 | 8 | 3 |
+
+Also present at the top level of this folder, with **no recorded provenance**: `3617875-disabled-elements-dark-mode.patch`
+(3 files, a plain `git diff` with no base, tip or date). Re-extract it from the issue fork if a patch with provenance is
+needed.

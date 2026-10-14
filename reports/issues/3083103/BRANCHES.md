@@ -11,3 +11,7 @@ use: the MR on drupal.org is the source of truth. Apply to a core worktree with
 | `branches/3083103-improve-error-accessibility.patch` | issue-fork f3083103: drupal-3083103 | ed60e948ec1 | c6836648996 | 2026-05-07 | 15 | 33 |
 | `branches/3083103-programmatically-associate-error.patch` | issue-fork drupal-3083103 | 0fddb21c553 | 9f2ee8352d4 | 2026-03-24 | 5 | 11 |
 | `branches/3083103-programmatically-associate-error-11.patch` | issue-fork drupal-3083103 | 32d4ece4454 | 496796e0a3e | 2026-04-15 | 9 | 26 |
+
+Also present at the top level of this folder, with **no recorded provenance**: `3083103-aria-error-association.patch`
+(8 files, a plain `git diff` with no base, tip or date). Re-extract it from the issue fork if a patch with provenance is
+needed.
