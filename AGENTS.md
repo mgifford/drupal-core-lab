@@ -121,6 +121,7 @@ Use only if `setup.mjs` is not usable. `core/scripts/dr install` is SQLite-only;
 | Disk tight | `node scripts/lab-env.mjs disk` shows what uses space (each environment is about 630 MB, 393 MB of it `core/node_modules`; site data is under 10 MB). `trim all --deep` frees the node_modules; `reset` costs no disk. |
 | Disk almost full (under 1 GB) | Regenerable caches first: `npm cache clean --force`, `rm -rf ~/.npm/_npx`, `docker builder prune -af`. Then see the disk row above. Check what is big with `du -sh ~/.cache/* ~/.npm`. |
 | Lint fails every JS and CSS check, or says a `.pcss.css` "does not match" | A tool did not run (usually Yarn: core pins `yarn@4` and a global Yarn 1 refuses). `scripts/lint.mjs` now reports this as ERROR and uses Corepack's Yarn. If Corepack cannot reach repo.yarnpkg.com, set `COREPACK_NPM_REGISTRY=https://registry.npmjs.org`. |
+| Lint: "Could not prepare the file list: ... GIT_DIR: unbound variable", or PHPStan "crashed because it reached configured PHP memory limit" | Fixed 2026-10-14. `ddev exec` re-quotes separate arguments, so `ddev exec bash -c '<script>'` expands variables too early; `scripts/lint.mjs` passes the script as one argument. It also passes core's `--memory-unlimited` to the check script, and reports a PHPStan memory crash as ERROR (the tool did not run), not FAIL. |
 | Before is not pristine | Only if the variant lists `before.patches` (a declared test-support change, e.g. #3604037's form_test page). |
 
 ## Changing the viewer (`tools/compare/index.html`, `serve.mjs`)

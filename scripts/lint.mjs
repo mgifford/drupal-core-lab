@@ -36,8 +36,11 @@ if (useDdev && !fs.existsSync(path.join(dir, '.ddev/config.yaml'))) fail(`${spec
 
 const sh = (cmd, argv, opts = {}) => spawnSync(cmd, argv, { cwd: dir, encoding: 'utf8', ...opts });
 const firstLine = (r) => `${r.stdout || ''}${r.stderr || ''}`.trim().split('\n')[0] || 'unknown';
-// In the web container, or on the host. `bash -c` so the environment variables and cd work the same in both.
-const inEnv = (script, opts = {}) => (useDdev ? sh('ddev', ['exec', 'bash', '-c', script], opts) : sh('bash', ['-c', script], opts));
+// In the web container, or on the host. The script goes to `ddev exec` as ONE argument: ddev runs it with its own `bash -c`
+// (with `set -u`), and re-quotes separate arguments in double quotes, so `ddev exec bash -c '<script>'` would expand
+// $GIT_DIR and the like in the outer shell, before the script's own `export` (2026-10-14: "GIT_DIR: unbound variable").
+const shArgs = (script) => (useDdev ? ['ddev', ['exec', script]] : ['bash', ['-c', script]]);
+const inEnv = (script, opts = {}) => sh(...shArgs(script), opts);
 
 // 1. Which files: every path a patch adds or changes (deleted files have nothing to check).
 const files = [...new Set(patches.flatMap((p) => {
@@ -91,8 +94,10 @@ if (prep.status !== 0) fail(`Could not prepare the file list: ${firstLine(prep)}
 const coreCommit = sh('git', ['rev-parse', '--short=11', 'HEAD']).stdout.trim();
 console.log(`\n${slug} ${side} (${spec.env}) at core ${coreCommit} plus ${patches.length} patch(es); ${files.length} file(s); ${useDdev ? 'DDEV web container' : 'host'}; PHP ${phpVer}\n`);
 const started = new Date();
-const cmdline = `${base} bash core/scripts/dev/commit-code-check.sh --cached`;
-const child = useDdev ? spawn('ddev', ['exec', 'bash', '-c', cmdline], { cwd: dir }) : spawn('bash', ['-c', cmdline], { cwd: dir });
+// --memory-unlimited (core's own option, where the script has it): PHPStan's default limit crashes it on the host.
+const memFlag = /--memory-unlimited/.test(fs.readFileSync(path.join(dir, 'core/scripts/dev/commit-code-check.sh'), 'utf8')) ? ' --memory-unlimited' : '';
+const cmdline = `${base} bash core/scripts/dev/commit-code-check.sh --cached${memFlag}`;
+const child = spawn(...shArgs(cmdline), { cwd: dir });
 let log = '';
 for (const s of [child.stdout, child.stderr]) s.on('data', (c) => { process.stdout.write(c); log += c; });
 const status = await new Promise((res) => child.on('close', (code) => res(code ?? 1)));
@@ -100,7 +105,7 @@ fs.rmSync(path.join(dir, '.lab-lint'), { recursive: true, force: true });
 const secs = Math.round((Date.now() - started) / 1000);
 // The script exits 0 on "There are no files to check" too; treat that as an error here, since we always pass files.
 // A tool that did not start makes the script fail every check after it; that is not a result about the patch.
-const toolError = (log.match(/Cannot find module[^\n]*|defines "packageManager"[^\n]*|command not found[^\n]*|PHP Fatal error[^\n]*/) || [])[0];
+const toolError = (log.match(/Cannot find module[^\n]*|defines "packageManager"[^\n]*|command not found[^\n]*|PHP Fatal error[^\n]*|PHPStan process crashed[^\n]*|Allowed memory size[^\n]*/) || [])[0];
 const ran = !/There are no files to check/.test(log) && !toolError;
 const result = /There are no files to check/.test(log) ? 'ERROR (no files reached the script)' : toolError ? `ERROR (a tool did not run: ${toolError.trim().slice(0, 120)}). Not a result about the patch` : status === 0 ? 'PASS' : 'FAIL';
 console.log(`\nResult: ${result} (exit ${status}, ${secs} s)`);
