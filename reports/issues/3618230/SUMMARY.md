@@ -2,9 +2,12 @@
 
 **DRAFT.** Written from an issue pack (Gemini (chat), from issue page #3618230 and MR !16777). A person has not yet confirmed the steps or the checks.
 
+**This is the entry point for this issue.** It links to the patch, the recipe, the evidence and the comment draft. Start with **Files and links** below, or `REPRODUCE.md` for the step-by-step commands.
+
 Issue: https://www.drupal.org/project/drupal/issues/3618230  
 Merge request: !16777  
-Fork branch: `3618230-adopt-the-ajax`
+Fork branch: `3618230-adopt-the-ajax`  
+Status snapshot: [STATUS-2026-10-08.md](STATUS-2026-10-08.md)
 
 ## Summary
 
@@ -13,6 +16,18 @@ Reported problem: ManagedFile::uploadAjaxCallback() renders status messages dire
 The merge request (!16777) alters ManagedFile::uploadAjaxCallback() to append a unique container (div with class file-upload-messages) in the widget prefix and sends error messages using MessageCommand targeted at that container via its wrapperQuerySelector.
 
 Open points: comment #10 notes that Olivero has been removed from core (#3595089) and asks whether this problem still occurs in the Default Admin theme. The issue is postponed for maintainer feedback.
+
+## Files and links
+
+| What | Where |
+|---|---|
+| How to reproduce (commands, pinned and latest) | [REPRODUCE.md](REPRODUCE.md) |
+| The patch under test | [`branches/`](branches/) · [BRANCHES.md](BRANCHES.md) |
+| Recipe (starting state) | [`recipes/repro_3618230/`](../../../recipes/repro_3618230/) (copy: [`recipe/`](recipe/)) |
+| Evidence, exact commits | [EVIDENCE.md](EVIDENCE.md) |
+| Draft comment (do not post) | [ISSUE-COMMENT-DRAFT.md](ISSUE-COMMENT-DRAFT.md) |
+| Status snapshot | [STATUS-2026-10-08.md](STATUS-2026-10-08.md) |
+| Original pack as received | [PACK.yml](PACK.yml) |
 
 ## Sources
 

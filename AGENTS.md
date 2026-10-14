@@ -138,11 +138,14 @@ Use only if `setup.mjs` is not usable. `core/scripts/dr install` is SQLite-only;
 
 One directory per issue: `reports/issues/<nid>/`.
 
+- `SUMMARY.md`: **the entry point** (written by `scripts/issue-pack.mjs`, or by hand): the issue summary, what was and was not
+  verified, and links to every file below. `scripts/index-issues.mjs` links each issue in `reports/issues/README.md` to it when it exists.
 - `REPRODUCE.md`: how to reproduce, pinned and on latest core, what each outcome means, how to re-pin.
 - `branches/*.patch` and `BRANCHES.md`: patches from the issue fork with source, tip, base, date; numbered `patch-N-*.patch` if stacked.
-- `VALIDATION.md` and `EVIDENCE.md`: how it was validated, results with exact commits. DRAFT until a person has reviewed them.
-- `STATUS-<date>.md`: related issues and review threads, dated. Statuses go stale; re-check on drupal.org.
+- `EVIDENCE.md`: how it was validated, results with exact commits. DRAFT until a person has reviewed them. (`VALIDATION.md` is the old name; rename it.)
+- `STATUS.md`: the current status snapshot; `STATUS-<date>.md` is a dated snapshot kept for history. Related issues and review threads. Statuses go stale; re-check on drupal.org.
 - `playwright/`, `screenreader/`, `compare/`: generated, dated evidence. Each summary records the core commits.
+- `variants.json`: the issue's own variants (written by a pack import). Older issues keep theirs in `tools/compare/variants.json`; `tools/compare/lib.mjs` merges both.
 - `ISSUE-COMMENT-DRAFT.md`: a draft for the human to post.
 
 Reports are Markdown plus small artifacts. Do not commit large raw scan output (multi-MB JSON); summarise it and say where it lives.

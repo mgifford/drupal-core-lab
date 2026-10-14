@@ -55,11 +55,14 @@ Not yet done: the recipe (`recipes/repro_3604037`), the variant's steps, checks 
 ## What is in this folder
 | Path | What |
 |---|---|
+| `SUMMARY.md` | **Entry point:** the issue summary and links to every file below. |
 | `branches/*.patch`, `BRANCHES.md` | Patches from the issue fork, with source, tip, base and date. |
-| `STATUS-<date>.md` | Related issues and review threads, dated. Re-check on drupal.org before relying on it. |
-| `EVIDENCE.md` | Results with exact commits. DRAFT until a person has reviewed it. |
-| `playwright/`, `compare/`, `screenreader/` | Generated evidence from the scripts. |
+| `EVIDENCE.md` | Where the results are, with exact commits. DRAFT until a person has reviewed it. |
+| `EVALUATION-2026-10-01.md` | The measurements and images taken (forced colours, RTL, contrast, PHPUnit). |
+| `STATUS-2026-10-01.md`, `STATUS-2026-10-02.md` | Related issues and review threads, dated. Re-check on drupal.org before relying on it. |
+| `playwright/`, `phpunit/` | Generated evidence from the scripts and the MR's own tests. |
 | `lint/` | Core's own code checks on the patched files (`node scripts/lint.mjs 3604037-latest`). Not accessibility evidence. |
+| `proposals/` | Follow-up patches suggested on the MR, with a README. |
 | `ISSUE-COMMENT-DRAFT.md` | A draft for a human to review and post. Nothing is posted automatically. |
 
 

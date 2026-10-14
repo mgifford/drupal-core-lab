@@ -7,8 +7,8 @@ The unit of work is **an issue**: a folder in `reports/issues/<nid>/`, a recipe 
     node scripts/new-issue.mjs <nid> --branch <issue-fork-branch> --title "Short title"
 It fetches the issue fork's branch and current core `main`, writes the branch's own changes as
 `reports/issues/<nid>/branches/<branch>.patch` (with source, tip, base and date in `BRANCHES.md`), pins the core commit the
-patch was based on, creates `REPRODUCE.md`, `EVIDENCE.md`, a status note and a comment-draft stub, a recipe stub, and the two
-variants. It needs `envs/core.git` (created by `setup.mjs`); `--depth 1500` if the branch is old; `--dry-run` shows the plan.
+patch was based on, creates `REPRODUCE.md`, `EVIDENCE.md`, a `STATUS.md` snapshot and a comment-draft stub, a recipe stub, and the two
+variants. Add a `SUMMARY.md` — the entry point a reader opens first (`docs/ISSUE-PACK.md`). It needs `envs/core.git` (created by `setup.mjs`); `--depth 1500` if the branch is old; `--dry-run` shows the plan.
 The issue's own drupal.org page lists the fork branch name (the MR source branch).
 
 ## 2. Describe how to reproduce it
@@ -38,7 +38,7 @@ give them the same `before.env`. Keep two or three DDEV projects running at most
 ## 4. Script it and record evidence
 Copy `tools/playwright/walkthrough.mjs` and `flow.mjs` and adapt the selectors (the #3619127 versions are the pattern: real input,
 mouse then keyboard-only, axe at each stage). Run it and `screenreader.mjs`. They write dated folders under
-`reports/issues/<nid>/`. Fill in `EVIDENCE.md` (exact commits) and `STATUS-<date>.md`. Nothing is posted to drupal.org by any
+`reports/issues/<nid>/`. Fill in `EVIDENCE.md` (exact commits) and a `STATUS.md` snapshot (keep older ones as `STATUS-<date>.md`). Nothing is posted to drupal.org by any
 script; `ISSUE-COMMENT-DRAFT.md` is a draft for a person to review and post.
 
 ## 4b. Record what has and has not been tested
@@ -53,7 +53,7 @@ viewer logs from people who tested by hand in `reports/issues/<nid>/manual/` and
 The zip holds the viewer, recipe, patches, steps, checks and evidence, and a setup command; it does not contain Drupal core.
 
 ## 6. Come back later, including on updated Drupal core
-Everything is in `reports/issues/<nid>/REPRODUCE.md`. In short:
+Everything is in `reports/issues/<nid>/`: start with `SUMMARY.md` (the entry point), then `REPRODUCE.md`. In short:
     node tools/compare/setup.mjs <nid>-pinned  --check-patches   # still applies to the pinned core?
     node tools/compare/setup.mjs <nid>-latest  --check-patches   # ...and to current core main?
     node tools/compare/setup.mjs <nid>-latest                    # build on current main

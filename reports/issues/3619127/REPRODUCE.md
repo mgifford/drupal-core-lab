@@ -73,8 +73,11 @@ See `FINDINGS-2026-10-01.md` (including an upstream finding that is not caused b
 ## Folder map
 | Path | What |
 |---|---|
+| `SUMMARY.md` | Entry point: the issue summary and links to every file below. |
 | `branches/`, `BRANCHES.md` | Patches from the issue forks with source, tip, base, date. |
-| `patch-0/1/2-*.patch`, `VALIDATION.md` | The stacked patches and how they were validated. |
-| `FINDINGS-2026-10-01.md`, `STATUS-2026-10-01.md` | Findings and a dated snapshot of related issues. |
+| `patch-0/1/2-*.patch` | The stacked follow-up patches (referenced by the variants). |
+| `EVIDENCE.md` | How the change was validated and the results. DRAFT until a person has reviewed it. |
+| `FINDINGS-2026-10-01.md`, `STATUS-2026-10-01.md`, `STATUS-2026-10-02.md` | Findings and dated snapshots of related issues. |
 | `playwright/`, `screenreader/`, `compare/` | Generated evidence (summary, results, screenshots). |
+| `COVERAGE.md` | The browser and colour-mode matrix (`node scripts/coverage.mjs 3619127`). |
 | `dark-mode-accent/` | Unconfirmed material, filed here by file overlap (see `BRANCHES.md`). |
