@@ -1,7 +1,7 @@
 # Reproduce #3618230: Adopt the ajax MessageCommand for file uploads
 
 Issue: https://www.drupal.org/project/drupal/issues/3618230
-Pinned core: `f5e265802542` (the commit the pack was imported against; nothing has been run on it yet). Last verified: never.
+Pinned core: `f5e265802542` (the commit the pack was imported against; nothing has been run on it yet). Last verified: 2026-10-14 on the latest variant (`main` `3b94128e929`), scripted; see EVIDENCE.md.
 
 ## The problem in one paragraph
 When a file upload fails server-side validation, the upload error is rendered into the replaced file widget and sent in an insert AJAX command instead of the AJAX MessageCommand (issue summary). MR !16777 adds a message wrapper inside the widget and delivers the messages with MessageCommand. Which WCAG criterion applies has not been established.
@@ -15,6 +15,7 @@ When a file upload fails server-side validation, the upload error is rendered in
     node tools/compare/setup.mjs 3618230-pinned --check-patches    # (use 3618230-latest to check the current core)
     node tools/compare/setup.mjs 3618230-latest
     node tools/playwright/walkthrough.mjs 3618230-latest
+    node tools/playwright/evaluate-3618230.mjs 3618230-latest   # the detailed check: theme, AJAX commands, Hide button, announcements
 
 ## If the result is not what you expect
 | What you see | What it probably means | What to do |
