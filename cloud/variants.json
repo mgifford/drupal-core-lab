@@ -847,6 +847,83 @@
       }
     },
     {
+      "slug": "3618405-pinned",
+      "issue": "3618405",
+      "label": "#3618405: Purpose of views exposed filters form is unclear when zoomed in, pinned core",
+      "description": "MR !17043 replaces the exposed filter form's screen-reader-only aria-label with a visible <h2> heading (\"Filter <view title>\") in the Default Admin theme. Compare /admin/content before and after.",
+      "steps": [],
+      "expected": "After: a visible <h2>Filter Content</h2> heading sits above the exposed filter fields on /admin/content, the heading appears in the screen-reader heading rotor, and the form no longer carries an aria-label. Before: no visible heading; the form carries only an aria-label.",
+      "actual": "TODO after running",
+      "observe": [
+        "Is a visible heading shown above the exposed filters on /admin/content (after) and absent (before)?",
+        "Does the heading appear in the screen-reader heading list, and is there no longer a duplicated aria-label announcement?",
+        "Heading level/style: the h2 is sized as an h3 (open question in the issue). Note any heading-hierarchy concern.",
+        "Does the patched CSS affect only the exposed form, or does the h2 rule leak to other headings?"
+      ],
+      "checks": [],
+      "pages": [
+        "/admin/content"
+      ]
+    },
+    {
+      "slug": "3618405-latest",
+      "issue": "3618405",
+      "label": "#3618405: same steps against the LATEST core main",
+      "description": "MR !17043 replaces the exposed filter form's screen-reader-only aria-label with a visible <h2> heading (\"Filter <view title>\") in the Default Admin theme. Compare /admin/content before and after.",
+      "steps": [],
+      "expected": "After: a visible <h2>Filter Content</h2> heading sits above the exposed filter fields on /admin/content, the heading appears in the screen-reader heading rotor, and the form no longer carries an aria-label. Before: no visible heading; the form carries only an aria-label.",
+      "actual": "TODO after running",
+      "observe": [
+        "Is a visible heading shown above the exposed filters on /admin/content (after) and absent (before)?",
+        "Does the heading appear in the screen-reader heading list, and is there no longer a duplicated aria-label announcement?",
+        "Heading level/style: the h2 is sized as an h3 (open question in the issue). Note any heading-hierarchy concern.",
+        "Does the patched CSS affect only the exposed form, or does the h2 rule leak to other headings?"
+      ],
+      "checks": [],
+      "pages": [
+        "/admin/content"
+      ]
+    },
+    {
+      "slug": "3273806-latest",
+      "issue": "3273806",
+      "label": "#3273806: Toolbar orientation icon contrast (core main + Toolbar 2.x)",
+      "description": "Toolbar (contrib) orientation toggle icon fails WCAG 1.4.11 (1.7:1). The After side carries the fix: rest icon #bebebe -> #787878 plus a :focus-visible outline. Open the admin toolbar's Manage tray and look at the orientation (push) toggle icon.",
+      "steps": [
+        {
+          "text": "Core main with the contrib Toolbar module (2.x @ 40434c42) installed.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /admin/content, then click \"Manage\" in the toolbar to open its tray.",
+          "how": "mirror"
+        },
+        {
+          "text": "Look at the orientation toggle (the push/arrow icon at the end of the toolbar) and Tab to it.",
+          "how": "each",
+          "lookFor": "After: the icon is clearly darker (passes 3:1) and keyboard focus shows a visible outline. Before: the icon is faint (1.7:1) and focus is barely indicated."
+        }
+      ],
+      "expected": "After: the orientation toggle icon is #787878 (4.05:1) and a :focus-visible outline appears on keyboard focus. Before: the icon is #bebebe (1.7:1) and the only focus cue was a subtle icon darkening (outline suppressed).",
+      "actual": "TODO after running",
+      "observe": [
+        "Is the orientation toggle icon clearly visible against the toolbar background (after) vs faint (before)?",
+        "On keyboard focus, is there a visible focus indicator on the toggle (after = outline; before = none/subtle)?",
+        "Any regression in the toolbar layout or other toolbar icons?"
+      ],
+      "checks": [
+        {
+          "label": "Setup reached: the Toolbar module is installed (toolbar bar present)",
+          "probe": "!!document.querySelector('#toolbar-administration, .toolbar-oriented, .toolbar')",
+          "expect": true,
+          "kind": "precondition"
+        }
+      ],
+      "pages": [
+        "/admin/content"
+      ]
+    },
+    {
       "slug": "3415961-pinned",
       "issue": "3415961",
       "label": "#3415961: [drupalMedia] Using the Insert Media button causes the window to scroll to the bottom of the page, pinned core",

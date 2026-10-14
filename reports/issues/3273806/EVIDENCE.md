@@ -33,9 +33,20 @@ The focus ring uses `--admin-color-focus` where available (light/dark-aware unde
 - Across base + claro + default_admin theme copies, source `.pcss.css` and compiled `.css`.
 - The darker icon assets already exist in the module (`icons/787878/push-*.svg`), so no new assets.
 
+## Live DDEV before/after (core main + Toolbar 2.x)
+
+Built with the lab's contrib support: variant `3273806-latest` places Toolbar `2.x` (@ 40434c42) into `modules/contrib/toolbar` in both envs, applies the fix to the After side (`contribPatches`), and the `repro_3273806` recipe enables Toolbar and uninstalls Navigation (core main's default) so the classic toolbar renders. Measured on `/admin/content` with `tools/playwright/evaluate-3273806.mjs` (icon colour from the toggle's `::before`; focus outline via CDP forcing `:focus` + `:focus-visible`):
+
+| | Before (`baseline-3273806`) | After (`issue-3273806`) |
+|---|---|---|
+| Orientation toggle rest icon | `#bebebe` (1.7:1) ✗ | `#787878` (4.05:1) ✓ |
+| Keyboard focus outline | **none** (UA outline suppressed by `.toolbar-lining button:focus { outline: none }`) | **2px solid `#007dfa`** (the `--admin-color-focus` token resolved) ✓ |
+
+So the live toolbar confirms both the contrast fix and that the Before had no focus indicator — the regression the `:focus-visible` rule prevents. Evidence: `playwright/2026-10-14T20-10-19-984Z-evaluate/`.
+
 ## Not yet verified
-- Full DDEV before/after on a running Drupal core `main` + Toolbar `2.x` site (install the module, view the real toolbar, axe color-contrast scan + screenshots). This is the agreed next step.
-- Real screen-reader / forced-colours passes (not applicable to this colour fix; forced-colors is a separate concern).
+- A crisp screenshot of the rendered toggle glyph itself (it is in the DOM and measured live, but the tray state made the element screenshot unreliable; the full-toolbar shots and the rendered proof cover the visual).
+- Real screen-reader / forced-colours passes (not applicable to this colour fix; forced-colors is a separate concern tracked in #3619155).
 
 ## Notes
 - Other toolbar icons also use `#bebebe` (hamburger, person, pencil, questionmark, chevron-disc). They are **out of scope** for this issue (which is specifically the direction/orientation icon) but may warrant a follow-up contrast review.
