@@ -1,0 +1,26 @@
+# Known pitfalls (each cost real time; check here before debugging)
+
+Moved out of `AGENTS.md` on 2026-10-15 so that file, which every session loads, stays short (AI-usage option C: scope the starting context). The text is unchanged except where noted.
+Search it for the error text first: `grep -n -i "<text>" docs/PITFALLS.md`.
+
+
+| Symptom | Cause and fix |
+|---|---|
+| `ddev-router failed to become ready` | DDEV's shared router is flaky. Re-run: `setup.mjs` and `lab-env.mjs start` retry and resume. |
+| Frames blank, 502, `ECONNRESET` | Sites still starting, or the router reset plain HTTP. The proxies use HTTPS to the router (port 443); the viewer shows a "still loading" dialog and recovers. Check `node scripts/doctor.mjs <slug>`. |
+| "No space left on device", odd failures | Disk. `doctor` shows free space. Free it: delete an unused variant (`lab-env.mjs delete <slug> --yes`), `docker builder prune`, remove `~/Library/Caches/ms-playwright` (then `cd tools/playwright && npx playwright install chromium`). |
+| A "fix" check fails on both sides | Script-generated clicks do not trigger focus behaviour. Use trusted input (a real click, or Playwright `click()`); Mirror replays script clicks, so turn it off for the final step. |
+| `ddev phpunit` errors before any assertion | `core/.env` missing; `setup.mjs` copies it from `.ddev/core-dev/.env`. |
+| Firefox will not launch under Playwright here | Recorded as blocked in COVERAGE, never as a pass. |
+| `fetch` to a DDEV site ignores a `Host` header | Use `node:http`/`https` (see `envFetch` in `tools/compare/lib.mjs`). |
+| `ddev describe` freezes the viewer | It is synchronous; use the cached/async `envInfoAsync`. |
+| macOS: no `timeout`; zsh does not word-split `$var` | Use real exit codes; run multi-word variables through `bash`. |
+| The built-in browser pane shows blank frames or `ERR_BLOCKED_BY_CLIENT` | It blocks cross-site frames and requests to some hosts. Verify with Playwright (`tools/playwright/mirror-drag.mjs` is a model), not the pane. |
+| Adding a language with a recipe crashes (`setWeight() on null`) | A recipe that installs the Language module does not create its locked languages (und, zxx). Use `scripts/lab-site.sh language <env> <code>` (API script `scripts/add-language.php`); it also sets the `/<code>` prefix. |
+| Disk tight | `node scripts/lab-env.mjs disk` shows what uses space (each environment is about 630 MB, 393 MB of it `core/node_modules`; site data is under 10 MB). `trim all --deep` frees the node_modules; `reset` costs no disk. |
+| Disk almost full (under 1 GB) | Regenerable caches first: `npm cache clean --force`, `rm -rf ~/.npm/_npx`, `docker builder prune -af`. Then see the disk row above. Check what is big with `du -sh ~/.cache/* ~/.npm`. |
+| Lint fails every JS and CSS check, or says a `.pcss.css` "does not match" | A tool did not run (usually Yarn: core pins `yarn@4` and a global Yarn 1 refuses). `scripts/lint.mjs` now reports this as ERROR and uses Corepack's Yarn. If Corepack cannot reach repo.yarnpkg.com, set `COREPACK_NPM_REGISTRY=https://registry.npmjs.org`. |
+| `lab-env.mjs stop` (or `trim`, `delete`) printed nothing and nothing stopped | Run from a git worktree (`.claude/worktrees/<name>`): environments live in the main checkout's `envs/`. Fixed 2026-10-14: it now exits 1 and names the main checkout to run it from. |
+| Lint: "Could not prepare the file list: ... GIT_DIR: unbound variable", or PHPStan "crashed because it reached configured PHP memory limit" | Fixed 2026-10-14. `ddev exec` re-quotes separate arguments, so `ddev exec bash -c '<script>'` expands variables too early; `scripts/lint.mjs` passes the script as one argument. It also passes core's `--memory-unlimited` to the check script, and reports a PHPStan memory crash as ERROR (the tool did not run), not FAIL. |
+| Before is not pristine | Only if the variant lists `before.patches` (a declared test-support change, e.g. #3604037's form_test page). |
+| `BLOCKED: <env> does not match its patches` (setup, exit 4; or a run) | Patches are tracked by content (`tools/compare/patch-state.mjs`): the patch file changed (a new MR push) or a patched file was edited. Nothing was changed. `setup.mjs <slug> --refresh-patches` restores the files the patches touch (your edits in them are saved to `lab-patches/backup-*.diff` in the checkout's git dir) and applies the current patches. |

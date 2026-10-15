@@ -38,7 +38,7 @@ green banner means the old version fails where the fix applies, the new one pass
 control, including the optional accessibility and Lighthouse panels (off until you turn them on).
 
 ## 7. Keep your results
-Write what you found in `reports/issues/<nid>/` (see `AGENTS.md`, "Where results go"). A scripted replay with real input:
+Write what you found in `reports/issues/<nid>/` (see `docs/RESULTS-LAYOUT.md`). A scripted replay with real input:
 
     node tools/playwright/walkthrough.mjs 3619127-pinned      # specific to #3619127 today
 
@@ -47,7 +47,7 @@ Write what you found in `reports/issues/<nid>/` (see `AGENTS.md`, "Where results
     node scripts/lab-env.mjs delete 3604037-latest --yes      # removes the two sites and their disk use; the reports stay
 
 ## If something goes wrong
-Run `node scripts/doctor.mjs <slug>` first, then look at the pitfalls table in `AGENTS.md`.
+Run `node scripts/doctor.mjs <slug>` first, then look at `docs/PITFALLS.md`.
 
 ## Your own issue
 `node scripts/new-issue.mjs <nid> --branch <fork-branch>` scaffolds everything; `docs/NEW-ISSUE.md` walks through it.

@@ -101,3 +101,42 @@ test('session-usage --sequences: a pair that repeats is ranked by the context it
   assert.equal(sequences.totalSteps, 8); assert.match(r.stdout, /Repeated call sequences across 1 sessions/);
   assert.equal(JSON.parse(fs.readFileSync(json, 'utf8')).sessions.some((s) => 'steps' in s), false, 'per-call steps are not written to the JSON');
 });
+
+// Option C: the starting context, as the client counts it. A fake `claude` stands in for the command line client.
+const FAKE_CONTEXT = `## Context Usage
+
+**Model:** claude-test  
+**Tokens:** 28.6k / 1m (3%)
+
+### Estimated usage by category
+
+| Category | Tokens | Percentage |
+|----------|--------|------------|
+| System prompt | 2.4k | 0.2% |
+| System tools | 8.6k | 0.9% |
+| System tools (deferred) | 19.9k | 2.0% |
+| Memory files | 5.6k | 0.6% |
+| Skills | 10k | 1.0% |
+| Messages | 10 | 0.0% |
+| Free space | 938.4k | 93.8% |
+
+### Memory Files
+
+| Type | Path | Tokens |
+|------|------|--------|
+| User | /home/x/.ai/INSTRUCTIONS.md | 2.4k |
+| Project | ${labRoot}/AGENTS.md | 2.9k |
+`;
+
+test('context-size: reads the client\'s own category table and memory files; a client that cannot answer is an error', () => {
+  const bin = path.join(tmp, 'fakeclaude'); fs.mkdirSync(bin, { recursive: true });
+  fs.writeFileSync(path.join(bin, 'claude'), `#!/bin/sh\ncat <<'EOF_CTX'\n${FAKE_CONTEXT}EOF_CTX\n`, { mode: 0o755 });
+  const json = path.join(tmp, 'ctx.json');
+  const r = node('scripts/context-size.mjs', ['--json', json], { env: { ...process.env, PATH: `${bin}:${process.env.PATH}` } }); assert.equal(r.status, 0, r.stderr);
+  const j = JSON.parse(fs.readFileSync(json, 'utf8'));
+  assert.equal(j.total, 28600); assert.equal(j.model, 'claude-test'); assert.equal(j.categories['System prompt'], 2400); assert.equal(j.categories.Skills, 10000); assert.equal(j.categories.Messages, 10);
+  assert.deepEqual(j.memory.map((m) => [m.type, m.tokens]), [['User', 2400], ['Project', 2900]]); assert.equal(j.memory[1].path, './AGENTS.md', 'the checkout path is shortened');
+  assert.match(r.stdout, /Starting context[^\n]*28600 tokens/);
+  fs.writeFileSync(path.join(bin, 'claude'), '#!/bin/sh\necho "not logged in" >&2\nexit 1\n', { mode: 0o755 });
+  const bad = node('scripts/context-size.mjs', [], { env: { ...process.env, PATH: `${bin}:${process.env.PATH}` } }); assert.equal(bad.status, 3); assert.match(bad.stderr, /Could not read \/context/);
+});

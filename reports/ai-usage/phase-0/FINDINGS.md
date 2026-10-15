@@ -124,3 +124,11 @@ Tokenizer counts (no offline tokenizer; the provider's counting API needs a key 
 and billing; how often repairs happen in real use; per-stage attribution inside a session (transcripts give tool categories, not stages);
 time to a verified comparison; the billing mode behind the client's cost estimates. The current session's transcript was still being
 written when sampled, so its row is partial.
+
+## Corrections (2026-10-15, option C)
+
+- Section 2 said the repository controls "under a tenth of the starting context (`AGENTS.md` ... about 6%)". That used bytes/4. The client's own count (`node scripts/context-size.mjs`, the
+  `/context` command) is **8.6k tokens for `AGENTS.md`, a quarter of the command-line client's 34.3k starting context**. It was the largest block the repository controls.
+- Section 6, slice C, said the larger saving was in the owner's skill and plugin configuration. Tested: scoping skills with `skillOverrides` moved tokens from the skill listing into inline tool schemas and the
+  total did not change (`reports/ai-usage/option-c/RESULTS.md`). That part of C is withdrawn.
+

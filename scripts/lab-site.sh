@@ -9,7 +9,7 @@
 # recipe, for setup that recipes cannot express (they only install, never uninstall).
 #
 # <env> is a directory under envs/ (for example baseline-main). Needs the DDEV add-on
-# (see AGENTS.md). Both environments of a comparison should be given the same recipe.
+# (see docs/ENVIRONMENTS.md). Both environments of a comparison should be given the same recipe.
 set -euo pipefail
 lab="$(cd "$(dirname "$0")/.." && pwd)"
 cmd="${1:-}"; env="${2:-}"; recipe="${3:-ife_sidebar_repro}"
