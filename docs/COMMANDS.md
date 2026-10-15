@@ -35,6 +35,7 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/issue-pack.mjs prepare <issue> --compact   # the pack prompt carries the compact brief instead of the whole thread, when that is smaller
     node scripts/model-eval.mjs plan | run --yes [--trials 3] [--only intake|repair] [--cases V3,...] [--append] | report   # a small PAIRED model evaluation (compact brief against full thread; targeted edit against whole-file repair): calls a model and spends allowance, so run needs --yes; plan calls nothing
     node scripts/intake-benchmark.mjs [--json <file>]   # bytes of the pack prompt, full and compact, on recorded fixtures (mechanical, no model)
+    node scripts/ready-to-push.mjs [--allow-behind] [--install-hook]   # before a push: fetches the base, STOPS if the branch is behind it (CI tests the merge), then runs selftest; --install-hook makes it the local pre-push hook
     node scripts/lab-config.mjs [auto_fix.enabled]       # the repository's settings (lab.config.yml); with a key, only its value; exit 2 if the file is invalid
     node scripts/patch-change.mjs check [--base <ref>]   # patch files changed since origin/main (or --base) that have no record: exit 1
     node scripts/patch-change.mjs record <patch> --by <who> --reason "<why>"   # keep the version the base had in original-patches/ and add a row to reports/issues/<nid>/PATCH-CHANGES.md

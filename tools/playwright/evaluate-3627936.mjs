@@ -24,7 +24,9 @@ const r2 = (n) => (n == null ? null : Math.round(n * 100) / 100);
 // Serialised into the browser: facts about one table row. Backgrounds are composited down the ancestors, so a transparent row reports what is seen.
 const measureRow = (sel) => {
   const row = document.querySelector(sel); if (!row) return null;
-  const parse = (s) => { const m = String(s).match(/[\d.]+/g); if (!m) return null; const n = m.map(Number); return [n[0], n[1], n[2], n.length > 3 ? n[3] : 1]; };
+  // Any CSS colour syntax (rgb with a percentage alpha, color-mix, oklch) becomes exact sRGB through a canvas, instead of being parsed by hand.
+  const cv = document.createElement('canvas'); cv.width = cv.height = 1; const cx = cv.getContext('2d', { willReadFrequently: true });
+  const parse = (s) => { cx.clearRect(0, 0, 1, 1); cx.fillStyle = '#000'; cx.fillStyle = String(s); cx.fillRect(0, 0, 1, 1); const d = cx.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2], d[3] / 255]; };
   const over = (top, under) => { const a = top[3]; return [0, 1, 2].map((i) => top[i] * a + under[i] * (1 - a)).concat([1]); };
   const chain = []; for (let e = row; e; e = e.parentElement) chain.push(e);
   let bg = [255, 255, 255, 1]; const dark = matchMedia('(prefers-color-scheme: dark)').matches; if (dark) bg = [18, 18, 18, 1];
@@ -41,7 +43,6 @@ const measureRow = (sel) => {
 
 async function runSide(side) {
   const { page, base, rec } = await openSide(run, side);
-  const loadSpeech = await rec.collect();
   // make Stage the active workspace the way a person does: the activation form, a real click on its button
   await page.goto(`${base}/admin/config/workflow/workspaces/manage/stage/activate`, { waitUntil: 'load' });
   const confirm = page.locator('form input[type="submit"], form button[type="submit"]').first();
@@ -58,7 +59,6 @@ async function runSide(side) {
   const axe = await axeScan(page);
   const table = await page.evaluate(() => [...document.querySelectorAll('table tbody tr')].map((r) => `${r.className || '(no class)'}: ${r.textContent.replace(/\s+/g, ' ').trim().slice(0, 90)}`));
   await rec.close(out);
-  rec.speech.announce.unshift(...loadSpeech.announce); rec.speech.live.unshift(...loadSpeech.live);
   const m = (r) => (r ? { bg: r.bg.slice(0, 3).map((x) => Math.round(x)), text: r.text.slice(0, 3).map((x) => Math.round(x)) } : null);
   const textContrast = (r) => (r ? r2(contrast(r.text, r.bg)) : null);
   return Object.assign(rec, { theme, colorScheme, confirmLabel: String(confirmLabel).trim(), active, other, hover, axe, table,
@@ -101,7 +101,8 @@ const reproduced = dark ? B.active && lum(B.active.bg) > 0.5 && B.activeTextCont
 const fixed = dark ? A.active && lum(A.active.bg) < 0.3 && A.activeTextContrast >= 4.5 : null;
 md += dark ? `\n**${reproduced ? 'Reproduced on Before' : 'NOT reproduced on Before'}: the active row is ${reproduced ? 'a light bar with text at ' + ratio(B.activeTextContrast) : 'not light with unreadable text'}. ${fixed ? 'After reads correctly.' : 'After is still wrong (or has no patch yet).'}**\n` : `\nLight scheme: recorded to show what must not change.\n`;
 md += `\n---\nAutomated evidence is a DRAFT: colours are computed from the browser's styles, not seen by a person, and a screen reader and a keyboard pass are not covered (this page has no new interaction).\n`;
-results.verdict = !dark ? (unexpected === 0 ? 'reproduced-and-fixed' : 'mixed') : (!reproduced ? 'not-reproduced' : fixed ? (unexpected === 0 ? 'reproduced-and-fixed' : 'mixed') : 'reproduced-not-fixed');
+// light and forced colours: the problem is not there on Before, so nothing is "reproduced"; the run says whether After changed anything it should not
+results.verdict = !dark ? (unexpected === 0 ? 'not-reproduced' : 'mixed') : (!reproduced ? 'not-reproduced' : fixed ? (unexpected === 0 ? 'reproduced-and-fixed' : 'mixed') : 'reproduced-not-fixed');
 results.unexpected = unexpected;
 const where = writeRun(run, results, md);
 console.log(`\n${results.verdict}${unexpected ? ` (${unexpected} judged row(s) not as expected)` : ''}: ${where}/SUMMARY.md`);
