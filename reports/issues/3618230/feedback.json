@@ -1,0 +1,200 @@
+[
+  {
+    "id": "FB-001",
+    "created": "2026-10-15",
+    "source": "the owner's manual check, reports/issues/3618230/EVIDENCE.md (2026-10-14): 'Not done in this check: ... the After input's aria-invalid'",
+    "action": "Check that the file input keeps its error state (aria-invalid and aria-describedby) after the failed upload with the MR, as it does without it",
+    "expected": "After: the input has aria-invalid=true and an aria-describedby, the same as Before",
+    "observed": "On Before and After the file input has aria-invalid=true and one aria-describedby with the same text ('One file only. 1 KB limit. Allowed types: txt.'); the MR keeps the field's error state. Added as a regression test (testFieldKeepsErrorState): passes on both sides.",
+    "status": "resolved",
+    "run": {
+      "name": "2026-10-15T15-07-14-458Z-chromium-light-1280x900",
+      "when": "2026-10-15T15:07:17.299Z",
+      "variant": "3618230-pilot",
+      "record": "current",
+      "revision": {
+        "recorded": true,
+        "patches": {
+          "before": [],
+          "after": [
+            {
+              "path": "reports/issues/3618230/branches/3618230-adopt-the-ajax.patch",
+              "sha256": "912ccc9587481d0f66e35af86638df4d5b8ab3b759f9469bda7d1e16e3d3154f"
+            }
+          ]
+        },
+        "contrib": null,
+        "recipe": "e743844467f73f19a1bbb3f9d3323c703c7ba700afc4a610144bf5a41d793ff9",
+        "commits": {
+          "before": "3b94128e 2026-10-14",
+          "after": "3b94128e 2026-10-14"
+        }
+      }
+    },
+    "answer": {
+      "when": "2026-10-15",
+      "outcome": "met",
+      "run": {
+        "name": "2026-10-15T15-10-35-411Z-chromium-light-1280x900",
+        "when": "2026-10-15T15:10:38.426Z",
+        "variant": "3618230-pilot",
+        "record": "current",
+        "revision": {
+          "recorded": true,
+          "patches": {
+            "before": [],
+            "after": [
+              {
+                "path": "reports/issues/3618230/branches/3618230-adopt-the-ajax.patch",
+                "sha256": "912ccc9587481d0f66e35af86638df4d5b8ab3b759f9469bda7d1e16e3d3154f"
+              }
+            ]
+          },
+          "contrib": null,
+          "recipe": "e743844467f73f19a1bbb3f9d3323c703c7ba700afc4a610144bf5a41d793ff9",
+          "commits": {
+            "before": "3b94128e 2026-10-14",
+            "after": "3b94128e 2026-10-14"
+          }
+        }
+      },
+      "revisedPatches": [
+        {
+          "path": "reports/issues/3618230/branches/3618230-tests-messagecommand.patch",
+          "sha256": "0fffa2d2f6665c33b96666cfe40a4dc356e17ce347743c063849b5e842318989"
+        }
+      ],
+      "note": "",
+      "superseded": {
+        "run": "2026-10-15T15-07-14-458Z-chromium-light-1280x900",
+        "reason": "run 3 repeats every check of run 1 and adds the file input's error state and the real-keyboard Hide check (FB-001, FB-002)"
+      }
+    }
+  },
+  {
+    "id": "FB-002",
+    "created": "2026-10-15",
+    "source": "the owner's manual check, reports/issues/3618230/EVIDENCE.md (2026-10-14): 'Not done in this check: Hide by keyboard'",
+    "action": "With real keys, Tab to the Hide button and press Enter; note whether the error goes and where focus lands",
+    "expected": "After: Tab reaches the Hide button, Enter removes the error, and focus lands on something the person can continue from (Before has no button)",
+    "observed": "Real keys: Tab reaches the Hide button on After after 21 presses (Before has no button: 60 presses found none); Enter hides the error (not visible within the poll); focus stays on the Hide button, which is now faded out, and the dismissed message stays in the accessibility tree. Whether that is acceptable focus behaviour is for a person to judge.",
+    "status": "needs-person",
+    "run": {
+      "name": "2026-10-15T15-07-14-458Z-chromium-light-1280x900",
+      "when": "2026-10-15T15:07:17.299Z",
+      "variant": "3618230-pilot",
+      "record": "current",
+      "revision": {
+        "recorded": true,
+        "patches": {
+          "before": [],
+          "after": [
+            {
+              "path": "reports/issues/3618230/branches/3618230-adopt-the-ajax.patch",
+              "sha256": "912ccc9587481d0f66e35af86638df4d5b8ab3b759f9469bda7d1e16e3d3154f"
+            }
+          ]
+        },
+        "contrib": null,
+        "recipe": "e743844467f73f19a1bbb3f9d3323c703c7ba700afc4a610144bf5a41d793ff9",
+        "commits": {
+          "before": "3b94128e 2026-10-14",
+          "after": "3b94128e 2026-10-14"
+        }
+      }
+    },
+    "answer": {
+      "when": "2026-10-15",
+      "outcome": "needs-person",
+      "run": {
+        "name": "2026-10-15T15-10-35-411Z-chromium-light-1280x900",
+        "when": "2026-10-15T15:10:38.426Z",
+        "variant": "3618230-pilot",
+        "record": "current",
+        "revision": {
+          "recorded": true,
+          "patches": {
+            "before": [],
+            "after": [
+              {
+                "path": "reports/issues/3618230/branches/3618230-adopt-the-ajax.patch",
+                "sha256": "912ccc9587481d0f66e35af86638df4d5b8ab3b759f9469bda7d1e16e3d3154f"
+              }
+            ]
+          },
+          "contrib": null,
+          "recipe": "e743844467f73f19a1bbb3f9d3323c703c7ba700afc4a610144bf5a41d793ff9",
+          "commits": {
+            "before": "3b94128e 2026-10-14",
+            "after": "3b94128e 2026-10-14"
+          }
+        }
+      },
+      "revisedPatches": [],
+      "note": ""
+    }
+  },
+  {
+    "id": "FB-003",
+    "created": "2026-10-15",
+    "source": "reports/issues/3618230/SUMMARY.md, Not verified (2026-10-14): a double announcement is possible and untested",
+    "action": "Decide whether a real screen reader announces the error twice (role=alert on the message and Drupal.announce() both fire)",
+    "expected": "The error is announced once",
+    "observed": "Synthetic only: the error text reached 2 announcement channels on After (the role=alert live region and Drupal.announce(), assertive) and 1 on Before (the live region). What a real screen reader speaks, once or twice, is not known.",
+    "status": "needs-person",
+    "run": {
+      "name": "2026-10-15T15-07-14-458Z-chromium-light-1280x900",
+      "when": "2026-10-15T15:07:17.299Z",
+      "variant": "3618230-pilot",
+      "record": "current",
+      "revision": {
+        "recorded": true,
+        "patches": {
+          "before": [],
+          "after": [
+            {
+              "path": "reports/issues/3618230/branches/3618230-adopt-the-ajax.patch",
+              "sha256": "912ccc9587481d0f66e35af86638df4d5b8ab3b759f9469bda7d1e16e3d3154f"
+            }
+          ]
+        },
+        "contrib": null,
+        "recipe": "e743844467f73f19a1bbb3f9d3323c703c7ba700afc4a610144bf5a41d793ff9",
+        "commits": {
+          "before": "3b94128e 2026-10-14",
+          "after": "3b94128e 2026-10-14"
+        }
+      }
+    },
+    "answer": {
+      "when": "2026-10-15",
+      "outcome": "needs-person",
+      "run": {
+        "name": "2026-10-15T15-10-35-411Z-chromium-light-1280x900",
+        "when": "2026-10-15T15:10:38.426Z",
+        "variant": "3618230-pilot",
+        "record": "current",
+        "revision": {
+          "recorded": true,
+          "patches": {
+            "before": [],
+            "after": [
+              {
+                "path": "reports/issues/3618230/branches/3618230-adopt-the-ajax.patch",
+                "sha256": "912ccc9587481d0f66e35af86638df4d5b8ab3b759f9469bda7d1e16e3d3154f"
+              }
+            ]
+          },
+          "contrib": null,
+          "recipe": "e743844467f73f19a1bbb3f9d3323c703c7ba700afc4a610144bf5a41d793ff9",
+          "commits": {
+            "before": "3b94128e 2026-10-14",
+            "after": "3b94128e 2026-10-14"
+          }
+        }
+      },
+      "revisedPatches": [],
+      "note": ""
+    }
+  }
+]

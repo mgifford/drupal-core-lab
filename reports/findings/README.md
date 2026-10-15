@@ -8,3 +8,10 @@ Each entry is a lead until a person confirms it. Nothing here has been posted to
 | Id | Found | While testing | Where | What | Source | WCAG | Evidence |
 |---|---|---|---|---|---|---|---|
 | F001 | 2026-10-14 | #3618230 | Default Admin status message, Hide button (any page with a dismissible message) | After Hide, the message only gets visually-hidden: keyboard focus stays on the now invisible Hide button, and screen readers still read the dismissed message | keyboard | 2.4.7 (possible) | reports/issues/3618230/EVIDENCE.md (Adjacent barrier) · core/themes/default_admin/migration/js/messages.js:72 |
+
+## duplicate (2)
+
+| Id | Found | While testing | Where | What | Source | WCAG | Evidence |
+|---|---|---|---|---|---|---|---|
+| F002 | 2026-10-15 | #3618230 | default_admin status message with a Hide button (any message, not only the file upload one) | After a keyboard user presses Enter on Hide, focus stays on the Hide button while the message fades out and becomes invisible (opacity 0, visually-hidden): focus is on an element nobody can see (same as F001 (logged 2026-10-14); run 3 of the Phase 4 pilot measured it again with real keys: Tab reaches Hide on After after 21 presses, Enter fades the message out, focus stays on the Hide button) | keyboard | 2.4.7 (to confirm) | reports/issues/3618230/playwright/2026-10-15T15-10-35-411Z-chromium-light-1280x900/SUMMARY.md |
+| F003 | 2026-10-15 | #3618230 | default_admin status message after Hide | A dismissed message is not removed: it keeps the class visually-hidden, so its text stays in the accessibility tree for a screen reader user after the message was dismissed (same as F001; run 3 measured that the dismissed error is still in the accessibility tree) | keyboard |  | reports/issues/3618230/playwright/2026-10-15T15-10-35-411Z-chromium-light-1280x900/SUMMARY.md |

@@ -86,3 +86,17 @@ test('coverage.mjs: a stale run is listed and not counted (its row is a gap), a 
   assert.match(c.md, /Gaps: 1 automated environment[\s\S]*chromium · light · 480px wide \(only stale runs\)/);
   assert.doesNotMatch(c.md, /record: current/);
 });
+
+// a run outside the issue's matrix is listed under "Other runs" and carries the same record mark as a matrix row
+test('coverage.mjs: a run outside the matrix is listed under Other runs with its record mark', () => {
+  fs.rmSync(issueDir, { recursive: true, force: true }); fs.mkdirSync(issueDir, { recursive: true });
+  const PATCH = 'reports/issues/99000008/p.patch'; w(path.join(labRoot, PATCH), 'patch v1\n');
+  fs.writeFileSync(path.join(issueDir, 'variants.json'), JSON.stringify([{ slug: 'zz-cov-pinned', issue: '99000008', core: { commit: 'a'.repeat(40) }, before: { env: 'zz-cov-b' }, after: { env: 'zz-cov-a', patches: [PATCH] }, coverage: { matrix: [{ browser: 'chromium', scheme: 'light', forced: false, width: 480 }] } }]));
+  const res = (width, extra) => ({ variant: 'zz-cov-pinned', issue: '99000008', when: '2026-10-15T10:00:00Z', environment: { browser: 'chromium', colorScheme: 'light', forcedColors: false, viewport: { width } }, verdict: 'reproduced-and-fixed', unexpected: 0, commits: { after: 'abc1234 2026-10-15' }, sides: { before: { pages: [{ theme: 'default_admin' }] } }, ...extra });
+  w(path.join(issueDir, 'playwright', '2026-10-15T10-00-00-wide', 'results.json'), JSON.stringify(res(1280, { patchState: { before: { current: [] }, after: { current: [{ path: PATCH, sha256: sha256('patch v1\n') }] } } })));
+  w(path.join(issueDir, 'playwright', '2026-10-15T10-01-00-wide-old', 'results.json'), JSON.stringify(res(1024, { patches: [PATCH] })));
+  const r = spawnSync('node', [path.join(labRoot, 'scripts/coverage.mjs'), '99000008'], { cwd: labRoot, encoding: 'utf8' }); assert.equal(r.status, 0, r.stderr);
+  const md = fs.readFileSync(path.join(issueDir, 'COVERAGE.md'), 'utf8');
+  assert.match(md, /Other runs: chromium · light · 1280px wide \(2026-10-15[^)]*\) \(record: current\)/);
+  assert.match(md, /chromium · light · 1024px wide \(2026-10-15[^)]*\) \(record: none, not checked against the current patches/);
+});

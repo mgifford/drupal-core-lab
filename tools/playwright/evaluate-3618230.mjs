@@ -54,10 +54,31 @@ const probe = (page) => page.evaluate((inputSel) => {
     uploadMessageContainers: document.querySelectorAll('.file-upload-messages').length,
     liveRegion: live ? { text: live.textContent.trim(), ariaLive: live.getAttribute('aria-live') } : null,
     activeElement: a ? `${a.tagName.toLowerCase()}${a.id ? '#' + a.id : ''}${a.name ? '[name=' + a.name + ']' : ''}` : null,
+    // the file input's own error state (feedback FB-001): does the field still say it is invalid, and what describes it
+    field: (() => { const i = document.querySelector(inputSel); if (!i) return null; const ids = (i.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean); return { ariaInvalid: i.getAttribute('aria-invalid'), describedby: ids.length, describedbyText: ids.map((id) => { const d = document.getElementById(id); return d ? d.textContent.replace(/\s+/g, ' ').trim().slice(0, 80) : `(no element ${id})`; }) }; })(),
     fileInputPresent: !!document.querySelector(inputSel),
     fileLink: !!(widget && widget.querySelector('.file a, a[type^="text/plain"], .file--mime-text-plain a')),
   };
 }, INPUT);
+
+// Real keys (feedback FB-002): from the top of the page press Tab until focus is on a button inside the error, press Enter, and say what
+// is left. The theme dismisses a message by fading it out and adding visually-hidden, not by removing it, so "gone" is measured as not
+// visible (opacity and CSS visibility included), and whether it stays in the accessibility tree is recorded apart. Where focus lands is
+// recorded, not judged: that is a person's call. (Run 2 counted elements and called a working Hide button broken; see feedback.json.)
+async function hideByKeyboard(page, field) {
+  await page.evaluate(() => { if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur(); });
+  const where = () => page.evaluate(() => { const a = document.activeElement, e = a && a.closest && a.closest('.messages--error, [data-drupal-message-type="error"]'); const d = (x) => (x ? `${x.tagName.toLowerCase()}${x.id ? '#' + x.id : ''}${x.className && typeof x.className === 'string' ? '.' + x.className.trim().split(/\s+/)[0] : ''}` : null); return { inError: !!e, tag: a ? a.tagName.toLowerCase() : null, desc: d(a), name: a ? (a.getAttribute('aria-label') || a.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40) : '' }; });
+  const visible = () => page.evaluate(() => [...document.querySelectorAll('.messages--error, [data-drupal-message-type="error"]')].filter((e) => e.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })).length);
+  let tabs = 0, reached = null;
+  while (tabs < 60 && !reached) { await page.keyboard.press('Tab'); tabs++; const w = await where(); if (w.inError && w.tag === 'button') reached = w; }
+  if (!reached) return { reached: false, tabs, hidden: null, focusAfter: null };
+  const visibleBefore = await visible();
+  await page.keyboard.press('Enter');
+  let visibleAfter = visibleBefore; for (let i = 0; i < 15 && visibleAfter >= visibleBefore; i++) { await page.waitForTimeout(100); visibleAfter = await visible(); }
+  const after = await where();
+  const tree = await field.ariaSnapshot().catch(() => '');
+  return { reached: true, tabs, button: reached.name, visibleBefore, visibleAfter, hidden: visibleAfter < visibleBefore, focusAfter: after.desc, stillInAccessibilityTree: /Error message|could not be uploaded/.test(tree) };
+}
 
 async function runSide(side) {
   const { page, rec } = await openSide(run, side);
@@ -78,12 +99,13 @@ async function runSide(side) {
 
   const commands2 = await upload(page, BIG);
   const after2 = await probe(page);
+  const keyboard = await hideByKeyboard(page, field);
   const commands3 = await upload(page, SMALL);
   const after3 = await probe(page);
   await field.screenshot({ path: path.join(out, `${side}-2-valid.png`) }).catch(() => {});
   await rec.close(out);
   rec.speech.announce.unshift(...loadSpeech.announce); rec.speech.live.unshift(...loadSpeech.live);
-  return Object.assign(rec, { formTheme, commands1, after1, aria, axe, commands2, after2, commands3, after3 });
+  return Object.assign(rec, { formTheme, commands1, after1, aria, axe, commands2, after2, keyboard, commands3, after3 });
 }
 
 const { browser, environment } = await launch(run);
@@ -113,6 +135,13 @@ const checks = [
   ['observe', '"Hide" dismiss button in the error (page)', yn(e1(B).hasHideButton), yn(e1(A).hasHideButton), true],
   ['observe', 'Drupal.announce() calls with the error text', errAnn(B).map((x) => x.priority).join(', ') || 'none', errAnn(A).map((x) => x.priority).join(', ') || 'none', true],
   ['observe', 'Live regions whose text changed to the error', errLive(B).map((x) => x.role || x.ariaLive).join(', ') || 'none', errLive(A).map((x) => x.role || x.ariaLive).join(', ') || 'none', true],
+  ['regression', 'File input aria-invalid after the failed upload', B.after1.field ? String(B.after1.field.ariaInvalid) : 'no input', A.after1.field ? String(A.after1.field.ariaInvalid) : 'no input', !!B.after1.field && !!A.after1.field && B.after1.field.ariaInvalid === A.after1.field.ariaInvalid],
+  ['regression', 'File input aria-describedby: elements, and the text they hold', B.after1.field ? `${B.after1.field.describedby}: ${B.after1.field.describedbyText.join(' / ') || '-'}` : 'no input', A.after1.field ? `${A.after1.field.describedby}: ${A.after1.field.describedbyText.join(' / ') || '-'}` : 'no input', !!B.after1.field && !!A.after1.field && JSON.stringify(B.after1.field.describedbyText) === JSON.stringify(A.after1.field.describedbyText)],
+  ['observe', 'Channels that carried the error text (live region, Drupal.announce()); synthetic, not what a screen reader says', errLive(B).length + errAnn(B).length, errLive(A).length + errAnn(A).length, true],
+  ['observe', 'Hide button reached with Tab (real keys; Tab presses)', B.keyboard.reached ? `yes (${B.keyboard.tabs})` : `no (${B.keyboard.tabs} presses)`, A.keyboard.reached ? `yes (${A.keyboard.tabs})` : `no (${A.keyboard.tabs} presses)`, true],
+  ['observe', 'Enter on the Hide button hides the error (not visible after)', B.keyboard.reached ? yn(B.keyboard.hidden) : 'no button', A.keyboard.reached ? yn(A.keyboard.hidden) : 'no button', true],
+  ['observe', 'The dismissed error is still in the accessibility tree', B.keyboard.reached ? yn(B.keyboard.stillInAccessibilityTree) : 'no button', A.keyboard.reached ? yn(A.keyboard.stillInAccessibilityTree) : 'no button', true],
+  ['observe', 'Focus after Enter on the Hide button', B.keyboard.reached ? B.keyboard.focusAfter : 'no button', A.keyboard.reached ? A.keyboard.focusAfter : 'no button', true],
   ['regression', 'Errors after a second oversized upload (no pile-up)', B.after2.errorCount, A.after2.errorCount, B.after2.errorCount === 1 && A.after2.errorCount === 1],
   ['regression', 'Errors after a valid upload', B.after3.errorCount, A.after3.errorCount, B.after3.errorCount === 0 && A.after3.errorCount === 0],
   ['regression', 'Valid file accepted (file input gone)', yn(!B.after3.fileInputPresent), yn(!A.after3.fileInputPresent), !B.after3.fileInputPresent && !A.after3.fileInputPresent],

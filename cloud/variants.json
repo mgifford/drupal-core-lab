@@ -1386,6 +1386,71 @@
       "demo": {
         "start": "/node/add/article"
       }
+    },
+    {
+      "slug": "3618230-pilot",
+      "issue": "3618230",
+      "label": "#3618230: the pilot pair of AI-usage Phase 4: the same core commit as the latest pair, its own environments (so the owner's pair is untouched)",
+      "description": "Open /node/add/article in both frames. Upload a .txt file larger than 1 KB to trigger the server-side file size upload error. Before: messages are server-rendered inside the replaced widget prefix directly without using MessageCommand wrapper elements. After (MR !16777): messages are delivered via the AJAX MessageCommand targeting a dedicated container with class file-upload-messages.",
+      "steps": [
+        {
+          "text": "Article content type with a 1 KB size limit file field exists.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /node/add/article in both frames.",
+          "how": "mirror"
+        },
+        {
+          "text": "Prepare a .txt file on your local machine larger than 1 KB (for example 5 KB).",
+          "how": "mirror"
+        },
+        {
+          "text": "In EACH frame, select the Attachment file input and upload the oversized file to trigger the server-side validation error AJAX callback.",
+          "how": "each",
+          "lookFor": "Check if the error message is inserted into a dedicated file-upload-messages container."
+        }
+      ],
+      "expected": "The file upload error is rendered using the AJAX MessageCommand targeting the file-upload-messages wrapper container.",
+      "actual": "Before: messages are directly embedded in the widget prefix response. After: a div with class file-upload-messages is rendered and targeted by MessageCommand.",
+      "observe": [
+        {
+          "label": "An error message appears after uploading a file larger than 1 KB",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "The error message is rendered inside a dedicated file-upload-messages container",
+          "expectBefore": false,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "The file input field on the article form exists on the page",
+          "probe": "document.querySelector(\"input[type='file']\") !== null",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The message container added by MR !16777 for MessageCommand targeting exists on the page",
+          "probe": "document.querySelector(\".file-upload-messages\") !== null",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "No JavaScript errors on the page (ignoring the harmless ResizeObserver loop notice)",
+          "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+          "expect": 0,
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/node/add/article"
+      ],
+      "demo": {
+        "start": "/node/add/article"
+      }
     }
   ]
 }

@@ -65,6 +65,17 @@ edit it to fit the question the issue asks). A missing row is a gap, shown as NO
 `node scripts/run-mark.mjs <run folder> --superseded --reason "<why>" --by <newer run>`. Save
 viewer logs from people who tested by hand in `reports/issues/<nid>/manual/` and re-run `coverage.mjs`.
 
+## 4c. Feedback on the change
+When someone asks for something to be checked or changed (a review comment, a gap in `SUMMARY.md`'s "Not verified"), record it against the run it was about, then answer it with a later run:
+
+    node scripts/feedback.mjs add <nid> --run <run folder> --source "<who said it, where>" --action "<what to do>" --expected "<the behaviour wanted>"
+    node scripts/feedback.mjs resolve <nid> <FB-id> --run <the answering run> --outcome <met|not-met|needs-person> --observed "<what it showed>" \
+      [--revised-patch <file>...] [--supersede <older run> --reason "<why>"]
+
+`feedback.json` and the generated `FEEDBACK.md` keep each item with the patch hashes the run used, the run that answered it and the revised patch.
+An answering run must not be stale (see 4b). `needs-person` is for what a script cannot decide (a screen reader, a keyboard pass) and stays open.
+`--supersede` marks the older run superseded by the answering one, so `coverage.mjs` stops counting what the feedback replaced. Worked example: `reports/issues/3618230/FEEDBACK.md`.
+
 ## 5. Package it
     node scripts/make-bundle.mjs <nid>-pinned          # writes bundles/drupal-repro-<nid>-<date>.zip
     node scripts/index-issues.mjs                      # refresh reports/issues/README.md
