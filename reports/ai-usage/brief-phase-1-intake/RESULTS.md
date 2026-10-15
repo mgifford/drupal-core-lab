@@ -47,7 +47,7 @@ Not measured: total model usage of a session that uses the brief, because no mod
 
 ## What this does not show
 
-- **Semantic quality.** These are mechanical tests. That a model reads the compact brief and the full thread to the same conclusion needs a paired model evaluation with held-out threads. It was not run: it needs your authorization and spends allowance, and a deterministic mock cannot stand in for it.
+- **Semantic quality** (see also [../model-eval/RESULTS.md](../model-eval/RESULTS.md), added later: a 54-call paired run found no difference where the facts are easy to find, and a loss where a decision uses none of the words the patterns look for). The tests in this file are mechanical. That a model reads the compact brief and the full thread to the same conclusion needs a paired model evaluation with held-out threads. It was not run: it needs your authorization and spends allowance, and a deterministic mock cannot stand in for it.
 - **Recall on real threads.** The signals are word patterns. They found the planted facts, and flagged 4 comments in each of two real threads, but no labelled real threads exist to measure what they miss (a decision phrased without the words, a proposal in a long code block) or flag wrongly (#12 of #3618230 is a test file that happens to contain "must not"). Supersession is found only when a later comment names the earlier one right after a word such as "dropping" or "instead of".
 - **Unresolved is a guess** ("no later comment refers to it"), and the brief says so.
 - **The network commands** (`fetch`, `prepare --compact` against drupal.org) were run live on #3618230, #3604037 and #3619127; unit tests use recorded fixtures only. Found live: `--mr` absent was passed as `null` and crashed; fixed.
