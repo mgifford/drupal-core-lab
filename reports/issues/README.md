@@ -10,21 +10,26 @@ one: `node scripts/new-issue.mjs <nid> --branch <fork-branch>` (see `docs/NEW-IS
 | Issue | What | Reproduction guide | Patches | Status snapshot | Evidence runs | Variants |
 |---|---|---|---|---|---|---|
 | [2847425](2847425/) | `#states` not affecting visibility/requirement of `managed_file` | [yes](2847425/REPRODUCE.md) | 1 | 2026-10-14 |  |  |
-| [2848307](2848307/) | Issue #2848307: Tableselect + Inline Form Errors - Work Summary | no | 0 |  |  |  |
-| [3046089](3046089/) | ISSUE-3046089: Accessibility of Main toolbar items and internal editing | no | 0 |  |  |  |
-| [3083103](3083103/) | Issue #3083103: Programmatically associate error messages with inputs | no | 4 |  |  |  |
-| [3087389](3087389/) | ISSUE-3087389: Media Library selection text is confusing for screen readers | no | 0 |  |  |  |
+| [2848307](2848307/SUMMARY.md) | Tableselect inline errors | [yes](2848307/REPRODUCE.md) | 0 | 2026-10-14 |  |  |
+| [3046089](3046089/SUMMARY.md) | Main toolbar items and internal editing | [yes](3046089/REPRODUCE.md) | 0 | 2026-10-14 |  |  |
+| [3083103](3083103/SUMMARY.md) | programmatic error association | [yes](3083103/REPRODUCE.md) | 4 | 2026-10-14 |  |  |
+| [3087389](3087389/SUMMARY.md) | Media Library selection text | [yes](3087389/REPRODUCE.md) | 0 | 2026-10-14 |  |  |
 | [3093378](3093378/SUMMARY.md) | Use ARIA disclosure pattern for submenu buttons in vertical toolbar orientation | [yes](3093378/REPRODUCE.md) | 1 | 2026-10-13 | 12 | `3093378-latest`, `3093378-pinned` |
-| [3155130](3155130/) | ISSUE-3155130: "Edit summary" toggle accessibility issues | no | 0 |  |  |  |
-| [3243173](3243173/) | Issue #3243173: HTML5 validation disabled in Drupal 12 | no | 2 |  |  |  |
-| [3370946](3370946/) | 3370946 refresh notes (against current main) | no | 3 |  |  |  |
+| [3155130](3155130/SUMMARY.md) | "Edit summary" toggle | [yes](3155130/REPRODUCE.md) | 0 | 2026-10-14 |  |  |
+| [3243173](3243173/SUMMARY.md) | HTML5 validation setting / form focus management | [yes](3243173/REPRODUCE.md) | 2 | 2026-10-14 |  |  |
+| [3273806](3273806/SUMMARY.md) | Branch patches for #3273806 | no | 1 |  | 1 | `3273806-latest` |
+| [3370946](3370946/SUMMARY.md) | contextual page title | [yes](3370946/REPRODUCE.md) | 3 | 2026-10-14 |  |  |
 | [3415961](3415961/SUMMARY.md) | [drupalMedia] Using the Insert Media button causes the window to scroll to the… | [yes](3415961/REPRODUCE.md) | 3 | 2026-10-14 |  | `3415961-pinned`, `3415961-latest` |
-| [3587680](3587680/) | Issue #3587680 Update: Empty heading tags on dialog and tabs pages | no | 1 |  |  |  |
-| [3593539](3593539/) | (see folder) | no | 2 |  |  |  |
+| [3426468](3426468/) | Make the active menu item visually stand out more | [yes](3426468/REPRODUCE.md) | 2 | 2026-10-14 |  | `3426468-pinned`, `3426468-latest` |
+| [3587680](3587680/SUMMARY.md) | Empty heading tags on dialog and tabs pages | [yes](3587680/REPRODUCE.md) | 1 | 2026-10-14 |  |  |
+| [3593539](3593539/SUMMARY.md) | replace the compact mode link with a switch | [yes](3593539/REPRODUCE.md) | 2 | 2026-10-14 |  |  |
 | [3604037](3604037/SUMMARY.md) | Indicate that grouping elements have child element errors | [yes](3604037/REPRODUCE.md) | 4 | 2026-10-02 | 6 | `3604037-pinned`, `3604037-latest` |
-| [3614293](3614293/) | Issue #3614293 Update: Automated Form Validation Accessibility Testing | no | 1 |  |  |  |
-| [3617875](3617875/) | Branch patches for #3617875 | no | 3 |  |  |  |
-| [3618230](3618230/SUMMARY.md) | Adopt the ajax MessageCommand for file uploads | [yes](3618230/REPRODUCE.md) | 1 | 2026-10-08 |  | `3618230-pinned`, `3618230-latest` |
+| [3606655](3606655/) | Allow user-configurable UI settings - starting with dark mode | [yes](3606655/REPRODUCE.md) | 1 | 2026-10-15 | 1 | `3606655-pinned`, `3606655-latest` |
+| [3614293](3614293/SUMMARY.md) | aria-invalid test coverage | [yes](3614293/REPRODUCE.md) | 1 | 2026-10-14 |  |  |
+| [3617875](3617875/SUMMARY.md) | disabled elements in dark mode | [yes](3617875/REPRODUCE.md) | 3 | 2026-10-14 |  |  |
+| [3618230](3618230/SUMMARY.md) | Adopt the ajax MessageCommand for file uploads | [yes](3618230/REPRODUCE.md) | 2 | 2026-10-14 | 2 | `3618230-pinned`, `3618230-latest` |
+| [3618405](3618405/) | Purpose of views exposed filters form is unclear when zoomed in | [yes](3618405/REPRODUCE.md) | 2 | 2026-10-14 | 2 | `3618405-pinned`, `3618405-latest` |
 | [3619127](3619127/SUMMARY.md) | forms sidebar does not open from Inline Form Errors links | [yes](3619127/REPRODUCE.md) | 4 | 2026-10-02 | 8 | `3619127-pinned`, `3619127-latest` |
+| [3619154](3619154/) | Sidebar toggle fixes | [yes](3619154/REPRODUCE.md) | 1 | 2026-10-14 | 1 | `3619154-pinned`, `3619154-latest` |
 | [3619387](3619387/) | Sidebar toggle shows child errors (indicator and modal behavior) | [yes](3619387/REPRODUCE.md) | 4 | 2026-10-14 |  |  |
 | [3619933](3619933/) | Reproduce #3619933 (Default Admin theme) | [yes](3619933/REPRODUCE.md) | 6 | 2026-10-14 |  |  |

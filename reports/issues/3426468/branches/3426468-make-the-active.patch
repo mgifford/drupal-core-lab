@@ -1,0 +1,130 @@
+diff --git a/core/modules/navigation/css/base/variables.css b/core/modules/navigation/css/base/variables.css
+index e9b918ebe3..f47fd17d3e 100644
+--- a/core/modules/navigation/css/base/variables.css
++++ b/core/modules/navigation/css/base/variables.css
+@@ -27,6 +27,7 @@ We need it root to calculate the size of the displace in .dialog-off-canvas-main
+   --admin-toolbar-color-blue-500: var(--drupal-admin-color-blue-500, #004bcc);
+   --admin-toolbar-color-blue-600: var(--drupal-admin-color-blue-600, #0041b1);
+   --admin-toolbar-color-blue-650: var(--drupal-admin-color-blue-650, #00389a);
++  --admin-toolbar-color-blue-670: var(--drupal-admin-color-blue-670, #002e9a);
+   --admin-toolbar-color-blue-700: var(--drupal-admin-color-blue-700, #002566);
+   --admin-toolbar-color-blue-800: var(--drupal-admin-color-blue-800, #001333);
+   /* Gray variations. */
+diff --git a/core/modules/navigation/css/base/variables.pcss.css b/core/modules/navigation/css/base/variables.pcss.css
+index adc9cb2fc1..7c663f3bc7 100644
+--- a/core/modules/navigation/css/base/variables.pcss.css
++++ b/core/modules/navigation/css/base/variables.pcss.css
+@@ -24,6 +24,7 @@ We need it root to calculate the size of the displace in .dialog-off-canvas-main
+   --admin-toolbar-color-blue-500: var(--drupal-admin-color-blue-500, #004bcc);
+   --admin-toolbar-color-blue-600: var(--drupal-admin-color-blue-600, #0041b1);
+   --admin-toolbar-color-blue-650: var(--drupal-admin-color-blue-650, #00389a);
++  --admin-toolbar-color-blue-670: var(--drupal-admin-color-blue-670, #002e9a);
+   --admin-toolbar-color-blue-700: var(--drupal-admin-color-blue-700, #002566);
+   --admin-toolbar-color-blue-800: var(--drupal-admin-color-blue-800, #001333);
+   /* Gray variations. */
+diff --git a/core/modules/navigation/css/components/toolbar-button.css b/core/modules/navigation/css/components/toolbar-button.css
+index 3e1c149066..11a1e430b7 100644
+--- a/core/modules/navigation/css/components/toolbar-button.css
++++ b/core/modules/navigation/css/components/toolbar-button.css
+@@ -41,13 +41,13 @@
+   gap: calc(0.5 * var(--admin-toolbar-rem));
+ }
+ .toolbar-button:has(+ .toolbar-popover__wrapper .is-active) {
+-  color: var(--admin-toolbar-color-gray-950);
++  color: var(--admin-toolbar-color-blue-670);
+   background-color: var(--admin-toolbar-color-gray-050);
+ }
+ .toolbar-button:hover {
+   z-index: 20;
+   color: var(--admin-toolbar-color-gray-990);
+-  outline: 2px solid var(--admin-toolbar-color-blue-200);
++  outline: 2px solid var(--admin-toolbar-color-blue-600);
+   outline-offset: var(--toolbar-button-outline-offset);
+   background-color: var(--admin-toolbar-color-gray-050);
+ }
+diff --git a/core/modules/navigation/css/components/toolbar-button.pcss.css b/core/modules/navigation/css/components/toolbar-button.pcss.css
+index b5fd86a9b6..695ff750ef 100644
+--- a/core/modules/navigation/css/components/toolbar-button.pcss.css
++++ b/core/modules/navigation/css/components/toolbar-button.pcss.css
+@@ -38,14 +38,14 @@
+   gap: calc(0.5 * var(--admin-toolbar-rem));
+ 
+   &:has(+ .toolbar-popover__wrapper .is-active) {
+-    color: var(--admin-toolbar-color-gray-950);
++    color: var(--admin-toolbar-color-blue-670);
+     background-color: var(--admin-toolbar-color-gray-050);
+   }
+ 
+   &:hover {
+     z-index: 20;
+     color: var(--admin-toolbar-color-gray-990);
+-    outline: 2px solid var(--admin-toolbar-color-blue-200);
++    outline: 2px solid var(--admin-toolbar-color-blue-600);
+     outline-offset: var(--toolbar-button-outline-offset);
+     background-color: var(--admin-toolbar-color-gray-050);
+   }
+diff --git a/core/modules/navigation/css/components/toolbar-menu.css b/core/modules/navigation/css/components/toolbar-menu.css
+index fbee5011d1..574b277067 100644
+--- a/core/modules/navigation/css/components/toolbar-menu.css
++++ b/core/modules/navigation/css/components/toolbar-menu.css
+@@ -66,7 +66,7 @@
+   color: var(--admin-toolbar-color-gray-950);
+ }
+ .toolbar-menu__link.current {
+-  color: var(--admin-toolbar-color-gray-990);
++  color: var(--admin-toolbar-color-blue-600);
+ }
+ .toolbar-menu__link.current::after {
+   position: absolute;
+@@ -75,7 +75,7 @@
+   inset-inline-start: calc(var(--admin-toolbar-space-4) * -0.5);
+   content: "";
+   border-radius: 50%;
+-  background-color: currentColor;
++  background-color: var(--admin-toolbar-color-blue-670);
+   inline-size: var(--admin-toolbar-space-8);
+   block-size: var(--admin-toolbar-space-8);
+ }
+@@ -98,6 +98,9 @@
+   inline-size: var(--admin-toolbar-space-8);
+   block-size: 100%;
+ }
++.toolbar-menu__link:hover::after {
++  content: none;
++}
+ .toolbar-menu__link[aria-expanded]::after {
+   flex-shrink: 0;
+   margin-inline-start: auto;
+diff --git a/core/modules/navigation/css/components/toolbar-menu.pcss.css b/core/modules/navigation/css/components/toolbar-menu.pcss.css
+index 70b17c0f74..38d07f7d23 100644
+--- a/core/modules/navigation/css/components/toolbar-menu.pcss.css
++++ b/core/modules/navigation/css/components/toolbar-menu.pcss.css
+@@ -71,7 +71,7 @@
+   }
+ 
+   &.current {
+-    color: var(--admin-toolbar-color-gray-990);
++    color: var(--admin-toolbar-color-blue-600);
+ 
+     &::after {
+       position: absolute;
+@@ -80,7 +80,7 @@
+       inset-inline-start: calc(var(--admin-toolbar-space-4) * -0.5);
+       content: "";
+       border-radius: 50%;
+-      background-color: currentColor;
++      background-color: var(--admin-toolbar-color-blue-670);
+       inline-size: var(--admin-toolbar-space-8);
+       block-size: var(--admin-toolbar-space-8);
+     }
+@@ -106,6 +106,10 @@
+       inline-size: var(--admin-toolbar-space-8);
+       block-size: 100%;
+     }
++
++    &::after {
++      content: none;
++    }
+   }
+ 
+   &[aria-expanded] {

@@ -1,0 +1,2011 @@
+diff --git a/core/core.services.yml b/core/core.services.yml
+index 28afb5a64d..7feb0d7c7c 100644
+--- a/core/core.services.yml
++++ b/core/core.services.yml
+@@ -1484,6 +1484,10 @@ services:
+   anonymous_user_response_subscriber:
+     class: Drupal\Core\EventSubscriber\AnonymousUserResponseSubscriber
+     arguments: ['@current_user']
++  color_scheme_cookie_subscriber:
++    class: Drupal\Core\EventSubscriber\ColorSchemeCookieSubscriber
++    autowire: true
++  Drupal\Core\EventSubscriber\ColorSchemeCookieSubscriber: '@color_scheme_cookie_subscriber'
+   ajax_response.attachments_processor:
+     class: Drupal\Core\Ajax\AjaxResponseAttachmentsProcessor
+     arguments: ['@asset.resolver', '@config.factory', '@asset.css.collection_renderer', '@asset.js.collection_renderer', '@request_stack', '@renderer', '@module_handler', '@language_manager']
+@@ -1668,6 +1672,10 @@ services:
+     class: Drupal\Core\Theme\ThemeInitialization
+     autowire: true
+   Drupal\Core\Theme\ThemeInitializationInterface: '@theme.initialization'
++  theme.color_scheme_support:
++    class: Drupal\Core\Theme\ColorSchemeSupport
++    autowire: true
++  Drupal\Core\Theme\ColorSchemeSupport: '@theme.color_scheme_support'
+   theme.registry:
+     class: Drupal\Core\Theme\Registry
+     arguments: ['@cache.default', '@lock', '@module_handler', '@theme_handler', '@cache.bootstrap', '@extension.list.module', '@kernel', '@keyvalue']
+diff --git a/core/lib/Drupal/Core/EventSubscriber/ColorSchemeCookieSubscriber.php b/core/lib/Drupal/Core/EventSubscriber/ColorSchemeCookieSubscriber.php
+new file mode 100644
+index 0000000000..a34d34e954
+--- /dev/null
++++ b/core/lib/Drupal/Core/EventSubscriber/ColorSchemeCookieSubscriber.php
+@@ -0,0 +1,153 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Core\EventSubscriber;
++
++use Drupal\Component\Datetime\TimeInterface;
++use Drupal\Core\PageCache\ResponsePolicy\KillSwitch;
++use Drupal\Core\Session\AccountInterface;
++use Symfony\Component\EventDispatcher\EventSubscriberInterface;
++use Symfony\Component\HttpFoundation\Cookie;
++use Symfony\Component\HttpKernel\Event\ResponseEvent;
++use Symfony\Component\HttpKernel\KernelEvents;
++
++/**
++ * Carries the color scheme preference of an account to the client.
++ *
++ * Every page renders with data-color-scheme="auto" on the <html> element, so
++ * the markup is the same for every account and needs no cache context. An
++ * account that picked 'light' or 'dark' gets that value in a cookie instead,
++ * and a script in the head applies it before the stylesheets are requested.
++ *
++ * The cookie holds 'light' or 'dark' and nothing else. 'auto' is what the
++ * server already rendered, so it is expressed by the absence of the cookie.
++ * The common case therefore costs no cookie and no client side work.
++ *
++ * Each response is compared against the preference of the current user, and
++ * only a difference is written. That seeds the cookie when an account logs in
++ * on a browser it never opened its profile in, and removes the cookie again
++ * when the account logs out.
++ *
++ * @see \Drupal\Core\Render\BareHtmlPageRenderer::systemPageAttachments()
++ * @see \Drupal\Core\Theme\ThemePreprocess::preprocessHtml()
++ */
++class ColorSchemeCookieSubscriber implements EventSubscriberInterface {
++
++  /**
++   * The name of the cookie that carries the color scheme preference.
++   *
++   * The name holds no '.' and no ' ', because PHP replaces both with '_' in
++   * the keys of $_COOKIE, and no '[', because PHP reads that as the start of
++   * array notation. A name holding any of those is not the key the server
++   * reads back: the preference then looks absent on every request, so every
++   * response rewrites the cookie and triggers the kill switch, and a cookie
++   * that has to go is never cleared.
++   *
++   * The dotted 'Drupal.*' cookies elsewhere in core either never reach PHP,
++   * or read themselves back under the converted name. Spelling this one
++   * without a dot keeps the name the server writes and the name it reads the
++   * same, so neither side has to know about the conversion.
++   *
++   * @see \Drupal\Tests\Core\EventSubscriber\ColorSchemeCookieSubscriberTest::testCookieNameSurvivesCookieParsing()
++   */
++  public const string COOKIE_NAME = 'DrupalColorScheme';
++
++  /**
++   * The color schemes that the cookie can carry.
++   */
++  protected const array CUSTOMIZED_SCHEMES = ['light', 'dark'];
++
++  /**
++   * The lifetime of the cookie in seconds.
++   */
++  protected const int COOKIE_LIFETIME = 31536000;
++
++  /**
++   * The color scheme to write, or NULL to use the one of the current user.
++   */
++  protected ?string $colorScheme = NULL;
++
++  public function __construct(
++    protected readonly AccountInterface $currentUser,
++    protected readonly KillSwitch $pageCacheKillSwitch,
++    protected readonly TimeInterface $time,
++  ) {}
++
++  /**
++   * Sets the color scheme to reconcile the cookie with.
++   *
++   * @param string $color_scheme
++   *   The color scheme, one of 'light', 'dark' or 'auto'.
++   *
++   * @see \Drupal\user\Hook\ColorSchemeHooks::userUpdate()
++   */
++  public function setColorScheme(string $color_scheme): void {
++    $this->colorScheme = $color_scheme;
++  }
++
++  /**
++   * Reconciles the cookie with the color scheme preference of the account.
++   *
++   * @param \Symfony\Component\HttpKernel\Event\ResponseEvent $event
++   *   The event to process.
++   */
++  public function onResponse(ResponseEvent $event): void {
++    if (!$event->isMainRequest()) {
++      return;
++    }
++
++    $color_scheme = $this->colorScheme ?? $this->currentUser->getColorScheme();
++    $value = in_array($color_scheme, static::CUSTOMIZED_SCHEMES, TRUE) ? $color_scheme : NULL;
++
++    // Read the raw value, because a request can hold anything under this name,
++    // including an array. Anything that is not the value the account asks for
++    // is replaced, so a stale or manipulated cookie corrects itself.
++    $request = $event->getRequest();
++    $sent = $request->cookies->all()[static::COOKIE_NAME] ?? NULL;
++    if ($sent === $value) {
++      return;
++    }
++
++    // The response now carries a Set-Cookie header that belongs to this one
++    // account. Trigger the kill switch, which denies the response policy of
++    // both Internal Page Cache and Dynamic Page Cache, and which makes
++    // FinishResponseSubscriber declare the response uncacheable to proxies and
++    // browsers as well.
++    // @see \Drupal\Core\EventSubscriber\FinishResponseSubscriber::onRespond()
++    $this->pageCacheKillSwitch->trigger();
++
++    // Scope the cookie to the base path, so that a site in a subdirectory
++    // keeps the preference to itself.
++    $path = $request->getBasePath() . '/';
++    $headers = $event->getResponse()->headers;
++    if ($value === NULL) {
++      $headers->clearCookie(static::COOKIE_NAME, $path, NULL, $request->isSecure(), FALSE, Cookie::SAMESITE_LAX);
++      return;
++    }
++    // The cookie is read by the script in the head, so it is not HTTP only.
++    $headers->setCookie(Cookie::create(
++      static::COOKIE_NAME,
++      $value,
++      $this->time->getRequestTime() + static::COOKIE_LIFETIME,
++      $path,
++      NULL,
++      $request->isSecure(),
++      FALSE,
++      FALSE,
++      Cookie::SAMESITE_LAX,
++    ));
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public static function getSubscribedEvents(): array {
++    // Run before DynamicPageCacheSubscriber::onResponse(), which has priority
++    // 7, and before FinishResponseSubscriber::onRespond(), which has priority
++    // 0. Both consult the page cache policies that ::onResponse() denies.
++    $events[KernelEvents::RESPONSE][] = ['onResponse', 8];
++    return $events;
++  }
++
++}
+diff --git a/core/lib/Drupal/Core/Render/BareHtmlPageRenderer.php b/core/lib/Drupal/Core/Render/BareHtmlPageRenderer.php
+index 74fcaf169f..4e891f9111 100644
+--- a/core/lib/Drupal/Core/Render/BareHtmlPageRenderer.php
++++ b/core/lib/Drupal/Core/Render/BareHtmlPageRenderer.php
+@@ -3,6 +3,7 @@
+ namespace Drupal\Core\Render;
+ 
+ use Drupal\Component\Utility\UrlHelper;
++use Drupal\Core\EventSubscriber\ColorSchemeCookieSubscriber;
+ use Drupal\Core\Extension\ThemeSettingsProvider;
+ 
+ /**
+@@ -171,6 +172,39 @@ class BareHtmlPageRenderer implements BareHtmlPageRendererInterface {
+       $page['#attached']['html_head'][] = [$value, $key];
+     }
+ 
++    // The <html> element carries data-color-scheme="auto" on every page, so
++    // that the markup is the same for every account and needs no cache
++    // context. An account that picked 'light' or 'dark' has that value in a
++    // cookie, and this script overrides the attribute from it. The script is
++    // in the head, so it runs before the stylesheets are requested. It leaves
++    // the document alone when there is no cookie, which is the common case, so
++    // no layout is invalidated then.
++    // @see \Drupal\Core\EventSubscriber\ColorSchemeCookieSubscriber
++    // @see \Drupal\Core\Theme\ThemePreprocess::preprocessHtml()
++    $cookie_name = ColorSchemeCookieSubscriber::COOKIE_NAME;
++    $page['#attached']['html_head'][] = [
++      [
++        '#tag' => 'script',
++        // Pass the script as markup, because HtmlTag runs a plain string
++        // through Xss::filterAdmin(), which mangles the operators of any
++        // expression that is added to it later.
++        // @see \Drupal\Core\Render\Element\HtmlTag::preRenderHtmlTag()
++        '#value' => Markup::create(<<<JS
++        (function () {
++          var n = '$cookie_name=';
++          var c = document.cookie.split('; ').find(function (v) {
++            return v.indexOf(n) === 0;
++          });
++          var s = c ? c.slice(n.length) : '';
++          if (s === 'light' || s === 'dark') {
++            document.documentElement.setAttribute('data-color-scheme', s);
++          }
++        })();
++        JS),
++      ],
++      'system_color_scheme',
++    ];
++
+     // Handle setting the "active" class on links by:
+     // - loading the active-link library if the current user is authenticated;
+     // - applying a response filter if the current user is anonymous.
+diff --git a/core/lib/Drupal/Core/Session/AccountInterface.php b/core/lib/Drupal/Core/Session/AccountInterface.php
+index 7ea66230b4..6176393205 100644
+--- a/core/lib/Drupal/Core/Session/AccountInterface.php
++++ b/core/lib/Drupal/Core/Session/AccountInterface.php
+@@ -160,6 +160,14 @@ interface AccountInterface {
+    */
+   public function getTimeZone();
+ 
++  /**
++   * Returns the preferred color scheme of this account.
++   *
++   * @return string
++   *   The color scheme, one of 'light', 'dark' or 'auto'. Defaults to 'auto'.
++   */
++  public function getColorScheme();
++
+   /**
+    * The timestamp when the account last accessed the site.
+    *
+diff --git a/core/lib/Drupal/Core/Session/AccountProxy.php b/core/lib/Drupal/Core/Session/AccountProxy.php
+index 8028df16a6..93b2a4c340 100644
+--- a/core/lib/Drupal/Core/Session/AccountProxy.php
++++ b/core/lib/Drupal/Core/Session/AccountProxy.php
+@@ -174,6 +174,13 @@ class AccountProxy implements AccountProxyInterface {
+     return $this->getAccount()->getTimeZone();
+   }
+ 
++  /**
++   * {@inheritdoc}
++   */
++  public function getColorScheme() {
++    return $this->getAccount()->getColorScheme();
++  }
++
+   /**
+    * {@inheritdoc}
+    */
+diff --git a/core/lib/Drupal/Core/Session/UserSession.php b/core/lib/Drupal/Core/Session/UserSession.php
+index 1156e26920..32bfdd3b1a 100644
+--- a/core/lib/Drupal/Core/Session/UserSession.php
++++ b/core/lib/Drupal/Core/Session/UserSession.php
+@@ -190,6 +190,13 @@ class UserSession implements AccountInterface {
+     return $this->timezone;
+   }
+ 
++  /**
++   * {@inheritdoc}
++   */
++  public function getColorScheme() {
++    return $this->color_scheme ?? 'auto';
++  }
++
+   /**
+    * {@inheritdoc}
+    */
+diff --git a/core/lib/Drupal/Core/Theme/ActiveTheme.php b/core/lib/Drupal/Core/Theme/ActiveTheme.php
+index 5dd08dc3e1..79ca156091 100644
+--- a/core/lib/Drupal/Core/Theme/ActiveTheme.php
++++ b/core/lib/Drupal/Core/Theme/ActiveTheme.php
+@@ -2,6 +2,8 @@
+ 
+ namespace Drupal\Core\Theme;
+ 
++use Drupal\Core\Extension\Extension;
++
+ /**
+  * Defines a theme and its information needed at runtime.
+  *
+@@ -220,4 +222,28 @@ class ActiveTheme {
+     return $this->librariesExtend;
+   }
+ 
++  /**
++   * Determines whether the theme honors the user color scheme preference.
++   *
++   * A theme declares this with 'supports color scheme: true' in its .info.yml
++   * file. The declaration is inherited, so a subtheme of a theme that declares
++   * support also supports the preference.
++   *
++   * @return bool
++   *   TRUE if this theme or any of its base themes declares support.
++   *
++   * @see \Drupal\Core\Theme\ColorSchemeSupport
++   */
++  public function supportsColorScheme(): bool {
++    $extensions = array_merge([$this->extension], array_values($this->baseThemeExtensions));
++    foreach ($extensions as $extension) {
++      // The constructor defaults 'extension' to a string, so only inspect real
++      // Extension objects.
++      if ($extension instanceof Extension && !empty($extension->info['supports color scheme'])) {
++        return TRUE;
++      }
++    }
++    return FALSE;
++  }
++
+ }
+diff --git a/core/lib/Drupal/Core/Theme/ColorSchemeSupport.php b/core/lib/Drupal/Core/Theme/ColorSchemeSupport.php
+new file mode 100644
+index 0000000000..5cc4de37e1
+--- /dev/null
++++ b/core/lib/Drupal/Core/Theme/ColorSchemeSupport.php
+@@ -0,0 +1,94 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Core\Theme;
++
++use Drupal\Core\Config\ConfigFactoryInterface;
++
++/**
++ * Determines which of the configured themes honor the color scheme preference.
++ *
++ * A theme honors the preference by declaring 'supports color scheme: true' in
++ * its .info.yml file. The declaration is inherited from base themes.
++ *
++ * The rendered page does not depend on any of this: every page carries
++ * data-color-scheme="auto" and a cookie tells the client what to override it
++ * with. The account form is the only consumer, and it describes to the account
++ * where the preference takes effect.
++ *
++ * @see \Drupal\Core\Theme\ActiveTheme::supportsColorScheme()
++ * @see \Drupal\user\AccountForm::colorSchemeElementProperties()
++ */
++class ColorSchemeSupport {
++
++  public function __construct(
++    protected readonly ConfigFactoryInterface $configFactory,
++    protected readonly ThemeInitializationInterface $themeInitialization,
++  ) {}
++
++  /**
++   * Determines whether the site theme honors the color scheme preference.
++   *
++   * @return bool
++   *   TRUE if the configured site theme declares support.
++   */
++  public function siteThemeSupports(): bool {
++    $themes = $this->getConfiguredThemeNames();
++    return $this->themeSupports($themes['default']);
++  }
++
++  /**
++   * Determines whether the administration theme honors the preference.
++   *
++   * @return bool
++   *   TRUE if the configured administration theme declares support.
++   */
++  public function adminThemeSupports(): bool {
++    $themes = $this->getConfiguredThemeNames();
++    return $this->themeSupports($themes['admin']);
++  }
++
++  /**
++   * Returns the configured site theme and administration theme names.
++   *
++   * @return array{default: string, admin: string}
++   *   The site theme name and the administration theme name. An empty 'admin'
++   *   value means administration pages use the site theme, so the site theme
++   *   name is returned for both.
++   */
++  protected function getConfiguredThemeNames(): array {
++    $config = $this->configFactory->get('system.theme');
++    $default = (string) $config->get('default');
++    return [
++      'default' => $default,
++      'admin' => ((string) $config->get('admin')) ?: $default,
++    ];
++  }
++
++  /**
++   * Determines whether a named theme honors the color scheme preference.
++   *
++   * @param string $theme_name
++   *   The machine name of the theme, or an empty string if none is configured.
++   *
++   * @return bool
++   *   TRUE if the theme, or one of its base themes, declares support.
++   */
++  protected function themeSupports(string $theme_name): bool {
++    if ($theme_name === '') {
++      return FALSE;
++    }
++    try {
++      // For a theme that is not installed, getActiveThemeByName() returns the
++      // default output of core, which declares no support.
++      return $this->themeInitialization->getActiveThemeByName($theme_name)->supportsColorScheme();
++    }
++    catch (MissingThemeDependencyException) {
++      // The theme is installed but a base theme of it is not. Broken theme
++      // configuration must not break the caller.
++      return FALSE;
++    }
++  }
++
++}
+diff --git a/core/lib/Drupal/Core/Theme/ThemePreprocess.php b/core/lib/Drupal/Core/Theme/ThemePreprocess.php
+index 7c2d595d64..074c9e22c0 100644
+--- a/core/lib/Drupal/Core/Theme/ThemePreprocess.php
++++ b/core/lib/Drupal/Core/Theme/ThemePreprocess.php
+@@ -262,6 +262,13 @@ class ThemePreprocess {
+     $language_interface = $this->languageManager->getCurrentLanguage();
+     $variables['html_attributes']['lang'] = $language_interface->getId();
+     $variables['html_attributes']['dir'] = $language_interface->getDirection();
++    // Always render the default color scheme, so that the markup is the same
++    // for every account and declares no cacheability. It is also what a client
++    // without JavaScript keeps. A customized preference reaches the client in
++    // a cookie, and a script in the head overrides the attribute from it.
++    // @see \Drupal\Core\Render\BareHtmlPageRenderer::systemPageAttachments()
++    // @see \Drupal\Core\EventSubscriber\ColorSchemeCookieSubscriber
++    $variables['html_attributes']['data-color-scheme'] = 'auto';
+ 
+     if (isset($variables['db_is_active']) && !$variables['db_is_active']) {
+       $variables['db_offline'] = TRUE;
+diff --git a/core/modules/jsonapi/tests/src/Functional/UserTest.php b/core/modules/jsonapi/tests/src/Functional/UserTest.php
+index 1747aab3f4..17478c462e 100644
+--- a/core/modules/jsonapi/tests/src/Functional/UserTest.php
++++ b/core/modules/jsonapi/tests/src/Functional/UserTest.php
+@@ -163,6 +163,7 @@ class UserTest extends ResourceTestBase {
+           'display_name' => 'Llama',
+           'created' => '1973-11-29T21:33:09+00:00',
+           'changed' => (new \DateTime())->setTimestamp($this->entity->getChangedTime())->setTimezone(new \DateTimeZone('UTC'))->format(\DateTime::RFC3339),
++          'color_scheme' => 'auto',
+           'default_langcode' => TRUE,
+           'langcode' => 'en',
+           'name' => 'Llama',
+diff --git a/core/modules/system/tests/src/Functional/Theme/HtmlAttributesTest.php b/core/modules/system/tests/src/Functional/Theme/HtmlAttributesTest.php
+index 2657f0ac3d..4d94803dbe 100644
+--- a/core/modules/system/tests/src/Functional/Theme/HtmlAttributesTest.php
++++ b/core/modules/system/tests/src/Functional/Theme/HtmlAttributesTest.php
+@@ -5,8 +5,10 @@ declare(strict_types=1);
+ namespace Drupal\Tests\system\Functional\Theme;
+ 
+ use Drupal\Tests\BrowserTestBase;
++use Drupal\Tests\system\Functional\Cache\AssertPageCacheContextsAndTagsTrait;
+ use PHPUnit\Framework\Attributes\Group;
+ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++use PHPUnit\Framework\Attributes\TestWith;
+ 
+ /**
+  * Tests attributes inserted in the 'html' and 'body' elements on the page.
+@@ -15,10 +17,26 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+ #[RunTestsInSeparateProcesses]
+ class HtmlAttributesTest extends BrowserTestBase {
+ 
++  use AssertPageCacheContextsAndTagsTrait;
++
++  /**
++   * The expected markup of the html element.
++   *
++   * The attributes appear in the order they are set on the Attribute object:
++   * ThemePreprocess::preprocessHtml() sets 'lang', 'dir' and
++   * 'data-color-scheme', and theme_test appends its own attribute in a later
++   * hook_preprocess_html() implementation. A module preprocess function runs
++   * for every theme, so this is the markup of every theme used here.
++   *
++   * @see \Drupal\Core\Theme\ThemePreprocess::preprocessHtml()
++   * @see \Drupal\theme_test\Hook\ThemeTestHooks::preprocessHtml()
++   */
++  const HTML_ELEMENT = '<html lang="en" dir="ltr" data-color-scheme="auto" theme_test_html_attribute="theme test html attribute value">';
++
+   /**
+    * {@inheritdoc}
+    */
+-  protected static $modules = ['theme_test'];
++  protected static $modules = ['theme_test', 'test_page_test'];
+ 
+   /**
+    * {@inheritdoc}
+@@ -30,8 +48,61 @@ class HtmlAttributesTest extends BrowserTestBase {
+    */
+   public function testThemeHtmlAttributes(): void {
+     $this->drupalGet('');
+-    $this->assertSession()->responseContains('<html lang="en" dir="ltr" theme_test_html_attribute="theme test html attribute value">');
++    $this->assertSession()->responseContains(self::HTML_ELEMENT);
+     $this->assertSession()->elementsCount('xpath', '/body[@theme_test_body_attribute="theme test body attribute value"]', 1);
+   }
+ 
++  /**
++   * Tests that the data-color-scheme attribute does not depend on the theme.
++   *
++   * The attribute is always 'auto', whether or not the active theme declares
++   * 'supports color scheme' in its .info.yml file, and whatever the account
++   * stored as its preference. A customized preference reaches the client in a
++   * cookie instead, and a script in the head applies it. That keeps the markup
++   * the same for every account, so the page declares no cacheability for it.
++   *
++   * @param string $theme
++   *   The theme to install and use as the default theme.
++   *
++   * @see \Drupal\Core\EventSubscriber\ColorSchemeCookieSubscriber
++   * @see \Drupal\FunctionalTests\EventSubscriber\ColorSchemeCookieTest
++   */
++  #[TestWith(['test_color_scheme_theme'])]
++  #[TestWith(['test_color_scheme_subtheme'])]
++  #[TestWith(['stark'])]
++  public function testColorSchemeAttributeIsInvariant(string $theme): void {
++    \Drupal::service('theme_installer')->install([$theme]);
++    $this->config('system.theme')->set('default', $theme)->save();
++
++    // An anonymous account has no preference to store.
++    $this->drupalGet('test-page');
++    $this->assertSession()->statusCodeEquals(200);
++    $this->assertColorSchemeAttribute();
++
++    $account = $this->drupalCreateUser();
++    $this->drupalLogin($account);
++    foreach (['auto', 'light', 'dark'] as $color_scheme) {
++      $account->set('color_scheme', $color_scheme)->save();
++      $this->drupalGet('test-page');
++      $this->assertSession()->statusCodeEquals(200);
++      $this->assertColorSchemeAttribute();
++    }
++  }
++
++  /**
++   * Asserts the color scheme attribute and that it declares no cacheability.
++   */
++  protected function assertColorSchemeAttribute(): void {
++    $this->assertSession()->responseContains(self::HTML_ELEMENT);
++    $this->assertSession()->responseNotContains('data-color-scheme="light"');
++    $this->assertSession()->responseNotContains('data-color-scheme="dark"');
++
++    // The markup is the same for every account, so there is no cache context
++    // for the preference.
++    $this->assertNoCacheContext('user.color_scheme');
++    // Nothing reads the theme configuration while the page is rendered, so the
++    // page does not depend on it either.
++    $this->assertNotContains('config:system.theme', $this->getCacheHeaderValues('X-Drupal-Cache-Tags'));
++  }
++
+ }
+diff --git a/core/modules/system/tests/themes/test_color_scheme_subtheme/test_color_scheme_subtheme.info.yml b/core/modules/system/tests/themes/test_color_scheme_subtheme/test_color_scheme_subtheme.info.yml
+new file mode 100644
+index 0000000000..344d871adb
+--- /dev/null
++++ b/core/modules/system/tests/themes/test_color_scheme_subtheme/test_color_scheme_subtheme.info.yml
+@@ -0,0 +1,5 @@
++name: 'Theme test color scheme subtheme'
++type: theme
++description: 'Test theme which inherits color scheme support from its base theme.'
++version: VERSION
++base theme: test_color_scheme_theme
+diff --git a/core/modules/system/tests/themes/test_color_scheme_theme/test_color_scheme_theme.info.yml b/core/modules/system/tests/themes/test_color_scheme_theme/test_color_scheme_theme.info.yml
+new file mode 100644
+index 0000000000..368e42e9af
+--- /dev/null
++++ b/core/modules/system/tests/themes/test_color_scheme_theme/test_color_scheme_theme.info.yml
+@@ -0,0 +1,6 @@
++name: 'Theme test color scheme theme'
++type: theme
++description: 'Test theme which declares that it honors the user color scheme preference.'
++version: VERSION
++base theme: stark
++supports color scheme: true
+diff --git a/core/modules/user/src/AccountForm.php b/core/modules/user/src/AccountForm.php
+index 070f96cfed..8908647b18 100644
+--- a/core/modules/user/src/AccountForm.php
++++ b/core/modules/user/src/AccountForm.php
+@@ -13,6 +13,7 @@ use Drupal\Core\Form\FormStateInterface;
+ use Drupal\Core\Language\LanguageInterface;
+ use Drupal\Core\Language\LanguageManagerInterface;
+ use Drupal\Core\Security\TrustedCallbackInterface;
++use Drupal\Core\Theme\ColorSchemeSupport;
+ use Drupal\Core\Url;
+ use Drupal\language\ConfigurableLanguageManagerInterface;
+ use Drupal\user\Entity\Role;
+@@ -32,6 +33,13 @@ abstract class AccountForm extends ContentEntityForm implements TrustedCallbackI
+    */
+   protected $languageManager;
+ 
++  /**
++   * The color scheme support service.
++   *
++   * @var \Drupal\Core\Theme\ColorSchemeSupport
++   */
++  protected ColorSchemeSupport $colorSchemeSupport;
++
+   /**
+    * Constructs a new AccountForm object.
+    *
+@@ -39,26 +47,31 @@ abstract class AccountForm extends ContentEntityForm implements TrustedCallbackI
+    *   The entity repository.
+    * @param \Drupal\Core\Language\LanguageManagerInterface $language_manager
+    *   The language manager.
+-   * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $entity_type_bundle_info
++   * @param \Drupal\Core\Theme\ColorSchemeSupport $color_scheme_support
++   *   The color scheme support service.
++   * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface|null $entity_type_bundle_info
+    *   The entity type bundle service.
+-   * @param \Drupal\Component\Datetime\TimeInterface $time
++   * @param \Drupal\Component\Datetime\TimeInterface|null $time
+    *   The time service.
+    */
+-  public function __construct(EntityRepositoryInterface $entity_repository, LanguageManagerInterface $language_manager, ?EntityTypeBundleInfoInterface $entity_type_bundle_info = NULL, ?TimeInterface $time = NULL) {
++  public function __construct(EntityRepositoryInterface $entity_repository, LanguageManagerInterface $language_manager, ColorSchemeSupport $color_scheme_support, ?EntityTypeBundleInfoInterface $entity_type_bundle_info = NULL, ?TimeInterface $time = NULL) {
+     parent::__construct($entity_repository, $entity_type_bundle_info, $time);
+     $this->languageManager = $language_manager;
++    $this->colorSchemeSupport = $color_scheme_support;
+   }
+ 
+   /**
+    * {@inheritdoc}
+    */
+   public static function create(ContainerInterface $container) {
+-    return new static(
++    $instance = new static(
+       $container->get('entity.repository'),
+       $container->get('language_manager'),
++      $container->get('theme.color_scheme_support'),
+       $container->get('entity_type.bundle.info'),
+       $container->get('datetime.time')
+     );
++    return $instance;
+   }
+ 
+   /**
+@@ -324,9 +337,107 @@ abstract class AccountForm extends ContentEntityForm implements TrustedCallbackI
+       $form['timezone']['timezone']['#attributes'] = ['class' => ['timezone-detect']];
+     }
+ 
++    $form['user_settings'] = [
++      '#type' => 'details',
++      '#title' => $this->t('User settings'),
++      '#open' => TRUE,
++      '#weight' => 7,
++    ];
++    $form['user_settings']['color_scheme'] = [
++      '#type' => 'radios',
++      '#title' => $this->t('Color scheme'),
++      '#options' => [
++        'light' => $this->t('Light'),
++        'dark' => $this->t('Dark'),
++        'auto' => $this->t('System'),
++      ],
++      '#default_value' => $account->get('color_scheme')->value ?: 'auto',
++    ] + $this->colorSchemeElementProperties($account);
++
+     return parent::form($form, $form_state);
+   }
+ 
++  /**
++   * Builds the description and disabled state of the color scheme element.
++   *
++   * Only a theme that declares 'supports color scheme' in its .info.yml file
++   * honors the preference, so what the element offers depends on the site
++   * theme and the administration theme:
++   * - Neither declares support: nothing honors the preference, so the element
++   *   is disabled.
++   * - Both declare support: the preference applies to the whole site.
++   * - Only the site theme declares support: the preference applies outside
++   *   administration pages.
++   * - Only the administration theme declares support: the preference applies
++   *   to administration pages, which only accounts that may use the
++   *   administration theme ever see. For other accounts nothing honors the
++   *   preference, so the element is disabled.
++   *
++   * @param \Drupal\user\UserInterface $account
++   *   The account the form is built for.
++   *
++   * @return array
++   *   Form element properties to add to the color scheme element.
++   *
++   * @see \Drupal\Core\Theme\ColorSchemeSupport
++   */
++  protected function colorSchemeElementProperties(UserInterface $account): array {
++    $default_supports = $this->colorSchemeSupport->siteThemeSupports();
++    $admin_supports = $this->colorSchemeSupport->adminThemeSupports();
++
++    if ($default_supports && $admin_supports) {
++      return [
++        '#description' => $this->t('System follows your operating system or browser setting. Applies wherever your site’s theme supports it.'),
++      ];
++    }
++
++    if ($default_supports) {
++      return [
++        '#description' => $this->t('System follows your operating system or browser setting. The site follows this setting, administrative pages do not.'),
++      ];
++    }
++
++    if ($admin_supports) {
++      if ($this->accountMayUseAdminTheme($account)) {
++        return [
++          '#description' => $this->t('System follows your operating system or browser setting. Administrative pages follow this setting, the rest of the site does not.'),
++        ];
++      }
++      return [
++        '#disabled' => TRUE,
++        '#description' => $this->t('This setting has no effect on your account. Only administration pages support it, and this account does not use the administration theme.'),
++      ];
++    }
++
++    return [
++      '#disabled' => TRUE,
++      '#description' => $this->t('This setting has no effect. Neither the site nor the administration pages support it.'),
++    ];
++  }
++
++  /**
++   * Determines whether an account may use the administration theme.
++   *
++   * @param \Drupal\user\UserInterface $account
++   *   The account the form is built for.
++   *
++   * @return bool
++   *   TRUE if the account may use the administration theme.
++   */
++  protected function accountMayUseAdminTheme(UserInterface $account): bool {
++    // A new account holds no roles yet: it is not authenticated, so a
++    // permission check evaluates the anonymous role, which says nothing about
++    // the account being created. Offer the setting instead of disabling it on
++    // evidence that does not apply, and let the account edit form decide once
++    // the roles are known.
++    if ($account->isNew()) {
++      return TRUE;
++    }
++    // The permission belongs to the account being edited, not to the account
++    // filling in the form.
++    return $account->hasPermission('view the administration theme');
++  }
++
+   /**
+    * {@inheritdoc}
+    */
+@@ -414,6 +525,7 @@ abstract class AccountForm extends ContentEntityForm implements TrustedCallbackI
+       'mail',
+       'roles',
+       'timezone',
++      'color_scheme',
+       'langcode',
+       'preferred_langcode',
+       'preferred_admin_langcode',
+@@ -433,6 +545,7 @@ abstract class AccountForm extends ContentEntityForm implements TrustedCallbackI
+       'mail',
+       'roles',
+       'timezone',
++      'color_scheme',
+       'langcode',
+       'preferred_langcode',
+       'preferred_admin_langcode',
+diff --git a/core/modules/user/src/ColorSchemeItem.php b/core/modules/user/src/ColorSchemeItem.php
+new file mode 100644
+index 0000000000..ad4f02b69e
+--- /dev/null
++++ b/core/modules/user/src/ColorSchemeItem.php
+@@ -0,0 +1,25 @@
++<?php
++
++namespace Drupal\user;
++
++use Drupal\Core\Field\FieldDefinitionInterface;
++use Drupal\Core\Field\Plugin\Field\FieldType\StringItem;
++
++/**
++ * Defines a custom field item class for the 'color_scheme' user entity field.
++ */
++class ColorSchemeItem extends StringItem {
++
++  /**
++   * The allowed values for the color scheme.
++   */
++  public const ALLOWED_VALUES = ['light', 'dark', 'auto'];
++
++  /**
++   * {@inheritdoc}
++   */
++  public static function generateSampleValue(FieldDefinitionInterface $field_definition) {
++    return self::ALLOWED_VALUES[array_rand(self::ALLOWED_VALUES)];
++  }
++
++}
+diff --git a/core/modules/user/src/Entity/User.php b/core/modules/user/src/Entity/User.php
+index eb80f48c3f..367edd1311 100644
+--- a/core/modules/user/src/Entity/User.php
++++ b/core/modules/user/src/Entity/User.php
+@@ -13,6 +13,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
+ use Drupal\Core\Flood\PrefixFloodInterface;
+ use Drupal\Core\Language\LanguageInterface;
+ use Drupal\Core\Session\UserSessionRepositoryInterface;
++use Drupal\user\ColorSchemeItem;
+ use Drupal\user\Form\UserCancelForm;
+ use Drupal\user\NotificationHandler;
+ use Drupal\user\ProfileForm;
+@@ -361,6 +362,13 @@ class User extends ContentEntityBase implements UserInterface {
+     return $this->getFieldValue('timezone', 'value');
+   }
+ 
++  /**
++   * {@inheritdoc}
++   */
++  public function getColorScheme() {
++    return $this->getFieldValue('color_scheme', 'value') ?: 'auto';
++  }
++
+   /**
+    * {@inheritdoc}
+    */
+@@ -553,6 +561,15 @@ class User extends ContentEntityBase implements UserInterface {
+       ]);
+     $fields['timezone']->getItemDefinition()->setClass(TimeZoneItem::class);
+ 
++    $fields['color_scheme'] = BaseFieldDefinition::create('string')
++      ->setLabel(t('Color scheme'))
++      ->setDescription(t("The user's preferred color scheme for the interface."))
++      ->setDefaultValue('auto')
++      ->addPropertyConstraints('value', [
++        'AllowedValues' => ['choices' => ColorSchemeItem::ALLOWED_VALUES],
++      ]);
++    $fields['color_scheme']->getItemDefinition()->setClass(ColorSchemeItem::class);
++
+     $fields['status'] = BaseFieldDefinition::create('boolean')
+       ->setLabel(t('User status'))
+       ->setDescription(t('Whether the user is active or blocked.'))
+diff --git a/core/modules/user/src/Hook/ColorSchemeHooks.php b/core/modules/user/src/Hook/ColorSchemeHooks.php
+new file mode 100644
+index 0000000000..5a71ceac93
+--- /dev/null
++++ b/core/modules/user/src/Hook/ColorSchemeHooks.php
+@@ -0,0 +1,37 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\user\Hook;
++
++use Drupal\Core\EventSubscriber\ColorSchemeCookieSubscriber;
++use Drupal\Core\Hook\Attribute\Hook;
++use Drupal\Core\Session\AccountInterface;
++use Drupal\user\UserInterface;
++
++/**
++ * Hook implementations for the color scheme preference.
++ */
++final class ColorSchemeHooks {
++
++  public function __construct(
++    private readonly AccountInterface $currentUser,
++    private readonly ColorSchemeCookieSubscriber $colorSchemeCookie,
++  ) {}
++
++  /**
++   * Implements hook_user_update().
++   *
++   * The current user is built from the session at the start of the request, so
++   * it still holds the color scheme the account had before this save. Hand the
++   * saved value over, so that the cookie is written on the response to the
++   * save and the next page already uses the new preference.
++   */
++  #[Hook('user_update')]
++  public function userUpdate(UserInterface $account): void {
++    if ((int) $account->id() === (int) $this->currentUser->id()) {
++      $this->colorSchemeCookie->setColorScheme($account->getColorScheme());
++    }
++  }
++
++}
+diff --git a/core/modules/user/src/RegisterForm.php b/core/modules/user/src/RegisterForm.php
+index 977ef71ec1..2681463d87 100644
+--- a/core/modules/user/src/RegisterForm.php
++++ b/core/modules/user/src/RegisterForm.php
+@@ -7,6 +7,7 @@ use Drupal\Core\Entity\EntityRepositoryInterface;
+ use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
+ use Drupal\Core\Form\FormStateInterface;
+ use Drupal\Core\Language\LanguageManagerInterface;
++use Drupal\Core\Theme\ColorSchemeSupport;
+ use Symfony\Component\DependencyInjection\ContainerInterface;
+ 
+ /**
+@@ -19,12 +20,13 @@ class RegisterForm extends AccountForm {
+   public function __construct(
+     EntityRepositoryInterface $entity_repository,
+     LanguageManagerInterface $language_manager,
++    ColorSchemeSupport $color_scheme_support,
+     EntityTypeBundleInfoInterface $entity_type_bundle_info,
+     TimeInterface $time,
+     protected LoginFinalizer $loginFinalizer,
+     protected NotificationHandler $notificationHandler,
+   ) {
+-    parent::__construct($entity_repository, $language_manager, $entity_type_bundle_info, $time);
++    parent::__construct($entity_repository, $language_manager, $color_scheme_support, $entity_type_bundle_info, $time);
+   }
+ 
+   /**
+@@ -34,6 +36,7 @@ class RegisterForm extends AccountForm {
+     return new static(
+       $container->get(EntityRepositoryInterface::class),
+       $container->get(LanguageManagerInterface::class),
++      $container->get(ColorSchemeSupport::class),
+       $container->get(EntityTypeBundleInfoInterface::class),
+       $container->get(TimeInterface::class),
+       $container->get(LoginFinalizer::class),
+diff --git a/core/modules/user/tests/src/Functional/Rest/UserResourceTestBase.php b/core/modules/user/tests/src/Functional/Rest/UserResourceTestBase.php
+index 44692cecd2..a4274a11d0 100644
+--- a/core/modules/user/tests/src/Functional/Rest/UserResourceTestBase.php
++++ b/core/modules/user/tests/src/Functional/Rest/UserResourceTestBase.php
+@@ -129,6 +129,9 @@ abstract class UserResourceTestBase extends EntityResourceTestBase {
+           'value' => 'Llama',
+         ],
+       ],
++      'color_scheme' => [
++        ['value' => 'auto'],
++      ],
+       'created' => [
+         [
+           'value' => (new \DateTime())->setTimestamp(123456789)->setTimezone(new \DateTimeZone('UTC'))->format(\DateTime::RFC3339),
+diff --git a/core/modules/user/tests/src/Functional/UserColorSchemeFormTest.php b/core/modules/user/tests/src/Functional/UserColorSchemeFormTest.php
+new file mode 100644
+index 0000000000..61a0fd5358
+--- /dev/null
++++ b/core/modules/user/tests/src/Functional/UserColorSchemeFormTest.php
+@@ -0,0 +1,326 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\user\Functional;
++
++use Drupal\Core\EventSubscriber\ColorSchemeCookieSubscriber;
++use Drupal\Tests\BrowserTestBase;
++use Drupal\user\Entity\User;
++use Drupal\user\UserInterface;
++use PHPUnit\Framework\Attributes\DataProvider;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++
++/**
++ * Tests the color scheme element on the account form.
++ *
++ * The element is offered or disabled depending on whether the site theme and
++ * the administration theme declare 'supports color scheme', and on whether the
++ * account being edited may use the administration theme. Saving the form hands
++ * the new preference to the cookie that carries it to the client.
++ *
++ * @see \Drupal\user\AccountForm::colorSchemeElementProperties()
++ * @see \Drupal\user\Hook\ColorSchemeHooks::userUpdate()
++ */
++#[Group('user')]
++#[RunTestsInSeparateProcesses]
++class UserColorSchemeFormTest extends BrowserTestBase {
++
++  /**
++   * A theme that declares 'supports color scheme'.
++   */
++  const SUPPORTING_THEME = 'test_color_scheme_theme';
++
++  /**
++   * A theme that does not declare 'supports color scheme'.
++   */
++  const PLAIN_THEME = 'stark';
++
++  /**
++   * Description used when both themes honor the preference.
++   */
++  const DESCRIPTION_BOTH = 'System follows your operating system or browser setting. Applies wherever your site’s theme supports it.';
++
++  /**
++   * Description used when only the site theme honors the preference.
++   */
++  const DESCRIPTION_SITE_ONLY = 'System follows your operating system or browser setting. The site follows this setting, administrative pages do not.';
++
++  /**
++   * Description used when only the administration theme honors the preference.
++   */
++  const DESCRIPTION_ADMIN_ONLY = 'System follows your operating system or browser setting. Administrative pages follow this setting, the rest of the site does not.';
++
++  /**
++   * Description used when the account may not use the administration theme.
++   */
++  const DESCRIPTION_NO_ADMIN_ACCESS = 'This setting has no effect on your account. Only administration pages support it, and this account does not use the administration theme.';
++
++  /**
++   * Description used when neither theme honors the preference.
++   */
++  const DESCRIPTION_NONE = 'This setting has no effect. Neither the site nor the administration pages support it.';
++
++  /**
++   * {@inheritdoc}
++   */
++  protected $defaultTheme = 'stark';
++
++  /**
++   * {@inheritdoc}
++   */
++  protected function setUp(): void {
++    parent::setUp();
++    \Drupal::service('theme_installer')->install([self::SUPPORTING_THEME]);
++  }
++
++  /**
++   * Tests the decision tree on the account edit form.
++   *
++   * @param string $default_theme
++   *   The theme to configure as the site theme.
++   * @param string $admin_theme
++   *   The theme to configure as the administration theme.
++   * @param bool $may_use_admin_theme
++   *   TRUE to give the edited account the 'view the administration theme'
++   *   permission.
++   * @param bool $expected_disabled
++   *   TRUE if the element is expected to be disabled.
++   * @param string $expected_description
++   *   The description the element is expected to carry.
++   */
++  #[DataProvider('providerDecisionTree')]
++  public function testDecisionTree(string $default_theme, string $admin_theme, bool $may_use_admin_theme, bool $expected_disabled, string $expected_description): void {
++    $this->setThemes($default_theme, $admin_theme);
++
++    $account = $this->drupalCreateUser($may_use_admin_theme ? ['view the administration theme'] : []);
++    $this->drupalLogin($account);
++
++    $this->drupalGet($account->toUrl('edit-form'));
++    $this->assertSession()->statusCodeEquals(200);
++    $this->assertColorSchemeElement($expected_disabled, $expected_description);
++  }
++
++  /**
++   * Provides test cases for ::testDecisionTree().
++   *
++   * @return array[]
++   *   An array of test cases.
++   */
++  public static function providerDecisionTree(): array {
++    return [
++      'neither theme supports' => [
++        self::PLAIN_THEME, self::PLAIN_THEME, TRUE, TRUE, self::DESCRIPTION_NONE,
++      ],
++      'both themes support' => [
++        self::SUPPORTING_THEME, self::SUPPORTING_THEME, TRUE, FALSE, self::DESCRIPTION_BOTH,
++      ],
++      'site theme supports' => [
++        self::SUPPORTING_THEME, self::PLAIN_THEME, TRUE, FALSE, self::DESCRIPTION_SITE_ONLY,
++      ],
++      // The administration theme is irrelevant while the site theme honors the
++      // preference, so the permission does not change the outcome.
++      'site theme supports, account may not use admin theme' => [
++        self::SUPPORTING_THEME, self::PLAIN_THEME, FALSE, FALSE, self::DESCRIPTION_SITE_ONLY,
++      ],
++      'admin theme supports, account may use it' => [
++        self::PLAIN_THEME, self::SUPPORTING_THEME, TRUE, FALSE, self::DESCRIPTION_ADMIN_ONLY,
++      ],
++      'admin theme supports, account may not use it' => [
++        self::PLAIN_THEME, self::SUPPORTING_THEME, FALSE, TRUE, self::DESCRIPTION_NO_ADMIN_ACCESS,
++      ],
++    ];
++  }
++
++  /**
++   * Tests that an empty administration theme falls back to the site theme.
++   *
++   * @param string $default_theme
++   *   The theme to configure as the site theme.
++   * @param bool $expected_disabled
++   *   TRUE if the element is expected to be disabled.
++   * @param string $expected_description
++   *   The description the element is expected to carry.
++   */
++  #[DataProvider('providerEmptyAdminTheme')]
++  public function testEmptyAdminTheme(string $default_theme, bool $expected_disabled, string $expected_description): void {
++    // An empty 'admin' value means administration pages use the site theme, so
++    // only the 'neither' and 'both' outcomes can occur.
++    $this->setThemes($default_theme, '');
++
++    $account = $this->drupalCreateUser();
++    $this->drupalLogin($account);
++
++    $this->drupalGet($account->toUrl('edit-form'));
++    $this->assertSession()->statusCodeEquals(200);
++    $this->assertColorSchemeElement($expected_disabled, $expected_description);
++  }
++
++  /**
++   * Provides test cases for ::testEmptyAdminTheme().
++   *
++   * @return array[]
++   *   An array of test cases.
++   */
++  public static function providerEmptyAdminTheme(): array {
++    return [
++      'site theme supports' => [self::SUPPORTING_THEME, FALSE, self::DESCRIPTION_BOTH],
++      'site theme does not support' => [self::PLAIN_THEME, TRUE, self::DESCRIPTION_NONE],
++    ];
++  }
++
++  /**
++   * Tests that the permission is checked for the account being edited.
++   */
++  public function testPermissionAppliesToEditedAccount(): void {
++    $this->setThemes(self::PLAIN_THEME, self::SUPPORTING_THEME);
++
++    // The account filling in the form may use the administration theme, the
++    // account being edited may not.
++    $this->drupalLogin($this->drupalCreateUser([
++      'administer users',
++      'view the administration theme',
++    ]));
++    $this->drupalGet($this->drupalCreateUser()->toUrl('edit-form'));
++    $this->assertSession()->statusCodeEquals(200);
++    $this->assertColorSchemeElement(TRUE, self::DESCRIPTION_NO_ADMIN_ACCESS);
++
++    // The reverse: the account being edited may use the administration theme,
++    // the account filling in the form may not.
++    $this->drupalLogin($this->drupalCreateUser(['administer users']));
++    $edited = $this->drupalCreateUser(['view the administration theme']);
++    $this->drupalGet($edited->toUrl('edit-form'));
++    $this->assertSession()->statusCodeEquals(200);
++    $this->assertColorSchemeElement(FALSE, self::DESCRIPTION_ADMIN_ONLY);
++  }
++
++  /**
++   * Tests that a disabled element keeps the stored preference.
++   */
++  public function testDisabledElementKeepsStoredValue(): void {
++    $this->setThemes(self::PLAIN_THEME, self::PLAIN_THEME);
++
++    $account = $this->drupalCreateUser();
++    $account->set('color_scheme', 'dark')->save();
++    $this->drupalLogin($account);
++
++    $this->drupalGet($account->toUrl('edit-form'));
++    $this->assertColorSchemeElement(TRUE, self::DESCRIPTION_NONE);
++
++    // The element is disabled, not removed, so the radio for the stored value
++    // is still checked and saving the form does not change the preference.
++    $this->assertSession()->elementsCount('xpath', '//input[@name="color_scheme" and @value="dark" and @checked]', 1);
++    $this->submitForm([], 'Save');
++    $this->assertSession()->statusCodeEquals(200);
++
++    \Drupal::entityTypeManager()->getStorage('user')->resetCache([$account->id()]);
++    $this->assertSame('dark', User::load($account->id())->get('color_scheme')->value);
++  }
++
++  /**
++   * Tests that saving the form writes the preference to the cookie.
++   *
++   * The current user is built from the session at the start of the request, so
++   * it still holds the previous preference while the save is processed.
++   * hook_user_update() hands the saved value over, so the response to the save
++   * already carries it and the page that follows the save uses it.
++   *
++   * @see \Drupal\user\Hook\ColorSchemeHooks::userUpdate()
++   * @see \Drupal\Core\EventSubscriber\ColorSchemeCookieSubscriber::onResponse()
++   */
++  public function testSavingWritesTheCookie(): void {
++    // A disabled element submits nothing, so the element has to be offered.
++    $this->setThemes(self::SUPPORTING_THEME, self::SUPPORTING_THEME);
++
++    $account = $this->drupalCreateUser();
++    $this->drupalLogin($account);
++    // The account starts out on 'auto', which is what every page renders, so
++    // there is nothing to carry to the client yet.
++    $this->assertNull($this->getColorSchemeCookie());
++
++    foreach (['dark', 'light'] as $color_scheme) {
++      $this->drupalGet($account->toUrl('edit-form'));
++      $this->submitForm(['color_scheme' => $color_scheme], 'Save');
++      $this->assertSession()->statusCodeEquals(200);
++      $this->assertSame($color_scheme, $this->getColorSchemeCookie());
++    }
++
++    // 'auto' is expressed by the absence of the cookie, so saving it removes
++    // the cookie again.
++    $this->drupalGet($account->toUrl('edit-form'));
++    $this->submitForm(['color_scheme' => 'auto'], 'Save');
++    $this->assertSession()->statusCodeEquals(200);
++    $this->assertNull($this->getColorSchemeCookie());
++  }
++
++  /**
++   * Tests the registration form, where the account has no roles yet.
++   */
++  public function testRegistrationForm(): void {
++    $this->setThemes(self::PLAIN_THEME, self::SUPPORTING_THEME);
++    $this->config('user.settings')
++      ->set('register', UserInterface::REGISTER_VISITORS)
++      ->save();
++
++    $this->drupalGet('user/register');
++    $this->assertSession()->statusCodeEquals(200);
++    // The account does not exist yet, so the roles it will hold are unknown. A
++    // permission check would evaluate the anonymous role, which says nothing
++    // about the account being created, so the element is offered.
++    $this->assertColorSchemeElement(FALSE, self::DESCRIPTION_ADMIN_ONLY);
++  }
++
++  /**
++   * Returns the color scheme cookie the browser holds.
++   *
++   * @return string|null
++   *   The value of the cookie, or NULL if the browser holds no such cookie.
++   */
++  protected function getColorSchemeCookie(): ?string {
++    return $this->getSession()->getCookie(ColorSchemeCookieSubscriber::COOKIE_NAME);
++  }
++
++  /**
++   * Configures the site theme and the administration theme.
++   *
++   * @param string $default_theme
++   *   The theme to configure as the site theme.
++   * @param string $admin_theme
++   *   The theme to configure as the administration theme. An empty string
++   *   means administration pages use the site theme.
++   */
++  protected function setThemes(string $default_theme, string $admin_theme): void {
++    $this->config('system.theme')
++      ->set('default', $default_theme)
++      ->set('admin', $admin_theme)
++      ->save();
++  }
++
++  /**
++   * Asserts the state and the description of the color scheme element.
++   *
++   * @param bool $disabled
++   *   TRUE if the element is expected to be disabled.
++   * @param string $description
++   *   The description the element is expected to carry. The descriptions of
++   *   the other outcomes are asserted to be absent.
++   */
++  protected function assertColorSchemeElement(bool $disabled, string $description): void {
++    $this->assertSession()->elementsCount('xpath', '//input[@name="color_scheme"]', 3);
++    $this->assertSession()->elementsCount('xpath', '//input[@name="color_scheme" and @disabled]', $disabled ? 3 : 0);
++    $this->assertSession()->pageTextContains($description);
++
++    $others = [
++      self::DESCRIPTION_BOTH,
++      self::DESCRIPTION_SITE_ONLY,
++      self::DESCRIPTION_ADMIN_ONLY,
++      self::DESCRIPTION_NO_ADMIN_ACCESS,
++      self::DESCRIPTION_NONE,
++    ];
++    foreach (array_diff($others, [$description]) as $other) {
++      $this->assertSession()->pageTextNotContains($other);
++    }
++  }
++
++}
+diff --git a/core/modules/user/user.install b/core/modules/user/user.install
+index 7d3dd8107e..b11f1d95db 100644
+--- a/core/modules/user/user.install
++++ b/core/modules/user/user.install
+@@ -15,6 +15,7 @@ use Drupal\Core\Database\SchemaDefinition\Schema;
+ use Drupal\Core\Database\SchemaDefinition\SchemaDefinitionType;
+ use Drupal\Core\Database\SchemaDefinition\StringValue;
+ use Drupal\Core\Database\SchemaDefinition\Table;
++use Drupal\Core\Field\BaseFieldDefinition;
+ 
+ /**
+  * Implements hook_schema().
+@@ -113,3 +114,15 @@ function user_install(): void {
+ function user_update_last_removed(): int {
+   return 10000;
+ }
++
++/**
++ * Adds the 'color_scheme' base field to the user entity.
++ */
++function user_update_11401(): void {
++  $definition_update_manager = \Drupal::entityDefinitionUpdateManager();
++  $field = BaseFieldDefinition::create('string')
++    ->setLabel(t('Color scheme'))
++    ->setDescription(t("The user's preferred color scheme for the interface."))
++    ->setDefaultValue('auto');
++  $definition_update_manager->installFieldStorageDefinition('color_scheme', 'user', 'user', $field);
++}
+diff --git a/core/modules/views/tests/src/FunctionalJavascript/PaginationAJAXTest.php b/core/modules/views/tests/src/FunctionalJavascript/PaginationAJAXTest.php
+index 8c563930d3..8421f8e77a 100644
+--- a/core/modules/views/tests/src/FunctionalJavascript/PaginationAJAXTest.php
++++ b/core/modules/views/tests/src/FunctionalJavascript/PaginationAJAXTest.php
+@@ -251,16 +251,30 @@ class PaginationAJAXTest extends WebDriverTestBase {
+   /**
+    * Assert that assets are not loaded twice on a page.
+    *
++   * An asset is loaded twice when the same src appears on two script elements,
++   * which is what an AJAX response does when it re-attaches a library the page
++   * already carries. Only elements that have a src are considered, because a
++   * script element without one loads nothing: a page holds several of those,
++   * such as the drupalSettings JSON and the color scheme script in the head,
++   * and their absent src would otherwise read as a duplicate of each other.
++   *
++   * @see \Drupal\views\Controller\ViewAjaxController::ajaxView()
++   * @see \Drupal\Core\Render\BareHtmlPageRenderer::systemPageAttachments()
++   *
+    * @internal
+    */
+   protected function assertNoDuplicateAssetsOnPage(): void {
+     /** @var \Behat\Mink\Element\NodeElement[] $scripts */
+-    $scripts = $this->getSession()->getPage()->findAll('xpath', '//script');
++    $scripts = $this->getSession()->getPage()->findAll('xpath', '//script[@src]');
+     $script_src = [];
+     foreach ($scripts as $script) {
+-      $this->assertNotContains($script->getAttribute('src'), $script_src);
+-      $script_src[] = $script->getAttribute('src');
++      $src = $script->getAttribute('src');
++      $this->assertNotContains($src, $script_src, "The asset $src is loaded more than once.");
++      $script_src[] = $src;
+     }
++    // The loop above also passes when it never runs, so make sure the page
++    // loads assets this way at all.
++    $this->assertNotEmpty($script_src, 'The page loads at least one script asset.');
+   }
+ 
+   /**
+diff --git a/core/tests/Drupal/FunctionalJavascriptTests/Core/ColorSchemeScriptTest.php b/core/tests/Drupal/FunctionalJavascriptTests/Core/ColorSchemeScriptTest.php
+new file mode 100644
+index 0000000000..e1bb30f83c
+--- /dev/null
++++ b/core/tests/Drupal/FunctionalJavascriptTests/Core/ColorSchemeScriptTest.php
+@@ -0,0 +1,62 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\FunctionalJavascriptTests\Core;
++
++use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++
++/**
++ * Tests that the script in the head applies the color scheme preference.
++ *
++ * The server renders data-color-scheme="auto" on every page and puts a
++ * customized preference in a cookie, so a browser running the script is the
++ * only place where the effect of the preference is observable. The script is
++ * handed to the render array as one string, which makes it possible to break
++ * it without any other test noticing.
++ *
++ * That the server renders 'auto' whatever the preference is asserted in
++ * HtmlAttributesTest, and the cookie itself in ColorSchemeCookieTest.
++ *
++ * @see \Drupal\Core\Render\BareHtmlPageRenderer::systemPageAttachments()
++ * @see \Drupal\Tests\system\Functional\Theme\HtmlAttributesTest
++ * @see \Drupal\FunctionalTests\EventSubscriber\ColorSchemeCookieTest
++ */
++#[Group('Theme')]
++#[RunTestsInSeparateProcesses]
++class ColorSchemeScriptTest extends WebDriverTestBase {
++
++  /**
++   * A script that reads the color scheme attribute out of the document.
++   */
++  const READ_ATTRIBUTE = "document.documentElement.getAttribute('data-color-scheme')";
++
++  /**
++   * {@inheritdoc}
++   */
++  protected $defaultTheme = 'stark';
++
++  /**
++   * Tests that the script applies the cookie to the html element.
++   */
++  public function testScriptAppliesThePreference(): void {
++    $dark = $this->drupalCreateUser();
++    $dark->set('color_scheme', 'dark')->save();
++    $auto = $this->drupalCreateUser();
++
++    // The cookie is written on the response to the login, so the script has it
++    // and overrides the rendered 'auto' with it.
++    $this->drupalLogin($dark);
++    $this->drupalGet('user/' . $dark->id());
++    $this->assertSame('dark', $this->getSession()->evaluateScript(self::READ_ATTRIBUTE));
++
++    // Logging in as an account on 'auto' removes the cookie again, so the
++    // script leaves the document alone and the rendered value stays.
++    $this->drupalLogin($auto);
++    $this->drupalGet('user/' . $auto->id());
++    $this->assertSame('auto', $this->getSession()->evaluateScript(self::READ_ATTRIBUTE));
++  }
++
++}
+diff --git a/core/tests/Drupal/FunctionalTests/EventSubscriber/ColorSchemeCookieTest.php b/core/tests/Drupal/FunctionalTests/EventSubscriber/ColorSchemeCookieTest.php
+new file mode 100644
+index 0000000000..dec350c45b
+--- /dev/null
++++ b/core/tests/Drupal/FunctionalTests/EventSubscriber/ColorSchemeCookieTest.php
+@@ -0,0 +1,320 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\FunctionalTests\EventSubscriber;
++
++use Drupal\Core\EventSubscriber\ColorSchemeCookieSubscriber;
++use Drupal\dynamic_page_cache\EventSubscriber\DynamicPageCacheSubscriber;
++use Drupal\page_cache\StackMiddleware\PageCache;
++use Drupal\Tests\BrowserTestBase;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++
++/**
++ * Tests how the color scheme preference of an account reaches the client.
++ *
++ * Every page renders with data-color-scheme="auto" on the <html> element, so
++ * the markup is the same for every account. An account that picked 'light' or
++ * 'dark' gets that value in a cookie instead, and a script in the head applies
++ * it before the stylesheets are requested. 'auto' is what the server already
++ * rendered, so it is expressed by the absence of the cookie.
++ *
++ * Only a response that changes the cookie is uncacheable. The subscriber
++ * compares the cookie on the request with the preference of the account and
++ * returns without touching the response when they already agree, which is what
++ * keeps a Set-Cookie header off every cacheable response. That comparison
++ * needs the server to read back the cookie it wrote, which is a property of
++ * the name of the cookie and only observable over a real request.
++ *
++ * The attribute in the markup is asserted in HtmlAttributesTest, and that the
++ * script applies the cookie in the browser in ColorSchemeScriptTest.
++ *
++ * @see \Drupal\Core\EventSubscriber\ColorSchemeCookieSubscriber
++ * @see \Drupal\Core\Render\BareHtmlPageRenderer::systemPageAttachments()
++ * @see \Drupal\Tests\system\Functional\Theme\HtmlAttributesTest
++ * @see \Drupal\FunctionalJavascriptTests\Core\ColorSchemeScriptTest
++ */
++#[Group('EventSubscriber')]
++#[RunTestsInSeparateProcesses]
++class ColorSchemeCookieTest extends BrowserTestBase {
++
++  /**
++   * A page that both page caches store, so that cacheability is observable.
++   *
++   * @see \Drupal\Tests\dynamic_page_cache\Functional\DynamicPageCacheIntegrationTest
++   */
++  const CACHEABLE_PATH = 'dynamic-page-cache-test/html';
++
++  /**
++   * {@inheritdoc}
++   */
++  protected static $modules = [
++    'dynamic_page_cache',
++    'dynamic_page_cache_test',
++    'page_cache',
++  ];
++
++  /**
++   * {@inheritdoc}
++   */
++  protected $defaultTheme = 'stark';
++
++  /**
++   * {@inheritdoc}
++   */
++  protected function setUp(): void {
++    parent::setUp();
++    // Let the internal page cache report hits and misses.
++    $this->config('system.performance')->set('cache.page.max_age', 300)->save();
++  }
++
++  /**
++   * Tests that logging in seeds the cookie and logging out removes it.
++   *
++   * Nothing put the preference in this browser, so the cookie is written on
++   * the response to the login. That is what makes the preference follow an
++   * account to a browser it never opened its profile form in.
++   */
++  public function testCookieIsSeededOnLoginAndClearedOnLogout(): void {
++    $light = $this->drupalCreateUser();
++    $light->set('color_scheme', 'light')->save();
++    $dark = $this->drupalCreateUser();
++    $dark->set('color_scheme', 'dark')->save();
++    $auto = $this->drupalCreateUser();
++
++    foreach (['light' => $light, 'dark' => $dark] as $expected => $account) {
++      $this->drupalLogin($account);
++      $this->assertSame($expected, $this->getColorSchemeCookie());
++      $this->drupalLogout();
++      $this->assertNull($this->getColorSchemeCookie());
++    }
++
++    // 'auto' is what the server already rendered, so it costs no cookie.
++    $this->drupalLogin($auto);
++    $this->assertNull($this->getColorSchemeCookie());
++    $this->drupalLogout();
++    $this->assertNull($this->getColorSchemeCookie());
++  }
++
++  /**
++   * Tests that an anonymous page carries no cookie and stays cacheable.
++   */
++  public function testAnonymousPagesStayCacheable(): void {
++    // An anonymous account has no preference, so there is nothing to write and
++    // the internal page cache stores the response.
++    $this->drupalGet(self::CACHEABLE_PATH);
++    $this->assertSession()->statusCodeEquals(200);
++    $this->assertNull($this->getColorSchemeCookie());
++    $this->assertNoColorSchemeSetCookie();
++    $this->assertSession()->responseHeaderEquals(PageCache::HEADER, 'MISS');
++
++    // A stored response is replayed to every anonymous visitor, so it must not
++    // carry a Set-Cookie header. Nothing runs on a hit of the internal page
++    // cache, so the header can only be there if it was stored, which the kill
++    // switch prevents.
++    $this->drupalGet(self::CACHEABLE_PATH);
++    $this->assertSession()->responseHeaderEquals(PageCache::HEADER, 'HIT');
++    $this->assertSession()->responseHeaderDoesNotExist('Set-Cookie');
++    $this->assertNull($this->getColorSchemeCookie());
++  }
++
++  /**
++   * Tests that the server reads back the cookie it wrote.
++   *
++   * Writing the cookie needs no reading, so the name of the cookie can be one
++   * the server cannot read back and everything still looks like it works: the
++   * preference reaches the browser, and the script applies it. What breaks is
++   * everything the comparison decides. The preference looks absent on every
++   * request, so every response rewrites the cookie and fires the page cache
++   * kill switch, which leaves no page of an account on 'light' or 'dark' ever
++   * cacheable, and a cookie that has to go is never cleared.
++   *
++   * A name is only readable if it survives the parsing of $_COOKIE, and only a
++   * real request goes through that parsing.
++   *
++   * @see \Drupal\Core\EventSubscriber\ColorSchemeCookieSubscriber::COOKIE_NAME
++   * @see \Drupal\Tests\Core\EventSubscriber\ColorSchemeCookieSubscriberTest
++   */
++  public function testTheServerReadsBackTheCookieItWrote(): void {
++    $account = $this->drupalCreateUser();
++    $account->set('color_scheme', 'dark')->save();
++    $this->drupalLogin($account);
++    $this->assertSame('dark', $this->getColorSchemeCookie());
++
++    // The request now carries the cookie the login wrote, and the account
++    // still asks for the same value, so there is nothing left to write.
++    $this->drupalGet(self::CACHEABLE_PATH);
++    $this->assertSession()->statusCodeEquals(200);
++    $this->assertNoColorSchemeSetCookie();
++
++    // Prove the read from the other side too. The assertion above is the
++    // absence of a header; this one is the presence of a header that the
++    // response can only produce by having read the value the request carried,
++    // because 'auto' is the absence of the cookie and leaves the subscriber
++    // nothing else to compare against.
++    $account->set('color_scheme', 'auto')->save();
++    $this->drupalGet(self::CACHEABLE_PATH);
++    $this->assertColorSchemeCookieCleared();
++    $this->assertNull($this->getColorSchemeCookie());
++
++    // With the cookie gone and the account on 'auto', the two agree again.
++    $this->drupalGet(self::CACHEABLE_PATH);
++    $this->assertNoColorSchemeSetCookie();
++  }
++
++  /**
++   * Tests that only a response that changes the cookie is uncacheable.
++   *
++   * The cookie belongs to one account, so a response that writes it must not
++   * be stored. A response that leaves the cookie alone has nothing account
++   * specific about it, and the same page therefore stays cacheable. The three
++   * requests below are to the same URL and only differ in whether the cookie
++   * on the request agrees with the preference of the account.
++   */
++  public function testKillSwitchFiresOnlyOnAMismatch(): void {
++    $account = $this->drupalCreateUser();
++    $account->set('color_scheme', 'dark')->save();
++    $this->drupalLogin($account);
++    $this->assertSame('dark', $this->getColorSchemeCookie());
++
++    // Take the browser out of step with the account.
++    $account->set('color_scheme', 'light')->save();
++
++    // The cookie on the request is no longer what the account asks for, so the
++    // response writes it and the kill switch denies the response policy of
++    // Dynamic Page Cache.
++    $this->drupalGet(self::CACHEABLE_PATH);
++    $this->assertSession()->statusCodeEquals(200);
++    $this->assertSession()->responseHeaderEquals(DynamicPageCacheSubscriber::HEADER, 'UNCACHEABLE (response policy)');
++    $this->assertColorSchemeSetCookie('light');
++    $this->assertSame('light', $this->getColorSchemeCookie());
++
++    // The browser and the account agree again, so the very same page is left
++    // alone and stored.
++    $this->drupalGet(self::CACHEABLE_PATH);
++    $this->assertSession()->responseHeaderEquals(DynamicPageCacheSubscriber::HEADER, 'MISS');
++    $this->assertNoColorSchemeSetCookie();
++
++    // Serving it from the cache confirms that it really was stored.
++    $this->drupalGet(self::CACHEABLE_PATH);
++    $this->assertSession()->responseHeaderEquals(DynamicPageCacheSubscriber::HEADER, 'HIT');
++    $this->assertNoColorSchemeSetCookie();
++  }
++
++  /**
++   * Tests the script that applies the cookie in the head of the page.
++   *
++   * The server always renders 'auto', so a test without JavaScript cannot
++   * observe the override itself. What it can observe is that the script is
++   * shipped, that it is in the head before the stylesheets are requested, and
++   * that it only acts on the two values the cookie can carry.
++   *
++   * @see \Drupal\FunctionalJavascriptTests\Core\ColorSchemeScriptTest
++   */
++  public function testColorSchemeScript(): void {
++    $this->drupalGet(self::CACHEABLE_PATH);
++    $this->assertSession()->statusCodeEquals(200);
++
++    // The script reads the cookie the subscriber writes.
++    $content = $this->getSession()->getPage()->getContent();
++    $script_position = strpos($content, "var n = '" . ColorSchemeCookieSubscriber::COOKIE_NAME . "=';");
++    $this->assertNotFalse($script_position, 'The color scheme script is in the response.');
++
++    // It only overrides the rendered attribute for the two values the cookie
++    // can carry, so a missing or a manipulated cookie leaves 'auto' in place.
++    $this->assertSession()->responseContains("if (s === 'light' || s === 'dark') {");
++    $this->assertSession()->responseContains("document.documentElement.setAttribute('data-color-scheme', s);");
++
++    // The script is in the head, and before the stylesheets, so the client
++    // does not request the stylesheets of the wrong color scheme first.
++    $head_end = strpos($content, '</head>');
++    $this->assertNotFalse($head_end, 'The response has a head element.');
++    $this->assertLessThan($head_end, $script_position);
++    $stylesheet_position = strpos($content, 'rel="stylesheet"');
++    $this->assertNotFalse($stylesheet_position, 'The response loads a stylesheet.');
++    $this->assertLessThan($stylesheet_position, $script_position);
++  }
++
++  /**
++   * Returns the color scheme cookie the browser holds.
++   *
++   * @return string|null
++   *   The value of the cookie, or NULL if the browser holds no such cookie.
++   */
++  protected function getColorSchemeCookie(): ?string {
++    return $this->getSession()->getCookie(ColorSchemeCookieSubscriber::COOKIE_NAME);
++  }
++
++  /**
++   * Asserts that the last response writes the color scheme cookie.
++   *
++   * @param string $expected
++   *   The value the cookie is expected to be set to.
++   */
++  protected function assertColorSchemeSetCookie(string $expected): void {
++    $set_cookies = $this->getColorSchemeSetCookieHeaders();
++    $this->assertCount(1, $set_cookies, 'The response writes the color scheme cookie once.');
++    $set_cookie = $set_cookies[0];
++    $this->assertStringStartsWith(ColorSchemeCookieSubscriber::COOKIE_NAME . '=' . $expected . ';', $set_cookie);
++    // The script in the head reads the cookie, so it is not HTTP only.
++    $this->assertStringNotContainsStringIgnoringCase('httponly', $set_cookie);
++    $this->assertStringContainsStringIgnoringCase('samesite=lax', $set_cookie);
++  }
++
++  /**
++   * Asserts that the last response leaves the color scheme cookie alone.
++   *
++   * A response only writes the cookie when the value on the request differs
++   * from the preference of the account, so a write here means the two were
++   * compared and found to differ when they should not have been.
++   */
++  protected function assertNoColorSchemeSetCookie(): void {
++    $this->assertSame([], $this->getColorSchemeSetCookieHeaders(), sprintf(
++      'The response writes the %s cookie that the request already carried, '
++      . 'so the server did not read it back. PHP rewrites some characters in '
++      . 'the keys of the cookie array, so a name holding a dot, a space or an '
++      . 'opening bracket is unreadable server side. Every response then '
++      . 'rewrites the cookie and fires the page cache kill switch, which '
++      . 'leaves every page of every account with a customized preference '
++      . 'permanently uncacheable.',
++      ColorSchemeCookieSubscriber::COOKIE_NAME,
++    ));
++  }
++
++  /**
++   * Asserts that the last response clears the color scheme cookie.
++   */
++  protected function assertColorSchemeCookieCleared(): void {
++    $set_cookies = $this->getColorSchemeSetCookieHeaders();
++    $this->assertCount(1, $set_cookies, sprintf(
++      'The response does not clear the %s cookie that the request carried. A '
++      . 'cookie is only cleared by comparing it with the preference of the '
++      . 'account, so a cookie the server cannot read back is never cleared.',
++      ColorSchemeCookieSubscriber::COOKIE_NAME,
++    ));
++    // A cleared cookie is written as the value 'deleted', with an expiry in
++    // the past and no lifetime left.
++    $this->assertStringStartsWith(ColorSchemeCookieSubscriber::COOKIE_NAME . '=deleted;', $set_cookies[0]);
++    $this->assertStringContainsStringIgnoringCase('max-age=0', $set_cookies[0]);
++  }
++
++  /**
++   * Returns the Set-Cookie headers of the last response for the cookie.
++   *
++   * @return string[]
++   *   The values of the Set-Cookie header that name the color scheme cookie.
++   *   A response can hold more than one Set-Cookie header.
++   */
++  protected function getColorSchemeSetCookieHeaders(): array {
++    // A response can hold more than one Set-Cookie header, and the name of the
++    // header itself is not case sensitive.
++    $headers = array_change_key_case($this->getSession()->getResponseHeaders());
++    $set_cookies = $headers['set-cookie'] ?? [];
++    $set_cookies = is_array($set_cookies) ? $set_cookies : [$set_cookies];
++    $prefix = ColorSchemeCookieSubscriber::COOKIE_NAME . '=';
++    $names_the_cookie = static fn (string $set_cookie): bool => str_starts_with($set_cookie, $prefix);
++    return array_values(array_filter($set_cookies, $names_the_cookie));
++  }
++
++}
+diff --git a/core/tests/fixtures/default_content/user/94503467-be7f-406c-9795-fc25baa22203.yml b/core/tests/fixtures/default_content/user/94503467-be7f-406c-9795-fc25baa22203.yml
+index e1ca10256f..590c65d4ac 100644
+--- a/core/tests/fixtures/default_content/user/94503467-be7f-406c-9795-fc25baa22203.yml
++++ b/core/tests/fixtures/default_content/user/94503467-be7f-406c-9795-fc25baa22203.yml
+@@ -26,6 +26,9 @@ default:
+   timezone:
+     -
+       value: UTC
++  color_scheme:
++    -
++      value: auto
+   status:
+     -
+       value: true
+diff --git a/core/themes/default_admin/config/install/default_admin.settings.yml b/core/themes/default_admin/config/install/default_admin.settings.yml
+index 6120473902..5a3d797b5d 100644
+--- a/core/themes/default_admin/config/install/default_admin.settings.yml
++++ b/core/themes/default_admin/config/install/default_admin.settings.yml
+@@ -1,6 +1,5 @@
+ preset_accent_color: 'blue'
+ preset_focus_color: 'default'
+-enable_dark_mode: 'auto'
+ high_contrast_mode: false
+ accent_color: ''
+ focus_color: ''
+diff --git a/core/themes/default_admin/config/schema/default_admin.schema.yml b/core/themes/default_admin/config/schema/default_admin.schema.yml
+index 7038773f4b..591fdfd3bd 100644
+--- a/core/themes/default_admin/config/schema/default_admin.schema.yml
++++ b/core/themes/default_admin/config/schema/default_admin.schema.yml
+@@ -9,9 +9,6 @@ default_admin.settings:
+     preset_focus_color:
+       type: string
+       label: 'Preset focus color'
+-    enable_dark_mode:
+-      type: string
+-      label: 'The dark mode'
+     high_contrast_mode:
+       type: boolean
+       label: 'High contrast mode'
+diff --git a/core/themes/default_admin/default_admin.info.yml b/core/themes/default_admin/default_admin.info.yml
+index 1f339ce21c..744e66524d 100644
+--- a/core/themes/default_admin/default_admin.info.yml
++++ b/core/themes/default_admin/default_admin.info.yml
+@@ -5,6 +5,7 @@ description: A clean, accessible and powerful Drupal administration theme with a
+ alt text: Screenshot of Default Admin, the Drupal administration theme.
+ package: Core
+ version: VERSION
++supports color scheme: true
+ 
+ libraries:
+   - core/drupal.message
+diff --git a/core/themes/default_admin/default_admin.post_update.php b/core/themes/default_admin/default_admin.post_update.php
+index e62d396fd4..317dbc69d8 100644
+--- a/core/themes/default_admin/default_admin.post_update.php
++++ b/core/themes/default_admin/default_admin.post_update.php
+@@ -39,3 +39,73 @@ function default_admin_post_update_rename_focus_color_presets(): void {
+     }
+   }
+ }
++
++/**
++ * Removes the legacy 'enable_dark_mode' setting from theme configuration.
++ */
++function default_admin_post_update_remove_enable_dark_mode(): void {
++  \Drupal::configFactory()->getEditable('default_admin.settings')
++    ->clear('enable_dark_mode')
++    ->save();
++}
++
++/**
++ * Migrates per-user dark mode overrides to the color_scheme user field.
++ */
++function default_admin_post_update_migrate_dark_mode_to_color_scheme(): void {
++  $mapping = [
++    '0' => 'light',
++    '1' => 'dark',
++    'auto' => 'auto',
++  ];
++
++  $database = \Drupal::database();
++  $result = $database->select('users_data', 'ud')
++    ->fields('ud', ['uid', 'name', 'value', 'serialized'])
++    ->condition('ud.module', 'default_admin')
++    ->condition('ud.name', ['settings', 'enable_dark_mode'], 'IN')
++    ->execute();
++
++  // Collect the legacy value per user. The 'settings' array takes precedence
++  // over the scalar 'enable_dark_mode' row, matching Settings::get().
++  $legacy_value = [];
++  $user_data = \Drupal::service('user.data');
++  foreach ($result as $row) {
++    $uid = (int) $row->uid;
++    if ($uid === 0) {
++      continue;
++    }
++
++    if ($row->name === 'settings' && $row->serialized) {
++      $settings = unserialize($row->value);
++      if (is_array($settings) && array_key_exists('enable_dark_mode', $settings)) {
++        if ($settings['enable_dark_mode'] !== NULL) {
++          $legacy_value[$uid] = $settings['enable_dark_mode'];
++        }
++        unset($settings['enable_dark_mode']);
++        if ($settings === []) {
++          $user_data->delete('default_admin', $uid, 'settings');
++        }
++        else {
++          $user_data->set('default_admin', $uid, 'settings', $settings);
++        }
++      }
++    }
++    elseif ($row->name === 'enable_dark_mode') {
++      // The scalar row only applies when no 'settings' value is present.
++      $legacy_value[$uid] ??= $row->value;
++    }
++  }
++  $user_data->delete('default_admin', NULL, 'enable_dark_mode');
++
++  $storage = \Drupal::entityTypeManager()->getStorage('user');
++  foreach ($legacy_value as $uid => $value) {
++    $key = (string) $value;
++    if ($key !== 'auto' && isset($mapping[$key])) {
++      $user = $storage->load($uid);
++      if ($user) {
++        $user->set('color_scheme', $mapping[$key])->save();
++      }
++    }
++  }
++}
+diff --git a/core/themes/default_admin/src/Hook/FormHooks.php b/core/themes/default_admin/src/Hook/FormHooks.php
+index 51fa35579a..b881f670b2 100644
+--- a/core/themes/default_admin/src/Hook/FormHooks.php
++++ b/core/themes/default_admin/src/Hook/FormHooks.php
+@@ -481,7 +481,6 @@ class FormHooks {
+       $user_settings = [
+         'preset_accent_color' => $form_state->getValue('preset_accent_color'),
+         'preset_focus_color' => $form_state->getValue('preset_focus_color'),
+-        'enable_dark_mode' => $form_state->getValue('enable_dark_mode'),
+         'high_contrast_mode' => (bool) $form_state->getValue('high_contrast_mode'),
+         'accent_color' => $form_state->getValue('accent_color'),
+         'focus_color' => $form_state->getValue('focus_color'),
+diff --git a/core/themes/default_admin/src/Hook/ThemeHooks.php b/core/themes/default_admin/src/Hook/ThemeHooks.php
+index c98d23eecc..25ef26c73d 100644
+--- a/core/themes/default_admin/src/Hook/ThemeHooks.php
++++ b/core/themes/default_admin/src/Hook/ThemeHooks.php
+@@ -6,7 +6,6 @@ namespace Drupal\default_admin\Hook;
+ 
+ use Drupal\default_admin\Helper;
+ use Drupal\default_admin\Settings;
+-use Drupal\Component\Render\FormattableMarkup;
+ use Drupal\Core\Asset\AssetQueryStringInterface;
+ use Drupal\Core\Extension\ThemeExtensionList;
+ use Drupal\Core\Hook\Attribute\Hook;
+@@ -149,8 +148,6 @@ class ThemeHooks implements TrustedCallbackInterface {
+     $settings = Settings::getInstance();
+     // Expose theme settings to JS.
+     $default_admin_settings = [
+-      'dark_mode' => $settings->get('enable_dark_mode'),
+-      'dark_mode_class' => 'dark-mode',
+       'accent_colors' => Helper::accentColors(),
+       'preset_accent_color' => $settings->get('preset_accent_color'),
+       'accent_color' => $settings->get('accent_color'),
+@@ -163,18 +160,6 @@ class ThemeHooks implements TrustedCallbackInterface {
+     $page['#attached']['drupalSettings']['defaultAdmin'] = $default_admin_settings;
+     // Retain the previous key for integrations while the theme is experimental.
+     $page['#attached']['drupalSettings']['gin'] = $default_admin_settings;
+-
+-    $page['#attached']['html_head'][] = [
+-      [
+-        '#tag' => 'script',
+-        '#attributes' => [
+-          'type' => 'application/json',
+-          'id' => 'default-admin-setting-dark_mode',
+-        ],
+-        '#value' => new FormattableMarkup('{ "defaultAdminDarkMode": "@value" }', ['@value' => $settings->get('enable_dark_mode') ?? 'unknown']),
+-      ],
+-      'default_admin_dark_mode',
+-    ];
+   }
+ 
+   /**
+diff --git a/core/themes/default_admin/src/Settings.php b/core/themes/default_admin/src/Settings.php
+index adaa4d44ce..38f0a7becc 100644
+--- a/core/themes/default_admin/src/Settings.php
++++ b/core/themes/default_admin/src/Settings.php
+@@ -227,18 +227,6 @@ final class Settings implements ContainerInjectionInterface {
+     $experimental_label = ' <span class="admin-experimental-flag">Experimental</span>';
+     $beta_label = ' <span class="admin-beta-flag">Beta</span>';
+ 
+-    $form['enable_dark_mode'] = [
+-      '#type' => 'radios',
+-      '#title' => $this->t('Appearance'),
+-      '#description' => $this->t('Enables dark mode for the administration interface.'),
+-      '#default_value' => (string) ($account ? $this->get('enable_dark_mode', $account) : $this->getDefault('enable_dark_mode')),
+-      '#options' => [
+-        'auto' => $this->t('Auto'),
+-        0 => $this->t('Light'),
+-        1 => $this->t('Dark'),
+-      ],
+-    ];
+-
+     // Accent color setting.
+     $presets = Helper::accentColors();
+     $options = array_map(static function ($preset) {
+diff --git a/core/themes/default_admin/tests/src/Functional/AdminTest.php b/core/themes/default_admin/tests/src/Functional/AdminTest.php
+index f7e0c2f6fa..19c6cee5bf 100644
+--- a/core/themes/default_admin/tests/src/Functional/AdminTest.php
++++ b/core/themes/default_admin/tests/src/Functional/AdminTest.php
+@@ -56,7 +56,6 @@ class AdminTest extends BrowserTestBase {
+     $this->assertSession()->statusCodeEquals(200);
+     $this->assertStringContainsString('"defaultAdmin":{', $response);
+     $this->assertStringContainsString('"gin":{', $response);
+-    $this->assertStringContainsString('"dark_mode":"auto"', $response);
+     $this->assertStringContainsString('"preset_accent_color":"blue"', $response);
+     $this->assertStringContainsString('"preset_focus_color":"default"', $response);
+     $this->assertSession()->elementAttributeContains('css', 'html', 'data-admin-focus', 'default');
+@@ -65,16 +64,6 @@ class AdminTest extends BrowserTestBase {
+     $this->assertSession()->elementExists('css', 'nav.breadcrumb #system-breadcrumb.visually-hidden');
+   }
+ 
+-  /**
+-   * Tests the dark mode setting.
+-   */
+-  public function testDarkModeSetting(): void {
+-    \Drupal::configFactory()->getEditable('default_admin.settings')->set('enable_dark_mode', '1')->save();
+-    $response = $this->drupalGet('/admin/content');
+-    $this->assertSession()->statusCodeEquals(200);
+-    $this->assertStringContainsString('"dark_mode":"1"', $response);
+-  }
+-
+   /**
+    * Tests the high contrast setting.
+    */
+@@ -115,17 +104,17 @@ class AdminTest extends BrowserTestBase {
+     $this->drupalLogin($user1);
+ 
+     // Change something on the logged in user form.
+-    $this->assertStringContainsString('"dark_mode":"auto"', $this->drupalGet($user1->toUrl('edit-form')));
++    $this->assertStringContainsString('"preset_accent_color":"blue"', $this->drupalGet($user1->toUrl('edit-form')));
+ 
+     $this->submitForm([
+       'enable_user_settings' => TRUE,
+-      'enable_dark_mode' => '1',
++      'preset_accent_color' => 'red',
+     ], 'Save');
+-    $this->assertStringContainsString('"dark_mode":"1"', $this->drupalGet($user1->toUrl('edit-form')));
++    $this->assertStringContainsString('"preset_accent_color":"red"', $this->drupalGet($user1->toUrl('edit-form')));
+ 
+     // Login as admin.
+     $this->drupalLogin($this->rootUser);
+-    $this->assertStringContainsString('"dark_mode":"auto"', $this->drupalGet('edit-form'));
++    $this->assertStringContainsString('"preset_accent_color":"blue"', $this->drupalGet('edit-form'));
+   }
+ 
+   /**
+@@ -139,19 +128,16 @@ class AdminTest extends BrowserTestBase {
+     $this->submitForm([
+       'enable_user_settings' => TRUE,
+       'high_contrast_mode' => TRUE,
+-      'enable_dark_mode' => '1',
+     ], 'Save');
+ 
+     // Check logged-in's user is not affected.
+     $loggedInUserResponse = $this->drupalGet('edit-form');
+     $this->assertStringContainsString('"high_contrast_mode":false', $loggedInUserResponse);
+-    $this->assertStringContainsString('"dark_mode":"auto"', $loggedInUserResponse);
+ 
+     // Check settings of user1.
+     $this->drupalLogin($user1);
+     $rootUserResponse = $this->drupalGet($user1->toUrl('edit-form'));
+     $this->assertStringContainsString('"high_contrast_mode":true', $rootUserResponse);
+-    $this->assertStringContainsString('"dark_mode":"1"', $rootUserResponse);
+   }
+ 
+ }

@@ -129,9 +129,9 @@ The DDEV Coder manual has the user-facing half of this, which section 1 (written
 - https://github.com/ddev/coder-ddev/blob/main/docs/user/using-workspaces.md — the workspace page: apps, terminal, restart, update.
 - Sign in and manage workspaces at https://coder.ddev.com/workspaces; templates at https://coder.ddev.com/templates.
 
-Which template to pick: the lab needs **Freeform** (the lab runs *two* DDEV projects side by side plus the viewer). The
-"Drupal Issue picker" (`https://start.coder.ddev.com/drupal-issue`) is a different, single-site template; a workspace created from it
-can still be adopted with `cloud-bootstrap.mjs --use-existing-core` (phase 3), but it is not the comparison path.
+Which template to pick: the lab needs **DDEV Freeform** (the lab runs *two* DDEV projects side by side plus the viewer). The
+"Drupal Core Development" and "Drupal Contrib Development" templates are single-site; a workspace created from one of them
+can still be adopted with `cloud-bootstrap.mjs --use-existing-core` (phase 3), but they are not the comparison path.
 
 Workspace and app URLs: apps are routed as `{project}--{workspace}--{owner}.{domain}`, so the viewer for a workspace `lab-3619127`
 owned by `mgifford` is `https://drupal-compare--lab-3619127--mgifford.coder.ddev.com/`. A workspace has a **timed lifespan** (a
