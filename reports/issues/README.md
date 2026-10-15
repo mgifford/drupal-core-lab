@@ -17,6 +17,7 @@ one: `node scripts/new-issue.mjs <nid> --branch <fork-branch>` (see `docs/NEW-IS
 | [3093378](3093378/SUMMARY.md) | Use ARIA disclosure pattern for submenu buttons in vertical toolbar orientation | [yes](3093378/REPRODUCE.md) | 1 | 2026-10-13 | 12 | `3093378-latest`, `3093378-pinned` |
 | [3155130](3155130/SUMMARY.md) | "Edit summary" toggle | [yes](3155130/REPRODUCE.md) | 0 | 2026-10-14 |  |  |
 | [3243173](3243173/SUMMARY.md) | HTML5 validation setting / form focus management | [yes](3243173/REPRODUCE.md) | 2 | 2026-10-14 |  |  |
+| [3273054](3273054/SUMMARY.md) | text-format permission checkboxes have a hidden focus stop | [yes](3273054/REPRODUCE.md) | 0 | 2026-10-15 | 1 | `3273054-pinned`, `3273054-latest` |
 | [3273806](3273806/SUMMARY.md) | Branch patches for #3273806 | no | 1 |  | 1 | `3273806-latest` |
 | [3370946](3370946/SUMMARY.md) | contextual page title | [yes](3370946/REPRODUCE.md) | 3 | 2026-10-14 |  |  |
 | [3415961](3415961/SUMMARY.md) | [drupalMedia] Using the Insert Media button causes the window to scroll to the… | [yes](3415961/REPRODUCE.md) | 3 | 2026-10-14 |  | `3415961-pinned`, `3415961-latest` |
@@ -27,7 +28,7 @@ one: `node scripts/new-issue.mjs <nid> --branch <fork-branch>` (see `docs/NEW-IS
 | [3606655](3606655/) | Allow user-configurable UI settings - starting with dark mode | [yes](3606655/REPRODUCE.md) | 1 | 2026-10-15 | 1 | `3606655-pinned`, `3606655-latest` |
 | [3614293](3614293/SUMMARY.md) | aria-invalid test coverage | [yes](3614293/REPRODUCE.md) | 1 | 2026-10-14 |  |  |
 | [3617875](3617875/SUMMARY.md) | disabled elements in dark mode | [yes](3617875/REPRODUCE.md) | 3 | 2026-10-14 |  |  |
-| [3618230](3618230/SUMMARY.md) | Adopt the ajax MessageCommand for file uploads | [yes](3618230/REPRODUCE.md) | 2 | 2026-10-14 | 2 | `3618230-pinned`, `3618230-latest` |
+| [3618230](3618230/SUMMARY.md) | Adopt the ajax MessageCommand for file uploads | [yes](3618230/REPRODUCE.md) | 2 | 2026-10-14 | 5 | `3618230-pinned`, `3618230-latest`, `3618230-pilot` |
 | [3618405](3618405/) | Purpose of views exposed filters form is unclear when zoomed in | [yes](3618405/REPRODUCE.md) | 2 | 2026-10-14 | 2 | `3618405-pinned`, `3618405-latest` |
 | [3619127](3619127/SUMMARY.md) | forms sidebar does not open from Inline Form Errors links | [yes](3619127/REPRODUCE.md) | 4 | 2026-10-02 | 8 | `3619127-pinned`, `3619127-latest` |
 | [3619154](3619154/) | Sidebar toggle fixes | [yes](3619154/REPRODUCE.md) | 1 | 2026-10-14 | 1 | `3619154-pinned`, `3619154-latest` |
