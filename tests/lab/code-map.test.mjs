@@ -53,6 +53,7 @@ w('core/modules/demo/src/Unrelated.php', '<?php\n\nclass Unrelated {\n\n  public
 w('core/modules/demo/tests/src/Unit/WidgetTest.php', '<?php\n\nclass WidgetTest {\n\n  public function testIt() {\n    Widget::process($e, $s);\n  }\n\n}\n');
 w('core/misc/ann.js', "(function (Drupal) {\n  Drupal.announce = function (text, priority) {\n    const brace = '}';\n    return text;\n  };\n})(Drupal);\n");
 w('core/misc/user.js', 'Drupal.announce("hi");\nfunction announce() {}\n');
+w('core/lib/Other/announce.php', '<?php\n\nclass announce {\n}\n');   // a PHP class named like the JS function: `Drupal.announce` must not find it
 w('core/modules/demo/demo.module', '<?php\n\nfunction demo_preprocess_widget(&$v) {\n  $v["a"] = 1;\n}\n');
 w('core/modules/demo/demo.libraries.yml', 'widget:\n  js:\n    ann.js: {}\nother:\n  css: {}\n');
 w('core/modules/demo/templates/widget.html.twig', '{% block content %}\n  {{ widget }}\n{% endblock %}\n');
@@ -92,7 +93,7 @@ test('a class gives its members, not its body; an interface method gives its sig
 });
 
 test('JS: Drupal.name finds the assignment first; a file outline lists functions with line numbers', () => {
-  let r = map('Drupal.announce'); assert.match(r.stdout, /core\/misc\/ann\.js:2\s*\n\s+Drupal\.announce = function \(text, priority\)/); assert.match(r.stdout, /body: lines 2-5/);
+  let r = map('Drupal.announce'); assert.match(r.stdout, /core\/misc\/ann\.js:2\s*\n\s+Drupal\.announce = function \(text, priority\)/); assert.match(r.stdout, /body: lines 2-5/); assert.match(r.stdout, /definitions: 2\b/); assert.doesNotMatch(r.stdout, /Other\/announce\.php/);
   r = map('core/misc/user.js'); assert.match(r.stdout, /core\/misc\/user\.js \(3 lines\)\n\s+2  function announce\(\)/);
   r = map('core/modules/demo/demo.libraries.yml'); assert.match(r.stdout, /1  widget:/); assert.match(r.stdout, /4  other:/);
   r = map('core/modules/demo/templates/widget.html.twig'); assert.match(r.stdout, /1  \{% block content %\}/);

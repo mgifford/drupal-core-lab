@@ -1,0 +1,85 @@
+// Feedback on an issue's change, tied to the exact run and patch revision it was about, and to the run that answered it (AI-usage Phase 4).
+// Kept in reports/issues/<nid>/feedback.json; reports/issues/<nid>/FEEDBACK.md is generated from it. Nothing is posted anywhere.
+//   node scripts/feedback.mjs add <nid> --run <run folder> --source "<who said it, where>" --action "<what to do>" --expected "<the behaviour wanted>"
+//        records the feedback against a run: its folder, when it ran, the patch revision it used (the hashes the run recorded, or "unrecorded"),
+//        the recipe and the core commits. Status "open".
+//   node scripts/feedback.mjs resolve <nid> <id> --run <run folder> --outcome <met|not-met|needs-person> --observed "<what the run showed>"
+//        [--revised-patch <file>...] [--supersede <older run folder> --reason "<why>"]
+//        records the run that answered it and the patch revision then; the answering run must not be stale (see scripts/coverage.mjs), and may be
+//        "unrecorded" only with a note. needs-person is for what automation cannot decide (a screen reader, a keyboard pass): it stays open.
+//        --supersede marks the older run superseded by this one (scripts/run-mark.mjs), so coverage stops counting what the feedback replaced.
+//   node scripts/feedback.mjs list <nid>      print the table (and rewrite FEEDBACK.md)
+// <run folder> is reports/issues/<nid>/playwright/<stamp>-<env>, or just its last part.
+import fs from 'node:fs';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { labRoot, variants } from '../tools/compare/lib.mjs';
+import { runStaleness } from '../tools/compare/run-record.mjs';
+import { sha256 } from '../tools/compare/patch-state.mjs';
+
+const args = process.argv.slice(2), pos = args.filter((a, i) => !a.startsWith('--') && !['--run', '--source', '--action', '--expected', '--observed', '--outcome', '--supersede', '--reason', '--revised-patch'].includes(args[i - 1]));
+const [cmd, nid, fid] = pos;
+const val = (n) => { const i = args.indexOf(`--${n}`); return i >= 0 && args[i + 1] && !args[i + 1].startsWith('--') ? args[i + 1] : null; };
+const vals = (n) => args.flatMap((a, i) => (args[i - 1] === `--${n}` ? [a] : []));
+const OUTCOMES = ['met', 'not-met', 'needs-person'];
+const usage = () => { console.error('usage: node scripts/feedback.mjs add <nid> --run <run> --source "<who, where>" --action "<what to do>" --expected "<behaviour wanted>"\n       node scripts/feedback.mjs resolve <nid> <id> --run <run> --outcome <met|not-met|needs-person> --observed "<what the run showed>" [--revised-patch <file>...] [--supersede <older run> --reason "<why>"]\n       node scripts/feedback.mjs list <nid>'); process.exit(2); };
+if (!['add', 'resolve', 'list'].includes(cmd) || !/^\d+$/.test(nid || '')) usage();
+const issueDir = path.join(labRoot, 'reports/issues', nid), file = path.join(issueDir, 'feedback.json');
+const load = () => (fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : []);
+const fail = (m, code = 1) => { console.error(m); process.exit(code); };
+const runDir = (r) => [path.resolve(r), path.join(labRoot, r), path.join(issueDir, 'playwright', r)].find((d) => fs.existsSync(path.join(d, 'results.json')));
+const h8 = (s) => (s ? s.slice(0, 8) : '-');
+
+// What a run says about the patch revision it used, from its own record.
+function revisionOf(results) {
+  const ps = results.patchState, rec = (side) => (ps && ps[side] ? ps[side].current : null);
+  return { recorded: !!ps, patches: { before: rec('before') || [], after: rec('after') || (results.patches || []).map((p) => ({ path: p, sha256: null })) },
+    contrib: ps && ps.after && ps.after.contrib ? ps.after.contrib : null, recipe: results.identity && results.identity.recipe ? results.identity.recipe.current : null, commits: results.commits || null };
+}
+function describe(r) {
+  const d = runDir(r); if (!d) fail(`No results.json found for run ${r} (give reports/issues/${nid}/playwright/<folder>, or just the folder name)`);
+  const results = JSON.parse(fs.readFileSync(path.join(d, 'results.json'), 'utf8'));
+  const variant = variants().find((x) => x.slug === results.variant), st = runStaleness(results, variant, { labRoot });
+  return { dir: d, name: path.basename(d), results, variant, st, revision: revisionOf(results) };
+}
+const patchFiles = (list) => list.map((p) => { const f = path.resolve(p); if (!fs.existsSync(f)) fail(`--revised-patch: no such file ${p}`); return { path: path.relative(labRoot, f), sha256: sha256(fs.readFileSync(f)) }; });
+
+function save(all) {
+  fs.mkdirSync(issueDir, { recursive: true }); fs.writeFileSync(file, `${JSON.stringify(all, null, 2)}\n`);
+  const cell = (s) => String(s ?? '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
+  const rev = (x) => (x.run && x.run.revision.recorded ? (x.run.revision.patches.after.map((p) => h8(p.sha256)).join(',') || 'no patch') : 'unrecorded');
+  const md = `# Feedback on #${nid}\n\nGenerated by \`node scripts/feedback.mjs list ${nid}\` from \`feedback.json\`; do not edit by hand. Each item is tied to the run it was about and the patch revision that run used (hashes of the After patches, "unrecorded" for a run made before runs recorded them), and, once answered, to the run that answered it.\n\n${all.length ? `| Id | Source | Action | Expected | Run (patch rev.) | Answered by (patch rev.) | Observed | Status |\n|---|---|---|---|---|---|---|---|\n${all.map((x) => `| ${x.id} | ${cell(x.source)} | ${cell(x.action)} | ${cell(x.expected)} | \`${x.run.name}\` (${rev(x)}) | ${x.answer ? `\`${x.answer.run.name}\` (${rev(x.answer)}${x.answer.revisedPatches.length ? `; revised: ${x.answer.revisedPatches.map((p) => `${path.basename(p.path)} ${h8(p.sha256)}`).join(', ')}` : ''})` : ''} | ${cell(x.observed)} | ${x.status}${x.answer && x.answer.outcome ? ` (${x.answer.outcome})` : ''} |`).join('\n')}\n` : 'No feedback recorded yet.\n'}`;
+  fs.writeFileSync(path.join(issueDir, 'FEEDBACK.md'), md); return md;
+}
+
+const all = load();
+if (cmd === 'list') { console.log(save(all)); process.exit(0); }
+const source = val('source'), action = val('action'), expected = val('expected'), run = val('run');
+if (cmd === 'add') {
+  if (!run || !source || !action || !expected) usage();
+  const r = describe(run);
+  const id = `FB-${String(all.reduce((m, x) => Math.max(m, Number(x.id.slice(3)) || 0), 0) + 1).padStart(3, '0')}`;
+  const item = { id, created: new Date().toISOString().slice(0, 10), source, action, expected, observed: null, status: 'open',
+    run: { name: r.name, when: r.results.when, variant: r.results.variant, record: r.st.status, revision: r.revision } };
+  all.push(item); save(all);
+  console.log(`${id} recorded against ${r.name} (patch revision ${r.revision.recorded ? r.revision.patches.after.map((p) => h8(p.sha256)).join(',') || 'none' : 'unrecorded: the run predates recorded hashes'}; run is ${r.st.status}).`);
+  process.exit(0);
+}
+// resolve
+const item = all.find((x) => x.id === fid); if (!item) fail(`No feedback ${fid || '(id)'} for #${nid}. Ids: ${all.map((x) => x.id).join(', ') || 'none'}`);
+const outcome = val('outcome'), observed = val('observed');
+if (!run || !OUTCOMES.includes(outcome) || !observed) usage();
+if (item.answer && item.status === 'resolved') fail(`${fid} is already resolved by ${item.answer.run.name}.`);
+const r = describe(run);
+if (r.st.status === 'stale') fail(`The run ${r.name} is stale (${r.st.reasons.join('; ')}), so it cannot answer feedback. Run it again first.`);
+if (r.name === item.run.name && outcome !== 'needs-person') fail('The answering run must be a different run from the one the feedback was about.');
+const answer = { when: new Date().toISOString().slice(0, 10), outcome, run: { name: r.name, when: r.results.when, variant: r.results.variant, record: r.st.status, revision: r.revision }, revisedPatches: patchFiles(vals('revised-patch')), note: r.st.status === 'unrecorded' ? 'the answering run recorded no hashes, so it cannot be checked against the current patches' : '' };
+if (val('supersede')) {
+  const old = describe(val('supersede')); if (!val('reason')) usage();
+  const m = spawnSync('node', [path.join(labRoot, 'scripts/run-mark.mjs'), old.dir, '--superseded', '--reason', val('reason'), '--by', r.dir], { encoding: 'utf8' });
+  if (m.status !== 0) fail(`Could not supersede ${old.name}: ${m.stderr.trim() || m.stdout.trim()}`);
+  answer.superseded = { run: old.name, reason: val('reason') };
+}
+item.observed = observed; item.answer = answer; item.status = outcome === 'needs-person' ? 'needs-person' : 'resolved';
+save(all);
+console.log(`${fid} ${item.status} (${outcome}) by ${r.name}${answer.superseded ? `; ${answer.superseded.run} marked superseded` : ''}${answer.note ? `; note: ${answer.note}` : ''}.`);

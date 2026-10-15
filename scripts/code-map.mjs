@@ -94,6 +94,7 @@ function symbol(arg) {
   const END = '([^A-Za-z0-9_]|$)';
   const defRe = `(^|[ \t])(class|interface|trait|enum)[ \t]+${n}${END}|function[ \t]+&?${n}[ \t]*\\(|(^|[ \t])const[ \t]+${n}${END}|define\\([ \t]*['"]${n}['"]|Drupal\\.${n}[ \t]*=|^[ \t]*(async[ \t]+)?${n}[ \t]*\\([^)]*\\)[ \t]*\\{|^[ \t]*${n}[ \t]*:[ \t]*(async[ \t]+)?function`;
   let defs = grep(['-E', '-e', defRe], SRC);
+  if (arg.startsWith('Drupal.')) defs = defs.filter((d) => /\.js$/.test(d.file));   // `Drupal.x` is JavaScript: a PHP class of the same name is not what was asked for
   const declared = new Set(defs.map((d) => `${d.file}:${d.line}`));   // every declaration of the name, whatever class owns it: none of them is a use
   if (cls) { const inCls = new Set(grep(['-E', '-e', `(class|interface|trait|enum)[ \\t]+${esc(cls)}([^A-Za-z0-9_]|$)`], SRC).map((d) => d.file)); defs = defs.filter((d) => inCls.has(d.file) && enclosing(lines(d.file), d.line - 1) === cls); }
   const all = grep(['-w', '-F', '-e', arg.startsWith('Drupal.') ? arg : name], ALL);   // `Drupal.x` is searched with its prefix: the bare word is in many unrelated places
