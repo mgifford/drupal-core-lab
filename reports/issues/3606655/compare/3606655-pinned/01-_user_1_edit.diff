@@ -1,0 +1,67 @@
+--- before /user/1/edit
++++ after /user/1/edit
+@@ -1,5 +1,5 @@
+ <!DOCTYPE html>
+-<html lang="en" dir="ltr" data-accent="blue" style="--accent-base: #015efe;" data-admin-focus="default" data-layout-density="default">
++<html lang="en" dir="ltr" data-color-scheme="auto" data-accent="blue" style="--accent-base: #015efe;" data-admin-focus="default" data-layout-density="default">
+   <head>
+     <meta charset="utf-8" />
+ <noscript><meta http-equiv="Refresh" content="0; URL=/big_pipe/no-js?destination=/user/1/edit" />
+@@ -7,10 +7,19 @@
+ <meta name="MobileOptimized" content="width" />
+ <meta name="HandheldFriendly" content="true" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++<script>(function () {
++  var n = 'DrupalColorScheme=';
++  var c = document.cookie.split('; ').find(function (v) {
++    return v.indexOf(n) === 0;
++  });
++  var s = c ? c.slice(n.length) : '';
++  if (s === 'light' || s === 'dark') {
++    document.documentElement.setAttribute('data-color-scheme', s);
++  }
++})();</script>
+ <noscript><link rel="stylesheet" href="/core/themes/default_admin/css/components/dropbutton-noscript.css" />
+ </noscript><noscript><link rel="stylesheet" href="/core/themes/default_admin/css/components/views-ui-noscript.css" />
+-</noscript><script type="application/json" id="default-admin-setting-dark_mode">{ "defaultAdminDarkMode": "auto" }</script>
+-<link rel="icon" href="/core/misc/favicon.ico" type="image/vnd.microsoft.icon" />
++</noscript><link rel="icon" href="/core/misc/favicon.ico" type="image/vnd.microsoft.icon" />
+ <link href="/core/themes/default_admin/font/inter.woff2" rel="preload" as="font" type="font/woff2" crossorigin="anonymous" />
+ <link href="/core/modules/navigation/assets/fonts/inter-var.woff2" rel="preload" as="font" type="font/woff2" crossorigin="anonymous" />
+ 
+@@ -2068,6 +2077,35 @@
+       Select the desired local time and time zone. Dates and times throughout this site will be displayed using this time zone.
+     </div>
+   </div>
++  </div>
++</details>
++<details data-drupal-selector="edit-user-settings" id="edit-user-settings" class="js-form-wrapper form-wrapper details" open="open">    <summary role="button" aria-controls="edit-user-settings" aria-expanded="true" class="details__summary">User settings<span class="required-mark"></span>
++          </summary><div class="details__wrapper details-wrapper">
++    
++      <fieldset data-drupal-selector="edit-color-scheme" aria-describedby="edit-color-scheme--wrapper--description" id="edit-color-scheme--wrapper" class="fieldgroup form-composite fieldset fieldset--group js-form-item form-item js-form-wrapper form-wrapper">
++          <legend class="fieldset__legend fieldset__legend--composite fieldset__legend--visible">
++      <span class="fieldset__label fieldset__label--group">Color scheme</span>
++    </legend>
++      <div class="fieldset__wrapper fieldset__wrapper--group">
++        
++            <div id="edit-color-scheme" class="form-radios form-boolean-group"><div data-drupal-wrapper-selector="edit-color-scheme-light" class="js-form-item form-item js-form-type-radio form-type--radio form-type--boolean js-form-item-color-scheme form-item--color-scheme">
++            <input data-drupal-selector="edit-color-scheme-light" type="radio" id="edit-color-scheme-light" name="color_scheme" value="light" class="form-radio form-boolean form-boolean--type-radio"/>
++              <label for="edit-color-scheme-light" class="form-item__label option">Light</label>
++            </div>
++<div data-drupal-wrapper-selector="edit-color-scheme-dark" class="js-form-item form-item js-form-type-radio form-type--radio form-type--boolean js-form-item-color-scheme form-item--color-scheme">
++            <input data-drupal-selector="edit-color-scheme-dark" type="radio" id="edit-color-scheme-dark" name="color_scheme" value="dark" class="form-radio form-boolean form-boolean--type-radio"/>
++              <label for="edit-color-scheme-dark" class="form-item__label option">Dark</label>
++            </div>
++<div data-drupal-wrapper-selector="edit-color-scheme-auto" class="js-form-item form-item js-form-type-radio form-type--radio form-type--boolean js-form-item-color-scheme form-item--color-scheme">
++            <input data-drupal-selector="edit-color-scheme-auto" type="radio" id="edit-color-scheme-auto" name="color_scheme" value="auto" checked="checked" class="form-radio form-boolean form-boolean--type-radio"/>
++              <label for="edit-color-scheme-auto" class="form-item__label option">System</label>
++            </div>
++</div>
++
++                          <div id="edit-color-scheme--wrapper--description" data-drupal-field-elements="description" class="fieldset__description">System follows your operating system or browser setting. Applies wherever your site’s theme supports it.</div>
++      
++        </div>
++</fieldset>
+   </div>
+ </details>
+ 

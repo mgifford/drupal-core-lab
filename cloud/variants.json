@@ -1167,6 +1167,152 @@
       ]
     },
     {
+      "slug": "3606655-pinned",
+      "issue": "3606655",
+      "label": "#3606655: Allow user-configurable UI settings - starting with dark mode, pinned core",
+      "description": "Before: user profile has no Color scheme setting and <html> has no data-color-scheme. After (MR !16432): profile form /user/1/edit has Color scheme radios Light/Dark/System and every page carries <html data-color-scheme>. Open /user/1/edit in both frames and compare the bottom of the form, then inspect the <html> attribute.",
+      "steps": [
+        {
+          "text": "Standard install; Default Admin is the admin theme.",
+          "how": "recipe"
+        },
+        {
+          "text": "Type /user/1/edit in Page and press Go (both). Scroll to the bottom above Save.",
+          "how": "mirror",
+          "lookFor": "After: a Color scheme fieldset with Light / Dark / System radios. Before: no such field."
+        },
+        {
+          "text": "In EACH frame, pick Dark and press Save, then look at the page.",
+          "how": "each",
+          "lookFor": "After: preference saves and <html data-color-scheme> reflects it. Before: nothing to pick."
+        }
+      ],
+      "expected": "After: /user/1/edit shows Color scheme radios and <html> carries data-color-scheme. Before: neither exists.",
+      "actual": "TODO after running",
+      "observe": [
+        {
+          "label": "Profile form shows a Color scheme choice (Light / Dark / System)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "<html data-color-scheme> is present",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Anything else looks broken (profile form, theme settings)",
+          "expectBefore": false,
+          "expectAfter": false
+        }
+      ],
+      "checks": [
+        {
+          "label": "Setup reached: user edit form is on the page",
+          "probe": "!!document.querySelector('form.user-form, form#user-form, form[action*=\"user\"]')",
+          "expect": true,
+          "kind": "precondition",
+          "onlyOn": "/user/1/edit"
+        },
+        {
+          "label": "Color scheme radios are on the profile form",
+          "probe": "document.querySelectorAll('input[name=\"color_scheme\"]').length",
+          "expect": 3,
+          "kind": "fix",
+          "onlyOn": "/user/1/edit"
+        },
+        {
+          "label": "<html> carries data-color-scheme",
+          "probe": "document.documentElement.hasAttribute('data-color-scheme')",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "JavaScript errors on the page (ignoring the harmless \"ResizeObserver loop\" notice)",
+          "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+          "expect": 0,
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/user/1/edit",
+        "/"
+      ]
+    },
+    {
+      "slug": "3606655-latest",
+      "issue": "3606655",
+      "label": "#3606655: same steps against the LATEST core main",
+      "description": "Before: user profile has no Color scheme setting and <html> has no data-color-scheme. After (MR !16432): profile form /user/1/edit has Color scheme radios Light/Dark/System and every page carries <html data-color-scheme>. Open /user/1/edit in both frames and compare the bottom of the form, then inspect the <html> attribute.",
+      "steps": [
+        {
+          "text": "Standard install; Default Admin is the admin theme.",
+          "how": "recipe"
+        },
+        {
+          "text": "Type /user/1/edit in Page and press Go (both). Scroll to the bottom above Save.",
+          "how": "mirror",
+          "lookFor": "After: a Color scheme fieldset with Light / Dark / System radios. Before: no such field."
+        },
+        {
+          "text": "In EACH frame, pick Dark and press Save, then look at the page.",
+          "how": "each",
+          "lookFor": "After: preference saves and <html data-color-scheme> reflects it. Before: nothing to pick."
+        }
+      ],
+      "expected": "After: /user/1/edit shows Color scheme radios and <html> carries data-color-scheme. Before: neither exists.",
+      "actual": "TODO after running",
+      "observe": [
+        {
+          "label": "Profile form shows a Color scheme choice (Light / Dark / System)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "<html data-color-scheme> is present",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Anything else looks broken (profile form, theme settings)",
+          "expectBefore": false,
+          "expectAfter": false
+        }
+      ],
+      "checks": [
+        {
+          "label": "Setup reached: user edit form is on the page",
+          "probe": "!!document.querySelector('form.user-form, form#user-form, form[action*=\"user\"]')",
+          "expect": true,
+          "kind": "precondition",
+          "onlyOn": "/user/1/edit"
+        },
+        {
+          "label": "Color scheme radios are on the profile form",
+          "probe": "document.querySelectorAll('input[name=\"color_scheme\"]').length",
+          "expect": 3,
+          "kind": "fix",
+          "onlyOn": "/user/1/edit"
+        },
+        {
+          "label": "<html> carries data-color-scheme",
+          "probe": "document.documentElement.hasAttribute('data-color-scheme')",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "JavaScript errors on the page (ignoring the harmless \"ResizeObserver loop\" notice)",
+          "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+          "expect": 0,
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/user/1/edit",
+        "/"
+      ]
+    },
+    {
       "slug": "3415961-pinned",
       "issue": "3415961",
       "label": "#3415961: [drupalMedia] Using the Insert Media button causes the window to scroll to the bottom of the page, pinned core",

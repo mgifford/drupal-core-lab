@@ -987,5 +987,150 @@
       "Is the active item's text visibly darker/bolder-looking than non-active items?",
       "Any regression in menu layout, icons, or the existing deeper-level active dot?"
     ]
+  },
+  {
+    "slug": "3606655-pinned",
+    "issue": "3606655",
+    "label": "#3606655: Allow user-configurable UI settings - starting with dark mode, pinned core",
+    "description": "Before: user profile has no Color scheme setting and <html> has no data-color-scheme. After (MR !16432): profile form /user/1/edit has Color scheme radios Light/Dark/System and every page carries <html data-color-scheme>. Open /user/1/edit in both frames and compare the bottom of the form, then inspect the <html> attribute.",
+    "status": "ready: before = no color_scheme field, no data-color-scheme; after = Color scheme radios + data-color-scheme on <html>",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "073a7d38198419c6348d9b8f575a8c6b6ade3ba9"
+    },
+    "before": {
+      "env": "baseline-3606655"
+    },
+    "after": {
+      "env": "issue-3606655",
+      "patches": [
+        "reports/issues/3606655/branches/3606655-make-dark-mode.patch"
+      ]
+    },
+    "pages": [
+      "/user/1/edit",
+      "/"
+    ],
+    "login": true,
+    "recipe": "repro_3606655",
+    "steps": [
+      {
+        "text": "Standard install; Default Admin is the admin theme.",
+        "how": "recipe"
+      },
+      {
+        "text": "Type /user/1/edit in Page and press Go (both). Scroll to the bottom above Save.",
+        "how": "mirror",
+        "lookFor": "After: a Color scheme fieldset with Light / Dark / System radios. Before: no such field."
+      },
+      {
+        "text": "In EACH frame, pick Dark and press Save, then look at the page.",
+        "how": "each",
+        "lookFor": "After: preference saves and <html data-color-scheme> reflects it. Before: nothing to pick."
+      }
+    ],
+    "expected": "After: /user/1/edit shows Color scheme radios and <html> carries data-color-scheme. Before: neither exists.",
+    "actual": "TODO after running",
+    "checks": [
+      {
+        "label": "Setup reached: user edit form is on the page",
+        "probe": "!!document.querySelector('form.user-form, form#user-form, form[action*=\"user\"]')",
+        "expect": true,
+        "kind": "precondition",
+        "onlyOn": "/user/1/edit"
+      },
+      {
+        "label": "Color scheme radios are on the profile form",
+        "probe": "document.querySelectorAll('input[name=\"color_scheme\"]').length",
+        "expect": 3,
+        "kind": "fix",
+        "onlyOn": "/user/1/edit"
+      },
+      {
+        "label": "<html> carries data-color-scheme",
+        "probe": "document.documentElement.hasAttribute('data-color-scheme')",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "JavaScript errors on the page (ignoring the harmless \"ResizeObserver loop\" notice)",
+        "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+        "expect": 0,
+        "kind": "regression"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Profile form shows a Color scheme choice (Light / Dark / System)",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "<html data-color-scheme> is present",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Anything else looks broken (profile form, theme settings)",
+        "expectBefore": false,
+        "expectAfter": false
+      }
+    ],
+    "coverage": {
+      "note": "The combinations that count as tested for this issue (scripts/coverage.mjs). Edit to fit the question the issue asks.",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 480
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ]
+    }
+  },
+  {
+    "slug": "3606655-latest",
+    "extends": "3606655-pinned",
+    "label": "#3606655: same steps against the LATEST core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3606655-latest"
+    },
+    "after": {
+      "env": "issue-3606655-latest"
+    }
   }
 ]
