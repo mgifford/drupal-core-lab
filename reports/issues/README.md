@@ -21,6 +21,7 @@ one: `node scripts/new-issue.mjs <nid> --branch <fork-branch>` (see `docs/NEW-IS
 | [3273806](3273806/SUMMARY.md) | Branch patches for #3273806 | no | 1 |  | 1 | `3273806-latest` |
 | [3370946](3370946/SUMMARY.md) | contextual page title | [yes](3370946/REPRODUCE.md) | 3 | 2026-10-14 |  |  |
 | [3415961](3415961/SUMMARY.md) | [drupalMedia] Using the Insert Media button causes the window to scroll to the… | [yes](3415961/REPRODUCE.md) | 3 | 2026-10-14 |  | `3415961-pinned`, `3415961-latest` |
+| [3419891](3419891/SUMMARY.md) | Increase size of alternative text field in Image dialog | [yes](3419891/REPRODUCE.md) | 1 | 2026-10-15 | 1 | `3419891-pinned`, `3419891-latest` |
 | [3426468](3426468/) | Make the active menu item visually stand out more | [yes](3426468/REPRODUCE.md) | 2 | 2026-10-14 |  | `3426468-pinned`, `3426468-latest` |
 | [3587680](3587680/SUMMARY.md) | Empty heading tags on dialog and tabs pages | [yes](3587680/REPRODUCE.md) | 1 | 2026-10-14 |  |  |
 | [3593539](3593539/SUMMARY.md) | replace the compact mode link with a switch | [yes](3593539/REPRODUCE.md) | 2 | 2026-10-14 |  |  |

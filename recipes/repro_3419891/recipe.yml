@@ -1,0 +1,25 @@
+name: 'Repro: #3419891 Increase size of alternative text field in Image dialog'
+description: 'Standard install with CKEditor5, Image module, and Basic page content type with body field using CKEditor5.'
+type: 'Testing'
+install:
+  - image
+  - help
+  - config
+  - contextual
+  - menu_link_content
+  - datetime
+  - menu_ui
+  - options
+  - navigation
+  - field_ui
+  - views_ui
+  - text
+  - ckeditor5
+config:
+  import:
+    node:
+      - node.type.page
+      - field.storage.node.field_body
+      - field.field.node.page.field_body
+      - core.entity_form_display.node.page.default
+      - core.entity_view_display.node.page.default

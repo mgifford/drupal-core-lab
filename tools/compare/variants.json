@@ -1264,5 +1264,143 @@
     "after": {
       "env": "issue-3273054-latest"
     }
+  },
+  {
+    "slug": "3419891-pinned",
+    "issue": "3419891",
+    "label": "#3419891: Increase size of alternative text field in Image dialog, pinned core",
+    "description": "Test the CKEditor5 image dialog alternative text field. Before: single-line input ~35 chars visible, content scrolls horizontally. After: textarea that grows vertically (minRows=1, maxRows=6), all content visible.",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "47430c368bbde0c695d1e432a28139521b56616f"
+    },
+    "before": {
+      "env": "baseline-3419891"
+    },
+    "after": {
+      "env": "issue-3419891",
+      "patches": [
+        "reports/issues/3419891/branches/3419891-increase-size-of.patch"
+      ]
+    },
+    "pages": [
+      "/node/add/page"
+    ],
+    "login": true,
+    "recipe": "repro_3419891",
+    "demo": {
+      "start": "/node/add/page"
+    },
+    "steps": [
+      {
+        "text": "Standard install: the Basic page content type exists with a body field using CKEditor5.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /node/add/page in both frames (the viewer logs in as an administrator).",
+        "how": "mirror"
+      },
+      {
+        "text": "Click in the Body field to activate CKEditor5, then click the Image icon in the toolbar.",
+        "how": "each",
+        "lookFor": "The Image dialog opens with an 'Alternative text' field."
+      },
+      {
+        "text": "In the Alternative text field, type a long string that exceeds the visible width (e.g., '012345678 12345678 22345678 32345678 42345678 52345678 62345678 72345678').",
+        "how": "each",
+        "lookFor": "Before: content scrolls horizontally out of view. After: field grows vertically (up to 6 rows) and all content remains visible."
+      }
+    ],
+    "expected": "Before: the alt text field is a single-line input; typing past ~35 characters scrolls earlier content out of view. After: the alt text field is a textarea that grows vertically (min 1 row, max 6 rows); all typed content stays visible.",
+    "actual": "Reproduced and fixed on core 47430c368bbd (2026-10-06). Run 2026-10-15T21:21Z: Before field is input (28px, horizontal scroll); After field is textarea (74px, grows to fit, no horizontal scroll, rows=1). Patch from branch 3419891-increase-size-of (7 files). See reports/issues/3419891/EVIDENCE.md.",
+    "checks": [
+      {
+        "label": "The CKEditor5 image dialog opens and shows an Alternative text field",
+        "probe": "!!document.querySelector('.ck-text-alternative-form .ck-labeled-field-view__input-wrapper')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "Before: Alternative text field is an input (single line); After: Alternative text field is a textarea",
+        "probe": "document.querySelector('.ck-text-alternative-form .ck-labeled-field-view__input-wrapper textarea, .ck-text-alternative-form .ck-labeled-field-view__input-wrapper input')?.tagName.toLowerCase()",
+        "expect": "textarea",
+        "kind": "fix"
+      },
+      {
+        "label": "After: textarea has minRows=1 and maxRows=6 attributes",
+        "probe": "const t=document.querySelector('.ck-text-alternative-form .ck-labeled-field-view__input-wrapper textarea'); t?{minRows:t.minRows,maxRows:t.maxRows}:null",
+        "expect": { "minRows": 1, "maxRows": 6 },
+        "kind": "fix"
+      },
+      {
+        "label": "After: textarea width is 100% (fills the form)",
+        "probe": "const t=document.querySelector('.ck-text-alternative-form .ck-labeled-field-view__input-wrapper textarea'); t?getComputedStyle(t).width:'none'",
+        "expect": "100%",
+        "kind": "fix"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Typing a long string into the Alternative text field: does earlier content scroll out of view (Before) or does the field grow vertically keeping all content visible (After)?",
+        "expectBefore": "content scrolls horizontally",
+        "expectAfter": "field grows vertically, all content visible"
+      }
+    ],
+    "coverage": {
+      "note": "The combinations that count as tested for this issue (scripts/coverage.mjs). Edit to fit the question the issue asks.",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 480
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ]
+    }
+  },
+  {
+    "slug": "3419891-latest",
+    "extends": "3419891-pinned",
+    "label": "#3419891: same steps against the LATEST core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3419891-latest"
+    },
+    "after": {
+      "env": "issue-3419891-latest"
+    }
   }
 ]
