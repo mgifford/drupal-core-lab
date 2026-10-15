@@ -61,7 +61,7 @@ raw PHPUnit logs go to a temp folder it names; `--report` writes the table as a 
     node tools/playwright/walkthrough.mjs <nid>-pinned --browser=webkit --scheme=dark     # also --forced-colors, --viewport=1280x900
     node scripts/coverage.mjs <nid>                                                        # writes COVERAGE.md
 Run the issue's own matrix: `coverage.matrix` in its pinned variant (new issues get a default from `tools/compare/coverage-matrix.mjs`;
-edit it to fit the question the issue asks). A missing row is a gap, shown as NOT TESTED. A run that turned out wrong is kept and marked:
+edit it to fit the question the issue asks). A missing row is a gap, shown as NOT TESTED. Each run is also checked against the variant, its patch files and its recipe as they are now: a **stale** run (what it recorded differs now: a patch rewritten by a new MR push, a changed recipe or pin) is listed with the reason and not counted, so its row shows as a gap; a run that recorded no hashes (every run before 2026-10-15) is counted and marked `record: none`, never called current; a run that did is marked `record: current`. A run that turned out wrong is kept and marked:
 `node scripts/run-mark.mjs <run folder> --superseded --reason "<why>" --by <newer run>`. Save
 viewer logs from people who tested by hand in `reports/issues/<nid>/manual/` and re-run `coverage.mjs`.
 

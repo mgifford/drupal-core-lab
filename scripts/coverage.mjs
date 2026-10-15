@@ -3,9 +3,13 @@
 // Reads every reports/issues/<nid>/playwright/*/results.json (each records its browser, colour scheme, viewport and core commit)
 // and optional viewer logs saved in reports/issues/<nid>/manual/*.json. Rows with no run are listed as NOT TESTED, so a gap is
 // visible instead of forgotten. The standard matrix can be replaced per variant with a `coverage` field in variants.json.
+// A run is also compared with the variant, its patch files and its recipe as they are now (tools/compare/run-record.mjs): STALE (something it
+// recorded differs: kept, listed with the reason, not counted, so its row shows as a gap), CURRENT (it recorded patch hashes and they match), or
+// UNRECORDED (an older run that recorded no hashes: counted as before, marked, and never called current).
 import fs from 'node:fs';
 import path from 'node:path';
 import { labRoot, variants } from '../tools/compare/lib.mjs';
+import { runStaleness } from '../tools/compare/run-record.mjs';
 
 const nid = process.argv.slice(2).find((a) => /^\d+$/.test(a));
 if (!nid) { console.error('usage: node scripts/coverage.mjs <nid>'); process.exit(2); }
@@ -33,31 +37,37 @@ const MANUAL = (pinned && pinned.coverage && pinned.coverage.manual) || [
 ];
 
 // ---- automated runs
-const runs = []; const superseded = [];
+const runs = []; const superseded = []; const stale = []; const allVariants = variants();
 const pw = path.join(dir, 'playwright');
 if (fs.existsSync(pw)) for (const d of fs.readdirSync(pw)) {
   const f = path.join(pw, d, 'results.json'); if (!fs.existsSync(f)) continue;
   const r = JSON.parse(fs.readFileSync(f, 'utf8'));
   const env = r.environment || { browser: 'chromium', colorScheme: 'light', forcedColors: false, viewport: r.viewport, assumed: true };
   if (r.superseded) { superseded.push({ dir: d, ...r.superseded }); continue; }
+  const rec = runStaleness(r, allVariants.find((x) => x.slug === r.variant), { labRoot });
+  if (rec.status === 'stale') { stale.push({ dir: d, env, variant: r.variant || '', reasons: rec.reasons }); continue; }
   const themes = [...new Set(Object.values(r.sides || {}).flatMap((x) => (x.pages || []).map((p) => p.theme)).filter(Boolean))];
-  runs.push({ dir: d, themes, variant: r.variant || '', when: r.when, env, verdict: r.verdict || (env.assumed ? 'recorded' : 'recorded'), unexpected: r.unexpected, commit: (r.commits && r.commits.after || '').split(' ')[0], date: (r.commits && r.commits.after || '').split(' ')[1] || '', browserVersion: env.browserVersion || '' });
+  runs.push({ dir: d, themes, variant: r.variant || '', when: r.when, env, verdict: r.verdict || (env.assumed ? 'recorded' : 'recorded'), unexpected: r.unexpected, commit: (r.commits && r.commits.after || '').split(' ')[0], date: (r.commits && r.commits.after || '').split(' ')[1] || '', browserVersion: env.browserVersion || '', rec });
 }
 const same = (m, e) => m.browser === e.browser && m.scheme === e.colorScheme && !!m.forced === !!e.forcedColors && m.width === (e.viewport && e.viewport.width);
 const label = (m) => `${m.browser} · ${m.scheme}${m.forced ? ' · forced colours' : ''} · ${m.width}px wide`;
 const mark = (v, u) => (v === 'reproduced-and-fixed' && u > 0 ? `⚠ reproduced and fixed, but ${u} regression check${u > 1 ? 's' : ''} differ${u > 1 ? '' : 's'} (read the summary)` : ({ 'reproduced-and-fixed': '✓ reproduced and fixed', 'not-reproduced': '⚠ does not reproduce on Before', 'reproduced-not-fixed': '✗ reproduced, NOT fixed', 'mixed': '⚠ mixed result', 'recorded': '✓ run recorded (older format)' }[v] || v));
 
+// what the run recorded about its patches and recipe, against now: stale runs never get here
+const recMark = (rec) => (rec.status === 'current' ? ` (record: current${rec.notes.length ? `; ${rec.notes.join(', ')}` : ''})` : ` (record: none, not checked against the current patches${rec.hints.length ? `; ${rec.hints.join('; ')}: it may be stale` : ''})`);
+const staleFor = (m, kind) => stale.filter((r) => same(m, r.env) && (kind === 'latest' ? /-latest$/.test(r.variant) : !/-latest$/.test(r.variant)));
 const rows = []; const gaps = [];
 const cell = (m, kind) => {
   const hits = runs.filter((r) => same(m, r.env) && (kind === 'latest' ? /-latest$/.test(r.variant) : !/-latest$/.test(r.variant))).sort((a, b) => (a.when < b.when ? 1 : -1));
   if (!hits.length) return null;
-  const r = hits[0]; return { text: `${mark(r.verdict, r.unexpected)}${r.env.assumed ? ' (older run: browser and scheme assumed)' : ''}${r.themes.length ? ` (theme ${r.themes.join(', ')})` : ''}`, ver: r.env.browserVersion || '', core: `\`${(r.commit || '').slice(0, 12)}\` ${r.date}`, link: `[${r.when.slice(0, 10)}](playwright/${r.dir}/SUMMARY.md)` };
+  const r = hits[0]; return { text: `${mark(r.verdict, r.unexpected)}${r.env.assumed ? ' (older run: browser and scheme assumed)' : ''}${r.themes.length ? ` (theme ${r.themes.join(', ')})` : ''}${recMark(r.rec)}`, ver: r.env.browserVersion || '', core: `\`${(r.commit || '').slice(0, 12)}\` ${r.date}`, link: `[${r.when.slice(0, 10)}](playwright/${r.dir}/SUMMARY.md)` };
 };
 for (const m of matrix) {
   const p = cell(m, 'pinned'), l = cell(m, 'latest');
-  const why = blocked[m.browser] ? `**NOT TESTED** (attempted, blocked: ${blocked[m.browser]})` : '**NOT TESTED**';
-  if (!p) gaps.push(label(m) + (blocked[m.browser] ? ` (blocked: ${blocked[m.browser]})` : ''));
-  rows.push(`| ${label(m)} | ${p ? p.text : why} | ${l ? l.text : '_not run_'} | ${(p || l || {}).ver || ''} | ${[p && p.link, l && l.link].filter(Boolean).join(' · ')} |`);
+  const sp = staleFor(m, 'pinned'), sl = staleFor(m, 'latest');
+  const why = blocked[m.browser] ? `**NOT TESTED** (attempted, blocked: ${blocked[m.browser]})` : sp.length ? `**NOT TESTED against the current patches** (${sp.length} stale run${sp.length === 1 ? '' : 's'}, see below)` : '**NOT TESTED**';
+  if (!p) gaps.push(label(m) + (blocked[m.browser] ? ` (blocked: ${blocked[m.browser]})` : sp.length ? ' (only stale runs)' : ''));
+  rows.push(`| ${label(m)} | ${p ? p.text : why} | ${l ? l.text : sl.length ? `**NOT TESTED against the current patches** (${sl.length} stale run${sl.length === 1 ? '' : 's'})` : '_not run_'} | ${(p || l || {}).ver || ''} | ${[p && p.link, l && l.link].filter(Boolean).join(' · ')} |`);
 }
 // runs that are not in the matrix (other widths, schemes)
 const extra = runs.filter((r) => !matrix.some((m) => same(m, r.env)));
@@ -79,7 +89,7 @@ ${gaps.length ? `## Gaps: ${gaps.length} automated environment${gaps.length === 
 | Environment | Pinned core | Latest core | Browser version | Evidence |
 |---|---|---|---|---|
 ${rows.join('\n')}
-${extra.length ? `\nOther runs: ${extra.map((r) => `${label({ browser: r.env.browser, scheme: r.env.colorScheme, forced: r.env.forcedColors, width: r.env.viewport && r.env.viewport.width })} (${r.when.slice(0, 10)}${r.themes.length ? `, theme ${r.themes.join(', ')}` : ''}, ${mark(r.verdict, r.unexpected)})`).join('; ')}.\n` : ''}${superseded.length ? `\nSuperseded runs (kept, not counted): ${superseded.map((x) => `\`${x.dir}\` (${x.reason}${x.by ? `; see \`${x.by}\`` : ''})`).join('; ')}.\n` : ''}
+${extra.length ? `\nOther runs: ${extra.map((r) => `${label({ browser: r.env.browser, scheme: r.env.colorScheme, forced: r.env.forcedColors, width: r.env.viewport && r.env.viewport.width })} (${r.when.slice(0, 10)}${r.themes.length ? `, theme ${r.themes.join(', ')}` : ''}, ${mark(r.verdict, r.unexpected)})`).join('; ')}.\n` : ''}${stale.length ? `\nStale runs (kept, not counted: what they recorded differs from the variant now, so they are evidence about an older state; run them again): ${stale.map((x) => `\`${x.dir}\` (${x.reasons.join('; ')})`).join('; ')}.\n` : ''}${superseded.length ? `\nSuperseded runs (kept, not counted): ${superseded.map((x) => `\`${x.dir}\` (${x.reason}${x.by ? `; see \`${x.by}\`` : ''})`).join('; ')}.\n` : ''}
 ## Manual checks (a person)
 Save the viewer's "Download log" into \`reports/issues/${nid}/manual/\`; it records the environment you tested in.
 
@@ -92,4 +102,4 @@ Automated runs use emulated colour scheme and forced colours (Playwright), not a
 engine, not Safari itself. Results are a DRAFT until a person has reviewed them.
 `;
 fs.writeFileSync(path.join(dir, 'COVERAGE.md'), out);
-console.log(`reports/issues/${nid}/COVERAGE.md  (${matrix.length - gaps.length} of ${matrix.length} automated environments tested, ${manual.length} manual log${manual.length === 1 ? '' : 's'})`);
+console.log(`reports/issues/${nid}/COVERAGE.md  (${matrix.length - gaps.length} of ${matrix.length} automated environments tested, ${manual.length} manual log${manual.length === 1 ? '' : 's'}; runs: ${runs.filter((r) => r.rec.status === 'current').length} current, ${runs.filter((r) => r.rec.status === 'unrecorded').length} unrecorded, ${stale.length} stale)`);

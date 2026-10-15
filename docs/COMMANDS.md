@@ -27,7 +27,7 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/issue-status.mjs <nid> [--write] | --all  # read-only: status, comments, MR head vs the patch the lab tested (flags a stale patch)
     node scripts/check-draft.mjs <nid>                   # the comment draft against core's AGENTS.md rules (180 words, no headers, disclosure line)
     node scripts/findings.mjs add | from-run <run> | set | list   # barriers spotted outside the issue (reports/findings/); every entry starts unconfirmed
-    node scripts/run-mark.mjs <run> --superseded --reason "<why>" [--by <run>]   # keep a run as history; coverage stops counting it
+    node scripts/run-mark.mjs <run> --superseded --reason "<why>" [--by <run>]   # keep a run as history; coverage stops counting it (coverage also marks a run stale by itself when its recorded patch hashes, recipe or pin no longer match)
     node scripts/lab-env.mjs retire <slug> --yes         # delete a pair only once reports/issues/<nid>/ is committed and pushed
     node scripts/selftest.mjs [--live <slug>] [--network]   # does the lab itself work: syntax, unit tests, variants, docs; --live runs lint and the evaluator
     node scripts/issue-from-url.mjs <url> [--pack <file>] [--ai-recipe] [--mr <n>] [--no-import] [--dry-run]  # start from a Drupal.org issue URL (prepare→validate→import)
