@@ -10,7 +10,7 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/doctor.mjs [slug]                       # preflight: prerequisites, disk, what is running
     node scripts/lab-env.mjs reset <slug> --yes          # cheapest reset: reinstall both SITES (database, files, recipe, languages); keeps checkout and patches
     node scripts/lab-env.mjs disk | trim <slug|all> [--deep]   # what uses disk; free regenerable space (--deep also removes core/node_modules, ~400 MB each)
-    node scripts/lab-env.mjs status | start <slug> | stop <slug|all> | delete <slug> --yes   # manage environments (two at a time); start also launches the viewer
+    node scripts/lab-env.mjs status | start <slug> | stop <slug|all> | delete <slug> --yes   # manage environments (two at a time); start also launches the viewer; status also shows each checkout's core commit and lists pairs that are not in the state their variant asks for
     node tools/compare/setup.mjs <slug>                  # build Before and After from scratch (resumable, idempotent)
     node tools/compare/setup.mjs <slug> --check-patches  # only: do the patches still apply to that core?
     node tools/compare/setup.mjs <slug> --refresh-patches  # patched files no longer match the patch files (setup said BLOCKED, exit 4): restore them, apply the current patches

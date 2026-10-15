@@ -19,6 +19,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { labRoot, variants, envInfo, loginPath, envDir } from '../../compare/lib.mjs';
 import { runProblems, SCHEMA } from './run-schema.mjs';
 import { patchState, runBlockReason } from '../../compare/patch-state.mjs';
+import { identity, blockMessage, identityRecord } from '../../compare/env-state.mjs';
 export { VERDICTS } from './run-schema.mjs';
 
 export const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
@@ -48,6 +49,8 @@ export const sidePatchStates = (v) => ({ before: patchState(envDir(v.before.env)
 export async function launch(a) {
   const ps = sidePatchStates(a.v), blocked = runBlockReason(ps, a.v.slug);
   if (blocked) throw new Error(blocked);
+  const idn = identity(a.v, { labRoot, envDir });   // common base, pinned commit, recipe: observed against what the variant asks for
+  if (idn.problems.length) throw new Error(blockMessage(idn));
   for (const side of ['before', 'after']) if (ps[side].state === 'unverified') console.warn(`WARNING: the ${side} environment's patches are recorded by name only, not by content; run \`node tools/compare/setup.mjs ${a.v.slug}\` once to verify and record them.`);
   const b = await BROWSERS[a.browser].launch({ handleSIGINT: false, handleSIGTERM: false, handleSIGHUP: false });
   const environment = { browser: a.browser, browserVersion: b.version(), colorScheme: a.scheme, forcedColors: a.forced, viewport: a.viewport, os: `${process.platform} ${process.arch}` };
@@ -204,5 +207,5 @@ export function writeRun(run, results, md) {
 }
 
 export function baseResults(run, environment) {
-  return { variant: run.v.slug, issue: run.v.issue, when: new Date().toISOString(), environment, core: run.v.core, patches: run.v.after.patches || [], patchState: sidePatchStates(run.v), commits: { before: gitInfo(run.v.before.env), after: gitInfo(run.v.after.env) }, sides: {} };
+  return { variant: run.v.slug, issue: run.v.issue, when: new Date().toISOString(), environment, core: run.v.core, patches: run.v.after.patches || [], patchState: sidePatchStates(run.v), identity: identityRecord(identity(run.v, { labRoot, envDir })), commits: { before: gitInfo(run.v.before.env), after: gitInfo(run.v.after.env) }, sides: {} };
 }

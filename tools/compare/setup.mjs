@@ -25,6 +25,7 @@ import path from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { labRoot, variants, envDir } from './lib.mjs';
 import { ensurePatches } from './patch-state.mjs';
+import { identity, blockMessage, headOf, recipeStatus } from './env-state.mjs';
 
 const args = process.argv.slice(2);
 const dry = args.includes('--dry-run');
@@ -146,11 +147,20 @@ const want = ['axe-core@4', 'js-yaml@4', ...(withLighthouse ? ['lighthouse'] : [
 if (!CHECKOUT_ONLY && (!have(path.join(deps, 'node_modules/axe-core/axe.min.js')) || !have(path.join(deps, 'node_modules/js-yaml')) || (withLighthouse && !have(path.join(deps, 'node_modules/lighthouse'))))) run('npm', ['install', '--prefix', deps, '--no-audit', '--no-fund', ...want]);
 
 const sides = [['before', v.before], ['after', v.after]];
+// Both checkouts first, so the pair can be checked before anything slow runs. A `latest` environment that is missing next to one that
+// exists is created at that one's commit, not at the newest core: a pair must stand on one base (a pinned variant always uses its pin).
+const addCheckout = (side, spec) => {
+  const dir = envDir(spec.env); if (have(dir)) return;
+  const other = envDir((side === 'before' ? v.after : v.before).env), otherHead = headOf(other), base = !core.commit && otherHead ? otherHead : coreRef;
+  if (base !== coreRef) console.log(`${spec.env}: created at ${base.slice(0, 12)}, the commit of ${path.basename(other)}, so that Before and After stand on one base (to move both to newer core: node scripts/lab-env.mjs delete ${v.slug} --yes, then run setup again)`);
+  run('git', ['-C', bare, 'worktree', 'add', '--detach', dir, base]);
+};
+for (const [side, spec] of sides) addCheckout(side, spec);
+if (!dry) { const id = identity(v, { labRoot, envDir, checks: ['base', 'pin'] }); if (id.problems.length) { console.error(blockMessage(id)); process.exit(4); } }
 for (const [side, spec] of sides) {
   const dir = envDir(spec.env);
   const name = `repro-${spec.env}`.slice(0, 60);
   step(`${side}: ${spec.env}`);
-  if (!have(dir)) run('git', ['-C', bare, 'worktree', 'add', '--detach', dir, coreRef]);
 
   // Patches, tracked by content (tools/compare/patch-state.mjs): a re-run reuses them only when the recorded hashes and the files still
   // match, and stops with BLOCKED (exit 4) when they do not. --refresh-patches puts the files the patches touch back and applies again.
@@ -162,6 +172,10 @@ for (const [side, spec] of sides) {
     if (r.status === 'failed') process.exit(1);
   }
   if (CHECKOUT_ONLY) { console.log(`checkout only: ${path.relative(labRoot, dir)} at ${dry ? coreRef : out('git', ['rev-parse', '--short', 'HEAD'], dir)}${(spec.patches || []).length ? ' plus its patches' : ''}`); continue; }
+
+  // A site that exists keeps what an earlier recipe did (recipes install and change, never uninstall), so a changed recipe applied on top is
+  // not the state the recipe describes: stop, and say how to start from a clean install (--reinstall, which lab-env.mjs reset runs).
+  if (v.recipe && !REINSTALL && !dry && have(path.join(dir, 'sites/default/settings.php')) && ['differs', 'missing-in-lab'].includes(recipeStatus(dir, labRoot, v.recipe).status)) { console.error(blockMessage(identity(v, { labRoot, envDir, checks: ['recipe'] }))); process.exit(4); }
 
   if (!have(path.join(dir, '.ddev/config.yaml'))) {
     run('ddev', ['config', '--project-type=drupal12', '--docroot=.', '--php-version=8.5', `--project-name=${name}`, '--omit-containers=db', '--disable-settings-management'], { cwd: dir });
@@ -219,5 +233,6 @@ for (const [side, spec] of sides) {
   for (const code of v.languages || []) run('bash', [path.join(labRoot, 'scripts/lab-site.sh'), 'language', spec.env, code]);   // e.g. fa: right-to-left, browse /fa/...
 }
 
+if (!dry && !CHECKOUT_ONLY) { const id = identity(v, { labRoot, envDir }); if (id.problems.length) { console.error(blockMessage(id)); process.exit(4); } }   // the post-condition: what was built is what the variant asks for
 if (CHECKOUT_ONLY) { console.log(`\nDone (checkouts only, no sites). Lint the change: node scripts/lint.mjs ${v.slug} --host`); process.exit(0); }
 console.log(`\nDone. Both sites: log in as admin / admin.\nStart the viewer:  node tools/compare/serve.mjs ${v.slug}   then open http://localhost:8100/`);

@@ -9,6 +9,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { labRoot } from '../../tools/compare/lib.mjs';
+import { lock, unlock } from './e2e-lock.mjs';
+
+await lock();   // one end-to-end setup test at a time (they share envs/core.git and envs/.setup.lock)
 
 const git = (cwd, ...a) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd, encoding: 'utf8' });
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'setup-patches-test-'));
@@ -27,7 +30,7 @@ function cleanup() {
   if (fs.existsSync(bare)) { git(bare, 'worktree', 'prune'); if (bareExisted) git(bare, 'update-ref', '-d', 'refs/lab/zz-patchid'); else fs.rmSync(bare, { recursive: true, force: true }); }
   fs.rmSync(issueDir, { recursive: true, force: true });
 }
-after(() => { cleanup(); fs.rmSync(tmp, { recursive: true, force: true }); });
+after(() => { cleanup(); fs.rmSync(tmp, { recursive: true, force: true }); unlock(); });
 cleanup();
 
 const up = path.join(tmp, 'upstream'); fs.mkdirSync(path.join(up, 'core'), { recursive: true });
