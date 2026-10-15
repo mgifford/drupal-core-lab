@@ -40,7 +40,7 @@ Four pairs pass: `3619127-pinned`, `3604037-latest`, `3093378-latest`, `3093378-
 
 ## Not done, and why
 
-- **`launch()` was not exercised**: Playwright is not installed in this worktree. `identity()` and `blockMessage()` it calls are tested; the hook is three lines.
+- **`launch()` was not exercised when this was written** (Playwright was not installed in this worktree). It was exercised afterwards, once `npm ci` in `tools/playwright` had installed it, with temporary environments (a throwaway script, not a committed test): a clean pair starts Chromium 156; a hand edit in the baseline, a recipe edited after the sites were set up, and a different base commit each throw `BLOCKED` before any browser starts; an edit on the After side warns and the run goes ahead.
 - **No real DDEV run** of the full setup path through a recipe reset. The first `lab-env.mjs reset 3618230-latest --yes` will be it.
 - **Dirty baseline:** decided afterwards (option 3), see the addendum below.
 - **Contrib identity (slice E)** and **stale runs in coverage (slice F)**: unchanged.
