@@ -16,4 +16,6 @@ A staged project to cut AI usage in this lab without losing reliable evidence (t
 | Phase 4 | [phase-4](phase-4/RESULTS.md) | Pilot of the whole loop on #3618230; `scripts/feedback.mjs` | feedback tied to run and patch revision; a wrong check was caught and its run superseded; 2 items need a person |
 | Phase 5 | [phase-5](phase-5/RESULTS.md) | Four measured gaps, one increment each: patches without an MR, contrib lint, updating an imported issue, a network preflight; merge of 2 upstream commits | a variant with nothing under test is now refused (and exposed `3426468-latest`); the live runs found 2 defects the unit tests could not |
 
+**Naming.** The folders `phase-1` and `phase-2` are the two steps the owner chose from Phase 0's menu (slice A, patch identity; option B, fewer calls per task). They are **not** the brief's Phase 1 (compact intake and explicit handoffs) or Phase 2 (targeted generation and field-level repairs of the issue pack). In the brief's terms the work so far is Phase 0, Phase 3 (slices A, D, E, F), Phase 4 and Phase 5. The brief's Phases 1 and 2 are not done: the issue-pack intake and repair paths are unchanged.
+
 Measurement tools: `scripts/usage-baseline.mjs` (prompt size and composition), `scripts/session-usage.mjs` (usage from the client's transcripts, `--sequences`), `scripts/context-size.mjs` (the client's `/context`).

@@ -22,7 +22,9 @@ One conflict, `AGENTS.md` (this branch shortened it): kept the short one and mov
 - `3426468-latest` lists **no patch** (explicitly `[]`): the MR's branch (`3426468-make-the-active`, base 2024) no longer applies to current main
   (the navigation CSS moved), and `--check-patches` printed "All patches apply" vacuously. The fork's other branch, `3426468-active-indicator`, **does** apply
   to main today (checked with a throwaway index) but is not in `BRANCHES.md` and is not the MR's branch. Which one `-latest` should test is a decision for
-  the owner, so the data was left alone and the new check makes `selftest` fail on it (see Remaining).
+  the owner, so the data was left alone and the new check made `selftest` fail on it. **Resolved the same day:** the owner chose `3426468-active-indicator`. The variants' own
+  descriptions already say `-latest` tests a lab-authored fix (per comment #28) and `-pinned` the original 2024 MR, so `-latest` now lists that patch, `BRANCHES.md` records that it is not from the
+  issue fork (the fork's only issue branch is `3426468-make-the-active`) and that it applies to `main` `ad11ba71c0f0`, and `selftest` passes.
 - Both scaffolds still have template placeholders in `REPRODUCE.md`, `EVIDENCE.md` and `STATUS`, and no recorded run, so coverage has nothing for them.
 - `3606655`: both variants resolve, the patch applies on pinned and latest.
 
@@ -32,7 +34,7 @@ One conflict, `AGENTS.md` (this branch shortened it): kept the short one and mov
 |---|---|
 | Unit tests | 255 of 255 pass (was 228): +11 capture, +5 lint-contrib, +6 branch-patch, +5 hosts |
 | Negative controls | 9, each failing its tests and restored byte-identical |
-| `selftest` | 5 ok, **1 FAIL**: `variants: 3426468-latest: after lists no patch ...` (expected, see Remaining) |
+| `selftest` | first 5 ok, 1 FAIL (`variants: 3426468-latest: after lists no patch ...`, the new check working); after the owner chose the patch, 6 ok |
 | Timings, live | capture list 3.2 s on a 16k-file core, capture write 1.7 s; `--refresh` 5.3 s; `lint --contrib` 0.7 s (CSS only); contrib build 4 min 41 s |
 | Not measured | Token or prompt effect of any of this: Phase 5 adds capability, it does not shrink prompts. No model call was made by any new script |
 | Not performed | Anything inside a filtered-egress workspace; a screen reader or keyboard pass (nothing here touches UI); a second operating system |
@@ -45,6 +47,5 @@ One conflict, `AGENTS.md` (this branch shortened it): kept the short one and mov
 
 ## Risks and rollback
 
-- The `3426468-latest` failure turns `selftest` (and CI, once pushed) red until the owner picks a patch. That is the intended signal, but it is a red check on data this session did not write.
 - `capture-patch.mjs` removes the files of a new-files-only change from the working tree for a moment so the recorded patch can put them back (only after the patch was checked to round-trip); a crash in between would leave the patch file but the files absent. They are in the patch.
 - Rollback: revert the Phase 5 commit; the merge commit `503c489` can stay.
