@@ -1,0 +1,58 @@
+{
+  "stage": "issue",
+  "nid": "3618230",
+  "written": "2026-10-15",
+  "by": "model",
+  "summary": "ManagedFile::uploadAjaxCallback() puts status messages in the widget's #prefix, which Xss::filterAdmin() filters, so markup in a message is lost (Olivero's SVG icons; in default_admin the Hide button). MR !16777 sends the messages with MessageCommand into a container it adds to the prefix instead.",
+  "facts": [
+    {
+      "text": "fago kept the message where it was shown before, inside the widget area, for backward compatibility.",
+      "sources": [
+        "comment:7"
+      ]
+    },
+    {
+      "text": "kentr asked whether the problem still occurs with the Default Admin theme now that Olivero is removed.",
+      "sources": [
+        "comment:10"
+      ]
+    },
+    {
+      "text": "The lab answers yes: without the MR the Hide button is stripped from the error, with it the button is present and works from the keyboard.",
+      "sources": [
+        "comment:11",
+        "file:reports/issues/3618230/EVIDENCE.md"
+      ]
+    },
+    {
+      "text": "A functional JavaScript test was proposed for the MR (FileUploadAjaxMessageTest.php); it is not in the MR yet.",
+      "sources": [
+        "comment:12",
+        "source:mr"
+      ]
+    }
+  ],
+  "open": [
+    {
+      "text": "Is it acceptable that focus stays on the faded-out Hide button after Enter? A person must judge it (FB-002).",
+      "sources": [
+        "file:reports/issues/3618230/FEEDBACK.md"
+      ]
+    },
+    {
+      "text": "Does a real screen reader speak the error twice (role=alert and Drupal.announce)? Only a synthetic check was run (FB-003).",
+      "sources": [
+        "file:reports/issues/3618230/FEEDBACK.md"
+      ]
+    }
+  ],
+  "based_on": {
+    "comment:7": "16740329:96adf46a",
+    "comment:10": "16792307:c392ca51",
+    "comment:11": "16807417:6d3effcc",
+    "file:reports/issues/3618230/EVIDENCE.md": "0963ad58",
+    "comment:12": "16807600:be9ffe5b",
+    "source:mr": "cc62268b",
+    "file:reports/issues/3618230/FEEDBACK.md": "e602b2cc"
+  }
+}

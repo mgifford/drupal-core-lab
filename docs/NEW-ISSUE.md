@@ -11,6 +11,15 @@ patch was based on, creates `REPRODUCE.md`, `EVIDENCE.md`, a `STATUS.md` snapsho
 variants. Add a `SUMMARY.md` — the entry point a reader opens first (`docs/ISSUE-PACK.md`). It needs `envs/core.git` (created by `setup.mjs`); `--depth 1500` if the branch is old; `--dry-run` shows the plan.
 The issue's own drupal.org page lists the fork branch name (the MR source branch).
 
+## 1b. Understand the issue without pasting the whole thread
+    node scripts/issue-intake.mjs fetch <nid>        # snapshot, comment index and reports/issues/<nid>/intake/BRIEF.md (read-only requests to drupal.org and git.drupalcode.org)
+    node scripts/issue-pack.mjs prepare <nid> --compact   # the pack prompt carries the brief instead of every comment, when that is smaller
+The brief is extracted by rules, not written by a model: it says what was fetched and what limit cut it (comment pages, attachments, diff size), shows the comments whose own
+words mark them as decisions, proposals, questions or revisions (and which proposals a later comment dropped), quotes everything as data, and lists the rest by number so
+`issue-intake.mjs show <nid> <n>` can bring any of it back. It finds candidates by word patterns; it does not understand the thread. What the problem is, what was decided and what
+is open is interpretation: a model or a person writes it as a handoff (`handoff write <nid> issue --file ...`), every fact citing the comment, source or file it comes from. After a
+new `fetch`, `handoff check <nid>` says which handoffs cite something that changed. Stages: issue, sources, reproduction, patch, validation, feedback; keep each under about 1,000 tokens and point to files rather than copying them.
+
 ## 2. Describe how to reproduce it
 Edit the `<nid>-pinned` entry in `tools/compare/variants.json`:
 - `pages` and `login`: pages the diff report fetches; whether it logs in.

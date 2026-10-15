@@ -96,26 +96,34 @@ export async function gather(nid, { fetchImpl = fetch, mr: mrOverride, log = () 
   if (!node || node.type !== 'project_issue') { out.missing.issue = `issue ${nid} was not found on drupal.org`; return out; }
   if (!String(node.url || '').includes('/project/drupal/')) throw new Error(`#${nid} is not a Drupal core issue (${node.url}); only core issues are supported`);
 
-  const comments = [];
+  const comments = []; let pagesFetched = 0, lastPageFull = false;
   for (let p = 0; p < MAX_COMMENT_PAGES; p++) {
     const page = await getJson(`https://www.drupal.org/api-d7/comment.json?node=${nid}&limit=${PAGE_SIZE}&page=${p}`, o);
     const list = (page && page.list) || [];
-    comments.push(...list);
+    comments.push(...list); pagesFetched++; lastPageFull = list.length === PAGE_SIZE;
     if (list.length < PAGE_SIZE) break;
   }
+  // Reaching the page limit with a full last page means there may be more comments: that is said in the text, not left to the count.
+  const commentLimit = { pages: pagesFetched, pageSize: PAGE_SIZE, maxPages: MAX_COMMENT_PAGES, fetched: comments.length, capped: pagesFetched === MAX_COMMENT_PAGES && lastPageFull };
   comments.sort((a, b) => Number(a.cid) - Number(b.cid));
   const numberOf = new Map(comments.map((c, i) => [String(c.cid), i + 1]));
 
-  const files = [];
+  const files = [], filesTotal = (node.field_issue_files || []).length;
   for (const f of (node.field_issue_files || []).slice(0, MAX_FILES)) {
     const id = f.file && f.file.id; if (!id) continue;
     try { const j = await getJson(`https://www.drupal.org/api-d7/file/${id}.json`, o); if (j) files.push({ name: j.name, size: j.size, cid: f.file.cid }); } catch { /* an attachment we cannot describe is skipped */ }
   }
 
+  const fileLimit = { total: filesTotal, listed: files.length, max: MAX_FILES, capped: filesTotal > MAX_FILES };
+  const limitNotes = [
+    ...(commentLimit.capped ? [`LIMIT: only the first ${commentLimit.fetched} comments were fetched (${commentLimit.maxPages} pages of ${commentLimit.pageSize}); the issue may have more, and the last comments here may not be the latest.`] : []),
+    ...(fileLimit.capped ? [`LIMIT: ${fileLimit.total} attachments exist and ${fileLimit.listed} are listed (the limit is ${fileLimit.max}).`] : []),
+    ...(files.length < Math.min(filesTotal, MAX_FILES) ? [`LIMIT: ${Math.min(filesTotal, MAX_FILES) - files.length} attachment(s) could not be described and are not listed.`] : []),
+  ];
   const lines = [
     `ISSUE #${nid}: ${node.title}`, `URL: ${out.url}`,
     `Status: ${label(STATUS, node.field_issue_status)} | Priority: ${label(PRIORITY, node.field_issue_priority)} | Category: ${label(CATEGORY, node.field_issue_category)} | Component: ${node.field_issue_component || 'unknown'} | Version: ${node.field_issue_version || 'unknown'}`,
-    `Created: ${day(node.created)} | Last updated: ${day(node.changed)} | Comments: ${comments.length}`,
+    `Created: ${day(node.created)} | Last updated: ${day(node.changed)} | Comments: ${comments.length}`, ...limitNotes,
     `Source: the drupal.org API, fetched ${now.toISOString().slice(0, 10)}. Status, tag and metadata change notes that the web page shows inside comments are not included; comment numbers are counted in order and may differ from the page if comments were removed.`,
     '', '--- ISSUE SUMMARY (written by the reporter; it may have been edited after the comments) ---', htmlToText(node.body && node.body.value) || '(empty)', '',
     '--- ATTACHMENTS ---', ...(files.length ? files.map((f) => `- ${f.name} (${kb(f.size)}), added in comment #${numberOf.get(String(f.cid)) ?? '?'}`) : ['(none listed)']), '', '--- COMMENTS ---',
@@ -125,16 +133,22 @@ export async function gather(nid, { fetchImpl = fetch, mr: mrOverride, log = () 
     lines.push('', `#${n} ${c.name || 'unknown'}, ${day(c.created)} (comment id ${c.cid})`, htmlToText(c.comment_body && c.comment_body.value) || '(no text)');
   }
   out.issueText = neutralize(lines.join('\n'));
+  // The same facts as data, for scripts/issue-intake.mjs (nothing here is shortened; the prompt text above is what the chat gets).
+  out.structured = { fetchedAt: now.toISOString(), url: out.url, node: { title: node.title, status: node.field_issue_status ?? null, priority: node.field_issue_priority ?? null, category: node.field_issue_category ?? null,
+    component: node.field_issue_component || null, version: node.field_issue_version || null, created: Number(node.created) || null, changed: Number(node.changed) || null, summary: htmlToText(node.body && node.body.value) },
+    comments: comments.map((c) => ({ n: numberOf.get(String(c.cid)), cid: String(c.cid), author: c.name || 'unknown', created: Number(c.created) || null, text: htmlToText(c.comment_body && c.comment_body.value) })),
+    files: files.map((f) => ({ name: f.name, size: Number(f.size) || null, comment: numberOf.get(String(f.cid)) ?? null })), mr: null, diff: null, limits: { comments: commentLimit, attachments: fileLimit, diff: null } };
 
   // the issue fork's branch and its merge request
   log('Looking for the issue fork branch and merge request on git.drupalcode.org ...');
-  let found = [];
+  let found = []; const heads = {};
   if (mrOverride) {
     const m = await getJson(`https://git.drupalcode.org/api/v4/projects/project%2Fdrupal/merge_requests/${mrOverride}`, o);
     if (m) found = [m]; else out.notes.push(`Merge request !${mrOverride} was not found in project/drupal.`);
   } else {
     const branches = (await getJson(`https://git.drupalcode.org/api/v4/projects/issue%2Fdrupal-${nid}/repository/branches?search=${nid}`, o)) || [];
     for (const b of branches.filter((x) => x.name && x.name.startsWith(`${nid}-`))) {
+      heads[b.name] = (b.commit && b.commit.id) || null;
       const list = (await getJson(`https://git.drupalcode.org/api/v4/projects/project%2Fdrupal/merge_requests?source_branch=${encodeURIComponent(b.name)}&scope=all&state=all`, o)) || [];
       found.push(...list);
     }
@@ -144,12 +158,14 @@ export async function gather(nid, { fetchImpl = fetch, mr: mrOverride, log = () 
     found.sort((a, b) => (b.state === 'opened') - (a.state === 'opened') || String(b.updated_at).localeCompare(String(a.updated_at)));
     const m = found[0];
     out.mr = { iid: String(m.iid), state: m.state, branch: m.source_branch, target: m.target_branch, updated: String(m.updated_at).slice(0, 10), url: `https://git.drupalcode.org/project/drupal/-/merge_requests/${m.iid}` };
+    out.structured.mr = { ...out.mr, updatedAt: String(m.updated_at), sha: m.sha || null, branchHead: heads[m.source_branch] || null };
     if (found.length > 1) out.notes.push(`More than one merge request matched; using !${m.iid}. Others: ${found.slice(1).map((x) => `!${x.iid} (${x.state}, ${x.source_branch})`).join(', ')}. Use --mr <number> to choose another.`);
     log(`Fetching the diff of merge request !${m.iid} ...`);
     const d = await getText(`${out.mr.url}.diff`, o);
     if (d.status !== 200 || !d.text.trim()) out.missing.diff = `the diff of !${m.iid} could not be fetched (HTTP ${d.status})`;
     else {
       let diff = d.text, truncated = false;
+      out.structured.diff = { text: d.text }; out.structured.limits.diff = { servedBytes: Buffer.byteLength(d.text), cap: MAX_DIFF_BYTES, truncatedInPrompt: Buffer.byteLength(d.text) > MAX_DIFF_BYTES };
       if (Buffer.byteLength(diff) > MAX_DIFF_BYTES) { diff = Buffer.from(diff).subarray(0, MAX_DIFF_BYTES).toString('utf8'); truncated = true; out.notes.push(`The diff is larger than ${MAX_DIFF_BYTES / 1024} KB and was cut.`); }
       out.diff = neutralize(`Merge request !${m.iid} (${m.state}, last updated ${out.mr.updated}), source branch ${m.source_branch}, target branch ${m.target_branch}\n${out.mr.url}\n\n${diff}${truncated ? `\n[TRUNCATED at ${MAX_DIFF_BYTES / 1024} KB: the diff continues. Say in review.unverified that you saw only part of it.]` : ''}`);
     }

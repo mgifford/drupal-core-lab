@@ -1,5 +1,5 @@
 // Check and import an issue pack (docs/ISSUE-PACK.md): one YAML file that describes how to reproduce a Drupal core issue.
-//   node scripts/issue-pack.mjs prepare <issue URL or number> [--mr N] [--out FILE] [--no-copy] [--ai-recipe]
+//   node scripts/issue-pack.mjs prepare <issue URL or number> [--mr N] [--out FILE] [--no-copy] [--ai-recipe] [--compact]
 //                                                               fetch the issue text and merge request diff, fill in the prompt, write it to a file, copy it, print the path
 //                                                               --ai-recipe lets the assistant draft recipe.yml and config/*.yml (prompts/issue-pack-recipe-rule.md) instead of catalogue blocks only
 //   node scripts/issue-pack.mjs prompt [--ai-recipe]            print the blank chat prompt (prompts/issue-pack-chat-prompt.md with the current example filled in)
@@ -65,6 +65,15 @@ if (cmd === 'prepare') {
   if (mr !== undefined && !/^\d{1,7}$/.test(mr)) { console.error('--mr must be the merge request number, for example 16777'); process.exit(2); }
   let g; try { g = await gather(nid, { mr, log: (m) => console.log(m) }); } catch (e) { console.error(`Could not fetch: ${e.message}`); process.exit(1); }
   if (g.missing.issue) { console.error(g.missing.issue); process.exit(1); }
+  if (args.includes('--compact')) {
+    // The issue text becomes the compact brief (tools/compare/issue-intake.mjs): identity, limits, the comments that carry decisions, proposals, questions
+    // and revisions verbatim, the latest ones, and what was left out. It is deterministic, and shorter only when the thread is long.
+    const { buildSnapshot, indexComments, renderBrief } = await import('../tools/compare/issue-intake.mjs');
+    const snap = buildSnapshot(g), brief = renderBrief(snap, indexComments(snap.comments));
+    // A short thread does not get shorter (the brief adds an identity table and the limits), so the compact form is used only when it is smaller.
+    if (Buffer.byteLength(brief) < Buffer.byteLength(g.issueText)) { console.log(`--compact: the issue text is the compact brief (${Buffer.byteLength(brief)} bytes instead of ${Buffer.byteLength(g.issueText)}); ${snap.comments.length} comments, the rest are listed as not shown. Complete text: node scripts/issue-intake.mjs fetch ${nid}`); g.issueText = brief; }
+    else console.log(`--compact: the compact brief (${Buffer.byteLength(brief)} bytes) is not smaller than the full issue text (${Buffer.byteLength(g.issueText)} bytes, ${snap.comments.length} comments), so the full text is used.`);
+  }
   const tpl = promptTemplate();
   const ex = fs.readFileSync(path.join(labRoot, 'docs/examples/issue-pack-3415961.yml'), 'utf8').trimEnd();
   const yamlP = loadYaml(); if (!yamlP) { console.error('js-yaml is not installed. Run: npm install --prefix tools/compare/.deps js-yaml@4'); process.exit(2); }

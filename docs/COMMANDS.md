@@ -25,6 +25,11 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/feedback.mjs resolve <nid> <id> --run <run> --outcome <met|not-met|needs-person> --observed "<what the run showed>" [--revised-patch <f>...] [--supersede <older run> --reason "<why>"]   # the answering run; list <nid> prints the table
     node tools/compare/setup.mjs <slug> --checkout-only  # worktrees and patches only, no DDEV (enough for lint --host); --core-url=<mirror> if drupalcode is unreachable
     node tools/playwright/walkthrough.mjs <slug>         # scripted replay with real input; writes evidence and an interpretation
+    node scripts/issue-intake.mjs fetch <nid> [--mr <n>]   # fetch an issue: complete snapshot in .lab-cache/ (git-ignored), manifest + comment index + BRIEF.md in reports/issues/<nid>/intake/; says what changed since the last fetch and which handoffs that makes stale
+    node scripts/issue-intake.mjs brief <nid> | show <nid> <n|cid|issue|diff|mr>   # rebuild the brief offline; print one source, e.g. an older comment by number
+    node scripts/issue-intake.mjs handoff write <nid> <stage> --file <json> [--by model|person|script] | check <nid> | show <nid> <stage>   # named handoffs (issue sources reproduction patch validation feedback), validated, each citing its sources; check says fresh or stale and why
+    node scripts/issue-pack.mjs prepare <issue> --compact   # the pack prompt carries the compact brief instead of the whole thread, when that is smaller
+    node scripts/intake-benchmark.mjs [--json <file>]   # bytes of the pack prompt, full and compact, on recorded fixtures (mechanical, no model)
     node scripts/lab-config.mjs [auto_fix.enabled]       # the repository's settings (lab.config.yml); with a key, only its value; exit 2 if the file is invalid
     node scripts/patch-change.mjs check [--base <ref>]   # patch files changed since origin/main (or --base) that have no record: exit 1
     node scripts/patch-change.mjs record <patch> --by <who> --reason "<why>"   # keep the version the base had in original-patches/ and add a row to reports/issues/<nid>/PATCH-CHANGES.md
