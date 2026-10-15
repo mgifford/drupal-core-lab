@@ -1108,6 +1108,65 @@
       ]
     },
     {
+      "slug": "3426468-pinned",
+      "issue": "3426468",
+      "label": "#3426468: Make the active menu item visually stand out more, pinned core (original 2024 MR)",
+      "description": "The original 2024 MR !8446 patch, against the core commit it was based on. Kept for history; the navigation module's CSS has since been restructured into an SDC, so this patch no longer applies to current core (see the -latest variant for the current fix).",
+      "steps": [],
+      "expected": "The original 2024 design: a stronger blue for the active item.",
+      "actual": "TODO after running",
+      "observe": [],
+      "checks": [],
+      "pages": [
+        "/admin/content"
+      ]
+    },
+    {
+      "slug": "3426468-latest",
+      "issue": "3426468",
+      "label": "#3426468: Make the active menu item visually stand out more (lab-authored fix, LATEST core main)",
+      "description": "The active top-level navigation item is distinguished only by a faint colour/background change (state-to-state delta ~1.95:1 text, ~1.09:1 background -- SC 1.4.1/1.4.11). Lab-authored fix per kentr's 2026-02 analysis (comment #28): darken --toolbar-button-current-color to match the existing submenu active colour, and add an always-on left bar (not colour alone), matching the bar the forced-colors media query already draws and the dot already used deeper in the menu.",
+      "steps": [
+        {
+          "text": "Standard install; Navigation is the default admin navigation.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /admin/content (loaded in both frames once you press Go).",
+          "how": "mirror"
+        },
+        {
+          "text": "Look at the \"Content\" item in the top-level navigation menu.",
+          "how": "each",
+          "lookFor": "After: a left bar and darker text mark it as active. Before: only a faint colour and background change."
+        }
+      ],
+      "expected": "After: the active top-level item has a visible left bar (own contrast ~16.6:1 against the background) plus darker active text (delta ~2.45:1 vs non-active text); the same treatment applies to a parent item whose submenu has the active item. Before: only a colour and background-colour change, both with a very low state-to-state delta.",
+      "actual": "TODO after running",
+      "observe": [
+        "Is the active top-level item marked by more than colour alone (a left bar), both in standard colours and in forced-colors mode?",
+        "Is the active item's text visibly darker/bolder-looking than non-active items?",
+        "Any regression in menu layout, icons, or the existing deeper-level active dot?"
+      ],
+      "checks": [
+        {
+          "label": "Setup reached: the active top-level nav item is on the page",
+          "probe": "!!document.querySelector('.toolbar-button.current')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The active item has a visible left-bar indicator (not colour alone)",
+          "probe": "getComputedStyle(document.querySelector('.toolbar-button.current'), '::before').content !== 'none' && getComputedStyle(document.querySelector('.toolbar-button.current'), '::before').content !== ''",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/admin/content"
+      ]
+    },
+    {
       "slug": "3415961-pinned",
       "issue": "3415961",
       "label": "#3415961: [drupalMedia] Using the Insert Media button causes the window to scroll to the bottom of the page, pinned core",

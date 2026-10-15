@@ -659,23 +659,77 @@
     "login": true,
     "recipe": "repro_3619154",
     "steps": [
-      { "text": "Default Admin is the admin theme.", "how": "recipe" },
-      { "text": "Article content type, the Navigation module and one article node are installed.", "how": "recipe" },
-      { "text": "Open /node/1/edit (loaded in both frames once you press Go).", "how": "mirror" },
-      { "text": "Focus the sidebar toggle (top of the meta sidebar) and press the Space key.", "how": "each", "lookFor": "After: the sidebar toggles. Before: nothing happens — an <a role=button> does not activate on Space." },
-      { "text": "Desktop (>=1024px): toggle the sidebar closed, then reload the frame.", "how": "each", "lookFor": "After: it stays closed with no flash of the open sidebar. Before: it flashes open on load." },
-      { "text": "Toggle the sidebar open, drag the resize handle, then reload.", "how": "each", "lookFor": "After: open state and the chosen width persist after reload." },
-      { "text": "Expand a details section in the form.", "how": "each", "lookFor": "After: the Navigation sidebar does not collapse when content height changes." },
-      { "text": "Narrow the frame below 1024px and open the sidebar.", "how": "each", "lookFor": "After: focus moves to the close button; Tab stays within the sidebar (content behind is inert); Escape closes it and returns focus to the toggle. The resize handle is hidden below 976px." }
+      {
+        "text": "Default Admin is the admin theme.",
+        "how": "recipe"
+      },
+      {
+        "text": "Article content type, the Navigation module and one article node are installed.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /node/1/edit (loaded in both frames once you press Go).",
+        "how": "mirror"
+      },
+      {
+        "text": "Focus the sidebar toggle (top of the meta sidebar) and press the Space key.",
+        "how": "each",
+        "lookFor": "After: the sidebar toggles. Before: nothing happens — an <a role=button> does not activate on Space."
+      },
+      {
+        "text": "Desktop (>=1024px): toggle the sidebar closed, then reload the frame.",
+        "how": "each",
+        "lookFor": "After: it stays closed with no flash of the open sidebar. Before: it flashes open on load."
+      },
+      {
+        "text": "Toggle the sidebar open, drag the resize handle, then reload.",
+        "how": "each",
+        "lookFor": "After: open state and the chosen width persist after reload."
+      },
+      {
+        "text": "Expand a details section in the form.",
+        "how": "each",
+        "lookFor": "After: the Navigation sidebar does not collapse when content height changes."
+      },
+      {
+        "text": "Narrow the frame below 1024px and open the sidebar.",
+        "how": "each",
+        "lookFor": "After: focus moves to the close button; Tab stays within the sidebar (content behind is inert); Escape closes it and returns focus to the toggle. The resize handle is hidden below 976px."
+      }
     ],
     "expected": "After: the toggle and close are <button> elements operable with Enter and Space; aria-expanded tracks the sidebar state; closed/open state and width persist across reloads with no flash; expanding a details element does not collapse Navigation; below 1024px the content under the overlay is inert, focus moves to the close button, and Escape closes the sidebar and returns focus to the toggle. Before: <a href=\"#\" role=\"button\"> controls, Space does not operate them, the sidebar flashes open, and there is no inert overlay or focus trap.",
     "actual": "TODO after running",
     "checks": [
-      { "label": "Setup reached: the sidebar toggle is on the page", "probe": "!!document.querySelector('.meta-sidebar__trigger')", "expect": true, "kind": "precondition" },
-      { "label": "The toggle exposes aria-expanded", "probe": "document.querySelector('.meta-sidebar__trigger') && document.querySelector('.meta-sidebar__trigger').hasAttribute('aria-expanded')", "expect": true, "kind": "precondition" },
-      { "label": "The toggle is a real <button> (not an <a role=button>)", "probe": "(document.querySelector('.meta-sidebar__trigger') || {}).tagName === 'BUTTON'", "expect": true, "kind": "fix" },
-      { "label": "The close control is a real <button> (not an <a role=button>)", "probe": "(document.querySelector('.meta-sidebar__close') || {}).tagName === 'BUTTON'", "expect": true, "kind": "fix" },
-      { "label": "The close button is the first focusable element in the sidebar (focus order)", "probe": "document.getElementById(document.querySelector('.meta-sidebar__trigger')?.getAttribute('aria-controls'))?.querySelector('a[href],button,input,select,textarea,[tabindex]:not([tabindex=\"-1\"])')?.classList.contains('meta-sidebar__close') ?? false", "expect": true, "kind": "fix" }
+      {
+        "label": "Setup reached: the sidebar toggle is on the page",
+        "probe": "!!document.querySelector('.meta-sidebar__trigger')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "The toggle exposes aria-expanded",
+        "probe": "document.querySelector('.meta-sidebar__trigger') && document.querySelector('.meta-sidebar__trigger').hasAttribute('aria-expanded')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "The toggle is a real <button> (not an <a role=button>)",
+        "probe": "(document.querySelector('.meta-sidebar__trigger') || {}).tagName === 'BUTTON'",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "The close control is a real <button> (not an <a role=button>)",
+        "probe": "(document.querySelector('.meta-sidebar__close') || {}).tagName === 'BUTTON'",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "The close button is the first focusable element in the sidebar (focus order)",
+        "probe": "document.getElementById(document.querySelector('.meta-sidebar__trigger')?.getAttribute('aria-controls'))?.querySelector('a[href],button,input,select,textarea,[tabindex]:not([tabindex=\"-1\"])')?.classList.contains('meta-sidebar__close') ?? false",
+        "expect": true,
+        "kind": "fix"
+      }
     ],
     "observe": [
       "Toggle and close are <button> elements and operable with the Space key (after), vs <a role=button> that ignores Space (before).",
@@ -750,34 +804,188 @@
     "label": "#3273806: Toolbar orientation icon contrast (core main + Toolbar 2.x)",
     "description": "Toolbar (contrib) orientation toggle icon fails WCAG 1.4.11 (1.7:1). The After side carries the fix: rest icon #bebebe -> #787878 plus a :focus-visible outline. Open the admin toolbar's Manage tray and look at the orientation (push) toggle icon.",
     "status": "ready: before = faint #bebebe icon (1.7:1), no focus ring; after = #787878 icon (4.05:1) + :focus-visible outline",
-    "core": { "ref": "main", "commit": null },
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
     "contrib": [
-      { "name": "toolbar", "url": "https://git.drupalcode.org/project/toolbar.git", "commit": "40434c4223dc61405127414d7ed088d25a6c18d3" }
+      {
+        "name": "toolbar",
+        "url": "https://git.drupalcode.org/project/toolbar.git",
+        "commit": "40434c4223dc61405127414d7ed088d25a6c18d3"
+      }
     ],
-    "before": { "env": "baseline-3273806" },
+    "before": {
+      "env": "baseline-3273806"
+    },
     "after": {
       "env": "issue-3273806",
       "contribPatches": [
-        { "module": "toolbar", "patch": "reports/issues/3273806/branches/3273806-orientation-icon-contrast.patch" }
+        {
+          "module": "toolbar",
+          "patch": "reports/issues/3273806/branches/3273806-orientation-icon-contrast.patch"
+        }
       ]
     },
-    "pages": ["/admin/content"],
+    "pages": [
+      "/admin/content"
+    ],
     "login": true,
     "recipe": "repro_3273806",
     "steps": [
-      { "text": "Core main with the contrib Toolbar module (2.x @ 40434c42) installed.", "how": "recipe" },
-      { "text": "Open /admin/content, then click \"Manage\" in the toolbar to open its tray.", "how": "mirror" },
-      { "text": "Look at the orientation toggle (the push/arrow icon at the end of the toolbar) and Tab to it.", "how": "each", "lookFor": "After: the icon is clearly darker (passes 3:1) and keyboard focus shows a visible outline. Before: the icon is faint (1.7:1) and focus is barely indicated." }
+      {
+        "text": "Core main with the contrib Toolbar module (2.x @ 40434c42) installed.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /admin/content, then click \"Manage\" in the toolbar to open its tray.",
+        "how": "mirror"
+      },
+      {
+        "text": "Look at the orientation toggle (the push/arrow icon at the end of the toolbar) and Tab to it.",
+        "how": "each",
+        "lookFor": "After: the icon is clearly darker (passes 3:1) and keyboard focus shows a visible outline. Before: the icon is faint (1.7:1) and focus is barely indicated."
+      }
     ],
     "expected": "After: the orientation toggle icon is #787878 (4.05:1) and a :focus-visible outline appears on keyboard focus. Before: the icon is #bebebe (1.7:1) and the only focus cue was a subtle icon darkening (outline suppressed).",
     "actual": "TODO after running",
     "checks": [
-      { "label": "Setup reached: the Toolbar module is installed (toolbar bar present)", "probe": "!!document.querySelector('#toolbar-administration, .toolbar-oriented, .toolbar')", "expect": true, "kind": "precondition" }
+      {
+        "label": "Setup reached: the Toolbar module is installed (toolbar bar present)",
+        "probe": "!!document.querySelector('#toolbar-administration, .toolbar-oriented, .toolbar')",
+        "expect": true,
+        "kind": "precondition"
+      }
     ],
     "observe": [
       "Is the orientation toggle icon clearly visible against the toolbar background (after) vs faint (before)?",
       "On keyboard focus, is there a visible focus indicator on the toggle (after = outline; before = none/subtle)?",
       "Any regression in the toolbar layout or other toolbar icons?"
+    ]
+  },
+  {
+    "slug": "3426468-pinned",
+    "issue": "3426468",
+    "label": "#3426468: Make the active menu item visually stand out more, pinned core (original 2024 MR)",
+    "description": "The original 2024 MR !8446 patch, against the core commit it was based on. Kept for history; the navigation module's CSS has since been restructured into an SDC, so this patch no longer applies to current core (see the -latest variant for the current fix).",
+    "status": "historical: builds against the 2024 base only; not rerolled for current core",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "b064d94449d7e06c3f16fc97869ac80cb8066f23"
+    },
+    "before": {
+      "env": "baseline-3426468"
+    },
+    "after": {
+      "env": "issue-3426468",
+      "patches": [
+        "reports/issues/3426468/branches/3426468-make-the-active.patch"
+      ]
+    },
+    "pages": [
+      "/admin/content"
+    ],
+    "login": true,
+    "recipe": "repro_3426468",
+    "steps": [],
+    "expected": "The original 2024 design: a stronger blue for the active item.",
+    "actual": "TODO after running",
+    "checks": [],
+    "observe": [],
+    "coverage": {
+      "note": "The combinations that count as tested for this issue (scripts/coverage.mjs). Edit to fit the question the issue asks.",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 480
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ]
+    }
+  },
+  {
+    "slug": "3426468-latest",
+    "extends": "3426468-pinned",
+    "label": "#3426468: Make the active menu item visually stand out more (lab-authored fix, LATEST core main)",
+    "description": "The active top-level navigation item is distinguished only by a faint colour/background change (state-to-state delta ~1.95:1 text, ~1.09:1 background -- SC 1.4.1/1.4.11). Lab-authored fix per kentr's 2026-02 analysis (comment #28): darken --toolbar-button-current-color to match the existing submenu active colour, and add an always-on left bar (not colour alone), matching the bar the forced-colors media query already draws and the dot already used deeper in the menu.",
+    "status": "ready: before = colour-only active state (text delta ~1.95:1, bg delta ~1.09:1); after = darker text (delta ~2.45:1) + a left bar (own contrast ~16.6:1)",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3426468-latest"
+    },
+    "after": {
+      "env": "issue-3426468-latest",
+      "patches": []
+    },
+    "steps": [
+      {
+        "text": "Standard install; Navigation is the default admin navigation.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /admin/content (loaded in both frames once you press Go).",
+        "how": "mirror"
+      },
+      {
+        "text": "Look at the \"Content\" item in the top-level navigation menu.",
+        "how": "each",
+        "lookFor": "After: a left bar and darker text mark it as active. Before: only a faint colour and background change."
+      }
+    ],
+    "expected": "After: the active top-level item has a visible left bar (own contrast ~16.6:1 against the background) plus darker active text (delta ~2.45:1 vs non-active text); the same treatment applies to a parent item whose submenu has the active item. Before: only a colour and background-colour change, both with a very low state-to-state delta.",
+    "actual": "TODO after running",
+    "checks": [
+      {
+        "label": "Setup reached: the active top-level nav item is on the page",
+        "probe": "!!document.querySelector('.toolbar-button.current')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "The active item has a visible left-bar indicator (not colour alone)",
+        "probe": "getComputedStyle(document.querySelector('.toolbar-button.current'), '::before').content !== 'none' && getComputedStyle(document.querySelector('.toolbar-button.current'), '::before').content !== ''",
+        "expect": true,
+        "kind": "fix"
+      }
+    ],
+    "observe": [
+      "Is the active top-level item marked by more than colour alone (a left bar), both in standard colours and in forced-colors mode?",
+      "Is the active item's text visibly darker/bolder-looking than non-active items?",
+      "Any regression in menu layout, icons, or the existing deeper-level active dot?"
     ]
   }
 ]
