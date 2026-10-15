@@ -42,6 +42,7 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
     scripts/feedback.mjs add|resolve|list <nid>    feedback tied to the run and patch revision it was about, and to the run that answered it (FEEDBACK.md)
     scripts/new-issue.mjs <nid> --branch <b> [--refresh]  |  scripts/capture-patch.mjs <slug> [--name <n>]  (edits in After become a patch, no MR needed)  |  scripts/issue-from-url.mjs <url>  |  scripts/issue-pack.mjs validate|import <pack>  |  scripts/issue-status.mjs <nid>|--all  |  scripts/index-issues.mjs  |  scripts/make-bundle.mjs <slug>
     scripts/lab-config.mjs [key]  |  scripts/patch-change.mjs check|record|list  (a changed patch file leaves a record)
+    scripts/issue-pack.mjs edit <pack> <edit.json> | sync-issue <pack> | validate <pack> --repair --targeted   fix the fields the validator named, not the whole pack
     scripts/issue-intake.mjs fetch|brief|show <nid> ... | handoff write|check|show   compact issue brief and named handoffs (reports/issues/<nid>/intake/, handoffs/); `issue-pack.mjs prepare --compact` uses the brief
     scripts/selftest.mjs  |  scripts/build-cloud.mjs  |  scripts/cloud-bootstrap.mjs <slug>
 

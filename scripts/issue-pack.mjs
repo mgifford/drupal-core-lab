@@ -7,6 +7,12 @@
 //                                                               --recipe <dir> checks the pack with a recipe folder you trust in place of the assistant's own recipe
 //                                                               check only: no network, nothing is written. --repair also prints (and copies) a message to paste back
 //                                                               into the chat that fixes what the validator found; --attach-recipe adds a recipe folder you trust to that message
+//                                                               --targeted (with --repair) asks for a small edit (JSON Patch, see tools/compare/pack-edit.mjs) instead of the whole file again
+//   node scripts/issue-pack.mjs edit <pack.yml> <edit.json> [--require-valid] [--dry-run] [--no-backup]
+//                                                               apply a pack edit: refused when it was made for another version of the pack (the hash), when any operation does not
+//                                                               hold, when it would add a validator error, or (--require-valid) when errors would remain. The pack is only replaced, atomically,
+//                                                               when all of that passes; the old file is kept as <pack.yml>.before-<hash>
+//   node scripts/issue-pack.mjs sync-issue <pack.yml> [--write]   the issue block (title, url, fork branch, merge request) from the fetched issue (scripts/issue-intake.mjs fetch), not from a model
 //   node scripts/issue-pack.mjs import <pack.yml> [--recipe <dir>] [--dry-run] [--depth 300]
 // import validates, then runs scripts/new-issue.mjs (fetches the issue fork branch and writes the patch and the issue folder),
 // writes the recipe to recipes/repro_<nid>/ with a copy in reports/issues/<nid>/recipe/, merges the pack's steps and checks into
@@ -97,6 +103,32 @@ if (cmd === 'prompt') {
   process.stdout.write(tpl.replace('{{CATALOGUE}}', () => catalogueText(loadCatalogue(yamlP))).replace('{{CHECKS}}', () => checkCatalogueText(loadChecks(yamlP))).replace('{{EXAMPLE}}', () => ex));
   process.exit(0);
 }
+if (cmd === 'edit' || cmd === 'sync-issue') {
+  const yamlE = loadYaml(); if (!yamlE) { console.error('js-yaml is not installed. Run: npm install --prefix tools/compare/.deps js-yaml@4'); process.exit(2); }
+  const { applyEdit, issueSyncEdit } = await import('../tools/compare/pack-edit.mjs');
+  const die = (m, c = 1) => { console.error(m); process.exit(c); };
+  if (!file || !fs.existsSync(file)) die(`usage: node scripts/issue-pack.mjs ${cmd === 'edit' ? 'edit <pack.yml> <edit.json> [--require-valid] [--dry-run] [--no-backup]' : 'sync-issue <pack.yml> [--write]'}`, 2);
+  const cur = fs.readFileSync(file, 'utf8'); let input;
+  if (cmd === 'edit') { const ef = args.filter((a) => !a.startsWith('--'))[2]; if (!ef || !fs.existsSync(ef)) die('usage: node scripts/issue-pack.mjs edit <pack.yml> <edit.json>', 2); input = fs.readFileSync(ef, 'utf8'); }
+  else {
+    let nid0; try { nid0 = String(yamlE.load(cur, { schema: yamlE.CORE_SCHEMA }).issue.nid); } catch { die('The pack has no readable issue block, so there is nothing to sync.'); }
+    const sf = path.join(labRoot, '.lab-cache/sources', nid0, 'snapshot.json'); if (!fs.existsSync(sf)) die(`No snapshot for #${nid0}. Run: node scripts/issue-intake.mjs fetch ${nid0}`);
+    const r = issueSyncEdit(cur, JSON.parse(fs.readFileSync(sf, 'utf8')), { yaml: yamlE }); if (r.problems.length) die(r.problems.join('\n'));
+    if (!r.edit) { console.log('The issue block already agrees with the fetched issue.'); process.exit(0); }
+    if (!args.includes('--write')) { console.log(`The issue block differs from the fetched issue. This edit would fix it (apply with --write):\n${JSON.stringify(r.edit)}`); process.exit(0); }
+    input = r.edit;
+  }
+  const res = applyEdit(cur, input, { yaml: yamlE, requireValid: args.includes('--require-valid') });
+  if (!res.ok) die(`Not applied; ${file} is as it was.\n${res.problems.join('\n')}`);
+  console.log(`Edit holds: ${res.touched.length} change(s) at ${res.touched.join(', ')}; pack ${res.hashBefore} -> ${res.hashAfter}.`);
+  console.log(`Validator: ${res.before.errors.length} error(s) and ${res.before.warnings.length} warning(s) before; ${res.after.errors.length} and ${res.after.warnings.length} after.${res.fixed.length ? ` Fixed: ${res.fixed.map((x) => x.at).join(', ')}.` : ''}${res.newWarnings.length ? ` New warning(s): ${res.newWarnings.map((x) => x.at).join(', ')}.` : ''}`);
+  for (const e of res.after.errors) console.log(`ERROR    ${e.at}: ${e.msg}`);
+  if (args.includes('--dry-run')) { console.log('(dry run: nothing written)'); process.exit(0); }
+  if (!args.includes('--no-backup')) fs.writeFileSync(`${file}.before-${res.hashBefore}`, cur);
+  const tmp = `${file}.${process.pid}.tmp`; fs.writeFileSync(tmp, res.text); fs.renameSync(tmp, file);
+  console.log(`Wrote ${file}${args.includes('--no-backup') ? '' : ` (the old file is kept as ${path.basename(file)}.before-${res.hashBefore})`}. YAML comments in the pack are not kept; every value is.`);
+  process.exit(res.after.errors.length ? 1 : 0);
+}
 const flag = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
 if (!['validate', 'import'].includes(cmd) || !file) { console.error('usage: node scripts/issue-pack.mjs prepare <issue URL or number> [--ai-recipe] | prompt [--ai-recipe] | validate <pack.yml> | import <pack.yml> [--dry-run] [--depth 300]'); process.exit(2); }
 if (!fs.existsSync(file)) { console.error(`No such file: ${file}`); process.exit(2); }
@@ -129,7 +161,13 @@ if (cmd === 'validate' && args.includes('--repair')) {
   const ri = args.indexOf('--attach-recipe');
   let recipeFiles = null;
   if (ri >= 0) { const d = args[ri + 1]; if (!d || d.startsWith('--')) { console.error('--attach-recipe needs a folder'); process.exit(2); } try { recipeFiles = readRecipeDir(path.resolve(d)); } catch (e) { console.error(`--attach-recipe: ${e.message}`); process.exit(2); } }
-  const msg = repairMessage({ errors, warnings }, { recipeFiles });
+  let msg;
+  if (args.includes('--targeted')) {
+    if (ri0 >= 0 || recipeFiles) { console.error('--targeted edits the pack file as it is; it cannot be combined with --recipe or --attach-recipe (replace the recipe files with an edit instead).'); process.exit(2); }
+    const { targetedRepairMessage } = await import('../tools/compare/pack-edit.mjs');
+    msg = pack ? targetedRepairMessage({ errors, warnings }, text, { yaml }) : repairMessage({ errors, warnings }, { recipeFiles });   // an unreadable pack cannot be edited field by field
+    if (!pack) console.log('\n(The pack is not readable YAML, so it cannot be repaired field by field: the message asks for the whole file.)');
+  } else msg = repairMessage({ errors, warnings }, { recipeFiles });
   if (!msg) console.log('\nNothing to repair: no errors and no warnings.');
   else {
     console.log('\n----- COPY EVERYTHING BETWEEN THESE LINES INTO THE SAME CHAT -----\n' + msg + '\n----- END -----');

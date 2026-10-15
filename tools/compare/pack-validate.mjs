@@ -304,7 +304,7 @@ export function validatePack(text, { yaml, catalogue, checkCatalogue } = {}) {
 }
 
 // ---- a message to paste back into the chat: what to fix, in the validator's own words, with what to do about each ----
-const HINTS = [
+export const HINTS = [
   [/not a building block in the catalogue/, 'Use only blocks from the SETUP CATALOGUE in the prompt, with their exact names. If the scenario needs something else, list it under needs and write the step as "set X by hand".'],
   [/is not a parameter of|is not valid: /, 'Use only the parameters the catalogue lists for that block, with values in the shown form.'],
   [/must be (a simple CSS selector|letters, digits|a lowercase attribute|a form field name)/, 'Shorten or simplify that parameter value so it fits the stated pattern; keep the check template and the other parameters as they are.'],

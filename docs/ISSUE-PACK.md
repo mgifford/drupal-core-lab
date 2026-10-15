@@ -59,6 +59,18 @@ The first answer will usually need a round. Save it to a file, and let the valid
     node scripts/issue-pack.mjs validate issue-pack-<nid>.yml --repair
 
 It prints the problems in the validator's own words, each with what to do about it, and copies the whole message to your clipboard (`--no-copy` to skip). Paste it into the **same chat**.
+
+Once the pack is mostly right, repair field by field instead of asking for the whole file again:
+
+    node scripts/issue-pack.mjs validate issue-pack-<nid>.yml --repair --targeted
+    node scripts/issue-pack.mjs edit issue-pack-<nid>.yml reply.json --dry-run     # then without --dry-run
+
+The `--targeted` message names each field, its path and what is there now, carries the pack's hash, and asks the assistant for a small edit in JSON (a JSON Patch: add, remove,
+replace and test operations, each with a path and a value), not the pack. `edit` refuses it, and changes nothing, when the pack is no longer the one the edit was made for, when a
+`test` operation does not hold, when an operation is malformed, or when it would add a validator error; add `--require-valid` to also refuse an edit that leaves errors. When it passes
+the pack is replaced atomically and the old file is kept next to it as `<pack>.before-<hash>`. YAML comments are not kept; every value is. If the YAML itself is broken there is nothing to
+edit, and `--targeted` falls back to asking for the whole file. The issue's own facts (title, URL, fork branch, merge request) need no assistant at all:
+`node scripts/issue-pack.mjs sync-issue issue-pack-<nid>.yml --write` sets them from the fetched issue (`node scripts/issue-intake.mjs fetch <nid>` first).
 An AI assistant cannot know your Drupal configuration, so by default the prompt does not ask it to write recipe files. It chooses **setup blocks** from a catalogue (`tools/compare/blocks/`, listed in the prompt) and the importer expands them into the recipe;
 anything the catalogue lacks goes under `needs`, and the step is written as "set X by hand". See `tools/compare/blocks/README.md`, including how to add a block.
 
