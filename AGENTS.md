@@ -41,6 +41,9 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
     scripts/try-tests.mjs <slug> <tests...> [--existing ...] [--patch-out f] [--mr-ref ref]    proposed PHPUnit tests, ONE call: both sides, remove, PHPCS+PHPStan, patch checked against the MR (sites running)
     scripts/feedback.mjs add|resolve|list <nid>    feedback tied to the run and patch revision it was about, and to the run that answered it (FEEDBACK.md)
     scripts/new-issue.mjs <nid> --branch <b> [--refresh]  |  scripts/capture-patch.mjs <slug> [--name <n>]  (edits in After become a patch, no MR needed)  |  scripts/issue-from-url.mjs <url>  |  scripts/issue-pack.mjs validate|import <pack>  |  scripts/issue-status.mjs <nid>|--all  |  scripts/index-issues.mjs  |  scripts/make-bundle.mjs <slug>
+    scripts/lab-config.mjs [key]  |  scripts/patch-change.mjs check|record|list  (a changed patch file leaves a record)
+    scripts/issue-pack.mjs edit <pack> <edit.json> | sync-issue <pack> | validate <pack> --repair --targeted   fix the fields the validator named, not the whole pack
+    scripts/issue-intake.mjs fetch|brief|show <nid> ... | handoff write|check|show   compact issue brief and named handoffs (reports/issues/<nid>/intake/, handoffs/); `issue-pack.mjs prepare --compact` uses the brief
     scripts/selftest.mjs  |  scripts/build-cloud.mjs  |  scripts/cloud-bootstrap.mjs <slug>
 
 ## Read on demand (not loaded every session)
@@ -73,3 +76,4 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
 11. Do not copy code from external projects without a compatible licence and attribution. Dependencies (Playwright, axe-core,
     Guidepup, jsdom) are installed from npm, not vendored.
 12. **Cloud (DDEV Coder workspaces) is opt-in** (`tools/compare/cloud/README.md`, `scripts/cloud-bootstrap.mjs`, `docs/CLOUD-PLAN.md`). Do not sign in to Coder, create or change workspaces, or publish anything without the user.
+13. **Auto-fix is on by default and never silent.** `lab.config.yml` sets `auto_fix.enabled` (read it with `node scripts/lab-config.mjs auto_fix.enabled`; a person can also switch it off for one pull request in the app's CI popover). After opening a pull request, turn CI auto-fix on for it when that prints `true`; leave it off when `false`. An auto-fix commit starts with `autofix:` and its body names the failing check and every file it changed. Changing a patch file (`reports/issues/*/branches/*.patch`, the change under test) is the one thing it must never do quietly: run `node scripts/patch-change.mjs record <patch> --by auto-fix --reason "<why>"` in the same commit (it keeps the original in `original-patches/` and adds a row to `reports/issues/<nid>/PATCH-CHANGES.md`) and say so in the commit body. `selftest` fails a changed patch that has no record.

@@ -25,7 +25,22 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/feedback.mjs resolve <nid> <id> --run <run> --outcome <met|not-met|needs-person> --observed "<what the run showed>" [--revised-patch <f>...] [--supersede <older run> --reason "<why>"]   # the answering run; list <nid> prints the table
     node tools/compare/setup.mjs <slug> --checkout-only  # worktrees and patches only, no DDEV (enough for lint --host); --core-url=<mirror> if drupalcode is unreachable
     node tools/playwright/walkthrough.mjs <slug>         # scripted replay with real input; writes evidence and an interpretation
+    node scripts/issue-intake.mjs fetch <nid> [--mr <n>]   # fetch an issue: complete snapshot in .lab-cache/ (git-ignored), manifest + comment index + BRIEF.md in reports/issues/<nid>/intake/; says what changed since the last fetch and which handoffs that makes stale
+    node scripts/issue-intake.mjs brief <nid> | show <nid> <n|cid|issue|diff|mr>   # rebuild the brief offline; print one source, e.g. an older comment by number
+    node scripts/issue-intake.mjs handoff write <nid> <stage> --file <json> [--by model|person|script] | check <nid> | show <nid> <stage>   # named handoffs (issue sources reproduction patch validation feedback), validated, each citing its sources; check says fresh or stale and why
+    node scripts/issue-pack.mjs validate <pack> --repair --targeted   # a repair message that asks for a small edit (JSON Patch with the pack's hash) instead of the whole file
+    node scripts/issue-pack.mjs edit <pack> <edit.json> [--require-valid] [--dry-run] [--no-backup]   # apply a pack edit: refused when stale, malformed, failing a test op, or when it would add a validator error; atomic; the old file is kept
+    node scripts/issue-pack.mjs sync-issue <pack> [--write]   # the issue block (title, url, fork branch, merge request) from the fetched issue, not from a model
+    node scripts/repair-benchmark.mjs [--json <file>]   # bytes of one repair turn, whole pack against edit, on recorded packs (mechanical)
+    node scripts/issue-pack.mjs prepare <issue> --compact   # the pack prompt carries the compact brief instead of the whole thread, when that is smaller
+    node scripts/model-eval.mjs plan | run --yes [--trials 3] [--only intake|repair] [--cases V3,...] [--append] | report   # a small PAIRED model evaluation (compact brief against full thread; targeted edit against whole-file repair): calls a model and spends allowance, so run needs --yes; plan calls nothing
+    node scripts/intake-benchmark.mjs [--json <file>]   # bytes of the pack prompt, full and compact, on recorded fixtures (mechanical, no model)
+    node scripts/lab-config.mjs [auto_fix.enabled]       # the repository's settings (lab.config.yml); with a key, only its value; exit 2 if the file is invalid
+    node scripts/patch-change.mjs check [--base <ref>]   # patch files changed since origin/main (or --base) that have no record: exit 1
+    node scripts/patch-change.mjs record <patch> --by <who> --reason "<why>"   # keep the version the base had in original-patches/ and add a row to reports/issues/<nid>/PATCH-CHANGES.md
+    node scripts/patch-change.mjs list [<nid>]           # the recorded changes
     node scripts/new-issue.mjs <nid> --branch <branch>   # start a new issue (refuses when branches/<branch>.patch exists)
+    node scripts/new-issue.mjs <nid> --authoring [--title "..."] [--variants-file reports/issues/<nid>/variants.json]   # no merge request or fork branch: scaffold the folder and variants with "authoring": true, pinned to current core main, then write the fix in After and capture it
     node scripts/new-issue.mjs <nid> --branch <branch> --refresh   # the MR got a new push: extract that patch again, say what changed (ignores git's abbreviated index lines), update only its BRANCHES.md row
     node scripts/capture-patch.mjs <slug> [--name <name> [--exclude <path>...]]   # no MR yet: the edits made in the After environment become reports/issues/<nid>/branches/<nid>-<name>.patch, listed in the variant; without --name it only lists them
     node scripts/make-bundle.mjs <slug>                  # a self-contained zip for someone else

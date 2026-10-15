@@ -10,6 +10,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { labRoot, rawVariants, variants } from '../tools/compare/lib.mjs';
 import { noChangeProblem } from '../tools/compare/change-under-test.mjs';
+import { resolveBase, unrecorded } from '../tools/compare/patch-change.mjs';
 import { matrixProblems } from '../tools/compare/coverage-matrix.mjs';
 import { runProblems } from '../tools/playwright/lib/run-schema.mjs';
 
@@ -58,6 +59,13 @@ for (const [name, list, needsYaml] of [['unit tests: lab tools', glob('tests/lab
     if (v.coverage && v.coverage.matrix) for (const [at, msg] of matrixProblems(v.coverage, `${v.slug}.coverage`)) problems.push(`${at} ${msg}`);
   }
   record('variants', problems.length ? 'FAIL' : 'ok', problems.length ? problems.slice(0, 8).join('; ') : `${vs.length} variants`);
+}
+
+// 3b. patches that changed since the base branch say so (scripts/patch-change.mjs): a changed patch file is changed evidence
+{
+  const base = resolveBase(labRoot);
+  if (!base) record('patch changes recorded (patch-change.mjs check)', 'skip', 'no base branch to compare with (origin/main not fetched); that is not a pass');
+  else { const bad = unrecorded(labRoot, base); record('patch changes recorded (patch-change.mjs check)', bad.length ? 'FAIL' : 'ok', bad.length ? `${bad.length} changed patch file(s) since ${base} without a record: ${bad.map((x) => x.path).slice(0, 4).join(', ')}. Run: node scripts/patch-change.mjs check` : `against ${base}`); }
 }
 
 // 4. documentation links and the published guide

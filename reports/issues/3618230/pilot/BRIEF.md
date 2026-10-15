@@ -1,5 +1,7 @@
 # #3618230 brief (Phase 4 pilot, 2026-10-15)
 
+SUPERSEDED (2026-10-15) by `../intake/BRIEF.md` (deterministic, regenerated on each fetch) and `../handoffs/issue.json` (the interpretation, each fact citing its source). Kept as the hand-written pilot it was.
+
 DRAFT. A compact, source-backed intake for the pilot: what to know before touching the change, and where each fact comes from. It
 replaces re-reading the issue page, the pack and the evidence at the start of a session. Re-check the issue before relying on it.
 
