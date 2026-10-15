@@ -31,7 +31,7 @@ DRAFT until a person has reviewed it. Chosen by the owner ("Go with Phase 4"). N
 
 ## Tests
 
-227 of 227 unit tests passed before the last edits (27.5 s). After adding one test: `run-record.test.mjs` 8 of 8, and the negative control (dropping the mark) fails it as it should. **Not re-run after the last edits:** the full suite and `selftest`, which failed once on the stale `cloud/` and was fixed by `build-cloud.mjs`.
+After all edits: 228 of 228 unit tests pass (none skipped) and `node scripts/selftest.mjs` passes (6 ok), re-run after the last commit. The new test's negative control (dropping the record mark) fails it as it should. `selftest` had failed once earlier on the stale `cloud/`, fixed by `build-cloud.mjs`.
 
 ## Risks and rollback
 
