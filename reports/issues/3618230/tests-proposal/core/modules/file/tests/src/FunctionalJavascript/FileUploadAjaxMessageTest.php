@@ -139,4 +139,19 @@ class FileUploadAjaxMessageTest extends WebDriverTestBase {
     $this->assertNotNull($error->find('css', 'button.js-message-button-hide'), 'The error keeps its dismiss button.');
   }
 
+  /**
+   * Tests that the file input keeps its error state after a rejected upload.
+   *
+   * The message moves out of the replaced markup, but the field itself must
+   * still be marked invalid and described, for assistive technology.
+   */
+  public function testFieldKeepsErrorState(): void {
+    $this->drupalGet('node/add/article');
+    $this->uploadTestFile(TRUE);
+    $this->assertSame(1, $this->waitForErrorCount(1));
+    $input = $this->assertSession()->elementExists('css', 'input[name="files[' . $this->fieldName . '_0]"]');
+    $this->assertSame('true', $input->getAttribute('aria-invalid'), 'The file input is still marked invalid.');
+    $this->assertNotEmpty($input->getAttribute('aria-describedby'), 'The file input is still described by its help text.');
+  }
+
 }

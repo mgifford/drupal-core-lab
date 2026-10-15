@@ -1,0 +1,23 @@
+diff --git a/core/modules/system/system.module b/core/modules/system/system.module
+index 1111111..2222222 100644
+--- a/core/modules/system/system.module
++++ b/core/modules/system/system.module
+@@ -10,6 +10,12 @@
++function system_preprocess_status_messages(array &$variables): void {
++  $variables['dismissible'] = !empty($variables['element']['#dismissible']);
++}
+diff --git a/core/modules/system/tests/src/Kernel/StatusMessagesDismissTest.php b/core/modules/system/tests/src/Kernel/StatusMessagesDismissTest.php
+new file mode 100644
+index 0000000..3333333
+--- /dev/null
++++ b/core/modules/system/tests/src/Kernel/StatusMessagesDismissTest.php
+@@ -0,0 +1,12 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\system\Kernel;
++
++class StatusMessagesDismissTest {
++  public function testFlag(): void {}
++}

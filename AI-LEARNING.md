@@ -51,7 +51,7 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 - **Variants as data** (`variants.json`: core pin or `main`, environments, patches, recipe, steps, checks) made pinned versus latest, bundles, the Pages page and the tests all derive from one source.
 - **One viewer page serves both the local tool and the Pages guide**, with `data-needs="live"` marking what needs the server; `build-cloud.mjs --check` in CI stops it going stale.
 - **Evidence loop:** reproduce on pristine upstream, apply the change, compare under identical conditions, record commits, say what was not verified, keep it DRAFT until a person looks. Negative controls (a deliberate edit that must fail the check) caught false confidence twice.
-- **A `doctor` script and a known-pitfalls table** in `AGENTS.md` turn hard-won fixes into something a new session can use.
+- **A `doctor` script and a known-pitfalls table** (`docs/PITFALLS.md`, once in `AGENTS.md`) turn hard-won fixes into something a new session can use.
 - Real input (Playwright) for anything about focus or activation; screenshots reviewed by eye after every layout change.
 - Small, reviewable commits pushed often, each with the AI-assisted note.
 

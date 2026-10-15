@@ -2,6 +2,9 @@
 // starting state (Standard install, admin/admin, recipe applied, patches on the "after" side).
 //   node tools/compare/setup.mjs [slug] [--dry-run]
 //   node tools/compare/setup.mjs [slug] --check-patches    only report whether the patches still apply to that core
+//   node tools/compare/setup.mjs [slug] --refresh-patches  an environment whose patched files no longer match the patch files (setup stops with BLOCKED, exit 4): restore
+//                                                           the files the patches touch (local edits in them are saved as a diff first), then apply the current patches;
+//                                                           contrib modules are extracted again at their pinned commit and patched (the old folder is kept as a backup)
 //   node tools/compare/setup.mjs [slug] --reinstall        reset both sites (database and files) and reapply recipe and languages; keeps the checkout, vendor and patches
 //   (a variant with "testExtensions": true gets `ddev drupal test:extensions-enable` before its recipe, so it can install test modules)
 //   node tools/compare/setup.mjs [slug] --with-lighthouse   also install Lighthouse (optional background audits in the viewer; Node 22.19+)
@@ -22,6 +25,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { labRoot, variants, envDir } from './lib.mjs';
+import { ensurePatches } from './patch-state.mjs';
+import { identity, blockMessage, headOf, recipeStatus } from './env-state.mjs';
+import { ensureContrib } from './contrib-state.mjs';
+import { noChangeProblem } from './change-under-test.mjs';
 
 const args = process.argv.slice(2);
 const dry = args.includes('--dry-run');
@@ -32,8 +39,11 @@ const coreFrom = (args.find((a) => a.startsWith('--core-from=')) || '').slice('-
 const core = { url: 'https://git.drupalcode.org/project/drupal.git', ref: 'main', ...(v.core || {}), ...(coreUrl ? { url: coreUrl } : {}) };
 const coreRef = `refs/lab/${core.commit ? core.commit.slice(0, 12) : core.ref}`;   // where the chosen core lives in envs/core.git
 const CHECK = args.includes('--check-patches');
+const REFRESH_PATCHES = args.includes('--refresh-patches');   // restore the files the patches touch, then apply the current patch files again
 const CHECKOUT_ONLY = args.includes('--checkout-only');   // worktrees and patches only, no DDEV
 const REINSTALL = args.includes('--reinstall');   // wipe each site's database and files and install again (no re-clone, no composer): the cheap way to reset
+// An After with nothing to test would equal Before and every check would say "no difference": stop before building one (exit 4, like a patch mismatch).
+{ const none = noChangeProblem(v); if (none) { console.error(`BLOCKED: ${none}.`); process.exit(4); } }
 const bare = path.join(labRoot, 'envs/core.git');
 
 function run(cmd, argv, opts = {}) {
@@ -59,17 +69,7 @@ const have = (p) => fs.existsSync(p);
 const out = (cmd, argv, cwd) => execFileSync(cmd, argv, { cwd, encoding: 'utf8' }).trim();
 const step = (t) => console.log(`\n== ${t}`);
 
-// A variant may list contrib modules whose code is not in Drupal core (an issue that moved to a
-// contrib project). Each is cloned once into envs/.contrib/<name>.git and its pinned commit is
-// extracted, without a .git directory, into <env>/modules/contrib/<name>. The After side can then
-// carry `contribPatches` (applied inside the module directory) instead of core `patches`.
-function materializeContrib(m, dest) {
-  const shared = path.join(labRoot, 'envs/.contrib', `${m.name}.git`);
-  if (!have(shared)) { fs.mkdirSync(path.dirname(shared), { recursive: true }); run('git', ['clone', '--bare', m.url, shared]); }
-  if (spawnSync('git', ['-C', shared, 'rev-parse', '--verify', '-q', `${m.commit}^{commit}`], { stdio: 'ignore' }).status !== 0) run('git', ['-C', shared, 'fetch', '--depth', '1', 'origin', m.commit]);
-  fs.mkdirSync(dest, { recursive: true });
-  run('bash', ['-c', `git -C '${shared}' archive '${m.commit}' | tar -x -C '${dest}'`]);
-}
+// Contrib modules (a variant's `contrib`, and `contribPatches` on a side) are handled by tools/compare/contrib-state.mjs.
 
 for (const tool of CHECK || CHECKOUT_ONLY ? ['git'] : ['git', 'ddev', 'docker']) {
   if (spawnSync(tool, ['--version'], { stdio: 'ignore' }).status !== 0) { console.error(`Missing prerequisite: ${tool}`); if (!dry) process.exit(1); }
@@ -142,25 +142,35 @@ const want = ['axe-core@4', 'js-yaml@4', ...(withLighthouse ? ['lighthouse'] : [
 if (!CHECKOUT_ONLY && (!have(path.join(deps, 'node_modules/axe-core/axe.min.js')) || !have(path.join(deps, 'node_modules/js-yaml')) || (withLighthouse && !have(path.join(deps, 'node_modules/lighthouse'))))) run('npm', ['install', '--prefix', deps, '--no-audit', '--no-fund', ...want]);
 
 const sides = [['before', v.before], ['after', v.after]];
+// Both checkouts first, so the pair can be checked before anything slow runs. A `latest` environment that is missing next to one that
+// exists is created at that one's commit, not at the newest core: a pair must stand on one base (a pinned variant always uses its pin).
+const addCheckout = (side, spec) => {
+  const dir = envDir(spec.env); if (have(dir)) return;
+  const other = envDir((side === 'before' ? v.after : v.before).env), otherHead = headOf(other), base = !core.commit && otherHead ? otherHead : coreRef;
+  if (base !== coreRef) console.log(`${spec.env}: created at ${base.slice(0, 12)}, the commit of ${path.basename(other)}, so that Before and After stand on one base (to move both to newer core: node scripts/lab-env.mjs delete ${v.slug} --yes, then run setup again)`);
+  run('git', ['-C', bare, 'worktree', 'add', '--detach', dir, base]);
+};
+for (const [side, spec] of sides) addCheckout(side, spec);
+if (!dry) { const id = identity(v, { labRoot, envDir, checks: ['base', 'pin'] }); if (id.problems.length) { console.error(blockMessage(id)); process.exit(4); } }
 for (const [side, spec] of sides) {
   const dir = envDir(spec.env);
   const name = `repro-${spec.env}`.slice(0, 60);
   step(`${side}: ${spec.env}`);
-  if (!have(dir)) run('git', ['-C', bare, 'worktree', 'add', '--detach', dir, coreRef]);
 
-  // Patches (after side only), recorded so a re-run does not apply them twice.
-  const marker = path.join(dir, '.lab-patches-applied');
-  const modified = have(dir) && !dry && out('git', ['status', '--porcelain', '--untracked-files=no'], dir) !== '';
-  for (const p of spec.patches || []) {
-    if (modified && !have(marker)) { console.log(`tree already has changes; assuming patches are applied: ${p}`); continue; }
-    const file = path.join(labRoot, p);
-    if (!have(file)) { console.error(`patch missing: ${p}`); process.exit(1); }
-    const done = have(marker) ? fs.readFileSync(marker, 'utf8').split('\n') : [];
-    if (done.includes(p)) { console.log(`patch already applied: ${p}`); continue; }
-    run('git', ['apply', file], { cwd: dir });
-    if (!dry) fs.appendFileSync(marker, p + '\n');
+  // Patches, tracked by content (tools/compare/patch-state.mjs): a re-run reuses them only when the recorded hashes and the files still
+  // match, and stops with BLOCKED (exit 4) when they do not. --refresh-patches puts the files the patches touch back and applies again.
+  if (dry) for (const p of spec.patches || []) run('git', ['apply', path.join(labRoot, p)], { cwd: dir });
+  else {
+    let r; try { r = ensurePatches({ dir, labRoot, patchPaths: spec.patches || [], refresh: REFRESH_PATCHES, slug: v.slug, env: spec.env, side }); } catch (e) { console.error(e.message); process.exit(1); }
+    for (const l of r.lines) (r.status === 'blocked' || r.status === 'failed' ? console.error : console.log)(l);
+    if (r.status === 'blocked') process.exit(4);
+    if (r.status === 'failed') process.exit(1);
   }
   if (CHECKOUT_ONLY) { console.log(`checkout only: ${path.relative(labRoot, dir)} at ${dry ? coreRef : out('git', ['rev-parse', '--short', 'HEAD'], dir)}${(spec.patches || []).length ? ' plus its patches' : ''}`); continue; }
+
+  // A site that exists keeps what an earlier recipe did (recipes install and change, never uninstall), so a changed recipe applied on top is
+  // not the state the recipe describes: stop, and say how to start from a clean install (--reinstall, which lab-env.mjs reset runs).
+  if (v.recipe && !REINSTALL && !dry && have(path.join(dir, 'sites/default/settings.php')) && ['differs', 'missing-in-lab'].includes(recipeStatus(dir, labRoot, v.recipe).status)) { console.error(blockMessage(identity(v, { labRoot, envDir, checks: ['recipe'] }))); process.exit(4); }
 
   if (!have(path.join(dir, '.ddev/config.yaml'))) {
     run('ddev', ['config', '--project-type=drupal12', '--docroot=.', '--php-version=8.5', `--project-name=${name}`, '--omit-containers=db', '--disable-settings-management'], { cwd: dir });
@@ -174,25 +184,17 @@ for (const [side, spec] of sides) {
     if (!dry && !have(path.join(dir, '.ddev/commands/web/drupal'))) { console.error('The add-on was not installed (see output above).'); process.exit(1); }
     runRetry('ddev', ['restart'], { cwd: dir });
   }
-  // Contrib modules (same on both sides), then the After side's patches inside the module.
-  for (const m of v.contrib || []) {
-    const dest = path.join(dir, 'modules/contrib', m.name);
-    const cmarker = path.join(dir, `.lab-contrib-${m.name}`);
-    if (have(cmarker)) { console.log(`contrib module already in place: ${m.name} @ ${m.commit.slice(0, 12)}`); continue; }
-    step(`${side}: contrib ${m.name} @ ${m.commit.slice(0, 12)} (${m.url})`);
-    materializeContrib(m, dest);
-    if (!dry) fs.writeFileSync(cmarker, `${m.commit}\n`);
-  }
-  const cpMarker = path.join(dir, '.lab-contrib-patches-applied');
-  for (const cp of spec.contribPatches || []) {
-    const moddir = path.join(dir, 'modules/contrib', cp.module);
-    const done = have(cpMarker) ? fs.readFileSync(cpMarker, 'utf8').split('\n') : [];
-    if (done.includes(cp.patch)) { console.log(`contrib patch already applied: ${cp.patch}`); continue; }
-    if (!have(path.join(labRoot, cp.patch))) { console.error(`contrib patch missing: ${cp.patch}`); process.exit(1); }
-    // Run from the environment root, not the module directory: git apply in a subdirectory of a
-    // work tree silently skips every path. --directory prefixes the module's relative path.
-    run('git', ['apply', `--directory=${path.posix.join('modules/contrib', cp.module)}`, path.join(labRoot, cp.patch)], { cwd: dir });
-    if (!dry) fs.appendFileSync(cpMarker, cp.patch + '\n');
+  // Contrib modules (same on both sides), then the patches inside them (tools/compare/contrib-state.mjs): extracted at the pinned commit,
+  // recorded by content, verified on a re-run, BLOCKED (exit 4) on a mismatch; --refresh-patches extracts them again (the old folder is kept as a backup).
+  if ((v.contrib || []).length) {
+    if (dry) for (const m of v.contrib) console.log(`$ (plan) contrib ${m.name} @ ${m.commit.slice(0, 12)} from ${m.url}${(spec.contribPatches || []).filter((cp) => cp.module === m.name).map((cp) => `, patch ${cp.patch}`).join('')}`);
+    else {
+      step(`${side}: contrib ${v.contrib.map((m) => `${m.name} @ ${m.commit.slice(0, 12)}`).join(', ')}`);
+      const r = ensureContrib({ dir, labRoot, modules: v.contrib, patches: spec.contribPatches || [], refresh: REFRESH_PATCHES, slug: v.slug, env: spec.env, side, sharedRoot: path.join(labRoot, 'envs/.contrib'), log: (l) => console.log(l) });
+      for (const l of r.lines) (r.status === 'blocked' || r.status === 'failed' ? console.error : console.log)(l);
+      if (r.status === 'blocked') process.exit(4);
+      if (r.status === 'failed') process.exit(1);
+    }
   }
 
   if (!have(path.join(dir, 'core/phpunit.xml')) && !dry) fs.copyFileSync(path.join(dir, 'core/phpunit.xml.dist'), path.join(dir, 'core/phpunit.xml'));
@@ -218,5 +220,6 @@ for (const [side, spec] of sides) {
   for (const code of v.languages || []) run('bash', [path.join(labRoot, 'scripts/lab-site.sh'), 'language', spec.env, code]);   // e.g. fa: right-to-left, browse /fa/...
 }
 
+if (!dry && !CHECKOUT_ONLY) { const id = identity(v, { labRoot, envDir }); if (id.problems.length) { console.error(blockMessage(id)); process.exit(4); } }   // the post-condition: what was built is what the variant asks for
 if (CHECKOUT_ONLY) { console.log(`\nDone (checkouts only, no sites). Lint the change: node scripts/lint.mjs ${v.slug} --host`); process.exit(0); }
 console.log(`\nDone. Both sites: log in as admin / admin.\nStart the viewer:  node tools/compare/serve.mjs ${v.slug}   then open http://localhost:8100/`);

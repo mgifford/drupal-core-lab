@@ -16,7 +16,9 @@ Current documentation for this lab (written or verified 2026-10-01), plus a `leg
 | [FRAME-LOADING-2026-10-01.md](FRAME-LOADING-2026-10-01.md) | Why viewer frames sometimes did not load, what was measured and fixed, how to diagnose it. |
 
 Elsewhere:
-- `../AGENTS.md`: how to work here, and the rules.
+- `../AGENTS.md`: how to work here, and the rules (kept short: every agent session loads it). The reference material it points to:
+  [COMMANDS.md](COMMANDS.md) (usage of each script), [ENVIRONMENTS.md](ENVIRONMENTS.md) (environments, how they are made, manual fallback, teardown),
+  [PITFALLS.md](PITFALLS.md) (symptom and fix), [VIEWER-DEV.md](VIEWER-DEV.md) (rules for changing the viewer), [RESULTS-LAYOUT.md](RESULTS-LAYOUT.md) (where results go).
 - `../reports/issues/README.md`: every issue evaluated, and how to come back to it (generated).
 - `../tools/compare/README.md`: the side-by-side viewer, diff report, variants format.
 - `../tools/playwright/README.md`: scripted walkthroughs and the virtual screen reader.

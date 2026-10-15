@@ -11,5 +11,33 @@
     "file": "core/themes/default_admin/migration/js/messages.js:72",
     "status": "unconfirmed",
     "count": 1
+  },
+  {
+    "id": "F002",
+    "found": "2026-10-15",
+    "issue": "3618230",
+    "where": "default_admin status message with a Hide button (any message, not only the file upload one)",
+    "what": "After a keyboard user presses Enter on Hide, focus stays on the Hide button while the message fades out and becomes invisible (opacity 0, visually-hidden): focus is on an element nobody can see",
+    "source": "keyboard",
+    "wcag": "2.4.7 (to confirm)",
+    "evidence": "reports/issues/3618230/playwright/2026-10-15T15-10-35-411Z-chromium-light-1280x900/SUMMARY.md",
+    "file": null,
+    "status": "duplicate",
+    "count": 1,
+    "note": "same as F001 (logged 2026-10-14); run 3 of the Phase 4 pilot measured it again with real keys: Tab reaches Hide on After after 21 presses, Enter fades the message out, focus stays on the Hide button"
+  },
+  {
+    "id": "F003",
+    "found": "2026-10-15",
+    "issue": "3618230",
+    "where": "default_admin status message after Hide",
+    "what": "A dismissed message is not removed: it keeps the class visually-hidden, so its text stays in the accessibility tree for a screen reader user after the message was dismissed",
+    "source": "keyboard",
+    "wcag": null,
+    "evidence": "reports/issues/3618230/playwright/2026-10-15T15-10-35-411Z-chromium-light-1280x900/SUMMARY.md",
+    "file": null,
+    "status": "duplicate",
+    "count": 1,
+    "note": "same as F001; run 3 measured that the dismissed error is still in the accessibility tree"
   }
 ]

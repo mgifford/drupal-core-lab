@@ -5,7 +5,7 @@ produces a diff of what each serves. Modelled on the compare tool in
 FOSDEM-website, adapted to live Drupal sites.
 
 ## Environments
-Two DDEV projects from `envs/` (see `../../AGENTS.md`). Local by default; an opt-in DDEV Coder workspace path is in `cloud/README.md`.
+Two DDEV projects from `envs/` (see `../../docs/ENVIRONMENTS.md`). Local by default; an opt-in DDEV Coder workspace path is in `cloud/README.md`.
 
 | Site | Directory | URL | Login |
 |---|---|---|---|

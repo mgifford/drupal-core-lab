@@ -36,6 +36,7 @@ owner — are unchanged and still gate whether this is usable by anyone but its 
 - The Coder CLI (v2.37.2 matched the server) on your own machine, to create and stop the workspace.
 - Do not enable **Public Sharing**: the sites use `admin` / `admin` and the viewer can drive them. Leave the workspace owner-only.
 - The template defaults are 4 CPU and 8 GB (`variable "cpu"` and `"memory"` in the template source); the live workspace page showed the same. Quotas for other accounts are not verified.
+- **Check the hosts before building:** `node scripts/doctor.mjs <slug> --network [--core-url=<mirror>]` names the hosts a build of that variant needs and whether each answers (contrib modules are cloned from their own URL, with no mirror option).
 - **Network egress from the workspace container is filtered.** A 2026-10-14 session inside a workspace found `git.drupalcode.org`,
   `drupal.org` and `repo.yarnpkg.com` unreachable and GitHub zip downloads cut off; Composer fell back to git sources and
   `phpstan/phpstan` (zip-only) could not be fetched normally (see `AI-LEARNING.md`, "Learnings from adding the lint step").

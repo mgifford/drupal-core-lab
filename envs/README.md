@@ -26,4 +26,4 @@ node scripts/lab-env.mjs trim <slug|all> [--deep]   # free regenerable space; --
 node scripts/lab-env.mjs disk                  # free space and what each environment uses
 node scripts/lab-env.mjs delete <slug> --yes   # remove them and free the disk
 
-Moving between issues: `stop` the one you are leaving, then `start` (or `setup.mjs` first, if it is new) the one you are entering; `start` also launches the viewer. See `../AGENTS.md` and `../docs/NEW-ISSUE.md`.
+Moving between issues: `stop` the one you are leaving, then `start` (or `setup.mjs` first, if it is new) the one you are entering; `start` also launches the viewer. See `../docs/ENVIRONMENTS.md` and `../docs/NEW-ISSUE.md`.

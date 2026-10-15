@@ -1,0 +1,140 @@
+{
+ "commit": "3b94128e929",
+ "checkout": "baseline-3618230-latest",
+ "note": "manual chain is modelled, not recorded; bytes are measured; calls by construction",
+ "tasks": [
+  {
+   "task": "a method: where, body, callers, tests",
+   "lookup": "ManagedFile::uploadAjaxCallback",
+   "manualCalls": 3,
+   "manualBytes": 1566,
+   "manualParts": [
+    [
+     "git grep -nw uploadAjaxCallback",
+     402
+    ],
+    [
+     "sed -n '189,215p' <file>",
+     1164
+    ],
+    [
+     "git grep -lw uploadAjaxCallback -- '*/tests/*'",
+     0
+    ]
+   ],
+   "mapCalls": 1,
+   "mapBytes": 2323,
+   "mapLines": 43
+  },
+  {
+   "task": "a method with many callers",
+   "lookup": "Xss::filterAdmin",
+   "manualCalls": 3,
+   "manualBytes": 7911,
+   "manualParts": [
+    [
+     "git grep -nw filterAdmin",
+     7275
+    ],
+    [
+     "sed -n '201,203p' <file>",
+     108
+    ],
+    [
+     "git grep -lw filterAdmin -- '*/tests/*'",
+     528
+    ]
+   ],
+   "mapCalls": 1,
+   "mapBytes": 2751,
+   "mapLines": 35
+  },
+  {
+   "task": "a class: its members and users",
+   "lookup": "ManagedFile",
+   "manualCalls": 3,
+   "manualBytes": 3698,
+   "manualParts": [
+    [
+     "git grep -nw ManagedFile",
+     2713
+    ],
+    [
+     "grep -n \"function \" <file>",
+     858
+    ],
+    [
+     "git grep -lw ManagedFile -- '*/tests/*'",
+     127
+    ]
+   ],
+   "mapCalls": 1,
+   "mapBytes": 2445,
+   "mapLines": 32
+  },
+  {
+   "task": "a JS function",
+   "lookup": "Drupal.announce",
+   "manualCalls": 3,
+   "manualBytes": 6188,
+   "manualParts": [
+    [
+     "git grep -nw Drupal.announce",
+     5295
+    ],
+    [
+     "sed -n '105,116p' <file>",
+     517
+    ],
+    [
+     "git grep -lw Drupal.announce -- '*/tests/*'",
+     376
+    ]
+   ],
+   "mapCalls": 1,
+   "mapBytes": 4991,
+   "mapLines": 90
+  },
+  {
+   "task": "a render element / hook word, no definition",
+   "lookup": "status_messages",
+   "manualCalls": 2,
+   "manualBytes": 10840,
+   "manualParts": [
+    [
+     "git grep -nw status_messages",
+     9938
+    ],
+    [
+     "git grep -lw status_messages -- '*/tests/*'",
+     902
+    ]
+   ],
+   "mapCalls": 1,
+   "mapBytes": 2770,
+   "mapLines": 30
+  },
+  {
+   "task": "a file outline",
+   "lookup": "core/modules/file/src/Element/ManagedFile.php",
+   "manualCalls": 1,
+   "manualBytes": 858,
+   "manualParts": [
+    [
+     "grep -n \"function |class \" <file>",
+     858
+    ]
+   ],
+   "mapCalls": 1,
+   "mapBytes": 917,
+   "mapLines": 12
+  }
+ ],
+ "totals": {
+  "manualCalls": 15,
+  "manualBytes": 31061,
+  "mapCalls": 6,
+  "mapBytes": 16197
+ },
+ "codeMapSha": "97747e3ce032"
+}
