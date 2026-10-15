@@ -21,6 +21,7 @@ import { runProblems, SCHEMA } from './run-schema.mjs';
 import { runBlockReason } from '../../compare/patch-state.mjs';
 import { sideState } from '../../compare/contrib-state.mjs';
 import { identity, blockMessage, identityRecord } from '../../compare/env-state.mjs';
+import { noChangeProblem } from '../../compare/change-under-test.mjs';
 export { VERDICTS } from './run-schema.mjs';
 
 export const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
@@ -48,6 +49,7 @@ export function runArgs({ slug: defaultSlug, viewport = '1280x900' } = {}) {
 export const sidePatchStates = (v) => Object.fromEntries(['before', 'after'].map((side) => [side, sideState(envDir(v[side].env), labRoot, v[side].patches || [], { modules: v.contrib || [], patches: v[side].contribPatches || [] })]));
 
 export async function launch(a) {
+  const none = noChangeProblem(a.v); if (none) throw new Error(`BLOCKED: ${none}.`);
   const ps = sidePatchStates(a.v), blocked = runBlockReason(ps, a.v.slug, { before: a.v.before.env, after: a.v.after.env });
   if (blocked) throw new Error(blocked);
   const idn = identity(a.v, { labRoot, envDir });   // common base, pinned commit, recipe: observed against what the variant asks for

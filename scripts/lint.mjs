@@ -3,6 +3,7 @@
 // reports/issues/<nid>/lint/. This is the same script, with the same configuration, that core's GitLab CI runs.
 //   node scripts/lint.mjs <slug>                  the After side, inside its DDEV environment (`ddev exec`)
 //   node scripts/lint.mjs <slug> --side=before    the Before side (only useful if it carries before.patches)
+//   node scripts/lint.mjs <slug> --contrib        the contrib patches instead: PHPCS (Drupal, DrupalPractice) on their PHP files; other types listed as NOT checked
 //   node scripts/lint.mjs <slug> --host           use PHP, Composer and Yarn on this machine instead of DDEV (no Docker needed:
 //                                                 build the checkout with `node tools/compare/setup.mjs <slug> --checkout-only`)
 //   node scripts/lint.mjs <slug> --host --ignore-php-version   allow a host PHP older than core requires (recorded in the report)
@@ -17,20 +18,24 @@ import path from 'node:path';
 import os from 'node:os';
 import { spawnSync, spawn } from 'node:child_process';
 import { labRoot, variants, envDir } from '../tools/compare/lib.mjs';
+import { sideState } from '../tools/compare/contrib-state.mjs';
+import { contribFileList, classify, phpcsScript, verdict, PHPCS_EXT } from '../tools/compare/lint-contrib.mjs';
 
 const args = process.argv.slice(2);
 const slug = args.find((a) => !a.startsWith('--'));
 const side = ((args.find((a) => a.startsWith('--side=')) || '--side=after').split('=')[1]);
-const HOST = args.includes('--host'), SAVE = !args.includes('--no-save'), IGNORE_PHP = args.includes('--ignore-php-version');
-if (!slug || !['before', 'after'].includes(side)) { console.error('usage: node scripts/lint.mjs <slug> [--side=after|before] [--host [--ignore-php-version]] [--no-save]'); process.exit(2); }
+const CONTRIB = args.includes('--contrib'), HOST = args.includes('--host'), SAVE = !args.includes('--no-save'), IGNORE_PHP = args.includes('--ignore-php-version');
+if (!slug || !['before', 'after'].includes(side)) { console.error('usage: node scripts/lint.mjs <slug> [--side=after|before] [--contrib] [--host [--ignore-php-version]] [--no-save]'); process.exit(2); }
 const v = variants().find((x) => x.slug === slug);
 if (!v) { console.error(`unknown variant: ${slug}. Variants: ${variants().map((x) => x.slug).join(', ')}`); process.exit(2); }
 const spec = v[side], dir = envDir(spec.env);
 const fail = (msg) => { console.error(msg); process.exit(3); };
 if (!fs.existsSync(path.join(dir, 'core/scripts/dev/commit-code-check.sh'))) fail(`${spec.env} has no core checkout. Build it: node tools/compare/setup.mjs ${slug}   (or --checkout-only for a host lint)`);
 const patches = spec.patches || [];
-if (!patches.length) fail(`The ${side} side of ${slug} has no patches, so there is nothing of the issue's to check.`);
-if ((spec.contribPatches || []).length) console.log('Note: contrib patches are not checked (core\'s script and configuration are for core files).');
+const contribPatches = spec.contribPatches || [];
+if (!patches.length && !contribPatches.length) fail(`The ${side} side of ${slug} has no patches, so there is nothing of the issue's to check.`);
+if (CONTRIB && !contribPatches.length) fail(`The ${side} side of ${slug} has no contrib patches.`);
+if (patches.length && contribPatches.length && !CONTRIB) console.log('Note: this run checks the core patches only. The contrib patches are checked with: node scripts/lint.mjs ' + slug + ' --contrib');
 const useDdev = !HOST;
 if (useDdev && !fs.existsSync(path.join(dir, '.ddev/config.yaml'))) fail(`${spec.env} is not a DDEV project. Build it (node tools/compare/setup.mjs ${slug}) or use --host.`);
 
@@ -41,6 +46,47 @@ const firstLine = (r) => `${r.stdout || ''}${r.stderr || ''}`.trim().split('\n')
 // $GIT_DIR and the like in the outer shell, before the script's own `export` (2026-10-14: "GIT_DIR: unbound variable").
 const shArgs = (script) => (useDdev ? ['ddev', ['exec', script]] : ['bash', ['-c', script]]);
 const inEnv = (script, opts = {}) => sh(...shArgs(script), opts);
+
+// Contrib patches (AI-usage Phase 5): the Drupal coding standard on the PHP files; the other file types are listed as not checked.
+if (CONTRIB || !patches.length) {
+  const st = sideState(dir, labRoot, patches, { modules: v.contrib || [], patches: contribPatches });
+  if (['mismatch', 'fresh'].includes(st.state)) fail(`${spec.env} does not hold its contrib patches (${st.state}: ${st.reasons.join('; ') || 'not applied'}). Run: node tools/compare/setup.mjs ${slug}`);
+  const { php, other, missing } = classify(contribFileList(contribPatches, labRoot, dir));
+  if (missing.length) fail(`The contrib patches name files the checkout does not have: ${missing.slice(0, 6).join(', ')}. Are they applied? (node tools/compare/setup.mjs ${slug})`);
+  if (php.length && !fs.existsSync(path.join(dir, 'vendor/bin/phpcs'))) fail(`vendor/bin/phpcs is missing in ${spec.env}; build it (node tools/compare/setup.mjs ${slug}) or run composer install there.`);
+  const started = new Date(); let log = '', exit = 0;
+  if (php.length) { const r = inEnv(phpcsScript(php)); log = `${r.stdout || ''}${r.stderr || ''}`; exit = r.status ?? 3; }
+  const result = verdict(php.length, exit), notChecked = Object.entries(other);
+  console.log(`\n${slug} ${side} (${spec.env}) contrib: ${php.length} file(s) checked with PHPCS (Drupal, DrupalPractice); ${notChecked.reduce((n, [, f]) => n + f.length, 0)} file(s) of other types NOT checked${notChecked.length ? ` (${notChecked.map(([e, f]) => `${e}: ${f.length}`).join(', ')})` : ''}.`);
+  if (log.trim()) console.log(log.trim());
+  console.log(`\nResult: ${result}${result === 'NOTHING CHECKED' ? ' (no PHP-family file in the contrib patches, so no tool ran; that is not a pass)' : ` (exit ${exit})`}`);
+  if (SAVE) {
+    const nid = String(v.issue || slug.split('-')[0]), outDir = path.join(labRoot, 'reports/issues', nid, 'lint'); fs.mkdirSync(outDir, { recursive: true });
+    const file = path.join(outDir, `${started.toISOString().slice(0, 10)}-${slug}-${side}-contrib.md`), clean = log.replace(/\x1b\[[0-9;?]*[A-Za-z]|\x1b\(B/g, '').replace(/\r/g, '').replace(/[ \t]+$/gm, '').trim();
+    fs.writeFileSync(file, `# Lint (contrib): ${slug}, ${side} side (${started.toISOString().slice(0, 10)})
+
+DRAFT until a person has reviewed it. Generated by \`node scripts/lint.mjs ${args.join(' ')}\`.
+
+**Result: ${result}**
+
+PHPCS with the Drupal and DrupalPractice coding standards on the PHP-family files the contrib patches change. It is about code style: **it is not accessibility evidence.**
+
+| Environment | \`${spec.env}\` (${useDdev ? 'DDEV web container' : 'host'}) |
+|---|---|
+| Contrib patches | ${contribPatches.map((c) => `\`${c.patch}\` (${c.module})`).join('<br>')} |
+
+## Checked with PHPCS (${php.length})
+${php.length ? php.map((f) => `- \`${f}\``).join('\n') : 'None: no PHP-family file (' + PHPCS_EXT.join(', ') + ') in the contrib patches.'}
+
+## NOT checked (${notChecked.reduce((n, [, f]) => n + f.length, 0)})
+${notChecked.length ? notChecked.map(([e, f]) => `- ${e} (${f.length}): ${f.map((x) => `\`${x}\``).join(', ')}`).join('\n') : 'None.'}
+
+These types need the module's own ESLint, Stylelint and CSpell configuration, which the lab does not run. A file listed here has had no code check at all.
+${clean ? `\n## Output\n\`\`\`text\n${clean.split('\n').slice(0, 300).join('\n')}\n\`\`\`\n` : ''}`);
+    console.log(`Report: ${path.relative(labRoot, file)}`);
+  }
+  process.exit(result === 'PASS' ? 0 : result === 'FAIL' ? 1 : 3);
+}
 
 // 1. Which files: every path a patch adds or changes (deleted files have nothing to check).
 const files = [...new Set(patches.flatMap((p) => {

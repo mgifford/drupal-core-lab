@@ -1,11 +1,13 @@
 // Preflight: is this machine ready to run the lab? Prints PASS / WARN / FAIL with the command that fixes each problem.
 //   node scripts/doctor.mjs [slug]      (with a slug, also checks that variant's environments and the viewer)
+//   node scripts/doctor.mjs <slug> --network [--core-url=<mirror>]   also: can the hosts a build of that variant needs be reached? (before a build fails ten minutes in)
 // Exit code 1 if anything FAILs. Read-only: it changes nothing.
 import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
 import { spawnSync } from 'node:child_process';
 import { labRoot, variants, envDir } from '../tools/compare/lib.mjs';
+import { hostsFor, checkHosts } from '../tools/compare/hosts.mjs';
 
 const slug = process.argv.slice(2).find((a) => !a.startsWith('--'));
 const rows = []; let failed = 0;
@@ -55,6 +57,18 @@ if (slug) {
     const e = v[side].env, dir = envDir(e);
     if (!fs.existsSync(path.join(dir, '.ddev/config.yaml'))) add('WARN', `${side}: ${e}`, 'not built', `node tools/compare/setup.mjs ${slug}`);
     else add(running[dir] === 'running' ? 'PASS' : 'WARN', `${side}: ${e}`, running[dir] || 'stopped', `node scripts/lab-env.mjs start ${slug}`);
+  }
+}
+if (process.argv.includes('--network')) {
+  const v = slug && variants().find((x) => x.slug === slug);
+  if (!v) add('FAIL', 'Network check', 'needs a known variant: node scripts/doctor.mjs <slug> --network', `Known: ${variants().map((x) => x.slug).join(', ')}`);
+  else {
+    const coreUrl = (process.argv.find((a) => a.startsWith('--core-url=')) || '').slice('--core-url='.length) || process.env.LAB_CORE_URL || '';
+    for (const h of await checkHosts(hostsFor(v, { coreUrl }))) {
+      const contrib = h.why.some((w) => w.startsWith('contrib module'));
+      add(h.ok ? 'PASS' : 'FAIL', `Network: ${h.host}`, `${h.ok ? 'reachable' : 'NOT reachable'} (${h.detail}); needed for ${h.why.join('; ')}`,
+        contrib ? 'a contrib module is cloned from its own URL; seed it from a machine that can reach it, or build where it is reachable' : /Drupal core/.test(h.why.join()) ? `use a mirror (--core-url=<url>) or seed from a checkout (--core-from=<path>, --use-existing-core); see tools/compare/cloud/README.md` : 'this host is needed by the build; no lab option replaces it');
+    }
   }
 }
 const viewer = await new Promise((res) => { const q = http.get('http://localhost:8100/api/health', { timeout: 3000 }, (r) => { let b = ''; r.on('data', (c) => (b += c)); r.on('end', () => res(b)); }); q.on('error', () => res(null)); q.on('timeout', () => { q.destroy(); res(null); }); });

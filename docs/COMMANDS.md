@@ -8,6 +8,7 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
 `main`), which two environments, which patches, the recipe that creates the starting state, the steps, and the checks.
 
     node scripts/doctor.mjs [slug]                       # preflight: prerequisites, disk, what is running
+    node scripts/doctor.mjs <slug> --network [--core-url=<mirror>]   # can the hosts a build of that variant needs be reached (core, contrib, Composer, GitHub, npm)? Run it before a build under filtered egress
     node scripts/lab-env.mjs reset <slug> --yes          # cheapest reset: reinstall both SITES (database, files, recipe, languages); keeps checkout and patches
     node scripts/lab-env.mjs disk | trim <slug|all> [--deep]   # what uses disk; free regenerable space (--deep also removes core/node_modules, ~400 MB each)
     node scripts/lab-env.mjs status | start <slug> | stop <slug|all> | delete <slug> --yes   # manage environments (two at a time); start also launches the viewer; status also shows each checkout's core commit and lists pairs that are not in the state their variant asks for
@@ -16,6 +17,7 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node tools/compare/setup.mjs <slug> --refresh-patches  # patched files (or contrib modules) no longer match the patch files (setup said BLOCKED, exit 4): restore them, apply the current patches; a contrib module is extracted again, the old folder kept as a backup
     node tools/compare/serve.mjs <slug> [--ddev]         # side-by-side viewer (http://localhost:8100 or https://drupal-compare.ddev.site)
     node tools/compare/diff.mjs <slug>                   # which served files and pages differ
+    node scripts/lint.mjs <slug> --contrib               # the contrib patches: PHPCS (Drupal, DrupalPractice) on their PHP files; other types are listed as NOT checked; "NOTHING CHECKED" is not a pass
     node scripts/lint.mjs <slug> [--host]                # core's commit-code-check.sh on only the patched files (CSpell, PHPCS, PHPStan, ESLint, Stylelint, .pcss.css)
     node scripts/code-map.mjs <env|folder> <symbol|file>   # ONE call for locate + read: definition, body, what it calls, who uses it, its tests (or a file outline); use it instead of a grep, sed, cat chain
     node scripts/try-tests.mjs <slug> <tests...> [--existing <core test path...>] [--patch-out <f>] [--mr-ref <ref>] [--report <f>]   # proposed PHPUnit tests, one call: copy into Before and After, `ddev phpunit` both, remove, PHPCS+PHPStan, patch checked against the MR; sites must be running
@@ -23,7 +25,9 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/feedback.mjs resolve <nid> <id> --run <run> --outcome <met|not-met|needs-person> --observed "<what the run showed>" [--revised-patch <f>...] [--supersede <older run> --reason "<why>"]   # the answering run; list <nid> prints the table
     node tools/compare/setup.mjs <slug> --checkout-only  # worktrees and patches only, no DDEV (enough for lint --host); --core-url=<mirror> if drupalcode is unreachable
     node tools/playwright/walkthrough.mjs <slug>         # scripted replay with real input; writes evidence and an interpretation
-    node scripts/new-issue.mjs <nid> --branch <branch>   # start a new issue
+    node scripts/new-issue.mjs <nid> --branch <branch>   # start a new issue (refuses when branches/<branch>.patch exists)
+    node scripts/new-issue.mjs <nid> --branch <branch> --refresh   # the MR got a new push: extract that patch again, say what changed (ignores git's abbreviated index lines), update only its BRANCHES.md row
+    node scripts/capture-patch.mjs <slug> [--name <name> [--exclude <path>...]]   # no MR yet: the edits made in the After environment become reports/issues/<nid>/branches/<nid>-<name>.patch, listed in the variant; without --name it only lists them
     node scripts/make-bundle.mjs <slug>                  # a self-contained zip for someone else
     node scripts/index-issues.mjs                        # refresh reports/issues/README.md
     node scripts/issue-status.mjs <nid> [--write] | --all  # read-only: status, comments, MR head vs the patch the lab tested (flags a stale patch)

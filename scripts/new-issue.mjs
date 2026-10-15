@@ -1,6 +1,7 @@
 // Scaffold a new issue in the lab: folder, patch from the issue fork branch (with provenance), REPRODUCE.md,
 // status and evidence templates, a recipe stub, and pinned + latest variants in tools/compare/variants.json.
 //   node scripts/new-issue.mjs <nid> --branch <fork-branch> [--title "<title>"] [--depth 300] [--dry-run]
+//   node scripts/new-issue.mjs <nid> --branch <fork-branch> --refresh     the merge request got a new push: extract the patch again, say what changed, and touch nothing else
 // The core commit the patch was based on is pinned, so the reproduction can be repeated later exactly.
 // Needs envs/core.git (created by tools/compare/setup.mjs). Network access to git.drupalcode.org.
 import fs from 'node:fs';
@@ -8,12 +9,13 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { labRoot } from '../tools/compare/lib.mjs';
 import { NEW_ISSUE_MATRIX } from '../tools/compare/coverage-matrix.mjs';
+import { upsertBranchRow, comparePatch } from '../tools/compare/branch-patch.mjs';
 
 const args = process.argv.slice(2);
 const flag = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
 const nid = args.find((a) => /^\d{5,8}$/.test(a));
 const branch = flag('branch'); const title = flag('title', `Issue ${nid}`); const depth = flag('depth', '300');
-const dry = args.includes('--dry-run');
+const dry = args.includes('--dry-run'), refresh = args.includes('--refresh');
 if (!nid || !branch) { console.error('usage: node scripts/new-issue.mjs <nid> --branch <fork-branch> [--title "<title>"] [--depth 300] [--variants-file <path>] [--dry-run]'); process.exit(2); }
 const bare = path.join(labRoot, 'envs/core.git');
 if (!fs.existsSync(bare)) { console.error('envs/core.git does not exist yet. Run: node tools/compare/setup.mjs <any-slug> (it creates the shared core clone), or: git init --bare envs/core.git && git -C envs/core.git remote add origin https://git.drupalcode.org/project/drupal.git'); process.exit(1); }
@@ -23,9 +25,13 @@ const git = (a, o = {}) => spawnSync('git', ['-c', 'gc.auto=0', '-c', 'maintenan
 const must = (r, what) => { if (r.status !== 0) { console.error(`${what} failed:\n${r.stderr || r.stdout}`); process.exit(1); } return r.stdout.trim(); };
 const dir = path.join(labRoot, 'reports/issues', nid);
 const date = new Date().toISOString().slice(0, 10);
-const forkUrl = `https://git.drupalcode.org/issue/drupal-${nid}.git`;
+const forkUrl = flag('fork-url', `https://git.drupalcode.org/issue/drupal-${nid}.git`);
 const branchRef = `refs/lab/issue-${nid}/${branch}`;
 
+const patchRel = `reports/issues/${nid}/branches/${branch}.patch`, patchFile = path.join(labRoot, patchRel);
+// A patch that is already there is never replaced by accident: a second run used to overwrite it and BRANCHES.md without a word.
+if (fs.existsSync(patchFile) && !refresh) { console.error(`${patchRel} already exists. To extract it again from the branch tip: node scripts/new-issue.mjs ${nid} --branch ${branch} --refresh`); process.exit(1); }
+if (refresh && !fs.existsSync(patchFile)) { console.error(`--refresh updates a patch that is already there, and ${patchRel} is not. Run without --refresh to create the issue folder.`); process.exit(1); }
 console.log(`Fetching core main and ${forkUrl} ${branch} (depth ${depth}) ...`);
 if (dry) { console.log('(dry run: nothing is fetched or written)'); process.exit(0); }
 must(git(['fetch', '--depth', depth, 'origin', '+refs/heads/main:refs/lab/new-issue/main']), 'fetch core main');
@@ -34,14 +40,28 @@ must(git(['fetch', '--depth', depth, `f${nid}`, `+refs/heads/${branch}:${branchR
 const mb = git(['merge-base', 'refs/lab/new-issue/main', branchRef]);
 if (mb.status !== 0) { console.error(`No common ancestor within depth ${depth}. The branch is older than the fetched history: re-run with a larger --depth (for example 1500).`); process.exit(1); }
 const base = mb.stdout.trim();
-const tip = must(git(['rev-parse', '--short', branchRef]), 'rev-parse');
+const tip = must(git(['rev-parse', '--short=8', branchRef]), 'rev-parse');
 const files = must(git(['diff', '--name-only', base, branchRef]), 'diff').split('\n').filter(Boolean);
-const patch = must(git(['diff', '--no-color', base, branchRef], { maxBuffer: 256 * 1024 * 1024 }), 'diff');
+const patch = must(git(['diff', '--no-color', '--full-index', base, branchRef], { maxBuffer: 256 * 1024 * 1024 }), 'diff');
 const baseInfo = must(git(['log', '-1', '--format=%cs %s', base]), 'log');
 
+const row = `| [\`branches/${branch}.patch\`](branches/${branch}.patch) | ${forkUrl} \`${branch}\` | ${tip} | ${base.slice(0, 12)} | ${baseInfo} | ${files.length} |`;
+const intro = `# Branch patches for #${nid}\n\nExtracted ${date} from ${forkUrl} with \`git diff <merge-base> <branch tip>\`: only the branch's own changes.\nNot rebased onto current \`main\`. The MR on drupal.org is the source of truth.\n\n`;
+const branchesFile = path.join(dir, 'BRANCHES.md'), readBranches = () => (fs.existsSync(branchesFile) ? fs.readFileSync(branchesFile, 'utf8') : '');
+if (refresh) {
+  // Only the one patch and its row change. Variants, recipe, steps, checks, evidence and comment draft are not touched.
+  const c = comparePatch(fs.readFileSync(patchFile), patch + '\n');
+  if (!c.changed) { console.log(`#${nid} ${branch}: unchanged. The branch tip ${tip} gives the same changes${c.bytesDiffer ? ' (the stored file differs only in the abbreviated object names on its index lines, so it was left alone and its hash is unchanged)' : ''}; nothing was written.`); process.exit(0); }
+  fs.writeFileSync(patchFile, patch + '\n'); fs.writeFileSync(branchesFile, upsertBranchRow(readBranches(), branch, row, intro));
+  console.log(`#${nid} ${branch}: CHANGED. Wrote ${patchRel} (sha256 ${c.oldSha.slice(0, 8)} -> ${c.newSha.slice(0, 8)}), tip ${tip}, base ${base.slice(0, 12)}, ${files.length} file(s)${c.added.length ? `; added: ${c.added.join(', ')}` : ''}${c.removed.length ? `; no longer touched: ${c.removed.join(', ')}` : ''}. Its row in BRANCHES.md is updated; nothing else was.`);
+  const lists = JSON.parse(fs.readFileSync(path.join(labRoot, 'tools/compare/variants.json'), 'utf8')).concat(fs.existsSync(path.join(dir, 'variants.json')) ? JSON.parse(fs.readFileSync(path.join(dir, 'variants.json'), 'utf8')) : []);
+  const users = lists.filter((x) => x.issue === nid && ((x.after && x.after.patches) || []).includes(patchRel));
+  console.log(`\nNext:\n${users.map((x) => `  node tools/compare/setup.mjs ${x.slug} --refresh-patches   (${x.core && x.core.commit ? `pins core ${String(x.core.commit).slice(0, 12)}; the patch is now based on ${base.slice(0, 12)}: run --check-patches and re-pin if they differ` : 'follows core main'})`).join('\n') || '  (no variant lists this patch)'}\n  node scripts/coverage.mjs ${nid}   (runs recorded against the old patch are now marked stale)\n  node scripts/issue-status.mjs ${nid} --write`);
+  process.exit(0);
+}
 fs.mkdirSync(path.join(dir, 'branches'), { recursive: true });
-fs.writeFileSync(path.join(dir, 'branches', `${branch}.patch`), patch + '\n');
-fs.writeFileSync(path.join(dir, 'BRANCHES.md'), `# Branch patches for #${nid}\n\nExtracted ${date} from ${forkUrl} with \`git diff <merge-base> <branch tip>\`: only the branch's own changes.\nNot rebased onto current \`main\`. The MR on drupal.org is the source of truth.\n\n| Patch | Source | Tip | Base | Base date and subject | Files |\n|---|---|---|---|---|---|\n| [\`branches/${branch}.patch\`](branches/${branch}.patch) | ${forkUrl} \`${branch}\` | ${tip} | ${base.slice(0, 12)} | ${baseInfo} | ${files.length} |\n`);
+fs.writeFileSync(patchFile, patch + '\n');
+fs.writeFileSync(branchesFile, upsertBranchRow(readBranches(), branch, row, intro));
 const sub = (t) => t.replaceAll('<NID>', nid).replaceAll('<TITLE>', title).replaceAll('<PINNED>', base.slice(0, 12)).replaceAll('<DATE>', date).replaceAll('<nid>', nid);
 for (const [tpl, out] of [['REPRODUCE.md', 'REPRODUCE.md'], ['EVIDENCE.md', 'EVIDENCE.md'], ['ISSUE-COMMENT-DRAFT.md', 'ISSUE-COMMENT-DRAFT.md']]) {
   const dst = path.join(dir, out); if (fs.existsSync(dst)) { console.log(`kept existing ${out}`); continue; }

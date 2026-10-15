@@ -1,7 +1,7 @@
 # AI usage reduction: what was done and where (2026-10-15)
 
 A staged project to cut AI usage in this lab without losing reliable evidence (the prompt: `~/Downloads/drupal-core-lab-staged-investigation-prompt.md`). Each step has its own folder with `RESULTS.md` or
-`FINDINGS.md` and a short `HANDOFF.md`; **start from the newest handoff, [phase-4/HANDOFF.md](phase-4/HANDOFF.md)**. All of it is committed on one branch and nothing has been pushed.
+`FINDINGS.md` and a short `HANDOFF.md`; **start from the newest handoff, [phase-5/HANDOFF.md](phase-5/HANDOFF.md)**. All of it is committed on one branch and nothing has been pushed.
 
 | Step | Folder | What | Key result |
 |---|---|---|---|
@@ -14,5 +14,6 @@ A staged project to cut AI usage in this lab without losing reliable evidence (t
 | Slice E | [slice-e](slice-e/RESULTS.md) | Contrib modules and patches tracked by content | the same guarantees as core patches |
 | Slice F | [slice-f](slice-f/RESULTS.md) | Stale runs in `coverage.mjs` | stale, current or unrecorded, never blurred; all 28 existing runs are unrecorded |
 | Phase 4 | [phase-4](phase-4/RESULTS.md) | Pilot of the whole loop on #3618230; `scripts/feedback.mjs` | feedback tied to run and patch revision; a wrong check was caught and its run superseded; 2 items need a person |
+| Phase 5 | [phase-5](phase-5/RESULTS.md) | Four measured gaps, one increment each: patches without an MR, contrib lint, updating an imported issue, a network preflight; merge of 2 upstream commits | a variant with nothing under test is now refused (and exposed `3426468-latest`); the live runs found 2 defects the unit tests could not |
 
 Measurement tools: `scripts/usage-baseline.mjs` (prompt size and composition), `scripts/session-usage.mjs` (usage from the client's transcripts, `--sequences`), `scripts/context-size.mjs` (the client's `/context`).

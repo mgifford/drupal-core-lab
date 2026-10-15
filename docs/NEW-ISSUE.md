@@ -76,6 +76,25 @@ When someone asks for something to be checked or changed (a review comment, a ga
 An answering run must not be stale (see 4b). `needs-person` is for what a script cannot decide (a screen reader, a keyboard pass) and stays open.
 `--supersede` marks the older run superseded by the answering one, so `coverage.mjs` stops counting what the feedback replaced. Worked example: `reports/issues/3618230/FEEDBACK.md`.
 
+## 4d. No merge request yet: write the patch in the lab
+Make a variant whose After has nothing to test only on purpose: `"after": { "env": "...", "patches": [], "authoring": true }`. Without `authoring`, a variant with no patch
+and no contrib patch is refused (setup stops with BLOCKED, exit 4, a run refuses, and `selftest` fails), because its After would equal Before and every check would
+say "no difference". Build the pair, edit files in the After environment (`envs/<after-env>`), then:
+
+    node scripts/capture-patch.mjs <slug>                     # lists what would be captured; writes nothing
+    node scripts/capture-patch.mjs <slug> --name <short-name> # writes branches/<nid>-<name>.patch, lists it in the variant, adds a BRANCHES.md row
+
+It captures every change in After beyond the declared patches (modified, deleted and new files that git does not ignore; the lab's own marker files, the recipe copy and
+extracted contrib modules are left out, `--exclude <path>` adds more), checks that the declared patches plus the new one give exactly the files on disk, and records the
+environment against the new patch list. A second capture adds a second patch on top. Capturing changes to a contrib module is not supported. To share the work, open a merge request on drupal.org.
+
+## 4e. The merge request got a new push
+    node scripts/issue-status.mjs <nid>                                  # the MR head against the patch the lab tested
+    node scripts/new-issue.mjs <nid> --branch <fork-branch> --refresh    # extract that patch again
+It reports "unchanged" (nothing written, hash stays), or "CHANGED" with the old and new hash and what to run next: `setup.mjs <slug> --refresh-patches` for each variant that lists
+the patch, `coverage.mjs <nid>` (runs recorded against the old hash are now stale). Variants, recipe, steps, checks, evidence and the comment draft are not touched; only that patch's row of `BRANCHES.md` changes.
+If the new push is based on a newer core, the pinned variant keeps its old `core.commit`: run `setup.mjs <slug> --check-patches` and re-pin after verifying.
+
 ## 5. Package it
     node scripts/make-bundle.mjs <nid>-pinned          # writes bundles/drupal-repro-<nid>-<date>.zip
     node scripts/index-issues.mjs                      # refresh reports/issues/README.md

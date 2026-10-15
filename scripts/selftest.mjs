@@ -9,6 +9,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { labRoot, rawVariants, variants } from '../tools/compare/lib.mjs';
+import { noChangeProblem } from '../tools/compare/change-under-test.mjs';
 import { matrixProblems } from '../tools/compare/coverage-matrix.mjs';
 import { runProblems } from '../tools/playwright/lib/run-schema.mjs';
 
@@ -44,7 +45,7 @@ for (const [name, list, needsYaml] of [['unit tests: lab tools', glob('tests/lab
   record(name, r.status === 0 ? 'ok' : 'FAIL', `${pass ?? '?'} passed, ${fail ?? '?'} failed${r.status === 0 ? '' : ': ' + (r.stdout.match(/^not ok .*$/gm) || []).slice(0, 5).join('; ')}`);
 }
 
-// 3. variants: each resolves, its patches and recipe exist, slugs are unique, any coverage matrix is valid
+// 3. variants: each resolves, its patches and recipe exist, After has a change to test, slugs are unique, any coverage matrix is valid
 {
   const problems = []; const raw = rawVariants(); const seen = new Set();
   for (const x of raw) { if (seen.has(x.slug)) problems.push(`duplicate slug ${x.slug}`); seen.add(x.slug); if (x.extends && !raw.some((y) => y.slug === x.extends)) problems.push(`${x.slug} extends unknown ${x.extends}`); }
@@ -52,6 +53,7 @@ for (const [name, list, needsYaml] of [['unit tests: lab tools', glob('tests/lab
   for (const v of vs) {
     if (!v.before?.env || !v.after?.env) problems.push(`${v.slug}: before.env and after.env are required`);
     for (const p of [...(v.before?.patches || []), ...(v.after?.patches || [])]) if (!fs.existsSync(path.join(labRoot, p))) problems.push(`${v.slug}: patch missing ${p}`);
+    const none = noChangeProblem(v); if (none) problems.push(none);
     if (v.recipe && !fs.existsSync(path.join(labRoot, 'recipes', v.recipe))) problems.push(`${v.slug}: recipe missing recipes/${v.recipe}`);
     if (v.coverage && v.coverage.matrix) for (const [at, msg] of matrixProblems(v.coverage, `${v.slug}.coverage`)) problems.push(`${at} ${msg}`);
   }

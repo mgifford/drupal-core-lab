@@ -28,6 +28,7 @@ import { labRoot, variants, envDir } from './lib.mjs';
 import { ensurePatches } from './patch-state.mjs';
 import { identity, blockMessage, headOf, recipeStatus } from './env-state.mjs';
 import { ensureContrib } from './contrib-state.mjs';
+import { noChangeProblem } from './change-under-test.mjs';
 
 const args = process.argv.slice(2);
 const dry = args.includes('--dry-run');
@@ -41,6 +42,8 @@ const CHECK = args.includes('--check-patches');
 const REFRESH_PATCHES = args.includes('--refresh-patches');   // restore the files the patches touch, then apply the current patch files again
 const CHECKOUT_ONLY = args.includes('--checkout-only');   // worktrees and patches only, no DDEV
 const REINSTALL = args.includes('--reinstall');   // wipe each site's database and files and install again (no re-clone, no composer): the cheap way to reset
+// An After with nothing to test would equal Before and every check would say "no difference": stop before building one (exit 4, like a patch mismatch).
+{ const none = noChangeProblem(v); if (none) { console.error(`BLOCKED: ${none}.`); process.exit(4); } }
 const bare = path.join(labRoot, 'envs/core.git');
 
 function run(cmd, argv, opts = {}) {
