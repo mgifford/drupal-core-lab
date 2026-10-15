@@ -1,0 +1,49 @@
+{
+  "stage": "issue",
+  "nid": "3627936",
+  "written": "2026-10-15",
+  "by": "model",
+  "summary": "In dark mode the active workspace row on the Workspaces overview keeps a hard-coded light background, so the row is a light bar with light text; hovering shows the theme colour. No usable merge request exists: the issue fork branch has no commits and the merge request that was opened used the branch name main.",
+  "facts": [
+    {
+      "text": "shank115 reproduced it with default_admin in dark mode. Cause: tr.active-workspace { background-color: #ebeae4; } in workspaces_ui (workspaces.overview.pcss.css), more specific than the theme table row rule; a @todo there already says to move it to the admin theme.",
+      "sources": [
+        "comment:2"
+      ]
+    },
+    {
+      "text": "Three options were proposed: light-dark(#ebeae4, transparent); light-dark with a subtle dark colour; the theme variable --admin-color-bg-item. shank115 leans to the theme variable.",
+      "sources": [
+        "comment:2"
+      ]
+    },
+    {
+      "text": "rkoller: the merge request cannot be checked out (branch named main); transparent hides the active state, and options 2 and 3 give about 1.28:1 for the state, below the 3:1 of SC 1.4.11. rkoller suggests a preliminary legibility fix here and the proper visual indication in #3207233.",
+      "sources": [
+        "comment:8"
+      ]
+    },
+    {
+      "text": "The issue is Needs review; the lab found no merge request and an empty issue fork branch, so the fix is written in the lab.",
+      "sources": [
+        "source:issue",
+        "source:mr"
+      ]
+    }
+  ],
+  "open": [
+    {
+      "text": "Which approach should the fix take, and is a non-colour indicator for the active state in scope here or only in #3207233?",
+      "sources": [
+        "comment:2",
+        "comment:8"
+      ]
+    }
+  ],
+  "based_on": {
+    "comment:2": "16797024:42620d65",
+    "comment:8": "16797895:a7a12a46",
+    "source:issue": "55402059",
+    "source:mr": "missing"
+  }
+}

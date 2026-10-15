@@ -133,5 +133,7 @@ test('setup.mjs stops with BLOCKED (exit 4) for a variant whose After has nothin
   const r = spawnSync('node', [path.join(labRoot, 'tools/compare/setup.mjs'), 'zz-cap-empty', '--dry-run'], { cwd: labRoot, encoding: 'utf8' });
   assert.equal(r.status, 4, r.stdout + r.stderr); assert.match(r.stderr, /BLOCKED: zz-cap-empty: after lists no patch/);
   writeVariants([{ slug: 'zz-cap-empty', issue: '99000012', core: { ref: 'main' }, before: { env: 'zz-cap-before' }, after: { env: 'zz-cap-after', patches: [], authoring: true } }]);
-  const ok = spawnSync('node', [path.join(labRoot, 'tools/compare/setup.mjs'), 'zz-cap-empty', '--dry-run'], { cwd: labRoot, encoding: 'utf8' }); assert.doesNotMatch(ok.stderr, /BLOCKED/);
+  // past the guard setup looks for DDEV; a stand-in that answers at once keeps this test from depending on Docker being up
+  const fake = path.join(root, 'fake-bin'); fs.mkdirSync(fake, { recursive: true }); fs.writeFileSync(path.join(fake, 'ddev'), '#!/bin/sh\necho "ddev version v1.24.0"\n', { mode: 0o755 });
+  const ok = spawnSync('node', [path.join(labRoot, 'tools/compare/setup.mjs'), 'zz-cap-empty', '--dry-run'], { cwd: labRoot, encoding: 'utf8', env: { ...process.env, PATH: `${fake}:${process.env.PATH}` }, timeout: 60000 }); assert.doesNotMatch(ok.stderr, /BLOCKED/);
 });

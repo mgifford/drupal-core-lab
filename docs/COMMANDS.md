@@ -40,6 +40,7 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/patch-change.mjs record <patch> --by <who> --reason "<why>"   # keep the version the base had in original-patches/ and add a row to reports/issues/<nid>/PATCH-CHANGES.md
     node scripts/patch-change.mjs list [<nid>]           # the recorded changes
     node scripts/new-issue.mjs <nid> --branch <branch>   # start a new issue (refuses when branches/<branch>.patch exists)
+    node scripts/new-issue.mjs <nid> --authoring [--title "..."] [--variants-file reports/issues/<nid>/variants.json]   # no merge request or fork branch: scaffold the folder and variants with "authoring": true, pinned to current core main, then write the fix in After and capture it
     node scripts/new-issue.mjs <nid> --branch <branch> --refresh   # the MR got a new push: extract that patch again, say what changed (ignores git's abbreviated index lines), update only its BRANCHES.md row
     node scripts/capture-patch.mjs <slug> [--name <name> [--exclude <path>...]]   # no MR yet: the edits made in the After environment become reports/issues/<nid>/branches/<nid>-<name>.patch, listed in the variant; without --name it only lists them
     node scripts/make-bundle.mjs <slug>                  # a self-contained zip for someone else

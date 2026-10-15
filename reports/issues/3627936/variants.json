@@ -1,0 +1,114 @@
+[
+  {
+    "slug": "3627936-pinned",
+    "issue": "3627936",
+    "label": "#3627936: Active workspace has a broken styling in dark mode (no merge request: the fix is written in the lab)",
+    "description": "On the Workspaces overview, the row of the active workspace has a hard-coded light background (#ebeae4) in workspaces_ui, so in dark mode it is a light bar with light text. Hovering shows the theme colour. No merge request exists (the one that was opened used the branch name main), so After holds the fix written here and captured with scripts/capture-patch.mjs.",
+    "status": "draft: the fix is written in the lab (no merge request); the checks and steps are not confirmed by a person",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "ad11ba71c0f09b856e45dfdb8db155b5a588712d"
+    },
+    "before": {
+      "env": "baseline-3627936"
+    },
+    "after": {
+      "env": "issue-3627936",
+      "patches": [
+        "reports/issues/3627936/branches/3627936-active-workspace-dark-mode.patch"
+      ]
+    },
+    "pages": [
+      "/admin/config/workflow/workspaces"
+    ],
+    "login": true,
+    "recipe": "repro_3627936",
+    "steps": [
+      {
+        "text": "The Workspaces and Workspaces UI modules are installed and a workspace named Stage exists. Default Admin is the admin theme.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /admin/config/workflow/workspaces (loaded in both frames once you press Go).",
+        "how": "mirror"
+      },
+      {
+        "text": "Choose Activate on the Stage row and confirm, so that Stage is the active workspace.",
+        "how": "each",
+        "lookFor": "The Stage row becomes the active row (a hidden class tr.active-workspace)."
+      },
+      {
+        "text": "Switch the viewer to dark mode (Colour mode) and look at the active row.",
+        "how": "each",
+        "lookFor": "Before: the active row has a light background in dark mode. After: it follows the theme and is not a light bar; the active state is still visible and not shown by colour alone."
+      }
+    ],
+    "expected": "In dark mode the active workspace row has a dark background with readable text, and the active state is still visible.",
+    "actual": "In dark mode the active workspace row is light (#ebeae4) while the text stays light, so it is hard or impossible to read.",
+    "checks": [
+      {
+        "label": "Setup reached: the Stage row is the active workspace row",
+        "probe": "!!document.querySelector('tr.active-workspace')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "The active row background follows the colour scheme (dark in dark mode, light in light mode)",
+        "probe": "((row) => !!row && ((c) => ((0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) < 128) === matchMedia('(prefers-color-scheme: dark)').matches)(getComputedStyle(row).backgroundColor.match(/[\\d.]+/g).map(Number)))(document.querySelector('tr.active-workspace'))",
+        "expect": true,
+        "kind": "fix"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Is the active state visible without relying on colour alone (a mark, a border, text)?",
+        "expectBefore": "no",
+        "expectAfter": "yes"
+      }
+    ],
+    "coverage": {
+      "note": "The combinations that count as tested for this issue (scripts/coverage.mjs). Edit to fit the question the issue asks.",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": true,
+          "width": 1280
+        }
+      ]
+    },
+    "demo": {
+      "start": "/admin/config/workflow/workspaces"
+    }
+  },
+  {
+    "slug": "3627936-latest",
+    "extends": "3627936-pinned",
+    "label": "#3627936: same steps against the LATEST core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3627936-latest"
+    },
+    "after": {
+      "env": "issue-3627936-latest",
+      "patches": [
+        "reports/issues/3627936/branches/3627936-active-workspace-dark-mode.patch"
+      ]
+    }
+  }
+]

@@ -86,7 +86,7 @@ An answering run must not be stale (see 4b). `needs-person` is for what a script
 `--supersede` marks the older run superseded by the answering one, so `coverage.mjs` stops counting what the feedback replaced. Worked example: `reports/issues/3618230/FEEDBACK.md`.
 
 ## 4d. No merge request yet: write the patch in the lab
-Make a variant whose After has nothing to test only on purpose: `"after": { "env": "...", "patches": [], "authoring": true }`. Without `authoring`, a variant with no patch
+For an issue that has no merge request and no fork branch, `node scripts/new-issue.mjs <nid> --authoring --variants-file reports/issues/<nid>/variants.json` scaffolds the folder, a recipe stub and the two variants already marked authoring (an empty issue fork branch, or a merge request from a branch named `main`, counts as none). Otherwise, make a variant whose After has nothing to test only on purpose: `"after": { "env": "...", "patches": [], "authoring": true }`. Without `authoring`, a variant with no patch
 and no contrib patch is refused (setup stops with BLOCKED, exit 4, a run refuses, and `selftest` fails), because its After would equal Before and every check would
 say "no difference". Build the pair, edit files in the After environment (`envs/<after-env>`), then:
 

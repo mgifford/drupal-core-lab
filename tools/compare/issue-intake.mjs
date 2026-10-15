@@ -81,7 +81,7 @@ export function selectRetained(index, { last = 3, max = 24 } = {}) {
 }
 
 const ranges = (ns) => { const out = []; let a = null, b = null; for (const n of [...ns].sort((x, y) => x - y)) { if (a === null) a = b = n; else if (n === b + 1) b = n; else { out.push(a === b ? `#${a}` : `#${a}-#${b}`); a = b = n; } } if (a !== null) out.push(a === b ? `#${a}` : `#${a}-#${b}`); return out.join(', '); };
-const quote = (t, cap) => { const cut = t.length > cap; const body = neutralize(cut ? t.slice(0, cap) : t); return `${body.split('\n').map((l) => `> ${l}`).join('\n')}${cut ? `\n> [cut at ${cap} of ${t.length} characters]` : ''}`; };
+const quote = (t, cap) => { if (!String(t).trim()) return '> (no text: a comment that only changed a field or attached a file; the API does not carry what it changed)'; const cut = t.length > cap; const body = neutralize(cut ? t.slice(0, cap) : t); return `${body.split('\n').map((l) => `> ${l}`).join('\n')}${cut ? `\n> [cut at ${cap} of ${t.length} characters]` : ''}`; };
 
 // ---- the brief
 export function renderBrief(snap, index, { labPatches = [], caps = { summary: 2500, comment: 1500, latest: 600 } } = {}) {

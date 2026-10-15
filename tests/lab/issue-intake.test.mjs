@@ -152,6 +152,12 @@ test('issue text cannot pass for an instruction or for the prompt\'s own markers
   assert.equal(composed.missing, 0); assert.equal((composed.text.match(/^>>> INPUT 2 OF 3/gm) || []).length, 1, 'the brief did not add a marker of its own');
 });
 
+test('a comment with no text is shown as such, not as an empty quote', async () => {
+  const p = longPages(), d = JSON.parse(p[2]); d.list[d.list.length - 1].comment_body.value = ''; p[2] = JSON.stringify(d);
+  const { snap } = await snapOf('long-discussion', '9999001', { pages: p }), brief = renderBrief(snap, indexComments(snap.comments));
+  assert.match(brief, /### #120 .*\n\n> \(no text: a comment that only changed a field or attached a file/); assert.doesNotMatch(brief, /\n> \n/.source ? /### #120[^\n]*\n\n>\s*\n/ : /x/);
+});
+
 test('the brief is deterministic, calls no model and uses no network, and the comment index is complete', async () => {
   const a = await snapOf('long-discussion', '9999001', { pages: longPages() }), b = await snapOf('long-discussion', '9999001', { pages: longPages() });
   assert.equal(renderBrief(a.snap, indexComments(a.snap.comments)), renderBrief(b.snap, indexComments(b.snap.comments)));
