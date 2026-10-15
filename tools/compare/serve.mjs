@@ -231,7 +231,7 @@ http.createServer((req, res) => {
   // Local tool, but any web page can send requests to localhost: accept only our own hostnames and origin, refuse cross-site requests to /api, and make
   // every action that changes something a POST (a cross-site GET cannot then trigger it). Non-browser clients (curl, node) send neither Origin nor Sec-Fetch-Site.
   const origin = req.headers.origin, fetchSite = req.headers['sec-fetch-site'];
-  const hostOk = VIEWER_HOSTS.includes(req.headers.host), originOk = !origin || VIEWER_ORIGINS.includes(origin), crossSite = !!fetchSite && !['same-origin', 'none'].includes(fetchSite);
+  const hostOk = VIEWER_HOSTS.map(h => h.toLowerCase()).includes(req.headers.host.toLowerCase()), originOk = !origin || VIEWER_ORIGINS.includes(origin), crossSite = !!fetchSite && !['same-origin', 'none'].includes(fetchSite);
   const ACTIONS = ['/api/cache', '/api/login', '/api/lighthouse/run'];
   if (!hostOk || !originOk || (u.pathname.startsWith('/api/') && crossSite)) { res.writeHead(403, { 'content-type': 'text/plain' }); res.end('Forbidden: this request did not come from the viewer.'); return; }
   if (ACTIONS.includes(u.pathname) && req.method !== 'POST') { res.writeHead(405, { 'content-type': 'text/plain', allow: 'POST' }); res.end('Use POST.'); return; }
