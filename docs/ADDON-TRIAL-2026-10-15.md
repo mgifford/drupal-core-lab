@@ -145,7 +145,9 @@ caller in code, only in the 2026-10-14 manual run. By call site there are 13 in 
   `main`. The same four tests gave the same results on core `3b94128e929` in the pilot run (`pilot/TESTS-RUN.md`, 2026-10-15).
 
 ## Cleaning up
-Both projects are stopped. Start After again with `ddev start` in its directory (the gitdir mount is still in `.ddev/`). To delete them:
+Both projects are stopped. Start After again with `ddev start` in its directory (the gitdir mount is still in `.ddev/`). To delete them,
+**after the push** (`remote remove` drops the branch's upstream, so `git push` would stop working; the push should also work from
+`git -C …/envs/core.git push drupal-3618230 3618230-adopt-the-ajax`, which does not need the After worktree, but I could not test it without pushing):
 
     cd /Users/mgifford/drupal-core-lab/envs/trial-amateescu-before && ddev delete --omit-snapshot --yes
     cd /Users/mgifford/drupal-core-lab/envs/trial-amateescu-after  && ddev delete --omit-snapshot --yes
@@ -154,8 +156,10 @@ Both projects are stopped. Start After again with `ddev start` in its directory 
     git -C /Users/mgifford/drupal-core-lab/envs/core.git remote remove drupal-3618230
 
 The commit lives on the local branch `3618230-adopt-the-ajax` in `envs/core.git`, which `worktree remove` keeps. Delete that branch
-(`git -C …/envs/core.git branch -D 3618230-adopt-the-ajax`) only after the push. `git -C …/envs/core.git fetch f3618230` during this trial added
-that fork's other branches as remote-tracking refs; they are harmless and can be pruned with `git remote prune f3618230`.
+(`git -C …/envs/core.git branch -D 3618230-adopt-the-ajax`) only after the push. A `git fetch f3618230` during this trial added that fork's
+other 44 branches as remote-tracking refs (`git remote prune` would not remove them, since the branches still exist upstream). They were
+deleted afterwards by hand, leaving `refs/remotes/f3618230/3618230-adopt-the-ajax` like the lab's other fork remotes; `git fetch f3618230`
+brings them back.
 
 ## Not verified
 - Mutagen mode (the default); the file-mode check and sync behaviour may differ.
