@@ -10,6 +10,7 @@ import { spawnSync } from 'node:child_process';
 import { labRoot } from '../tools/compare/lib.mjs';
 import { NEW_ISSUE_MATRIX } from '../tools/compare/coverage-matrix.mjs';
 import { upsertBranchRow, comparePatch } from '../tools/compare/branch-patch.mjs';
+import { recordChange } from '../tools/compare/patch-change.mjs';
 
 const args = process.argv.slice(2);
 const flag = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
@@ -54,6 +55,9 @@ if (refresh) {
   if (!c.changed) { console.log(`#${nid} ${branch}: unchanged. The branch tip ${tip} gives the same changes${c.bytesDiffer ? ' (the stored file differs only in the abbreviated object names on its index lines, so it was left alone and its hash is unchanged)' : ''}; nothing was written.`); process.exit(0); }
   fs.writeFileSync(patchFile, patch + '\n'); fs.writeFileSync(branchesFile, upsertBranchRow(readBranches(), branch, row, intro));
   console.log(`#${nid} ${branch}: CHANGED. Wrote ${patchRel} (sha256 ${c.oldSha.slice(0, 8)} -> ${c.newSha.slice(0, 8)}), tip ${tip}, base ${base.slice(0, 12)}, ${files.length} file(s)${c.added.length ? `; added: ${c.added.join(', ')}` : ''}${c.removed.length ? `; no longer touched: ${c.removed.join(', ')}` : ''}. Its row in BRANCHES.md is updated; nothing else was.`);
+  // A patch that changes says so: keep the version it replaced and add a row to PATCH-CHANGES.md (skipped for a patch git has never seen).
+  const rec = recordChange(labRoot, patchRel, { base: 'HEAD', by: 'scripts/new-issue.mjs --refresh', reason: `the merge request branch ${branch} moved: tip ${tip}, base ${base.slice(0, 12)}` });
+  console.log(rec.status === 'recorded' ? `Recorded in ${rec.row} (the version it replaced is kept at ${rec.kept}).` : `Change not recorded (${rec.status}${rec.error ? `: ${rec.error}` : ''}).`);
   const lists = JSON.parse(fs.readFileSync(path.join(labRoot, 'tools/compare/variants.json'), 'utf8')).concat(fs.existsSync(path.join(dir, 'variants.json')) ? JSON.parse(fs.readFileSync(path.join(dir, 'variants.json'), 'utf8')) : []);
   const users = lists.filter((x) => x.issue === nid && ((x.after && x.after.patches) || []).includes(patchRel));
   console.log(`\nNext:\n${users.map((x) => `  node tools/compare/setup.mjs ${x.slug} --refresh-patches   (${x.core && x.core.commit ? `pins core ${String(x.core.commit).slice(0, 12)}; the patch is now based on ${base.slice(0, 12)}: run --check-patches and re-pin if they differ` : 'follows core main'})`).join('\n') || '  (no variant lists this patch)'}\n  node scripts/coverage.mjs ${nid}   (runs recorded against the old patch are now marked stale)\n  node scripts/issue-status.mjs ${nid} --write`);

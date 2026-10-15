@@ -25,6 +25,10 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/feedback.mjs resolve <nid> <id> --run <run> --outcome <met|not-met|needs-person> --observed "<what the run showed>" [--revised-patch <f>...] [--supersede <older run> --reason "<why>"]   # the answering run; list <nid> prints the table
     node tools/compare/setup.mjs <slug> --checkout-only  # worktrees and patches only, no DDEV (enough for lint --host); --core-url=<mirror> if drupalcode is unreachable
     node tools/playwright/walkthrough.mjs <slug>         # scripted replay with real input; writes evidence and an interpretation
+    node scripts/lab-config.mjs [auto_fix.enabled]       # the repository's settings (lab.config.yml); with a key, only its value; exit 2 if the file is invalid
+    node scripts/patch-change.mjs check [--base <ref>]   # patch files changed since origin/main (or --base) that have no record: exit 1
+    node scripts/patch-change.mjs record <patch> --by <who> --reason "<why>"   # keep the version the base had in original-patches/ and add a row to reports/issues/<nid>/PATCH-CHANGES.md
+    node scripts/patch-change.mjs list [<nid>]           # the recorded changes
     node scripts/new-issue.mjs <nid> --branch <branch>   # start a new issue (refuses when branches/<branch>.patch exists)
     node scripts/new-issue.mjs <nid> --branch <branch> --refresh   # the MR got a new push: extract that patch again, say what changed (ignores git's abbreviated index lines), update only its BRANCHES.md row
     node scripts/capture-patch.mjs <slug> [--name <name> [--exclude <path>...]]   # no MR yet: the edits made in the After environment become reports/issues/<nid>/branches/<nid>-<name>.patch, listed in the variant; without --name it only lists them
