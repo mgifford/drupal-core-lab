@@ -45,7 +45,7 @@ equals the folder in each; about 100 ms). `3273806` is not built. A run's quick 
 - 217 tests, 217 pass, 0 skipped, twice in a row; `node scripts/selftest.mjs` passes.
 - Four negative controls, each failing one test and restored byte-identical: patch hash ignored; commit not compared; edits inside patched files treated as outside; a marker-only module trusted without comparing.
 - The end-to-end test runs the full `setup.mjs` with stand-in `ddev`, `docker` and `npm`: the module is extracted at the pin on both sides and patched on the After side only, a re-run verifies, new patch bytes block (exit 4), `--refresh-patches` applies them.
-- Found on the way: the first `git archive` backup message put a `;` after the path and the test pattern captured it; the message now ends the path with `)`.
+- Found on the way: the refresh message put a `;` straight after the backup path, so a pattern that reads the path picked it up; the message now ends the path with `)`.
 
 ## Not done
 
