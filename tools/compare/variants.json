@@ -1134,5 +1134,135 @@
     "after": {
       "env": "issue-3606655-latest"
     }
+  },
+  {
+    "slug": "3273054-pinned",
+    "issue": "3273054",
+    "label": "#3273054: text-format permission checkboxes hold an invisible focus stop, pinned core",
+    "description": "Tabbing through the Filter module section of /admin/people/permissions. Each text-format permission checkbox has a visually-hidden label built from the permission title; until core commit 12b38bdace the title held a link to the format, so the tab sequence stopped on an invisible link before each checkbox. Before: upstream main. After: main plus the patch authored in the lab (after.authoring; there is no issue fork and no merge request).",
+    "status": "authoring: no issue fork or merge request exists, so After equals Before until scripts/capture-patch.mjs writes the patch",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "ad11ba71c0f09b856e45dfdb8db155b5a588712d"
+    },
+    "before": {
+      "env": "baseline-3273054"
+    },
+    "after": {
+      "env": "issue-3273054",
+      "patches": [],
+      "authoring": true
+    },
+    "pages": [
+      "/admin/people/permissions"
+    ],
+    "login": true,
+    "recipe": "repro_3273054",
+    "demo": {
+      "start": "/admin/people/permissions"
+    },
+    "steps": [
+      {
+        "text": "Standard install: the Content editor role and the Basic HTML, Full HTML and Restricted HTML text formats exist.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /admin/people/permissions in both frames (the viewer logs in as an administrator).",
+        "how": "mirror"
+      },
+      {
+        "text": "Type \"text format\" in the Filter permissions field so the Filter module section sits at the top of the table.",
+        "how": "mirror"
+      },
+      {
+        "text": "Turn Mirror off. In EACH frame, click into the Filter permissions field and press Tab once per stop through the text-format checkboxes. Do not use a script: script-generated keys do not trigger the browser's own focus ring.",
+        "how": "each",
+        "lookFor": "Before: at least one stop shows no visible focus outline, and that stop is the link inside the visually-hidden label. On current main this may already be absent: see SUMMARY.md. After: every stop lands on a checkbox and shows a visible focus outline. Then press Run checks."
+      }
+    ],
+    "expected": "Tabbing from the Filter permissions field through the text-format checkboxes stops only on the checkboxes, every stop shows a visible focus outline, and no visually-hidden label contains a focusable element.",
+    "actual": "Not reproduced on core ad11ba71c0f0 (2026-10-15). Run 2026-10-15T18:49Z: the 12 text-format permission labels are still visually-hidden but hold no link (hasLink false), so there are 0 focusable elements in a visually-hidden label and 0 invisible keyboard stops on both sides. The walk applied the filter (5 of 102 rows visible) and 8 of 12 stops were text-format checkboxes, all with a visible outline. The anchor was removed from main by 12b38bdace (#3619751, 12.0.0-alpha1); it is still present in 10.6.x and every 11.x branch. See reports/issues/3273054/EVIDENCE.md.",
+    "checks": [
+      {
+        "label": "The Basic HTML permission checkbox for the Content editor role is on the page",
+        "probe": "!!document.querySelector('#edit-content-editor-use-text-format-basic-html')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "No visually-hidden label contains a focusable element",
+        "probe": "Array.from(document.querySelectorAll('label.visually-hidden a[href], label.visually-hidden button, label.visually-hidden input, label.visually-hidden select, label.visually-hidden textarea')).length",
+        "expect": 0,
+        "kind": "fix"
+      },
+      {
+        "label": "Every permissions checkbox still has a label element",
+        "probe": "Array.from(document.querySelectorAll('input[type=\"checkbox\"][name^=\"permissions[\"]')).filter(function (cb) { return !document.querySelector('label[for=\"' + cb.id + '\"]'); }).length",
+        "expect": 0,
+        "kind": "regression"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Tabbing through the text-format checkboxes in the Filter section: is there any stop with no visible focus outline?",
+        "expectBefore": "yes",
+        "expectAfter": "no"
+      },
+      {
+        "label": "Is the length of the tab sequence through the Filter section the same in both frames?",
+        "expectBefore": "one stop more per text-format checkbox",
+        "expectAfter": "the same"
+      }
+    ],
+    "coverage": {
+      "note": "Focus visibility is a keyboard check in each frame; the matrix covers the colour modes that change focus outlines.",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ]
+    }
+  },
+  {
+    "slug": "3273054-latest",
+    "extends": "3273054-pinned",
+    "label": "#3273054: same steps against the LATEST core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3273054-latest"
+    },
+    "after": {
+      "env": "issue-3273054-latest"
+    }
   }
 ]
