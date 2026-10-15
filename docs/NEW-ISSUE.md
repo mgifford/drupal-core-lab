@@ -43,6 +43,20 @@ not this issue's go in `node scripts/findings.mjs add ...` (or `from-run <run fo
 `reports/issues/<nid>/`. Fill in `EVIDENCE.md` (exact commits) and a `STATUS.md` snapshot (keep older ones as `STATUS-<date>.md`). Nothing is posted to drupal.org by any
 script; `ISSUE-COMMENT-DRAFT.md` is a draft for a person to review and post.
 
+To try tests you propose for the MR (PHPUnit, including FunctionalJavascript) on both sides, keep them in the issue folder laid out like core
+(`reports/issues/<nid>/tests-proposal/core/modules/.../tests/...`) and run, with the sites up (`node scripts/lab-env.mjs start <slug>`):
+
+    node scripts/try-tests.mjs <slug> reports/issues/<nid>/tests-proposal \
+      [--existing core/modules/<m>/tests/src/Kernel/<Existing>Test.php ...] \
+      [--patch-out reports/issues/<nid>/branches/<nid>-tests-<name>.patch --mr-ref refs/lab/issue-<nid>/<branch>] [--report <file>]
+
+It copies the files into both checkouts, runs `ddev phpunit` on each side in parallel (and any `--existing` core tests), always removes the
+copies, checks that the baseline's tracked files are unchanged, runs PHPCS and PHPStan on the files inside After, and writes a patch of the new
+files and checks that it applies at the MR's ref (`git -C envs/core.git for-each-ref refs/lab` lists them). It prints one row per test
+method with a verdict: "fails without the change, passes with it" is the useful kind; "passes on both" is a regression guard; "fails on both"
+and "passes only Before" are problems with the test and make the exit code 1. A file that already exists at its destination stops the run. The
+raw PHPUnit logs go to a temp folder it names; `--report` writes the table as a DRAFT Markdown file.
+
 ## 4b. Record what has and has not been tested
     node tools/playwright/walkthrough.mjs <nid>-pinned --browser=webkit --scheme=dark     # also --forced-colors, --viewport=1280x900
     node scripts/coverage.mjs <nid>                                                        # writes COVERAGE.md

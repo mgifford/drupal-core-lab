@@ -44,6 +44,7 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node tools/compare/serve.mjs <slug> [--ddev]         # side-by-side viewer (http://localhost:8100 or https://drupal-compare.ddev.site)
     node tools/compare/diff.mjs <slug>                   # which served files and pages differ
     node scripts/lint.mjs <slug> [--host]                # core's commit-code-check.sh on only the patched files (CSpell, PHPCS, PHPStan, ESLint, Stylelint, .pcss.css)
+    node scripts/try-tests.mjs <slug> <tests...> [--existing <core test path...>] [--patch-out <f>] [--mr-ref <ref>] [--report <f>]   # proposed PHPUnit tests, one call: copy into Before and After, `ddev phpunit` both, remove, PHPCS+PHPStan, patch checked against the MR; sites must be running
     node tools/compare/setup.mjs <slug> --checkout-only  # worktrees and patches only, no DDEV (enough for lint --host); --core-url=<mirror> if drupalcode is unreachable
     node tools/playwright/walkthrough.mjs <slug>         # scripted replay with real input; writes evidence and an interpretation
     node scripts/new-issue.mjs <nid> --branch <branch>   # start a new issue
