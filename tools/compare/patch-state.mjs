@@ -16,7 +16,7 @@ const ABSENT = 'ABSENT';
 export const sha256 = (b) => crypto.createHash('sha256').update(b).digest('hex');
 const git = (dir, args, o = {}) => spawnSync('git', ['--literal-pathspecs', ...args], { cwd: dir, encoding: o.buffer ? 'buffer' : 'utf8', maxBuffer: 1 << 28, env: o.env || process.env, input: o.input });
 const firstLine = (r) => `${r.stderr || r.stdout || ''}`.trim().split('\n')[0].slice(0, 220);
-const gitDir = (dir) => git(dir, ['rev-parse', '--absolute-git-dir']).stdout.trim();
+export const gitDir = (dir) => git(dir, ['rev-parse', '--absolute-git-dir']).stdout.trim();
 const stateFile = (dir) => path.join(gitDir(dir), 'lab-patches', 'state.json');
 const shown = (list, n = 6) => `${list.slice(0, n).join(', ')}${list.length > n ? `, and ${list.length - n} more` : ''}`;
 
@@ -180,7 +180,7 @@ export function patchState(dir, labRoot, patchPaths) {
 export function runBlockReason(states, slug, envs = {}) {
   for (const side of ['before', 'after']) {
     const st = states[side]; if (!st || !['mismatch', 'fresh'].includes(st.state)) continue;
-    const what = st.state === 'fresh' ? 'the patches are not applied' : st.reasons.join('; ');
+    const what = st.state === 'fresh' && !st.reasons.length ? 'the patches are not applied' : st.reasons.join('; ');
     return `BLOCKED: the ${side} environment does not match its patches (${what}). Nothing was run. Fix it with: node tools/compare/setup.mjs ${slug} --refresh-patches`;
   }
   const b = states.before;

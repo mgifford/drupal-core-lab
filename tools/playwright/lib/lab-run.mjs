@@ -18,7 +18,8 @@ import { chromium, firefox, webkit } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { labRoot, variants, envInfo, loginPath, envDir } from '../../compare/lib.mjs';
 import { runProblems, SCHEMA } from './run-schema.mjs';
-import { patchState, runBlockReason } from '../../compare/patch-state.mjs';
+import { runBlockReason } from '../../compare/patch-state.mjs';
+import { sideState } from '../../compare/contrib-state.mjs';
 import { identity, blockMessage, identityRecord } from '../../compare/env-state.mjs';
 export { VERDICTS } from './run-schema.mjs';
 
@@ -44,7 +45,7 @@ export function runArgs({ slug: defaultSlug, viewport = '1280x900' } = {}) {
 }
 
 // What each side's patches are, by content (tools/compare/patch-state.mjs). Recorded in every run; a run does not start on a mismatch.
-export const sidePatchStates = (v) => ({ before: patchState(envDir(v.before.env), labRoot, v.before.patches || []), after: patchState(envDir(v.after.env), labRoot, v.after.patches || []) });
+export const sidePatchStates = (v) => Object.fromEntries(['before', 'after'].map((side) => [side, sideState(envDir(v[side].env), labRoot, v[side].patches || [], { modules: v.contrib || [], patches: v[side].contribPatches || [] })]));
 
 export async function launch(a) {
   const ps = sidePatchStates(a.v), blocked = runBlockReason(ps, a.v.slug, { before: a.v.before.env, after: a.v.after.env });

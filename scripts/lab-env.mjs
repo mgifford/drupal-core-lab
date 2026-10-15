@@ -19,7 +19,7 @@ import http from 'node:http';
 import { spawnSync, execFileSync, spawn } from 'node:child_process';
 import { labRoot, variants, envDir } from '../tools/compare/lib.mjs';
 import { identity, headOf } from '../tools/compare/env-state.mjs';
-import { patchState } from '../tools/compare/patch-state.mjs';
+import { sideState } from '../tools/compare/contrib-state.mjs';
 
 const [cmd, target] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const yes = process.argv.includes('--yes');
@@ -68,8 +68,11 @@ function status() {
   console.log('Environment                    State     Core                       Project / URL                                     Used by');
   for (const e of allEnvs) { const p = st[envDir(e)] || {}; console.log(`${e.padEnd(30)} ${(p.status || 'unknown').padEnd(9)} ${coreOf(e).padEnd(26)} ${(p.name ? p.name + ' ' + (p.httpsurl || '') : '').padEnd(49).slice(0, 49)} ${(usedBy[e] || ['(no variant)']).join(', ')}`); }
   const bad = vs.map((v) => identity(v, { labRoot, envDir })).filter((id) => id.problems.length);
-  const dirty = vs.map((v) => ({ v, st: fs.existsSync(envDir(v.before.env)) ? patchState(envDir(v.before.env), labRoot, v.before.patches || []) : null })).filter((x) => x.st && x.st.outside.length);
+  const sideOf = (v, side) => (fs.existsSync(envDir(v[side].env)) ? sideState(envDir(v[side].env), labRoot, v[side].patches || [], { modules: v.contrib || [], patches: v[side].contribPatches || [] }) : null);
+  const dirty = vs.map((v) => ({ v, st: sideOf(v, 'before') })).filter((x) => x.st && x.st.outside.length);
+  const patchBad = vs.flatMap((v) => ['before', 'after'].map((side) => ({ v, side, st: sideOf(v, side) }))).filter((x) => x.st && ['mismatch', 'fresh'].includes(x.st.state));
   if (bad.length) { console.log('\nNot in the state the variant asks for (a run or setup stops on these):'); for (const id of bad) for (const p of id.problems) console.log(`  ${id.slug}: ${p.text}`); }
+  if (patchBad.length) { console.log('\nPatches or contrib modules that do not match what is in the checkout (a run stops on these; setup.mjs <slug> --refresh-patches):'); for (const x of patchBad) console.log(`  ${x.v.slug} ${x.side}: ${x.st.reasons.length ? x.st.reasons.join('; ') : 'the patches are not applied'}`); }
   if (dirty.length) { console.log('\nBaselines with tracked changes their variant does not declare (setup warns, a run refuses until they are reverted):'); for (const x of dirty) console.log(`  ${x.v.slug}: ${x.v.before.env}: ${x.st.outside.slice(0, 6).join(', ')}${x.st.outside.length > 6 ? ', ...' : ''}`); }
   const running = allEnvs.filter((e) => (st[envDir(e)] || {}).status === 'running').length;
   if (!allEnvs.length) console.log(noEnvsHere());

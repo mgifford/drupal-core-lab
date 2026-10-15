@@ -3,7 +3,8 @@
 //   node tools/compare/setup.mjs [slug] [--dry-run]
 //   node tools/compare/setup.mjs [slug] --check-patches    only report whether the patches still apply to that core
 //   node tools/compare/setup.mjs [slug] --refresh-patches  an environment whose patched files no longer match the patch files (setup stops with BLOCKED, exit 4): restore
-//                                                           the files the patches touch (local edits in them are saved as a diff first), then apply the current patches
+//                                                           the files the patches touch (local edits in them are saved as a diff first), then apply the current patches;
+//                                                           contrib modules are extracted again at their pinned commit and patched (the old folder is kept as a backup)
 //   node tools/compare/setup.mjs [slug] --reinstall        reset both sites (database and files) and reapply recipe and languages; keeps the checkout, vendor and patches
 //   (a variant with "testExtensions": true gets `ddev drupal test:extensions-enable` before its recipe, so it can install test modules)
 //   node tools/compare/setup.mjs [slug] --with-lighthouse   also install Lighthouse (optional background audits in the viewer; Node 22.19+)
@@ -26,6 +27,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { labRoot, variants, envDir } from './lib.mjs';
 import { ensurePatches } from './patch-state.mjs';
 import { identity, blockMessage, headOf, recipeStatus } from './env-state.mjs';
+import { ensureContrib } from './contrib-state.mjs';
 
 const args = process.argv.slice(2);
 const dry = args.includes('--dry-run');
@@ -64,17 +66,7 @@ const have = (p) => fs.existsSync(p);
 const out = (cmd, argv, cwd) => execFileSync(cmd, argv, { cwd, encoding: 'utf8' }).trim();
 const step = (t) => console.log(`\n== ${t}`);
 
-// A variant may list contrib modules whose code is not in Drupal core (an issue that moved to a
-// contrib project). Each is cloned once into envs/.contrib/<name>.git and its pinned commit is
-// extracted, without a .git directory, into <env>/modules/contrib/<name>. The After side can then
-// carry `contribPatches` (applied inside the module directory) instead of core `patches`.
-function materializeContrib(m, dest) {
-  const shared = path.join(labRoot, 'envs/.contrib', `${m.name}.git`);
-  if (!have(shared)) { fs.mkdirSync(path.dirname(shared), { recursive: true }); run('git', ['clone', '--bare', m.url, shared]); }
-  if (spawnSync('git', ['-C', shared, 'rev-parse', '--verify', '-q', `${m.commit}^{commit}`], { stdio: 'ignore' }).status !== 0) run('git', ['-C', shared, 'fetch', '--depth', '1', 'origin', m.commit]);
-  fs.mkdirSync(dest, { recursive: true });
-  run('bash', ['-c', `git -C '${shared}' archive '${m.commit}' | tar -x -C '${dest}'`]);
-}
+// Contrib modules (a variant's `contrib`, and `contribPatches` on a side) are handled by tools/compare/contrib-state.mjs.
 
 for (const tool of CHECK || CHECKOUT_ONLY ? ['git'] : ['git', 'ddev', 'docker']) {
   if (spawnSync(tool, ['--version'], { stdio: 'ignore' }).status !== 0) { console.error(`Missing prerequisite: ${tool}`); if (!dry) process.exit(1); }
@@ -189,25 +181,17 @@ for (const [side, spec] of sides) {
     if (!dry && !have(path.join(dir, '.ddev/commands/web/drupal'))) { console.error('The add-on was not installed (see output above).'); process.exit(1); }
     runRetry('ddev', ['restart'], { cwd: dir });
   }
-  // Contrib modules (same on both sides), then the After side's patches inside the module.
-  for (const m of v.contrib || []) {
-    const dest = path.join(dir, 'modules/contrib', m.name);
-    const cmarker = path.join(dir, `.lab-contrib-${m.name}`);
-    if (have(cmarker)) { console.log(`contrib module already in place: ${m.name} @ ${m.commit.slice(0, 12)}`); continue; }
-    step(`${side}: contrib ${m.name} @ ${m.commit.slice(0, 12)} (${m.url})`);
-    materializeContrib(m, dest);
-    if (!dry) fs.writeFileSync(cmarker, `${m.commit}\n`);
-  }
-  const cpMarker = path.join(dir, '.lab-contrib-patches-applied');
-  for (const cp of spec.contribPatches || []) {
-    const moddir = path.join(dir, 'modules/contrib', cp.module);
-    const done = have(cpMarker) ? fs.readFileSync(cpMarker, 'utf8').split('\n') : [];
-    if (done.includes(cp.patch)) { console.log(`contrib patch already applied: ${cp.patch}`); continue; }
-    if (!have(path.join(labRoot, cp.patch))) { console.error(`contrib patch missing: ${cp.patch}`); process.exit(1); }
-    // Run from the environment root, not the module directory: git apply in a subdirectory of a
-    // work tree silently skips every path. --directory prefixes the module's relative path.
-    run('git', ['apply', `--directory=${path.posix.join('modules/contrib', cp.module)}`, path.join(labRoot, cp.patch)], { cwd: dir });
-    if (!dry) fs.appendFileSync(cpMarker, cp.patch + '\n');
+  // Contrib modules (same on both sides), then the patches inside them (tools/compare/contrib-state.mjs): extracted at the pinned commit,
+  // recorded by content, verified on a re-run, BLOCKED (exit 4) on a mismatch; --refresh-patches extracts them again (the old folder is kept as a backup).
+  if ((v.contrib || []).length) {
+    if (dry) for (const m of v.contrib) console.log(`$ (plan) contrib ${m.name} @ ${m.commit.slice(0, 12)} from ${m.url}${(spec.contribPatches || []).filter((cp) => cp.module === m.name).map((cp) => `, patch ${cp.patch}`).join('')}`);
+    else {
+      step(`${side}: contrib ${v.contrib.map((m) => `${m.name} @ ${m.commit.slice(0, 12)}`).join(', ')}`);
+      const r = ensureContrib({ dir, labRoot, modules: v.contrib, patches: spec.contribPatches || [], refresh: REFRESH_PATCHES, slug: v.slug, env: spec.env, side, sharedRoot: path.join(labRoot, 'envs/.contrib'), log: (l) => console.log(l) });
+      for (const l of r.lines) (r.status === 'blocked' || r.status === 'failed' ? console.error : console.log)(l);
+      if (r.status === 'blocked') process.exit(4);
+      if (r.status === 'failed') process.exit(1);
+    }
   }
 
   if (!have(path.join(dir, 'core/phpunit.xml')) && !dry) fs.copyFileSync(path.join(dir, 'core/phpunit.xml.dist'), path.join(dir, 'core/phpunit.xml'));

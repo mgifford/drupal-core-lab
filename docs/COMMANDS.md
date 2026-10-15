@@ -13,7 +13,7 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/lab-env.mjs status | start <slug> | stop <slug|all> | delete <slug> --yes   # manage environments (two at a time); start also launches the viewer; status also shows each checkout's core commit and lists pairs that are not in the state their variant asks for
     node tools/compare/setup.mjs <slug>                  # build Before and After from scratch (resumable, idempotent)
     node tools/compare/setup.mjs <slug> --check-patches  # only: do the patches still apply to that core?
-    node tools/compare/setup.mjs <slug> --refresh-patches  # patched files no longer match the patch files (setup said BLOCKED, exit 4): restore them, apply the current patches
+    node tools/compare/setup.mjs <slug> --refresh-patches  # patched files (or contrib modules) no longer match the patch files (setup said BLOCKED, exit 4): restore them, apply the current patches; a contrib module is extracted again, the old folder kept as a backup
     node tools/compare/serve.mjs <slug> [--ddev]         # side-by-side viewer (http://localhost:8100 or https://drupal-compare.ddev.site)
     node tools/compare/diff.mjs <slug>                   # which served files and pages differ
     node scripts/lint.mjs <slug> [--host]                # core's commit-code-check.sh on only the patched files (CSpell, PHPCS, PHPStan, ESLint, Stylelint, .pcss.css)
