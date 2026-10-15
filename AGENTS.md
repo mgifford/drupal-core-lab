@@ -41,6 +41,7 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/lab-env.mjs status | start <slug> | stop <slug|all> | delete <slug> --yes   # manage environments (two at a time); start also launches the viewer
     node tools/compare/setup.mjs <slug>                  # build Before and After from scratch (resumable, idempotent)
     node tools/compare/setup.mjs <slug> --check-patches  # only: do the patches still apply to that core?
+    node tools/compare/setup.mjs <slug> --refresh-patches  # patched files no longer match the patch files (setup said BLOCKED, exit 4): restore them, apply the current patches
     node tools/compare/serve.mjs <slug> [--ddev]         # side-by-side viewer (http://localhost:8100 or https://drupal-compare.ddev.site)
     node tools/compare/diff.mjs <slug>                   # which served files and pages differ
     node scripts/lint.mjs <slug> [--host]                # core's commit-code-check.sh on only the patched files (CSpell, PHPCS, PHPStan, ESLint, Stylelint, .pcss.css)
@@ -136,6 +137,7 @@ Use only if `setup.mjs` is not usable. `core/scripts/dr install` is SQLite-only;
 | `lab-env.mjs stop` (or `trim`, `delete`) printed nothing and nothing stopped | Run from a git worktree (`.claude/worktrees/<name>`): environments live in the main checkout's `envs/`. Fixed 2026-10-14: it now exits 1 and names the main checkout to run it from. |
 | Lint: "Could not prepare the file list: ... GIT_DIR: unbound variable", or PHPStan "crashed because it reached configured PHP memory limit" | Fixed 2026-10-14. `ddev exec` re-quotes separate arguments, so `ddev exec bash -c '<script>'` expands variables too early; `scripts/lint.mjs` passes the script as one argument. It also passes core's `--memory-unlimited` to the check script, and reports a PHPStan memory crash as ERROR (the tool did not run), not FAIL. |
 | Before is not pristine | Only if the variant lists `before.patches` (a declared test-support change, e.g. #3604037's form_test page). |
+| `BLOCKED: <env> does not match its patches` (setup, exit 4; or a run) | Patches are tracked by content (`tools/compare/patch-state.mjs`): the patch file changed (a new MR push) or a patched file was edited. Nothing was changed. `setup.mjs <slug> --refresh-patches` restores the files the patches touch (your edits in them are saved to `lab-patches/backup-*.diff` in the checkout's git dir) and applies the current patches. |
 
 ## Changing the viewer (`tools/compare/index.html`, `serve.mjs`)
 - The same `index.html` is the local viewer and the GitHub Pages guide. An element that needs the server (frames, logins, axe, Lighthouse,

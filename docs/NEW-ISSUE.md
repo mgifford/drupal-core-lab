@@ -76,6 +76,7 @@ Everything is in `reports/issues/<nid>/`: start with `SUMMARY.md` (the entry poi
     node tools/compare/setup.mjs <nid>-pinned  --check-patches   # still applies to the pinned core?
     node tools/compare/setup.mjs <nid>-latest  --check-patches   # ...and to current core main?
     node tools/compare/setup.mjs <nid>-latest                    # build on current main
+    node tools/compare/setup.mjs <nid>-latest --refresh-patches   # only if setup said BLOCKED: the patch file changed (a newer MR push) or a patched file was edited
     node tools/playwright/walkthrough.mjs <nid>-latest           # read its "Interpretation"
 The walkthrough says whether the problem was **reproduced and fixed**, **no longer reproduces** (upstream may have fixed it: check
 the issue before concluding anything), or **reproduces but the patch no longer fixes it** (reroll). To re-pin after verifying, set

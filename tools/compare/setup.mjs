@@ -2,6 +2,8 @@
 // starting state (Standard install, admin/admin, recipe applied, patches on the "after" side).
 //   node tools/compare/setup.mjs [slug] [--dry-run]
 //   node tools/compare/setup.mjs [slug] --check-patches    only report whether the patches still apply to that core
+//   node tools/compare/setup.mjs [slug] --refresh-patches  an environment whose patched files no longer match the patch files (setup stops with BLOCKED, exit 4): restore
+//                                                           the files the patches touch (local edits in them are saved as a diff first), then apply the current patches
 //   node tools/compare/setup.mjs [slug] --reinstall        reset both sites (database and files) and reapply recipe and languages; keeps the checkout, vendor and patches
 //   (a variant with "testExtensions": true gets `ddev drupal test:extensions-enable` before its recipe, so it can install test modules)
 //   node tools/compare/setup.mjs [slug] --with-lighthouse   also install Lighthouse (optional background audits in the viewer; Node 22.19+)
@@ -22,6 +24,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { labRoot, variants, envDir } from './lib.mjs';
+import { ensurePatches } from './patch-state.mjs';
 
 const args = process.argv.slice(2);
 const dry = args.includes('--dry-run');
@@ -32,6 +35,7 @@ const coreFrom = (args.find((a) => a.startsWith('--core-from=')) || '').slice('-
 const core = { url: 'https://git.drupalcode.org/project/drupal.git', ref: 'main', ...(v.core || {}), ...(coreUrl ? { url: coreUrl } : {}) };
 const coreRef = `refs/lab/${core.commit ? core.commit.slice(0, 12) : core.ref}`;   // where the chosen core lives in envs/core.git
 const CHECK = args.includes('--check-patches');
+const REFRESH_PATCHES = args.includes('--refresh-patches');   // restore the files the patches touch, then apply the current patch files again
 const CHECKOUT_ONLY = args.includes('--checkout-only');   // worktrees and patches only, no DDEV
 const REINSTALL = args.includes('--reinstall');   // wipe each site's database and files and install again (no re-clone, no composer): the cheap way to reset
 const bare = path.join(labRoot, 'envs/core.git');
@@ -148,17 +152,14 @@ for (const [side, spec] of sides) {
   step(`${side}: ${spec.env}`);
   if (!have(dir)) run('git', ['-C', bare, 'worktree', 'add', '--detach', dir, coreRef]);
 
-  // Patches (after side only), recorded so a re-run does not apply them twice.
-  const marker = path.join(dir, '.lab-patches-applied');
-  const modified = have(dir) && !dry && out('git', ['status', '--porcelain', '--untracked-files=no'], dir) !== '';
-  for (const p of spec.patches || []) {
-    if (modified && !have(marker)) { console.log(`tree already has changes; assuming patches are applied: ${p}`); continue; }
-    const file = path.join(labRoot, p);
-    if (!have(file)) { console.error(`patch missing: ${p}`); process.exit(1); }
-    const done = have(marker) ? fs.readFileSync(marker, 'utf8').split('\n') : [];
-    if (done.includes(p)) { console.log(`patch already applied: ${p}`); continue; }
-    run('git', ['apply', file], { cwd: dir });
-    if (!dry) fs.appendFileSync(marker, p + '\n');
+  // Patches, tracked by content (tools/compare/patch-state.mjs): a re-run reuses them only when the recorded hashes and the files still
+  // match, and stops with BLOCKED (exit 4) when they do not. --refresh-patches puts the files the patches touch back and applies again.
+  if (dry) for (const p of spec.patches || []) run('git', ['apply', path.join(labRoot, p)], { cwd: dir });
+  else {
+    let r; try { r = ensurePatches({ dir, labRoot, patchPaths: spec.patches || [], refresh: REFRESH_PATCHES, slug: v.slug, env: spec.env, side }); } catch (e) { console.error(e.message); process.exit(1); }
+    for (const l of r.lines) (r.status === 'blocked' || r.status === 'failed' ? console.error : console.log)(l);
+    if (r.status === 'blocked') process.exit(4);
+    if (r.status === 'failed') process.exit(1);
   }
   if (CHECKOUT_ONLY) { console.log(`checkout only: ${path.relative(labRoot, dir)} at ${dry ? coreRef : out('git', ['rev-parse', '--short', 'HEAD'], dir)}${(spec.patches || []).length ? ' plus its patches' : ''}`); continue; }
 

@@ -18,6 +18,7 @@ import { chromium, firefox, webkit } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { labRoot, variants, envInfo, loginPath, envDir } from '../../compare/lib.mjs';
 import { runProblems, SCHEMA } from './run-schema.mjs';
+import { patchState, runBlockReason } from '../../compare/patch-state.mjs';
 export { VERDICTS } from './run-schema.mjs';
 
 export const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
@@ -41,7 +42,13 @@ export function runArgs({ slug: defaultSlug, viewport = '1280x900' } = {}) {
   return { v, slug, browser, scheme, forced, viewport: { width: vw, height: vh }, envTag, out };
 }
 
+// What each side's patches are, by content (tools/compare/patch-state.mjs). Recorded in every run; a run does not start on a mismatch.
+export const sidePatchStates = (v) => ({ before: patchState(envDir(v.before.env), labRoot, v.before.patches || []), after: patchState(envDir(v.after.env), labRoot, v.after.patches || []) });
+
 export async function launch(a) {
+  const ps = sidePatchStates(a.v), blocked = runBlockReason(ps, a.v.slug);
+  if (blocked) throw new Error(blocked);
+  for (const side of ['before', 'after']) if (ps[side].state === 'unverified') console.warn(`WARNING: the ${side} environment's patches are recorded by name only, not by content; run \`node tools/compare/setup.mjs ${a.v.slug}\` once to verify and record them.`);
   const b = await BROWSERS[a.browser].launch({ handleSIGINT: false, handleSIGTERM: false, handleSIGHUP: false });
   const environment = { browser: a.browser, browserVersion: b.version(), colorScheme: a.scheme, forcedColors: a.forced, viewport: a.viewport, os: `${process.platform} ${process.arch}` };
   return { browser: b, environment };
@@ -197,5 +204,5 @@ export function writeRun(run, results, md) {
 }
 
 export function baseResults(run, environment) {
-  return { variant: run.v.slug, issue: run.v.issue, when: new Date().toISOString(), environment, core: run.v.core, patches: run.v.after.patches || [], commits: { before: gitInfo(run.v.before.env), after: gitInfo(run.v.after.env) }, sides: {} };
+  return { variant: run.v.slug, issue: run.v.issue, when: new Date().toISOString(), environment, core: run.v.core, patches: run.v.after.patches || [], patchState: sidePatchStates(run.v), commits: { before: gitInfo(run.v.before.env), after: gitInfo(run.v.after.env) }, sides: {} };
 }
