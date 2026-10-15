@@ -42,7 +42,7 @@ Four pairs pass: `3619127-pinned`, `3604037-latest`, `3093378-latest`, `3093378-
 
 - **`launch()` was not exercised**: Playwright is not installed in this worktree. `identity()` and `blockMessage()` it calls are tested; the hook is three lines.
 - **No real DDEV run** of the full setup path through a recipe reset. The first `lab-env.mjs reset 3618230-latest --yes` will be it.
-- **Dirty baseline stays a warning.** You answered the recipe question only; `AGENTS.md` rule 1 says stop. Still your call.
+- **Dirty baseline:** decided afterwards (option 3), see the addendum below.
 - **Contrib identity (slice E)** and **stale runs in coverage (slice F)**: unchanged.
 
 ## Risks and rollback
@@ -50,3 +50,14 @@ Four pairs pass: `3619127-pinned`, `3604037-latest`, `3093378-latest`, `3093378-
 - Blocking is the point, but it means a stale pair stops a run until it is reset or rebuilt; the message names the command.
 - The recipe hash covers every file in `recipes/<name>` (names and bytes); a copy that DDEV or a recipe's own `apply.sh` writes extra files into would differ. None of the four passing pairs did.
 - Rollback: revert the commit. Nothing is stored, so there is nothing to migrate.
+
+## Addendum: dirty-baseline policy, option 3 (decided by the owner)
+
+Setup **warns** about tracked changes in a baseline that its variant does not declare (`before.patches` is the sanctioned exception) and carries on; a **run refuses** until they are
+reverted or declared, with the file names and `git -C envs/<env> checkout -- <files>` in the message. Extra edits on the After side only warn, and are recorded in
+`results.json` as `patchState.after.outside`. `lab-env.mjs status` lists dirty baselines. Files: `tools/compare/patch-state.mjs` (`runBlockReason`, `patchState.outside`, the setup
+warning), `tools/playwright/lib/lab-run.mjs`, `scripts/lab-env.mjs`, `docs/PITFALLS.md`, `AGENTS.md` rule 1.
+
+Checks: one new unit test (a dirty baseline warns in setup and refuses a run; a declared change is not dirt; an extra edit next to a declared change is; After edits are recorded, not blocking)
+and a step in the slice A end-to-end test (setup exits 0 with the warning and never reverts the edit). Three negative controls (a run that does not refuse; the After side refusing too; the declared
+footprint counted as dirt) each fail it. 207 tests, 206 pass, 1 skipped. Real environments, read-only: none of the five baselines has undeclared changes, so no run is refused for this today.

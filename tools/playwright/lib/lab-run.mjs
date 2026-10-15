@@ -47,10 +47,11 @@ export function runArgs({ slug: defaultSlug, viewport = '1280x900' } = {}) {
 export const sidePatchStates = (v) => ({ before: patchState(envDir(v.before.env), labRoot, v.before.patches || []), after: patchState(envDir(v.after.env), labRoot, v.after.patches || []) });
 
 export async function launch(a) {
-  const ps = sidePatchStates(a.v), blocked = runBlockReason(ps, a.v.slug);
+  const ps = sidePatchStates(a.v), blocked = runBlockReason(ps, a.v.slug, { before: a.v.before.env, after: a.v.after.env });
   if (blocked) throw new Error(blocked);
   const idn = identity(a.v, { labRoot, envDir });   // common base, pinned commit, recipe: observed against what the variant asks for
   if (idn.problems.length) throw new Error(blockMessage(idn));
+  if (ps.after.outside && ps.after.outside.length) console.warn(`WARNING: tracked files changed outside the patches in ${a.v.after.env}: ${ps.after.outside.slice(0, 6).join(', ')}${ps.after.outside.length > 6 ? ', ...' : ''}. The run goes ahead and records them in results.json (patchState.after.outside).`);
   for (const side of ['before', 'after']) if (ps[side].state === 'unverified') console.warn(`WARNING: the ${side} environment's patches are recorded by name only, not by content; run \`node tools/compare/setup.mjs ${a.v.slug}\` once to verify and record them.`);
   const b = await BROWSERS[a.browser].launch({ handleSIGINT: false, handleSIGTERM: false, handleSIGHUP: false });
   const environment = { browser: a.browser, browserVersion: b.version(), colorScheme: a.scheme, forcedColors: a.forced, viewport: a.viewport, os: `${process.platform} ${process.arch}` };

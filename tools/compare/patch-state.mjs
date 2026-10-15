@@ -134,7 +134,12 @@ function refreshTree(dir, labRoot, info) {
 export function ensurePatches({ dir, labRoot, patchPaths, refresh = false, slug, env, side }) {
   const lines = [], say = (...s) => lines.push(...s);
   const info = inspect(dir, labRoot, patchPaths, { deep: true });
-  const n = info.wanted.length, warnOutside = () => { if (info.outside.length) say(`WARNING: tracked files changed outside the patches in ${env}${side === 'before' && !n ? ' (the baseline is never edited)' : ''}: ${shown(info.outside)}. Left as they are.`); };
+  const n = info.wanted.length, warnOutside = () => {
+    if (!info.outside.length) return;
+    say(side === 'before'
+      ? `WARNING: ${env} is a baseline and has tracked changes its variant does not declare: ${shown(info.outside)}. Left as they are. Setup carries on, but a run refuses until they are reverted (git -C envs/${env} checkout -- <file>) or declared as before.patches.`
+      : `WARNING: tracked files changed outside the patches in ${env}: ${shown(info.outside)}. Left as they are; a run records them.`);
+  };
   const done = (status, msg) => { say(msg); warnOutside(); return { status, lines, info }; };
   if (info.state === 'none') { warnOutside(); return { status: 'none', lines, info }; }
   if (info.state === 'verified') return done('verified', `patches verified by content in ${env}: ${info.wanted.map((w) => `${path.basename(w.path)} ${w.sha256.slice(0, 8)}`).join(', ')}`);
@@ -164,17 +169,24 @@ export function ensurePatches({ dir, labRoot, patchPaths, refresh = false, slug,
 export function patchState(dir, labRoot, patchPaths) {
   try {
     const i = inspect(dir, labRoot, patchPaths);
-    return { state: i.state, recorded: i.rec ? { base: i.rec.base, patches: i.rec.patches, footprint: i.rec.footprint } : null, current: i.wanted.map((w) => ({ path: w.path, sha256: w.sha256 })), reasons: i.reasons };
-  } catch (e) { return { state: 'unknown', recorded: null, current: [], reasons: [String(e.message).split('\n')[0]] }; }
+    return { state: i.state, recorded: i.rec ? { base: i.rec.base, patches: i.rec.patches, footprint: i.rec.footprint } : null, current: i.wanted.map((w) => ({ path: w.path, sha256: w.sha256 })), reasons: i.reasons, outside: i.outside };
+  } catch (e) { return { state: 'unknown', recorded: null, current: [], reasons: [String(e.message).split('\n')[0]], outside: [] }; }
 }
 
 // Why a run must not start, or '' if it may. A side whose files do not match its patches (or whose patches were never applied) would
-// produce evidence about something else; a side with only a name list (no content record) may run, and says so in its results.
-export function runBlockReason(states, slug) {
+// produce evidence about something else; so would a Before checkout with tracked changes its variant does not declare (AGENTS.md rule 1:
+// the baseline is never edited). A side with only a name list (no content record) may run, and says so in its results. Extra edits on the
+// After side do not stop a run; they are recorded. envs = { before, after } environment names, for the message.
+export function runBlockReason(states, slug, envs = {}) {
   for (const side of ['before', 'after']) {
     const st = states[side]; if (!st || !['mismatch', 'fresh'].includes(st.state)) continue;
     const what = st.state === 'fresh' ? 'the patches are not applied' : st.reasons.join('; ');
     return `BLOCKED: the ${side} environment does not match its patches (${what}). Nothing was run. Fix it with: node tools/compare/setup.mjs ${slug} --refresh-patches`;
+  }
+  const b = states.before;
+  if (b && b.outside && b.outside.length) {
+    const env = envs.before || 'the Before environment', files = shown(b.outside, 8);
+    return `BLOCKED: the Before environment (${env}) has tracked changes its variant does not declare: ${files}. A Before that is not the pristine commit is not evidence of the change. Nothing was run. Revert them: git -C envs/${envs.before || '<before env>'} checkout -- ${b.outside.slice(0, 8).join(' ')}${b.outside.length > 8 ? ' ...' : ''}   (or, if the change is meant, declare it as before.patches in the variant).`;
   }
   return '';
 }

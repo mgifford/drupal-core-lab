@@ -55,6 +55,10 @@ test('slice A through setup.mjs: build, reuse, block on changed bytes, refresh, 
   // acceptance 4: an unrelated edit in the patched tree is reported, not reset
   fs.appendFileSync(path.join(env('after'), 'core/other.txt'), 'my edit\n');
   r = setup(); assert.equal(r.status, 0, out(r)); assert.match(out(r), /WARNING: tracked files changed outside the patches[^\n]*core\/other\.txt/); assert.equal(fs.readFileSync(path.join(env('after'), 'core/other.txt'), 'utf8'), 'untouched\nmy edit\n');
+  // a hand edit in the BASELINE: setup warns and carries on (exit 0), never reverts it; a run is what refuses (patch-state.test.mjs)
+  fs.appendFileSync(path.join(env('before'), 'core/other.txt'), '// a debugging line\n');
+  r = setup(); assert.equal(r.status, 0, out(r)); assert.match(out(r), /WARNING: zz-patchid-before is a baseline and has tracked changes its variant does not declare: core\/other\.txt[^\n]*a run refuses/); assert.match(fs.readFileSync(path.join(env('before'), 'core/other.txt'), 'utf8'), /debugging line/);
+  git(env('before'), 'checkout', '--', 'core/other.txt');
 
   // acceptance 1: same file name, different bytes: BLOCKED (exit 4), tree untouched. Before this change: "patch already applied", old change kept.
   setPatch('TWO-V2-DIFFERENT');

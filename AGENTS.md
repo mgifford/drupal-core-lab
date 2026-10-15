@@ -54,7 +54,7 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
 
 ## Rules for agents
 
-1. **Do not edit the baseline.** If `git status` there shows tracked changes, stop and say so. One declared exception: a variant may list `before.patches` for a *test-support* change that must be the same on both sides (for example #3604037's `form_test` page); it is named in the variant and the issue's REPRODUCE.md, and is never code under test.
+1. **Do not edit the baseline.** If `git status` there shows tracked changes, stop and say so (setup warns about them and a run refuses until they are reverted). One declared exception: a variant may list `before.patches` for a *test-support* change that must be the same on both sides (for example #3604037's `form_test` page); it is named in the variant and the issue's REPRODUCE.md, and is never code under test.
 2. **Record the commit** (`git rev-parse --short HEAD`) of every environment behind every result, and the tool, browser and OS
    versions for manual tests. The walkthrough does this for you.
 3. **Snapshot before anything destructive** on a site database (`ddev snapshot --name <label>`).

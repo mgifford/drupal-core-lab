@@ -137,3 +137,30 @@ test('what a run records and when it must not start', () => {
   assert.equal(runBlockReason({ after: { state: 'unverified' } }, 'zz'), '', 'a name-only record may run (it is reported in the results)');
   assert.equal(patchState(path.join(root, 'no-such-checkout'), f.lab, p).state, 'unknown');
 });
+
+test('a baseline with tracked changes its variant does not declare: setup warns, a run refuses; a declared change is not dirt; edits on the After side are recorded, not blocking', () => {
+  const f = fixture(), envs = { before: 'baseline-x', after: 'issue-x' };
+  assert.deepEqual(patchState(f.dir, f.lab, []).outside, [], 'a clean baseline');
+  assert.equal(runBlockReason({ before: patchState(f.dir, f.lab, []), after: { state: 'none', outside: [] } }, 'zz-latest', envs), '');
+  fs.appendFileSync(f.file('core/other.txt'), '// dd($x); a debugging line\n');
+  const r = ens(f, [], { side: 'before', env: 'baseline-x' });
+  assert.equal(r.status, 'none'); assert.match(r.lines.join('\n'), /WARNING: baseline-x is a baseline and has tracked changes its variant does not declare: core\/other\.txt\. Left as they are\. Setup carries on, but a run refuses until they are reverted \(git -C envs\/baseline-x checkout -- <file>\) or declared as before\.patches\./);
+  assert.equal(f.read('core/other.txt').includes('dd($x)'), true, 'setup never reverts it');
+  const why = runBlockReason({ before: patchState(f.dir, f.lab, []), after: { state: 'none', outside: [] } }, 'zz-latest', envs);
+  assert.match(why, /^BLOCKED: the Before environment \(baseline-x\) has tracked changes its variant does not declare: core\/other\.txt\. A Before that is not the pristine commit[\s\S]*Nothing was run[\s\S]*git -C envs\/baseline-x checkout -- core\/other\.txt[\s\S]*declare it as before\.patches/);
+  git(f.dir, 'checkout', '--', 'core/other.txt');
+  assert.equal(runBlockReason({ before: patchState(f.dir, f.lab, []), after: { state: 'none', outside: [] } }, 'zz-latest', envs), '', 'reverted: the run may go ahead');
+
+  // a declared test-support change is the sanctioned exception; an extra edit next to it is not
+  const g = fixture(), p = [g.put('support.patch', modify('TEST-SUPPORT'))];
+  assert.equal(ens(g, p, { side: 'before', env: 'baseline-y' }).status, 'applied');
+  assert.deepEqual(patchState(g.dir, g.lab, p).outside, []); assert.equal(runBlockReason({ before: patchState(g.dir, g.lab, p), after: { state: 'none', outside: [] } }, 'zz', envs), '');
+  fs.appendFileSync(g.file('core/b.txt'), 'extra\n');
+  assert.deepEqual(patchState(g.dir, g.lab, p).outside, ['core/b.txt']); assert.match(runBlockReason({ before: patchState(g.dir, g.lab, p), after: { state: 'none', outside: [] } }, 'zz', envs), /^BLOCKED: the Before environment[\s\S]*core\/b\.txt/);
+
+  // the After side: extra edits are recorded in the state and do not stop a run
+  const h = fixture(); fs.appendFileSync(h.file('core/other.txt'), 'my experiment\n');
+  const after = patchState(h.dir, h.lab, []); assert.deepEqual(after.outside, ['core/other.txt']);
+  assert.equal(runBlockReason({ before: { state: 'none', outside: [] }, after }, 'zz', envs), '');
+  assert.deepEqual(patchState(path.join(root, 'no-such-checkout'), h.lab, []).outside, [], 'no checkout, nothing to report');
+});
