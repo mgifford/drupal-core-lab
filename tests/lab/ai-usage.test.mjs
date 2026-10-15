@@ -75,3 +75,29 @@ test('session-usage: a folder with no transcripts is an error, not an empty succ
   const dir = path.join(tmp, 'empty'); fs.mkdirSync(dir);
   const r = node('scripts/session-usage.mjs', [dir]); assert.notEqual(r.status, 0);
 });
+
+// Phase 2: repeated call sequences. Each message below is one model call that used one tool; `ctx` is the context it read.
+const step = (i, cmd, ctx) => [
+  line({ type: 'assistant', timestamp: `2026-10-02T00:00:${String(10 + i).padStart(2, '0')}Z`, message: { id: `msg_s${i}`, model: 'm-1', usage: { input_tokens: 1, cache_creation_input_tokens: 0, cache_read_input_tokens: ctx, output_tokens: 5 }, content: [{ type: 'tool_use', id: `tu${i}`, name: 'Bash', input: { command: cmd } }] } }),
+  line({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: `tu${i}`, content: 'ok' }] } }),
+];
+const SEQ = [
+  line({ type: 'custom-title', customTitle: 'sequences' }),
+  ...step(1, "grep -rn foo core | head", 100), ...step(2, "sed -n '1,20p' core/a.php", 200),
+  ...step(3, 'node scripts/lint.mjs x', 300), ...step(4, 'node scripts/lint.mjs x', 310), ...step(5, 'node scripts/lint.mjs x', 320),
+  ...step(6, "grep -rn foo core | head", 400), ...step(7, "sed -n '1,20p' core/b.php", 500),
+  ...step(8, 'node scripts/coverage.mjs 1; node scripts/check-draft.mjs 1', 600),
+].join('\n');
+
+test('session-usage --sequences: a pair that repeats is ranked by the context its later call read; a repeated run is listed apart; chained scripts are named', () => {
+  const dir = path.join(tmp, 'seq'); fs.mkdirSync(dir); fs.writeFileSync(path.join(dir, 'seqseq01-x.jsonl'), `${SEQ}\n`);
+  const json = path.join(tmp, 'seq.json');
+  const r = node('scripts/session-usage.mjs', [dir, '--sequences', '--json', json]); assert.equal(r.status, 0, r.stderr);
+  const { sequences } = JSON.parse(fs.readFileSync(json, 'utf8'));
+  const top = sequences.ranked[0]; assert.equal(top.key, 'Bash/grep -> Bash/sed'); assert.equal(top.occurrences, 2); assert.equal(top.callsSaved, 2); assert.equal(top.contextAvoided, 200 + 1 + 500 + 1); assert.equal(top.allBash, true);
+  assert.ok(sequences.ranked.every((g) => !/^(Bash\/lab:lint) -> \1/.test(g.key)), 'the same call repeated is not a sequence');
+  assert.deepEqual(sequences.repeatedRuns.map((x) => [x.label, x.runs, x.calls]), [['Bash/lab:lint', 1, 3]]);
+  assert.ok(sequences.mix.some((m) => m.label === 'Bash/lab:coverage+lab:check-draft' && m.steps === 1), 'two scripts chained in one command are named together');
+  assert.equal(sequences.totalSteps, 8); assert.match(r.stdout, /Repeated call sequences across 1 sessions/);
+  assert.equal(JSON.parse(fs.readFileSync(json, 'utf8')).sessions.some((s) => 'steps' in s), false, 'per-call steps are not written to the JSON');
+});
