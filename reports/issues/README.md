@@ -16,7 +16,7 @@ one: `node scripts/new-issue.mjs <nid> --branch <fork-branch>` (see `docs/NEW-IS
 | [3087389](3087389/SUMMARY.md) | Media Library selection text | [yes](3087389/REPRODUCE.md) | 0 | 2026-10-14 |  |  |
 | [3093378](3093378/SUMMARY.md) | Use ARIA disclosure pattern for submenu buttons in vertical toolbar orientation | [yes](3093378/REPRODUCE.md) | 1 | 2026-10-13 | 12 | `3093378-latest`, `3093378-pinned` |
 | [3155130](3155130/SUMMARY.md) | "Edit summary" toggle | [yes](3155130/REPRODUCE.md) | 0 | 2026-10-14 |  |  |
-| [3207233](3207233/SUMMARY.md) | active workspace indication | [yes](3207233/REPRODUCE.md) | 2 | 2026-10-16 |  | `3207233-pinned`, `3207233-latest` |
+| [3207233](3207233/SUMMARY.md) | active workspace indication | [yes](3207233/REPRODUCE.md) | 3 | 2026-10-16 | 2 | `3207233-pinned`, `3207233-latest` |
 | [3243173](3243173/SUMMARY.md) | HTML5 validation setting / form focus management | [yes](3243173/REPRODUCE.md) | 2 | 2026-10-14 |  |  |
 | [3273054](3273054/SUMMARY.md) | text-format permission checkboxes have a hidden focus stop | [yes](3273054/REPRODUCE.md) | 0 | 2026-10-15 | 1 | `3273054-pinned`, `3273054-latest` |
 | [3273806](3273806/SUMMARY.md) | #3273806 — WCAG non-text contrast on the toolbar orientation (direction) icon | no | 1 |  | 1 | `3273806-latest` |
@@ -30,7 +30,7 @@ one: `node scripts/new-issue.mjs <nid> --branch <fork-branch>` (see `docs/NEW-IS
 | [3604037](3604037/SUMMARY.md) | Indicate that grouping elements have child element errors | [yes](3604037/REPRODUCE.md) | 4 | 2026-10-02 | 6 | `3604037-pinned`, `3604037-latest` |
 | [3606655](3606655/) | Allow user-configurable UI settings - starting with dark mode | [yes](3606655/REPRODUCE.md) | 1 | 2026-10-15 | 1 | `3606655-pinned`, `3606655-latest` |
 | [3614293](3614293/SUMMARY.md) | aria-invalid test coverage | [yes](3614293/REPRODUCE.md) | 1 | 2026-10-14 |  |  |
-| [3615469](3615469/SUMMARY.md) | Maintenance mode form: "user login" link text leaves out "page" (WCAG 2.4.4) | no | 0 |  | 1 |  |
+| [3615469](3615469/SUMMARY.md) | maintenance form login link text | [yes](3615469/REPRODUCE.md) | 1 | 2026-10-16 | 1 | `3615469-pinned`, `3615469-latest` |
 | [3617875](3617875/SUMMARY.md) | disabled elements in dark mode | [yes](3617875/REPRODUCE.md) | 3 | 2026-10-14 |  |  |
 | [3618230](3618230/SUMMARY.md) | Adopt the ajax MessageCommand for file uploads | [yes](3618230/REPRODUCE.md) | 3 | 2026-10-14 | 5 | `3618230-pinned`, `3618230-latest`, `3618230-pilot` |
 | [3618405](3618405/) | Purpose of views exposed filters form is unclear when zoomed in | [yes](3618405/REPRODUCE.md) | 2 | 2026-10-14 | 2 | `3618405-pinned`, `3618405-latest` |

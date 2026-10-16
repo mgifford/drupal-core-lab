@@ -127,8 +127,13 @@ downloaded log. It does not depend on the automated checks and does not replace 
   that changed lights up. **Amplify** reveals faint differences. For #3619127 the
   Create Article page is entirely black: pixel-identical before and after.
 In both overlay modes input goes to the top (After) frame; Mirror repeats it underneath.
-Compositing needs no pixel access, so it works across the two sites. Onion skin was
-not exercised in the browser yet; Difference was.
+Desktop fills the available pane width, including the full comparison area in overlay views. Mobile and Tablet retain their
+selected widths. Overlays use the full pane height. Switching Desktop between side by side and an overlay can change the
+responsive layout; Before and After always have the same viewport width within the selected view.
+Compositing needs no pixel access, so it works across the two sites.
+Run `node tools/playwright/viewer-layout.mjs` for a standalone browser regression check without DDEV. It uses the actual viewer
+with local identical-page fixtures, checks both overlay geometries and repeated mode changes at the device widths, and checks
+that identical pixels render black in Difference view. This tests viewer layout, not Drupal behavior.
 
 ## Caches and browser state
 **Clear Drupal caches (both)** runs `ddev drupal cache` on both sites at once and

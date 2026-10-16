@@ -81,7 +81,7 @@
 .frame-error { margin: .5rem .75rem; padding: .5rem .75rem; background: var(--error-bg, #fee); border: 1px solid var(--error-border, #f88); border-radius: var(--r); color: var(--error-text, #800); font-size: .85rem; display: none; }
 .frame-error:not([hidden]) { display: block; }
   .panes.overlay { grid-template-columns: 1fr; }
-  .panes.overlay .pane { grid-area: 1 / 1; overflow: hidden; position: relative; }
+  .panes.overlay .pane { grid-area: 1 / 1; grid-template-rows: minmax(0, 1fr); overflow: hidden; position: relative; background: transparent; }
   .panes.overlay .pane h2 { display: none; }
   .panes.overlay.onion #fa { opacity: .5; }
   .panes.overlay.diff { isolation: isolate; background: #fff; }
@@ -288,8 +288,8 @@ function updateExternal() { for (const [side, ids] of [['before', ['ob', 'pob']]
 const normPath = (p) => { p = String(p || '').trim().replace(/^https?:\/\/[^/]+/, '').replace(/^\/{2,}/, '/'); return /^[/?#]/.test(p) ? (p || '/') : '/' + p; };
 function load(side, path) { path = normPath(path); markStart(side); last[side] = path; P[side].textContent = path; F[side].src = origins[side] + path; updateExternal(); }
 function loadBoth(path) { path = normPath(path); $('goto').value = path; status('Loading…'); load('before', path); load('after', path); }
-// In overlay views each frame must keep the width it has side by side (half of the page), or it would cross a responsive breakpoint and show a different layout.
-function applyWidth() { const w = radio('width'), overlay = radio('view') !== 'side'; for (const s of ['before', 'after']) F[s].style.width = w === 'half' ? (overlay ? 'calc(50% - .25rem)' : '100%') : w; }
+// Fixed device widths stay the same in every view; Desktop fills each pane.
+function applyWidth() { const w = radio('width'); for (const s of ['before', 'after']) F[s].style.width = w === 'half' ? '100%' : w; }
 // Optional extras (live axe, Lighthouse, ...) are OFF until you turn them on. Choices are remembered in this browser (localStorage) only.
 const PREF_KEY = 'compare.prefs', PREF_CHECKS = ['axeon', 'axebest', 'lhon', 'lhperf', 'darkos', 'mirrorhover'];   // not remembered on purpose: Text direction and JavaScript off (they reset each visit so nothing looks broken by surprise)
 function applyPrefs() { let p = {}; try { p = JSON.parse(localStorage.getItem(PREF_KEY)) || {}; } catch (e) { /* none */ }

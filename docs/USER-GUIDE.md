@@ -74,8 +74,10 @@ a script click). Results use a tick or cross **and words**, not colour alone. Th
 ![A single frame in Difference view: most of the page is black where the two sides are identical, and the sidebar that opened on the After side, with the URL alias field and the error area, is lit up in colour.](images/viewer-difference.png)
 
 **View: Difference** overlays the two sites so identical pixels are black and anything that changed lights up (the opened sidebar above).
-**Amplify** reveals faint differences. **Onion skin** fades one over the other. Both keep the same frame width as side by side. Focus
-rings appear as differences too, because only one frame can hold keyboard focus.
+**Amplify** reveals faint differences. **Onion skin** fades one over the other. Both fill the available comparison height.
+Mobile and Tablet keep their selected frame widths in every view. Desktop fills each pane: half the comparison area side by side,
+and the full area in an overlay. Switching views can therefore change the Desktop responsive layout; both frames always use the
+same width. Focus rings appear as differences too, because only one frame can hold keyboard focus.
 
 ## 6. Confirm it yourself
 Because the frames stay in step, you can simply look and answer.
