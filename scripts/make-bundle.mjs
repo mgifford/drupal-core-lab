@@ -40,7 +40,7 @@ const copy = (rel, filter = () => true) => {
   if (!fs.existsSync(src)) { console.error(`missing: ${rel}`); process.exit(1); }
   fs.cpSync(src, dst, { recursive: true, filter: (f) => !/\.DS_Store$|node_modules/.test(f) && filter(f) });
 };
-for (const f of ['serve.mjs', 'index.html', 'lib.mjs', 'diff.mjs', 'setup.mjs', 'lighthouse.mjs', 'emulation.mjs', 'README.md']) copy(`tools/compare/${f}`);
+for (const f of ['serve.mjs', 'index.html', 'lib.mjs', 'diff.mjs', 'setup.mjs', 'lighthouse.mjs', 'emulation.mjs', 'media-preferences.mjs', 'README.md']) copy(`tools/compare/${f}`);
 for (const f of ['coverage.mjs', 'lab-env.mjs', 'doctor.mjs', 'add-language.php', 'build-cloud.mjs', 'make-bundle.mjs', 'measure-resources.mjs']) copy(`scripts/${f}`);
 for (const f of ['USER-GUIDE.md', 'FORCED-COLORS.md']) copy(`docs/${f}`);
 copy('docs/images');
