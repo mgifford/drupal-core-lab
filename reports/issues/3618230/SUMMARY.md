@@ -43,7 +43,7 @@ Open points: comment #10 asked whether the problem still occurs in the Default A
 
 ## Not verified
 
-- A screen reader: with the MR the error has `role="alert"` and is also sent to `Drupal.announce()` (assertive); a double announcement is possible and untested
+- Screen readers other than VoiceOver: with the MR the error has `role="alert"` and is also sent to `Drupal.announce()` (assertive). The owner tried VoiceOver on macOS 27.0.1 (reported the evening of 2026-10-15, local time) and heard the error once (FB-003, a person's report; browser not recorded); NVDA, JAWS and other browsers were not tried
 - Firefox, WebKit, dark mode, forced colours, zoom and reflow
 - The pinned core pair (`f5e265802542`); a multi-value file field
 - Any step by a person

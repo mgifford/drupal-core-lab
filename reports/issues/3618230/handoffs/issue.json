@@ -1,9 +1,9 @@
 {
   "stage": "issue",
   "nid": "3618230",
-  "written": "2026-10-15",
+  "written": "2026-10-16",
   "by": "model",
-  "summary": "ManagedFile::uploadAjaxCallback() puts status messages in the widget's #prefix, which Xss::filterAdmin() filters, so markup in a message is lost (Olivero's SVG icons; in default_admin the Hide button). MR !16777 sends the messages with MessageCommand into a container it adds to the prefix instead.",
+  "summary": "ManagedFile::uploadAjaxCallback() puts status messages in the widget's #prefix, which Xss::filterAdmin() filters, so markup in a message is lost (Olivero's SVG icons; in default_admin the Hide button). MR !16777 sends the messages with MessageCommand into a container it adds to the prefix instead. The lab and the owner's manual test found nothing wrong with it so far.",
   "facts": [
     {
       "text": "fago kept the message where it was shown before, inside the widget area, for backward compatibility.",
@@ -30,19 +30,20 @@
         "comment:12",
         "source:mr"
       ]
+    },
+    {
+      "text": "The owner tested by hand (reported the evening of 2026-10-15) with keyboard only and VoiceOver: no problem with focus after Hide, and the error is heard once (FB-002, FB-003 met).",
+      "sources": [
+        "file:reports/issues/3618230/FEEDBACK.md",
+        "file:reports/issues/3618230/EVIDENCE.md"
+      ]
     }
   ],
   "open": [
     {
-      "text": "Is it acceptable that focus stays on the faded-out Hide button after Enter? A person must judge it (FB-002).",
+      "text": "Other screen readers (NVDA, JAWS) and other browsers were not tried; the browser used for the manual test was not recorded.",
       "sources": [
-        "file:reports/issues/3618230/FEEDBACK.md"
-      ]
-    },
-    {
-      "text": "Does a real screen reader speak the error twice (role=alert and Drupal.announce)? Only a synthetic check was run (FB-003).",
-      "sources": [
-        "file:reports/issues/3618230/FEEDBACK.md"
+        "file:reports/issues/3618230/EVIDENCE.md"
       ]
     }
   ],
@@ -50,9 +51,9 @@
     "comment:7": "16740329:96adf46a",
     "comment:10": "16792307:c392ca51",
     "comment:11": "16807417:6d3effcc",
-    "file:reports/issues/3618230/EVIDENCE.md": "0963ad58",
+    "file:reports/issues/3618230/EVIDENCE.md": "ba23b17a",
     "comment:12": "16807600:be9ffe5b",
     "source:mr": "cc62268b",
-    "file:reports/issues/3618230/FEEDBACK.md": "e602b2cc"
+    "file:reports/issues/3618230/FEEDBACK.md": "793bdde7"
   }
 }
