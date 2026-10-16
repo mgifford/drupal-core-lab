@@ -69,6 +69,7 @@ if (cmd === 'prepare') {
   const valueOf = (flag) => { const i = args.indexOf(flag); if (i < 0) return undefined; const v = args[i + 1]; if (v === undefined || v.startsWith('--')) { console.error(`${flag} needs a value`); process.exit(2); } return v; };
   const mr = valueOf('--mr');
   if (mr !== undefined && !/^\d{1,7}$/.test(mr)) { console.error('--mr must be the merge request number, for example 16777'); process.exit(2); }
+  const outArg = valueOf('--out') ?? null;   // checked before the fetch: bad input is refused with no network request
   let g; try { g = await gather(nid, { mr, log: (m) => console.log(m) }); } catch (e) { console.error(`Could not fetch: ${e.message}`); process.exit(1); }
   if (g.missing.issue) { console.error(g.missing.issue); process.exit(1); }
   if (args.includes('--compact')) {
@@ -85,7 +86,6 @@ if (cmd === 'prepare') {
   const yamlP = loadYaml(); if (!yamlP) { console.error('js-yaml is not installed. Run: npm install --prefix tools/compare/.deps js-yaml@4'); process.exit(2); }
   const { text, missing } = composePrompt(tpl, ex, g, { catalogue: catalogueText(loadCatalogue(yamlP)), checks: checkCatalogueText(loadChecks(yamlP)) });
   const desktop = path.join(os.homedir(), 'Desktop');
-  const outArg = valueOf('--out') ?? null;
   const out = path.resolve(outArg || path.join(fs.existsSync(desktop) ? desktop : process.cwd(), `issue-pack-prompt-${nid}.txt`));
   fs.writeFileSync(out, text);
   const copied = args.includes('--no-copy') ? null : copyToClipboard(text);
