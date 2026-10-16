@@ -42,13 +42,17 @@ done for you), *mirrored to both frames* (do it once, the viewer repeats it on t
 frame, because that is the thing being tested). "Look for" lines say what you should see. **Expected** and **Actual** say what the issue
 claims.
 
-**Layout.** The top bar always shows page navigation (variant, Page, Go, log in, reload, Tools). Under it the conditions toolbar always shows **Device width** (Mobile, Tablet, Desktop), **Colour mode** (Light, Dark, Follow OS) and **Compare as** (Side by side, Onion skin, Difference); the **Conditions**, **Input** and **Audits** popovers hold the rest. A popover button shows how many of its settings are changed from the default, and a strip above the frames lists every changed setting with **Reset all**. The frames fill the window; under them the dock has one tab each for **Steps**, **Checks**, **Manual**, **Accessibility**, **Lighthouse** and **Environment**, each with a badge showing how that result stands. The viewer remembers your last tab and dock size.
+**Layout.** The top bar always shows page navigation (Comparison, Page, Go, Log in both, Clear cache, Reload, Tools and browser buttons). Under it the conditions toolbar always shows **Device width** (Mobile, Tablet, Desktop), **Colour mode** (Light, Dark, Follow OS) and **Compare as** (Side by side, Onion skin, Difference); the **Conditions**, **Input** and **Audits** popovers hold the rest. A popover button shows how many of its settings are changed from the default, and a strip above the frames lists every changed setting with **Reset all**. The frames fill the window; under them the dock has one tab each for **Steps**, **Checks**, **Manual**, **Accessibility**, **Lighthouse** and **Environment**, each with a badge showing how that result stands. The viewer remembers your last tab and dock size.
 
-**Controls.** *Log in both as admin*; *Go (both)* opens the same page on both sides; *Clear Drupal caches (both)* and *Reset browser state
-(both)* fix most "it should have worked" surprises (the second clears the saved sidebar preference); *Reload Before / After* for a stuck
+**Controls.** *Log in both* (as administrator); *Go (both)* opens the same page on both sides; *Clear cache* (both sites) and *Reset browser state
+(both)* fix most "it should have worked" surprises (the second clears the saved sidebar preference); *Reload → Before / After / Both* for a stuck
 frame; *Open outside this tool* opens the real Before or After site in its own window. *Colour mode*, *Simulate a dark-mode OS* and *Device
 width* change how both sides look so you can check dark mode and narrow screens. *Sync scrolling* and *Sync navigation* keep the frames
 in step.
+
+**Switch browsers.** The top-right logo buttons open this comparison in another installed browser: Edge, Chrome, Firefox, and Safari on a Mac. The current browser is omitted. Both page paths, scroll positions, test conditions, comparison mode and dock layout travel with it. Each browser has its own login session; sign in there if needed. Cookies, typed form contents, observations and audit results are not copied. Forced colours must be enabled separately in the destination browser or operating system. The buttons work when the lab server runs on your desktop computer; a cloud lab cannot launch applications on your laptop. Use **Tools → Copy comparison link** and paste it into another browser instead.
+
+**Switch comparisons.** The Comparison menu lists pairs already built in this lab, using shorter issue and revision labels. It does not build or start environments. Start another pair in the terminal with `node scripts/lab-env.mjs start <slug>` before selecting it; refresh the viewer after building a new pair.
 
 **Forced colours** (Windows contrast themes): start with `node scripts/lab-env.mjs start <slug> --browser` to use the viewer inside a lab browser that has a built-in switch for both frames, or press **Open forced-colours window** from a normal tab (see `docs/FORCED-COLORS.md`).
 
@@ -57,7 +61,7 @@ setup once. **Mirror hover and focus** (off by default) draws a marker on the ma
 a real one. So turn it off (Run checks does this for you) and do the final step yourself in each frame.
 
 ## 4. Do the test
-1. Press **Log in both as admin**, then **Go (both)**.
+1. Press **Log in both* (as administrator)*, then **Go (both)**.
 2. Follow the steps. With Mirror on, do the setup steps once in either frame.
 3. Turn Mirror **off**. Click the "URL alias" link in the error summary with a **real mouse click in each frame**, and again using only the
    keyboard (Tab to the link, press Enter). The status next to *Run checks* shows which frame has had a real click.
@@ -117,11 +121,11 @@ Browsers: Chromium, Firefox and WebKit (Safari's engine). Colour modes: light, d
 ## 9. If something looks wrong
 | What you see | What to do |
 |---|---|
-| A frame stays blank | An alert appears after 12 seconds and checks both sites. Use **Reload Before / After**. See `docs/FRAME-LOADING-2026-10-01.md`. |
+| A frame stays blank | An alert appears after 12 seconds and checks both sites. Use **Reload → Before / After / Both**. See `docs/FRAME-LOADING-2026-10-01.md`. |
 | "Setup not reached" | You are not in the error state, or a frame has had no real click. Redo the steps; turn Mirror off; click in each frame yourself. |
 | Both sides fail the fix checks | Check you used a real click (not a script), and that the page reloaded after Save. Press **Reset browser state**, redo the steps. |
 | Before passes (does not fail) | The problem may already be fixed upstream on this core; see the issue's `REPRODUCE.md`. |
-| Odd styling or old behaviour | **Clear Drupal caches (both)**, then reload. |
+| Odd styling or old behaviour | **Clear cache* (both sites)*, then reload. |
 | A site is not answering | `ddev list`, then `ddev restart` in that environment (`envs/<name>`). |
 
 ## 10. Come back later, or try newer Drupal

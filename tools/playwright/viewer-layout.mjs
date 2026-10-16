@@ -14,6 +14,7 @@ const fixture = '<!doctype html><html><head><style>html,body{margin:0;background
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
   if (url.pathname === '/') { res.setHeader('content-type', 'text/html'); res.end(html); return; }
+  if (url.pathname === '/browser-handoff.mjs') { res.setHeader('content-type', 'text/javascript'); res.end(fs.readFileSync(new URL('../compare/browser-handoff.mjs', import.meta.url))); return; }
   if (/^\/(before|after)\//.test(url.pathname)) { res.setHeader('content-type', 'text/html'); res.end(fixture); return; }
   res.setHeader('content-type', 'application/json');
   if (url.pathname === '/variants.json') {
