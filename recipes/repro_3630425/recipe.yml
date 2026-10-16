@@ -1,0 +1,22 @@
+name: 'Repro: #3630425 multi-value actions header'
+description: 'Default Admin Article form with a core unlimited plain-text field and two sample defaults. No contributed modules or saved content required.'
+type: Testing
+recipes:
+  - core/tests/fixtures/recipes/article_content_type
+install:
+  - node
+config:
+  actions:
+    system.theme:
+      simpleConfigUpdate:
+        admin: default_admin
+    core.entity_form_display.node.article.default:
+      setComponent:
+        name: field_lab_multivalue
+        options:
+          type: string_textfield
+          weight: -10
+          region: content
+          settings:
+            size: 60
+            placeholder: ''

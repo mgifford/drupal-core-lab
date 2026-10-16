@@ -2817,6 +2817,282 @@
       }
     },
     {
+      "slug": "3630425-pinned",
+      "issue": "3630425",
+      "label": "#3630425: empty actions header, Default Admin on main",
+      "description": "Pinned current main with Default Admin, versus the MR !17421 implementation ported to main plus a local regression-test addition. The implementation is unchanged; the interdiff adds Stark/Default Admin coverage for initial and AJAX add/remove header states. Both sides use the same unlimited core text-field recipe. Expect no visual change; inspect header markup or Run checks.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Standard install with Default Admin. Apply repro_3630425 to both sides: unlimited plain-text field Lab multi-value text, with two sample defaults. No Paragraphs module required.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /node/add/article in both frames. Find Lab multi-value text, its rows and Remove buttons.",
+          "how": "mirror",
+          "lookFor": "The same field values and controls on both sides."
+        },
+        {
+          "text": "Run checks, then inspect the field table header in each frame using DevTools or its accessibility tree.",
+          "how": "each",
+          "lookFor": "Before: empty actions-column header. After: visually hidden Operations label. There are three header cells; the first spans two logical columns, so the affected header is the second th, not the third th."
+        },
+        {
+          "text": "Use Add another item in each frame and run checks again. Optionally remove the newly added row and verify that the header remains labelled only on After. Do not save the Article.",
+          "how": "each",
+          "lookFor": "Header state survives AJAX updates; add/remove behavior remains available on both sides."
+        }
+      ],
+      "expected": "After has a visually hidden Operations column header and no empty-table-header finding for the target table; the visible form and add/remove controls remain usable.",
+      "actual": "Before has an empty actions-column header, inherited by Default Admin from FieldPreprocess.",
+      "observe": [
+        {
+          "label": "Actions header has an accessible Operations label",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Visible field layout remains unchanged",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Add and Remove controls work with the keyboard",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Default Admin rendered this page",
+          "probe": "window.drupalSettings?.ajaxPageState?.theme === 'default_admin'",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The core multi-value field table exists",
+          "probe": "!!document.querySelector('table[id^=\"field-lab-multivalue-values\"]')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The table contains Remove controls",
+          "probe": "Array.from(document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.querySelectorAll('input[type=submit], button') || []).some(e => /Remove/.test(e.value || e.textContent))",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Actions-column header is labelled Operations",
+          "probe": "document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.tHead?.rows[0]?.cells[1]?.textContent.trim() === 'Operations'",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "No empty header in the target field table",
+          "probe": "Array.from(document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.querySelectorAll('thead th') || []).every(e => e.textContent.trim().length > 0)",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Same number of field rows on both sides",
+          "probe": "document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.tBodies[0]?.rows.length",
+          "expect": "same",
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/node/add/article"
+      ],
+      "demo": {
+        "start": "/node/add/article"
+      }
+    },
+    {
+      "slug": "3630425-latest",
+      "issue": "3630425",
+      "label": "#3630425: same MR on current core main",
+      "description": "Pinned current main with Default Admin, versus the MR !17421 implementation ported to main plus a local regression-test addition. The implementation is unchanged; the interdiff adds Stark/Default Admin coverage for initial and AJAX add/remove header states. Both sides use the same unlimited core text-field recipe. Expect no visual change; inspect header markup or Run checks.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Standard install with Default Admin. Apply repro_3630425 to both sides: unlimited plain-text field Lab multi-value text, with two sample defaults. No Paragraphs module required.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /node/add/article in both frames. Find Lab multi-value text, its rows and Remove buttons.",
+          "how": "mirror",
+          "lookFor": "The same field values and controls on both sides."
+        },
+        {
+          "text": "Run checks, then inspect the field table header in each frame using DevTools or its accessibility tree.",
+          "how": "each",
+          "lookFor": "Before: empty actions-column header. After: visually hidden Operations label. There are three header cells; the first spans two logical columns, so the affected header is the second th, not the third th."
+        },
+        {
+          "text": "Use Add another item in each frame and run checks again. Optionally remove the newly added row and verify that the header remains labelled only on After. Do not save the Article.",
+          "how": "each",
+          "lookFor": "Header state survives AJAX updates; add/remove behavior remains available on both sides."
+        }
+      ],
+      "expected": "After has a visually hidden Operations column header and no empty-table-header finding for the target table; the visible form and add/remove controls remain usable.",
+      "actual": "Before has an empty actions-column header, inherited by Default Admin from FieldPreprocess.",
+      "observe": [
+        {
+          "label": "Actions header has an accessible Operations label",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Visible field layout remains unchanged",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Add and Remove controls work with the keyboard",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Default Admin rendered this page",
+          "probe": "window.drupalSettings?.ajaxPageState?.theme === 'default_admin'",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The core multi-value field table exists",
+          "probe": "!!document.querySelector('table[id^=\"field-lab-multivalue-values\"]')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The table contains Remove controls",
+          "probe": "Array.from(document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.querySelectorAll('input[type=submit], button') || []).some(e => /Remove/.test(e.value || e.textContent))",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Actions-column header is labelled Operations",
+          "probe": "document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.tHead?.rows[0]?.cells[1]?.textContent.trim() === 'Operations'",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "No empty header in the target field table",
+          "probe": "Array.from(document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.querySelectorAll('thead th') || []).every(e => e.textContent.trim().length > 0)",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Same number of field rows on both sides",
+          "probe": "document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.tBodies[0]?.rows.length",
+          "expect": "same",
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/node/add/article"
+      ],
+      "demo": {
+        "start": "/node/add/article"
+      }
+    },
+    {
+      "slug": "3630425-mr-only",
+      "issue": "3630425",
+      "label": "#3630425: published MR implementation only on main",
+      "description": "Pinned current main with Default Admin, versus the MR !17421 implementation ported to main plus a local regression-test addition. The implementation is unchanged; the interdiff adds Stark/Default Admin coverage for initial and AJAX add/remove header states. Both sides use the same unlimited core text-field recipe. Expect no visual change; inspect header markup or Run checks.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Standard install with Default Admin. Apply repro_3630425 to both sides: unlimited plain-text field Lab multi-value text, with two sample defaults. No Paragraphs module required.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /node/add/article in both frames. Find Lab multi-value text, its rows and Remove buttons.",
+          "how": "mirror",
+          "lookFor": "The same field values and controls on both sides."
+        },
+        {
+          "text": "Run checks, then inspect the field table header in each frame using DevTools or its accessibility tree.",
+          "how": "each",
+          "lookFor": "Before: empty actions-column header. After: visually hidden Operations label. There are three header cells; the first spans two logical columns, so the affected header is the second th, not the third th."
+        },
+        {
+          "text": "Use Add another item in each frame and run checks again. Optionally remove the newly added row and verify that the header remains labelled only on After. Do not save the Article.",
+          "how": "each",
+          "lookFor": "Header state survives AJAX updates; add/remove behavior remains available on both sides."
+        }
+      ],
+      "expected": "After has a visually hidden Operations column header and no empty-table-header finding for the target table; the visible form and add/remove controls remain usable.",
+      "actual": "Before has an empty actions-column header, inherited by Default Admin from FieldPreprocess.",
+      "observe": [
+        {
+          "label": "Actions header has an accessible Operations label",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Visible field layout remains unchanged",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Add and Remove controls work with the keyboard",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Default Admin rendered this page",
+          "probe": "window.drupalSettings?.ajaxPageState?.theme === 'default_admin'",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The core multi-value field table exists",
+          "probe": "!!document.querySelector('table[id^=\"field-lab-multivalue-values\"]')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The table contains Remove controls",
+          "probe": "Array.from(document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.querySelectorAll('input[type=submit], button') || []).some(e => /Remove/.test(e.value || e.textContent))",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Actions-column header is labelled Operations",
+          "probe": "document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.tHead?.rows[0]?.cells[1]?.textContent.trim() === 'Operations'",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "No empty header in the target field table",
+          "probe": "Array.from(document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.querySelectorAll('thead th') || []).every(e => e.textContent.trim().length > 0)",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Same number of field rows on both sides",
+          "probe": "document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.tBodies[0]?.rows.length",
+          "expect": "same",
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/node/add/article"
+      ],
+      "demo": {
+        "start": "/node/add/article"
+      }
+    },
+    {
       "slug": "3631321-pinned",
       "issue": "3631321",
       "label": "#3631321: Inactive vertical-tab borders (pinned parent MR)",
