@@ -1,0 +1,3751 @@
+{
+  "schemaVersion": 1,
+  "session": {
+    "id": "1a6e811c-3f75-4c10-a061-f8fedaea21dd",
+    "startedAt": "2026-10-16T11:02:37.633Z",
+    "mode": "compare",
+    "seed": "8dc84176-e52a-4e09-a961-d6a62aa55cd4",
+    "orderings": [
+      "b",
+      "a",
+      "a",
+      "b",
+      "a",
+      "b",
+      "b",
+      "a",
+      "b",
+      "a",
+      "b",
+      "a",
+      "a",
+      "b",
+      "b",
+      "a",
+      "a",
+      "b",
+      "a",
+      "b",
+      "a",
+      "b",
+      "a",
+      "b",
+      "b",
+      "a",
+      "a",
+      "b",
+      "b",
+      "a"
+    ]
+  },
+  "environment": {
+    "timestamp": "2026-10-16T11:02:37.659Z",
+    "os": "darwin",
+    "osVersion": "27.0.0",
+    "architecture": "arm64",
+    "cpuCount": 8,
+    "totalMemoryBytes": 17179869184,
+    "machineModel": "Mac14,2",
+    "firefoxVersion": "158.0",
+    "playwrightVersion": "1.62.1",
+    "co2jsVersion": "0.19.0",
+    "energyAdapter": "auto",
+    "headed": false,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "onBattery": true,
+    "batteryPercent": 96,
+    "lowPowerMode": true
+  },
+  "targets": [
+    {
+      "url": "http://repro-baseline-3618230-latest.ddev.site",
+      "label": "before"
+    },
+    {
+      "url": "http://repro-issue-3618230-latest.ddev.site",
+      "label": "after"
+    }
+  ],
+  "configuration": {
+    "browser": {
+      "name": "firefox",
+      "headed": false,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    "benchmark": {
+      "warmups": 5,
+      "runs": 15,
+      "settle_ms": 1500,
+      "cache_mode": "warm"
+    },
+    "stability": {
+      "network_idle_ms": 500,
+      "post_idle_ms": 1500,
+      "max_wait_ms": 10000
+    },
+    "crawl": {
+      "enabled": false,
+      "max_pages": 100,
+      "max_depth": 5,
+      "same_origin": true,
+      "include": [],
+      "exclude": [],
+      "query_strategy": "strip",
+      "respect_robots": true,
+      "delay_ms": 250
+    },
+    "energy": {
+      "adapter": "auto",
+      "baseline": true,
+      "baseline_duration_ms": 10000,
+      "baseline_settle_ms": 5000,
+      "profiler_interval_ms": 10,
+      "retain_profile": false
+    },
+    "co2": {
+      "enabled": true,
+      "model": "swd",
+      "check_green_hosting": false
+    },
+    "sitespeed": {
+      "enabled": false
+    },
+    "output": {
+      "directory": "/private/tmp/claude-501/-Users-mgifford-drupal-core-lab/252e92c9-404d-4a33-9472-f33700d51155/scratchpad/energy-results",
+      "json": true,
+      "csv": true,
+      "html": true,
+      "collect_hostname": false
+    }
+  },
+  "scenarios": [
+    {
+      "scenario": "before",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-baseline-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792147856323,
+      "endedAt": 1792147858498,
+      "timing": {
+        "durationMs": 2175,
+        "ttfbMs": 43,
+        "responseMs": 43,
+        "domContentLoadedMs": 193,
+        "loadMs": 195
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380181,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3723
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 184,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380181,
+        "estimatedGrams": 0.0563428242,
+        "consumerDeviceGrams": 0.030237315654,
+        "networkGrams": 0.013522277808,
+        "dataCenterGrams": 0.012583230738000002
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2175,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.1193008543999998,
+          "sampleCount": 1845,
+          "averageWatts": 0.5146210824827586
+        },
+        "baselineWatts": 0.09884260926392631,
+        "estimatedIdleJoules": 0.2149826751490397,
+        "incrementalJoules": 0.9043181792509601
+      }
+    },
+    {
+      "scenario": "before",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-baseline-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792147881102,
+      "endedAt": 1792147883276,
+      "timing": {
+        "durationMs": 2174,
+        "ttfbMs": 40,
+        "responseMs": 40,
+        "domContentLoadedMs": 189,
+        "loadMs": 192
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380181,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3723
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 186,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380181,
+        "estimatedGrams": 0.0563428242,
+        "consumerDeviceGrams": 0.030237315654,
+        "networkGrams": 0.013522277808,
+        "dataCenterGrams": 0.012583230738000002
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2174,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.0653549516,
+          "sampleCount": 1849,
+          "averageWatts": 0.4900436759889605
+        },
+        "baselineWatts": 0.10690660363257147,
+        "estimatedIdleJoules": 0.23241495629721037,
+        "incrementalJoules": 0.8329399953027896
+      }
+    },
+    {
+      "scenario": "before",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-baseline-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792147930862,
+      "endedAt": 1792147933031,
+      "timing": {
+        "durationMs": 2169,
+        "ttfbMs": 27,
+        "responseMs": 27,
+        "domContentLoadedMs": 185,
+        "loadMs": 188
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380181,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3723
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 181,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380181,
+        "estimatedGrams": 0.0563428242,
+        "consumerDeviceGrams": 0.030237315654,
+        "networkGrams": 0.013522277808,
+        "dataCenterGrams": 0.012583230738000002
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2169,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.2387224232,
+          "sampleCount": 1844,
+          "averageWatts": 0.5711030074688797
+        },
+        "baselineWatts": 0.09152762554522546,
+        "estimatedIdleJoules": 0.19852341980759403,
+        "incrementalJoules": 1.040199003392406
+      }
+    },
+    {
+      "scenario": "before",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-baseline-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148005242,
+      "endedAt": 1792148007415,
+      "timing": {
+        "durationMs": 2173,
+        "ttfbMs": 43,
+        "responseMs": 43,
+        "domContentLoadedMs": 189,
+        "loadMs": 191
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380181,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3723
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 189,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380181,
+        "estimatedGrams": 0.0563428242,
+        "consumerDeviceGrams": 0.030237315654,
+        "networkGrams": 0.013522277808,
+        "dataCenterGrams": 0.012583230738000002
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2173,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.0680320988,
+          "sampleCount": 1843,
+          "averageWatts": 0.4915011959502991
+        },
+        "baselineWatts": 0.10175007938135372,
+        "estimatedIdleJoules": 0.22110292249568164,
+        "incrementalJoules": 0.8469291763043184
+      }
+    },
+    {
+      "scenario": "before",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-baseline-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148054832,
+      "endedAt": 1792148057017,
+      "timing": {
+        "durationMs": 2185,
+        "ttfbMs": 40,
+        "responseMs": 40,
+        "domContentLoadedMs": 196,
+        "loadMs": 201
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380181,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3723
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 191,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380181,
+        "estimatedGrams": 0.0563428242,
+        "consumerDeviceGrams": 0.030237315654,
+        "networkGrams": 0.013522277808,
+        "dataCenterGrams": 0.012583230738000002
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2185,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.0906645715999999,
+          "sampleCount": 1844,
+          "averageWatts": 0.49915998700228825
+        },
+        "baselineWatts": 0.08438810865484882,
+        "estimatedIdleJoules": 0.18438801741084468,
+        "incrementalJoules": 0.9062765541891552
+      }
+    },
+    {
+      "scenario": "before",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-baseline-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148104420,
+      "endedAt": 1792148106614,
+      "timing": {
+        "durationMs": 2194,
+        "ttfbMs": 55,
+        "responseMs": 55,
+        "domContentLoadedMs": 210,
+        "loadMs": 210
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380181,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3723
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 200,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380181,
+        "estimatedGrams": 0.0563428242,
+        "consumerDeviceGrams": 0.030237315654,
+        "networkGrams": 0.013522277808,
+        "dataCenterGrams": 0.012583230738000002
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2194,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.1292946704,
+          "sampleCount": 1863,
+          "averageWatts": 0.5147195398359161
+        },
+        "baselineWatts": 0.08951578889371686,
+        "estimatedIdleJoules": 0.1963976408328148,
+        "incrementalJoules": 0.9328970295671852
+      }
+    },
+    {
+      "scenario": "before",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-baseline-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148129192,
+      "endedAt": 1792148131363,
+      "timing": {
+        "durationMs": 2171,
+        "ttfbMs": 29,
+        "responseMs": 29,
+        "domContentLoadedMs": 183,
+        "loadMs": 195
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380181,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3723
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 187,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380181,
+        "estimatedGrams": 0.0563428242,
+        "consumerDeviceGrams": 0.030237315654,
+        "networkGrams": 0.013522277808,
+        "dataCenterGrams": 0.012583230738000002
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2171,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.1372072544,
+          "sampleCount": 1846,
+          "averageWatts": 0.5238172521418701
+        },
+        "baselineWatts": 0.09984707831074034,
+        "estimatedIdleJoules": 0.21676800701261725,
+        "incrementalJoules": 0.9204392473873828
+      }
+    },
+    {
+      "scenario": "before",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-baseline-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148203612,
+      "endedAt": 1792148205820,
+      "timing": {
+        "durationMs": 2208,
+        "ttfbMs": 73,
+        "responseMs": 73,
+        "domContentLoadedMs": 223,
+        "loadMs": 226
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380181,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3723
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 228,
+          "sizePx": 3812
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380181,
+        "estimatedGrams": 0.0563428242,
+        "consumerDeviceGrams": 0.030237315654,
+        "networkGrams": 0.013522277808,
+        "dataCenterGrams": 0.012583230738000002
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2208,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.0387741931999999,
+          "sampleCount": 1876,
+          "averageWatts": 0.47045932663043466
+        },
+        "baselineWatts": 0.09672108144930054,
+        "estimatedIdleJoules": 0.21356014784005561,
+        "incrementalJoules": 0.8252140453599442
+      }
+    },
+    {
+      "scenario": "before",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-baseline-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148228520,
+      "endedAt": 1792148230714,
+      "timing": {
+        "durationMs": 2194,
+        "ttfbMs": 50,
+        "responseMs": 51,
+        "domContentLoadedMs": 210,
+        "loadMs": 213
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380181,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3723
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 222,
+          "sizePx": 3812
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380181,
+        "estimatedGrams": 0.0563428242,
+        "consumerDeviceGrams": 0.030237315654,
+        "networkGrams": 0.013522277808,
+        "dataCenterGrams": 0.012583230738000002
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2194,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.1334842136,
+          "sampleCount": 1864,
+          "averageWatts": 0.5166290855059253
+        },
+        "baselineWatts": 0.08612753461939521,
+        "estimatedIdleJoules": 0.18896381095495307,
+        "incrementalJoules": 0.944520402645047
+      }
+    },
+    {
+      "scenario": "before",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-baseline-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148278116,
+      "endedAt": 1792148280280,
+      "timing": {
+        "durationMs": 2164,
+        "ttfbMs": 21,
+        "responseMs": 21,
+        "domContentLoadedMs": 175,
+        "loadMs": 180
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380181,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3723
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 171,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380181,
+        "estimatedGrams": 0.0563428242,
+        "consumerDeviceGrams": 0.030237315654,
+        "networkGrams": 0.013522277808,
+        "dataCenterGrams": 0.012583230738000002
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2164,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.221980616,
+          "sampleCount": 1839,
+          "averageWatts": 0.5646860517560074
+        },
+        "baselineWatts": 0.0868938223187902,
+        "estimatedIdleJoules": 0.188038231497862,
+        "incrementalJoules": 1.033942384502138
+      }
+    },
+    {
+      "scenario": "before",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-baseline-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148327655,
+      "endedAt": 1792148329855,
+      "timing": {
+        "durationMs": 2200,
+        "ttfbMs": 52,
+        "responseMs": 52,
+        "domContentLoadedMs": 209,
+        "loadMs": 218
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380181,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3723
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 205,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380181,
+        "estimatedGrams": 0.0563428242,
+        "consumerDeviceGrams": 0.030237315654,
+        "networkGrams": 0.013522277808,
+        "dataCenterGrams": 0.012583230738000002
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2200,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.1261018664,
+          "sampleCount": 1869,
+          "averageWatts": 0.5118644847272726
+        },
+        "baselineWatts": 0.0824168117831074,
+        "estimatedIdleJoules": 0.1813169859228363,
+        "incrementalJoules": 0.9447848804771637
+      }
+    },
+    {
+      "scenario": "before",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-baseline-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148377232,
+      "endedAt": 1792148379413,
+      "timing": {
+        "durationMs": 2181,
+        "ttfbMs": 42,
+        "responseMs": 42,
+        "domContentLoadedMs": 199,
+        "loadMs": 201
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380181,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3723
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 195,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380181,
+        "estimatedGrams": 0.0563428242,
+        "consumerDeviceGrams": 0.030237315654,
+        "networkGrams": 0.013522277808,
+        "dataCenterGrams": 0.012583230738000002
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2181,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.1965107708,
+          "sampleCount": 1843,
+          "averageWatts": 0.5486064973865199
+        },
+        "baselineWatts": 0.09306286886243158,
+        "estimatedIdleJoules": 0.20297011698896328,
+        "incrementalJoules": 0.9935406538110367
+      }
+    },
+    {
+      "scenario": "before",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-baseline-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148451716,
+      "endedAt": 1792148453902,
+      "timing": {
+        "durationMs": 2186,
+        "ttfbMs": 43,
+        "responseMs": 43,
+        "domContentLoadedMs": 200,
+        "loadMs": 203
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380181,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3723
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 200,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380181,
+        "estimatedGrams": 0.0563428242,
+        "consumerDeviceGrams": 0.030237315654,
+        "networkGrams": 0.013522277808,
+        "dataCenterGrams": 0.012583230738000002
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2186,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.1256443388000001,
+          "sampleCount": 1845,
+          "averageWatts": 0.5149333663311986
+        },
+        "baselineWatts": 0.08615265453597498,
+        "estimatedIdleJoules": 0.1883297028156413,
+        "incrementalJoules": 0.9373146359843588
+      }
+    },
+    {
+      "scenario": "before",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-baseline-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148476530,
+      "endedAt": 1792148478710,
+      "timing": {
+        "durationMs": 2180,
+        "ttfbMs": 35,
+        "responseMs": 35,
+        "domContentLoadedMs": 192,
+        "loadMs": 203
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380181,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3723
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 194,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380181,
+        "estimatedGrams": 0.0563428242,
+        "consumerDeviceGrams": 0.030237315654,
+        "networkGrams": 0.013522277808,
+        "dataCenterGrams": 0.012583230738000002
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2180,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.1106234036,
+          "sampleCount": 1847,
+          "averageWatts": 0.5094602768807339
+        },
+        "baselineWatts": 0.08623495764951322,
+        "estimatedIdleJoules": 0.18799220767593883,
+        "incrementalJoules": 0.9226311959240612
+      }
+    },
+    {
+      "scenario": "before",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-baseline-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148550826,
+      "endedAt": 1792148553008,
+      "timing": {
+        "durationMs": 2182,
+        "ttfbMs": 41,
+        "responseMs": 41,
+        "domContentLoadedMs": 197,
+        "loadMs": 200
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380181,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3723
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 201,
+          "sizePx": 3812
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380181,
+        "estimatedGrams": 0.0563428242,
+        "consumerDeviceGrams": 0.030237315654,
+        "networkGrams": 0.013522277808,
+        "dataCenterGrams": 0.012583230738000002
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2182,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.2229006068,
+          "sampleCount": 1852,
+          "averageWatts": 0.5604494073327222
+        },
+        "baselineWatts": 0.08816752898235856,
+        "estimatedIdleJoules": 0.19238154823950637,
+        "incrementalJoules": 1.0305190585604935
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 0,
+      "warmup": true,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792147812571,
+      "endedAt": 1792147814763,
+      "timing": {
+        "durationMs": 2192,
+        "ttfbMs": 54,
+        "responseMs": 55,
+        "domContentLoadedMs": 221,
+        "loadMs": 226
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380174,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380174,
+        "estimatedGrams": 0.0563417868,
+        "consumerDeviceGrams": 0.030236758916,
+        "networkGrams": 0.013522028831999999,
+        "dataCenterGrams": 0.012582999051999999
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2192,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.13516685,
+          "sampleCount": 1853,
+          "averageWatts": 0.5178680885036496
+        },
+        "baselineWatts": 0.10308452403127714,
+        "estimatedIdleJoules": 0.22596127667655952,
+        "incrementalJoules": 0.9092055733234405
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 1,
+      "warmup": true,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792147816275,
+      "endedAt": 1792147818426,
+      "timing": {
+        "durationMs": 2151,
+        "ttfbMs": 20,
+        "responseMs": 20,
+        "domContentLoadedMs": 149,
+        "loadMs": 149
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 372200,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224744
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 92444
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 51296
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 372200,
+        "estimatedGrams": 0.05516004,
+        "consumerDeviceGrams": 0.0296025548,
+        "networkGrams": 0.013238409599999999,
+        "dataCenterGrams": 0.0123190756
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2151,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 0.6115171752,
+          "sampleCount": 1937,
+          "averageWatts": 0.28429436317991635
+        },
+        "baselineWatts": 0.10308452403127714,
+        "estimatedIdleJoules": 0.2217348111912771,
+        "incrementalJoules": 0.3897823640087229
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 2,
+      "warmup": true,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792147819942,
+      "endedAt": 1792147822123,
+      "timing": {
+        "durationMs": 2181,
+        "ttfbMs": 24,
+        "responseMs": 24,
+        "domContentLoadedMs": 170,
+        "loadMs": 171
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 372200,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224744
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 92444
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 51296
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 372200,
+        "estimatedGrams": 0.05516004,
+        "consumerDeviceGrams": 0.0296025548,
+        "networkGrams": 0.013238409599999999,
+        "dataCenterGrams": 0.0123190756
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2181,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 0.5735810232,
+          "sampleCount": 1964,
+          "averageWatts": 0.2629899235213205
+        },
+        "baselineWatts": 0.10308452403127714,
+        "estimatedIdleJoules": 0.22482734691221545,
+        "incrementalJoules": 0.3487536762877846
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 3,
+      "warmup": true,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792147823636,
+      "endedAt": 1792147825929,
+      "timing": {
+        "durationMs": 2293,
+        "ttfbMs": 18,
+        "responseMs": 19,
+        "domContentLoadedMs": 250,
+        "loadMs": 250
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 372200,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224744
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 92444
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 51296
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 372200,
+        "estimatedGrams": 0.05516004,
+        "consumerDeviceGrams": 0.0296025548,
+        "networkGrams": 0.013238409599999999,
+        "dataCenterGrams": 0.0123190756
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2293,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 3.74995512,
+          "sampleCount": 2057,
+          "averageWatts": 1.635392551242913
+        },
+        "baselineWatts": 0.10308452403127714,
+        "estimatedIdleJoules": 0.2363728136037185,
+        "incrementalJoules": 3.5135823063962817
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 4,
+      "warmup": true,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792147827436,
+      "endedAt": 1792147829618,
+      "timing": {
+        "durationMs": 2182,
+        "ttfbMs": 35,
+        "responseMs": 35,
+        "domContentLoadedMs": 177,
+        "loadMs": 178
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 372200,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224744
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 92444
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 51296
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 372200,
+        "estimatedGrams": 0.05516004,
+        "consumerDeviceGrams": 0.0296025548,
+        "networkGrams": 0.013238409599999999,
+        "dataCenterGrams": 0.0123190756
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2182,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 0.7143297479999999,
+          "sampleCount": 1968,
+          "averageWatts": 0.3273738533455545
+        },
+        "baselineWatts": 0.10308452403127714,
+        "estimatedIdleJoules": 0.22493043143624672,
+        "incrementalJoules": 0.48939931656375324
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792147831124,
+      "endedAt": 1792147833283,
+      "timing": {
+        "durationMs": 2159,
+        "ttfbMs": 32,
+        "responseMs": 32,
+        "domContentLoadedMs": 154,
+        "loadMs": 155
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 372200,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224744
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 51296
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 92444
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 161,
+          "sizePx": 3812
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 372200,
+        "estimatedGrams": 0.05516004,
+        "consumerDeviceGrams": 0.0296025548,
+        "networkGrams": 0.013238409599999999,
+        "dataCenterGrams": 0.0123190756
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2159,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.3450353732,
+          "sampleCount": 1944,
+          "averageWatts": 0.6229899829550718
+        },
+        "baselineWatts": 0.10308452403127714,
+        "estimatedIdleJoules": 0.22255948738352732,
+        "incrementalJoules": 1.1224758858164727
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792147905924,
+      "endedAt": 1792147908147,
+      "timing": {
+        "durationMs": 2223,
+        "ttfbMs": 31,
+        "responseMs": 31,
+        "domContentLoadedMs": 247,
+        "loadMs": 248
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380174,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 247,
+          "sizePx": 3812
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380174,
+        "estimatedGrams": 0.0563417868,
+        "consumerDeviceGrams": 0.030236758916,
+        "networkGrams": 0.013522028831999999,
+        "dataCenterGrams": 0.012582999051999999
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2223,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.2238961687999999,
+          "sampleCount": 1891,
+          "averageWatts": 0.550560579757085
+        },
+        "baselineWatts": 0.0881318008516555,
+        "estimatedIdleJoules": 0.19591699329323017,
+        "incrementalJoules": 1.0279791755067698
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792147955623,
+      "endedAt": 1792147957793,
+      "timing": {
+        "durationMs": 2170,
+        "ttfbMs": 31,
+        "responseMs": 31,
+        "domContentLoadedMs": 182,
+        "loadMs": 186
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380174,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 178,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380174,
+        "estimatedGrams": 0.0563417868,
+        "consumerDeviceGrams": 0.030236758916,
+        "networkGrams": 0.013522028831999999,
+        "dataCenterGrams": 0.012582999051999999
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2170,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.1324434068,
+          "sampleCount": 1846,
+          "averageWatts": 0.5218633211059908
+        },
+        "baselineWatts": 0.08680744780606482,
+        "estimatedIdleJoules": 0.18837216173916066,
+        "incrementalJoules": 0.9440712450608393
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792147980384,
+      "endedAt": 1792147982581,
+      "timing": {
+        "durationMs": 2197,
+        "ttfbMs": 49,
+        "responseMs": 49,
+        "domContentLoadedMs": 209,
+        "loadMs": 221
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380174,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 213,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380174,
+        "estimatedGrams": 0.0563417868,
+        "consumerDeviceGrams": 0.030236758916,
+        "networkGrams": 0.013522028831999999,
+        "dataCenterGrams": 0.012582999051999999
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2197,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.1562352811999999,
+          "sampleCount": 1866,
+          "averageWatts": 0.5262791448338643
+        },
+        "baselineWatts": 0.09113341537926839,
+        "estimatedIdleJoules": 0.20022011358825265,
+        "incrementalJoules": 0.9560151676117472
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148030027,
+      "endedAt": 1792148032191,
+      "timing": {
+        "durationMs": 2164,
+        "ttfbMs": 38,
+        "responseMs": 38,
+        "domContentLoadedMs": 180,
+        "loadMs": 183
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380174,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 180,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380174,
+        "estimatedGrams": 0.0563417868,
+        "consumerDeviceGrams": 0.030236758916,
+        "networkGrams": 0.013522028831999999,
+        "dataCenterGrams": 0.012582999051999999
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2165,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.0904895612,
+          "sampleCount": 1836,
+          "averageWatts": 0.5036903284988453
+        },
+        "baselineWatts": 0.08849684406985836,
+        "estimatedIdleJoules": 0.19159566741124334,
+        "incrementalJoules": 0.8988938937887567
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148079624,
+      "endedAt": 1792148081795,
+      "timing": {
+        "durationMs": 2171,
+        "ttfbMs": 39,
+        "responseMs": 39,
+        "domContentLoadedMs": 188,
+        "loadMs": 190
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380174,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 180,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380174,
+        "estimatedGrams": 0.0563417868,
+        "consumerDeviceGrams": 0.030236758916,
+        "networkGrams": 0.013522028831999999,
+        "dataCenterGrams": 0.012582999051999999
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2171,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.1472561504,
+          "sampleCount": 1846,
+          "averageWatts": 0.5284459467526487
+        },
+        "baselineWatts": 0.08269483983315956,
+        "estimatedIdleJoules": 0.17953049727778939,
+        "incrementalJoules": 0.9677256531222107
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148153957,
+      "endedAt": 1792148156175,
+      "timing": {
+        "durationMs": 2218,
+        "ttfbMs": 75,
+        "responseMs": 75,
+        "domContentLoadedMs": 236,
+        "loadMs": 239
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380174,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 233,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380174,
+        "estimatedGrams": 0.0563417868,
+        "consumerDeviceGrams": 0.030236758916,
+        "networkGrams": 0.013522028831999999,
+        "dataCenterGrams": 0.012582999051999999
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2218,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.0945234764,
+          "sampleCount": 1882,
+          "averageWatts": 0.49347316339044184
+        },
+        "baselineWatts": 0.0851805438776397,
+        "estimatedIdleJoules": 0.18893044632060485,
+        "incrementalJoules": 0.9055930300793952
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148178784,
+      "endedAt": 1792148180988,
+      "timing": {
+        "durationMs": 2204,
+        "ttfbMs": 51,
+        "responseMs": 51,
+        "domContentLoadedMs": 222,
+        "loadMs": 222
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380174,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 212,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380174,
+        "estimatedGrams": 0.0563417868,
+        "consumerDeviceGrams": 0.030236758916,
+        "networkGrams": 0.013522028831999999,
+        "dataCenterGrams": 0.012582999051999999
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2204,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.0613301264,
+          "sampleCount": 1873,
+          "averageWatts": 0.4815472442831215
+        },
+        "baselineWatts": 0.09007243994784876,
+        "estimatedIdleJoules": 0.1985196576450587,
+        "incrementalJoules": 0.8628104687549412
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148253310,
+      "endedAt": 1792148255488,
+      "timing": {
+        "durationMs": 2178,
+        "ttfbMs": 41,
+        "responseMs": 41,
+        "domContentLoadedMs": 194,
+        "loadMs": 197
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380174,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 185,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380174,
+        "estimatedGrams": 0.0563417868,
+        "consumerDeviceGrams": 0.030236758916,
+        "networkGrams": 0.013522028831999999,
+        "dataCenterGrams": 0.012582999051999999
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2178,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.153913292,
+          "sampleCount": 1847,
+          "averageWatts": 0.5298040826446281
+        },
+        "baselineWatts": 0.08402296195359348,
+        "estimatedIdleJoules": 0.1830020111349266,
+        "incrementalJoules": 0.9709112808650733
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148302898,
+      "endedAt": 1792148305061,
+      "timing": {
+        "durationMs": 2163,
+        "ttfbMs": 31,
+        "responseMs": 31,
+        "domContentLoadedMs": 181,
+        "loadMs": 189
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380174,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 179,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380174,
+        "estimatedGrams": 0.0563417868,
+        "consumerDeviceGrams": 0.030236758916,
+        "networkGrams": 0.013522028831999999,
+        "dataCenterGrams": 0.012582999051999999
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2163,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.1868796763999998,
+          "sampleCount": 1835,
+          "averageWatts": 0.5487192216366158
+        },
+        "baselineWatts": 0.10185560246806293,
+        "estimatedIdleJoules": 0.2203136681384201,
+        "incrementalJoules": 0.9665660082615797
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148352470,
+      "endedAt": 1792148354643,
+      "timing": {
+        "durationMs": 2173,
+        "ttfbMs": 41,
+        "responseMs": 41,
+        "domContentLoadedMs": 185,
+        "loadMs": 188
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380174,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 181,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380174,
+        "estimatedGrams": 0.0563417868,
+        "consumerDeviceGrams": 0.030236758916,
+        "networkGrams": 0.013522028831999999,
+        "dataCenterGrams": 0.012582999051999999
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2173,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.094931684,
+          "sampleCount": 1842,
+          "averageWatts": 0.5038802043258168
+        },
+        "baselineWatts": 0.09793323879040668,
+        "estimatedIdleJoules": 0.2128089278915537,
+        "incrementalJoules": 0.8821227561084464
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148402023,
+      "endedAt": 1792148404220,
+      "timing": {
+        "durationMs": 2197,
+        "ttfbMs": 50,
+        "responseMs": 50,
+        "domContentLoadedMs": 214,
+        "loadMs": 217
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380174,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 217,
+          "sizePx": 3812
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380174,
+        "estimatedGrams": 0.0563417868,
+        "consumerDeviceGrams": 0.030236758916,
+        "networkGrams": 0.013522028831999999,
+        "dataCenterGrams": 0.012582999051999999
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2197,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.122277392,
+          "sampleCount": 1865,
+          "averageWatts": 0.5108226636322257
+        },
+        "baselineWatts": 0.10983690164247849,
+        "estimatedIdleJoules": 0.24131167290852523,
+        "incrementalJoules": 0.8809657190914748
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148426910,
+      "endedAt": 1792148429098,
+      "timing": {
+        "durationMs": 2188,
+        "ttfbMs": 40,
+        "responseMs": 40,
+        "domContentLoadedMs": 203,
+        "loadMs": 207
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380174,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 204,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380174,
+        "estimatedGrams": 0.0563417868,
+        "consumerDeviceGrams": 0.030236758916,
+        "networkGrams": 0.013522028831999999,
+        "dataCenterGrams": 0.012582999051999999
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2188,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.1600548812,
+          "sampleCount": 1861,
+          "averageWatts": 0.5301896166361973
+        },
+        "baselineWatts": 0.08792273993221518,
+        "estimatedIdleJoules": 0.19237495497168683,
+        "incrementalJoules": 0.9676799262283131
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148501305,
+      "endedAt": 1792148503477,
+      "timing": {
+        "durationMs": 2172,
+        "ttfbMs": 42,
+        "responseMs": 42,
+        "domContentLoadedMs": 182,
+        "loadMs": 185
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380174,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 174,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380174,
+        "estimatedGrams": 0.0563417868,
+        "consumerDeviceGrams": 0.030236758916,
+        "networkGrams": 0.013522028831999999,
+        "dataCenterGrams": 0.012582999051999999
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2172,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.1374363764,
+          "sampleCount": 1846,
+          "averageWatts": 0.5236815729281767
+        },
+        "baselineWatts": 0.09741032002085506,
+        "estimatedIdleJoules": 0.2115752150852972,
+        "incrementalJoules": 0.9258611613147028
+      }
+    },
+    {
+      "scenario": "after",
+      "step": "user-login",
+      "run": 0,
+      "warmup": false,
+      "url": "http://repro-issue-3618230-latest.ddev.site/user/login",
+      "startedAt": 1792148526069,
+      "endedAt": 1792148528242,
+      "timing": {
+        "durationMs": 2173,
+        "ttfbMs": 40,
+        "responseMs": 40,
+        "domContentLoadedMs": 190,
+        "loadMs": 193
+      },
+      "network": {
+        "requests": 88,
+        "transferBytes": 380174,
+        "thirdPartyRequests": 0,
+        "thirdPartyBytes": 0,
+        "byType": {
+          "document": {
+            "requests": 1,
+            "bytes": 3716
+          },
+          "font": {
+            "requests": 1,
+            "bytes": 224957
+          },
+          "stylesheet": {
+            "requests": 71,
+            "bytes": 98735
+          },
+          "script": {
+            "requests": 15,
+            "bytes": 52766
+          }
+        },
+        "resourceCount": 88
+      },
+      "valid": true,
+      "warnings": [],
+      "anatomy": {
+        "domNodes": 145,
+        "domDepth": 11,
+        "cssRules": 492,
+        "cssSelectors": 664,
+        "scripts": 17,
+        "images": 0,
+        "iframes": 0,
+        "animatedElements": 4,
+        "heaviestSubtrees": [
+          {
+            "selector": "html.dark-mode.no-touchevents",
+            "nodes": 144
+          },
+          {
+            "selector": "head",
+            "nodes": 86
+          },
+          {
+            "selector": "body.path-user",
+            "nodes": 56
+          }
+        ],
+        "lcpElement": {
+          "selector": "h1",
+          "renderTimeMs": 181,
+          "sizePx": 3949
+        }
+      },
+      "findings": [
+        {
+          "id": "css-expensive-selectors",
+          "severity": "low",
+          "title": "10 selectors with high match cost",
+          "evidence": ".admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--warning .adm (deep descendant chain); .admin--core-navigation [data-drupal-admin-styles]) .toolbar-badge--danger .admi (deep descendant chain); * (universal selector)",
+          "action": "Universal selectors, long descendant chains and :has()/:not() are matched right-to-left against many elements. Prefer a single class on the target element.",
+          "category": "Layout"
+        }
+      ],
+      "co2": {
+        "library": "@tgwf/co2",
+        "libraryVersion": "0.19.0",
+        "model": "swd",
+        "greenHosting": false,
+        "greenHostingChecked": false,
+        "inputBytes": 380174,
+        "estimatedGrams": 0.0563417868,
+        "consumerDeviceGrams": 0.030236758916,
+        "networkGrams": 0.013522028831999999,
+        "dataCenterGrams": 0.012582999051999999
+      },
+      "energy": {
+        "raw": {
+          "durationMs": 2173,
+          "measurementScope": "process",
+          "measurementType": "hardware-estimate",
+          "attribution": "time-window",
+          "adapterId": "firefox-profiler",
+          "totalJoules": 1.1475107964,
+          "sampleCount": 1844,
+          "averageWatts": 0.5280767585826047
+        },
+        "baselineWatts": 0.08954869844469546,
+        "estimatedIdleJoules": 0.19458932172032323,
+        "incrementalJoules": 0.9529214746796768
+      }
+    }
+  ],
+  "warnings": [],
+  "_trimmed": "drupal-core-lab copy: network.resources (the per-request list) removed from every scenario to keep the file small; network.requests, transferBytes and byType are kept. Every per-run energy, timing and co2 value is unchanged."
+}
