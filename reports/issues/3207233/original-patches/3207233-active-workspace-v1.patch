@@ -1,0 +1,78 @@
+diff --git a/core/modules/workspaces/tests/src/Functional/WorkspaceTest.php b/core/modules/workspaces/tests/src/Functional/WorkspaceTest.php
+--- a/core/modules/workspaces/tests/src/Functional/WorkspaceTest.php
++++ b/core/modules/workspaces/tests/src/Functional/WorkspaceTest.php
+@@ -312,7 +312,11 @@
+ 
+     $active_workspace_row = $page->find('css', '.active-workspace');
+     $this->assertTrue($active_workspace_row->hasClass('active-workspace--default'));
+-    $this->assertEquals('Live', $active_workspace_row->find('css', 'td:first-of-type')->getText());
++    $this->assertEquals('Live (active)', $active_workspace_row->find('css', 'td:first-of-type')->getText());
++    $assert_session->elementsCount('css', 'tr.active-workspace', 1);
++    $assert_session->elementTextEquals('css', 'table caption', 'Current workspace: Live');
++    $assert_session->elementTextEquals('css', 'tr.active-workspace td:first-child strong', 'Live (active)');
++    $assert_session->linkNotExists('Summer event (active)');
+ 
+     // The 'Switch to Live' operation is not shown when 'Live' is the active
+     // workspace.
+@@ -324,11 +328,24 @@
+ 
+     $active_workspace_row = $page->find('css', '.active-workspace');
+     $this->assertTrue($active_workspace_row->hasClass('active-workspace--not-default'));
+-    $this->assertEquals('Summer event', $active_workspace_row->find('css', 'td:first-of-type')->getText());
++    $this->assertEquals('Summer event (active)', $active_workspace_row->find('css', 'td:first-of-type')->getText());
++    $assert_session->elementsCount('css', 'tr.active-workspace', 1);
++    $assert_session->elementTextEquals('css', 'table caption', 'Current workspace: Summer event');
++    $assert_session->elementTextEquals('css', 'tr.active-workspace td:first-child strong a', 'Summer event (active)');
++    $assert_session->linkNotExists('Switch to Summer event');
+ 
+     // 'Live' is no longer the active workspace, so it's 'Switch to Live'
+     // operation should be visible now.
+     $assert_session->linkExists('Switch to Live');
++
++    // Switching back removes the active marker from the workspace link.
++    $page->clickLink('Switch to Live');
++    $page->pressButton('Confirm');
++    $assert_session->elementsCount('css', 'tr.active-workspace', 1);
++    $assert_session->elementTextEquals('css', 'table caption', 'Current workspace: Live');
++    $assert_session->elementTextEquals('css', 'tr.active-workspace td:first-child strong', 'Live (active)');
++    $assert_session->linkNotExists('Summer event (active)');
++    $assert_session->linkExists('Summer event');
+ 
+     // Delete any of the workspace owners and visit workspaces listing.
+     $this->drupalLogin($this->editor2);
+diff --git a/core/modules/workspaces_ui/src/WorkspaceListBuilder.php b/core/modules/workspaces_ui/src/WorkspaceListBuilder.php
+--- a/core/modules/workspaces_ui/src/WorkspaceListBuilder.php
++++ b/core/modules/workspaces_ui/src/WorkspaceListBuilder.php
+@@ -149,6 +149,9 @@
+ 
+     $active_workspace = $this->workspaceManager->getActiveWorkspace();
+     if ($active_workspace && $entity->id() === $active_workspace->id()) {
++      $row['data']['label']['data']['#title'] = $this->t('@workspace (active)', ['@workspace' => $entity->label()]);
++      $row['data']['label']['data']['#prefix'] .= '<strong>';
++      $row['data']['label']['data']['#suffix'] = '</strong>';
+       $row['class'] = ['active-workspace', 'active-workspace--not-default'];
+     }
+     return $row;
+@@ -238,7 +241,11 @@
+     }
+     else {
+       // Add a row for switching to Live.
+-      $has_active_workspace = $this->workspaceManager->hasActiveWorkspace();
++      $active_workspace = $this->workspaceManager->getActiveWorkspace();
++      $has_active_workspace = (bool) $active_workspace;
++      $build['table']['#caption'] = $this->t('Current workspace: @workspace', [
++        '@workspace' => $active_workspace ? $active_workspace->label() : $this->t('Live'),
++      ]);
+       $row_live = [
+         'data' => [
+           'label' => [
+@@ -264,6 +271,9 @@
+       ];
+ 
+       if (!$has_active_workspace) {
++        $row_live['data']['label']['data']['#markup'] = $this->t('Live (active)');
++        $row_live['data']['label']['data']['#prefix'] = '<strong>';
++        $row_live['data']['label']['data']['#suffix'] = '</strong>';
+         $row_live['class'] = ['active-workspace', 'active-workspace--default'];
+       }
+       array_unshift($build['table']['#rows'], $row_live);

@@ -30,9 +30,15 @@
 
   /* top bar */
   .topbar { display: flex; flex-wrap: wrap; gap: .4rem .6rem; align-items: center; padding: .45rem .75rem; background: var(--surface); border-bottom: 1px solid var(--line); }
-  #variant { max-width: 22rem; min-width: 0; } .topbar label.v { max-width: 100%; display: inline-flex; flex-wrap: wrap; gap: .4rem; align-items: center; font-size: .85rem; color: var(--muted); }
+  .topbar h1 { font-size: .95rem; }
+  .browser-buttons { margin-left: auto; display: flex; gap: .25rem; }
+  .browser-buttons button { width: 2.25rem; height: 2.25rem; padding: .4rem; }
+  .browser-buttons img { width: 100%; height: 100%; display: block; }
+  @media (prefers-color-scheme: dark) { .browser-buttons img { filter: invert(1); } }
+  @media (forced-colors: active) { .browser-buttons img { forced-color-adjust: none; } .browser-buttons button { background: white; } .browser-buttons img { filter: none; } }
+  #variant { max-width: 16rem; min-width: 0; } .topbar label.v { max-width: 100%; display: inline-flex; flex-wrap: wrap; gap: .4rem; align-items: center; font-size: .85rem; color: var(--muted); }
   .topbar .goto { display: flex; gap: .4rem; flex: 1 1 16rem; min-width: 0; } .topbar .goto input { flex: 1; min-width: 6rem; }
-  .topbar .state { margin-left: auto; display: flex; gap: .6rem; align-items: center; font-size: .85rem; color: var(--muted); }
+  .topbar .state { flex-basis: 100%; display: flex; gap: .6rem; align-items: center; font-size: .85rem; color: var(--muted); }
   #status:not(:empty) { padding: 0 .6rem; border-radius: 999px; background: var(--surface2); color: var(--text); }
 
   /* conditions toolbar: three always-visible choices, then popovers */
@@ -72,7 +78,7 @@
   #legend { margin: 0; padding: .3rem .75rem; font-size: .85rem; background: var(--surface2); }
   .panes { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr); gap: .5rem; padding: .5rem .75rem; min-height: 0; flex: 1 1 0; }
   .pane { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); overflow-x: auto; overflow-y: hidden; }
-  .pane h2 { margin: 0; padding: .3rem .6rem; border-bottom: 1px solid var(--line); font-size: .9rem; display: flex; align-items: baseline; gap: .5rem; min-width: 0; }
+  .pane h2 { white-space: nowrap; margin: 0; padding: .3rem .6rem; border-bottom: 1px solid var(--line); font-size: .9rem; display: flex; align-items: baseline; gap: .5rem; min-width: 0; }
   .pane h2 .path { flex: 1 1 auto; min-width: 0; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .pane h2 .openext { flex: 0 0 auto; margin-left: .1rem; color: var(--muted); text-decoration: none; line-height: 1; padding: .1rem .3rem; border-radius: 4px; font-size: .95rem; }
   .pane h2 .openext:hover, .pane h2 .openext:focus-visible { color: var(--accent); background: var(--surface2); }
@@ -81,7 +87,7 @@
 .frame-error { margin: .5rem .75rem; padding: .5rem .75rem; background: var(--error-bg, #fee); border: 1px solid var(--error-border, #f88); border-radius: var(--r); color: var(--error-text, #800); font-size: .85rem; display: none; }
 .frame-error:not([hidden]) { display: block; }
   .panes.overlay { grid-template-columns: 1fr; }
-  .panes.overlay .pane { grid-area: 1 / 1; overflow: hidden; position: relative; }
+  .panes.overlay .pane { grid-area: 1 / 1; grid-template-rows: minmax(0, 1fr); overflow: hidden; position: relative; background: transparent; }
   .panes.overlay .pane h2 { display: none; }
   .panes.overlay.onion #fa { opacity: .5; }
   .panes.overlay.diff { isolation: isolate; background: #fff; }
@@ -119,19 +125,21 @@
 </head>
 <body>
 <header class="topbar">
-  <h1>Drupal core: before and after</h1>
-  <label class="v">Compare upstream with <select id="variant"></select></label>
+  <h1>Drupal core comparison</h1>
+  <label class="v">Comparison <select id="variant" title="Switch between comparisons already built in this lab"></select></label>
   <div class="goto" data-needs="live"><label class="sr" for="goto">Page</label><input type="text" id="goto" size="26" value="/" placeholder="/node/add/article"><button type="button" id="go" class="primary">Go (both)</button></div>
   <span data-needs="live" style="display:contents">
-    <button type="button" id="login">Log in both as admin</button>
-    <button type="button" id="rb">Reload Before</button> <button type="button" id="ra">Reload After</button>
+    <button type="button" id="login" title="Log in as administrator on both sites">Log in both</button>
+    <button type="button" id="cache" title="Clear Drupal caches on both sites and reload them">Clear cache</button>
+    <details class="pop" data-sec="reload"><summary class="btn">Reload</summary><div class="panelp end"><div class="actions"><button type="button" id="rb">Before</button><button type="button" id="ra">After</button><button type="button" id="reloadboth">Both</button></div></div></details>
     <details class="pop" data-sec="tools"><summary class="btn">Tools</summary>
       <div class="panelp end"><div class="actions">
-        <button type="button" id="cache">Clear Drupal caches (both)</button>
         <button type="button" id="storage">Reset browser state (both)</button>
-        <span class="ext">Open outside this tool:<br><a id="ob" target="_blank" rel="noopener" href="#">Before (upstream main)</a> · <a id="oa" target="_blank" rel="noopener" href="#">After (with the change)</a><br><span class="path">own login: admin / admin</span></span>
+        <button type="button" id="copycomparison">Copy comparison link</button>
+        <span class="ext">Open outside this tool:<br><a id="ob" target="_blank" rel="noopener" href="#">Before patch</a> · <a id="oa" target="_blank" rel="noopener" href="#">After patch</a><br><span class="path">Each browser has its own login session.</span></span>
       </div></div></details>
   </span>
+  <div id="browsers" class="browser-buttons" data-needs="live" role="group" aria-label="Open this comparison in another browser" hidden></div>
   <div class="state" data-needs="live"><span id="status" role="status" aria-live="polite">Loading…</span><span id="axemini" role="status" aria-live="polite"></span></div>
 </header>
 
@@ -174,6 +182,7 @@
 <div class="activebar" id="activebar" data-needs="live" role="status" aria-live="polite"></div>
 
 <main id="main">
+  <p id="handoffnote" class="note" data-needs="live" hidden></p>
   <section id="staticpanel" data-static-only aria-labelledby="sph">
     <h2 id="sph">This is the read-only guide</h2>
     <picture><source media="(prefers-reduced-motion: reduce)" srcset="images/viewer-frames.png"><img src="images/viewer-demo.gif" alt="A short looped demonstration of the side-by-side viewer. Two Drupal sites sit next to each other: core on the left, core plus the change on the right. A form is submitted once and both sides show the same errors. After closing a group of fields, the right-hand side marks it with a red bar and an error icon while the left does not. The colour mode is switched to dark and the width to mobile with one click each." style="max-width:100%;height:auto;border:1px solid #888"></picture>
@@ -187,8 +196,8 @@
   </section>
   <p data-needs="live" id="legend" role="status" hidden></p>
   <div class="panes" id="panes" data-needs="live">
-    <section class="pane" aria-labelledby="hb" tabindex="0"><h2 id="hb">Before: upstream main <span class="path" id="pb"></span><a class="openext" id="pob" target="_blank" rel="noopener" href="#" title="Open the Before page in a new window" aria-label="Open the Before page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fb" title="Before: upstream main" data-side="before"></iframe><div class="frame-error" id="fbe" hidden aria-live="polite"></div></section>
-    <section class="pane" aria-labelledby="ha" tabindex="0"><h2 id="ha">After: with the change <a id="haissue" target="_blank" rel="noopener" href="#" hidden></a><span class="path" id="pa"></span><a class="openext" id="poa" target="_blank" rel="noopener" href="#" title="Open the After page in a new window" aria-label="Open the After page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fa" title="After: with the change" data-side="after"></iframe><div class="frame-error" id="fae" hidden aria-live="polite"></div></section>
+    <section class="pane" aria-labelledby="hb" tabindex="0"><h2 id="hb">Before patch <span class="path" id="pb"></span><a class="openext" id="pob" target="_blank" rel="noopener" href="#" title="Open the Before page in a new window" aria-label="Open the Before page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fb" title="Before patch" data-side="before"></iframe><div class="frame-error" id="fbe" hidden aria-live="polite"></div></section>
+    <section class="pane" aria-labelledby="ha" tabindex="0"><h2 id="ha">After patch <a id="haissue" target="_blank" rel="noopener" href="#" hidden></a><span class="path" id="pa"></span><a class="openext" id="poa" target="_blank" rel="noopener" href="#" title="Open the After page in a new window" aria-label="Open the After page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fa" title="After patch" data-side="after"></iframe><div class="frame-error" id="fae" hidden aria-live="polite"></div></section>
   </div>
 </main>
 
@@ -270,7 +279,8 @@
     </div>
   </div>
 </section>
-<script>
+<script type="module">
+import { RADIOS, CHECKS, currentBrowser, cleanHandoff, handoffHash, readHandoff } from "./browser-handoff.mjs";
 const $ = (id) => document.getElementById(id);
 // Where is this page running? "local": served by tools/compare/serve.mjs (live sites, proxies, axe, Lighthouse).
 // "static": GitHub Pages or any static host, or ?mode=static: only the read-only guide. Elements that need the server carry data-needs="live".
@@ -288,8 +298,8 @@ function updateExternal() { for (const [side, ids] of [['before', ['ob', 'pob']]
 const normPath = (p) => { p = String(p || '').trim().replace(/^https?:\/\/[^/]+/, '').replace(/^\/{2,}/, '/'); return /^[/?#]/.test(p) ? (p || '/') : '/' + p; };
 function load(side, path) { path = normPath(path); markStart(side); last[side] = path; P[side].textContent = path; F[side].src = origins[side] + path; updateExternal(); }
 function loadBoth(path) { path = normPath(path); $('goto').value = path; status('Loading…'); load('before', path); load('after', path); }
-// In overlay views each frame must keep the width it has side by side (half of the page), or it would cross a responsive breakpoint and show a different layout.
-function applyWidth() { const w = radio('width'), overlay = radio('view') !== 'side'; for (const s of ['before', 'after']) F[s].style.width = w === 'half' ? (overlay ? 'calc(50% - .25rem)' : '100%') : w; }
+// Fixed device widths stay the same in every view; Desktop fills each pane.
+function applyWidth() { const w = radio('width'); for (const s of ['before', 'after']) F[s].style.width = w === 'half' ? '100%' : w; }
 // Optional extras (live axe, Lighthouse, ...) are OFF until you turn them on. Choices are remembered in this browser (localStorage) only.
 const PREF_KEY = 'compare.prefs', PREF_CHECKS = ['axeon', 'axebest', 'lhon', 'lhperf', 'darkos', 'mirrorhover'];   // not remembered on purpose: Text direction and JavaScript off (they reset each visit so nothing looks broken by surprise)
 function applyPrefs() { let p = {}; try { p = JSON.parse(localStorage.getItem(PREF_KEY)) || {}; } catch (e) { /* none */ }
@@ -316,8 +326,8 @@ $('tickrecipe').addEventListener('click', () => { (v.steps || []).forEach((st, i
 $('clearticks').addEventListener('click', () => { ticks = []; saveTicks(); renderSteps(); });
 function setVariant(slug) { v = variants.find((x) => x.slug === slug); $('desc').textContent = v.description; renderSteps(); buildObs(); document.title = `Compare: ${v.slug}`;
   const iss = $('haissue');
-  if (v.issue) { iss.hidden = false; iss.textContent = `(#${v.issue})`; iss.href = `https://www.drupal.org/project/drupal/issues/${v.issue}`; iss.title = `Open Drupal issue #${v.issue} in a new window`; iss.setAttribute('aria-label', `Open Drupal issue ${v.issue} in a new window`); $('fa').title = `After: with the change (#${v.issue})`; }
-  else { iss.hidden = true; iss.textContent = ''; iss.removeAttribute('href'); $('fa').title = 'After: with the change'; }
+  if (v.issue) { iss.hidden = false; iss.textContent = `(#${v.issue})`; iss.href = `https://www.drupal.org/project/drupal/issues/${v.issue}`; iss.title = `Open Drupal issue #${v.issue} in a new window`; iss.setAttribute('aria-label', `Open Drupal issue ${v.issue} in a new window`); $('fa').title = `After patch (#${v.issue})`; }
+  else { iss.hidden = true; iss.textContent = ''; iss.removeAttribute('href'); $('fa').title = 'After patch'; }
   const start = (v.demo && v.demo.start) || v.pages[0] || '/'; $('goto').value = start;
   document.querySelector('input[name="width"][value="half"]').checked = true; applyWidth(); }
 function fillStaticPanel() {
@@ -328,21 +338,93 @@ function fillStaticPanel() {
   $('spcloudlink').href = `${lab}/blob/main/docs/CLOUD-QUICKSTART.md`;
   $('spreports').href = `${root}/tree/main/reports/issues/${v.issue}`; $('spdocs').href = `${root}/blob/main/docs/USER-GUIDE.md`; $('spissue').href = `https://www.drupal.org/project/drupal/issues/${v.issue}`;
 }
+function fillComparisons(data) {
+  $('variant').textContent = '';
+  for (const item of variants) {
+    if (!STATIC && data.availability && !data.availability[item.slug] && item.slug !== data.state?.slug) continue;
+    const option = document.createElement('option'); option.value = item.slug;
+    const revision = /-latest$/.test(item.slug) ? 'latest' : /-pinned$/.test(item.slug) ? 'pinned' : item.slug;
+    const title = item.label.replace(/^#\d+:\s*/, '').replace(/,?\s*pinned core.*$/i, '').slice(0, 65);
+    option.textContent = `#${item.issue || item.slug} · ${revision} · ${title}`; option.title = item.label;
+    $('variant').append(option);
+  }
+  if (!STATIC) {
+    const hint = document.createElement('option'); hint.disabled = true; hint.textContent = 'Build other comparisons in the terminal'; $('variant').append(hint);
+  }
+}
+let incoming = null;
+const positions = { before: { x: 0, y: 0 }, after: { x: 0, y: 0 } };
+const restorePending = new Set();
+function comparisonSnapshot() {
+  const controls = Object.fromEntries(Object.keys(RADIOS).map(key => [key, radio(key)]));
+  for (const key of CHECKS) controls[key] = $(key).checked;
+  for (const key of ['opacity', 'amplify']) controls[key] = Number($(key).value);
+  return cleanHandoff({ version: 1, slug: v.slug, paths: { before: last.before || $('goto').value, after: last.after || $('goto').value }, scroll: positions, controls, dock, forcedColors: matchMedia('(forced-colors: active)').matches });
+}
+async function renderBrowsers() {
+  if (STATIC) return;
+  const response = await fetch('api/browsers'); if (!response.ok) return;
+  const data = await response.json(); const container = $('browsers'); container.textContent = '';
+  for (const browser of data.browsers || []) {
+    if (browser.id === currentBrowser(navigator.userAgent)) continue;
+    if (browser.id === 'safari' && !/Mac/.test([navigator.platform, navigator.userAgentData?.platform, navigator.userAgent].join(' '))) continue;
+    const button = document.createElement('button'); button.type = 'button';
+    button.title = `Open this comparison in ${browser.label}`; button.setAttribute('aria-label', button.title);
+    const icon = document.createElement('img'); icon.src = `browser-icons/${browser.id}.svg`; icon.alt = ''; button.append(icon);
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      try {
+        const response = await fetch('api/browser/open', { method: 'POST', body: JSON.stringify({ browser: browser.id, snapshot: comparisonSnapshot() }) });
+        const result = await response.json(); if (!response.ok) throw Error(result.error);
+        status(`Opened ${browser.label}. Its login session is separate.`);
+      } catch (error) { status(`Could not open browser: ${error.message}`); }
+      finally { button.disabled = false; }
+    });
+    container.append(button);
+  }
+  container.hidden = !container.children.length;
+}
+$('copycomparison').addEventListener('click', async () => {
+  try {
+    const url = new URL('/', location.href); url.hash = handoffHash(comparisonSnapshot());
+    await navigator.clipboard.writeText(url.href); status('Comparison link copied. Open it in another browser.');
+  } catch (error) { status(`Could not copy comparison link: ${error.message}`); }
+});
 async function init() {
   const d = await (await fetch('variants.json')).json();
   if (d.static) setRuntime(true);
   window.__repo = d.repo || '';
   if (STATIC) {
     variants = d.variants;
-    for (const x of variants) { const o = document.createElement('option'); o.value = x.slug; o.textContent = x.label; $('variant').append(o); }
+    fillComparisons(d);
     const want = new URLSearchParams(location.search).get('variant'); const slug = variants.some((x) => x.slug === want) ? want : variants[0].slug;
     $('variant').value = slug; setVariant(slug); fillStaticPanel(); status('Read-only guide.'); return;
   } origins = d.origins; sites = d.sites || {}; variants = d.variants;
-  for (const x of variants) { const o = document.createElement('option'); o.value = x.slug; o.textContent = x.label; $('variant').append(o); }
-  $('variant').value = d.state.slug; setVariant(d.state.slug);
+  fillComparisons(d);
+  try { incoming = readHandoff(location.hash); }
+  catch (error) { $('handoffnote').hidden = false; $('handoffnote').textContent = error.message; }
+  if (incoming && !variants.some(item => item.slug === incoming.slug && (!d.availability || d.availability[item.slug]))) {
+    $('handoffnote').hidden = false; $('handoffnote').textContent = 'The linked comparison has not been built in this lab.'; incoming = null;
+  }
+  const selected = incoming?.slug || d.state.slug;
+  $('variant').value = selected; setVariant(selected);
   document.querySelector(`input[name="theme"][value="${d.state.theme}"]`).checked = true; $('darkos').checked = d.state.darkos; $('axeon').checked = false; $('axebest').checked = false;
-  applyPrefs(); sendState(); refreshControls();            // optional checks start OFF; your saved choices (this browser only) win
-  loadBoth($('goto').value);
+  applyPrefs();
+  if (incoming) {
+    if (incoming.dock) Object.assign(dock, incoming.dock);
+    for (const [key, value] of Object.entries(incoming.controls)) {
+      if (Object.hasOwn(RADIOS, key)) document.querySelector(`input[name="${key}"][value="${value}"]`).checked = true;
+      else if (CHECKS.includes(key)) $(key).checked = value;
+      else $(key).value = value;
+    }
+    await post({ slug: incoming.slug, theme: radio('theme'), dir: radio('dir'), nojs: $('nojs').checked, darkos: $('darkos').checked, axe: $('axeon').checked, axeBest: $('axebest').checked });
+    $('handoffnote').hidden = false;
+    $('handoffnote').textContent = 'Comparison settings and positions restored. Sign in separately in this browser if needed. Form contents are not transferred.' + (incoming.forcedColors ? ' Forced colours must be enabled in this browser or operating system; they cannot be transferred automatically.' : '');
+    for (const side of ['before', 'after']) { restorePending.add(side); load(side, incoming.paths[side]); }
+    history.replaceState(null, '', location.pathname + location.search);
+  } else loadBoth($('goto').value);
+  sendState(); applyView(); refreshControls();
+  renderBrowsers().catch(() => {});
 }
 $('variant').addEventListener('change', async () => { if (STATIC) { setVariant($('variant').value); fillStaticPanel(); return; } await post({ slug: $('variant').value }); setVariant($('variant').value); loadBoth($('goto').value); });
 document.querySelectorAll('input[name="width"]').forEach((r) => r.addEventListener('change', applyWidth));
@@ -425,7 +507,8 @@ addEventListener('message', (e) => {
   const from = e.source === F.before.contentWindow ? 'before' : e.source === F.after.contentWindow ? 'after' : null;
   if (!from || !origins || e.origin !== origins[from]) return;
   const m = e.data; if (!m || !m.compare) return; m.side = from;
-  if (m.type === 'scroll' && $('syncscroll').checked) { toFrame(other(m.side), { compare: 1, type: 'scroll', x: m.x, y: m.y }); }
+  if (m.type === 'scroll') positions[m.side] = { x: m.x, y: m.y };
+  if (m.type === 'scroll' && !incoming && $('syncscroll').checked) { toFrame(other(m.side), { compare: 1, type: 'scroll', x: m.x, y: m.y }); }
   if (m.type === 'mirror' && (/^hover/.test(m.kind) ? $('mirrorhover').checked : $('mirror').checked)) { toFrame(other(m.side), Object.assign({}, m, { compare: 1 })); }
   if (m.type === 'mirror-miss') status(`Not mirrored: could not find "${m.label || m.kind}" in the ${m.side} frame. The two sides have diverged here.`);
   if (m.type === 'axe') { AX[m.side] = { url: m.url, violations: m.violations }; logAxe(m.side, AX[m.side]); }
@@ -433,10 +516,11 @@ addEventListener('message', (e) => {
   if (m.type === 'axe-error') { $('axeverdict').className = 'verdict warn'; $('axeverdict').textContent = 'axe-core error in the ' + m.side + ' frame: ' + m.message; }
   if (m.type === 'probe-result') { const p = pending[m.id]; if (p) { results[p.i][p.side] = m.value; showResult(p.i); } }
   if (m.type === 'real-click') { realClick[m.side] = true; showRealClick(); }
+  if (m.type === 'loaded' && restorePending.has(m.side)) { const point = incoming.scroll[m.side]; toFrame(m.side, { compare: 1, type: 'scroll', ...point }); positions[m.side] = point; restorePending.delete(m.side); if (!restorePending.size) setTimeout(() => { incoming = null; }, 200); }
   if (m.type === 'loaded') { realClick[m.side] = false; showRealClick(); loadedAt[m.side] = Date.now(); }
   if (m.type === 'nav') {
     setPath(P[m.side], m.path); if (document.activeElement !== $('goto') && !/pass-reset-token|\/user\/reset/.test(m.path)) $('goto').value = m.path; const changed = last[m.side] !== m.path; last[m.side] = m.path; updateExternal(); lhSchedule(); status('Ready.'); if (radio('view') !== 'side') applyView();
-    if ($('syncnav').checked && changed && last[other(m.side)] !== m.path) load(other(m.side), m.path);
+    if (!restorePending.size && !incoming && $('syncnav').checked && changed && last[other(m.side)] !== m.path) load(other(m.side), m.path);
   }
 });
 
@@ -637,6 +721,7 @@ function watchFrames() { clearInterval(healthTimer); checkLoading(); healthTimer
 dlg().addEventListener('close', () => { dismissedLoad = !(healed); });
 const reloadSide = (s) => { markStart(s); const src = F[s].src; F[s].src = 'about:blank'; setTimeout(() => { F[s].src = src; }, 50); };
 $('rb').addEventListener('click', () => reloadSide('before')); $('ra').addEventListener('click', () => reloadSide('after'));
+$('reloadboth').addEventListener('click', () => { reloadSide('before'); reloadSide('after'); });
 watchFrames();
 
 // ---- Where did you test: environment capture and reminders ----

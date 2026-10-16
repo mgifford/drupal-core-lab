@@ -20,7 +20,7 @@ Both have Inline Form Errors on, the Article content type (recipe
 
     node tools/compare/serve.mjs [slug]       # then open http://localhost:8100/
 
-The **top bar** always shows page navigation: **Compare upstream with** (variant), **Page**, **Go (both)**, **Log in both as admin**, **Reload Before / Reload After**, **Tools** (Clear Drupal caches, Reset browser state, Open outside this tool) and the status line.
+The **top bar** always shows page navigation: **Compare upstream with** (variant), **Page**, **Go (both)**, **Log in both as admin**, **Reload → Before / After**, **Tools** (Clear Drupal caches, Reset browser state, Open outside this tool) and the status line.
 Below it, the **conditions toolbar** keeps the three choices you change most always visible: **Device width** (Mobile / Tablet / Desktop, the default), **Colour mode** (Light / Dark / Follow OS) and **Compare as** (Side by side / Onion skin / Difference). Three popovers hold the rest:
 **Conditions** (Text direction, Simulate a dark-mode OS, JavaScript off, the forced-colours window), **Input** (Sync scrolling, Sync navigation, Mirror clicks, typing and drags, Mirror hover and focus) and **Audits** (live axe-core, best-practice rules, Lighthouse).
 A popover button shows how many settings inside it are not at their default, a strip above the frames lists everything that is not default (with Reset all), and each changed setting in a popover has its own Reset link. Escape closes a popover.
@@ -127,8 +127,13 @@ downloaded log. It does not depend on the automated checks and does not replace 
   that changed lights up. **Amplify** reveals faint differences. For #3619127 the
   Create Article page is entirely black: pixel-identical before and after.
 In both overlay modes input goes to the top (After) frame; Mirror repeats it underneath.
-Compositing needs no pixel access, so it works across the two sites. Onion skin was
-not exercised in the browser yet; Difference was.
+Desktop fills the available pane width, including the full comparison area in overlay views. Mobile and Tablet retain their
+selected widths. Overlays use the full pane height. Switching Desktop between side by side and an overlay can change the
+responsive layout; Before and After always have the same viewport width within the selected view.
+Compositing needs no pixel access, so it works across the two sites.
+Run `node tools/playwright/viewer-layout.mjs` for a standalone browser regression check without DDEV. It uses the actual viewer
+with local identical-page fixtures, checks both overlay geometries and repeated mode changes at the device widths, and checks
+that identical pixels render black in Difference view. This tests viewer layout, not Drupal behavior.
 
 ## Caches and browser state
 **Clear Drupal caches (both)** runs `ddev drupal cache` on both sites at once and
@@ -195,7 +200,7 @@ fields (`core`, `before`, `after` merge one level deep, so `after.patches` is in
 | `languages` | Language codes `setup.mjs` adds to both sites (`scripts/lab-site.sh language <env> <code>`, via `scripts/add-language.php`), each with a `/<code>` URL prefix. `fa` (Farsi) is right to left. The interface stays English unless translations are imported. |
 
 ## If a frame does not load
-The viewer raises an alert after 12 seconds and checks both sites; use **Reload Before / Reload After**. Details of what
+The viewer raises an alert after 12 seconds and checks both sites; use **Reload → Before / After**. Details of what
 was fixed and how to measure it: `docs/FRAME-LOADING-2026-10-01.md`. If a DDEV project is not running, `ddev list`,
 then `ddev restart` in that environment.
 
@@ -214,3 +219,21 @@ An IP allowlist would not add protection: the dangerous requests come from your 
   `*.ddev.site`; other browsers are untested. Onion skin has been used but not systematically checked.
 - Rich widgets (CKEditor, autocomplete, file upload) are untested with Mirror.
 - Script-generated events do not trigger the same behaviour as real input: for focus and activation use real clicks and keys.
+
+## Browser handoff and compact navigation
+
+The local toolbar offers installed Edge, Chrome, Firefox and (on macOS) Safari, excluding the browser identified by its user agent. `browser-launch.mjs` discovers allowlisted application paths and launches with argument arrays, without a shell. `/api/browser/open` is POST-only under the existing Host/Origin guards; it accepts a known comparison and a validated, bounded snapshot, never an arbitrary URL or executable. Browser icons are attributed in `browser-icons/README.md`.
+
+The snapshot restores both relative page paths, frame scroll positions, viewport width, comparison mode, test conditions and dock layout. Authentication, form values, audit results and notes remain separate. Forced-colour emulation cannot move between browsers; the destination displays a reminder. Native launching is unavailable on headless/cloud servers. **Tools → Copy comparison link** provides a portable alternative. Linux desktop discovery requires DISPLAY or WAYLAND_DISPLAY; macOS and Windows use standard installation locations. Nonstandard installations can use the copied link.
+
+The Comparison menu lists built pairs (both `.ddev/config.yaml` files exist), plus the active pair. This is not a running-status check; start the pair with `node scripts/lab-env.mjs start <slug>` before switching. **Reload** reloads Before, After or Both without changing their paths or logging in. **Clear cache** remains visible and clears both Drupal caches; **Tools** holds browser-state reset and external links.
+
+Checks without DDEV or native application launching:
+
+```sh
+node --test tests/lab/browser-handoff.test.mjs
+node tools/playwright/viewer-handoff.mjs
+node tools/playwright/viewer-layout.mjs
+```
+
+After changing viewer source, run `node scripts/build-cloud.mjs` and commit the generated files too. Restart the local viewer to load new server routes and browser discovery.

@@ -45,3 +45,15 @@ says) depends on the screen reader, its version and the browser, and was not tes
 ## After
 
 Not tested: needs the merge request's diff (`CODER-PROMPT.md`, step 2) or network access to git.drupalcode.org from the lab.
+
+
+## Comparison package added 2026-10-16
+
+DRAFT. The historical Before-only evidence above is preserved. It does not establish current After behavior.
+
+The issue, 14 fetched comments, current MR diff, metadata, and interface text guidance were read. MR discussion threads were inaccessible (HTTP 401). The MR's two-file diff is stored unchanged and pinned in BRANCHES.md. No new Drupal runtime, axe, browser keyboard, PHPUnit, or real screen reader test was run in this session. DDEV is not installed here.
+
+The new replay distinguishes link-name verification from the actual iOS speech claim. The standard schema verdict reproduced-and-fixed refers only to the tested link-text change. SiteMaintenanceTest, browser runs, manual focus, iOS speech, and translations remain pending.
+
+
+Static integration checks: PASS for the unchanged MR patch applying to the full pinned core checkout (89973d2da24ffbae29903502e585bd66bd57ba06); replay syntax; both variant definitions; viewer probe syntax; coverage matrices; recipe YAML; and tracked diff whitespace. The recipe is a declared no-op, not a runtime-tested Drupal application. Runtime remains NOT RUN.

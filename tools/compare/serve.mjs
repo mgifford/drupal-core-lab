@@ -9,6 +9,7 @@ import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { lighthouseAvailable, audit as lighthouseAudit } from './lighthouse.mjs';
 import * as emulation from './emulation.mjs';
+import { installedBrowsers, openBrowser } from './browser-launch.mjs';
 import { labRoot, variants, envInfo, envInfoAsync, loginPathAsync, envDir } from './lib.mjs';
 
 const PAGE = Number(process.env.PORT || 8100);
@@ -232,12 +233,32 @@ http.createServer((req, res) => {
   // every action that changes something a POST (a cross-site GET cannot then trigger it). Non-browser clients (curl, node) send neither Origin nor Sec-Fetch-Site.
   const origin = req.headers.origin, fetchSite = req.headers['sec-fetch-site'];
   const hostOk = VIEWER_HOSTS.map(h => h.toLowerCase()).includes(req.headers.host.toLowerCase()), originOk = !origin || VIEWER_ORIGINS.includes(origin), crossSite = !!fetchSite && !['same-origin', 'none'].includes(fetchSite);
-  const ACTIONS = ['/api/cache', '/api/login', '/api/lighthouse/run'];
+  const ACTIONS = ['/api/cache', '/api/login', '/api/lighthouse/run', '/api/browser/open'];
   if (!hostOk || !originOk || (u.pathname.startsWith('/api/') && crossSite)) { res.writeHead(403, { 'content-type': 'text/plain' }); res.end('Forbidden: this request did not come from the viewer.'); return; }
   if (ACTIONS.includes(u.pathname) && req.method !== 'POST') { res.writeHead(405, { 'content-type': 'text/plain', allow: 'POST' }); res.end('Use POST.'); return; }
   if (u.pathname === '/variants.json') {
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
-    res.end(JSON.stringify({ variants: list, state, origins: { before: SIDES.before.origin, after: SIDES.after.origin }, sites: realSites() }));
+    const availability = Object.fromEntries(list.map(v => [v.slug, ['before', 'after'].every(s => fs.existsSync(path.join(envDir(v[s].env), '.ddev/config.yaml')))]));
+    res.end(JSON.stringify({ variants: list, availability, state, origins: { before: SIDES.before.origin, after: SIDES.after.origin }, sites: realSites() }));
+  } else if (u.pathname === '/browser-handoff.mjs' || /^\/browser-icons\/(chrome|edge|firefox|safari)\.svg$/.test(u.pathname)) {
+    const file = path.join(labRoot, 'tools/compare', u.pathname.slice(1));
+    res.writeHead(200, { 'content-type': u.pathname.endsWith('.mjs') ? 'text/javascript' : 'image/svg+xml' }); res.end(fs.readFileSync(file));
+  } else if (u.pathname === '/api/browsers') {
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+    res.end(JSON.stringify({ browsers: installedBrowsers().map(({ id, label }) => ({ id, label })) }));
+  } else if (u.pathname === '/api/browser/open') {
+    let body = ''; let tooLarge = false;
+    req.on('data', chunk => { if (Buffer.byteLength(body) + chunk.length > 16384) tooLarge = true; else if (!tooLarge) body += chunk; });
+    req.on('end', async () => {
+      const send = (code, data) => { res.writeHead(code, { 'content-type': 'application/json' }); res.end(JSON.stringify(data)); };
+      if (tooLarge) { send(413, { error: 'Comparison settings are too large.' }); return; }
+      try {
+        const data = JSON.parse(body);
+        if (!list.some(v => v.slug === data.snapshot?.slug)) throw Error('Unknown comparison.');
+        const viewerOrigin = origin || (DDEV ? 'https://drupal-compare.ddev.site' : `http://localhost:${PAGE}`);
+        send(200, await openBrowser(data.browser, data.snapshot, viewerOrigin));
+      } catch (error) { send(400, { error: String(error.message).split('\n')[0] }); }
+    });
   } else if (u.pathname === '/api/state') {
     if (req.method === 'POST') { let b = ''; req.on('data', (c) => (b += c)); req.on('end', () => { try { Object.assign(state, JSON.parse(b)); } catch (e) { /* ignore */ } res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify(state)); }); }
     else { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify(state)); }
