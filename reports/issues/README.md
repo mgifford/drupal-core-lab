@@ -16,6 +16,7 @@ one: `node scripts/new-issue.mjs <nid> --branch <fork-branch>` (see `docs/NEW-IS
 | [3087389](3087389/SUMMARY.md) | Media Library selection text | [yes](3087389/REPRODUCE.md) | 0 | 2026-10-14 |  |  |
 | [3093378](3093378/SUMMARY.md) | Use ARIA disclosure pattern for submenu buttons in vertical toolbar orientation | [yes](3093378/REPRODUCE.md) | 1 | 2026-10-13 | 12 | `3093378-latest`, `3093378-pinned` |
 | [3155130](3155130/SUMMARY.md) | "Edit summary" toggle | [yes](3155130/REPRODUCE.md) | 0 | 2026-10-14 |  |  |
+| [3207233](3207233/) | Patch provenance for #3207233 | no | 1 |  |  |  |
 | [3243173](3243173/SUMMARY.md) | HTML5 validation setting / form focus management | [yes](3243173/REPRODUCE.md) | 2 | 2026-10-14 |  |  |
 | [3273054](3273054/SUMMARY.md) | text-format permission checkboxes have a hidden focus stop | [yes](3273054/REPRODUCE.md) | 0 | 2026-10-15 | 1 | `3273054-pinned`, `3273054-latest` |
 | [3273806](3273806/SUMMARY.md) | #3273806 — WCAG non-text contrast on the toolbar orientation (direction) icon | no | 1 |  | 1 | `3273806-latest` |
