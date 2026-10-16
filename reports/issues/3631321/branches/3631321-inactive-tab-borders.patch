@@ -1,0 +1,78 @@
+diff --git a/core/themes/default_admin/css/components/vertical-tabs.css b/core/themes/default_admin/css/components/vertical-tabs.css
+index b459091b9f7cc74c52815310f3565702f7031b6b..ae863ad6238989843fc6cb97db14c36bc50c91c7 100644
+--- a/core/themes/default_admin/css/components/vertical-tabs.css
++++ b/core/themes/default_admin/css/components/vertical-tabs.css
+@@ -398,3 +398,34 @@
+ [open] > .details__summary--vertical-tabs-item:not(:focus, :active)::after {
+   border-inline-start-width: 0.3125rem;
+ }
++
++/* Keep the outer menu boundaries visible in regular color modes. */
++.vertical-tabs__menu-item:not(.is-selected):nth-child(1 of :not(.vertical-tab--hidden)) > .vertical-tabs__menu-link {
++  border-block-start-color: var(--admin-color-border-soft);
++}
++
++.vertical-tabs__menu-item:not(.is-selected):nth-last-child(1 of :not(.vertical-tab--hidden)) > .vertical-tabs__menu-link {
++  border-block-end-color: var(--admin-color-border-soft);
++}
++
++@media (forced-colors: active) {
++  /* Links supply the separators; the solid masking lines would cover dots. */
++  .vertical-tabs .vertical-tabs__menu .vertical-tabs__menu-item::before,
++  .vertical-tabs .vertical-tabs__menu .vertical-tabs__menu-item::after {
++    content: none;
++  }
++
++  .vertical-tabs__menu-item:not(.is-selected) > .vertical-tabs__menu-link {
++    border-block: var(--vertical-tabs-border-size) dotted CanvasText;
++    border-inline-start: var(--vertical-tabs-menu-link--active-border-size) dotted CanvasText;
++  }
++
++  /* Preserve a solid boundary on either side of the selected visible tab. */
++  .vertical-tabs__menu-item:nth-child(1 of .is-selected ~ :not(.vertical-tab--hidden)) > .vertical-tabs__menu-link {
++    border-block-start-style: solid;
++  }
++
++  .vertical-tabs__menu-item:nth-last-child(1 of :not(.vertical-tab--hidden):has(~ .is-selected)) > .vertical-tabs__menu-link {
++    border-block-end-style: solid;
++  }
++}
+diff --git a/core/themes/default_admin/css/components/vertical-tabs.pcss.css b/core/themes/default_admin/css/components/vertical-tabs.pcss.css
+index 0c4fcc62ba585c279ad3d98476a2fd647abd8d9b..9fae5c57c64a0d295366e278df4fe07887baeee8 100644
+--- a/core/themes/default_admin/css/components/vertical-tabs.pcss.css
++++ b/core/themes/default_admin/css/components/vertical-tabs.pcss.css
+@@ -393,3 +393,34 @@
+ [open] > .details__summary--vertical-tabs-item:not(:focus, :active)::after {
+   border-inline-start-width: 5px;
+ }
++
++/* Keep the outer menu boundaries visible in regular color modes. */
++.vertical-tabs__menu-item:not(.is-selected):nth-child(1 of :not(.vertical-tab--hidden)) > .vertical-tabs__menu-link {
++  border-block-start-color: var(--admin-color-border-soft);
++}
++
++.vertical-tabs__menu-item:not(.is-selected):nth-last-child(1 of :not(.vertical-tab--hidden)) > .vertical-tabs__menu-link {
++  border-block-end-color: var(--admin-color-border-soft);
++}
++
++@media (forced-colors: active) {
++  /* Links supply the separators; the solid masking lines would cover dots. */
++  .vertical-tabs .vertical-tabs__menu .vertical-tabs__menu-item::before,
++  .vertical-tabs .vertical-tabs__menu .vertical-tabs__menu-item::after {
++    content: none;
++  }
++
++  .vertical-tabs__menu-item:not(.is-selected) > .vertical-tabs__menu-link {
++    border-block: var(--vertical-tabs-border-size) dotted CanvasText;
++    border-inline-start: var(--vertical-tabs-menu-link--active-border-size) dotted CanvasText;
++  }
++
++  /* Preserve a solid boundary on either side of the selected visible tab. */
++  .vertical-tabs__menu-item:nth-child(1 of .is-selected ~ :not(.vertical-tab--hidden)) > .vertical-tabs__menu-link {
++    border-block-start-style: solid;
++  }
++
++  .vertical-tabs__menu-item:nth-last-child(1 of :not(.vertical-tab--hidden):has(~ .is-selected)) > .vertical-tabs__menu-link {
++    border-block-end-style: solid;
++  }
++}

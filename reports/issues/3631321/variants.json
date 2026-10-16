@@ -1,0 +1,166 @@
+[
+  {
+    "slug": "3631321-pinned",
+    "issue": "3631321",
+    "label": "#3631321: Inactive vertical-tab borders (pinned parent MR)",
+    "description": "Local AI-assisted proposal. Parent !17078 at c8136d010105a3c92fc4b20b9956eb31c703fc62 on both sides. Tests only inactive-tab borders.",
+    "status": "DRAFT: patch and CSS checks prepared; full Drupal and human review pending",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "6868135abe8e18373329d51bcb2d2bc81967d8c0"
+    },
+    "before": {
+      "env": "baseline-3631321",
+      "patches": [
+        "reports/issues/3631321/branches/3604037-parent-c8136d010105.patch"
+      ]
+    },
+    "after": {
+      "env": "issue-3631321",
+      "patches": [
+        "reports/issues/3631321/branches/3604037-parent-c8136d010105.patch",
+        "reports/issues/3631321/branches/3631321-inactive-tab-borders.patch"
+      ]
+    },
+    "pages": [
+      "/admin/config/people/accounts",
+      "/form_test/details-contains-required-fields",
+      "/node/add/article"
+    ],
+    "login": true,
+    "recipe": "repro_3631321",
+    "testExtensions": true,
+    "languages": [
+      "fa"
+    ],
+    "steps": [
+      {
+        "text": "Standard install, Default Admin theme, form_test, and Article recipe on both sides. The pinned parent MR is present on both.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /admin/config/people/accounts at 1280px width. Enable forced colors, dark palette, and more contrast in the lab browser.",
+        "how": "each"
+      },
+      {
+        "text": "Select the first, a middle, and the last email tab. Inspect the first and last outer borders and both boundaries beside the selected tab in light and dark palettes.",
+        "how": "each",
+        "lookFor": "Inactive tabs have dotted borders; the selected tab keeps solid borders."
+      }
+    ],
+    "expected": "Inactive borders are dotted in forced colors; selected and neighboring boundaries are solid; outer borders are visible in normal mode.",
+    "actual": "Inactive and selected tabs use solid borders in forced colors; the first or last outer border can be missing.",
+    "checks": [
+      {
+        "label": "Default Admin rendered this page",
+        "probe": "window.drupalSettings?.ajaxPageState?.theme === 'default_admin'",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "Vertical tabs exist at desktop width",
+        "probe": "document.querySelectorAll('.vertical-tabs__menu-item:not(.vertical-tab--hidden)').length >= 3",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "Forced colors is active (enable it before running checks)",
+        "probe": "matchMedia('(forced-colors: active)').matches",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "An inactive tab has a dotted inline-start border",
+        "probe": "Array.from(document.querySelectorAll('.vertical-tabs__menu-item:not(.is-selected):not(.vertical-tab--hidden) > .vertical-tabs__menu-link')).some(e => getComputedStyle(e).borderInlineStartStyle === 'dotted')",
+        "expect": true,
+        "kind": "fix"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Selection is identifiable without relying on color",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Keyboard focus remains visible and separate from validation errors",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Icons, accessible error text, and narrow-screen details remain usable",
+        "expectBefore": true,
+        "expectAfter": true
+      }
+    ],
+    "demo": {
+      "start": "/admin/config/people/accounts"
+    },
+    "coverage": {
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 480
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ],
+      "manual": [
+        "Real Windows contrast palettes, including a custom palette",
+        "LTR and real Farsi RTL; keyboard focus and error labels",
+        "First/middle/last selection, selected error, adjacent error, and hidden tabs"
+      ]
+    }
+  },
+  {
+    "slug": "3631321-latest",
+    "extends": "3631321-pinned",
+    "label": "#3631321: same proposal on current main (may need reroll)",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3631321-latest"
+    },
+    "after": {
+      "env": "issue-3631321-latest"
+    }
+  }
+]

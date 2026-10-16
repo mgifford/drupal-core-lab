@@ -1,0 +1,259 @@
+Decide how to semantically label HTML elements for errors/warnings in forced color mode [#3631337] | Drupal.org
+Skip to main content
+Skip to search
+Can we use first and third party cookies and web beacons to
+understand our audience, and to tailor promotions you see
+?
+Yes, please
+No, do not track me
+Drupal.org home
+Discover Drupal
+Drupal Core
+Drupal CMS
+Drupal AI
+Case Studies
+Drupal for Government
+Drupal for Higher Education
+Drupal for Nonprofit
+Drupal for eCommerce
+Drupal for FinTech
+Drupal for Healthcare
+Drupal for Enterprise
+Drupal for Retail
+Drupal for Travel & Tourism
+Build with Drupal
+Download Drupal
+Documentation
+Getting started
+Local Development Guide
+Developer Resources
+Drupal CMS User Guide
+Drupal User Guide
+API
+Modules
+Themes
+Recipes
+Site Templates
+Issue queues
+Security Advisories
+Partners & Services
+Find a Drupal Certified Partner
+Become a Drupal Certified Partner
+Find a Hosting Provider
+Find a Migration Partner
+Find Training
+Drupal Steward
+Community
+About the Community
+How to Contribute
+DrupalCon
+Events
+News & Blogs
+Forum
+Slack
+Newsletters
+Drupal Swag Shop
+Drupal Advocacy Program
+Support Drupal
+The Drupal Association
+Donate
+Become a Partner
+Become a Ripple Maker
+Become a Drupal Sustaining Member
+Drupal Swag Shop
+Get Started
+Try Drupal CMS
+Try Hosting
+Return to content
+Search form
+Search
+Log in
+Create account
+Drupal core
+Issues
+Decide how to semantically label HTML elements for errors/warnings in forced color mode
+Active
+Project:
+Drupal core
+Version:
+main
+Component:
+Admin theme
+Priority:
+Normal
+Category:
+Bug report
+Assigned:
+Unassigned
+Issue tags:
+Usability
+Accessibility
+forced colors
+high contrast
+about tags
+Usability
+Makes Drupal
+easier to use
+. Preferred over
+UX
+,
+D7UX
+, etc.
+Accessibility
+It affects the ability of
+people with disabilities or special needs
+(such as blindness or color-blindness) to use Drupal.
+Reporter:
+rkoller
+Created:
+16 Oct 2026 at 16:04 UTC
+Updated:
+16 Oct 2026 at 22:06 UTC
+Jump to comment:
+Most recent
+Problem/Motivation
+Followup for
+#3604037: Indicate that grouping elements have child element errors for UX and a11y
+At the moment it is really hard to distinguish vertical tabs with errors from the active vertical tab in forced color mode.
+The white and yellow top and bottom solid borders are close color contrast wise. The borders on the left labeling erroneous tabs and the active tab are both white, the only difference is a differing width we've recommended back then as one of the outcomes during a ux meeting. Another detail that was proposed is making the borders for none active tabs dotted adding another visual cue
+#3631321: Improve the visual representation of none active vertical tabs in forced color mode
+. It also has to be noted the fact that both, the erroneous and active vertical tab being white, is a deliberate choice taken in
+#3604037: Indicate that grouping elements have child element errors for UX and a11y
+to keep the color of errors consistent across scenarios. Because based on their HTML elements the color for the errors differed across the three different scenarios available before that. So the erroneous and active vertical tabs having the same color was the smaller problem than errors having different coloring across scenarios and the reason we've agreed on moving the decision for the proper fix over to this dedicated issue. And the main problem we are facing, there is currently no dedicated system color for labeling errors and warnings in forced color mode. The list of available system colors is (
+https://www.w3.org/TR/css-color-4/#css-system-colors
+):
+AccentColor -  Background of accented user interface controls.
+AccentColorText - Text of accented user interface controls.
+ActiveText - Text in active links. For light backgrounds, traditionally red.
+ButtonBorder - The base border color for push buttons.
+ButtonFace - The face background color for push buttons.
+ButtonText - Text on push buttons.
+Canvas - Background of application content or documents.
+CanvasText - Text in application content or documents.
+Field - Background of input fields.
+FieldText - Text in input fields.
+GrayText - Disabled text. (Often, but not necessarily, gray.)
+Highlight - Background of selected text, for example from ::selection.
+HighlightText - Text of selected text.
+LinkText - Text in non-active, non-visited links. For light backgrounds, traditionally blue.
+Mark - Background of text that has been specially marked (such as by the HTML mark element).
+MarkText - Text that has been specially marked (such as by the HTML mark element).
+SelectedItem - Background of selected items, for example a selected checkbox.
+SelectedItemText - Text of selected items.
+VisitedText - Text in visited links. For light backgrounds, traditionally purple.
+Steps to reproduce
+check out
+#3604037: Indicate that grouping elements have child element errors for UX and a11y
+go to
+/admin/config/people/accounts
+clear the subject lines on several vertical tabs and leave one vertical tab in between and hit save
+make the vertical tab without an error in-between the active vertical tab
+Proposed resolution
+@mgifford, @kentr, and myself agreed on posting a question/feature request over in the issue queue for w3c css working group (
+https://github.com/w3c/csswg-drafts/issues
+) asking for what the recommended choice for semantically marking up errors and warnings in forced color mode would be but more likely to propose adding a dedicated system color.  (*i will update the issue summary as soon as the issue is being created, it is currently still in the draft stage)
+Remaining tasks
+User interface changes
+Introduced terminology
+API changes
+Data model changes
+Release notes snippet
+Comment
+File
+Size
+Author
+forced_color.jpg
+152.95 KB
+rkoller
+Comments
+Comment
+#1
+16 October 2026 at 16:04
+rkoller
+created an issue. See
+original summary
+.
+Log in
+or
+register
+to post comments
+Comment
+#2
+rkoller
+he/him
+German
+Nürnberg, Germany
+commented
+16 October 2026 at 16:09
+Title:
+Decide how to semantically label HTML elements for errors in forced color mode
+» Decide how to semantically label HTML elements for errors/warnings in forced color mode
+Log in
+or
+register
+to post comments
+Comment
+#3
+mgifford
+he/him
+English
+commented
+16 October 2026 at 22:06
+Issue tags:
++
+forced colors
+, +
+high contrast
+Log in
+or
+register
+to post comments
+Contribution record
+Add child issue
+,
+clone issue
+Related issues
+https://www.drupal.org/node/3604037
+https://www.drupal.org/node/3631321
+Infrastructure management for Drupal.org provided by
+News items
+News
+Planet Drupal
+Social media
+Sign up for Drupal news
+Security advisories
+Our community
+Community
+Services
+,
+Training
+&
+Hosting
+Contributor guide
+Groups & meetups
+DrupalCon
+Code of conduct
+Documentation
+Documentation
+Drupal Guide
+Drupal User Guide
+Developer docs
+API.Drupal.org
+Drupal code base
+Download & Extend
+Drupal core
+Modules
+Themes
+Distributions
+Governance of community
+About
+Web accessibility
+Drupal Association
+About Drupal.org
+Terms of service
+Privacy policy
+Drupal is a
+registered trademark
+of
+Dries Buytaert
+.

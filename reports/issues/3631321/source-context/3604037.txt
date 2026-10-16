@@ -1,0 +1,1657 @@
+Indicate that grouping elements have child element errors for UX and a11y [#3604037] | Drupal.org
+Skip to main content
+Skip to search
+Can we use first and third party cookies and web beacons to
+understand our audience, and to tailor promotions you see
+?
+Yes, please
+No, do not track me
+Drupal.org home
+Discover Drupal
+Drupal Core
+Drupal CMS
+Drupal AI
+Case Studies
+Drupal for Government
+Drupal for Higher Education
+Drupal for Nonprofit
+Drupal for eCommerce
+Drupal for FinTech
+Drupal for Healthcare
+Drupal for Enterprise
+Drupal for Retail
+Drupal for Travel & Tourism
+Build with Drupal
+Download Drupal
+Documentation
+Getting started
+Local Development Guide
+Developer Resources
+Drupal CMS User Guide
+Drupal User Guide
+API
+Modules
+Themes
+Recipes
+Site Templates
+Issue queues
+Security Advisories
+Partners & Services
+Find a Drupal Certified Partner
+Become a Drupal Certified Partner
+Find a Hosting Provider
+Find a Migration Partner
+Find Training
+Drupal Steward
+Community
+About the Community
+How to Contribute
+DrupalCon
+Events
+News & Blogs
+Forum
+Slack
+Newsletters
+Drupal Swag Shop
+Drupal Advocacy Program
+Support Drupal
+The Drupal Association
+Donate
+Become a Partner
+Become a Ripple Maker
+Become a Drupal Sustaining Member
+Drupal Swag Shop
+Get Started
+Try Drupal CMS
+Try Hosting
+Return to content
+Search form
+Search
+Log in
+Create account
+Drupal core
+Issues
+Indicate that grouping elements have child element errors for UX and a11y
+Reviewed & tested by the community
+Project:
+Drupal core
+Version:
+main
+Component:
+Admin theme
+Priority:
+Major
+Category:
+Bug report
+Assigned:
+Unassigned
+Issue tags:
+Accessibility
+wcag331
+Usability
+11.5.0 release priority
+ai-ni
+about tags
+Accessibility
+It affects the ability of
+people with disabilities or special needs
+(such as blindness or color-blindness) to use Drupal.
+Usability
+Makes Drupal
+easier to use
+. Preferred over
+UX
+,
+D7UX
+, etc.
+Reporter:
+kentr
+Created:
+18 Jun 2026 at 13:53 UTC
+Updated:
+16 Oct 2026 at 16:07 UTC
+Jump to comment:
+Most recent
+,
+Most recent file
+Problem/Motivation
+The work here builds heavily on the discussion and work in
+#2848507: Indicate that grouping elements have child element errors for ux and a11y
+, so contributors to that issue should get credit in this one if they don't there.
+Child elements in grouping elements like
+details
+and vertical tabs are invisible to the user when the grouping element is closed or not-active, respectively.
+To improve the user experience and accessibility we should indicate when there are errors 'inside'.
+Currently it is hard for the user to find the actual problematic field when the (child) field itself is invisible.
+The forms sidebar has a similar problem:
+#3619387: Indicate on forms sidebar toggle button that sidebar has child element errors
+.
+Steps to reproduce
+In
+settings.php
+, set
+$settings['extension_discovery_scan_tests'] = TRUE
+.
+Enable the core
+form_test
+module (
+drush en -y form_test
+).
+Install the article test recipe (
+drush recipe core/tests/fixtures/recipes/article_content_type
+) or create an Article content type.
+If necessary, set both the default and admin theme to Default Admin. Should not be necessary with this MR.
+(
+drush cset -y system.theme default default_admin && drush cset -y system.theme admin default_admin
+).
+For "standard" details elements:
+Go to
+/form_test/details-contains-required-fields
+.
+Click the
+Submit
+button.
+Close one of the details elements for comparison.
+For "accordion" style details elements on the node edit form:
+Go to
+/node/add/article
+.
+If the form sidebar on the right is closed, click the toggle button to open it.
+Enter a value
+without
+a beginning slash in the
+URL alias
+field.
+Click the
+Save
+button.
+This should cause a validation error: "The alias path has to start with a slash".
+Open the sidebar to see the invalid URL alias field.
+For vertical tabs:
+Widen your viewport to at least 650px.
+Go to
+/admin/config/people/accounts
+.
+Within one or more tabs for the
+Emails
+configuration at the bottom of the form, remove the value for the required
+Subject
+field.
+Click the
+Save
+button.
+Click a tab which
+does not
+have an error to activate it.
+For RTL, either:
+manually change the
+dir
+attribute on the
+html
+tag to
+rtl
+in the browser inspector / devtools, OR
+Enable the Locale module (
+drush en -y locale
+).
+Add Hebrew as a language (
+/admin/config/regional/language/add
+).
+Repeat the above steps on the Hebrew version of the pages (prepend
+/he
+to the paths).
+Proposed resolution
+Based on discussion and work in
+#2848507: Indicate that grouping elements have child element errors for ux and a11y
+, and
+UX review of this MR
+:
+Add a thick red solid border on one side of the grouping items that contain child errors.
+Border width:
+var(--vertical-tabs-menu-link--active-border-size) + 2px
+,
+so that it is distinguishable from
+var(--vertical-tabs-menu-link--active-border-size)
+.
+Border position:
+Logical inline start of details element or vertical tab "menu item".
+Border radius:
+Match the radius of the element to which the border is applied.
+Add the error icon from the page-top error block to grouping elements.
+Icon position:
+Vertical: Vertically-centered with the first line of the element's visible label.
+Horizontal: close to the logical inline end of the element's visible label.
+Use red text color for the element's visible label.
+Details elements:
+Surround the entire
+details
+element with a 1px solid red border.
+Use the input error color for the red border / red text (
+var(--input--error-color)
+).
+Vertical tabs:
+Use the input border color for the border of the active tab to so that it's clear when a tab with errors is also active.
+Append visually-hidden " (child error)" to the element's visible label.
+Add the attribute
+data-child-error-count
+to the
+details
+element.
+Because vertical tabs are progressively-enhanced
+details
+elements, the attribute will exist on the corresponding
+details
+element but not on the vertical tabs menu item (the
+li
+element).
+The value of the attribute should be an integer corresponding to the number of invalid children.
+For the error border color in forced-colors mode, use
+canvasText
+(
+#47
+).
+For the icon in forced-colors mode, use the
+mask-image
+property and
+canvasText
+background color.
+The UX team members and @mgifford brought up various forced-colors problems with vertical tabs, but they're out of scope. They
+were approved by the UX team and @mgifford to be followups
+.
+KentR made a note in
+#3081500-76: Accessibility bugs with vertical tabs
+.
+Remaining tasks
+Adapt work from
+#2848507: Indicate that grouping elements have child element errors for ux and a11y
+to Default Admin.
+Create merge request.
+Usability review.
+Forced colors mode for icon.
+Fix details error border position for RTL.
+Manually test LTR, RTL, forced colors, and presence of hidden text for the following:
+Standard style details.
+Accordion style details (such as in advanced sidebar on node edit form).
+Vertical tabs on wider viewport (>= 650px). On narrow viewports they fall back to accordion style details.
+Create change record.
+User interface changes
+Visually, the grouping elements will indicate that there are errors inside.
+There will be a visually-hidden "(contains error)" appended to the summary or vertical tabs title for screen reader users.
+Screenshots
+Full color mode
+LTR (left-to-right)
+Scenario 1:
+Standard details (
+/form_test/details-contains-required-fields
+)
+Light mode:
+Dark mode:
+Scenario 2:
+Accordion style details (node edit form)
+Light mode:
+Dark mode:
+Scenario 3:
+Vertical tabs (
+/admin/config/people/accounts
+)
+Light mode:
+Dark mode:
+RTL (right-to-left)
+Scenario 1:
+Standard details (
+/he/form_test/details-contains-required-fields
+)
+Scenario 2:
+Accordion style details (node edit form)
+URL alias without leading slash, Save, close "URL alias" details. Error indicator visible, no false positives on sibling details.
+Scenario 3:
+Vertical tabs (
+/he/admin/config/people/accounts
+)
+Forced-colors mode
+LTR (left-to-right)
+Scenario 1:
+Standard details (
+/form_test/details-contains-required-fields
+)
+Scenario 2:
+Accordion style details (node edit form)
+Scenario 3:
+Vertical tabs (
+/admin/config/people/accounts
+)
+RTL (right-to-left)
+Scenario 1:
+Standard details (
+/he/form_test/details-contains-required-fields
+)
+Scenario 2:
+Accordion style details (node edit form)
+Scenario 3:
+Vertical tabs (
+/admin/config/people/accounts
+)
+Introduced terminology
+API changes
+Data model changes
+Release notes snippet
+Comment
+File
+Size
+Author
+#54
+3604037-54-default-admin-standard-details-ltr.dark_.png
+49.82 KB
+kentr
+#54
+3604037-54-default-admin-vertical-tabs-ltr.dark_.png
+144.27 KB
+kentr
+#54
+3604037-54-default-admin-accordion-details-ltr.dark_.png
+97.37 KB
+kentr
+#52
+border_missing.jpg
+40.87 KB
+rkoller
+#51
+3604037-51-default-admin-vertical-tabs-rtl.forced-colors.png
+134.66 KB
+kentr
+#51
+3604037-51-default-admin-vertical-tabs-ltr.forced-colors.png
+137.74 KB
+kentr
+#45
+active.jpg
+75.14 KB
+rkoller
+#45
+none_active.jpg
+89.77 KB
+rkoller
+#44
+scenario3-account_blocked-active.jpg
+94.41 KB
+rkoller
+#44
+scenario3-welcome_awaiting_approval-active.jpg
+129.47 KB
+rkoller
+#44
+scenario3-no_errors.jpg
+145.44 KB
+rkoller
+#44
+scenario2.jpg
+173.9 KB
+rkoller
+#44
+scenario1.jpg
+104.75 KB
+rkoller
+#40
+3604037-40-default-admin-standard-details-rtl.forced-colors.png
+50.47 KB
+kentr
+#38
+3604037-38-default-admin-vertical-tabs-rtl.forced-colors.png
+127.79 KB
+kentr
+#38
+3604037-38-default-admin-accordion-details-rtl.forced-colors.png
+82.17 KB
+kentr
+#38
+3604037-38-default-admin-vertical-tabs-ltr.forced-colors.png
+131.6 KB
+kentr
+#38
+3604037-38-default-admin-accordion-details-ltr.forced-colors.png
+90.19 KB
+kentr
+#38
+3604037-38-default-admin-standard-details-ltr.forced-colors.png
+50.67 KB
+kentr
+#38
+3604037-38-default-admin-accordion-details-rtl.png
+85.89 KB
+kentr
+#38
+3604037-38-default-admin-vertical-tabs-rtl.png
+138.49 KB
+kentr
+#38
+3604037-38-default-admin-standard-details-rtl.png
+54.63 KB
+kentr
+#32
+3604037-32-default-admin-standard-details-ltr.png
+55.08 KB
+kentr
+#32
+3604037-32-default-admin-vertical-tabs-ltr.png
+139.76 KB
+kentr
+#32
+3604037-32-default-admin-accordion-details-ltr.png
+99.17 KB
+kentr
+#29
+3604037-29-error-color-contrast.png
+13.63 KB
+kentr
+#21
+3604037-21-error-border-hidden-by-summary-background.png
+52.48 KB
+kentr
+#21
+3604037-21-before-after-accordion-details-regular-dark.png
+111.02 KB
+kentr
+#21
+3604037-21-before-after-accordion-details-regular-light.png
+128.37 KB
+kentr
+#21
+3604037-21-before-after-accordion-details-node-edit-dark.png
+110.2 KB
+kentr
+#21
+3604037-21-before-after-accordion-details-node-edit-light.png
+123.74 KB
+kentr
+#21
+3604037-21-before-after-standard-details-dark.png
+73.58 KB
+kentr
+#21
+3604037-21-before-after-standard-details-light.png
+85.51 KB
+kentr
+#12
+issue-3604037-review.zip
+75.08 KB
+mgifford
+Issue fork
+drupal-3604037
+Show commands
+Start within a Git clone of the project using the
+version control instructions
+.
+Add & fetch this issue fork’s repository
+Or,
+if you do not have
+SSH keys set up on git.drupalcode.org
+:
+Add & fetch this issue fork’s repository
+3604037-grouping-elements-child-errors-default-admin
+changes
+,
+plain diff
+MR
+!17078
+Check out this branch for the first time
+Check out existing branch, if you already have it locally
+About issue forks
+Comments
+Comment
+#1
+18 June 2026 at 13:53
+kentr
+created an issue. See
+original summary
+.
+Log in
+or
+register
+to post comments
+Comment
+#2
+kentr
+commented
+18 June 2026 at 14:23
+Parent issue:
+#3576488: [meta] Admin theme: path to beta and stable
+»
+#3585823: [Meta] Improve the accessibility of the Default Admin theme
+Log in
+or
+register
+to post comments
+Comment
+#3
+kentr
+commented
+24 June 2026 at 18:04
+Title:
+[PP-1] Indicate that grouping elements have child element errors for ux and a11y
+» [PP-2] Indicate that grouping elements have child element errors for ux and a11y
+Issue summary:
+View changes
+This
+might
+be do-able now that
+#3599680: Consolidate, merge, and refactor Gin's CSS variable's into Admin theme's original variables.
+has landed.
+However, it should now wait on
+#2848507: Indicate that grouping elements have child element errors for ux and a11y
+, because that work might be usable here with only slight modifications and it will likely need UX input that will also apply to Default Admin.
+Log in
+or
+register
+to post comments
+Comment
+#4
+kentr
+commented
+24 June 2026 at 19:06
+because that work might be usable here with only slight modifications and it will likely need UX input that will also apply to Default Admin.
+Err, and also because there are changes outside of the theme.
+Log in
+or
+register
+to post comments
+Comment
+#5
+kentr
+commented
+23 July 2026 at 16:07
+Title:
+[PP-2] Indicate that grouping elements have child element errors for ux and a11y
+» [PP-3] Indicate that grouping elements have child element errors for ux and a11y
+Issue tags:
++
+Usability
+Related issues:
++
+#2859914: Misleading Icon used on form validation errors
+Based on UX feedback in
+#2848507-212: Indicate that grouping elements have child element errors for ux and a11y
+, I think this is also blocked by
+#2859914: Misleading Icon used on form validation errors
+.
+Log in
+or
+register
+to post comments
+Comment
+#6
+kentr
+commented
+18 August 2026 at 21:48
+Title:
+[PP-3] Indicate that grouping elements have child element errors for ux and a11y
+» [PP-1] Indicate that grouping elements have child element errors for ux and a11y
+Issue summary:
+View changes
+It was decided that
+#2859914: Misleading Icon used on form validation errors
+isn't a blocker for
+#2848507: Indicate that grouping elements have child element errors for ux and a11y
+after all.
+@mherchel said
+in Slack
+most of the big CSS refactor for Default Admin is complete.
+Most of the large CSS refactoring issues are in, which means its time to take stock of what's still broken
+AFAICT,
+#2848507: Indicate that grouping elements have child element errors for ux and a11y
+is very close. It might need some code tweaks, but I'm willing to take a gamble that we can start on this in parallel.
+I'll work on porting the work in
+#2848507: Indicate that grouping elements have child element errors for ux and a11y
+to Default Admin. Once that issue is in, then this will be more easily testable by others.
+Log in
+or
+register
+to post comments
+Comment
+#7
+kentr
+commented
+19 August 2026 at 19:22
+Title:
+[PP-1] Indicate that grouping elements have child element errors for ux and a11y
+» [PP-1] Indicate that grouping elements have child element errors for ux and a11y, Default Admin
+Log in
+or
+register
+to post comments
+Comment
+#8
+quietone
+commented
+21 August 2026 at 11:57
+Title:
+[PP-1] Indicate that grouping elements have child element errors for ux and a11y, Default Admin
+» [PP-1] Indicate that grouping elements have child element errors for UX and a11y
+Issue summary:
+View changes
+Adding what this is postponed on to the remaining tasks per
+Remining tasks
+.
+Log in
+or
+register
+to post comments
+Comment
+#9
+kentr
+commented
+24 August 2026 at 02:57
+Issue summary:
+View changes
+Log in
+or
+register
+to post comments
+Comment
+#10
+kentr
+commented
+26 August 2026 at 23:27
+Issue summary:
+View changes
+Log in
+or
+register
+to post comments
+Comment
+#11
+kentr
+commented
+27 August 2026 at 00:58
+Issue summary:
+View changes
+Log in
+or
+register
+to post comments
+Comment
+#12
+mgifford
+he/him
+English
+commented
+29 August 2026 at 20:35
+Status
+File
+Size
+new
+issue-3604037-review.zip
+75.08 KB
+Probably the most useful thing in this AI generated .zip is the replicate_grouping_child_errors recipe.  Yes, there's a patch and more than one readme.  This is all postponed on other issues, so perhaps scanning over this patch might be useful to help build a more solid one. There are also Guidepup instructions (and a diff) to help with tracking the emulation of screen reader impacts before/after.
+Log in
+or
+register
+to post comments
+Comment
+#13
+kentr
+commented
+30 August 2026 at 01:37
+I’ve done most of the conversion from
+#2848507: Indicate that grouping elements have child element errors for ux and a11y
+in the issue fork.
+I paused to see what came out of the code review that needed to be carried over.
+I didn’t create an MR because I wanted to avoid using CI minutes until it’s ready for review. Sadly, even draft MR‘s run pipelines.
+Log in
+or
+register
+to post comments
+Comment
+#14
+kentr
+commented
+30 August 2026 at 01:52
+Issue summary:
+View changes
+Log in
+or
+register
+to post comments
+Comment
+#15
+kentr
+commented
+30 August 2026 at 02:05
+Issue summary:
+View changes
+Log in
+or
+register
+to post comments
+Comment
+#16
+kentr
+commented
+4 September 2026 at 23:25
+Status:
+Active
+» Postponed
+It's probably confusing that the status isn't Postponed...
+Log in
+or
+register
+to post comments
+Comment
+#17
+10 September 2026 at 22:09
+kentr
+opened
+merge request !17078
+Log in
+or
+register
+to post comments
+Comment
+#18
+kentr
+commented
+10 September 2026 at 23:03
+Issue summary:
+View changes
+Issue tags:
++
+Needs usability review
+I copied non-Claro changes from
+#2848507: Indicate that grouping elements have child element errors for ux and a11y
+because:
+That makes it possible to test this issue.
+If this issue can get to RTBC before
+#2848507: Indicate that grouping elements have child element errors for ux and a11y
+, then it can land first.
+If
+#2848507: Indicate that grouping elements have child element errors for ux and a11y
+lands first, the corresponding commit in this issue can be reverted in the case of merge conflicts.
+I'm tagging for UX review, but I'm leaving it as postponed on
+#2848507: Indicate that grouping elements have child element errors for ux and a11y
+because it's
+not
+ready for general review and the path forward is TBD.
+Log in
+or
+register
+to post comments
+Comment
+#19
+kentr
+commented
+11 September 2026 at 00:44
+Issue summary:
+View changes
+Issue tags:
++
+11.5.0 release priority
+When @mgifford and I talked about it last, we thought this is a blocker for
+#2915899: [PP-1] Enable the Inline Form Errors module in the Standard profile and recipe
+for the same reasons that
+#2848507: Indicate that grouping elements have child element errors for ux and a11y
+is.
+Log in
+or
+register
+to post comments
+Comment
+#20
+kentr
+commented
+11 September 2026 at 22:25
+I noticed a couple of janky things that I'll fix:
+Vertical positioning of icon in the standard
+details
+version. I messed that up trying to fix something else but missed it when I tested the change.
+The red error border for
+details
+slices through the focus indicator on the
+summary
+.
+Log in
+or
+register
+to post comments
+Comment
+#21
+kentr
+commented
+16 September 2026 at 16:01
+Status
+File
+Size
+new
+3604037-21-before-after-standard-details-light.png
+85.51 KB
+new
+3604037-21-before-after-standard-details-dark.png
+73.58 KB
+new
+3604037-21-before-after-accordion-details-node-edit-light.png
+123.74 KB
+new
+3604037-21-before-after-accordion-details-node-edit-dark.png
+110.2 KB
+new
+3604037-21-before-after-accordion-details-regular-light.png
+128.37 KB
+new
+3604037-21-before-after-accordion-details-regular-dark.png
+111.02 KB
+new
+3604037-21-error-border-hidden-by-summary-background.png
+52.48 KB
+I fixed:
+the icon vertical alignment,
+the janky error border slicing through the focus outline.
+The fix for the latter puts the red error border below the focus outline (in the Z-plane), which also affects the version where the red border completely covered that part of the focus outline (the version labeled "accordion style
+details
+element on node edit form" below).
+Before / after screenshots
+Standard
+details
+element:
+Accordion style
+details
+element on node edit form:
+Regular accordion style
+details
+, such as for vertical tabs on narrow viewport:
+Log in
+or
+register
+to post comments
+Comment
+#22
+kentr
+commented
+18 September 2026 at 00:33
+Issue summary:
+View changes
+Log in
+or
+register
+to post comments
+Comment
+#23
+kentr
+commented
+18 September 2026 at 00:59
+Note regarding focus indicator in the #21 screenshots: the focus indicator will change in
+#3618140: Improve the accessibility of focus outlines
+.
+Log in
+or
+register
+to post comments
+Comment
+#24
+kentr
+commented
+22 September 2026 at 15:50
+Title:
+[PP-1] Indicate that grouping elements have child element errors for UX and a11y
+» Indicate that grouping elements have child element errors for UX and a11y
+Assigned:
+Unassigned
+»
+kentr
+Issue summary:
+View changes
+Status:
+Postponed
+» Needs work
+No longer postponed on
+#2848507: Indicate that grouping elements have child element errors for ux and a11y
+. I've copied the non-theme changes from that issue to here.
+The UX team looked at this in
+#3620853: Drupal Usability Meeting 2026-09-11
+. Recording:
+https://www.youtube.com/watch?v=2eIvoRG3GNE
+I'll watch the recording to see if anything needs to be adjusted.
+Log in
+or
+register
+to post comments
+Comment
+#25
+kentr
+commented
+22 September 2026 at 22:13
+Issue summary:
+View changes
+Issue tags:
+-
+Needs usability review
+Not an official summary, but the usability team discussed this issue in
+#3620853: Drupal Usability Meeting 2026-09-11
+.
+The attendees at the usability meeting were:
+@benjifisher
+@mgifford
+@rkoller
+@the_g_bomb
+@simohell
+AFAICT from the
+meeting recording
+the only concerns with the MR were these:
+The icon vertical alignment (fixed).
+Inconsistencies with the way the focus indicator is handled for the different cases. On standard
+details
+elements, the focus indicator is outside (larger than) the
+summary
+, but on the vertical tabs controls and accordion style
+details
+the focus indicator is inset to the
+summary
+.
+Various forced-colors problems.
+They were OK'd as followups.
+IMO, fixing the focus indicator is out of scope because the underlying problem already exists on
+main
+. This MR just makes it more obvious.
+It looks to me like the forced-colors problems need a big picture discussion.
+I'm removing Needs usability review because that did occur.
+[edited to add a link to the meeting issue and a list of attendees, at the recommendation of per @rkoller]
+Log in
+or
+register
+to post comments
+Comment
+#26
+kentr
+commented
+22 September 2026 at 22:14
+Assigned:
+kentr
+» Unassigned
+Log in
+or
+register
+to post comments
+Comment
+#27
+kentr
+commented
+23 September 2026 at 00:55
+Issue summary:
+View changes
+Log in
+or
+register
+to post comments
+Comment
+#28
+smustgrave
+commented
+23 September 2026 at 17:14
+Testing color contrast for this one and it does fail AAA contrast with 1.4.6
+Dark module this failures universally at all levels (AAA and AA).
+Think we need to address those.
+Log in
+or
+register
+to post comments
+Comment
+#29
+kentr
+commented
+23 September 2026 at 18:23
+Status
+File
+Size
+new
+3604037-29-error-color-contrast.png
+13.63 KB
+Thanks @smustgrave!
+That's a problem in
+main
+, with the color for form "labels" in general (not specific to this MR).
+Surprised we missed that... I'll create an issue for it.
+Here's a screenshot of an error on the node edit form in dark mode without this MR (the error is highlighted by the Accessibility Insights extension):
+Log in
+or
+register
+to post comments
+Comment
+#30
+kentr
+commented
+23 September 2026 at 19:51
+Related issues:
++
+#3625458: Form error text in dark mode has low contrast
+#3625458: Form error text in dark mode has low contrast
+Log in
+or
+register
+to post comments
+Comment
+#31
+kentr
+commented
+24 September 2026 at 19:02
+Issue summary:
+View changes
+Log in
+or
+register
+to post comments
+Comment
+#32
+kentr
+commented
+27 September 2026 at 14:38
+Status
+File
+Size
+new
+3604037-32-default-admin-accordion-details-ltr.png
+99.17 KB
+new
+3604037-32-default-admin-vertical-tabs-ltr.png
+139.76 KB
+new
+3604037-32-default-admin-standard-details-ltr.png
+55.08 KB
+Screenshots for change record.
+Log in
+or
+register
+to post comments
+Comment
+#33
+kentr
+commented
+27 September 2026 at 16:00
+Issue summary:
+View changes
+Log in
+or
+register
+to post comments
+Comment
+#34
+kentr
+commented
+28 September 2026 at 15:11
+Issue summary:
+View changes
+Log in
+or
+register
+to post comments
+Comment
+#35
+kentr
+commented
+28 September 2026 at 15:39
+Issue summary:
+View changes
+Deleted.
+Log in
+or
+register
+to post comments
+Comment
+#36
+kentr
+commented
+28 September 2026 at 16:13
+Issue summary:
+View changes
+Log in
+or
+register
+to post comments
+Comment
+#37
+kentr
+commented
+28 September 2026 at 16:52
+Issue summary:
+View changes
+Log in
+or
+register
+to post comments
+Comment
+#38
+kentr
+commented
+1 October 2026 at 18:16
+Issue summary:
+View changes
+Status
+File
+Size
+new
+3604037-38-default-admin-standard-details-rtl.png
+54.63 KB
+new
+3604037-38-default-admin-vertical-tabs-rtl.png
+138.49 KB
+new
+3604037-38-default-admin-accordion-details-rtl.png
+85.89 KB
+new
+3604037-38-default-admin-standard-details-ltr.forced-colors.png
+50.67 KB
+new
+3604037-38-default-admin-accordion-details-ltr.forced-colors.png
+90.19 KB
+new
+3604037-38-default-admin-vertical-tabs-ltr.forced-colors.png
+131.6 KB
+new
+3604037-38-default-admin-accordion-details-rtl.forced-colors.png
+82.17 KB
+new
+3604037-38-default-admin-vertical-tabs-rtl.forced-colors.png
+127.79 KB
+Adding screenshots to IS.
+Log in
+or
+register
+to post comments
+Comment
+#39
+kentr
+commented
+1 October 2026 at 23:30
+Status:
+Needs work
+» Needs review
+Log in
+or
+register
+to post comments
+Comment
+#40
+kentr
+commented
+1 October 2026 at 23:59
+Issue summary:
+View changes
+Status:
+Needs review
+» Needs work
+Status
+File
+Size
+new
+3604037-40-default-admin-standard-details-rtl.forced-colors.png
+50.47 KB
+8 files were hidden/shown/deleted
+Status
+File
+Size
+hidden
+3604037-21-before-after-standard-details-light.png
+85.51 KB
+hidden
+3604037-21-before-after-standard-details-dark.png
+73.58 KB
+hidden
+3604037-21-before-after-accordion-details-node-edit-light.png
+123.74 KB
+hidden
+3604037-21-before-after-accordion-details-node-edit-dark.png
+110.2 KB
+hidden
+3604037-21-before-after-accordion-details-regular-light.png
+128.37 KB
+hidden
+3604037-21-before-after-accordion-details-regular-dark.png
+111.02 KB
+hidden
+3604037-21-error-border-hidden-by-summary-background.png
+52.48 KB
+hidden
+3604037-29-error-color-contrast.png
+13.63 KB
+Actually, going to run pipeline before Needs review because I skipped it previously.
+Log in
+or
+register
+to post comments
+Comment
+#41
+kentr
+commented
+2 October 2026 at 00:26
+Status:
+Needs work
+» Needs review
+Pipeline is green. There were unrelated random failures.
+Log in
+or
+register
+to post comments
+Comment
+#42
+kentr
+commented
+6 October 2026 at 17:15
+Issue tags:
++no-ai
+AFAIK no AI was used in this MR. Definitely not in the work I did, but AFAICT also not in the original work of
+#2848507: Indicate that grouping elements have child element errors for ux and a11y
+.
+Log in
+or
+register
+to post comments
+Comment
+#43
+kentr
+commented
+6 October 2026 at 17:51
+Issue tags:
+-no-ai
++
+ai-ni
+AI was not used intentionally, anyway.
+Log in
+or
+register
+to post comments
+Comment
+#44
+rkoller
+he/him
+German
+Nürnberg, Germany
+commented
+11 October 2026 at 16:04
+Status
+File
+Size
+new
+scenario1.jpg
+104.75 KB
+new
+scenario2.jpg
+173.9 KB
+new
+scenario3-no_errors.jpg
+145.44 KB
+new
+scenario3-welcome_awaiting_approval-active.jpg
+129.47 KB
+new
+scenario3-account_blocked-active.jpg
+94.41 KB
+I've did another round of testing of the latest state of the MR. Referring to the points raised during the ux meeting @kentr summarized in
+#25
+.
+The vertical icon alignment looks good now! Fab, thanks!
+In regard to the inconsistencies of the focus outline mainly in the context of the vertical tabs, i can second our conclusion from back then as well the assessement  by @kentr in
+#25
+, looking at it another time, the styling still has issue but those could be improved in a follow up. The contrasting area isnt going down to a degree in any of these scenarios that the element in focus isnt discernable anymore plus the current state of main without this MR is worse, way way worse. so a follow up is fine in this case from my point of view.
+In regard to forced colors mode i also agree with @kentr, there a bigger picture discussion has to happen. The current state of the MR is sort of tolerable but has more significant issues compared to focus outline ones. the top border in forced colors mode of the top vertical tab is visible and solid in forced color mode while in regular mode there is no top border. while in forced color and regular mode there is no bottom border for the vertical tab at the bottom. and all borders aside those two at top and bottom, no matter if active, erroneous, or in none active state have a solid border. that way it is impossible to distinguish between active and non active state easily, while in regular mode the non active state borders are way lighter. one option to solve that could be to make the borders for non active vertical tabs dotted in forced color mode. but all that could be done in a follow up, and does not necessarily have to happen within this issue.
+The only sort of more serious problem that i've noticed and dawned on me where i am not sure it could be deferred to a follow up is the following. the color for errors in scenario 1 and 2 differs from the color from scenario 3. i am well aware to communicate something just based on color is against SC1.4.1 and that is the reason why the prohibition sign was added, but still the color is a visual cue for some people and that is why that cue should also be consistent in forced color imho:
+scenario 1 (error in white)
+scenario 2 (error in white)
+scenario 3 - with no errors and the vertical tab on top active
+scenario 3 - with three erroneous vertical tabs and the
+Welcome (awaiting approval)
+vertical tab active
+scenario 3 - with three erroneous vertical tabs and the
+Account blocked
+vertical tab active
+Based on coloring in scenario 1 and 2 the active vertical tab in
+scenario3-no_errors.jpg
+would be erroneous same as for example the active vertical tab in
+scenario3-account_blocked-active.jpg
+. in all cases the left thick border is white.
+Log in
+or
+register
+to post comments
+Comment
+#45
+rkoller
+he/him
+German
+Nürnberg, Germany
+commented
+11 October 2026 at 17:13
+Status
+File
+Size
+new
+none_active.jpg
+89.77 KB
+new
+active.jpg
+75.14 KB
+One detail to denote I forgot to add in the previous comment and I am uncertain if we touched that topic before. But in dark mode the red used for none text elements is the same red used for the labels of those erroneous elements. Problem is, the color contrast against both possible background colors in dark mode is each time < 4.5:1... And then there is also the problem that the default admin theme provides a red accent color which is quite close to the one for the error illustrated in both screenshots (the colors were only taken with the color picker).
+The background for any non active erroneous vertical tab has a color contrast of 3.37:1 against its label
+The background for any active erroneous vertical tab has a color contrast of 4.48:1 against its label
+Update:
+In light mode the accent color collides even more with the red of the error color, making the two hardly distinguishable.
+Log in
+or
+register
+to post comments
+Comment
+#46
+kentr
+commented
+11 October 2026 at 21:36
+Thanks @rkoller!
+The red error color low contrast should be fixed by
+#3625458: Form error text in dark mode has low contrast
+.
+I don't know how to solve the problem with the red accent color, though. I think that would already exist in
+main
+. This MR uses the pre-defined error color.
+The only sort of more serious problem that i've noticed and dawned on me where i am not sure it could be deferred to a follow up is the following. the color for errors in scenario 1 and 2 differs from the color from scenario 3. i am well aware to communicate something just based on color is against SC1.4.1 and that is the reason why the prohibition sign was added, but still the color is a visual cue for some people and that is why that cue should also be consistent in forced color imho:
+I think the underlying problem is that there's not a system color for errors.
+For vertical tabs, the border is on the
+a
+element, so it gets that semantic color (Edge page colors gives a more complete picture):
+But for details, the border is on the
+details
+and not the
+summary
+, so it gets just the standard white:
+And in both, the border on the invalid field is yellow and the label is white.
+We probably need to figure out a way to color errors in forced colors in general (if it's possible).
+For this issue, we could make the border
+CanvasText
+for vertical tabs to match the border on
+details
+. But I was thinking that the icon should probably have the same semantic color as the element that it's attached to (whether it's a button, a link, a summary, etc).
+Log in
+or
+register
+to post comments
+Comment
+#47
+rkoller
+he/him
+German
+Nürnberg, Germany
+commented
+11 October 2026 at 22:15
+I don't know how to solve the problem with the red accent color, though. I think that would already exist in main. This MR uses the pre-defined error color.
+one option might be to simply drop the red accent color from the default admin theme. having an accent color that is that close to the color the theme uses for errors i consider inherently problematic (
+https://www.whocanuse.com/?bg=bb4d42&fg=c43336&fs=16&fw=
+). :/
+I think the underlying problem is that there's not a system color for errors.
+yep i know and i agree to. i've just raised that detail because having the same state with different colors on different pages is problematic. so having a "crude hack" to unify them for the time being until a consensus is reached for a proper fix was what i was implying - something like the CanvasText system color for vertical tabs what you suggested. for the "crude fix" it shouldnt have to make semantic sense but rather just accomplish consistency?
+and about a system color for errors, ive already searched in online resources a while ago  if there is some sort of documentation or best practice in that regard but i had no luck finding anything yet. will see maybe it would be possible to contact someone at the microsoft edge team or somehow related to pick their brains on that question. and again it would be super helpful if there would be some sort of best practice demo where you are able to see which system color is being used in which context best.
+Log in
+or
+register
+to post comments
+Comment
+#48
+kentr
+commented
+12 October 2026 at 00:23
+Status:
+Needs review
+» Needs work
+one option might be to simply drop the red accent color from the default admin theme. having an accent color that is that close to the color the theme uses for errors i consider inherently problematic
+Yeah, I thought of that also but didn't think it would be well-received :-). It's worth pursuing, though.
+It might be helpful if you comment in
+#3625458: Form error text in dark mode has low contrast
+, because the color I used is a slightly lighter red that's probably even closer to the red accent color (based on just looking at your screenshot).
+i've just raised that detail because having the same state with different colors on different pages is problematic. so having a "crude hack" to unify them for the time being until a consensus is reached for a proper fix was what i was implying - something like the CanvasText system color for vertical tabs what you suggested. for the "crude fix" it shouldnt have to make semantic sense but rather just accomplish consistency?
+Sounds good. I'll change it.
+Log in
+or
+register
+to post comments
+Comment
+#49
+kentr
+commented
+12 October 2026 at 00:26
+about a system color for errors, ive already searched in online resources a while ago if there is some sort of documentation or best practice in that regard but i had no luck finding anything yet.
+I didn't find anything either.
+will see maybe it would be possible to contact someone at the microsoft edge team or somehow related to pick their brains on that question.
+That would be awesome! 💪
+Log in
+or
+register
+to post comments
+Comment
+#50
+rkoller
+he/him
+German
+Nürnberg, Germany
+commented
+12 October 2026 at 17:35
+Yeah, I thought of that also but didn't think it would be well-received :-). It's worth pursuing, though
+haha yep that might be the case but keeping it in as is might also not be the right choice. :( we will see how things turn out.
+It might be helpful if you comment in #3625458: Form error text in dark mode has low contrast, because the color I used is a slightly lighter red that's probably even closer to the red accent color (based on just looking at your screenshot).
+left a brief comment
+Log in
+or
+register
+to post comments
+Comment
+#51
+kentr
+commented
+13 October 2026 at 00:19
+Issue summary:
+View changes
+Status:
+Needs work
+» Needs review
+Status
+File
+Size
+new
+3604037-51-default-admin-vertical-tabs-ltr.forced-colors.png
+137.74 KB
+new
+3604037-51-default-admin-vertical-tabs-rtl.forced-colors.png
+134.66 KB
+2 files were hidden/shown/deleted
+Status
+File
+Size
+hidden
+3604037-38-default-admin-vertical-tabs-ltr.forced-colors.png
+131.6 KB
+hidden
+3604037-38-default-admin-vertical-tabs-rtl.forced-colors.png
+127.79 KB
+I changed the vertical tabs forced-colors error-border color to
+canvasText
+per
+#47
+.
+These screenshots are now in the issue summary. I also updated the proposed resolution to match.
+Log in
+or
+register
+to post comments
+Comment
+#52
+rkoller
+he/him
+German
+Nürnberg, Germany
+commented
+13 October 2026 at 01:22
+Status
+File
+Size
+new
+border_missing.jpg
+40.87 KB
+i've found one regression. in dark mode on node edit forms in the advanced sidebar erroneous detail elements are missing a red top and bottom border. i've first noticed in edge and can confirm it in safari. in light mode both borders are in place.
+aside that everything looks fab. ive also checked the changes in forced color mode in edge. now all three scenarios have the same color. even tough it makes now distinguishing active and erroneous vertical tabs tough - the prohibition sign is the sole visual cue, but the inconsistency inbetween the scenarios was way worse in comparison.
+so with the borders in dark mode on node edit forms fixed i would vote for RTBC the issue. and while waiting for review i would also vote as ive already written on slack to create one or two follow ups for forced color mode. one for adding dotted top and bottom border lines for none active vertical tabs and ensure the vertical tab on top show a top border in regular and forced color mode and the vertical tab on the bottom the bottom border is shown in regular and forced color mode as well. and a separate issue to figure out a solution for the system color to use for errors. and probably another issue for dealing with the case a user chose red as their accent color.
+Log in
+or
+register
+to post comments
+Comment
+#53
+rkoller
+he/him
+German
+Nürnberg, Germany
+commented
+13 October 2026 at 01:23
+Status:
+Needs review
+» Needs work
+Log in
+or
+register
+to post comments
+Comment
+#54
+kentr
+commented
+13 October 2026 at 17:45
+Issue summary:
+View changes
+Status:
+Needs work
+» Needs review
+Status
+File
+Size
+new
+3604037-54-default-admin-accordion-details-ltr.dark_.png
+97.37 KB
+new
+3604037-54-default-admin-vertical-tabs-ltr.dark_.png
+144.27 KB
+new
+3604037-54-default-admin-standard-details-ltr.dark_.png
+49.82 KB
+I fixed the border on the dark mode node edit form details and added LTR dark mode screenshots to the IS.
+Log in
+or
+register
+to post comments
+Comment
+#55
+rkoller
+he/him
+German
+Nürnberg, Germany
+commented
+13 October 2026 at 22:11
+Issue summary:
+View changes
+Status:
+Needs review
+» Reviewed & tested by the community
+I've retested the latest state of the MR in light and dark mode in RTL and LTR, and also rechecked forced color mode and reassured that the color for the error state is consistent across all three scenarios. Looks all good now as well as the issue summary is in proper shape, thanks to @kentr's effort! Setting it to RTBC.
+There are three details we've agreed on to discuss and/or solve in follow-ups:
+The borders of vertical tabs should use dotted lines instead of solid lines to make the active vertical tab easier distinguishable from none active vertical tabs (
+#3631321: Improve the visual representation of none active vertical tabs in forced color mode
+)
+Try to figure out which system color to use for the error state - (
+#3631337: Decide how to semantically label HTML elements for errors in forced color mode
+)
+Figure out how to handle the visual similarity between the error color and the accent color red (
+#3631335: The red accent color is too close to the error color
+)
+Log in
+or
+register
+to post comments
+Comment
+#56
+mgifford
+he/him
+English
+commented
+16 October 2026 at 12:12
+Would be good to link the follow-up items here when they are created @rkoller
+Much appreciate the review.
+Log in
+or
+register
+to post comments
+Comment
+#57
+rkoller
+he/him
+German
+Nürnberg, Germany
+commented
+16 October 2026 at 16:07
+yes that was the plan anyway. but created all three issues already now and updated
+#55
+accordingly.
+Log in
+or
+register
+to post comments
+Contribution record
+Change record drafts
+Details and vertical tabs now receive child error count and extra classes
+Parent issue
+https://www.drupal.org/node/3585823
+Add child issue
+,
+clone issue
+Related issues
+https://www.drupal.org/node/3582351
+https://www.drupal.org/node/2859914
+https://www.drupal.org/node/3625458
+Referenced by
+#2848507: Indicate that grouping elements have child element errors for ux and a11y
+#3619127: Forms sidebar doesn't open with error links from Inline Form Errors module
+#3619387: Indicate on forms sidebar toggle button that sidebar has child element errors
+#3620853: Drupal Usability Meeting 2026-09-11
+#3625988: Port over changes from "Indicate that grouping elements have child element errors for ux and a11y"
+#3631321: Improve the visual representation of none active vertical tabs in forced color mode
+#3631335: The red accent color is too close to the error color
+#3631337: Decide how to semantically label HTML elements for errors/warnings in forced color mode
+Infrastructure management for Drupal.org provided by
+News items
+News
+Planet Drupal
+Social media
+Sign up for Drupal news
+Security advisories
+Our community
+Community
+Services
+,
+Training
+&
+Hosting
+Contributor guide
+Groups & meetups
+DrupalCon
+Code of conduct
+Documentation
+Documentation
+Drupal Guide
+Drupal User Guide
+Developer docs
+API.Drupal.org
+Drupal code base
+Download & Extend
+Drupal core
+Modules
+Themes
+Distributions
+Governance of community
+About
+Web accessibility
+Drupal Association
+About Drupal.org
+Terms of service
+Privacy policy
+Drupal is a
+registered trademark
+of
+Dries Buytaert
+.
