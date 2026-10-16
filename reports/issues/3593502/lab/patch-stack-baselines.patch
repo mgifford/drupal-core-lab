@@ -1,0 +1,104 @@
+diff --git a/scripts/build-cloud.mjs b/scripts/build-cloud.mjs
+index 95ba0ea..cd526f6 100644
+--- a/scripts/build-cloud.mjs
++++ b/scripts/build-cloud.mjs
+@@ -12,7 +12,7 @@ const check = process.argv.includes('--check');
+ const out = path.join(labRoot, 'cloud');
+ const remote = execFileSync('git', ['-C', labRoot, 'remote', 'get-url', 'origin'], { encoding: 'utf8' }).trim();
+ const repo = remote.replace(/^git@github\.com:/, 'https://github.com/').replace(/\.git$/, '');
+-const pick = (v) => ({ slug: v.slug, issue: v.issue, label: v.label, description: v.description, steps: v.steps, expected: v.expected, actual: v.actual, setup: v.setup, observe: v.observe, checks: v.checks, pages: v.pages, demo: v.demo });
++const pick = (v) => ({ slug: v.slug, issue: v.issue, label: v.label, description: v.description, before: { label: v.before.label }, after: { label: v.after.label }, steps: v.steps, expected: v.expected, actual: v.actual, setup: v.setup, observe: v.observe, checks: v.checks, pages: v.pages, demo: v.demo });
+ const files = {
+   'browser-handoff.mjs': fs.readFileSync(path.join(labRoot, 'tools/compare/browser-handoff.mjs'), 'utf8'),
+   'index.html': fs.readFileSync(path.join(labRoot, 'tools/compare/index.html'), 'utf8').replace('__BUILD__', 'static'),
+diff --git a/tools/compare/README.md b/tools/compare/README.md
+index 963cf68..ffb72d8 100644
+--- a/tools/compare/README.md
++++ b/tools/compare/README.md
+@@ -190,7 +190,7 @@ fields (`core`, `before`, `after` merge one level deep, so `after.patches` is in
+ |---|---|
+ | `slug`, `issue`, `label`, `description` | Identity and the sentence shown above the frames. |
+ | `core` | `{ "commit": "<sha>" }` pins an exact core commit; `{ "ref": "main", "commit": null }` follows the branch (fetched when an environment is first created). |
+-| `before.env`, `after.env` | Directory names under `envs/`. `after.patches` lists patch files (paths from the repository root) applied in order. `url` overrides the link for "open outside". |
++| `before.env`, `after.env` | Directory names under `envs/`. Either side may have `patches`, listing patch files (paths from the repository root) applied in order. This supports pristine-core versus patch and earlier-patch-stack versus revised-patch-stack comparisons. Optional `label` values name the stacks in the viewer. `url` overrides the link for "open outside". |
+ | `recipe` | Directory under `recipes/` applied to both sites (the starting state). Omit for a plain Standard install. |
+ | `pages`, `login` | Pages the diff report fetches; whether it logs in. |
+ | `steps`, `expected`, `actual`, `setup` | Shown above the frames. Each step: `{ text, how: "recipe" / "mirror" / "each", lookFor }`. |
+diff --git a/tools/compare/index.html b/tools/compare/index.html
+index 1120de8..179e49f 100644
+--- a/tools/compare/index.html
++++ b/tools/compare/index.html
+@@ -196,8 +196,8 @@
+   </section>
+   <p data-needs="live" id="legend" role="status" hidden></p>
+   <div class="panes" id="panes" data-needs="live">
+-    <section class="pane" aria-labelledby="hb" tabindex="0"><h2 id="hb">Before patch <span class="path" id="pb"></span><a class="openext" id="pob" target="_blank" rel="noopener" href="#" title="Open the Before page in a new window" aria-label="Open the Before page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fb" title="Before patch" data-side="before"></iframe><div class="frame-error" id="fbe" hidden aria-live="polite"></div></section>
+-    <section class="pane" aria-labelledby="ha" tabindex="0"><h2 id="ha">After patch <a id="haissue" target="_blank" rel="noopener" href="#" hidden></a><span class="path" id="pa"></span><a class="openext" id="poa" target="_blank" rel="noopener" href="#" title="Open the After page in a new window" aria-label="Open the After page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fa" title="After patch" data-side="after"></iframe><div class="frame-error" id="fae" hidden aria-live="polite"></div></section>
++    <section class="pane" aria-labelledby="hb" tabindex="0"><h2 id="hb"><span id="hblabel">Before patch</span> <span class="path" id="pb"></span><a class="openext" id="pob" target="_blank" rel="noopener" href="#" title="Open the Before page in a new window" aria-label="Open the Before page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fb" title="Before patch" data-side="before"></iframe><div class="frame-error" id="fbe" hidden aria-live="polite"></div></section>
++    <section class="pane" aria-labelledby="ha" tabindex="0"><h2 id="ha"><span id="halabel">After patch</span> <a id="haissue" target="_blank" rel="noopener" href="#" hidden></a><span class="path" id="pa"></span><a class="openext" id="poa" target="_blank" rel="noopener" href="#" title="Open the After page in a new window" aria-label="Open the After page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fa" title="After patch" data-side="after"></iframe><div class="frame-error" id="fae" hidden aria-live="polite"></div></section>
+   </div>
+ </main>
+ 
+@@ -325,9 +325,13 @@ function renderSteps() { ticks = loadTicks(); const ol = $('steps'); ol.textCont
+ $('tickrecipe').addEventListener('click', () => { (v.steps || []).forEach((st, i) => { if (st.how === 'recipe') ticks[i] = true; }); saveTicks(); renderSteps(); });
+ $('clearticks').addEventListener('click', () => { ticks = []; saveTicks(); renderSteps(); });
+ function setVariant(slug) { v = variants.find((x) => x.slug === slug); $('desc').textContent = v.description; renderSteps(); buildObs(); document.title = `Compare: ${v.slug}`;
++  const beforeLabel = v.before?.label || 'Before patch', afterLabel = v.after?.label || 'After patch';
++  $('hblabel').textContent = beforeLabel; $('halabel').textContent = afterLabel;
++  $('ob').textContent = beforeLabel; $('oa').textContent = afterLabel;
++  F.before.title = beforeLabel; F.after.title = afterLabel;
+   const iss = $('haissue');
+-  if (v.issue) { iss.hidden = false; iss.textContent = `(#${v.issue})`; iss.href = `https://www.drupal.org/project/drupal/issues/${v.issue}`; iss.title = `Open Drupal issue #${v.issue} in a new window`; iss.setAttribute('aria-label', `Open Drupal issue ${v.issue} in a new window`); $('fa').title = `After patch (#${v.issue})`; }
+-  else { iss.hidden = true; iss.textContent = ''; iss.removeAttribute('href'); $('fa').title = 'After patch'; }
++  if (v.issue) { iss.hidden = false; iss.textContent = `(#${v.issue})`; iss.href = `https://www.drupal.org/project/drupal/issues/${v.issue}`; iss.title = `Open Drupal issue #${v.issue} in a new window`; iss.setAttribute('aria-label', `Open Drupal issue ${v.issue} in a new window`); F.after.title = `${afterLabel} (#${v.issue})`; }
++  else { iss.hidden = true; iss.textContent = ''; iss.removeAttribute('href'); }
+   const start = (v.demo && v.demo.start) || v.pages[0] || '/'; $('goto').value = start;
+   document.querySelector('input[name="width"][value="half"]').checked = true; applyWidth(); }
+ function fillStaticPanel() {
+diff --git a/tools/compare/setup.mjs b/tools/compare/setup.mjs
+index 95bcb1a..2f80e42 100644
+--- a/tools/compare/setup.mjs
++++ b/tools/compare/setup.mjs
+@@ -117,19 +117,31 @@ if (core.commit ? !hasRef() : (CHECK || needEnv || !hasRef())) {
+ if (!dry) console.log('core is at: ' + out('git', ['-C', bare, 'log', '-1', '--format=%H %cs %s', coreRef]));
+ 
+ if (CHECK) {
+-  // Do the patches still apply to this core? Applies them in order to a throwaway checkout, builds nothing.
+-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'patchcheck-')); const wt = path.join(tmp, 'core');
+-  run('git', ['-C', bare, 'worktree', 'add', '-q', '--detach', wt, coreRef]);
++  // Do both patch stacks still apply to this core? Each side starts from its
++  // own clean throwaway checkout. This matters when Before is an earlier MR or
++  // patch revision rather than pristine core.
++  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'patchcheck-'));
+   let failed = false; const rows = [];
+-  for (const p of v.after.patches || []) {
+-    if (failed) { rows.push(`| \`${p}\` | not tried (an earlier patch failed) |`); continue; }
+-    const r = spawnSync('git', ['apply', path.join(labRoot, p)], { cwd: wt, encoding: 'utf8' });
+-    if (r.status === 0) rows.push(`| \`${p}\` | applies cleanly |`);
+-    else { failed = true; rows.push(`| \`${p}\` | **does not apply**: ${String(r.stderr).split('\n').slice(0, 2).join(' ').slice(0, 160)} |`); }
++  for (const side of ['before', 'after']) {
++    const wt = path.join(tmp, side);
++    run('git', ['-C', bare, 'worktree', 'add', '-q', '--detach', wt, coreRef]);
++    let sideFailed = false;
++    const patches = v[side].patches || [];
++    if (!patches.length) rows.push(`| ${side} | _(pristine core)_ | no patches |`);
++    for (const p of patches) {
++      if (sideFailed) { rows.push(`| ${side} | \`${p}\` | not tried (an earlier patch failed) |`); continue; }
++      const r = spawnSync('git', ['apply', path.join(labRoot, p)], { cwd: wt, encoding: 'utf8' });
++      if (r.status === 0) rows.push(`| ${side} | \`${p}\` | applies cleanly |`);
++      else {
++        failed = true; sideFailed = true;
++        rows.push(`| ${side} | \`${p}\` | **does not apply**: ${String(r.stderr).split('\n').slice(0, 2).join(' ').slice(0, 160)} |`);
++      }
++    }
++    spawnSync('git', ['-C', bare, 'worktree', 'remove', '--force', wt]);
+   }
+-  spawnSync('git', ['-C', bare, 'worktree', 'remove', '--force', wt]); fs.rmSync(tmp, { recursive: true, force: true });
+-  console.log(`\n| Patch (in order) | Result on core ${core.commit ? core.commit.slice(0, 12) : core.ref} |\n|---|---|\n${rows.join('\n')}`);
+-  console.log(failed ? '\nThe patch stack needs rerolling for this core (see reports/issues/<nid>/REPRODUCE.md).' : '\nAll patches apply. Build the environments and run the walkthrough to see whether the problem still reproduces and the fix still works.');
++  fs.rmSync(tmp, { recursive: true, force: true });
++  console.log(`\n| Side | Patch (in order) | Result on core ${core.commit ? core.commit.slice(0, 12) : core.ref} |\n|---|---|---|\n${rows.join('\n')}`);
++  console.log(failed ? '\nAt least one patch stack needs rerolling for this core (see reports/issues/<nid>/REPRODUCE.md).' : '\nBoth patch stacks apply. Build the environments and run the walkthrough to compare them.');
+   process.exit(failed ? 3 : 0);
+ }
+ 

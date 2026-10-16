@@ -190,7 +190,7 @@ fields (`core`, `before`, `after` merge one level deep, so `after.patches` is in
 |---|---|
 | `slug`, `issue`, `label`, `description` | Identity and the sentence shown above the frames. |
 | `core` | `{ "commit": "<sha>" }` pins an exact core commit; `{ "ref": "main", "commit": null }` follows the branch (fetched when an environment is first created). |
-| `before.env`, `after.env` | Directory names under `envs/`. `after.patches` lists patch files (paths from the repository root) applied in order. `url` overrides the link for "open outside". |
+| `before.env`, `after.env` | Directory names under `envs/`. Either side may have `patches`, listing patch files (paths from the repository root) applied in order. This supports pristine-core versus patch and earlier-patch-stack versus revised-patch-stack comparisons. Optional `label` values name the stacks in the viewer. `url` overrides the link for "open outside". |
 | `recipe` | Directory under `recipes/` applied to both sites (the starting state). Omit for a plain Standard install. |
 | `pages`, `login` | Pages the diff report fetches; whether it logs in. |
 | `steps`, `expected`, `actual`, `setup` | Shown above the frames. Each step: `{ text, how: "recipe" / "mirror" / "each", lookFor }`. |

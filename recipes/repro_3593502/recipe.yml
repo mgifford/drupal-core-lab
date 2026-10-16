@@ -3,7 +3,8 @@ description: 'Starting state for #3593502 (the menu edit form runs out of memory
 type: 'Testing'
 # The links themselves are made by apply.sh (seed-menu.php): a recipe cannot
 # create thousands of entities, and the merge request's own seeder needs Drush,
-# which the lab does not add to a core checkout.
+# which the lab does not add to a core checkout. seed-menu.php also enables
+# menu_tree_ui when that module exists, which means only the patched side.
 install:
   - link
   - menu_link_content

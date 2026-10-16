@@ -25,7 +25,7 @@ one: `node scripts/new-issue.mjs <nid> --branch <fork-branch>` (see `docs/NEW-IS
 | [3419891](3419891/SUMMARY.md) | Increase size of alternative text field in Image dialog | [yes](3419891/REPRODUCE.md) | 1 | 2026-10-15 | 1 | `3419891-pinned`, `3419891-latest` |
 | [3426468](3426468/) | Make the active menu item visually stand out more | [yes](3426468/REPRODUCE.md) | 2 | 2026-10-14 |  | `3426468-pinned`, `3426468-latest` |
 | [3587680](3587680/SUMMARY.md) | Empty heading tags on dialog and tabs pages | [yes](3587680/REPRODUCE.md) | 1 | 2026-10-14 |  |  |
-| [3593502](3593502/SUMMARY.md) | Introduce a new Menu UI to resolve memory issues and improve user experience | no | 0 |  |  |  |
+| [3593502](3593502/SUMMARY.md) | Introduce a new Menu UI to resolve memory issues and improve user experience | [yes](3593502/REPRODUCE.md) | 3 | 2026-10-16 |  | `3593502-pinned`, `3593502-mr-only`, `3593502-interdiff`, `3593502-latest` |
 | [3593539](3593539/SUMMARY.md) | replace the compact mode link with a switch | [yes](3593539/REPRODUCE.md) | 2 | 2026-10-14 |  |  |
 | [3604037](3604037/SUMMARY.md) | Indicate that grouping elements have child element errors | [yes](3604037/REPRODUCE.md) | 4 | 2026-10-02 | 6 | `3604037-pinned`, `3604037-latest` |
 | [3606655](3606655/) | Allow user-configurable UI settings - starting with dark mode | [yes](3606655/REPRODUCE.md) | 1 | 2026-10-15 | 1 | `3606655-pinned`, `3606655-latest` |

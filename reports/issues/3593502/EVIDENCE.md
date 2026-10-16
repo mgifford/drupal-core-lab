@@ -1,11 +1,12 @@
 # #3593502: evidence
 
-**DRAFT.** Measured by the lab on 2026-10-16. Not reviewed by a person yet.
+**DRAFT.** Baseline measured by the lab on 2026-10-16. Not reviewed by a person yet.
 
 ## Before only: what the current menu edit form costs (unchanged core)
 
-The merge request was **not** tested here: it could not be fetched (see `SUMMARY.md`). These numbers are the baseline it has to
-beat, on the same large menu that `recipes/repro_3593502` creates on both sides.
+The merge request has not been run here. These numbers are the baseline it has
+to beat, on the same large menu that `recipes/repro_3593502` creates on both
+sides. The MR source and comments were reviewed separately on 2026-10-16.
 
 Environment: Drupal core `11.x` at `4a3b0586` (2026-10-16), from the GitHub mirror; PHP 8.3.6 CLI and PHP's built-in web server
 (`php -S` with `.ht.router.php`); SQLite; Standard install; no DDEV (a Claude Code cloud container with no Docker). `main` needs
@@ -55,4 +56,11 @@ with a message and exit 1 instead of adding duplicates; the memory log redacts o
 
 ## After
 
-Not tested. Needs the merge request's diff (`CODER-PROMPT.md`, step 2) or network access to git.drupalcode.org from the lab.
+Not tested. The proposed follow-up patch passed static patch and JavaScript
+syntax checks only. See `FOLLOW-UP-PATCH.md` for the unrun PHPUnit commands and
+the remaining manual checks.
+
+The local DDEV pack is now defined in `variants.json`: patch 1 is the downloaded
+MR !15975 diff and patch 2 is the proposed interdiff. `REPRODUCE.md` gives the
+build, browser evaluation, PHPUnit, lint, and manual-test sequence. No DDEV run
+has yet been recorded in this file.

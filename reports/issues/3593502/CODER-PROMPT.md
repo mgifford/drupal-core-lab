@@ -1,9 +1,10 @@
 # #3593502 in DDEV Coder: Before and After for the new Menu UI, from a browser
 
-**DRAFT, not run yet (written 2026-10-16).** Two DDEV sites in one DDEV Coder workspace, built by a coding agent in the workspace (or
-by you, pasting the commands). The merge request itself was **not read** when this was written: drupal.org and git.drupalcode.org
-were unreachable from the session that wrote it. So the After side is built from the merge request's diff, which **you download in
-your own browser**. See `SUMMARY.md` for what is and is not known.
+**SUPERSEDED FOR LOCAL USE.** This was the earlier cloud-workspace procedure.
+The MR has since been reviewed and its diff, the proposed interdiff, variants,
+and test instructions are now stored in the lab. For a local DDEV build, use
+`REPRODUCE.md`. This file is retained only for the DDEV Coder workflow and has
+not been rerun with the new two-patch stack.
 
 Why both sides get the same large menu: the issue is that the menu edit form (`/admin/structure/menu/manage/main`) builds one form
 row per link, so its memory grows with the size of the menu. Measured on unchanged core (see `SUMMARY.md`), building that form costs

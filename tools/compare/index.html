@@ -196,8 +196,8 @@
   </section>
   <p data-needs="live" id="legend" role="status" hidden></p>
   <div class="panes" id="panes" data-needs="live">
-    <section class="pane" aria-labelledby="hb" tabindex="0"><h2 id="hb">Before patch <span class="path" id="pb"></span><a class="openext" id="pob" target="_blank" rel="noopener" href="#" title="Open the Before page in a new window" aria-label="Open the Before page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fb" title="Before patch" data-side="before"></iframe><div class="frame-error" id="fbe" hidden aria-live="polite"></div></section>
-    <section class="pane" aria-labelledby="ha" tabindex="0"><h2 id="ha">After patch <a id="haissue" target="_blank" rel="noopener" href="#" hidden></a><span class="path" id="pa"></span><a class="openext" id="poa" target="_blank" rel="noopener" href="#" title="Open the After page in a new window" aria-label="Open the After page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fa" title="After patch" data-side="after"></iframe><div class="frame-error" id="fae" hidden aria-live="polite"></div></section>
+    <section class="pane" aria-labelledby="hb" tabindex="0"><h2 id="hb"><span id="hblabel">Before patch</span> <span class="path" id="pb"></span><a class="openext" id="pob" target="_blank" rel="noopener" href="#" title="Open the Before page in a new window" aria-label="Open the Before page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fb" title="Before patch" data-side="before"></iframe><div class="frame-error" id="fbe" hidden aria-live="polite"></div></section>
+    <section class="pane" aria-labelledby="ha" tabindex="0"><h2 id="ha"><span id="halabel">After patch</span> <a id="haissue" target="_blank" rel="noopener" href="#" hidden></a><span class="path" id="pa"></span><a class="openext" id="poa" target="_blank" rel="noopener" href="#" title="Open the After page in a new window" aria-label="Open the After page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fa" title="After patch" data-side="after"></iframe><div class="frame-error" id="fae" hidden aria-live="polite"></div></section>
   </div>
 </main>
 
@@ -325,9 +325,13 @@ function renderSteps() { ticks = loadTicks(); const ol = $('steps'); ol.textCont
 $('tickrecipe').addEventListener('click', () => { (v.steps || []).forEach((st, i) => { if (st.how === 'recipe') ticks[i] = true; }); saveTicks(); renderSteps(); });
 $('clearticks').addEventListener('click', () => { ticks = []; saveTicks(); renderSteps(); });
 function setVariant(slug) { v = variants.find((x) => x.slug === slug); $('desc').textContent = v.description; renderSteps(); buildObs(); document.title = `Compare: ${v.slug}`;
+  const beforeLabel = v.before?.label || 'Before patch', afterLabel = v.after?.label || 'After patch';
+  $('hblabel').textContent = beforeLabel; $('halabel').textContent = afterLabel;
+  $('ob').textContent = beforeLabel; $('oa').textContent = afterLabel;
+  F.before.title = beforeLabel; F.after.title = afterLabel;
   const iss = $('haissue');
-  if (v.issue) { iss.hidden = false; iss.textContent = `(#${v.issue})`; iss.href = `https://www.drupal.org/project/drupal/issues/${v.issue}`; iss.title = `Open Drupal issue #${v.issue} in a new window`; iss.setAttribute('aria-label', `Open Drupal issue ${v.issue} in a new window`); $('fa').title = `After patch (#${v.issue})`; }
-  else { iss.hidden = true; iss.textContent = ''; iss.removeAttribute('href'); $('fa').title = 'After patch'; }
+  if (v.issue) { iss.hidden = false; iss.textContent = `(#${v.issue})`; iss.href = `https://www.drupal.org/project/drupal/issues/${v.issue}`; iss.title = `Open Drupal issue #${v.issue} in a new window`; iss.setAttribute('aria-label', `Open Drupal issue ${v.issue} in a new window`); F.after.title = `${afterLabel} (#${v.issue})`; }
+  else { iss.hidden = true; iss.textContent = ''; iss.removeAttribute('href'); }
   const start = (v.demo && v.demo.start) || v.pages[0] || '/'; $('goto').value = start;
   document.querySelector('input[name="width"][value="half"]').checked = true; applyWidth(); }
 function fillStaticPanel() {

@@ -1,0 +1,340 @@
+[
+  {
+    "slug": "3593502-pinned",
+    "issue": "3593502",
+    "label": "#3593502: scalable Menu tree UI with review fixes, pinned core",
+    "description": "Compare unchanged Drupal core with MR !15975 plus the lab interdiff. The patched side adds the experimental Menu tree UI and the review fixes for CSRF readiness, search-result dismissal coverage, and forced-colours move affordances.",
+    "status": "DRAFT: patch stack validated statically; DDEV, PHPUnit, browser, performance, and manual accessibility testing pending",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "a7c1655a5fa9b94c61f8517a6c35068fc54acabf"
+    },
+    "before": {
+      "env": "baseline-3593502",
+      "label": "Drupal core"
+    },
+    "after": {
+      "env": "issue-3593502",
+      "label": "MR !15975 + review interdiff",
+      "patches": [
+        "reports/issues/3593502/branches/patch-1-mr-15975.patch",
+        "reports/issues/3593502/interdiff/15975-to-review-fixes.interdiff"
+      ]
+    },
+    "recipe": "repro_3593502",
+    "pages": [
+      "/admin/structure/menu",
+      "/admin/structure/menu/manage/main/tree",
+      "/admin/structure/menu/manage/main",
+      "/admin/structure/menu/manage/main/links"
+    ],
+    "login": true,
+    "steps": [
+      {
+        "text": "The recipe creates the same 15,000-link Main navigation menu on both sites. It enables Menu tree UI only where the MR has added it.",
+        "how": "recipe"
+      },
+      {
+        "text": "On /admin/structure/menu, open the Main navigation row's primary action: Edit menu on Before and Edit links on After.",
+        "how": "mirror",
+        "lookFor": "The changed operation label is intentional. Before opens the classic all-links form and may exhaust PHP's memory limit. After opens the experimental tree UI and initially renders only the top level."
+      },
+      {
+        "text": "In After, use the search field, press Escape, then repeat the search and click the page heading.",
+        "how": "each",
+        "lookFor": "The results close in both cases while the query remains in the search field."
+      },
+      {
+        "text": "Reload After and immediately toggle the first Enabled checkbox, then reload again after the request finishes.",
+        "how": "each",
+        "lookFor": "The checkbox waits for the CSRF token if necessary, sends no empty token, and the new value persists."
+      },
+      {
+        "text": "Use Space and the arrow keys to pick up and move a row, then cancel with Escape. Repeat with the pointer.",
+        "how": "each",
+        "lookFor": "Reordering is unavailable until initialization finishes. Afterwards, pickup, destination, cancellation, focus, and announcements remain coherent."
+      },
+      {
+        "text": "Open the forced-colours window and repeat the move interaction in forced light and forced dark.",
+        "how": "each",
+        "lookFor": "The move handle, grabbed or target outline, focus indicator, and drop position remain visible."
+      },
+      {
+        "text": "For a direct classic-form comparison, open /admin/structure/menu/manage/main on Before and /admin/structure/menu/manage/main/links on After.",
+        "how": "each",
+        "lookFor": "Both classic routes may exhaust the configured memory limit. The MR retains that form as a no-JavaScript fallback; the scalable replacement is the After side's /tree route."
+      }
+    ],
+    "expected": "After provides the experimental scalable menu tree and the interdiff prevents early CSRF failures, covers both search dismissal paths, and keeps move affordances visible in forced colours.",
+    "actual": "Before has only the classic all-links form. After is MR !15975 plus the proposed interdiff. Runtime verification is pending.",
+    "checks": [
+      {
+        "label": "The experimental treegrid is present",
+        "probe": "!!document.querySelector('drupal-treegrid table[role=\"treegrid\"]')",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "The menu search control is present",
+        "probe": "!!document.querySelector('#menu-tree-ui-search-input')",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "The initial tree is bounded to at most 200 rendered rows",
+        "probe": "((n) => n > 0 && n <= 200)(document.querySelectorAll('drupal-treegrid tbody tr[role=\"row\"]').length)",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "Reordering reports ready after the CSRF token resolves",
+        "probe": "document.querySelector('drupal-treegrid')?.dataset.treegridReorderReady === 'true'",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "No JavaScript errors were recorded",
+        "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+        "expect": 0,
+        "kind": "regression"
+      }
+    ],
+    "observe": [
+      {
+        "label": "The scalable Menu tree UI loads and remains responsive",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Escape and an outside click dismiss search results without clearing the query",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "An Enabled change made immediately after page load persists",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Move affordances and destinations remain visible in forced colours",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Every move can be completed and cancelled with the keyboard",
+        "expectBefore": false,
+        "expectAfter": true
+      }
+    ],
+    "demo": {
+      "start": "/admin/structure/menu"
+    },
+    "coverage": {
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 390
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ],
+      "manual": [
+        "Keyboard navigation, reordering, cancellation, and visible focus",
+        "Search dismissal with Escape and an outside click",
+        "Move states in Windows High Contrast or the lab forced-colours window",
+        "Screen-reader names, states, levels, loading, moves, saves, and errors",
+        "Zoom to 200 and 400 percent and reflow at 320 CSS pixels",
+        "Touch and single-pointer alternatives to dragging",
+        "Performance and peak memory with 15,000 links",
+        "A wide level with 5,000 siblings and a parent with 5,000 children"
+      ]
+    }
+  },
+  {
+    "slug": "3593502-mr-only",
+    "extends": "3593502-pinned",
+    "label": "#3593502: Drupal core compared with MR !15975",
+    "description": "Compare unchanged Drupal core with MR !15975 exactly as published. This isolates what the existing MR changes before applying the lab review interdiff.",
+    "status": "DRAFT: MR patch stack validated statically; runtime evidence pending",
+    "after": {
+      "env": "issue-3593502-mr-only",
+      "label": "MR !15975",
+      "patches": [
+        "reports/issues/3593502/branches/patch-1-mr-15975.patch"
+      ]
+    },
+    "steps": [
+      {
+        "text": "The recipe creates the same 15,000-link Main navigation menu on both sites and enables Menu tree UI only on the MR side.",
+        "how": "recipe"
+      },
+      {
+        "text": "On /admin/structure/menu, open the Main navigation row's primary action: Edit menu on Drupal core and Edit links on MR !15975.",
+        "how": "each",
+        "lookFor": "Core opens the classic all-links form and may exhaust memory. The MR opens the scalable tree and initially renders only the top level."
+      },
+      {
+        "text": "On the MR side, expand several branches, search, toggle Enabled values, and exercise keyboard and pointer reordering.",
+        "how": "each",
+        "lookFor": "Record the MR behavior as published, including failures. Do not treat review-interdiff behavior as part of this comparison."
+      }
+    ],
+    "checks": [
+      {
+        "label": "The experimental treegrid is present",
+        "probe": "!!document.querySelector('drupal-treegrid table[role=\"treegrid\"]')",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "The initial tree is bounded to at most 200 rendered rows",
+        "probe": "((n) => n > 0 && n <= 200)(document.querySelectorAll('drupal-treegrid tbody tr[role=\"row\"]').length)",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "No JavaScript errors were recorded",
+        "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+        "expect": 0,
+        "kind": "regression"
+      }
+    ],
+    "observe": [
+      {
+        "label": "The scalable Menu tree UI loads and remains responsive",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "The initial page builds all 15,000 links into one form",
+        "expectBefore": true,
+        "expectAfter": false
+      }
+    ],
+    "expected": "MR !15975 adds the scalable Menu tree UI. This comparison does not include the proposed review fixes.",
+    "actual": "The core and MR-only patch stacks are configured. Runtime verification is pending."
+  },
+  {
+    "slug": "3593502-interdiff",
+    "extends": "3593502-pinned",
+    "label": "#3593502: MR !15975 compared with the review interdiff",
+    "description": "Compare MR !15975 as published with the same MR plus the lab review interdiff. Both sides use the same pinned Drupal core commit and the same 15,000-link menu.",
+    "status": "DRAFT: intended for direct MR-to-interdiff review; runtime evidence pending",
+    "before": {
+      "env": "issue-3593502-mr-only",
+      "label": "MR !15975",
+      "patches": [
+        "reports/issues/3593502/branches/patch-1-mr-15975.patch"
+      ]
+    },
+    "after": {
+      "env": "issue-3593502",
+      "label": "MR !15975 + review interdiff",
+      "patches": [
+        "reports/issues/3593502/branches/patch-1-mr-15975.patch",
+        "reports/issues/3593502/interdiff/15975-to-review-fixes.interdiff"
+      ]
+    },
+    "pages": [
+      "/admin/structure/menu/manage/main/tree"
+    ],
+    "steps": [
+      {
+        "text": "The recipe creates the same 15,000-link Main navigation menu and enables Menu tree UI on both patch stacks.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open the tree page in both frames and compare initial load, rendered row count, responsiveness, and PHP peak memory.",
+        "how": "mirror",
+        "lookFor": "Both sides load the scalable tree. Neither should build all 15,000 links into the initial response."
+      },
+      {
+        "text": "Reload both frames and immediately toggle the same Enabled checkbox before the CSRF token request finishes.",
+        "how": "each",
+        "lookFor": "MR-only may send an empty token and reject or revert the update. After waits for the token, disables the checkbox while waiting, persists the change, and can restore it."
+      },
+      {
+        "text": "Search for Lab seed 1.1. Dismiss the results with Escape, then repeat and dismiss them by clicking the page heading.",
+        "how": "each",
+        "lookFor": "The interaction should work on both sides. The interdiff adds browser-level regression coverage rather than intentionally changing the visible result."
+      },
+      {
+        "text": "Use keyboard and pointer reordering in forced-colours mode on both sides.",
+        "how": "each",
+        "lookFor": "After keeps the move handle, grabbed or target outline, and drop indicator visible with system colours."
+      }
+    ],
+    "expected": "Both stacks remain responsive with 15,000 links. The interdiff removes the early CSRF-token race and improves forced-colours move affordances without regressing search, expansion, or reordering.",
+    "actual": "The two patch stacks are configured. DDEV, performance, browser, and manual accessibility evidence is pending.",
+    "observe": [
+      {
+        "label": "The tree UI loads and remains responsive with 15,000 links",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "An immediate Enabled change waits for a CSRF token and persists",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Escape and outside click dismiss search results without clearing the query",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Move affordances remain visible in forced colours",
+        "expectBefore": false,
+        "expectAfter": true
+      }
+    ],
+    "demo": {
+      "start": "/admin/structure/menu/manage/main/tree"
+    }
+  },
+  {
+    "slug": "3593502-latest",
+    "extends": "3593502-pinned",
+    "label": "#3593502: same MR and interdiff against the LATEST core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3593502-latest"
+    },
+    "after": {
+      "env": "issue-3593502-latest"
+    }
+  }
+]

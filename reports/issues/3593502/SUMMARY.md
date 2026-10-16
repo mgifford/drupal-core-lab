@@ -1,60 +1,91 @@
 # #3593502: Introduce a new Menu UI to resolve memory issues and improve user experience
 
-**DRAFT. The issue, its comments, its related issues and its merge request have NOT been read by the lab yet.** On 2026-10-16
-drupal.org and git.drupalcode.org were unreachable from the session that started this folder, so nothing here is a review of the
-change. What is here: a recipe that builds the same large menu on Before and After, two measuring tools, the Before baseline, and
-the instructions to build both sides in DDEV Coder. Last updated: 2026-10-16.
+**DRAFT.** The Drupal.org comments through #36, MR !15975, and the MR source at
+`6d566c319bcfecba885938b1d789115beb830834` were reviewed on 2026-10-16. The
+MR was not run in DDEV during this review. Earlier baseline measurements remain
+valid only for the unchanged menu form described in `EVIDENCE.md`.
 
 Issue: https://www.drupal.org/project/drupal/issues/3593502
 
-## What is known, and from where
+MR: https://git.drupalcode.org/project/drupal/-/merge_requests/15975
 
-| Fact | Source | Checked? |
-|---|---|---|
-| Title, component `menu_ui.module`, priority Major, status Needs review, tagged accessibility | the lab's triage of 2026-07-15 (`reports/core-a11y-triage-2026-07-15.md`, `reports/known-issues.json`) | from drupal.org's API in July; status may have changed |
-| The menu edit form builds every link of the menu into one form, so large menus run out of memory | a web search summary of the issue page | **measured on Before** (below) |
-| The proposal is a new experimental module, `menu_tree_ui`, that loads the tree lazily, and leaves `menu_ui` in place | the same web search summary | **not checked**: read the merge request |
-| The merge request includes a test module with a Drush seeder of about 15,000 links | the same web search summary | **not checked**; the lab does not use Drush, so it has its own seeder |
-| Related: #191360 (parent selector loads the whole tree), #2862907 (large menus hit `max_input_vars`), #2742371 (drag and drop and form size limits), usability meeting #3592717 | the same web search summary | **not checked**: `issue-intake.mjs fetch 3593502` lists them with their state |
+## Recommendation
 
-## Measured by the lab (Before only, details in `EVIDENCE.md`)
+Do not mark the issue RTBC. Keep it at Needs review while requesting focused
+architecture, performance, accessibility, and usability reviews.
 
-On unchanged core with 15,000 menu links, `/admin/structure/menu/manage/main` fails: at a 256M memory limit it dies after 3.3 s
-with "Allowed memory size exhausted", and with unlimited memory it still dies at PHP's default 30-second time limit, having used
-1,133 MB. Building the form alone costs about 70 KB per link, so a 256M site fails at roughly 3,500 links.
+The implementation addresses most concrete usability feedback. It retains a
+table, the existing move handle, Save and Cancel, Add child, small-tree
+auto-expansion, and move state across search. It also adds locking, route-menu
+validation, keyboard movement, tests, and Default Admin colour tokens.
+
+## Blocking findings
+
+1. `MenuTreeController::page()` loads the complete top level before slicing it
+   to 200 rows. Deeper levels are not paged. The work avoids building the full
+   form but does not bound the width of a sibling level.
+2. The required performance profile, query plans, and index analysis are absent.
+3. Screen-reader, forced-colors, zoom, reflow, and cross-browser evidence is
+   absent. Automated tests do not replace those reviews.
+4. The three-module, 150-file architecture has not received subsystem approval.
+5. The default search covers `menu_link_content` only, not visible static YAML
+   links.
+6. Save can partially succeed because operations are persisted one at a time.
+   That behavior needs explicit UX and architecture acceptance.
+
+## Proposed follow-up patch
+
+The lab contains a patch that applies after MR !15975:
+
+- [`branches/patch-1-mr-15975.patch`](branches/patch-1-mr-15975.patch)
+- [`branches/3593502-follow-up-review-fixes.patch`](branches/3593502-follow-up-review-fixes.patch)
+- [`interdiff/15975-to-review-fixes.interdiff`](interdiff/15975-to-review-fixes.interdiff)
+- [`INTERDIFF.md`](INTERDIFF.md)
+- [`FOLLOW-UP-PATCH.md`](FOLLOW-UP-PATCH.md)
+- [`BRANCHES.md`](BRANCHES.md)
+- [`REPRODUCE.md`](REPRODUCE.md)
+- [`variants.json`](variants.json)
+
+It fixes the CSRF initialization race, adds the missing search dismissal tests,
+and adds forced-colors treatment for the move affordances.
+
+It deliberately does not add a controller-only child limit. The generic
+treegrid refresh and reorder logic assumes that the server returns every
+sibling. A local slice could hide links or reconcile the DOM incorrectly.
+
+## Existing baseline
+
+On unchanged core with 15,000 menu links, the classic form failed at a 256 MB
+memory limit after 3.3 seconds. With unlimited memory it reached PHP's 30-second
+time limit after using 1,132.8 MB. See [`EVIDENCE.md`](EVIDENCE.md).
 
 ## Files
 
-| What | Where |
+| Purpose | File |
 |---|---|
-| Build Before and After in DDEV Coder from a browser (you download the merge request's diff) | [CODER-PROMPT.md](CODER-PROMPT.md) |
-| Evidence: Before baseline, environment, commands | [EVIDENCE.md](EVIDENCE.md) |
-| Recipe: Standard plus a 15,000-link Main navigation menu, same on both sides, no Drush | [`recipes/repro_3593502/`](../../../recipes/repro_3593502/) (`recipe.yml`, `apply.sh`, `seed-menu.php`) |
-| Measure the form: peak memory, time, rows | [`recipes/repro_3593502/measure-menu-form.php`](../../../recipes/repro_3593502/measure-menu-form.php) |
-| Measure any page, including background requests: one log line per request | [`recipes/repro_3593502/peak-memory.php`](../../../recipes/repro_3593502/peak-memory.php) |
+| Local DDEV build and test procedure | [`REPRODUCE.md`](REPRODUCE.md) |
+| Core-to-MR, MR-to-interdiff, core-to-complete, and latest lab definitions | [`variants.json`](variants.json) |
+| Current test gaps | [`COVERAGE.md`](COVERAGE.md) |
+| Follow-up patch and test instructions | [`FOLLOW-UP-PATCH.md`](FOLLOW-UP-PATCH.md) |
+| Interdiff and change-by-change rationale | [`INTERDIFF.md`](INTERDIFF.md) |
+| Patch provenance | [`BRANCHES.md`](BRANCHES.md) |
+| Baseline measurements | [`EVIDENCE.md`](EVIDENCE.md) |
+| Issue and artifact snapshot | [`STATUS.md`](STATUS.md) |
+| Existing large-menu recipe | [`recipes/repro_3593502/`](../../../recipes/repro_3593502/) |
+| Lab support for named patch-stack baselines | [`lab/README.md`](lab/README.md) |
+| Earlier DDEV Coder instructions, now superseded for local use | [`CODER-PROMPT.md`](CODER-PROMPT.md) |
 
-## What a review of the merge request has to answer
+No `ISSUE-COMMENT-DRAFT.md` is included. The report is evidence and supporting
+material for Mike's own general comments; it is not text intended to be posted
+verbatim or used to update the MR.
 
-Not answered yet: these are the questions, not findings. A change to the menu UI reaches every Drupal site that upgrades, so each
-one matters at that scale.
+## Still required
 
-1. **Blast radius.** Is it only a new, opt-in experimental module, or does it change `menu_ui`, `menu_link_content`, the menu tree
-   storage or shared JavaScript that every site runs? Any `hook_update_N` or post-update function?
-2. **Does it fix what it says,** on 15,000 links at a 256M limit and a 30-second time limit, including every background request
-   the page makes (the `peak-memory.php` log), and for the parent selector on the link form (#191360)?
-3. **Access and safety.** Every new route requires `administer menu` (or the existing per-menu access); requests that change data
-   are POST with a CSRF token; nothing leaks link titles of menus the user cannot administer; saving a reorder of many links either
-   fully succeeds or changes nothing.
-4. **Accessibility** (the issue is tagged for it): moving a link has a keyboard and single-pointer alternative to drag and drop
-   (WCAG 2.5.7); tree semantics (levels, expanded or collapsed) reach screen readers; loading, moves, saves and errors are announced;
-   focus is managed after lazy loads and moves; it works at 400% zoom and in forced colours.
-5. **Parity with the old form:** enable or disable, edit, delete, weights, "Show row weights", translations, right-to-left.
-6. **Tests:** functional JavaScript tests for the new UI and its keyboard path; a test at a size that would have failed before.
-7. **Reviews already given:** the unresolved threads on the merge request and any open related issue
-   (`node scripts/issue-intake.mjs fetch 3593502` now lists both).
-
-## Next steps
-
-1. Allow `www.drupal.org` and `git.drupalcode.org` for the lab session, then `node scripts/issue-intake.mjs fetch 3593502` and
-   `node scripts/new-issue.mjs 3593502 --branch <fork branch>`, and review the diff against the list above.
-2. Or, without that: run `CODER-PROMPT.md` in DDEV Coder with the diff you download, and do the manual checks there.
+- Design paging and reconciliation together for every sibling level.
+- Test a 5,000-item top level and 5,000 children under one parent.
+- Profile initial page load, child expansion, search, and save.
+- Test static-link search expectations.
+- Run the two FunctionalJavascript test classes added by the patch.
+- Run core code checks, PHPCS, PHPStan, and the relevant test directories.
+- Complete manual keyboard, screen-reader, forced-colors, dark-mode, zoom,
+  reflow, touch, and supported-browser testing.
