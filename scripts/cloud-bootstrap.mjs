@@ -19,6 +19,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { labRoot, variants } from '../tools/compare/lib.mjs';
+import { PROXY_PROJECTS } from '../tools/compare/cloud/config.mjs';
 
 const args = process.argv.slice(2);
 const CHECK = args.includes('--check'), REBUILD = args.includes('--rebuild'), NO_DEPS = args.includes('--no-smoke-deps');
@@ -33,11 +34,6 @@ const coreUrl = (args.find((a) => a.startsWith('--core-url=')) || '').slice('--c
 const existingArg = args.find((a) => a === '--use-existing-core' || a.startsWith('--use-existing-core='));
 const existingCore = existingArg ? ((existingArg.includes('=') ? existingArg.slice(existingArg.indexOf('=') + 1) : '') || process.env.LAB_EXISTING_CORE || path.join(os.homedir(), 'drupal-core')) : null;
 
-const PROXY_PROJECTS = [
-  { name: 'drupal-compare', dir: 'tools/compare/site' },
-  { name: 'drupal-compare-before', dir: 'tools/compare/cloud/before' },
-  { name: 'drupal-compare-after', dir: 'tools/compare/cloud/after' },
-];
 const problems = [];
 const need = (ok, msg) => { if (!ok) problems.push(msg); return ok; };
 const sh = (cmd, argv, opts = {}) => spawnSync(cmd, argv, { encoding: 'utf8', ...opts });

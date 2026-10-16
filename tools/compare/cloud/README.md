@@ -50,6 +50,30 @@ owner — are unchanged and still gate whether this is usable by anyone but its 
   GitHub mirror and its patches applied outside a workspace on 2026-10-16; `--core-from` is on-disk tested only. Record the first
   workspace run.
 
+## Consistent project names and generated handoffs
+
+Set the names in the **Coder web form**, not by editing this README: **New workspace → DDEV Freeform → DDEV project names**.
+The Terraform parameter is `project_names`. Paste this exact value at workspace creation:
+
+```text
+drupal-compare,drupal-compare-before,drupal-compare-after
+```
+
+The repository source is `tools/compare/cloud/config.mjs`. Print the copyable value from the repository root with:
+
+```bash
+node tools/compare/cloud/config.mjs --project-names
+```
+
+The Freeform template does not read the repository module: the user supplies the value to its parameter.
+The names stay the same for every issue. The selected variant supplies the underlying Before and After core environments.
+Bootstrap, smoke checks, viewer startup and the Coder prompt generator share this module.
+DDEV YAML and nginx declarations must match it; the Lab's unit tests catch drift. This is not a runtime rename option.
+
+Generate an issue's handoff with `node scripts/coder-prompt.mjs <slug> --write`.
+Common instructions come from `prompts/coder-prompt.md`; the registered variant supplies the scenario, recipe and ordered patch stacks.
+See `prompts/README.md` for preview and freshness checks. Generation does not establish that the workspace or scenario was tested.
+
 ## Procedure
 
 1. Create the workspace. Go to https://coder.ddev.com/workspaces and click **New workspace**, then search for and select **DDEV Freeform** from the dropdown.

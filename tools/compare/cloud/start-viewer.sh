@@ -9,10 +9,12 @@ cd "$(dirname "$0")/../../.."
 DOMAIN=$(echo "$CODER_AGENT_URL" | sed -E 's#^https?://##; s#/.*$##')
 APP() { echo "https://$1--$CODER_WORKSPACE_NAME--$CODER_WORKSPACE_OWNER_NAME.$DOMAIN"; }
 for p in $(ps -eo pid,args | awk '/node tools\/compare\/serve.mjs/ && !/awk/ {print $1}'); do kill "$p"; done
+PROJECT_NAMES=$(node tools/compare/cloud/config.mjs --project-names)
+IFS=, read -r VIEWER_PROJECT BEFORE_PROJECT AFTER_PROJECT <<< "$PROJECT_NAMES"
 export LAB_BIND=0.0.0.0
-export LAB_EXTRA_ORIGINS="$(APP drupal-compare)"
-export LAB_BEFORE_ORIGIN="$(APP drupal-compare-before)"
-export LAB_AFTER_ORIGIN="$(APP drupal-compare-after)"
+export LAB_EXTRA_ORIGINS="$(APP "$VIEWER_PROJECT")"
+export LAB_BEFORE_ORIGIN="$(APP "$BEFORE_PROJECT")"
+export LAB_AFTER_ORIGIN="$(APP "$AFTER_PROJECT")"
 nohup node tools/compare/serve.mjs "$@" > .lab-viewer.log 2>&1 < /dev/null &
 echo $! > .lab-viewer.pid   # same files scripts/lab-env.mjs uses, so `lab-env.mjs stop` stops this viewer
 sleep 3
