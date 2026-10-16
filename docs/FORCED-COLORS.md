@@ -9,20 +9,20 @@ contains an error with a red bar, a red label and an icon.
 ## The easiest way: start the viewer in the lab browser
     node scripts/lab-env.mjs start <slug> --browser        (or, with the viewer already running:  node scripts/lab-env.mjs browser)
 
-This opens the viewer straight into the **lab browser**, a Chromium window the lab server controls, so the **User preference emulation** switch is on the page and you
+This opens the viewer straight into the **lab browser**, a Chromium window the lab server controls, so the **User preferences** switch is on the page and you
 need only one window. It opens at browser defaults; pick a forced mode when you want it. The lab browser has its **own saved profile** (`.lab-browser/`, not committed), so the
 viewer's remembered choices, step ticks and notes survive between launches; it does not use your everyday browser's extensions or logins. Start clean with
 `node scripts/lab-env.mjs browser --reset`. Test: `node tools/playwright/lab-browser.mjs`.
 
 ## From a normal browser tab: the forced-colours window
-In the viewer press **Open preference emulation window**. A separate Chromium window opens on the viewer **at browser defaults**, and in it a **User preference emulation** switch
-lets you move between *Normal*, *Forced colours, light*, *Forced colours, dark* (the black high-contrast palette) and *More contrast*, live, for
+In the viewer press **Open preference emulation window**. A separate Chromium window opens on the viewer **at browser defaults**, and in it a **User preferences** switch
+provides Forced colours Off / Light / Dark plus independent Contrast, Motion and Transparency buttons for
 **both frames at once**. The line beside the switch shows what each frame actually reports (for example "Before: forced colours on, dark"), so you can see the
 setting really reached them. It is **emulation**, not a real Windows contrast theme, so keep a real-theme check (below) for the final word. The window is a clean
 Chromium profile (no extensions, no logins): press **Log in both as admin** in it. It needs the lab's Playwright install (`node scripts/doctor.mjs` checks it),
 and it exists only when the lab server is running; the read-only GitHub Pages guide does not have it. Test: `node tools/playwright/forced-window.mjs`.
 
-![The viewer's controls in the forced-colours window, including the User preference emulation switch with Normal, Forced colours light, Forced colours dark and More contrast.](images/viewer-forced-colours.png)
+The former standalone More preset has been removed. More now appears only under Contrast and means prefers-contrast: more; it does not turn on forced colours, magnify content, or increase every preference.
 
 ## Other ways to turn it on
 | Where | How |
@@ -31,11 +31,11 @@ and it exists only when the lab server is running; the read-only GitHub Pages gu
 | Chrome / Edge | DevTools > More tools > Rendering > "Emulate CSS media feature forced-colors" > active. Pair with "prefers-color-scheme" to try the light and dark palettes. |
 | Playwright | `browser.newContext({ forcedColors: 'active', colorScheme: 'dark' })` (see `tools/playwright/evaluate-3604037.mjs`). |
 
-## Does it work with the side-by-side viewer's frames?
-Yes, when the setting is made on the **whole tab** (DevTools Rendering panel, Playwright's context, or the operating system): the emulation applies to
-every frame in the tab. We checked this: with `forcedColors: 'active'` on the viewer page, `matchMedia('(forced-colors: active)')` is true inside both
-frames. The viewer page itself cannot turn forced colours on, because a web page is not allowed to change that setting; that is why the button above opens a window the server controls. Otherwise make the setting first, then reload the frames. Both frames follow the same setting, so the comparison is fair. (The viewer's "Colour mode" and "Simulate a dark-mode OS" are different:
-they change the site's own dark mode, not forced colours.)
+## Scope of the lab controls
+
+The lab controls change the two comparison frames. They do not override the viewer's own media preferences. The viewer remains usable as the comparison changes. The Conditions panel is labelled User preferences; its placement supplies the scope without a technical label on every control.
+
+Implementation detail: the lab browser launches Chromium with isolated origins for Before and After, obtains a separate DevTools session for each comparison frame, and sends media overrides only to those targets. It reattaches and reapplies preferences when a frame navigates. If frame isolation is unavailable, the lab reports that condition rather than falling back to whole-window emulation. Native OS preferences and manual DevTools whole-tab emulation are separate ways to test and may also affect the viewer.
 
 ## What to look at
 1. Is the thing that was marked still **distinguishable without colour** (an icon, text, a shape)? 
@@ -54,26 +54,30 @@ It writes side-by-side images (Before, After, and After with a proposed change) 
 axe-core does not evaluate forced-colors rendering. A person (or a screenshot comparison like the one above) has to look.
 
 
-## Independent user-preference media queries
+## User-preference media queries
 
-In the controlled lab browser, open **Conditions > User preference emulation**. The quick presets remain available for forced colours light/dark and more contrast. Opening the preference window now starts with browser defaults, rather than forcing high contrast immediately.
+In the lab browser, open **Conditions > User preferences**. Forced colours retains its Off / Light / Dark buttons. Contrast, Motion and Transparency use the same segmented radio-button pattern as the rest of the toolbar. There are no duplicate browser-colour-scheme or forced-colours dropdowns.
 
-The independent controls cover prefers-color-scheme, forced-colors, prefers-contrast (including less/custom), prefers-reduced-motion, prefers-reduced-transparency, prefers-reduced-data, and inverted-colors. Each has Browser default, which removes that override. The browser's actual query support determines which controls are enabled. Unsupported queries are disabled rather than simulated with CSS filters or fake matchMedia results.
+Contrast offers Default / No preference / More / Less / Custom. Motion and Transparency offer Default / No preference / Reduce. Default removes an override and follows the browser or OS; No preference explicitly emulates that query value. Custom contrast tests the CSS value, not a custom palette editor.
 
-Changes reach the entire controlled window, including both proxied frames, without reloading their documents. Preferences combine: changing motion leaves colour and contrast alone. Quick presets and Reset all media preferences clear all other media overrides. These overrides last for the current lab-browser session; they are not saved as OS settings.
+Preferences combine without reloading either frame. Changing forced colours now preserves your motion, contrast and transparency choices. Reset all media preferences clears all overrides. These overrides last for the current lab-browser session. The collapsible Actual media-query values table reports what Before and After match, rather than assuming that a requested value took effect. Optional groups are hidden when the current emulation session cannot expose the feature.
 
-Selecting the browser colour scheme also selects Follow OS in the viewer and turns off the older Simulate a dark-mode OS option, so an author-theme override does not mask the browser preference. You can still choose Light or Dark in the main Colour mode control to test an explicit theme choice. Existing manual-result history remains separate from current emulation.
+The existing Colour mode controls remain the place to choose Drupal's light/dark theme. That author-theme choice differs from the browser's prefers-color-scheme signal. The forced-colours Light/Dark controls set the emulated palette and browser colour scheme, select Follow OS and clear the older simulated dark-OS override so the palette can be tested consistently.
 
-The table shows actual matchMedia values for Before and After. A successful request is not proof that the website responds: it may have no styles for that preference. Forced-colours emulation is not a native Windows palette; custom contrast selects the CSS query value, not a custom palette editor. Reduced-data emulates only the CSS preference, not Save-Data headers, bandwidth limits, or network traffic. Inverted-colors cannot be replaced faithfully with a CSS invert filter, so it is unavailable when the lab browser lacks the query.
+### Browser support and lab emulation limits
 
-Inspired by [Carie Fisher's article on inclusion through user choice](https://www.smashingmagazine.com/2023/08/css-accessibility-inclusion-user-choice/). Its 2023 support percentages are not used as current browser capability data. Implementation uses Chromium's Emulation.setEmulatedMedia and reads matchMedia in both frames.
+A browser supporting a CSS media query and a tool being able to emulate it are separate capabilities. The lab checks the current controlled Chromium session by querying legal feature values. If none matches, the feature is not usable through this session. This is not a limitation in Drupal's CSS implementation, and does not establish support in other browsers or operating systems.
+
+The reported session does not expose usable prefers-reduced-data or inverted-colors support, so neither is presented as an interactive control. The backend retains these query definitions for capability reporting and future browser support. Test them using an appropriate browser and native OS setting where available. A CSS invert filter is not a substitute for inverted-colors emulation. Reduced-data CSS emulation, where available, would not set Save-Data headers or throttle the network. Forced-colours emulation remains distinct from a native Windows contrast theme.
+
+Inspired by [Carie Fisher's article on inclusion through user choice](https://www.smashingmagazine.com/2023/08/css-accessibility-inclusion-user-choice/). Its 2023 browser-support figures are not used as current capability data.
 
 Validation commands:
 
 ```sh
-node --test tests/lab/media-preferences.test.mjs
+node --test tests/lab/media-preferences.test.mjs tests/lab/media-api.test.mjs
 node tools/playwright/media-preferences.mjs
 node tools/playwright/viewer-security.mjs
 ```
 
-The second command is a standalone real-browser fixture test and requires the existing Playwright Chromium install. The third requires the running viewer. AI-assisted implementation; no Drupal core patch is changed.
+The standalone browser test requires the existing Playwright Chromium install. The security walkthrough requires the viewer to be running. AI-assisted implementation; no Drupal core patch is changed.

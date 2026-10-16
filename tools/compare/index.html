@@ -74,7 +74,7 @@
   .pop > summary .chip:empty { display: none; }
   .pop .panelp { position: absolute; z-index: 20; top: calc(100% + .35rem); left: 0; width: min(21rem, calc(100vw - 1.5rem)); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: .25rem .8rem; box-shadow: 0 8px 24px rgba(0, 0, 0, .28); }
   details[data-sec="conditions"] .panelp { width: min(36rem, calc(100vw - 1.5rem)); max-height: 70vh; overflow: auto; }
-  #emulbox select { display: block; width: 100%; margin-block: .25rem; }
+  #emulbox .seg { flex-wrap: wrap; }
   #emulbox table { width: 100%; font-size: .8rem; overflow-wrap: anywhere; }
   .pop .panelp.end { left: auto; right: 0; }
   .panelp .row { padding: .5rem 0; border-top: 1px solid var(--line); } .panelp .row:first-child { border-top: 0; }
@@ -172,19 +172,30 @@
       <div class="row" data-label="Simulate a dark-mode OS"><label class="sw"><span class="lab">Simulate a dark-mode OS</span><input type="checkbox" id="darkos" role="switch"></label></div>
       <div class="row" data-label="JavaScript off"><label class="sw"><span class="lab">JavaScript off</span><input type="checkbox" id="nojs" role="switch"></label><span class="hint">Turns the sites' JavaScript off and reloads both.</span></div>
       <div class="row" id="emulrow"><span id="emulopenwrap"><button type="button" id="emulopen">Open preference emulation window</button><span class="hint">User preferences can be emulated in the lab browser window.</span></span>
-        <fieldset id="emulbox" class="row" hidden><legend>User preference emulation (whole window)</legend><p class="hint">Quick presets: browser defaults, forced colours light/dark, or more contrast.</p><div class="seg">
-          <label><input type="radio" name="emul" value="normal" checked> Off</label><label><input type="radio" name="emul" value="forced-light"> Light</label><label><input type="radio" name="emul" value="forced-dark"> Dark</label><label><input type="radio" name="emul" value="contrast"> More</label></div>
-          <p class="hint">Quick presets above reset all media overrides. Independent preferences below combine without reloading. Changes affect this whole window and both frames. Use Follow OS in Colour mode to see the site's response to the browser colour scheme.</p>
-          <div class="row" data-label="Browser colour scheme"><label for="media-colorScheme">Browser colour scheme</label><select id="media-colorScheme" data-media="colorScheme" aria-describedby="media-support-colorScheme"><option value="" selected>Browser default</option><option value="light">Light</option><option value="dark">Dark</option></select><span class="hint" id="media-support-colorScheme"></span></div>
-          <div class="row" data-label="Forced colours"><label for="media-forcedColors">Forced colours</label><select id="media-forcedColors" data-media="forcedColors" aria-describedby="media-support-forcedColors"><option value="" selected>Browser default</option><option value="none">None</option><option value="active">Active</option></select><span class="hint" id="media-support-forcedColors"></span></div>
-          <div class="row" data-label="Contrast preference"><label for="media-contrast">Contrast preference</label><select id="media-contrast" data-media="contrast" aria-describedby="media-support-contrast"><option value="" selected>Browser default</option><option value="no-preference">No preference</option><option value="more">More</option><option value="less">Less</option><option value="custom">Custom</option></select><span class="hint" id="media-support-contrast"></span></div>
-          <div class="row" data-label="Motion preference"><label for="media-reducedMotion">Motion preference</label><select id="media-reducedMotion" data-media="reducedMotion" aria-describedby="media-support-reducedMotion"><option value="" selected>Browser default</option><option value="no-preference">No preference</option><option value="reduce">Reduce</option></select><span class="hint" id="media-support-reducedMotion"></span></div>
-          <div class="row" data-label="Transparency preference"><label for="media-reducedTransparency">Transparency preference</label><select id="media-reducedTransparency" data-media="reducedTransparency" aria-describedby="media-support-reducedTransparency"><option value="" selected>Browser default</option><option value="no-preference">No preference</option><option value="reduce">Reduce</option></select><span class="hint" id="media-support-reducedTransparency"></span></div>
-          <div class="row" data-label="Data preference"><label for="media-reducedData">Data preference</label><select id="media-reducedData" data-media="reducedData" aria-describedby="media-support-reducedData"><option value="" selected>Browser default</option><option value="no-preference">No preference</option><option value="reduce">Reduce</option></select><span class="hint" id="media-support-reducedData"></span></div>
-          <div class="row" data-label="Colour inversion"><label for="media-invertedColors">Colour inversion</label><select id="media-invertedColors" data-media="invertedColors" aria-describedby="media-support-invertedColors"><option value="" selected>Browser default</option><option value="none">None</option><option value="inverted">Inverted</option></select><span class="hint" id="media-support-invertedColors"></span></div>
+        <fieldset id="emulbox" class="row" hidden><legend>User preferences</legend>
+          <fieldset class="row" data-label="Forced colours"><legend>Forced colours</legend><div class="seg">
+            <label><input type="radio" name="emul" value="normal" checked> Off</label><label><input type="radio" name="emul" value="forced-light"> Light</label><label><input type="radio" name="emul" value="forced-dark"> Dark</label></div></fieldset>
+          <fieldset id="media-row-contrast" class="row" data-label="Contrast" aria-describedby="media-support-contrast"><legend>Contrast</legend><div class="seg">
+            <label><input type="radio" name="media-contrast" data-media="contrast" value="" checked> Default</label>
+            <label><input type="radio" name="media-contrast" data-media="contrast" value="no-preference"> No preference</label>
+            <label><input type="radio" name="media-contrast" data-media="contrast" value="more"> More</label>
+            <label><input type="radio" name="media-contrast" data-media="contrast" value="less"> Less</label>
+            <label><input type="radio" name="media-contrast" data-media="contrast" value="custom"> Custom</label>
+          </div><span class="hint" id="media-support-contrast"></span></fieldset>
+          <fieldset id="media-row-reducedMotion" class="row" data-label="Motion" aria-describedby="media-support-reducedMotion"><legend>Motion</legend><div class="seg">
+            <label><input type="radio" name="media-reducedMotion" data-media="reducedMotion" value="" checked> Default</label>
+            <label><input type="radio" name="media-reducedMotion" data-media="reducedMotion" value="no-preference"> No preference</label>
+            <label><input type="radio" name="media-reducedMotion" data-media="reducedMotion" value="reduce"> Reduce</label>
+          </div><span class="hint" id="media-support-reducedMotion"></span></fieldset>
+          <fieldset id="media-row-reducedTransparency" class="row" data-label="Transparency" aria-describedby="media-support-reducedTransparency"><legend>Transparency</legend><div class="seg">
+            <label><input type="radio" name="media-reducedTransparency" data-media="reducedTransparency" value="" checked> Default</label>
+            <label><input type="radio" name="media-reducedTransparency" data-media="reducedTransparency" value="no-preference"> No preference</label>
+            <label><input type="radio" name="media-reducedTransparency" data-media="reducedTransparency" value="reduce"> Reduce</label>
+          </div><span class="hint" id="media-support-reducedTransparency"></span></fieldset>
+          <p class="hint">Preferences combine without reloading. Default follows the browser or OS; No preference explicitly tests that value. Custom contrast tests the query, not a custom palette.</p>
           <button type="button" id="media-reset">Reset all media preferences</button>
           <span id="emulstatus" class="hint" role="status" aria-live="polite"></span>
-          <table><caption>Actual media-query values in each frame</caption><thead><tr><th scope="col">Preference</th><th scope="col">Before</th><th scope="col">After</th></tr></thead><tbody id="media-observed"></tbody></table>
+          <details><summary>Actual media-query values</summary><table><caption>Actual media-query values in each frame</caption><thead><tr><th scope="col">Preference</th><th scope="col">Before</th><th scope="col">After</th></tr></thead><tbody id="media-observed"></tbody></table></details>
         </fieldset></div>
     </div></details>
   <details class="pop" data-sec="input"><summary class="btn">Input <span class="chip"></span></summary>
@@ -420,7 +431,7 @@ function comparisonSnapshot() {
   const controls = Object.fromEntries(Object.keys(RADIOS).map(key => [key, radio(key)]));
   for (const key of CHECKS) controls[key] = $(key).checked;
   for (const key of ['opacity', 'amplify']) controls[key] = Number($(key).value);
-  return cleanHandoff({ version: 1, slug: v.slug, paths: { before: last.before || $('goto').value, after: last.after || $('goto').value }, scroll: positions, controls, dock, forcedColors: matchMedia('(forced-colors: active)').matches });
+  return cleanHandoff({ version: 1, slug: v.slug, paths: { before: last.before || $('goto').value, after: last.after || $('goto').value }, scroll: positions, controls, dock, forcedColors: comparisonMedia?.forced ?? matchMedia('(forced-colors: active)').matches });
 }
 async function renderBrowsers() {
   if (STATIC) return;
@@ -546,16 +557,22 @@ document.addEventListener('change', () => setTimeout(refreshBadges, 0));
 const CONTROLLED = new URLSearchParams(location.search).get('controlled') === '1';
 const emulPost = async (body) => { const r = await fetch('api/emulation', { method: 'POST', body: JSON.stringify(body) }); const d = await r.json(); if (!r.ok) throw new Error(d.error || 'failed'); return d; };
 let mediaBusy = Promise.resolve();
+let comparisonMedia = null;
 function showEmul(s) {
-  document.querySelectorAll('input[name="emul"]').forEach(input => { input.checked = input.value === s.mode; });
-  for (const [key, feature] of Object.entries(FEATURES)) {
-    const input = $(`media-${key}`);
-    input.value = s.preferences?.[key] || '';
-    input.disabled = !s.open || s.supported?.[key] !== true;
-    $(`media-support-${key}`).textContent = !s.open ? 'Open the emulation window first.' : s.supported?.[key] !== true ? 'Not supported by this lab browser.' : feature.query;
+  comparisonMedia = s.frames?.[0] || null;
+  const forcedMode = s.preferences?.forcedColors === 'active' ? (s.preferences.colorScheme === 'dark' ? 'forced-dark' : 'forced-light') : 'normal';
+  document.querySelectorAll('input[name="emul"]').forEach(input => { input.checked = input.value === forcedMode; });
+  for (const key of ['contrast', 'reducedMotion', 'reducedTransparency']) {
+    const available = s.open && s.supported?.[key] === true;
+    $(`media-row-${key}`).hidden = !available;
+    document.querySelectorAll(`input[data-media="${key}"]`).forEach(input => {
+      input.checked = input.value === (s.preferences?.[key] || ''); input.disabled = !available;
+    });
+    $(`media-support-${key}`).textContent = '';
   }
   const body = $('media-observed'); body.textContent = '';
   for (const [key, feature] of Object.entries(FEATURES)) {
+    if (!s.supported?.[key]) continue;
     const tr = document.createElement('tr'), th = document.createElement('th'); th.scope = 'row'; th.textContent = feature.query; tr.append(th);
     for (const frame of [s.frames[0], s.frames[1]]) {
       const td = document.createElement('td'), value = frame?.media?.[key];
@@ -564,7 +581,8 @@ function showEmul(s) {
     body.append(tr);
   }
   const side = ['Before', 'After'];
-  $('emulstatus').textContent = (s.frames.length ? s.frames.map((f, i) => f ? `${side[i]}: forced colours ${f.forced ? 'on' : 'off'}, ${f.dark ? 'dark' : 'light'}${f.more ? ', more contrast' : ''}` : `${side[i]}: not answering`).join('; ') + '. ' : '') + 'Browser emulation; not a native Windows contrast theme. Unsupported preferences are disabled.';
+  $('emulstatus').textContent = (s.frames.length ? s.frames.map((f, i) => f ? `${side[i]}: forced colours ${f.forced ? 'on' : 'off'}, ${f.dark ? 'dark' : 'light'}${f.more ? ', more contrast' : ''}` : `${side[i]}: not answering`).join('; ') + '. ' : '') + 'Browser emulation; not a native Windows contrast theme. Changes apply to both frames.';
+  if (s.error) $('emulstatus').textContent = s.error;
   refreshControls();
 }
 async function refreshMedia() { const r = await fetch('api/emulation'); if (!r.ok) throw new Error('Could not read browser preferences'); const s = await r.json(); showEmul(s); return s; }
@@ -584,8 +602,8 @@ if (CONTROLLED) {
   setTimeout(() => poll(4), 1500);
 }
 $('emulopen').addEventListener('click', async () => { try { await emulPost({ open: true, mode: 'normal' }); status('Preference emulation window opened. Use Conditions there; changes affect both frames.'); } catch (e) { status('Could not open the window: ' + e.message); } });
-document.querySelectorAll('input[name="emul"]').forEach(input => input.addEventListener('change', () => changeMedia({ mode: input.value }, true)));
-document.querySelectorAll('[data-media]').forEach(input => input.addEventListener('change', () => changeMedia({ preferences: { [input.dataset.media]: input.value || null } }, input.dataset.media === 'colorScheme')));
+document.querySelectorAll('input[name="emul"]').forEach(input => input.addEventListener('change', () => { if (input.checked) changeMedia({ preferences: { forcedColors: input.value === 'normal' ? null : 'active', colorScheme: input.value === 'normal' ? null : input.value === 'forced-dark' ? 'dark' : 'light' } }, true); }));
+document.querySelectorAll('[data-media]').forEach(input => input.addEventListener('change', () => { if (input.checked) changeMedia({ preferences: { [input.dataset.media]: input.value || null } }); }));
 $('media-reset').addEventListener('click', () => changeMedia({ mode: 'normal' }, true));
 document.querySelectorAll('input[name="dir"]').forEach((r) => r.addEventListener('change', sendState));
 $('nojs').addEventListener('change', async () => { await post({ nojs: $('nojs').checked }); status($('nojs').checked ? 'JavaScript is OFF in both sites. Reloading…' : 'JavaScript is back on. Reloading…'); loadBoth($('goto').value); });
@@ -830,7 +848,7 @@ const browserInfo = () => { const u = navigator.userAgent; let m;
   if ((m = u.match(/(?:Chrome|CriOS)\/(\d+)/))) return { family: 'Chrome', version: m[1] };
   if ((m = u.match(/Version\/(\d+).*Safari/))) return { family: 'Safari', version: m[1] };
   return { family: 'Other', version: '' }; };
-const currentMode = () => { const th = radio('theme'); const dark = th === 'dark' || $('darkos').checked || (th === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches); return matchMedia('(forced-colors: active)').matches ? 'forced-colors' : dark ? 'dark' : 'light'; };
+const currentMode = () => { const th = radio('theme'); const dark = th === 'dark' || $('darkos').checked || (th === 'auto' && (comparisonMedia?.dark ?? matchMedia('(prefers-color-scheme: dark)').matches)); return (comparisonMedia?.forced ?? matchMedia('(forced-colors: active)').matches) ? 'forced-colors' : dark ? 'dark' : 'light'; };
 const histKey = () => 'compare.tested.' + (v && v.slug);
 const loadHist = () => { try { return JSON.parse(localStorage.getItem(histKey()) || '[]'); } catch (e) { return []; } };
 function recordTested(why) { if (!v) return; const b = browserInfo(), e = { browser: b.family, mode: currentMode() }; const hist = loadHist();

@@ -35,3 +35,18 @@ export async function applyPreferences(session, current, patch, supported) {
   await session.send('Emulation.setEmulatedMedia', { features: mediaFeatures(next) });
   return next;
 }
+
+// Apply the same override to both isolated comparison targets, never the viewer.
+// Wait for both responses before rollback so a slower success cannot undo rollback.
+export async function applyFramePreferences(targets, current, patch, supported) {
+  if (targets.length !== 2) throw new Error('Both comparison frames must be ready before changing preferences');
+  const next = mergePreferences(current, patch, supported);
+  const results = await Promise.allSettled(targets.map(target => target.send('Emulation.setEmulatedMedia', { features: mediaFeatures(next) })));
+  const failed = results.find(result => result.status === 'rejected');
+  if (failed) {
+    const rollback = await Promise.allSettled(targets.map(target => target.send('Emulation.setEmulatedMedia', { features: mediaFeatures(current) })));
+    const uncertain = rollback.some(result => result.status === 'rejected');
+    throw new Error(`Could not update both comparison frames: ${failed.reason.message || failed.reason}${uncertain ? '. A frame disconnected; reload it before retrying' : '. Previous preferences restored'}`);
+  }
+  return next;
+}

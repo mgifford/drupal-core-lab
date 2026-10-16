@@ -2815,6 +2815,419 @@
       "demo": {
         "start": "/admin/config/workflow/workspaces"
       }
+    },
+    {
+      "slug": "3631321-pinned",
+      "issue": "3631321",
+      "label": "#3631321: Inactive vertical-tab borders (pinned parent MR)",
+      "description": "Local AI-assisted proposal. Parent !17078 at c8136d010105a3c92fc4b20b9956eb31c703fc62 on both sides. Tests only inactive-tab borders.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Standard install, Default Admin theme, form_test, and Article recipe on both sides. The pinned parent MR is present on both.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /admin/config/people/accounts at 1280px width. Enable forced colors, dark palette, and more contrast in the lab browser.",
+          "how": "each"
+        },
+        {
+          "text": "Select the first, a middle, and the last email tab. Inspect the first and last outer borders and both boundaries beside the selected tab in light and dark palettes.",
+          "how": "each",
+          "lookFor": "Inactive tabs have dotted borders; the selected tab keeps solid borders."
+        }
+      ],
+      "expected": "Inactive borders are dotted in forced colors; selected and neighboring boundaries are solid; outer borders are visible in normal mode.",
+      "actual": "Inactive and selected tabs use solid borders in forced colors; the first or last outer border can be missing.",
+      "observe": [
+        {
+          "label": "Selection is identifiable without relying on color",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Keyboard focus remains visible and separate from validation errors",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Icons, accessible error text, and narrow-screen details remain usable",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Default Admin rendered this page",
+          "probe": "window.drupalSettings?.ajaxPageState?.theme === 'default_admin'",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Vertical tabs exist at desktop width",
+          "probe": "document.querySelectorAll('.vertical-tabs__menu-item:not(.vertical-tab--hidden)').length >= 3",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Forced colors is active (enable it before running checks)",
+          "probe": "matchMedia('(forced-colors: active)').matches",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "An inactive tab has a dotted inline-start border",
+          "probe": "Array.from(document.querySelectorAll('.vertical-tabs__menu-item:not(.is-selected):not(.vertical-tab--hidden) > .vertical-tabs__menu-link')).some(e => getComputedStyle(e).borderInlineStartStyle === 'dotted')",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/admin/config/people/accounts",
+        "/form_test/details-contains-required-fields",
+        "/node/add/article"
+      ],
+      "demo": {
+        "start": "/admin/config/people/accounts"
+      }
+    },
+    {
+      "slug": "3631321-latest",
+      "issue": "3631321",
+      "label": "#3631321: same proposal on current main (may need reroll)",
+      "description": "Local AI-assisted proposal. Parent !17078 at c8136d010105a3c92fc4b20b9956eb31c703fc62 on both sides. Tests only inactive-tab borders.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Standard install, Default Admin theme, form_test, and Article recipe on both sides. The pinned parent MR is present on both.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /admin/config/people/accounts at 1280px width. Enable forced colors, dark palette, and more contrast in the lab browser.",
+          "how": "each"
+        },
+        {
+          "text": "Select the first, a middle, and the last email tab. Inspect the first and last outer borders and both boundaries beside the selected tab in light and dark palettes.",
+          "how": "each",
+          "lookFor": "Inactive tabs have dotted borders; the selected tab keeps solid borders."
+        }
+      ],
+      "expected": "Inactive borders are dotted in forced colors; selected and neighboring boundaries are solid; outer borders are visible in normal mode.",
+      "actual": "Inactive and selected tabs use solid borders in forced colors; the first or last outer border can be missing.",
+      "observe": [
+        {
+          "label": "Selection is identifiable without relying on color",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Keyboard focus remains visible and separate from validation errors",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Icons, accessible error text, and narrow-screen details remain usable",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Default Admin rendered this page",
+          "probe": "window.drupalSettings?.ajaxPageState?.theme === 'default_admin'",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Vertical tabs exist at desktop width",
+          "probe": "document.querySelectorAll('.vertical-tabs__menu-item:not(.vertical-tab--hidden)').length >= 3",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Forced colors is active (enable it before running checks)",
+          "probe": "matchMedia('(forced-colors: active)').matches",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "An inactive tab has a dotted inline-start border",
+          "probe": "Array.from(document.querySelectorAll('.vertical-tabs__menu-item:not(.is-selected):not(.vertical-tab--hidden) > .vertical-tabs__menu-link')).some(e => getComputedStyle(e).borderInlineStartStyle === 'dotted')",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/admin/config/people/accounts",
+        "/form_test/details-contains-required-fields",
+        "/node/add/article"
+      ],
+      "demo": {
+        "start": "/admin/config/people/accounts"
+      }
+    },
+    {
+      "slug": "3631337-pinned",
+      "issue": "3631337",
+      "label": "#3631337: Experimental error markers in forced colors (pinned parent MR)",
+      "description": "Local AI-assisted proposal. Parent !17078 at c8136d010105a3c92fc4b20b9956eb31c703fc62 on both sides. Sequential comparison: #3631321 on both sides, then the experimental error-shape patch on After. Warnings and global error semantics remain open.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Standard install, Default Admin theme, form_test, and Article recipe on both sides. The pinned parent MR is present on both.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /admin/config/people/accounts at 1280px width. Enable forced colors, dark palette, and more contrast in the lab browser.",
+          "how": "each"
+        },
+        {
+          "text": "Select the first, a middle, and the last email tab. Inspect the first and last outer borders and both boundaries beside the selected tab in light and dark palettes.",
+          "how": "each",
+          "lookFor": "Inactive tabs have dotted borders; the selected tab keeps solid borders."
+        },
+        {
+          "text": "Open several email tabs and clear their required Subject fields, leaving a middle tab valid. Save, then select the valid middle tab. Inspect erroneous inactive tabs, then select an erroneous tab. Also submit the empty form_test details page and an Article with URL alias no-slash.",
+          "how": "each",
+          "lookFor": "Double error bars across tabs, ordinary details, and sidebar accordion details. Icons and contains-error labels remain. This is a proposal for discussion, not a resolution of system-color semantics."
+        }
+      ],
+      "expected": "Forced-color error bars are double across grouping elements, including selected erroneous tabs; selection remains independently identifiable.",
+      "actual": "Error bars and selected-tab bars are both solid CanvasText; their principal border distinction is width.",
+      "observe": [
+        {
+          "label": "Selection is identifiable without relying on color",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Keyboard focus remains visible and separate from validation errors",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Icons, accessible error text, and narrow-screen details remain usable",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Default Admin rendered this page",
+          "probe": "window.drupalSettings?.ajaxPageState?.theme === 'default_admin'",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Vertical tabs exist at desktop width",
+          "probe": "document.querySelectorAll('.vertical-tabs__menu-item:not(.vertical-tab--hidden)').length >= 3",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Forced colors is active (enable it before running checks)",
+          "probe": "matchMedia('(forced-colors: active)').matches",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "At least one tab contains a real validation error",
+          "probe": "!!document.querySelector('.vertical-tabs__menu-item.error')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Error bar is double",
+          "probe": "Array.from(document.querySelectorAll('.vertical-tabs__menu-item.error .vertical-tabs__menu-link')).every(e => getComputedStyle(e, '::before').borderInlineStartStyle === 'double')",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/admin/config/people/accounts",
+        "/form_test/details-contains-required-fields",
+        "/node/add/article"
+      ],
+      "demo": {
+        "start": "/admin/config/people/accounts"
+      }
+    },
+    {
+      "slug": "3631337-latest",
+      "issue": "3631337",
+      "label": "#3631337: same proposal on current main (may need reroll)",
+      "description": "Local AI-assisted proposal. Parent !17078 at c8136d010105a3c92fc4b20b9956eb31c703fc62 on both sides. Sequential comparison: #3631321 on both sides, then the experimental error-shape patch on After. Warnings and global error semantics remain open.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Standard install, Default Admin theme, form_test, and Article recipe on both sides. The pinned parent MR is present on both.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /admin/config/people/accounts at 1280px width. Enable forced colors, dark palette, and more contrast in the lab browser.",
+          "how": "each"
+        },
+        {
+          "text": "Select the first, a middle, and the last email tab. Inspect the first and last outer borders and both boundaries beside the selected tab in light and dark palettes.",
+          "how": "each",
+          "lookFor": "Inactive tabs have dotted borders; the selected tab keeps solid borders."
+        },
+        {
+          "text": "Open several email tabs and clear their required Subject fields, leaving a middle tab valid. Save, then select the valid middle tab. Inspect erroneous inactive tabs, then select an erroneous tab. Also submit the empty form_test details page and an Article with URL alias no-slash.",
+          "how": "each",
+          "lookFor": "Double error bars across tabs, ordinary details, and sidebar accordion details. Icons and contains-error labels remain. This is a proposal for discussion, not a resolution of system-color semantics."
+        }
+      ],
+      "expected": "Forced-color error bars are double across grouping elements, including selected erroneous tabs; selection remains independently identifiable.",
+      "actual": "Error bars and selected-tab bars are both solid CanvasText; their principal border distinction is width.",
+      "observe": [
+        {
+          "label": "Selection is identifiable without relying on color",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Keyboard focus remains visible and separate from validation errors",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Icons, accessible error text, and narrow-screen details remain usable",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Default Admin rendered this page",
+          "probe": "window.drupalSettings?.ajaxPageState?.theme === 'default_admin'",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Vertical tabs exist at desktop width",
+          "probe": "document.querySelectorAll('.vertical-tabs__menu-item:not(.vertical-tab--hidden)').length >= 3",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Forced colors is active (enable it before running checks)",
+          "probe": "matchMedia('(forced-colors: active)').matches",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "At least one tab contains a real validation error",
+          "probe": "!!document.querySelector('.vertical-tabs__menu-item.error')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Error bar is double",
+          "probe": "Array.from(document.querySelectorAll('.vertical-tabs__menu-item.error .vertical-tabs__menu-link')).every(e => getComputedStyle(e, '::before').borderInlineStartStyle === 'double')",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/admin/config/people/accounts",
+        "/form_test/details-contains-required-fields",
+        "/node/add/article"
+      ],
+      "demo": {
+        "start": "/admin/config/people/accounts"
+      }
+    },
+    {
+      "slug": "3631337-independent",
+      "issue": "3631337",
+      "label": "#3631337: parent MR versus error markers only",
+      "description": "Local AI-assisted proposal. Parent !17078 at c8136d010105a3c92fc4b20b9956eb31c703fc62 on both sides. Sequential comparison: #3631321 on both sides, then the experimental error-shape patch on After. Warnings and global error semantics remain open.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Standard install, Default Admin theme, form_test, and Article recipe on both sides. The pinned parent MR is present on both.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /admin/config/people/accounts at 1280px width. Enable forced colors, dark palette, and more contrast in the lab browser.",
+          "how": "each"
+        },
+        {
+          "text": "Select the first, a middle, and the last email tab. Inspect the first and last outer borders and both boundaries beside the selected tab in light and dark palettes.",
+          "how": "each",
+          "lookFor": "Inactive tabs have dotted borders; the selected tab keeps solid borders."
+        },
+        {
+          "text": "Open several email tabs and clear their required Subject fields, leaving a middle tab valid. Save, then select the valid middle tab. Inspect erroneous inactive tabs, then select an erroneous tab. Also submit the empty form_test details page and an Article with URL alias no-slash.",
+          "how": "each",
+          "lookFor": "Double error bars across tabs, ordinary details, and sidebar accordion details. Icons and contains-error labels remain. This is a proposal for discussion, not a resolution of system-color semantics."
+        }
+      ],
+      "expected": "Forced-color error bars are double across grouping elements, including selected erroneous tabs; selection remains independently identifiable.",
+      "actual": "Error bars and selected-tab bars are both solid CanvasText; their principal border distinction is width.",
+      "observe": [
+        {
+          "label": "Selection is identifiable without relying on color",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Keyboard focus remains visible and separate from validation errors",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Icons, accessible error text, and narrow-screen details remain usable",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Default Admin rendered this page",
+          "probe": "window.drupalSettings?.ajaxPageState?.theme === 'default_admin'",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Vertical tabs exist at desktop width",
+          "probe": "document.querySelectorAll('.vertical-tabs__menu-item:not(.vertical-tab--hidden)').length >= 3",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Forced colors is active (enable it before running checks)",
+          "probe": "matchMedia('(forced-colors: active)').matches",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "At least one tab contains a real validation error",
+          "probe": "!!document.querySelector('.vertical-tabs__menu-item.error')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Error bar is double",
+          "probe": "Array.from(document.querySelectorAll('.vertical-tabs__menu-item.error .vertical-tabs__menu-link')).every(e => getComputedStyle(e, '::before').borderInlineStartStyle === 'double')",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/admin/config/people/accounts",
+        "/form_test/details-contains-required-fields",
+        "/node/add/article"
+      ],
+      "demo": {
+        "start": "/admin/config/people/accounts"
+      }
     }
   ]
 }
