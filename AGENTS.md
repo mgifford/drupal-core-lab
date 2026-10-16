@@ -16,6 +16,8 @@ Instruction precedence: `ACCESSIBILITY.md`, then this file, then `STYLES.md`, th
 choose the safer, more accessible option. (`.agents/DRUPAL_AGENTS.md` still describes the old layout with core at the repository
 root; where it disagrees with this file, this file wins.)
 
+For a browser-visible Drupal core change, the deliverable is a registered Before/After comparison in the Lab viewer. In DDEV Coder, use scripts/cloud-bootstrap.mjs and the cloud comparison instructions. Creating two independent sites does not complete this task. Each issue must identify its variant, recipe or explicit Standard-install precondition, exact patch revision, reproduction steps and evidence gaps.
+
 ## Start here (the normal sequence for an issue)
 
     node scripts/doctor.mjs [slug]                       1. is this machine ready? fix what it reports (read-only)
