@@ -184,8 +184,11 @@ node scripts/lab-env.mjs start 3593502-interdiff --browser
 ```
 
 At that point the three Drupal environments are running and the comparison
-selector can move among all three pairings. If an environment has been stopped,
-start the desired variant again instead of treating a blank frame as evidence.
+viewer shows a **Compare patch stacks** row with direct buttons for all three
+pairings. The general Comparison selector also lists them. An unbuilt pairing
+is shown as **build required** instead of being silently omitted. Select it to
+see the exact setup command in the viewer status. If an environment has been
+stopped, start the desired variant again instead of treating a blank frame as evidence.
 Use `stop`, not `delete`, while working across these variants. The variants
 share environments, so deleting one pair can remove a site used by another
 pair.
@@ -199,27 +202,42 @@ node tools/playwright/evaluate-3593502.mjs 3593502-interdiff
 ### Stress-test the 15,000-link pair
 
 The recipe installs the same data on both sides and enables request-level peak
-memory logging. If the pinned environments were built with an earlier copy of
-the recipe, reapply the updated recipe first. Seeding is idempotent, so this
-does not create another 15,000 links:
+memory logging. The repeatable resource benchmark records response time, PHP
+peak memory, and sampled web/database container use as both JSON and Markdown.
+It makes requests sequentially, so the Drupal versions do not compete during a
+measured request.
+
+For the normal MR-versus-interdiff comparison, the default is exactly the two
+selected environments:
+
+```shell
+node scripts/measure-resources.mjs 3593502-interdiff --runs=10 --warmups=2
+```
+
+To include unchanged Drupal core as a third environment, opt in explicitly:
+
+```shell
+node scripts/measure-resources.mjs 3593502-interdiff --group --runs=10 --warmups=2
+```
+
+Use `--cold` for a separate cold-cache trial and `--page=/path` to measure a
+different route. Results are saved under
+`reports/issues/3593502/resources/`; refresh the viewer's **Resources** tab to
+display the newest matching result.
+
+If the environments were built with an earlier copy of the recipe, reapply the
+updated recipe first. Seeding is idempotent, so this does not create another
+15,000 links:
 
 ```shell
 bash scripts/lab-site.sh apply baseline-3593502 repro_3593502
+bash scripts/lab-site.sh apply issue-3593502-mr-only repro_3593502
 bash scripts/lab-site.sh apply issue-3593502 repro_3593502
 ```
 
-Clear old measurements immediately before a run. Run the first two commands
-from the lab repository root:
-
-```shell
-cd envs/issue-3593502-mr-only
-ddev exec sh -c ': > /tmp/lab-peak-memory.log'
-cd ../issue-3593502
-ddev exec sh -c ': > /tmp/lab-peak-memory.log'
-cd ../..
-```
-
-Then run the evaluator and exercise the viewer in both frames:
+The benchmark clears its own request log after login and warm-up. For
+interaction coverage, also run the evaluator and exercise the viewer in both
+frames:
 
 1. Reload the tree three times, alternating which side loads first.
 2. Expand the same branch through at least four levels.
@@ -228,16 +246,6 @@ Then run the evaluator and exercise the viewer in both frames:
 5. Perform ten keyboard moves and ten pointer moves, cancelling half and saving
    half.
 6. Repeat once at 390 CSS pixels and once in forced-colours mode.
-
-Collect the server measurements:
-
-```shell
-cd envs/issue-3593502-mr-only
-ddev exec cat /tmp/lab-peak-memory.log
-cd ../issue-3593502
-ddev exec cat /tmp/lab-peak-memory.log
-cd ../..
-```
 
 Do not reduce this to a single fastest run. Compare median navigation time,
 slowest navigation time, peak memory for the full tree page, peak memory for

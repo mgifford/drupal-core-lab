@@ -40,6 +40,13 @@
   .topbar .goto { display: flex; gap: .4rem; flex: 1 1 16rem; min-width: 0; } .topbar .goto input { flex: 1; min-width: 6rem; }
   .topbar .state { flex-basis: 100%; display: flex; gap: .6rem; align-items: center; font-size: .85rem; color: var(--muted); }
   #status:not(:empty) { padding: 0 .6rem; border-radius: 999px; background: var(--surface2); color: var(--text); }
+  .comparison-peers { flex: 1 0 100%; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; padding-top: .4rem; border-top: 1px solid var(--line); }
+  .comparison-peers .lab { margin-right: .15rem; font-size: .8rem; font-weight: 600; color: var(--muted); }
+  .comparison-peers button { min-height: 1.8rem; padding: .2rem .55rem; font-size: .8rem; }
+  .comparison-peers button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  .comparison-peers button[data-available="false"] { border-style: dashed; }
+  .audit-detail { max-width: 52rem; } .audit-detail pre { max-height: 18rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .75rem; background: var(--surface2); padding: .5rem; }
+  .resource-command { display: block; overflow-wrap: anywhere; margin: .4rem 0; }
 
   /* conditions toolbar: three always-visible choices, then popovers */
   .toolbar { display: flex; flex-wrap: wrap; gap: .5rem .9rem; align-items: end; padding: .45rem .75rem; background: var(--surface); border-bottom: 1px solid var(--line); }
@@ -141,6 +148,7 @@
   </span>
   <div id="browsers" class="browser-buttons" data-needs="live" role="group" aria-label="Open this comparison in another browser" hidden></div>
   <div class="state" data-needs="live"><span id="status" role="status" aria-live="polite">Loading…</span><span id="axemini" role="status" aria-live="polite"></span></div>
+  <nav id="comparisonPeers" class="comparison-peers" aria-label="Related patch-stack comparisons" hidden></nav>
 </header>
 
 <div class="toolbar" data-needs="live" role="group" aria-label="Test conditions">
@@ -217,6 +225,7 @@
       <button type="button" role="tab" id="tab-manual" aria-controls="p-manual" data-tab="manual" data-needs="live">Manual <span class="chip" id="bd-manual"></span></button>
       <button type="button" role="tab" id="tab-axe" aria-controls="p-axe" data-tab="axe" data-needs="live">Accessibility <span class="chip" id="bd-axe"></span></button>
       <button type="button" role="tab" id="tab-lh" aria-controls="p-lh" data-tab="lh" data-needs="live">Lighthouse <span class="chip" id="bd-lh"></span></button>
+      <button type="button" role="tab" id="tab-resources" aria-controls="p-resources" data-tab="resources" data-needs="live">Resources <span class="chip" id="bd-resources"></span></button>
       <button type="button" role="tab" id="tab-env" aria-controls="p-env" data-tab="env" data-needs="live">Environment <span class="chip" id="bd-env"></span></button>
     </div>
     <span class="sp"><button type="button" id="docksize" aria-pressed="false">Larger</button><button type="button" id="dockhide" aria-expanded="true">Hide panel</button></span>
@@ -230,13 +239,13 @@
       <h2>Checks <button type="button" id="runchecks" class="primary">Run checks</button> <span id="rcstat" class="path" role="status" aria-live="polite"></span></h2>
       <details class="help"><summary>How checks are judged</summary><p class="note">After the last step, press Run checks. Each check runs inside both frames and says Pass or Fail against what is expected. The rule: a <strong>fix</strong> check should <strong>fail on Before and pass on After</strong>; a <strong>regression</strong> check should pass on both; a <strong>precondition</strong> must pass on both or nothing else means anything.</p></details>
       <p id="verdict" class="verdict" role="status" hidden></p>
-      <table class="checks" id="checks"><thead><tr><th>Type</th><th>Check</th><th>Expected</th><th>Before</th><th>After</th><th>Verdict</th></tr></thead><tbody></tbody></table>
+      <table class="checks" id="checks"><thead><tr><th>Type</th><th>Check</th><th>Expected</th><th data-side-label="before">Before</th><th data-side-label="after">After</th><th>Verdict</th></tr></thead><tbody></tbody></table>
     </div>
     <div role="tabpanel" id="p-manual" aria-labelledby="tab-manual" tabindex="0" data-needs="live" hidden>
       <h2>Manual confirmation: what do you see?</h2>
       <details class="help"><summary>How this works</summary><p class="note">The two frames stay in step, so you can confirm the change by eye. Do the steps, click the "URL alias" link yourself in each frame (Mirror off), then answer for each side. Your answers are compared with what is expected and saved in the downloaded log. This does not replace testing with a keyboard and a screen reader.</p></details>
       <p id="obsverdict" class="verdict warn" role="status" aria-live="polite" hidden></p>
-      <table class="checks" id="obs"><thead><tr><th>Did you see this?</th><th>Expected Before / After</th><th>Before</th><th>After</th><th>Result</th></tr></thead><tbody></tbody></table>
+      <table class="checks" id="obs"><thead><tr><th>Did you see this?</th><th>Expected first / second</th><th data-side-label="before">Before</th><th data-side-label="after">After</th><th>Result</th></tr></thead><tbody></tbody></table>
       <p class="note"><label>Notes (kept in the downloaded log) <input type="text" id="obsnote" size="60"></label></p>
     </div>
     <div role="tabpanel" id="p-axe" aria-labelledby="tab-axe" tabindex="0" data-needs="live" hidden>
@@ -244,7 +253,7 @@
       <details class="help"><summary>What this shows</summary><p class="note">Turn it on under Audits. axe-core runs in both frames after every page load and after interactions. Because both frames are driven the same way, a difference means the change affects accessibility. "Violations" are elements axe flags as failing WCAG A/AA rules. Automated checks find only a subset of problems; they do not replace a keyboard and screen-reader test.</p></details>
       <p id="axeverdict" class="verdict warn" role="status" aria-live="polite">Waiting for both frames to finish loading…</p>
       <table class="checks" id="axecounts"><caption class="note" style="text-align:left">Violating elements by impact (rules in brackets)</caption><thead><tr><th>Side</th><th>Critical</th><th>Serious</th><th>Moderate</th><th>Minor</th><th>Total</th></tr></thead><tbody></tbody></table>
-      <table class="checks" id="axediff" hidden><caption class="note" style="text-align:left">Rules that differ, or that fail on both sides</caption><thead><tr><th>Rule</th><th>Impact</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody></tbody></table>
+      <table class="checks" id="axediff" hidden><caption class="note" style="text-align:left">Rules that differ, or that fail on both sides</caption><thead><tr><th>Rule</th><th>Impact</th><th data-side-label="before">Before</th><th data-side-label="after">After</th><th>Change</th></tr></thead><tbody></tbody></table>
       <details><summary>Log of changes as you navigate (<span id="axelogn">0</span>)</summary>
       <table class="checks" id="axelog"><thead><tr><th>Time</th><th>Page (reported by)</th><th>Before</th><th>After</th><th>Difference</th></tr></thead><tbody></tbody></table></details>
     </div>
@@ -252,8 +261,16 @@
       <h2>Lighthouse <button type="button" id="lhnow">Audit this page now</button></h2>
       <details class="help"><summary>What this shows</summary><p class="note">Turn on background audits under Audits. Lighthouse runs in its own headless Chrome and audits the page as it <strong>loads</strong>, logged in. It does not see states you reach by clicking (for example an error summary after Save) and takes about 10 seconds per site. Accessibility and best-practice audits are shown by default; use axe for live, interactive checking.</p></details>
       <p id="lhverdict" class="verdict warn" role="status" aria-live="polite" hidden></p>
-      <table class="checks" id="lhtable" hidden><thead><tr><th>Category</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody></tbody></table>
-      <table class="checks" id="lhdiff" hidden><caption class="note" style="text-align:left">Audits that fail on one side or both</caption><thead><tr><th>Audit</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody></tbody></table>
+      <table class="checks" id="lhtable" hidden><thead><tr><th>Category</th><th data-side-label="before">Before</th><th data-side-label="after">After</th><th>Change</th></tr></thead><tbody></tbody></table>
+      <table class="checks" id="lhdiff" hidden><caption class="note" style="text-align:left">Audits that fail on one side or both</caption><thead><tr><th>Audit</th><th data-side-label="before">Before</th><th data-side-label="after">After</th><th>Change</th></tr></thead><tbody></tbody></table>
+    </div>
+    <div role="tabpanel" id="p-resources" aria-labelledby="tab-resources" tabindex="0" data-needs="live" hidden>
+      <h2>Recorded resource benchmark <button type="button" id="resourcesrefresh">Refresh results</button></h2>
+      <p class="note">This shows the newest saved serial benchmark for this comparison. It does not benchmark the two visible frames concurrently.</p>
+      <p id="resourcesstatus" class="verdict warn" role="status" aria-live="polite"></p>
+      <div id="resourcescommands"></div>
+      <table class="checks" id="resourcestable" hidden><thead><tr><th>Version</th><th>Median response</th><th>Slowest</th><th>PHP peak</th><th>Web peak</th><th>Web above idle</th><th>DB peak</th><th>Peak CPU web / DB</th><th>Failures</th></tr></thead><tbody></tbody></table>
+      <p id="resourcesmeta" class="note"></p>
     </div>
     <div role="tabpanel" id="p-env" aria-labelledby="tab-env" tabindex="0" data-needs="live" hidden>
       <h2>Where did you test? <span class="note">(saved with the downloaded log)</span></h2>
@@ -288,7 +305,7 @@ let STATIC = /\.github\.io$/.test(location.hostname) || new URLSearchParams(loca
 const setRuntime = (s) => { STATIC = s; if (s) { const d = document.getElementById('loaddlg'); if (d && d.open) d.close(); } document.documentElement.dataset.runtime = s ? 'static' : 'local'; };
 setRuntime(STATIC);
 const F = { before: $('fb'), after: $('fa') }, P = { before: $('pb'), after: $('pa') };
-const last = { before: '', after: '' }; let origins, sites = {}; let variants = []; let v;
+const last = { before: '', after: '' }; let origins, sites = {}; let variants = []; let availability = {}; let v;
 const other = (s) => (s === 'before' ? 'after' : 'before');
 const status = (t) => { $('status').textContent = t; };
 const radio = (name) => document.querySelector(`input[name="${name}"]:checked`).value;
@@ -328,12 +345,36 @@ function setVariant(slug) { v = variants.find((x) => x.slug === slug); $('desc')
   const beforeLabel = v.before?.label || 'Before patch', afterLabel = v.after?.label || 'After patch';
   $('hblabel').textContent = beforeLabel; $('halabel').textContent = afterLabel;
   $('ob').textContent = beforeLabel; $('oa').textContent = afterLabel;
+  document.querySelectorAll('[data-side-label="before"]').forEach((element) => { element.textContent = beforeLabel; });
+  document.querySelectorAll('[data-side-label="after"]').forEach((element) => { element.textContent = afterLabel; });
   F.before.title = beforeLabel; F.after.title = afterLabel;
   const iss = $('haissue');
   if (v.issue) { iss.hidden = false; iss.textContent = `(#${v.issue})`; iss.href = `https://www.drupal.org/project/drupal/issues/${v.issue}`; iss.title = `Open Drupal issue #${v.issue} in a new window`; iss.setAttribute('aria-label', `Open Drupal issue ${v.issue} in a new window`); F.after.title = `${afterLabel} (#${v.issue})`; }
   else { iss.hidden = true; iss.textContent = ''; iss.removeAttribute('href'); }
   const start = (v.demo && v.demo.start) || v.pages[0] || '/'; $('goto').value = start;
-  document.querySelector('input[name="width"][value="half"]').checked = true; applyWidth(); }
+  document.querySelector('input[name="width"][value="half"]').checked = true; applyWidth(); renderComparisonPeers(); if (!STATIC) loadResources(); }
+async function chooseVariant(slug) {
+  if (slug === v.slug) return;
+  if (!STATIC && !availability[slug]) { status(`Not built. Run: node tools/compare/setup.mjs ${slug}`); return; }
+  $('variant').value = slug;
+  if (STATIC) { setVariant(slug); fillStaticPanel(); return; }
+  await post({ slug }); setVariant(slug); loadBoth($('goto').value);
+}
+function renderComparisonPeers() {
+  const nav = $('comparisonPeers'); nav.textContent = '';
+  const peers = v.comparisonGroup ? variants.filter((item) => item.comparisonGroup === v.comparisonGroup) : [];
+  if (peers.length < 2) { nav.hidden = true; return; }
+  const label = document.createElement('span'); label.className = 'lab'; label.textContent = 'Compare patch stacks:'; nav.append(label);
+  for (const item of peers) {
+    const available = STATIC || !!availability[item.slug];
+    const button = document.createElement('button'); button.type = 'button'; button.dataset.available = String(available);
+    button.textContent = (item.comparisonLabel || item.label) + (available ? '' : ' (build required)');
+    button.setAttribute('aria-pressed', String(item.slug === v.slug));
+    button.title = available ? item.description : `Run node tools/compare/setup.mjs ${item.slug} in the terminal`;
+    button.addEventListener('click', () => chooseVariant(item.slug)); nav.append(button);
+  }
+  nav.hidden = false;
+}
 function fillStaticPanel() {
   const root = (window.__repo || '').replace(/\/$/, '');
   $('spcmd').textContent = `node scripts/lab-env.mjs start ${v.slug}`;
@@ -345,11 +386,11 @@ function fillStaticPanel() {
 function fillComparisons(data) {
   $('variant').textContent = '';
   for (const item of variants) {
-    if (!STATIC && data.availability && !data.availability[item.slug] && item.slug !== data.state?.slug) continue;
     const option = document.createElement('option'); option.value = item.slug;
     const revision = /-latest$/.test(item.slug) ? 'latest' : /-pinned$/.test(item.slug) ? 'pinned' : item.slug;
     const title = item.label.replace(/^#\d+:\s*/, '').replace(/,?\s*pinned core.*$/i, '').slice(0, 65);
-    option.textContent = `#${item.issue || item.slug} · ${revision} · ${title}`; option.title = item.label;
+    const available = STATIC || !data.availability || data.availability[item.slug] || item.slug === data.state?.slug;
+    option.textContent = `#${item.issue || item.slug} · ${revision} · ${title}${available ? '' : ' · not built'}`; option.title = item.label; option.disabled = !available;
     $('variant').append(option);
   }
   if (!STATIC) {
@@ -406,7 +447,7 @@ async function init() {
     fillComparisons(d);
     const want = new URLSearchParams(location.search).get('variant'); const slug = variants.some((x) => x.slug === want) ? want : variants[0].slug;
     $('variant').value = slug; setVariant(slug); fillStaticPanel(); status('Read-only guide.'); return;
-  } origins = d.origins; sites = d.sites || {}; variants = d.variants;
+  } origins = d.origins; sites = d.sites || {}; variants = d.variants; availability = d.availability || {};
   fillComparisons(d);
   try { incoming = readHandoff(location.hash); }
   catch (error) { $('handoffnote').hidden = false; $('handoffnote').textContent = error.message; }
@@ -433,7 +474,7 @@ async function init() {
   sendState(); applyView(); refreshControls();
   renderBrowsers().catch(() => {});
 }
-$('variant').addEventListener('change', async () => { if (STATIC) { setVariant($('variant').value); fillStaticPanel(); return; } await post({ slug: $('variant').value }); setVariant($('variant').value); loadBoth($('goto').value); });
+$('variant').addEventListener('change', () => chooseVariant($('variant').value));
 document.querySelectorAll('input[name="width"]').forEach((r) => r.addEventListener('change', applyWidth));
 document.querySelectorAll('input[name="theme"]').forEach((r) => r.addEventListener('change', sendState));
 $('darkos').addEventListener('change', sendState);
@@ -480,6 +521,7 @@ function refreshBadges() {
   chipSet('bd-manual', ...verdictBadge('obsverdict', '✓ as expected', '✗ differs', 'partly answered'));
   chipSet('bd-axe', ...($('axeon').checked ? verdictBadge('axeverdict', '✓ no new', '⚠ worse', '…') : ['', 'off']));
   chipSet('bd-lh', ...($('lhverdict').hidden ? ['', $('lhon').checked ? '…' : 'off'] : verdictBadge('lhverdict', '✓ no worse', '⚠ worse', '…')));
+  chipSet('bd-resources', ...verdictBadge('resourcesstatus', 'recorded', 'error', 'none'));
   chipSet('bd-env', ...($('envremind').classList.contains('ok') ? ['ok', '✓'] : ['warn', 'to do']));
 }
 new MutationObserver(() => requestAnimationFrame(refreshBadges)).observe($('panels'), { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['class', 'hidden'] });
@@ -757,6 +799,29 @@ function initEnv() { const b = browserInfo(); $('envbrowser').value = `${b.famil
 $('runchecks').addEventListener('click', () => recordTested('ran checks'));
 document.addEventListener('change', (e) => { if (e.target && e.target.name && /^obs-/.test(e.target.name)) recordTested('answered the manual panel'); });
 
+// ---- Saved serial resource benchmarks (recorded by scripts/measure-resources.mjs) ----
+const resourceMb = (bytes) => bytes == null ? 'not recorded' : `${(bytes / 1048576).toFixed(1)} MB`;
+const resourceValue = (value, suffix = '') => value == null ? 'not recorded' : `${value}${suffix}`;
+async function loadResources() {
+  if (STATIC || !v) return;
+  const S = $('resourcesstatus'), commands = $('resourcescommands'); commands.textContent = '';
+  try {
+    const response = await fetch('api/resources/latest'); const result = await response.json();
+    const addCommand = (lead, command) => { if (!command) return; const p = document.createElement('p'); p.className = 'note'; p.append(document.createTextNode(lead + ' ')); const code = document.createElement('code'); code.className = 'resource-command'; code.textContent = command; p.append(code); commands.append(p); };
+    addCommand('Measure this selected pair (the default):', result.command);
+    addCommand('Optionally measure every unique environment in its comparison group:', result.groupCommand);
+    const table = $('resourcestable'), body = table.querySelector('tbody'); body.textContent = '';
+    if (!result.found) { table.hidden = true; $('resourcesmeta').textContent = ''; S.className = 'verdict warn'; S.textContent = 'No recorded benchmark for this pair yet. Run the command above in another terminal, then refresh results.'; return; }
+    for (const summary of result.data.summaries || []) {
+      const cells = [summary.label || summary.env, resourceValue(summary.medianResponseMs, ' ms'), resourceValue(summary.slowestResponseMs, ' ms'), resourceValue(summary.phpPeakMb, ' MB'), resourceMb(summary.containers?.web?.peakMemoryBytes), resourceMb(summary.containers?.web?.peakAboveIdleBytes), resourceMb(summary.containers?.db?.peakMemoryBytes), `${resourceValue(summary.containers?.web?.peakCpuPercent, '%')} / ${resourceValue(summary.containers?.db?.peakCpuPercent, '%')}`, summary.failures];
+      const tr = document.createElement('tr'); for (const value of cells) { const td = document.createElement('td'); td.textContent = value; tr.append(td); } body.append(tr);
+    }
+    table.hidden = false; S.className = 'verdict ok'; S.textContent = `Latest benchmark: ${result.data.summaries.length} environment${result.data.summaries.length === 1 ? '' : 's'}, measured sequentially.`;
+    $('resourcesmeta').textContent = `${result.data.measuredAt}; page ${result.data.page}; ${result.data.settings.runs} runs after ${result.data.settings.warmups} warm-up(s); ${result.data.settings.cold ? 'cold-cache' : 'warm-cache'}; ${result.file}. Container peaks are sampled and PHP peaks require the recipe logger.`;
+  } catch (error) { S.className = 'verdict bad'; S.textContent = 'Could not read resource results: ' + error.message; }
+}
+$('resourcesrefresh').addEventListener('click', loadResources);
+
 // ---- Lighthouse (optional background audits, run by the viewer server in its own Chrome) ----
 const lhLog = []; let lhPath = '', lhTimer, lhPoll;
 async function lhStatus() { try { const s = await (await fetch('api/lighthouse/status')).json(); if (!s.ok) { $('lhverdict').hidden = false; $('lhverdict').className = 'verdict warn'; $('lhverdict').textContent = 'Lighthouse is not installed: ' + s.missing.join('; '); return false; } return true; } catch (e) { return false; } }
@@ -770,21 +835,25 @@ async function lhRun() {
 }
 function showLighthouse(path, res) {
   const B = res.before, A = res.after, V = $('lhverdict'); if (B.runtimeError || A.runtimeError) { V.hidden = false; V.className = 'verdict bad'; V.textContent = `Lighthouse could not load the page: ${B.runtimeError || A.runtimeError}`; return; }
+  const beforeLabel = v.before?.label || 'Before patch', afterLabel = v.after?.label || 'After patch';
   const cats = Object.keys(B.scores); const tb = $('lhtable').querySelector('tbody'); tb.textContent = ''; let worse = 0, better = 0;
   for (const c of cats) { const b = B.scores[c], a = A.scores[c], d = a - b; if (d < 0) worse++; else if (d > 0) better++;
     const tr = document.createElement('tr'); for (const t of [c, b, a, d < 0 ? `↓ ${d} (worse)` : d > 0 ? `↑ +${d} (better)` : '= same']) { const td = document.createElement('td'); td.textContent = t; tr.append(td); } tr.lastChild.className = d < 0 ? 'bad v' : d > 0 ? 'ok v' : 'na v'; tb.append(tr); }
   $('lhtable').hidden = false;
   const ids = new Set([...B.failed.map((x) => x.id), ...A.failed.map((x) => x.id)]); const db = $('lhdiff').querySelector('tbody'); db.textContent = ''; let newFail = [];
   for (const id of ids) { const b = B.failed.find((x) => x.id === id), a = A.failed.find((x) => x.id === id), info = a || b;
-    const status = a && !b ? ['bad v', '↑ New in After'] : !a && b ? ['ok v', '↓ Fixed in After'] : ['na v', '= Fails on both'];
+    const status = a && !b ? ['bad v', `↑ New in ${afterLabel}`] : !a && b ? ['ok v', `↓ Fixed in ${afterLabel}`] : ['na v', '= Fails on both'];
     if (a && !b) newFail.push(id); const tr = document.createElement('tr');
-    for (const t of [`${id}: ${info.title}`, b ? `fails (${b.items})` : 'passes', a ? `fails (${a.items})` : 'passes', status[1]]) { const td = document.createElement('td'); td.textContent = t; tr.append(td); } tr.lastChild.className = status[0]; db.append(tr); }
+    const audit = document.createElement('td'); audit.textContent = `${id}: ${info.title}`;
+    if (b?.details || a?.details) { const details = document.createElement('details'); details.className = 'audit-detail'; const summary = document.createElement('summary'); summary.textContent = 'Diagnostic evidence'; const pre = document.createElement('pre'); pre.textContent = JSON.stringify({ [beforeLabel]: b?.details || null, [afterLabel]: a?.details || null }, null, 2); details.append(summary, pre); audit.append(details); }
+    tr.append(audit);
+    for (const t of [b ? `fails (${b.items})` : 'passes', a ? `fails (${a.items})` : 'passes', status[1]]) { const td = document.createElement('td'); td.textContent = t; tr.append(td); } tr.lastChild.className = status[0]; db.append(tr); }
   $('lhdiff').hidden = ids.size === 0;
   V.hidden = false; V.setAttribute('role', worse || newFail.length ? 'alert' : 'status');
   V.className = 'verdict ' + (worse || newFail.length ? 'bad' : better ? 'ok' : 'ok');
-  V.textContent = worse || newFail.length ? `⚠ Lighthouse (${path}): After is worse. ${worse ? worse + ' category score' + (worse > 1 ? 's' : '') + ' lower. ' : ''}${newFail.length ? 'New failing audits in After: ' + newFail.join(', ') + '.' : ''}`
-    : better ? `✓ Lighthouse (${path}): After is better on ${better} categor${better > 1 ? 'ies' : 'y'}.` : `= Lighthouse (${path}): same scores and the same failing audits on both sides (${cats.map((c) => c + ' ' + A.scores[c]).join(', ')}). Lighthouse ${A.lighthouseVersion}.`;
-  lhLog.push({ t: new Date().toISOString(), path, before: B.scores, after: A.scores, newFailingInAfter: newFail, lighthouseVersion: A.lighthouseVersion });
+  V.textContent = worse || newFail.length ? `⚠ Lighthouse (${path}): ${afterLabel} is worse than ${beforeLabel}. ${worse ? worse + ' category score' + (worse > 1 ? 's' : '') + ' lower. ' : ''}${newFail.length ? `New failing audits in ${afterLabel}: ` + newFail.join(', ') + '.' : ''}`
+    : better ? `✓ Lighthouse (${path}): ${afterLabel} is better than ${beforeLabel} on ${better} categor${better > 1 ? 'ies' : 'y'}.` : `= Lighthouse (${path}): same scores and the same failing audits for ${beforeLabel} and ${afterLabel} (${cats.map((c) => c + ' ' + A.scores[c]).join(', ')}). Lighthouse ${A.lighthouseVersion}.`;
+  lhLog.push({ t: new Date().toISOString(), path, beforeLabel, afterLabel, before: B, after: A, newFailingInAfter: newFail, lighthouseVersion: A.lighthouseVersion });
 }
 $('lhon').addEventListener('change', () => { if ($('lhon').checked) { lhRun.force = true; lhRun(); } });
 $('lhnow').addEventListener('click', () => { lhRun.force = true; lhRun(); });

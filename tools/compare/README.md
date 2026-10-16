@@ -20,7 +20,7 @@ Both have Inline Form Errors on, the Article content type (recipe
 
     node tools/compare/serve.mjs [slug]       # then open http://localhost:8100/
 
-The **top bar** always shows page navigation: **Compare upstream with** (variant), **Page**, **Go (both)**, **Log in both as admin**, **Reload → Before / After**, **Tools** (Clear Drupal caches, Reset browser state, Open outside this tool) and the status line.
+The **top bar** always shows page navigation: **Comparison** (variant), **Page**, **Go (both)**, **Log in both**, **Clear cache**, **Reload → Before / After / Both**, **Tools**, browser handoff buttons and the status line. A grouped multi-stack review also shows a **Compare patch stacks** row.
 Below it, the **conditions toolbar** keeps the three choices you change most always visible: **Device width** (Mobile / Tablet / Desktop, the default), **Colour mode** (Light / Dark / Follow OS) and **Compare as** (Side by side / Onion skin / Difference). Three popovers hold the rest:
 **Conditions** (Text direction, Simulate a dark-mode OS, JavaScript off, the forced-colours window), **Input** (Sync scrolling, Sync navigation, Mirror clicks, typing and drags, Mirror hover and focus) and **Audits** (live axe-core, best-practice rules, Lighthouse).
 A popover button shows how many settings inside it are not at their default, a strip above the frames lists everything that is not default (with Reset all), and each changed setting in a popover has its own Reset link. Escape closes a popover.
@@ -189,6 +189,7 @@ fields (`core`, `before`, `after` merge one level deep, so `after.patches` is in
 | Field | Meaning |
 |---|---|
 | `slug`, `issue`, `label`, `description` | Identity and the sentence shown above the frames. |
+| `comparisonGroup`, `comparisonLabel` | Optional. Give related variants the same group value to show direct patch-stack buttons. `comparisonLabel` supplies the short button text, for example `MR → MR + interdiff`. Set the group to `null` on an inherited variant that should not join the group. |
 | `core` | `{ "commit": "<sha>" }` pins an exact core commit; `{ "ref": "main", "commit": null }` follows the branch (fetched when an environment is first created). |
 | `before.env`, `after.env` | Directory names under `envs/`. Either side may have `patches`, listing patch files (paths from the repository root) applied in order. This supports pristine-core versus patch and earlier-patch-stack versus revised-patch-stack comparisons. Optional `label` values name the stacks in the viewer. `url` overrides the link for "open outside". |
 | `recipe` | Directory under `recipes/` applied to both sites (the starting state). Omit for a plain Standard install. |
@@ -226,7 +227,27 @@ The local toolbar offers installed Edge, Chrome, Firefox and (on macOS) Safari, 
 
 The snapshot restores both relative page paths, frame scroll positions, viewport width, comparison mode, test conditions and dock layout. Authentication, form values, audit results and notes remain separate. Forced-colour emulation cannot move between browsers; the destination displays a reminder. Native launching is unavailable on headless/cloud servers. **Tools → Copy comparison link** provides a portable alternative. Linux desktop discovery requires DISPLAY or WAYLAND_DISPLAY; macOS and Windows use standard installation locations. Nonstandard installations can use the copied link.
 
-The Comparison menu lists built pairs (both `.ddev/config.yaml` files exist), plus the active pair. This is not a running-status check; start the pair with `node scripts/lab-env.mjs start <slug>` before switching. **Reload** reloads Before, After or Both without changing their paths or logging in. **Clear cache** remains visible and clears both Drupal caches; **Tools** holds browser-state reset and external links.
+The Comparison menu lists every configured pair. Unbuilt pairs are disabled and marked **not built**. This is not a running-status check; build with `node tools/compare/setup.mjs <slug>` and start with `node scripts/lab-env.mjs start <slug>` before switching. Variants sharing `comparisonGroup` also appear as direct **Compare patch stacks** buttons. Unbuilt group members remain visible as **build required**; activating one reports the setup command in the status line. **Reload** reloads Before, After or Both without changing their paths or logging in. **Clear cache** remains visible and clears both Drupal caches; **Tools** holds browser-state reset and external links.
+
+## Repeatable resource benchmark
+
+With the selected environments running, measure the comparison pair serially:
+
+    node scripts/measure-resources.mjs <slug>
+
+This defaults to the two unique environments on that variant. `--group` opts
+into every unique environment in the variant's `comparisonGroup`, which allows
+a three-way Core, MR and MR-plus-interdiff measurement without making the three
+sites compete during a request. Results are saved as timestamped JSON and
+Markdown in `reports/issues/<issue>/resources/`; the viewer's **Resources** tab
+shows the newest result that contains the current pair.
+
+Useful options are `--runs=10`, `--warmups=2`, `--page=/some/path`, and `--cold`
+(clear Drupal caches before each measured request). The script samples the DDEV
+web and database containers and uses `/tmp/lab-peak-memory.log` when an issue
+recipe provides exact PHP request logging. DDEV performance mode is recorded.
+Mutagen is shared host-side file-sync overhead and is not assigned to an
+individual Drupal version. Run comparable trials on an otherwise idle machine.
 
 Checks without DDEV or native application launching:
 

@@ -52,7 +52,19 @@ in step.
 
 **Switch browsers.** The top-right logo buttons open this comparison in another installed browser: Edge, Chrome, Firefox, and Safari on a Mac. The current browser is omitted. Both page paths, scroll positions, test conditions, comparison mode and dock layout travel with it. Each browser has its own login session; sign in there if needed. Cookies, typed form contents, observations and audit results are not copied. Forced colours must be enabled separately in the destination browser or operating system. The buttons work when the lab server runs on your desktop computer; a cloud lab cannot launch applications on your laptop. Use **Tools → Copy comparison link** and paste it into another browser instead.
 
-**Switch comparisons.** The Comparison menu lists pairs already built in this lab, using shorter issue and revision labels. It does not build or start environments. Start another pair in the terminal with `node scripts/lab-env.mjs start <slug>` before selecting it; refresh the viewer after building a new pair.
+**Switch comparisons.** The Comparison menu lists every configured pair. A pair
+whose environments do not exist is marked **not built** and cannot be selected
+from the menu. Build it with `node tools/compare/setup.mjs <slug>`, then start it
+with `node scripts/lab-env.mjs start <slug>`.
+
+Some reviews compare more than pristine core against one finished patch. For
+example, a review may need Core to MR, MR to MR plus interdiff, and Core to MR
+plus interdiff. Those variants can declare the same `comparisonGroup`; the
+viewer then adds a visible **Compare patch stacks** row. Missing pairings remain
+visible there as **build required**. Selecting one reports its exact setup
+command instead of silently hiding it. Once the shared environments are built
+and running, these buttons switch the two frames without rebuilding either
+site.
 
 **Forced colours** (Windows contrast themes): start with `node scripts/lab-env.mjs start <slug> --browser` to use the viewer inside a lab browser that has a built-in switch for both frames, or press **Open forced-colours window** from a normal tab (see `docs/FORCED-COLORS.md`).
 
@@ -94,7 +106,7 @@ in the downloaded log. It does not depend on the automated checks.
 ## 7. Watch for accessibility regressions as you click around
 **Accessibility, live (axe-core)** (switch it on under **Audits**; results are in the **Accessibility** tab) re-checks both frames after every page load and interaction and tells you when After has **more or
 fewer** violations than Before, with the exact elements. A tab-title prefix (⚠) warns you if you are in another tab. Optionally,
-**Lighthouse** audits the page as it loads (accessibility and best practices; performance is opt-in). Lighthouse needs
+**Lighthouse** audits the page as it loads (accessibility and best practices; performance is opt-in). Failed audits include expandable diagnostic evidence. Because performance audits can vary between runs, repeat a surprising result before treating it as a regression. Lighthouse needs
 `npm install --prefix tools/compare/.deps lighthouse` and Node 22.19+, and sees fresh page loads only, not states you reach by clicking.
 
 ![The live accessibility panel showing a red alert: After has 2 more accessibility violations than Before, with the rules image-alt and label and the exact elements. This image is a demonstration: two defects were deliberately added to the After frame.](images/viewer-axe-alert.png)
@@ -104,7 +116,33 @@ in light mode. Dark mode found a real, pre-existing contrast problem; see `repor
 
 ![The Lighthouse panel: both sites score 100 for accessibility and 100 for best practices on the page, with the same failing audits (none).](images/viewer-lighthouse.png)
 
-## 8. Record where you tested (and what you have not)
+## 8. Compare resource use
+
+Run the resource benchmark in a separate terminal while the environments are
+running:
+
+    node scripts/measure-resources.mjs 3593502-interdiff
+
+By default this measures only the selected comparison's two unique environments,
+one request at a time. For a grouped review, opt in to all unique patch stacks
+(up to three in the #3593502 setup):
+
+    node scripts/measure-resources.mjs 3593502-interdiff --group
+
+Results are written as JSON and Markdown under
+`reports/issues/<issue>/resources/`. Refresh the viewer's **Resources** tab to
+see the newest matching result. Use `--runs=10` for a longer sample,
+`--page=/path` for another route, or `--cold` to clear Drupal caches before each
+measured request. The benchmark authenticates first, warms each environment,
+and rotates the order while making requests sequentially so one Drupal version
+does not compete with another during the operation being measured.
+
+The report separates Drupal/PHP request peaks, sampled web and database
+container use, and response time. Container sampling can miss very short peaks.
+DDEV Mutagen is shared host-side file-sync infrastructure, so its mode is
+recorded as context rather than attributed to one Drupal version.
+
+## 9. Record where you tested (and what you have not)
 It is easy to test only in one browser in light mode. The viewer notes the browser and colour mode as you test, and **Where did you test?**
 reminds you what is still missing for this issue.
 
@@ -118,7 +156,7 @@ Click **Download log** (in the **Accessibility** tab) and save it in `reports/is
 runs fill the automated rows: `node tools/playwright/walkthrough.mjs 3619127-pinned --browser=webkit --scheme=dark`.
 Browsers: Chromium, Firefox and WebKit (Safari's engine). Colour modes: light, dark, forced colours.
 
-## 9. If something looks wrong
+## 10. If something looks wrong
 | What you see | What to do |
 |---|---|
 | A frame stays blank | An alert appears after 12 seconds and checks both sites. Use **Reload → Before / After / Both**. See `docs/FRAME-LOADING-2026-10-01.md`. |

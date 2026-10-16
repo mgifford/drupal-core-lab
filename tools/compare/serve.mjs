@@ -41,6 +41,22 @@ const VIEWER_HOSTS = VIEWER_ORIGINS.map((o) => new URL(o).host);
 const list = variants();
 const state = { slug: process.argv.slice(2).find((x) => !x.startsWith('--')) || list[0].slug, theme: 'auto', darkos: false, axe: false, axeBest: false, dir: 'auto', nojs: false };
 const current = () => list.find((x) => x.slug === state.slug) || list[0];
+function latestResources() {
+  const v = current(); const dir = path.join(labRoot, 'reports/issues', String(v.issue || ''), 'resources');
+  const command = `node scripts/measure-resources.mjs ${v.slug}`;
+  if (!fs.existsSync(dir)) return { found: false, command, groupCommand: v.comparisonGroup ? command + ' --group' : null };
+  const files = fs.readdirSync(dir).filter((name) => name.endsWith('.json'))
+    .map((name) => ({ name, mtime: fs.statSync(path.join(dir, name)).mtimeMs })).sort((a, b) => b.mtime - a.mtime);
+  for (const file of files) {
+    try {
+      const data = JSON.parse(fs.readFileSync(path.join(dir, file.name), 'utf8'));
+      const measured = new Set((data.summaries || []).map((summary) => summary.env));
+      if (data.slug !== v.slug && ![v.before.env, v.after.env].every((env) => measured.has(env))) continue;
+      return { found: true, command, groupCommand: v.comparisonGroup ? command + ' --group' : null, file: path.relative(labRoot, path.join(dir, file.name)), data };
+    } catch { /* Ignore an incomplete or invalid result and try the next one. */ }
+  }
+  return { found: false, command, groupCommand: v.comparisonGroup ? command + ' --group' : null };
+}
 // Lighthouse jobs run one at a time, each in its own Chrome, and never block the proxies (login and DDEV lookups are async or cached).
 const lh = { seq: 0, running: false, pending: null, jobs: new Map() };
 async function runLighthouse(id, job) {
@@ -284,6 +300,8 @@ http.createServer((req, res) => {
   } else if (u.pathname === '/api/lighthouse/result') {
     const job = lh.jobs.get(Number(u.searchParams.get('id'))) || { state: 'error', error: 'unknown job' };
     res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify(job));
+  } else if (u.pathname === '/api/resources/latest') {
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }); res.end(JSON.stringify(latestResources()));
   } else if (u.pathname === '/api/cache') {
     const v = current();
     const run = (env) => new Promise((resolve) => execFile('ddev', ['drupal', 'cache'], { cwd: envDir(env), timeout: 120000 }, (err, so, se) => resolve(err ? `failed: ${String(se || err.message).trim().slice(0, 200)}` : 'cleared')));

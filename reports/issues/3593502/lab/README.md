@@ -25,8 +25,23 @@ git apply --check reports/issues/3593502/lab/patch-stack-baselines.patch
 git apply reports/issues/3593502/lab/patch-stack-baselines.patch
 ```
 
+The viewer then shows a **Compare patch stacks** row for issue #3593502. It
+provides direct buttons for Core to MR, MR to MR plus interdiff, and Core to MR
+plus interdiff. Comparisons whose environments have not been built remain
+visible and are marked **build required** instead of disappearing from the
+selector.
+
 The #3593502 variants use three code states but retain two frames. This is
 intentional. Three simultaneous frames would make each Drupal viewport too
 narrow for useful desktop comparison and would require a separate three-way
 model for login, proxying, navigation, audits, synchronized input, and results.
 Pairwise switching preserves the existing viewport and comparison tools.
+
+The same lab patch also adds a repeatable serial resource benchmark and a
+**Resources** viewer tab. `node scripts/measure-resources.mjs <slug>` measures
+the selected pair's two unique environments by default and writes timestamped
+JSON plus Markdown evidence. `--group` explicitly expands a grouped review to
+all unique environments, up to the three code states used here. Lighthouse
+tables and verdicts use the actual stack labels and retain bounded diagnostic
+detail for failed audits, so a result such as `forced-reflow-insight` can be
+investigated rather than shown only as a count.

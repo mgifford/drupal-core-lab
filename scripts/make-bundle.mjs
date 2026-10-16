@@ -41,7 +41,7 @@ const copy = (rel, filter = () => true) => {
   fs.cpSync(src, dst, { recursive: true, filter: (f) => !/\.DS_Store$|node_modules/.test(f) && filter(f) });
 };
 for (const f of ['serve.mjs', 'index.html', 'lib.mjs', 'diff.mjs', 'setup.mjs', 'lighthouse.mjs', 'emulation.mjs', 'README.md']) copy(`tools/compare/${f}`);
-for (const f of ['coverage.mjs', 'lab-env.mjs', 'doctor.mjs', 'add-language.php', 'make-bundle.mjs']) copy(`scripts/${f}`);
+for (const f of ['coverage.mjs', 'lab-env.mjs', 'doctor.mjs', 'add-language.php', 'build-cloud.mjs', 'make-bundle.mjs', 'measure-resources.mjs']) copy(`scripts/${f}`);
 for (const f of ['USER-GUIDE.md', 'FORCED-COLORS.md']) copy(`docs/${f}`);
 copy('docs/images');
 copy('scripts/lab-site.sh');
@@ -58,6 +58,7 @@ const rawAll = rawVariants();
 const issueVariants = rawAll.filter((x) => String(x.issue || '') === String(v.issue) || rawAll.some((y) => y.slug === x.extends && String(y.issue) === String(v.issue)));
 fs.writeFileSync(path.join(root, 'tools/compare/variants.json'), JSON.stringify(issueVariants, null, 2) + '\n');
 const latestSlug = (issueVariants.find((x) => /-latest$/.test(x.slug)) || {}).slug;
+const interdiffSlug = (issueVariants.find((x) => /-interdiff$/.test(x.slug)) || {}).slug;
 const evaluator = fs.existsSync(path.join(labRoot, 'tools/playwright', `evaluate-${v.issue}.mjs`))
   ? `evaluate-${v.issue}.mjs`
   : 'walkthrough.mjs';
@@ -69,6 +70,23 @@ Apply the focused lab infrastructure patch before regenerating indexes:
 git apply --check ${labPatch}
 git apply ${labPatch}
 \`\`\`
+` : '';
+const interdiffInstructions = interdiffSlug ? `
+## Build the MR-to-interdiff comparison
+
+The default build compares Drupal core with the completed patch stack. Build
+the additional variant below to compare the published MR directly with the MR
+plus the proposed interdiff:
+
+\`\`\`shell
+node tools/compare/setup.mjs ${interdiffSlug} --check-patches
+node tools/compare/setup.mjs ${interdiffSlug}
+node scripts/lab-env.mjs start ${interdiffSlug} --browser
+\`\`\`
+
+The viewer will show direct patch-stack comparison buttons. Any comparison
+whose environment is missing is labelled **build required** and reports the
+exact setup command when selected.
 ` : '';
 
 const steps = (v.steps || []).map((s, i) => `${i + 1}. ${s.text}${s.lookFor ? `\n   *Look for:* ${s.lookFor}` : ''}`).join('\n');
@@ -141,6 +159,7 @@ node tools/compare/setup.mjs ${v.slug} --check-patches
 node tools/compare/setup.mjs ${v.slug}
 node scripts/lab-env.mjs start ${v.slug} --browser
 \`\`\`
+${interdiffInstructions}
 
 Do not append explanatory comments to commands pasted into interactive zsh.
 Depending on its options, zsh can treat the text after \`#\` as command input.
@@ -168,6 +187,16 @@ which must be done in each frame by hand (and by keyboard). Then press **Run che
 Switch **View** to **Difference** to see anything that looks different (black means identical).
 The **Accessibility, live (axe-core)** panel compares both sides after every page load and interaction and
 alerts when After has more (or fewer) violations than Before.
+
+Record a repeatable serial resource comparison as JSON and Markdown:
+
+\`\`\`shell
+node scripts/measure-resources.mjs ${interdiffSlug || v.slug}
+\`\`\`
+
+That command measures the selected pair's two unique environments by default.
+Add \`--group\` only when you want every unique environment in a grouped review
+(up to three for this issue). Refresh the viewer's **Resources** tab afterward.
 
 ## Coming back later, or trying updated Drupal core
 \`${v.slug}\` uses ${v.core && v.core.commit ? 'the pinned core commit `' + v.core.commit.slice(0, 12) + '`, so it reproduces exactly as verified' : 'core as configured in variants.json'}.${latestSlug ? `

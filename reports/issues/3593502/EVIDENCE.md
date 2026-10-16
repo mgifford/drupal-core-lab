@@ -64,3 +64,33 @@ The local DDEV pack is now defined in `variants.json`: patch 1 is the downloaded
 MR !15975 diff and patch 2 is the proposed interdiff. `REPRODUCE.md` gives the
 build, browser evaluation, PHPUnit, lint, and manual-test sequence. No DDEV run
 has yet been recorded in this file.
+
+## Local Lighthouse observation still requiring confirmation
+
+A single local Lighthouse comparison of **MR !15975** against **MR !15975 +
+review interdiff** reported `forced-reflow-insight` only on the latter side,
+with two diagnostic items. That result is not yet enough to attribute a new
+forced reflow to the interdiff. The interdiff changes forced-colours CSS,
+asynchronous CSRF-token handling, checkbox state, and tests; it does not add an
+obvious layout read. Lighthouse performance insights are timing-sensitive, and
+the earlier viewer discarded the diagnostic call stacks.
+
+The lab viewer now preserves bounded Lighthouse diagnostic evidence and labels
+the columns with the actual patch-stack names. Repeat the audit at least three
+times on an otherwise idle machine and inspect the expandable evidence before
+reporting this as a regression. Save a downloaded log if the same call site is
+consistently new.
+
+## Resource evidence
+
+No repeatable DDEV resource result has been recorded yet. Run the selected pair
+with:
+
+```shell
+node scripts/measure-resources.mjs 3593502-interdiff --runs=10 --warmups=2
+```
+
+This defaults to the two environments in the selected comparison. Add
+`--group` only when a three-environment Core, MR, and MR-plus-interdiff trial is
+wanted. Commit the generated JSON and Markdown from
+`reports/issues/3593502/resources/` as the evidence for the machine and run.
