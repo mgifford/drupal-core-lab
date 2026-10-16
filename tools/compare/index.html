@@ -31,10 +31,10 @@
   /* top bar */
   .topbar { display: flex; flex-wrap: wrap; gap: .4rem .6rem; align-items: center; padding: .45rem .75rem; background: var(--surface); border-bottom: 1px solid var(--line); }
   .topbar h1 { font-size: .95rem; }
-  .browser-buttons { margin-left: auto; display: flex; gap: .25rem; }
-  .browser-buttons button { width: 2.25rem; height: 2.25rem; padding: .4rem; }
+  .browser-buttons { margin-left: auto; display: flex; align-items: center; gap: .35rem; }
+  .browser-buttons button { width: 2.5rem; height: 2.5rem; padding: .3rem; background: #fff; }
   .browser-buttons img { width: 100%; height: 100%; display: block; }
-  @media (prefers-color-scheme: dark) { .browser-buttons img { filter: invert(1); } }
+  .browser-buttons .browser-prompt { font-size: .8rem; white-space: nowrap; }
   @media (forced-colors: active) { .browser-buttons img { forced-color-adjust: none; } .browser-buttons button { background: white; } .browser-buttons img { filter: none; } }
   #variant { max-width: 16rem; min-width: 0; } .topbar label.v { max-width: 100%; display: inline-flex; flex-wrap: wrap; gap: .4rem; align-items: center; font-size: .85rem; color: var(--muted); }
   .topbar .goto { display: flex; gap: .4rem; flex: 1 1 16rem; min-width: 0; } .topbar .goto input { flex: 1; min-width: 6rem; }
@@ -101,7 +101,7 @@
   .tabs .tablist { display: flex; gap: 2px; align-items: end; }
   .tabs [role=tab] { border: 1px solid transparent; border-bottom: 0; background: none; border-radius: 6px 6px 0 0; padding: .3rem .75rem; display: flex; gap: .4rem; align-items: center; white-space: nowrap; margin-bottom: -1px; }
   .tabs [role=tab][aria-selected=true] { background: var(--surface); border-color: var(--line); font-weight: 700; }
-  .tabs .sp { margin-left: auto; display: flex; gap: .25rem; } .tabs .sp button { border-color: transparent; background: none; font-size: .8rem; margin-bottom: .25rem; min-height: 1.7rem; }
+  .tabs .sp { margin-left: auto; display: flex; align-items: center; gap: .35rem; } .tabs .sp button { border-color: transparent; background: none; font-size: .8rem; margin-bottom: .25rem; min-height: 1.7rem; }
   .panels { overflow: auto; padding: .6rem .9rem; min-height: 0; } .dock[data-collapsed="true"] .panels { display: none; }
   .panels h2 { display: flex; flex-wrap: wrap; gap: .4rem .6rem; align-items: center; font-size: .95rem; }
   details.help { margin: .3rem 0; font-size: .85rem; } details.help summary { cursor: pointer; color: var(--accent); width: max-content; } details.help .note { margin-top: .3rem; }
@@ -383,6 +383,9 @@ async function renderBrowsers() {
     container.append(button);
   }
   container.hidden = !container.children.length;
+  if (container.children.length) {
+    const prompt = document.createElement('span'); prompt.className = 'browser-prompt'; prompt.textContent = 'Test in'; container.prepend(prompt);
+  }
 }
 $('copycomparison').addEventListener('click', async () => {
   try {
