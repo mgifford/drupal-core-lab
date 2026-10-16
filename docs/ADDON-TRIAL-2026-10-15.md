@@ -131,7 +131,7 @@ caller in code, only in the 2026-10-14 manual run. By call site there are 13 in 
 ## The test commit (not pushed)
 - Commit `01e19a6fbaa3ceb964c0d5d91bf528fb7093fe98` on `3618230-adopt-the-ajax`, one file
   (`core/modules/file/tests/src/FunctionalJavascript/FileUploadAjaxMessageTest.php`, 157 lines), identical to
-  `reports/issues/3618230/tests-proposal/…`. It was applied from `branches/3618230-tests-messagecommand.patch` (revision 2).
+  `reports/issues/3618230/tests-proposal/core/modules/file/tests/src/FunctionalJavascript/FileUploadAjaxMessageTest.php`. It was applied from `branches/3618230-tests-messagecommand.patch` (revision 2).
 - Author is the owner's configured identity (Mike Gifford). The message follows `core/AGENTS.md` section 5 (short, no LLM-credit trailers),
   plus the disclosure line from section 1. Core asks that commit messages not be LLM-written, so **rewrite the message in your own words
   before pushing**; `git commit --amend` in that directory does it.
