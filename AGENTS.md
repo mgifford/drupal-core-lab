@@ -1,6 +1,6 @@
 # AGENTS.md
 
-> New session? Read the first 18 lines of `AI-LEARNING.md` (how this owner works, standing rules). The rest of it is history: `grep -n` it when something fails.
+> New session? Read the first 20 lines of `AI-LEARNING.md` (how this owner works, standing rules). The rest of it is history: `grep -n` it when something fails.
 
 ## What this repository is
 
@@ -78,3 +78,7 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
 12. **Cloud (DDEV Coder workspaces) is opt-in** (`tools/compare/cloud/README.md`, `scripts/cloud-bootstrap.mjs`, `docs/CLOUD-PLAN.md`). Do not sign in to Coder, create or change workspaces, or publish anything without the user.
 13. **Auto-fix is on by default and never silent.** `lab.config.yml` sets `auto_fix.enabled` (read it with `node scripts/lab-config.mjs auto_fix.enabled`; a person can also switch it off for one pull request in the app's CI popover). After opening a pull request, turn CI auto-fix on for it when that prints `true`; leave it off when `false`. An auto-fix commit starts with `autofix:` and its body names the failing check and every file it changed. Changing a patch file (`reports/issues/*/branches/*.patch`, the change under test) is the one thing it must never do quietly: run `node scripts/patch-change.mjs record <patch> --by auto-fix --reason "<why>"` in the same commit (it keeps the original in `original-patches/` and adds a row to `reports/issues/<nid>/PATCH-CHANGES.md`) and say so in the commit body. `selftest` fails a changed patch that has no record.
 14. **Before any push, run `node scripts/ready-to-push.mjs`.** CI tests the pull request merged with the current `main`, so a branch that passes alone can fail there (PR #13 did, on a probe that arrived with `main`). The script fetches the base, stops if the branch is behind it (merge it first), and runs `selftest`. A push still needs the owner's approval; this only says whether it is ready.
+15. **A review reads more than the diff:** the issue and its comments, its parent, related, child and mentioned issues, and the review
+    threads of every merge request, closed ones included. `node scripts/issue-intake.mjs fetch <nid>` gets all of them (since 2026-10-16);
+    read the brief's related-issues table and unresolved threads before judging a change or drafting a comment, and fetch again before
+    anyone posts an older draft. If drupal.org or git.drupalcode.org is unreachable, say that nothing was read; do not judge from a search summary.

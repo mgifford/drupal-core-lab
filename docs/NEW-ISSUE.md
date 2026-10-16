@@ -16,7 +16,8 @@ The issue's own drupal.org page lists the fork branch name (the MR source branch
     node scripts/issue-pack.mjs prepare <nid> --compact   # the pack prompt carries the brief instead of every comment, when that is smaller
 The brief is extracted by rules, not written by a model: it says what was fetched and what limit cut it (comment pages, attachments, diff size), shows the comments whose own
 words mark them as decisions, proposals, questions or revisions (and which proposals a later comment dropped), quotes everything as data, and lists the rest by number so
-`issue-intake.mjs show <nid> <n>` can bring any of it back. It finds candidates by word patterns; it does not understand the thread. What the problem is, what was decided and what
+`issue-intake.mjs show <nid> <n>` can bring any of it back. Since 2026-10-16 it also lists the parent, related, child and mentioned issues with their state, and quotes the
+unresolved review threads of every merge request (`show <nid> related|threads` for all of them): read both before judging the change (`AGENTS.md` rule 15). It finds candidates by word patterns; it does not understand the thread. What the problem is, what was decided and what
 is open is interpretation: a model or a person writes it as a handoff (`handoff write <nid> issue --file ...`), every fact citing the comment, source or file it comes from. After a
 new `fetch`, `handoff check <nid>` says which handoffs cite something that changed. Stages: issue, sources, reproduction, patch, validation, feedback; keep each under about 1,000 tokens and point to files rather than copying them.
 
