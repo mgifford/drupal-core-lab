@@ -6,7 +6,7 @@ Browser for the tests: `selenium/standalone-chromium:143.0.7499.169` (the add-on
 Status: DRAFT. One run per side, no person has reviewed it. The lab was not changed (`setup.mjs`, `lib.mjs` untouched).
 
 ## What was built
-Two throwaway projects outside `variants.json`, both git worktrees of `envs/core.git`, stopped (not deleted) at the end:
+Two throwaway projects outside `variants.json`, both git worktrees of `envs/core.git`, stopped at the end of the trial and deleted on 2026-10-16 after the push:
 
 | | Directory | Core | Notes |
 |---|---|---|---|
@@ -128,26 +128,28 @@ caller in code, only in the 2026-10-14 manual run. By call site there are 13 in 
    lab command wrapping those three git steps would avoid installing an add-on at all. Either is a decision for the owner; neither was built.
 4. For #3618230 the add-on did what was asked: the MR checkout, the pinned lock, the four-test results and the commit are all done.
 
-## The test commit (not pushed)
+## The test commit (pushed by the owner on 2026-10-16)
+- **Status:** the owner pushed it, and the fork's `3618230-adopt-the-ajax` and MR !16777's head are now `01e19a6fbaa3`. The message went out as
+  drafted, including the disclosure line. The sections below were written before the push.
 - Commit `01e19a6fbaa3ceb964c0d5d91bf528fb7093fe98` on `3618230-adopt-the-ajax`, one file
   (`core/modules/file/tests/src/FunctionalJavascript/FileUploadAjaxMessageTest.php`, 157 lines), identical to
   `reports/issues/3618230/tests-proposal/core/modules/file/tests/src/FunctionalJavascript/FileUploadAjaxMessageTest.php`. It was applied from `branches/3618230-tests-messagecommand.patch` (revision 2).
 - Author is the owner's configured identity (Mike Gifford). The message follows `core/AGENTS.md` section 5 (short, no LLM-credit trailers),
   plus the disclosure line from section 1. Core asks that commit messages not be LLM-written, so **rewrite the message in your own words
   before pushing**; `git commit --amend` in that directory does it.
-- To push (owner, with your SSH key):
-
-      cd /Users/mgifford/drupal-core-lab/envs/trial-amateescu-after
-      git log -1
-      git push
-
-  or explicitly `git push drupal-3618230 3618230-adopt-the-ajax`. The branch is based on `f5e26580254`, so the MR is still two months behind
+- To push (owner, with your SSH key), from the After directory (`git log -1`, then `git push`) or explicitly
+  `git push drupal-3618230 3618230-adopt-the-ajax`. The owner ran the explicit form from the bare repo,
+  `git -C /Users/mgifford/drupal-core-lab/envs/core.git push drupal-3618230 3618230-adopt-the-ajax`, so the After worktree is not needed.
+  Before that, `git push --dry-run` showed the server would accept a plain fast-forward `2d600f40b97..01e19a6fbaa`
+  (a dry run asks the server and sends nothing). The branch is based on `f5e26580254`, so the MR is still two months behind
   `main`. The same four tests gave the same results on core `3b94128e929` in the pilot run (`pilot/TESTS-RUN.md`, 2026-10-15).
 
 ## Cleaning up
-Both projects are stopped. Start After again with `ddev start` in its directory (the gitdir mount is still in `.ddev/`). To delete them,
-**after the push** (`remote remove` drops the branch's upstream, so `git push` would stop working; the push should also work from
-`git -C …/envs/core.git push drupal-3618230 3618230-adopt-the-ajax`, which does not need the After worktree, but I could not test it without pushing):
+**Done on 2026-10-16, after the push.** Both projects and both worktrees are deleted, the `drupal-3618230` remote is removed, and the local
+branch `3618230-adopt-the-ajax` is deleted (checked first that the fork's tip equalled the local commit). One snag: `git worktree remove`
+stopped with "Permission denied" on the Before directory, because Drupal's installer makes `sites/default` read-only; `chmod -R u+w
+sites/default` and then removing the directory finished it. The commands below are what was run, kept for the next trial. The order matters:
+run them **after the push**, since `remote remove` drops the branch's upstream and `branch -D` deletes the only copy of an unpushed commit.
 
     cd /Users/mgifford/drupal-core-lab/envs/trial-amateescu-before && ddev delete --omit-snapshot --yes
     cd /Users/mgifford/drupal-core-lab/envs/trial-amateescu-after  && ddev delete --omit-snapshot --yes
@@ -166,7 +168,7 @@ brings them back.
 - The add-on on a core commit with no advisories on its lock, and on current `main`; `ddev switch`, `ddev add-module`, `--db=pgsql`, `--https`.
 - Each test run more than once per side (the 2026-10-01 trial found a flaky upstream FunctionalJavascript test).
 - `dr uninstall` equivalent, the `test:extensions-enable` replacement, `ddev nightwatch` replacement, Drush.
-- The push itself, by design.
+- The push was run by the owner on 2026-10-16 (it worked from the bare repo); this trial did not run it.
 
 ## Process notes
 - At the start I stopped the lab's `3618230-latest` pair (two projects at most); they are still stopped.
