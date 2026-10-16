@@ -14,6 +14,9 @@ has the pinned core commit of `3619127-pinned` and its three patches apply (`set
 **No local tools needed.** Everything below happens in a browser: the Coder web pages and the workspace's own web terminal. You do
 not need the Coder CLI, Docker, Node or an AI assistant on your own computer.
 
+For #3619127 there is also a path with no lab at all: two plain DDEV sites built by an agent in the workspace from a recipe you
+paste in VS Code ([`reports/issues/3619127/CODER-PROMPT.md`](../reports/issues/3619127/CODER-PROMPT.md); not run yet).
+
 ## What needs what
 
 | Step | Needs |
