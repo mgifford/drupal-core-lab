@@ -26,6 +26,7 @@ Open points: comment #10 asked whether the problem still occurs in the Default A
 | Recipe (starting state) | [`recipes/repro_3618230/`](../../../recipes/repro_3618230/) (copy: [`recipe/`](recipe/)) |
 | Evidence, exact commits | [EVIDENCE.md](EVIDENCE.md) |
 | Draft comment (do not post) | [ISSUE-COMMENT-DRAFT.md](ISSUE-COMMENT-DRAFT.md) |
+| Bug summary in Gherkin, one behaviour per scenario (DRAFT, written by an AI assistant 2026-10-16) | [BUG.feature](BUG.feature) |
 | Status snapshot | [STATUS-2026-10-14.md](STATUS-2026-10-14.md) (earlier: [2026-10-08](STATUS-2026-10-08.md)) |
 | Playwright evidence, 2026-10-14 | [`playwright/2026-10-14T09-27-29-357Z-chromium-light-1280x900/`](playwright/2026-10-14T09-27-29-357Z-chromium-light-1280x900/SUMMARY.md) (`tools/playwright/evaluate-3618230.mjs`) |
 | Lint report | [`lint/`](lint/) |

@@ -86,6 +86,15 @@ When someone asks for something to be checked or changed (a review comment, a ga
 An answering run must not be stale (see 4b). `needs-person` is for what a script cannot decide (a screen reader, a keyboard pass) and stays open.
 `--supersede` marks the older run superseded by the answering one, so `coverage.mjs` stops counting what the feedback replaced. Worked example: `reports/issues/3618230/FEEDBACK.md`.
 
+## 4c2. The bug summary in Gherkin (optional)
+Once there is evidence, write the summary as scenarios a reviewer can read (Given / When / Then, one behaviour each, with each scenario's Before and After result):
+
+    node scripts/bug-feature.mjs draft <nid> --write      # mechanical draft from the variant and its runs
+    node scripts/bug-feature.mjs prompt <nid> --out p.txt # the message for a model to rewrite it; save the reply as reports/issues/<nid>/BUG.feature
+    node scripts/bug-feature.mjs check <nid>
+
+It stays `@draft` until a person has read it against `EVIDENCE.md`. Details and the format: `docs/BUG-FEATURE.md`; example: `reports/issues/3618230/BUG.feature`.
+
 ## 4d. No merge request yet: write the patch in the lab
 For an issue that has no merge request and no fork branch, `node scripts/new-issue.mjs <nid> --authoring --variants-file reports/issues/<nid>/variants.json` scaffolds the folder, a recipe stub and the two variants already marked authoring (an empty issue fork branch, or a merge request from a branch named `main`, counts as none). Otherwise, make a variant whose After has nothing to test only on purpose: `"after": { "env": "...", "patches": [], "authoring": true }`. Without `authoring`, a variant with no patch
 and no contrib patch is refused (setup stops with BLOCKED, exit 4, a run refuses, and `selftest` fails), because its After would equal Before and every check would

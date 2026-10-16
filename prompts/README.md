@@ -33,3 +33,10 @@ The prompt lists the **setup catalogue** (`tools/compare/blocks/`): the assistan
     node scripts/issue-pack.mjs import issue-pack-<number>.yml
 
 If the validator reports errors or warnings, run it again with `--repair`: it prints a message (and copies it to your clipboard) to paste back into the same chat; `--recipe <folder>` (on `validate` and `import`) swaps in a recipe you trust for the assistant's own ([docs/ISSUE-PACK.md](../docs/ISSUE-PACK.md)). A pack is a draft until you have run it and confirmed it.
+
+## bug-feature.md: the rules for a bug summary in Gherkin
+
+The rules a model follows to rewrite `reports/issues/<nid>/BUG.feature` (one behaviour per scenario, each with its Before and After result and its
+sources). You do not paste this file: `node scripts/bug-feature.mjs prompt <nid> --out p.txt` fills in the issue number, the current feature or a fresh
+draft, and the issue's `SUMMARY.md`, `EVIDENCE.md`, `FEEDBACK.md` and intake brief as data. Save the reply as `BUG.feature`, then
+`node scripts/bug-feature.mjs check <nid>`. An agent working in the lab reads the file directly. See [docs/BUG-FEATURE.md](../docs/BUG-FEATURE.md).

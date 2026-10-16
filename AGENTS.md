@@ -40,6 +40,7 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
     scripts/code-map.mjs <env|folder> <symbol|file>    ONE call for locate + read: definition, body, what it calls, who uses it, its tests (or a file outline). Use it instead of a grep, sed, cat chain.
     scripts/try-tests.mjs <slug> <tests...> [--existing ...] [--patch-out f] [--mr-ref ref]    proposed PHPUnit tests, ONE call: both sides, remove, PHPCS+PHPStan, patch checked against the MR (sites running)
     scripts/feedback.mjs add|resolve|list <nid>    feedback tied to the run and patch revision it was about, and to the run that answered it (FEEDBACK.md)
+    scripts/bug-feature.mjs draft|prompt|check|export <nid>    the bug summary as Gherkin (Given/When/Then) in BUG.feature: drafted from the variant, rewritten by a model or person, checked (docs/BUG-FEATURE.md)
     scripts/new-issue.mjs <nid> --branch <b> [--refresh]  |  scripts/capture-patch.mjs <slug> [--name <n>]  (edits in After become a patch, no MR needed)  |  scripts/issue-from-url.mjs <url>  |  scripts/issue-pack.mjs validate|import <pack>  |  scripts/issue-status.mjs <nid>|--all  |  scripts/index-issues.mjs  |  scripts/make-bundle.mjs <slug>
     scripts/lab-config.mjs [key]  |  scripts/patch-change.mjs check|record|list  (a changed patch file leaves a record)
     scripts/issue-pack.mjs edit <pack> <edit.json> | sync-issue <pack> | validate <pack> --repair --targeted   fix the fields the validator named, not the whole pack
