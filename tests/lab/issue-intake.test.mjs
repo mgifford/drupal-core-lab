@@ -30,6 +30,10 @@ function net(dir, nid, o = {}) {
     else if (url.includes('merge_requests?source_branch=')) body = o.mrs ?? get('mrs.json');
     else if (/merge_requests\/\d+\.diff/.test(url)) body = o.diff ?? get('mr.diff');
     else if ((m = url.match(/api-d7\/file\/(\d+)\.json/))) body = o.files && m[1] in o.files ? o.files[m[1]] : has(`file-${m[1]}.json`) ? get(`file-${m[1]}.json`) : null;
+    // Not recorded: other issues (related, parent, mentioned), the reverse-link lists and the review threads. SYNTHETIC unless a test passes its own.
+    else if ((m = url.match(/api-d7\/node\/(\d+)\.json/))) body = o.related ? (o.related[m[1]] ?? null) : JSON.stringify({ type: 'project_issue', nid: m[1], title: `Synthetic issue ${m[1]}`, field_issue_status: '7', field_project: { machine_name: 'drupal' }, changed: '1790000000' });
+    else if ((m = url.match(/api-d7\/node\.json\?type=project_issue&(field_issue_\w+)=/))) body = (o.lists && o.lists[m[1]]) ?? '{"list":[]}';
+    else if ((m = url.match(/merge_requests\/(\d+)\/discussions\?per_page=100&page=(\d+)/))) body = o.discussions ? (o.discussions[`${m[1]}:${m[2]}`] ?? '[]') : '[]';
     return body === null ? { status: 404, text: async () => 'not found' } : { status: 200, text: async () => body };
   };
 }
@@ -70,6 +74,54 @@ test('missing data is explicit: comment limit, attachment limit, undescribed att
   assert.ok(snap.diff.text.length === big.length, 'the complete diff is kept in the snapshot'); assert.ok(snap.gaps.some((x) => x.source === 'diff' && /cuts it at 307200/.test(x.what))); assert.match(renderBrief(snap, indexComments(snap.comments)), /the pack prompt cuts it at 307200/);
   ({ g, snap } = await snapOf('3618230', '3618230', { mrs: '[]', branches: '[]' })); assert.ok(snap.gaps.some((x) => x.source === 'mr')); assert.match(renderBrief(snap, indexComments(snap.comments)), /\| Merge request \| none found/);
   const none = await gather('3618230', { fetchImpl: async () => ({ status: 404, text: async () => 'nf' }), now: NOW }); assert.ok(none.missing.issue && !none.structured); assert.throws(() => buildSnapshot(none), /no structured data/);
+});
+
+test('related issues: parent, related, child, reverse-related and mentioned issues are listed with their state; unrelated list items, non-issues, unreadable and capped ones are handled and said', async () => {
+  const node = JSON.parse(fs.readFileSync(path.join(FX('3618230'), 'node.json'), 'utf8'));
+  node.field_issue_parent = { uri: 'https://www.drupal.org/api-d7/node/3000001', id: '3000001', resource: 'node' }; node.field_issue_related = [{ id: '3000002' }]; node.field_issue_related_links = [{ url: 'https://www.drupal.org/node/3000002' }];
+  node.body = { value: '<p>See [#3000003] and <a href="https://www.drupal.org/project/drupal/issues/3000004">this page</a>; comment #12 is not an issue &#8212; nor is this one: #3618230.</p>' };
+  const issue = (nid, status, extra = {}) => ({ type: 'project_issue', nid, title: `Issue ${nid} | piped`, field_issue_status: status, field_issue_priority: '200', field_project: { machine_name: 'drupal' }, changed: '1790000000', ...extra });
+  const related = { 3000001: JSON.stringify(issue('3000001', '1')), 3000002: JSON.stringify(issue('3000002', '7')), 3000003: JSON.stringify(issue('3000003', '13')), 3000004: JSON.stringify({ type: 'page', nid: '3000004', title: 'A handbook page' }) };
+  const lists = { field_issue_parent: JSON.stringify({ list: [issue('3000010', '8', { field_issue_parent: { id: '3618230' } }), issue('3000011', '8', { field_issue_parent: { id: '9999999' } })] }),
+    field_issue_related: JSON.stringify({ list: [issue('3000012', '1', { field_issue_related: [{ id: '3618230' }] }), issue('3000013', '1')] }) };
+  const pages = [withComment(fs.readFileSync(path.join(FX('3618230'), 'comments-0.json'), 'utf8'), 1, '<p>Duplicate of #3000005? Also #3000003.</p>')];
+  const { g, snap } = await snapOf('3618230', '3618230', { node: JSON.stringify(node), related, lists, pages });
+  const line = (id) => g.issueText.split('\n').find((l) => l.startsWith(`- #${id} `)) || '';
+  assert.match(line('3000001'), /\[OPEN: Active \[1\], Normal \[200\], project drupal, last changed [\d-]+\] \(parent\)/);
+  assert.match(line('3000002'), /\[closed: Closed \(fixed\) \[7\].*\(related\)/, 'the related field and the related link are one entry');
+  assert.match(line('3000003'), /\(mentioned in the summary; mentioned in #1\)/);
+  assert.match(line('3000010'), /OPEN.*\(child \(names this issue as its parent\)\)/);
+  assert.match(line('3000012'), /\(lists this issue as related\)/);
+  assert.match(line('3000005'), /\[NOT READ\] \(mentioned in #1\)/); assert.ok(g.notes.some((x) => /could not be read: #3000005 \(not found\)/.test(x)));
+  for (const id of ['3000004', '3000011', '3000013', '3618230', '12']) assert.equal(line(id), '', `#${id} is not listed (a non-issue page, list items the filter should not have returned, the issue itself, a comment number)`);
+  const brief = renderBrief(snap, indexComments(snap.comments));
+  assert.match(brief, /\| Related issues \| 7 \(4 open, 2 not read\) \|/, "six from this test plus #3595089, which a recorded real comment mentions"); assert.match(brief, /\| \[#3000001\]\(https:\/\/www\.drupal\.org\/i\/3000001\) \| \*\*open\*\*, status 1/);
+  assert.match(brief, /Issue 3000001 \\\| piped/, 'a pipe in a title does not break the table'); assert.ok(snap.sources.some((x) => x.id === 'related' && /7 issues, 4 open/.test(x.revision)));
+  const many = { ...node, body: { value: Array.from({ length: 30 }, (_, i) => `#${3100000 + i}`).join(' ') }, field_issue_related: [], field_issue_related_links: [], field_issue_parent: null };
+  const capped = await gather('3618230', { fetchImpl: net('3618230', '3618230', { node: JSON.stringify(many) }), now: NOW });
+  assert.match(capped.issueText, /LIMIT: 31 linked or mentioned issues; the first 25 were read\. Not read: #3100025, #3100026, #3100027, #3100028, #3100029, #3595089\./); assert.ok(buildSnapshot(capped).gaps.some((x) => /first 25 were read/.test(x.what)));
+});
+
+test('review threads: every merge request\'s GitLab discussions are read, unresolved ones come first with file and line, system notes are left out, pages are followed, and the brief quotes the unresolved ones', async () => {
+  const note = (body, o = {}) => ({ id: Math.random(), body, author: { username: o.by || 'reviewer' }, created_at: '2026-09-02T10:00:00Z', system: !!o.system, resolvable: !!o.resolvable, resolved: !!o.resolved, ...(o.position ? { position: o.position } : {}) });
+  const filler = Array.from({ length: 99 }, (_, i) => ({ id: `f${i}`, notes: [note(`added ${i} commit`, { system: true })] }));
+  const page1 = [{ id: 'd1', notes: [note('This closes the dialog before focus moves. Please keep focus on the trigger.', { resolvable: true, position: { new_path: 'core/misc/x.js', new_line: 42 } }), note('Agreed, will fix.', { by: 'author', resolvable: true })] }, ...filler];
+  const page2 = [{ id: 'd2', notes: [note('Nit fixed.', { resolvable: true, resolved: true, position: { old_path: 'core/a.css', old_line: 3 } })] }, { id: 'd3', notes: [note('Thanks for working on this.')] }];
+  const merged = { iid: 16000, state: 'merged', source_branch: '3618230-old', target_branch: 'main', updated_at: '2026-08-01T00:00:00Z' };
+  const mrs = JSON.stringify([...JSON.parse(fs.readFileSync(path.join(FX('3618230'), 'mrs.json'), 'utf8')), merged]);
+  const discussions = { '16777:1': JSON.stringify(page1), '16777:2': JSON.stringify(page2), '16000:1': JSON.stringify([{ id: 'd9', notes: [note('Old MR: this breaks RTL.', { resolvable: true, by: 'rtl' })] }]) };
+  const { g, snap } = await snapOf('3618230', '3618230', { mrs, discussions });
+  assert.match(g.issueText, /MERGE REQUEST REVIEW THREADS \(git\.drupalcode\.org: 4 threads, 2 unresolved, 1 general comments, 1 resolved\)/);
+  const at = (s) => g.issueText.indexOf(s);
+  assert.ok(at('[UNRESOLVED] !16777 (opened), core/misc/x.js line 42') > 0 && at('[UNRESOLVED] !16000 (merged)') > 0, 'a closed merge request\'s open thread is not missed');
+  assert.ok(at('[UNRESOLVED]') < at('[COMMENT]') && at('[COMMENT]') < at('[RESOLVED] !16777 (opened), core/a.css line 3'), 'unresolved first, then general comments, then resolved');
+  assert.match(g.issueText, /@reviewer, 2026-09-02:\n  This closes the dialog/); assert.doesNotMatch(g.issueText, /added \d+ commit/, 'system notes are left out');
+  const brief = renderBrief(snap, indexComments(snap.comments));
+  assert.match(brief, /\| Review threads \| 4 on the merge request\(s\), \*\*2 unresolved\*\* \|/);
+  assert.match(brief, /### !16777 \(opened\), `core\/misc\/x\.js` line 42, opened by reviewer 2026-09-02\n\nreviewer, 2026-09-02:\n\n> This closes the dialog/);
+  assert.doesNotMatch(brief.split('## Unresolved review threads')[1].split('## Issue summary')[0], /Nit fixed|Thanks for working/, 'the brief quotes only unresolved threads');
+  assert.match(showSource(snap, 'threads'), /\[RESOLVED\].*\n@reviewer, 2026-09-02:\n  Nit fixed\./);
+  assert.ok(snap.sources.some((x) => x.id === 'threads' && x.revision === '4 review threads, 2 unresolved'));
 });
 
 // handoffs, on a throwaway lab folder
