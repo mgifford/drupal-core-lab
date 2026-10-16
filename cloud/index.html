@@ -78,7 +78,7 @@
   #legend { margin: 0; padding: .3rem .75rem; font-size: .85rem; background: var(--surface2); }
   .panes { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr); gap: .5rem; padding: .5rem .75rem; min-height: 0; flex: 1 1 0; }
   .pane { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); overflow-x: auto; overflow-y: hidden; }
-  .pane h2 { margin: 0; padding: .3rem .6rem; border-bottom: 1px solid var(--line); font-size: .9rem; display: flex; align-items: baseline; gap: .5rem; min-width: 0; }
+  .pane h2 { white-space: nowrap; margin: 0; padding: .3rem .6rem; border-bottom: 1px solid var(--line); font-size: .9rem; display: flex; align-items: baseline; gap: .5rem; min-width: 0; }
   .pane h2 .path { flex: 1 1 auto; min-width: 0; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .pane h2 .openext { flex: 0 0 auto; margin-left: .1rem; color: var(--muted); text-decoration: none; line-height: 1; padding: .1rem .3rem; border-radius: 4px; font-size: .95rem; }
   .pane h2 .openext:hover, .pane h2 .openext:focus-visible { color: var(--accent); background: var(--surface2); }
@@ -136,7 +136,7 @@
       <div class="panelp end"><div class="actions">
         <button type="button" id="storage">Reset browser state (both)</button>
         <button type="button" id="copycomparison">Copy comparison link</button>
-        <span class="ext">Open outside this tool:<br><a id="ob" target="_blank" rel="noopener" href="#">Before (upstream main)</a> · <a id="oa" target="_blank" rel="noopener" href="#">After (with the change)</a><br><span class="path">Each browser has its own login session.</span></span>
+        <span class="ext">Open outside this tool:<br><a id="ob" target="_blank" rel="noopener" href="#">Before patch</a> · <a id="oa" target="_blank" rel="noopener" href="#">After patch</a><br><span class="path">Each browser has its own login session.</span></span>
       </div></div></details>
   </span>
   <div id="browsers" class="browser-buttons" data-needs="live" role="group" aria-label="Open this comparison in another browser" hidden></div>
@@ -196,8 +196,8 @@
   </section>
   <p data-needs="live" id="legend" role="status" hidden></p>
   <div class="panes" id="panes" data-needs="live">
-    <section class="pane" aria-labelledby="hb" tabindex="0"><h2 id="hb">Before: upstream main <span class="path" id="pb"></span><a class="openext" id="pob" target="_blank" rel="noopener" href="#" title="Open the Before page in a new window" aria-label="Open the Before page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fb" title="Before: upstream main" data-side="before"></iframe><div class="frame-error" id="fbe" hidden aria-live="polite"></div></section>
-    <section class="pane" aria-labelledby="ha" tabindex="0"><h2 id="ha">After: with the change <a id="haissue" target="_blank" rel="noopener" href="#" hidden></a><span class="path" id="pa"></span><a class="openext" id="poa" target="_blank" rel="noopener" href="#" title="Open the After page in a new window" aria-label="Open the After page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fa" title="After: with the change" data-side="after"></iframe><div class="frame-error" id="fae" hidden aria-live="polite"></div></section>
+    <section class="pane" aria-labelledby="hb" tabindex="0"><h2 id="hb">Before patch <span class="path" id="pb"></span><a class="openext" id="pob" target="_blank" rel="noopener" href="#" title="Open the Before page in a new window" aria-label="Open the Before page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fb" title="Before patch" data-side="before"></iframe><div class="frame-error" id="fbe" hidden aria-live="polite"></div></section>
+    <section class="pane" aria-labelledby="ha" tabindex="0"><h2 id="ha">After patch <a id="haissue" target="_blank" rel="noopener" href="#" hidden></a><span class="path" id="pa"></span><a class="openext" id="poa" target="_blank" rel="noopener" href="#" title="Open the After page in a new window" aria-label="Open the After page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fa" title="After patch" data-side="after"></iframe><div class="frame-error" id="fae" hidden aria-live="polite"></div></section>
   </div>
 </main>
 
@@ -326,8 +326,8 @@ $('tickrecipe').addEventListener('click', () => { (v.steps || []).forEach((st, i
 $('clearticks').addEventListener('click', () => { ticks = []; saveTicks(); renderSteps(); });
 function setVariant(slug) { v = variants.find((x) => x.slug === slug); $('desc').textContent = v.description; renderSteps(); buildObs(); document.title = `Compare: ${v.slug}`;
   const iss = $('haissue');
-  if (v.issue) { iss.hidden = false; iss.textContent = `(#${v.issue})`; iss.href = `https://www.drupal.org/project/drupal/issues/${v.issue}`; iss.title = `Open Drupal issue #${v.issue} in a new window`; iss.setAttribute('aria-label', `Open Drupal issue ${v.issue} in a new window`); $('fa').title = `After: with the change (#${v.issue})`; }
-  else { iss.hidden = true; iss.textContent = ''; iss.removeAttribute('href'); $('fa').title = 'After: with the change'; }
+  if (v.issue) { iss.hidden = false; iss.textContent = `(#${v.issue})`; iss.href = `https://www.drupal.org/project/drupal/issues/${v.issue}`; iss.title = `Open Drupal issue #${v.issue} in a new window`; iss.setAttribute('aria-label', `Open Drupal issue ${v.issue} in a new window`); $('fa').title = `After patch (#${v.issue})`; }
+  else { iss.hidden = true; iss.textContent = ''; iss.removeAttribute('href'); $('fa').title = 'After patch'; }
   const start = (v.demo && v.demo.start) || v.pages[0] || '/'; $('goto').value = start;
   document.querySelector('input[name="width"][value="half"]').checked = true; applyWidth(); }
 function fillStaticPanel() {
