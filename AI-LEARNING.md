@@ -66,18 +66,21 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 - Next AI action: manual walkthrough with the owner (`node scripts/lab-env.mjs start 3604037-latest --browser`); then re-check both MRs for new commits, re-run `evaluate-3604037.mjs`, and run the MR's PHPUnit tests with proposals A and B applied (not done).
 - Not done anywhere: Firefox and Safari; a real Windows contrast theme; a real screen reader; Farsi interface translations (the layout and direction are real, the strings are English); the viewer scrolls sideways at about 420 px.
 - Test the documentation cold: give another LLM only the repo and ask it to reproduce #3604037; every question it asks or command that fails is a missing line in `AGENTS.md`.
-- **To do (owner, 2026-10-15): trial the `amateescu/ddev-drupal-dev` add-on** (https://github.com/amateescu/ddev-drupal-dev, Apache-2.0,
-  v1.2.3 2026-10-09, DDEV >= 1.25.3, bats tests in CI). It would replace or sit beside `justafish/ddev-drupal-core-dev`. What it adds:
-  `ddev mr core <MR|issue|URL>` checks out an MR branch that tracks the issue fork, so a plain `git push` updates the MR (on 2026-10-14
-  the owner had to clone the fork separately to add tests to !16777); `pin-core-lock` (shared packages at core's `composer.lock`
-  versions); `ddev phpunit --db=sqlite|pgsql|mariadb`; `ddev commit-code-check` (what `scripts/lint.mjs` wraps); `ddev add-module` for
-  contrib alongside core. Extras go in a gitignored `composer.local.json` overlay, so core's `composer.json` and `composer.lock` stay
-  untouched (rule 6 holds; core has no root `.gitignore`, so the one the add-on writes is untracked and rule 1 holds too). **Risks to
-  check:** both add-ons ship a `ddev phpunit` command, so one per project; it has no `ddev drupal install | login` and no `ddev nightwatch`
-  (the lab uses them in 6 places: `setup.mjs`, `lib.mjs` `loginPath`, ...); without `pin-core-lock` the overlay solves afresh, so Before
-  and After could get different dependency versions if built on different days (enable it, or build both together). **Trial like
-  `docs/ADDON-TRIAL-2026-10-01.md`:** one throwaway pair for an issue already verified (#3618230), same results as the current add-on,
-  baseline `git status` clean, `ddev mr` plus push tested on a fork branch the owner can push to. Ask the owner before switching the lab.
+- **Done (trial 2026-10-15, test pushed by the owner 2026-10-16): the `amateescu/ddev-drupal-dev` add-on.** Write-up and the lab's
+  justafish call sites with replacements: `docs/ADDON-TRIAL-2026-10-15.md`. The lab's #3618230 results reproduce on it, and `ddev mr core
+  16777` plus a push put the proposed test on the MR. The lab was not switched; the recommendation is to keep justafish for the comparison
+  pairs and use the add-on, if at all, for contributor work. What to remember (this replaces the earlier to-do text, whose risks list the
+  trial answered):
+  - `ddev mr` and `ddev commit-code-check` assume a standalone clone. In a worktree of `envs/core.git`, the MR branch name is ambiguous with
+    the lab's `f<nid>` remote, and `commit-code-check` prints "no files to check" and exits 0 (a pass that checked nothing), because the
+    container cannot see the worktree's git directory. The local `main` in that bare repo is not core's `main`.
+  - `pin-core-lock` cannot solve an old core lock under Composer 2.10 (the locked Symfony versions now have advisories) unless the overlay
+    sets `config.audit.block-insecure` to `false`.
+  - `composer update`, which `ddev mr` runs, rewrites two tracked files, `autoload.php` and `autoload_runtime.php`: restore them, and
+    `git add` by explicit path.
+  - After `git -C envs/core.git`, give `worktree add` an absolute path (a relative one is resolved inside the bare repo). Removing a
+    worktree of an installed site needs `chmod -R u+w sites/default` first.
+  - `git push --dry-run` asks the server whether a push would be accepted and sends nothing.
 - **Deferred by the owner (2026-10-14): harness level 2, a generic runner.** Level 1 is built: `tools/playwright/lib/lab-run.mjs`, where an
   `evaluate-<nid>.mjs` holds only its steps and checks. Level 2 would read the steps from `variants.json` (or an issue pack's `run:` section)
   and need no per-issue script for simple issues. **When:** after two or three more issues have an evaluator on the library. **First step:**

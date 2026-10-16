@@ -82,7 +82,7 @@ So the tests patch, as written, fails on unpatched and patched core alike in thi
 `branches/3618230-tests-messagecommand.patch` adds one FunctionalJavascript class, tests only (source in `tests-proposal/`):
 `FileUploadAjaxMessageTest`, with `$defaultTheme = 'default_admin'` (the owner's choice: the theme the issue is about). It applies
 cleanly to the MR tip `2d600f40`. Run on core `3b94128e929` with `ddev phpunit`, the file copied into each checkout and removed
-afterwards (both checkouts' tracked files unchanged).
+afterwards (both checkouts' tracked files unchanged). Since 2026-10-16 the file is on the MR itself, as commit `01e19a6f` pushed by the owner.
 
 | Test | Before | After |
 |---|---|---|
