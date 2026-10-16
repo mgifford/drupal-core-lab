@@ -8,7 +8,7 @@ The unit of work is **an issue**: a folder in `reports/issues/<nid>/`, a recipe 
 It fetches the issue fork's branch and current core `main`, writes the branch's own changes as
 `reports/issues/<nid>/branches/<branch>.patch` (with source, tip, base and date in `BRANCHES.md`), pins the core commit the
 patch was based on, creates `REPRODUCE.md`, `EVIDENCE.md`, a `STATUS.md` snapshot and a comment-draft stub, a recipe stub, and the two
-variants. Add a `SUMMARY.md` — the entry point a reader opens first (`docs/ISSUE-PACK.md`). It needs `envs/core.git` (created by `setup.mjs`); `--depth 1500` if the branch is old; `--dry-run` shows the plan.
+variants. It also creates `SUMMARY.md`, the entry point a reader opens first (`docs/ISSUE-PACK.md`), without overwriting an existing summary. It needs `envs/core.git` (created by `setup.mjs`); `--depth 1500` if the branch is old; `--dry-run` shows the plan.
 The issue's own drupal.org page lists the fork branch name (the MR source branch).
 
 ## 1b. Understand the issue without pasting the whole thread
@@ -16,7 +16,8 @@ The issue's own drupal.org page lists the fork branch name (the MR source branch
     node scripts/issue-pack.mjs prepare <nid> --compact   # the pack prompt carries the brief instead of every comment, when that is smaller
 The brief is extracted by rules, not written by a model: it says what was fetched and what limit cut it (comment pages, attachments, diff size), shows the comments whose own
 words mark them as decisions, proposals, questions or revisions (and which proposals a later comment dropped), quotes everything as data, and lists the rest by number so
-`issue-intake.mjs show <nid> <n>` can bring any of it back. It finds candidates by word patterns; it does not understand the thread. What the problem is, what was decided and what
+`issue-intake.mjs show <nid> <n>` can bring any of it back. Since 2026-10-16 it also lists the parent, related, child and mentioned issues with their state, and quotes the
+unresolved review threads of every merge request (`show <nid> related|threads` for all of them): read both before judging the change (`AGENTS.md` rule 15). It finds candidates by word patterns; it does not understand the thread. What the problem is, what was decided and what
 is open is interpretation: a model or a person writes it as a handoff (`handoff write <nid> issue --file ...`), every fact citing the comment, source or file it comes from. After a
 new `fetch`, `handoff check <nid>` says which handoffs cite something that changed. Stages: issue, sources, reproduction, patch, validation, feedback; keep each under about 1,000 tokens and point to files rather than copying them.
 
@@ -121,3 +122,18 @@ The walkthrough says whether the problem was **reproduced and fixed**, **no long
 the issue before concluding anything), or **reproduces but the patch no longer fixes it** (reroll). To re-pin after verifying, set
 `core.commit` on the `-pinned` variant. To free resources when you move on: `ddev delete --omit-snapshot --yes` in each
 `envs/<name>/` and `git -C envs/core.git worktree remove --force ../<name>`; the evidence stays in `reports/`.
+
+## Where to change report templates
+
+- `reports/_templates/SUMMARY.md`: the layout used by both `scripts/new-issue.mjs` and issue-pack import.
+- `reports/_templates/REPRODUCE.md`: the reproduction scaffold copied by `scripts/new-issue.mjs`.
+- `tools/compare/issue-summary.mjs`: fills the summary layout using known issue or pack values.
+- `prompts/issue-pack-chat-prompt.md`: controls what an assistant writes in the issue pack, not the final Markdown layout.
+
+Template changes affect newly generated documents. They do not rewrite existing issue reports or evidence.
+Scaffolding preserves an existing summary/reproduction file; issue-pack import deliberately regenerates its summary from the pack.
+Review and commit your existing issue report before importing over it.
+
+For accessibility findings, lead with the task and barrier, distinguish evidence methods, and keep expected results separate from
+observed results. Standards mapping is optional. Preserve credible incomplete reports while investigation continues.
+See [Accessibility Bug Reporting Best Practices](https://github.com/mgifford/ACCESSIBILITY.md/blob/main/examples/ACCESSIBILITY_BUG_REPORTING_BEST_PRACTICES.md).

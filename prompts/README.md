@@ -1,5 +1,33 @@
 # prompts/
 
+## coder-prompt.md: shared DDEV Coder comparison handoff
+
+The common workspace parameters, bootstrap commands, viewer instructions and evidence requirements live in
+`prompts/coder-prompt.md`. Agents supply the issue scenario in the registered variant: `steps`, `expected`, `actual`,
+`checks` and `observe`. The generator resolves inherited variants, includes the recipe, and hashes each patch in application order.
+It refuses an unknown slug, a missing recipe/patch or an empty After patch stack. It does not fetch an MR or verify its provenance.
+
+From the repository root:
+
+```bash
+node scripts/coder-prompt.mjs 3619127-pinned          # preview to stdout
+node scripts/coder-prompt.mjs 3619127-pinned --write  # replace reports/issues/3619127/CODER-PROMPT.md
+node scripts/coder-prompt.mjs 3619127-pinned --check  # fail if missing or stale; no writes
+node tools/compare/cloud/config.mjs --project-names # copy this value into the Coder web form
+```
+
+Each issue has one canonical prompt; choose which registered slug it launches. A generated header records that choice.
+Review existing bespoke prompts before replacement and move any unique scenario requirements into the variant.
+Do not edit generated prompts by hand. Regenerate after changing the template, scenario or patch contents.
+`tests/lab/coder-prompt.test.mjs` checks committed generated prompts for drift during `scripts/selftest.mjs`.
+Old handwritten prompts are not silently rewritten; unregistered issues must complete their variants first.
+
+In Coder, choose **New workspace → DDEV Freeform → DDEV project names** (`project_names`). Paste the value printed by
+`config.mjs --project-names`. These fixed names identify the viewer and two frame proxies, not the issue's core environments.
+Bootstrap, smoke checks, viewer startup and the prompt generator use `tools/compare/cloud/config.mjs`.
+Tests check the DDEV project names and nginx declarations against that module; renaming requires updating those declarations too.
+
+
 ## issue-pack-chat-prompt.md: the prompt for a chat assistant
 
 The template that turns a Drupal.org core issue into an **issue pack** (one YAML file the lab can validate and import). You do not edit or paste this file:

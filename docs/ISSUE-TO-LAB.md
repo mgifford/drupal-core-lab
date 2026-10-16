@@ -112,8 +112,9 @@ Coder. A person runs every step and confirms every check before any of it is evi
 
 ## Open questions
 
-1. **Deep links.** The Pages guide's "Run in the cloud" button points at the issue picker, not at this path; the picker has no
-   documented query parameter. See `docs/CLOUD-PLAN.md` §5.5.
+1. **Deep links.** The Pages guide's cloud line gives the Freeform steps and the bootstrap command for the selected variant (since
+   2026-10-16), but cannot open a pre-filled Coder workspace: neither the picker nor the template form has a documented query
+   parameter. See `docs/CLOUD-PLAN.md` §5.5.
 2. **`--use-existing-core` adoption.** Whether the picker's clone is shallow (its base commit may be missing) is unverified; the
    local seed falls back to `--core-url` and says so.
 3. **`issue-from-url` and the pack file name.** The chat writes `issue-pack-<nid>.yml`; the glue looks for it next to the prompt and

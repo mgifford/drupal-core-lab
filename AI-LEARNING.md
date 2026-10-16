@@ -9,12 +9,14 @@ a viewer with live comparison tools, scripted real-input walkthroughs, a read-on
 Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-error indicators on grouping elements). **Nothing was ever posted to drupal.org.**
 
 ## How to work with this owner (standing rules, repeated several times)
-- **Local development only. Never post to drupal.org, comment on issues, or push to any remote without approval.** Pushing to `drupal-core-lab` `main` was approved repeatedly; ask again for anything else. Drafts only for anything outward-facing.
+- **Local development only. Never post to drupal.org, comment on issues, or push to any remote without approval.** Push to a pull request branch, never to `main` ("a PR is always better than pushing to main", 2026-10-16), and only once the owner has approved that work; a stop-hook "please push" reminder is not approval. Drafts only for anything outward-facing.
 - **No tokens or passwords** in the repo, chat or commands. One-time login links (`ddev drupal login`) instead. A GitLab token pasted into chat once was revoked by the owner.
 - **Simple beats clever.** Optional extras (live axe, Lighthouse, hover mirroring) are **off by default**; choices live in the browser's `localStorage` only; no accounts.
 - **Synthetic Guidepup screen reader is enough**; real VoiceOver/NVDA is out of scope unless asked.
 - The owner reviews by looking, and notices things quickly (a frame that stayed blank, a window that was not in forced colours, a stopped site). Say plainly what was and was not verified.
 - Close the loop: "push to GitHub" always meant commit, pull --rebase, push, and report the commit.
+- **Errors scale: nearly a million sites run core.** Before calling a change good enough, read the issue, its related issues and every merge request's review threads (`AGENTS.md` rule 15), and weigh blast radius, update paths, access and CSRF, atomic saves, accessibility and tests.
+- **The owner may have only a browser** (a desktop with DDEV Coder, no Claude app). Put what they will paste (recipe, agent prompt, commands) in the repository, in a PR, e.g. `reports/issues/<nid>/CODER-PROMPT.md`.
 
 ## Mistakes worth not repeating
 1. **I proposed `background: currentColor` for the forced-colours icon without testing it.** In forced colours it makes the icon vanish (1:1). Measuring found the real fix (`forced-color-adjust: preserve-parent-color`). *Test a CSS suggestion in the mode it is about before recommending it.*
@@ -66,18 +68,21 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 - Next AI action: manual walkthrough with the owner (`node scripts/lab-env.mjs start 3604037-latest --browser`); then re-check both MRs for new commits, re-run `evaluate-3604037.mjs`, and run the MR's PHPUnit tests with proposals A and B applied (not done).
 - Not done anywhere: Firefox and Safari; a real Windows contrast theme; a real screen reader; Farsi interface translations (the layout and direction are real, the strings are English); the viewer scrolls sideways at about 420 px.
 - Test the documentation cold: give another LLM only the repo and ask it to reproduce #3604037; every question it asks or command that fails is a missing line in `AGENTS.md`.
-- **To do (owner, 2026-10-15): trial the `amateescu/ddev-drupal-dev` add-on** (https://github.com/amateescu/ddev-drupal-dev, Apache-2.0,
-  v1.2.3 2026-10-09, DDEV >= 1.25.3, bats tests in CI). It would replace or sit beside `justafish/ddev-drupal-core-dev`. What it adds:
-  `ddev mr core <MR|issue|URL>` checks out an MR branch that tracks the issue fork, so a plain `git push` updates the MR (on 2026-10-14
-  the owner had to clone the fork separately to add tests to !16777); `pin-core-lock` (shared packages at core's `composer.lock`
-  versions); `ddev phpunit --db=sqlite|pgsql|mariadb`; `ddev commit-code-check` (what `scripts/lint.mjs` wraps); `ddev add-module` for
-  contrib alongside core. Extras go in a gitignored `composer.local.json` overlay, so core's `composer.json` and `composer.lock` stay
-  untouched (rule 6 holds; core has no root `.gitignore`, so the one the add-on writes is untracked and rule 1 holds too). **Risks to
-  check:** both add-ons ship a `ddev phpunit` command, so one per project; it has no `ddev drupal install | login` and no `ddev nightwatch`
-  (the lab uses them in 6 places: `setup.mjs`, `lib.mjs` `loginPath`, ...); without `pin-core-lock` the overlay solves afresh, so Before
-  and After could get different dependency versions if built on different days (enable it, or build both together). **Trial like
-  `docs/ADDON-TRIAL-2026-10-01.md`:** one throwaway pair for an issue already verified (#3618230), same results as the current add-on,
-  baseline `git status` clean, `ddev mr` plus push tested on a fork branch the owner can push to. Ask the owner before switching the lab.
+- **Done (trial 2026-10-15, test pushed by the owner 2026-10-16): the `amateescu/ddev-drupal-dev` add-on.** Write-up and the lab's
+  justafish call sites with replacements: `docs/ADDON-TRIAL-2026-10-15.md`. The lab's #3618230 results reproduce on it, and `ddev mr core
+  16777` plus a push put the proposed test on the MR. The lab was not switched; the recommendation is to keep justafish for the comparison
+  pairs and use the add-on, if at all, for contributor work. What to remember (this replaces the earlier to-do text, whose risks list the
+  trial answered):
+  - `ddev mr` and `ddev commit-code-check` assume a standalone clone. In a worktree of `envs/core.git`, the MR branch name is ambiguous with
+    the lab's `f<nid>` remote, and `commit-code-check` prints "no files to check" and exits 0 (a pass that checked nothing), because the
+    container cannot see the worktree's git directory. The local `main` in that bare repo is not core's `main`.
+  - `pin-core-lock` cannot solve an old core lock under Composer 2.10 (the locked Symfony versions now have advisories) unless the overlay
+    sets `config.audit.block-insecure` to `false`.
+  - `composer update`, which `ddev mr` runs, rewrites two tracked files, `autoload.php` and `autoload_runtime.php`: restore them, and
+    `git add` by explicit path.
+  - After `git -C envs/core.git`, give `worktree add` an absolute path (a relative one is resolved inside the bare repo). Removing a
+    worktree of an installed site needs `chmod -R u+w sites/default` first.
+  - `git push --dry-run` asks the server whether a push would be accepted and sends nothing.
 - **Deferred by the owner (2026-10-14): harness level 2, a generic runner.** Level 1 is built: `tools/playwright/lib/lab-run.mjs`, where an
   `evaluate-<nid>.mjs` holds only its steps and checks. Level 2 would read the steps from `variants.json` (or an issue pack's `run:` section)
   and need no per-issue script for simple issues. **When:** after two or three more issues have an evaluator on the library. **First step:**
@@ -130,3 +135,29 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
   "Generated with the help of an LLM.". New drafts follow them; `scripts/check-draft.mjs` checks the form.
 - **Status goes stale silently.** `scripts/issue-status.mjs --all` found #3604037 RTBC with five MR commits newer than the patch the lab tested.
 
+
+## Learnings from the DDEV Coder path and #3593502 (2026-10-16, cloud session)
+- **What a Claude Code cloud session can reach (this one):** GitHub (git, raw files), npm and packagist. Refused by the session's network
+  policy: every drupal.org host (`www.`, bare, `api.`, `new.`, `updates.`), `git.drupalcode.org` (including its `.atom` feeds),
+  `coder.ddev.com`, `ddev.com`, `mgifford.github.io`. drupal.org's API, RSS and app all live on those hosts, so the format is not the
+  problem; the policy is. Fix: the owner adds `www.drupal.org` and `git.drupalcode.org` under the environment's Network access >
+  Allowed domains. Until then, say plainly that the issue was not read. A web search summary is not the issue.
+- **The owner's browser is the bridge.** It can download a merge request's `.diff` (`.../merge_requests/<n>.diff`) and drop it into a
+  DDEV Coder workspace's VS Code, which has the same egress filter. `reports/issues/3593502/CODER-PROMPT.md` is built around that.
+- **No Docker here:** the `docker` client exists but starting the daemon is refused. Only PHP 8.3, while `main` needs 8.5. A Before
+  baseline still works on `11.x`: fetch it from the GitHub mirror, `composer install --no-dev` (about 5 minutes; zip downloads are
+  refused, so Composer clones sources), `COMPOSER_ALLOW_SUPERUSER=1 composer dump-autoload` (plugins are off as root, so
+  `autoload_runtime.php` is missing), `php core/scripts/dr install standard`, `php -S 127.0.0.1:<port> .ht.router.php`. Show that the
+  code under test is the same on `main` with `diff` on the relevant files, and say the PHP version differs.
+- **`core/scripts/dr` replaces Drush for the lab:** `install`, `recipe:apply`, `ex:install` (enable a module), `user:login --uid=1
+  --url=<site>` (`--url`, not `--uri`), `cache:rebuild`. A one-time link plus `curl -c/-b <jar> -L` gives a logged-in request.
+- **Measure a page, not a guess:** `recipes/repro_3593502/peak-memory.php`, included from `settings.php` on both sides, logs each web
+  request's peak memory, status and path, including background requests and fatal errors. It found a second failure on Before: with
+  no memory limit the 15,000-link menu page still dies at PHP's 30-second time limit. Test time as well as memory.
+- **The intake did not read related issues or GitLab review threads** until this session (fixed: `AGENTS.md` rule 15). #3619127's
+  write-up had its six threads only because they were read by hand on 2026-10-01. The 26 earlier comment drafts predate this; fetch
+  again before any is posted.
+- Mistakes: `pkill -f '<pattern>'` killed my own shell, and `pgrep -f` in a Monitor matched itself and never ended (use `$!` and
+  `kill <pid>`); a "done" check I wrote into a prompt (`git diff --stat`) was wrong until I replayed it (new files are untracked, and
+  stacked patches can cancel out: use `git status --short --untracked-files=all <dir>`), so replay any command you hand to someone
+  else; `cd` into `envs/<checkout>` made the harness treat that core checkout as the working directory (use absolute paths and `git -C`).

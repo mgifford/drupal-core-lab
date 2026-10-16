@@ -1,0 +1,138 @@
+[
+  {
+    "slug": "3615469-pinned",
+    "issue": "3615469",
+    "label": "#3615469: Maintenance form login link, pinned core",
+    "description": "Compare pristine core with MR !16609 on the maintenance settings form. The login link gains page; the full sentence and destinations remain unchanged. Desktop evidence does not reproduce the reported iOS VoiceOver behavior.",
+    "status": "DRAFT: MR source reviewed; local Drupal runtime validation pending",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "89973d2da24ffbae29903502e585bd66bd57ba06"
+    },
+    "before": {
+      "env": "baseline-3615469"
+    },
+    "after": {
+      "env": "issue-3615469",
+      "patches": [
+        "reports/issues/3615469/branches/3615469-maintenance-login-link-text.patch"
+      ]
+    },
+    "recipe": "repro_3615469",
+    "pages": [
+      "/admin/config/development/maintenance"
+    ],
+    "login": true,
+    "steps": [
+      {
+        "text": "A Standard site is installed. The recipe makes no further site changes.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /admin/config/development/maintenance in both frames.",
+        "how": "mirror"
+      },
+      {
+        "text": "Reset viewer conditions to defaults. Read the checkbox help text and inspect its login link.",
+        "how": "each",
+        "lookFor": "Before links user login; After links user login page. The sentence stays identical."
+      },
+      {
+        "text": "Turn click mirroring off. Tab through the checkbox and its two description links in each frame. Do not save or enable maintenance mode.",
+        "how": "each",
+        "lookFor": "Focus remains visible. The login link target is unchanged. A links list includes the complete phrase After."
+      }
+    ],
+    "expected": "The login link includes the complete phrase user login page, with the same sentence and destination.",
+    "actual": "Before links only user login; After links user login page. Runtime and iOS speech validation are pending.",
+    "checks": [
+      {
+        "label": "The maintenance checkbox exists",
+        "probe": "!!document.querySelector('input[name=maintenance_mode]')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "The login link includes page",
+        "probe": "(() => { const b = document.querySelector('input[name=maintenance_mode]'); return (b?.getAttribute('aria-describedby') || '').split(/\\s+/).some(id => [...(document.getElementById(id)?.querySelectorAll('a') || [])].some(a => a.textContent.trim() === 'user login page')); })()",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "Maintenance mode is not enabled",
+        "probe": "document.querySelector('input[name=maintenance_mode]')?.checked === false",
+        "expect": true,
+        "kind": "precondition"
+      }
+    ],
+    "observe": [
+      {
+        "label": "The description login link is named user login page",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Checkbox and description links have visible keyboard focus",
+        "expectBefore": true,
+        "expectAfter": true
+      }
+    ],
+    "demo": {
+      "start": "/admin/config/development/maintenance"
+    },
+    "coverage": {
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ],
+      "manual": [
+        "Real iOS VoiceOver description reading, with iOS/device/browser versions recorded",
+        "Human keyboard focus check",
+        "Maintainer decision on interface text wording"
+      ]
+    }
+  },
+  {
+    "slug": "3615469-latest",
+    "extends": "3615469-pinned",
+    "label": "#3615469: Same MR on latest core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3615469-latest"
+    },
+    "after": {
+      "env": "issue-3615469-latest"
+    }
+  }
+]

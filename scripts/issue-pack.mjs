@@ -22,6 +22,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { labRoot } from '../tools/compare/lib.mjs';
+import { renderIssueSummary } from '../tools/compare/issue-summary.mjs';
 import { validatePack, loadYaml, repairMessage, readRecipeDir, graftRecipe, markReproduceUnverified } from '../tools/compare/pack-validate.mjs';
 import { loadCatalogue, catalogueText, describeSetup } from '../tools/compare/pack-blocks.mjs';
 import { loadChecks, checkCatalogueText } from '../tools/compare/pack-checks.mjs';
@@ -69,6 +70,7 @@ if (cmd === 'prepare') {
   const valueOf = (flag) => { const i = args.indexOf(flag); if (i < 0) return undefined; const v = args[i + 1]; if (v === undefined || v.startsWith('--')) { console.error(`${flag} needs a value`); process.exit(2); } return v; };
   const mr = valueOf('--mr');
   if (mr !== undefined && !/^\d{1,7}$/.test(mr)) { console.error('--mr must be the merge request number, for example 16777'); process.exit(2); }
+  const outArg = valueOf('--out') ?? null;   // checked before the fetch: bad input is refused with no network request
   let g; try { g = await gather(nid, { mr, log: (m) => console.log(m) }); } catch (e) { console.error(`Could not fetch: ${e.message}`); process.exit(1); }
   if (g.missing.issue) { console.error(g.missing.issue); process.exit(1); }
   if (args.includes('--compact')) {
@@ -85,7 +87,6 @@ if (cmd === 'prepare') {
   const yamlP = loadYaml(); if (!yamlP) { console.error('js-yaml is not installed. Run: npm install --prefix tools/compare/.deps js-yaml@4'); process.exit(2); }
   const { text, missing } = composePrompt(tpl, ex, g, { catalogue: catalogueText(loadCatalogue(yamlP)), checks: checkCatalogueText(loadChecks(yamlP)) });
   const desktop = path.join(os.homedir(), 'Desktop');
-  const outArg = valueOf('--out') ?? null;
   const out = path.resolve(outArg || path.join(fs.existsSync(desktop) ? desktop : process.cwd(), `issue-pack-prompt-${nid}.txt`));
   fs.writeFileSync(out, text);
   const copied = args.includes('--no-copy') ? null : copyToClipboard(text);
@@ -219,12 +220,14 @@ fs.writeFileSync(vf, JSON.stringify(all, null, 2) + '\n');
 const repro = path.join(issueDir, 'REPRODUCE.md');
 if (fs.existsSync(repro)) fs.writeFileSync(repro, markReproduceUnverified(fs.readFileSync(repro, 'utf8')));
 fs.writeFileSync(path.join(issueDir, 'PACK.yml'), text.endsWith('\n') ? text : `${text}\n`);
-const md = [`# #${nid}: ${pack.issue.title}`, '', `**DRAFT.** Written from an issue pack (${pack.review.generated_by}). A person has not yet confirmed the steps or the checks.`, '',
-  `Issue: ${pack.issue.url}${pack.issue.merge_request ? `  \nMerge request: ${pack.issue.merge_request}` : ''}  \nFork branch: \`${pack.issue.fork_branch}\``, '', '## Summary', '', pack.summary.trim(), '',
-  '## Sources', '', ...pack.sources.map((s) => `- ${s.url}${s.date ? ` (${s.date})` : ''}: ${s.note}`), '',
-  ...(setupUsed ? ['## Setup blocks', '', ...describeSetup(setupUsed), ''] : []),
-  '## Not verified', '', ...pack.review.unverified.map((u) => `- ${u}`), ...(pack.needs || []).map((n) => `- Needs a building block that does not exist yet: ${n.block}: ${n.why}`),
-  ...(pack.notes ? ['', '## Notes', '', pack.notes.trim()] : []), ''].join('\n');
+const md = renderIssueSummary({
+  nid, title: pack.issue.title, generatedBy: pack.review.generated_by,
+  metadata: `${pack.issue.merge_request ? `Merge request: ${pack.issue.merge_request}  \n` : ''}Fork branch: \`${pack.issue.fork_branch}\``,
+  summary: pack.summary.trim(), sources: pack.sources,
+  setup: setupUsed ? describeSetup(setupUsed) : [],
+  unverified: [...pack.review.unverified, ...(pack.needs || []).map((n) => `Needs a building block that does not exist yet: ${n.block}: ${n.why}`)],
+  notes: pack.notes || '',
+});
 fs.writeFileSync(path.join(issueDir, 'SUMMARY.md'), md);
 
 console.log(`\nImported #${nid} as a DRAFT. Next:`);

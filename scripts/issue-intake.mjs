@@ -1,9 +1,9 @@
 // Compact issue intake and named handoffs (AI-usage, the brief's Phase 1). Deterministic: no model is called here.
-//   node scripts/issue-intake.mjs fetch <nid> [--mr <n>] [--no-brief]   fetch the issue and its merge request, keep the complete snapshot (reports are not bloated:
+//   node scripts/issue-intake.mjs fetch <nid> [--mr <n>] [--no-brief]   fetch the issue, its related issues, its merge request(s) and their review threads, keep the complete snapshot (reports are not bloated:
 //                                                       .lab-cache/sources/<nid>/, git-ignored), write the manifest and comment index to reports/issues/<nid>/intake/,
 //                                                       say what changed since the last fetch and which handoffs that makes stale
 //   node scripts/issue-intake.mjs brief <nid>           rebuild intake/BRIEF.md from the snapshot (offline)
-//   node scripts/issue-intake.mjs show <nid> <n|cid|issue|diff|mr>   print one source from the snapshot (older comments by number or id)
+//   node scripts/issue-intake.mjs show <nid> <n|cid|issue|diff|mr|related|threads>   print one source from the snapshot (older comments by number or id)
 //   node scripts/issue-intake.mjs handoff write <nid> <stage> --file <json> [--by model|person|script]   validate and store a handoff (stages: issue sources reproduction patch validation feedback)
 //   node scripts/issue-intake.mjs handoff check <nid>   fresh or stale, and why
 //   node scripts/issue-intake.mjs handoff show <nid> <stage>
@@ -47,7 +47,7 @@ if (cmd === 'fetch') {
 } else if (cmd === 'brief') {
   const snap = loadSnap(nid(a1)), b = buildBrief(snap); console.log(`Wrote ${path.relative(labRoot, path.join(intakeDir(snap.nid), 'BRIEF.md'))} (${Buffer.byteLength(b.brief)} bytes).`);
 } else if (cmd === 'show') {
-  const snap = loadSnap(nid(a1)), out = showSource(snap, a2); if (out === null) fail(`#${a1} has no "${a2}" in the snapshot (comments are numbered 1 to ${snap.comments.length}; also: issue, diff, mr).`); process.stdout.write(out);
+  const snap = loadSnap(nid(a1)), out = showSource(snap, a2); if (out === null) fail(`#${a1} has no "${a2}" in the snapshot (comments are numbered 1 to ${snap.comments.length}; also: issue, diff, mr, related, threads).`); process.stdout.write(out);
 } else if (cmd === 'handoff') {
   const sub = a1, n = nid(a2);
   if (sub === 'write') {

@@ -14,6 +14,7 @@ const remote = execFileSync('git', ['-C', labRoot, 'remote', 'get-url', 'origin'
 const repo = remote.replace(/^git@github\.com:/, 'https://github.com/').replace(/\.git$/, '');
 const pick = (v) => ({ slug: v.slug, issue: v.issue, label: v.label, description: v.description, steps: v.steps, expected: v.expected, actual: v.actual, setup: v.setup, observe: v.observe, checks: v.checks, pages: v.pages, demo: v.demo });
 const files = {
+  'browser-handoff.mjs': fs.readFileSync(path.join(labRoot, 'tools/compare/browser-handoff.mjs'), 'utf8'),
   'index.html': fs.readFileSync(path.join(labRoot, 'tools/compare/index.html'), 'utf8').replace('__BUILD__', 'static'),
   'variants.json': JSON.stringify({ static: true, repo, variants: variants().map(pick) }, null, 2) + '\n',
   '.nojekyll': '',

@@ -13,6 +13,8 @@ import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { labRoot, variants } from '../tools/compare/lib.mjs';
+import { PROXY_PROJECTS } from '../tools/compare/cloud/config.mjs';
+const projectName = (role) => PROXY_PROJECTS.find((p) => p.role === role).name;
 
 const slug = process.argv.slice(2).find((a) => !a.startsWith('--')) || variants()[0].slug;
 const results = [];
@@ -49,7 +51,8 @@ const getRoute = async (project, kind) => {
   }
   return r;
 };
-for (const [project, kind] of [['drupal-compare', 'viewer'], ['drupal-compare-before', 'proxy'], ['drupal-compare-after', 'proxy']]) {
+for (const { name: project, role } of PROXY_PROJECTS) {
+  const kind = role === 'viewer' ? 'viewer' : 'proxy';
   const r = await getRoute(project, kind);
   if (kind === 'viewer') {
     if (r.status === 200 && /Drupal core compare/i.test(r.body)) add(`Route ${project}: viewer page`, 'PASS', `HTTP ${r.status}`);
@@ -59,13 +62,13 @@ for (const [project, kind] of [['drupal-compare', 'viewer'], ['drupal-compare-be
 }
 
 // 2. Viewer health and origins, as the browser would be told.
-const viewerHost = appHost('drupal-compare');
+const viewerHost = appHost(projectName('viewer'));
 const health = await get(8100, viewerHost, '/api/health');
 try { const h = JSON.parse(health.body); add('Viewer /api/health: both sites answer', h.before.ok && h.after.ok ? 'PASS' : 'FAIL', `${h.before.text}; ${h.after.text}`); }
 catch { add('Viewer /api/health: both sites answer', 'FAIL', health.error || `HTTP ${health.status}, not JSON`); }
 const vj = await get(8100, viewerHost, '/variants.json');
 try {
-  const o = JSON.parse(vj.body).origins; const want = { before: `https://${appHost('drupal-compare-before')}`, after: `https://${appHost('drupal-compare-after')}` };
+  const o = JSON.parse(vj.body).origins; const want = { before: `https://${appHost(projectName('before'))}`, after: `https://${appHost(projectName('after'))}` };
   add('Viewer frame origins are the Coder app URLs', o.before === want.before && o.after === want.after ? 'PASS' : 'FAIL', o.before === want.before && o.after === want.after ? '' : `got ${o.before} and ${o.after}; start the viewer with tools/compare/cloud/start-viewer.sh`);
 } catch { add('Viewer frame origins are the Coder app URLs', 'FAIL', vj.error || `HTTP ${vj.status}`); }
 

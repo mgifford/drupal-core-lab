@@ -7,10 +7,15 @@
 //   fork:   https://git.drupalcode.org/api/v4/projects/issue%2Fdrupal-<nid>/repository/branches?search=<nid>
 //   MR:     https://git.drupalcode.org/api/v4/projects/project%2Fdrupal/merge_requests?source_branch=<branch>&scope=all&state=all
 //   diff:   https://git.drupalcode.org/project/drupal/-/merge_requests/<iid>.diff
+//   related issues: the issue's parent and related fields, issues mentioned in its summary or comments (each read with .../node/<id>.json),
+//           and issues that name it as their parent or as related (.../node.json?field_issue_parent=<nid>, ?field_issue_related=<nid>)
+//   review threads: https://git.drupalcode.org/api/v4/projects/project%2Fdrupal/merge_requests/<iid>/discussions, for every merge request found
 export const HOSTS = new Set(['www.drupal.org', 'git.drupalcode.org']);
 export const USER_AGENT = 'drupal-core-lab-issue-pack/1 (+https://github.com/mgifford/drupal-core-lab)';
 export const MAX_DIFF_BYTES = 300 * 1024;
 const MAX_COMMENT_PAGES = 20, PAGE_SIZE = 50, MAX_FILES = 30;
+const MAX_RELATED = 25, LIST_LIMIT = 50, MAX_THREAD_MRS = 5, MAX_THREAD_PAGES = 10, THREAD_PAGE = 100;
+export const CLOSED = new Set(['2', '3', '5', '6', '7']);   // fixed or closed: an open related issue is the one that may have been overlooked
 
 // Numeric codes from the drupal.org API. Each label is printed with its code, so a wrong label is visible. Unknown codes are shown as codes only.
 export const STATUS = { 1: 'Active', 2: 'Fixed', 3: 'Closed (duplicate)', 4: 'Postponed', 5: 'Closed (won\'t fix)', 6: 'Closed (works as designed)', 7: 'Closed (fixed)',
@@ -85,6 +90,91 @@ export const getJson = async (url, opts) => { const r = await getText(url, opts)
 const day = (epoch) => new Date(Number(epoch) * 1000).toISOString().slice(0, 10);
 const kb = (n) => `${Math.max(1, Math.round(Number(n) / 1024))} KB`;
 
+// ---- related issues: what the issue links to, what links to it, and what its text mentions. Only issues are listed; a link to any other kind of
+// page is left out. Every cap and every issue that could not be read is said, in the text and in the notes, never dropped silently.
+const idOf = (x) => (x && (x.id || (String(x.url || x.uri || '').match(/\/(?:node|i)\/(\d{5,8})\b/) || [])[1])) || null;
+const listOf = (v) => (Array.isArray(v) ? v : v ? [v] : []);
+const MENTION_TEXT = /(?:^|[^\w&/])#(\d{6,8})\b/g;   // six or more digits, so "#12" (a comment) is not an issue
+const MENTION_URL = /(?:drupal\.org)?\/(?:project\/[a-z0-9_]+\/issues|node|i)\/(\d{5,8})\b/g;
+export function mentionsIn(text) { const ids = new Set(); for (const re of [MENTION_TEXT, MENTION_URL]) for (const m of String(text || '').matchAll(re)) ids.add(m[1]); return [...ids]; }
+const issueFacts = (n) => ({ title: n.title || '', status: n.field_issue_status ?? null, priority: n.field_issue_priority ?? null, project: (n.field_project && n.field_project.machine_name) || null,
+  changed: Number(n.changed) || null, url: n.url || null });
+
+async function gatherRelated(nid, node, comments, o) {
+  const how = new Map(), add = (id, why) => { if (!id || String(id) === String(nid)) return; const k = String(id); if (!how.has(k)) how.set(k, []); if (!how.get(k).includes(why)) how.get(k).push(why); };
+  for (const x of [...listOf(node.field_issue_parent), ...listOf(node.field_issue_parent_link)]) add(idOf(x), 'parent');
+  for (const x of [...listOf(node.field_issue_related), ...listOf(node.field_issue_related_links)]) add(idOf(x), 'related');
+  for (const id of mentionsIn(node.body && node.body.value)) add(id, 'mentioned in the summary');
+  for (const c of comments) for (const id of mentionsIn(c.html)) add(id, `mentioned in #${c.n}`);
+  const facts = new Map(), notes = [];
+  // Issues that point here. A filter the API does not apply would return unrelated issues, so each one is checked before it is kept.
+  for (const [field, why, holds] of [['field_issue_parent', 'child (names this issue as its parent)', (n) => listOf(n.field_issue_parent).some((x) => String(idOf(x)) === String(nid))],
+    ['field_issue_related', 'lists this issue as related', (n) => listOf(n.field_issue_related).some((x) => String(idOf(x)) === String(nid))]]) {
+    try {
+      const page = await getJson(`https://www.drupal.org/api-d7/node.json?type=project_issue&${field}=${nid}&limit=${LIST_LIMIT}`, o);
+      const list = ((page && page.list) || []).filter((n) => n && n.type === 'project_issue' && holds(n));
+      for (const n of list) { add(n.nid, why); facts.set(String(n.nid), issueFacts(n)); }
+      if (list.length >= LIST_LIMIT) notes.push(`LIMIT: at least ${LIST_LIMIT} issues ${why === 'lists this issue as related' ? 'list this issue as related' : 'name this issue as their parent'}; only the first ${LIST_LIMIT} are listed.`);
+    } catch (e) { notes.push(`Issues that ${field === 'field_issue_parent' ? 'name this issue as their parent' : 'list this issue as related'} could not be listed: ${e.message}`); }
+  }
+  const order = { parent: 0, related: 1 }, rank = (whys) => Math.min(...whys.map((w) => order[w] ?? (w.startsWith('child') || w.startsWith('lists') ? 2 : 3)));
+  const ids = [...how.keys()].sort((a, b) => rank(how.get(a)) - rank(how.get(b)));
+  const toRead = ids.filter((id) => !facts.has(id)), read = toRead.slice(0, MAX_RELATED), unread = toRead.slice(MAX_RELATED), failed = [], notIssue = [];
+  for (const id of read) {
+    try { const n = await getJson(`https://www.drupal.org/api-d7/node/${id}.json`, o); if (!n) failed.push(`#${id} (not found)`); else if (n.type !== 'project_issue') notIssue.push(id); else facts.set(id, issueFacts(n)); }
+    catch (e) { failed.push(`#${id} (${e.message})`); }
+  }
+  if (unread.length) notes.push(`LIMIT: ${toRead.length} linked or mentioned issues; the first ${MAX_RELATED} were read. Not read: ${unread.map((x) => `#${x}`).join(', ')}.`);
+  if (failed.length) notes.push(`Related issues that could not be read: ${failed.join(', ')}.`);
+  const items = ids.filter((id) => !notIssue.includes(id)).map((id) => ({ nid: id, how: how.get(id), read: facts.has(id), ...(facts.get(id) || {}) }));
+  return { items, notes, limits: { found: ids.length, read: facts.size, max: MAX_RELATED, capped: unread.length > 0, unreadable: failed.length } };
+}
+export function relatedText(rel) {
+  const L = ['', `--- RELATED ISSUES (${rel.items.length}: parent, related, child, issues that list this one as related, and issues mentioned in the summary or comments) ---`];
+  if (!rel.items.length) L.push('(none found)');
+  for (const r of rel.items) {
+    const state = !r.read ? 'NOT READ' : `${CLOSED.has(String(r.status)) ? 'closed' : 'OPEN'}: ${label(STATUS, r.status)}, ${label(PRIORITY, r.priority)}, project ${r.project || 'unknown'}, last changed ${r.changed ? day(r.changed) : 'unknown'}`;
+    L.push(`- #${r.nid} ${r.read ? `"${r.title}"` : ''} [${state}] (${r.how.join('; ')}) https://www.drupal.org/i/${r.nid}`.replace('  ', ' '));
+  }
+  return L;
+}
+
+// ---- review threads on the merge requests: GitLab discussions, system notes left out. A thread is unresolved when it can be resolved and is not.
+async function gatherThreads(mrs, o) {
+  const threads = [], notes = [], limits = { mrs: mrs.length, read: 0, max: MAX_THREAD_MRS, capped: mrs.length > MAX_THREAD_MRS, pagesCapped: [] };
+  for (const m of mrs.slice(0, MAX_THREAD_MRS)) {
+    try {
+      let p = 1;
+      for (; p <= MAX_THREAD_PAGES; p++) {
+        const page = await getJson(`https://git.drupalcode.org/api/v4/projects/project%2Fdrupal/merge_requests/${m.iid}/discussions?per_page=${THREAD_PAGE}&page=${p}`, o);
+        const list = Array.isArray(page) ? page : [];
+        for (const d of list) {
+          const ns = (d.notes || []).filter((n) => !n.system); if (!ns.length) continue;
+          const pos = (ns[0].position) || {}, resolvable = ns.filter((n) => n.resolvable);
+          threads.push({ mr: String(m.iid), mrState: m.state, id: String(d.id), file: pos.new_path || pos.old_path || null, line: pos.new_line ?? pos.old_line ?? null,
+            state: !resolvable.length ? 'comment' : resolvable.every((n) => n.resolved) ? 'resolved' : 'unresolved',
+            notes: ns.map((n) => ({ author: (n.author && n.author.username) || 'unknown', created: String(n.created_at || '').slice(0, 10), text: String(n.body || '') })) });
+        }
+        if (list.length < THREAD_PAGE) break;
+      }
+      if (p > MAX_THREAD_PAGES) { limits.pagesCapped.push(String(m.iid)); notes.push(`LIMIT: review threads of !${m.iid} were read up to ${MAX_THREAD_PAGES} pages of ${THREAD_PAGE}; there may be more.`); }
+      limits.read++;
+    } catch (e) { notes.push(`The review threads of !${m.iid} could not be read: ${e.message}`); }
+  }
+  if (limits.capped) notes.push(`LIMIT: ${mrs.length} merge requests; review threads were read for ${MAX_THREAD_MRS}: ${mrs.slice(0, MAX_THREAD_MRS).map((m) => `!${m.iid}`).join(', ')}.`);
+  return { threads, notes, limits };
+}
+export function threadsText(t) {
+  const n = (s) => t.threads.filter((x) => x.state === s).length, order = { unresolved: 0, comment: 1, resolved: 2 };
+  const L = ['', `--- MERGE REQUEST REVIEW THREADS (git.drupalcode.org: ${t.threads.length} threads, ${n('unresolved')} unresolved, ${n('comment')} general comments, ${n('resolved')} resolved) ---`];
+  if (!t.threads.length) L.push('(none found)');
+  for (const x of [...t.threads].sort((a, b) => order[a.state] - order[b.state])) {
+    L.push('', `[${x.state.toUpperCase()}] !${x.mr} (${x.mrState})${x.file ? `, ${x.file}${x.line != null ? ` line ${x.line}` : ''}` : ''}`);
+    for (const c of x.notes) L.push(`@${c.author}, ${c.created}:`, ...c.text.split('\n').map((l) => `  ${l}`));
+  }
+  return L;
+}
+
 export async function gather(nid, { fetchImpl = fetch, mr: mrOverride, log = () => {}, now = new Date() } = {}) {
   if (!/^\d{5,8}$/.test(String(nid))) throw new Error('the issue number must be 5 to 8 digits');
   if (mrOverride !== undefined && !/^\d{1,7}$/.test(String(mrOverride))) throw new Error('the merge request number must be 1 to 7 digits');
@@ -132,12 +222,17 @@ export async function gather(nid, { fetchImpl = fetch, mr: mrOverride, log = () 
     const n = numberOf.get(String(c.cid));
     lines.push('', `#${n} ${c.name || 'unknown'}, ${day(c.created)} (comment id ${c.cid})`, htmlToText(c.comment_body && c.comment_body.value) || '(no text)');
   }
+  log('Looking up related, parent, child and mentioned issues ...');
+  const rel = await gatherRelated(nid, node, comments.map((c) => ({ n: numberOf.get(String(c.cid)), html: c.comment_body && c.comment_body.value })), o);
+  lines.push(...relatedText(rel), ...rel.notes.filter((x) => x.startsWith('LIMIT')));
+  out.notes.push(...rel.notes);
   out.issueText = neutralize(lines.join('\n'));
   // The same facts as data, for scripts/issue-intake.mjs (nothing here is shortened; the prompt text above is what the chat gets).
   out.structured = { fetchedAt: now.toISOString(), url: out.url, node: { title: node.title, status: node.field_issue_status ?? null, priority: node.field_issue_priority ?? null, category: node.field_issue_category ?? null,
     component: node.field_issue_component || null, version: node.field_issue_version || null, created: Number(node.created) || null, changed: Number(node.changed) || null, summary: htmlToText(node.body && node.body.value) },
     comments: comments.map((c) => ({ n: numberOf.get(String(c.cid)), cid: String(c.cid), author: c.name || 'unknown', created: Number(c.created) || null, text: htmlToText(c.comment_body && c.comment_body.value) })),
-    files: files.map((f) => ({ name: f.name, size: Number(f.size) || null, comment: numberOf.get(String(f.cid)) ?? null })), mr: null, diff: null, limits: { comments: commentLimit, attachments: fileLimit, diff: null } };
+    files: files.map((f) => ({ name: f.name, size: Number(f.size) || null, comment: numberOf.get(String(f.cid)) ?? null })), mr: null, diff: null,
+    related: rel.items, threads: null, limits: { comments: commentLimit, attachments: fileLimit, diff: null, related: rel.limits, threads: null } };
 
   // the issue fork's branch and its merge request
   log('Looking for the issue fork branch and merge request on git.drupalcode.org ...');
@@ -169,6 +264,11 @@ export async function gather(nid, { fetchImpl = fetch, mr: mrOverride, log = () 
       if (Buffer.byteLength(diff) > MAX_DIFF_BYTES) { diff = Buffer.from(diff).subarray(0, MAX_DIFF_BYTES).toString('utf8'); truncated = true; out.notes.push(`The diff is larger than ${MAX_DIFF_BYTES / 1024} KB and was cut.`); }
       out.diff = neutralize(`Merge request !${m.iid} (${m.state}, last updated ${out.mr.updated}), source branch ${m.source_branch}, target branch ${m.target_branch}\n${out.mr.url}\n\n${diff}${truncated ? `\n[TRUNCATED at ${MAX_DIFF_BYTES / 1024} KB: the diff continues. Say in review.unverified that you saw only part of it.]` : ''}`);
     }
+    // Review comments live on the merge requests, not in the issue: read them for every merge request found, closed ones included.
+    log(`Reading the review threads of ${found.length} merge request(s) ...`);
+    const t = await gatherThreads(found, o);
+    out.structured.threads = t.threads; out.structured.limits.threads = t.limits; out.notes.push(...t.notes);
+    out.issueText += `\n${neutralize([...threadsText(t), ...t.notes.filter((x) => x.startsWith('LIMIT'))].join('\n'))}`;
   }
   return out;
 }

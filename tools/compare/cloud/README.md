@@ -8,7 +8,7 @@ The end-to-end run was tested on **2026-10-02** with variant `3619127-pinned` (t
 table says exactly what was and was not tested. **Documentation refreshed 2026-10-14** against the current repository (14
 variants). Three things changed or were re-checked since that run and are called out below: the Freeform `project_names`
 parameter is now `mutable = true` in the template source, the core fetch needs a GitHub mirror under Coder's egress rules, and
-the guide's "Run in the cloud" link still points at the issue picker rather than at this path (see `docs/CLOUD-PLAN.md`).
+(fixed 2026-10-16) the guide's cloud line now gives this Freeform path and the exact command per variant instead of the issue picker.
 The status table's "Not tested" rows — frames at the real Coder URLs in a signed-in browser, and any user other than the pilot
 owner — are unchanged and still gate whether this is usable by anyone but its author.
 
@@ -27,6 +27,8 @@ owner — are unchanged and still gate whether this is usable by anyone but its 
 | The 3619127 reproduction steps and keyboard behaviour in the cloud frames | **Not tested** | |
 | Creating the workspace from the Coder web form instead of the CLI | **Not tested** | |
 | Anyone other than the pilot owner (access, quota, the sponsorship gate in `docs/CLOUD-PLAN.md`) | **Not tested** | |
+| Core from the GitHub mirror (`--core-url`) for `3619127-pinned`: pinned commit present, three patches apply | **Tested outside a workspace** on 2026-10-16 (`setup.mjs --checkout-only --core-url=https://github.com/drupal/drupal.git` in a Claude Code cloud container, 8 s); the full build with it inside a workspace is **not tested** | core `d29add7ebc1` fetched at depth 1; patches recorded as `fe90ecc4`, `177ff83f`, `63d1437c` |
+| Bootstrap carries on when Playwright or Chromium cannot be downloaded (sites and viewer already up; frame check NOT RUN) | **Not tested in a workspace** (2026-10-16 code change; syntax and preflight checked only) | |
 | `compare-cloud.conf` and the full local workflow after these changes | **Partly**: viewer defaults checked locally; the DDEV nginx file was not (Docker was off) | |
 
 ## Prerequisites and access
@@ -44,8 +46,33 @@ owner — are unchanged and still gate whether this is usable by anyone but its 
   (or `$LAB_CORE_URL`). If a `drupal-core` issue-picker clone is already in the workspace, `--use-existing-core[=<path>]`
   (default `~/drupal-core`, or `$LAB_EXISTING_CORE`) seeds the core commit from it with `setup.mjs --core-from=` and needs no clone
   at all. For core's Yarn 4, also export `COREPACK_NPM_REGISTRY=https://registry.npmjs.org`. This is an environment limitation, not a
-  lab bug. **`--core-url` and `--core-from` are new and were not run in a workspace**: they are dry-run/on-disk tested only. Re-run
-  them in a workspace before trusting the 2026-10-02 result.
+  lab bug. **`--core-url` and `--core-from` were not run in a workspace.** `--core-url` fetched the `3619127-pinned` commit from the
+  GitHub mirror and its patches applied outside a workspace on 2026-10-16; `--core-from` is on-disk tested only. Record the first
+  workspace run.
+
+## Consistent project names and generated handoffs
+
+Set the names in the **Coder web form**, not by editing this README: **New workspace → DDEV Freeform → DDEV project names**.
+The Terraform parameter is `project_names`. Paste this exact value at workspace creation:
+
+```text
+drupal-compare,drupal-compare-before,drupal-compare-after
+```
+
+The repository source is `tools/compare/cloud/config.mjs`. Print the copyable value from the repository root with:
+
+```bash
+node tools/compare/cloud/config.mjs --project-names
+```
+
+The Freeform template does not read the repository module: the user supplies the value to its parameter.
+The names stay the same for every issue. The selected variant supplies the underlying Before and After core environments.
+Bootstrap, smoke checks, viewer startup and the Coder prompt generator share this module.
+DDEV YAML and nginx declarations must match it; the Lab's unit tests catch drift. This is not a runtime rename option.
+
+Generate an issue's handoff with `node scripts/coder-prompt.mjs <slug> --write`.
+Common instructions come from `prompts/coder-prompt.md`; the registered variant supplies the scenario, recipe and ordered patch stacks.
+See `prompts/README.md` for preview and freshness checks. Generation does not establish that the workspace or scenario was tested.
 
 ## Procedure
 
@@ -77,7 +104,7 @@ owner — are unchanged and still gate whether this is usable by anyone but its 
        node scripts/cloud-bootstrap.mjs 3619127-pinned --install-autostart
 
 3. Open `https://drupal-compare--<workspace>--<owner>.coder.ddev.com/` in a browser signed in to Coder. The bootstrap prints the exact URL.
-4. When finished, stop the workspace (`coder stop <name>`). **Lifespan/autostop:** the workspace has a timed lifespan (a deadline), not just idle timeout; activity extends it. The app URL is `https://drupal-compare--<workspace>--<owner>.coder.ddev.com/` (derived from `{project}--{workspace}--{owner}.{domain}`), so if a workspace expires or is deleted, recreate it — you can reuse the `--use-existing-core` path if the `drupal-core` issue-picker checkout exists, or `--core-url` otherwise.
+4. When finished, stop the workspace (**Stop** on the workspace page, or `coder stop <name>`). **Lifespan/autostop:** the workspace has a timed lifespan (a deadline), not just idle timeout; activity extends it. The app URL is `https://drupal-compare--<workspace>--<owner>.coder.ddev.com/` (derived from `{project}--{workspace}--{owner}.{domain}`), so if a workspace expires or is deleted, recreate it — you can reuse the `--use-existing-core` path if the `drupal-core` issue-picker checkout exists, or `--core-url` otherwise.
 
 `node scripts/cloud-bootstrap.mjs <slug> --check` only reports what is missing. Its preflight names the exact fix for each problem
 (missing project names, no Docker, no `ddev coder-setup`, missing files).
@@ -114,8 +141,8 @@ owner — are unchanged and still gate whether this is usable by anyone but its 
 - Project names: the parameter is `mutable = true` in the template, but changing it after creation was not reliable in the 2026-10-02 test (see the procedure). Plan for them to be set at creation.
 - Routing assumes the template's `ddev coder-setup` behaviour, verified against the `ddev/coder-ddev` freeform source of 2026-09-27: one app per project name, routed to ddev-router by Host as `{project}--{workspace}--{owner}.{domain}`. Re-checked against `freeform/template.tf` on 2026-10-14: still one `coder_app` per name, `subdomain = true`, `url = http://localhost:8080`, and `CODER_PROJECT_NAMES` is still exported for the bootstrap to read.
 - Only `3619127-pinned` has ever been built in the cloud. Nothing else has been tried; the 14 variants in the repository are local-only until someone repeats the trial.
-- `--core-url` and `--use-existing-core`/`setup.mjs --core-from` are new on 2026-10-14 and were only dry-run and tested against a local checkout, never inside a workspace. Whether a `drupal-core` issue-picker clone is shallow (so its base commit is missing) is unverified; when seeding fails, the run says so and falls back to the origin remote.
-- The guide published from `cloud/` is generated and can go stale: `scripts/build-cloud.mjs --check` (run by `pages-check.yml` and `scripts/selftest.mjs`) fails until `cloud/` is rebuilt. Its "Run in the cloud" line currently links to the issue picker, which is **not** this Freeform path; treat it as a starting point until `docs/CLOUD-PLAN.md` phase 4 is done.
+- `--core-url` and `--use-existing-core`/`setup.mjs --core-from` are new on 2026-10-14 and were never run inside a workspace (`--core-url` fetched the `3619127-pinned` commit and its patches applied in a Claude Code cloud container on 2026-10-16). Whether a `drupal-core` issue-picker clone is shallow (so its base commit is missing) is unverified; when seeding fails, the run says so and falls back to the origin remote.
+- The guide published from `cloud/` is generated and can go stale: `scripts/build-cloud.mjs --check` (run by `pages-check.yml` and `scripts/selftest.mjs`) fails until `cloud/` is rebuilt. Since 2026-10-16 its cloud line gives this Freeform path and the bootstrap command for the selected variant (it used to link to the single-site issue picker).
 - The sites use `admin` / `admin`. Patches, recipes and test modules run code in the workspace: use a throwaway workspace and store no tokens in it.
 - Variant `checks[].probe` expressions run inside the Before and After frames. Treat a variant from someone else as untrusted code.
 - Not covered: issue scraping, patch selection, importing issues from elsewhere (see `docs/NEW-ISSUE.md` for the existing local scaffolding).

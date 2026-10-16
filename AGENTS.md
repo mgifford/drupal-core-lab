@@ -1,6 +1,6 @@
 # AGENTS.md
 
-> New session? Read the first 18 lines of `AI-LEARNING.md` (how this owner works, standing rules). The rest of it is history: `grep -n` it when something fails.
+> New session? Read the first 20 lines of `AI-LEARNING.md` (how this owner works, standing rules). The rest of it is history: `grep -n` it when something fails.
 
 ## What this repository is
 
@@ -15,6 +15,22 @@ core or on updated core**: see `reports/issues/README.md`, `docs/NEW-ISSUE.md`, 
 Instruction precedence: `ACCESSIBILITY.md`, then this file, then `STYLES.md`, then `.agents/DRUPAL_AGENTS.md`. When they conflict,
 choose the safer, more accessible option. (`.agents/DRUPAL_AGENTS.md` still describes the old layout with core at the repository
 root; where it disagrees with this file, this file wins.)
+
+For a browser-visible Drupal core change, the deliverable is a registered Before/After comparison in the Lab viewer. In DDEV Coder, use scripts/cloud-bootstrap.mjs and the cloud comparison instructions. Creating two independent sites does not complete this task. Each issue must identify its variant, recipe or explicit Standard-install precondition, exact patch revision, reproduction steps and evidence gaps.
+
+## Before implementation: agent checklist
+
+State these five items before changing files or writing setup commands:
+
+- Issue number and URL, plus the selected MR or local proposal.
+- Execution environment: local DDEV, DDEV Coder Freeform, or preparation only without Docker.
+- Exact registered comparison slug; if missing, scaffold and register it first.
+- Recipe path, including optional post-recipe scripts, or an explicit plain Standard-install precondition.
+- Ordered Before and After patch stacks and their revisions/hashes; distinguish the MR from local follow-ups.
+
+For Coder handoffs, put the issue-specific scenario in the variant's `steps`, `expected`, `actual`, `checks` and `observe`.
+Generate the common instructions with `node scripts/coder-prompt.mjs <slug> --write`; do not write an independent-site setup.
+The shared template is `prompts/coder-prompt.md`. Regenerate after changing a scenario or patch stack.
 
 ## Start here (the normal sequence for an issue)
 
@@ -54,6 +70,8 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
 | building, resetting or removing an environment; which environments exist; the manual fallback | `docs/ENVIRONMENTS.md` |
 | changing the viewer (`tools/compare/index.html`, `serve.mjs`) | `docs/VIEWER-DEV.md` (the security rules are there) |
 | writing results into `reports/issues/<nid>/` | `docs/RESULTS-LAYOUT.md` |
+| a DDEV Coder task, before writing commands | `docs/CLOUD-QUICKSTART.md` and `tools/compare/cloud/README.md` |
+| generating a Coder handoff | `prompts/README.md`; `node scripts/coder-prompt.mjs <slug> --write` |
 | starting a new issue | `docs/NEW-ISSUE.md` |
 
 ## Rules for agents
@@ -78,3 +96,7 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
 12. **Cloud (DDEV Coder workspaces) is opt-in** (`tools/compare/cloud/README.md`, `scripts/cloud-bootstrap.mjs`, `docs/CLOUD-PLAN.md`). Do not sign in to Coder, create or change workspaces, or publish anything without the user.
 13. **Auto-fix is on by default and never silent.** `lab.config.yml` sets `auto_fix.enabled` (read it with `node scripts/lab-config.mjs auto_fix.enabled`; a person can also switch it off for one pull request in the app's CI popover). After opening a pull request, turn CI auto-fix on for it when that prints `true`; leave it off when `false`. An auto-fix commit starts with `autofix:` and its body names the failing check and every file it changed. Changing a patch file (`reports/issues/*/branches/*.patch`, the change under test) is the one thing it must never do quietly: run `node scripts/patch-change.mjs record <patch> --by auto-fix --reason "<why>"` in the same commit (it keeps the original in `original-patches/` and adds a row to `reports/issues/<nid>/PATCH-CHANGES.md`) and say so in the commit body. `selftest` fails a changed patch that has no record.
 14. **Before any push, run `node scripts/ready-to-push.mjs`.** CI tests the pull request merged with the current `main`, so a branch that passes alone can fail there (PR #13 did, on a probe that arrived with `main`). The script fetches the base, stops if the branch is behind it (merge it first), and runs `selftest`. A push still needs the owner's approval; this only says whether it is ready.
+15. **A review reads more than the diff:** the issue and its comments, its parent, related, child and mentioned issues, and the review
+    threads of every merge request, closed ones included. `node scripts/issue-intake.mjs fetch <nid>` gets all of them (since 2026-10-16);
+    read the brief's related-issues table and unresolved threads before judging a change or drafting a comment, and fetch again before
+    anyone posts an older draft. If drupal.org or git.drupalcode.org is unreachable, say that nothing was read; do not judge from a search summary.
