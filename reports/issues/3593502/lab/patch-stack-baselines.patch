@@ -91,10 +91,10 @@ index 95ba0ea..3b850cf 100644
    'index.html': fs.readFileSync(path.join(labRoot, 'tools/compare/index.html'), 'utf8').replace('__BUILD__', 'static'),
 diff --git a/scripts/measure-resources.mjs b/scripts/measure-resources.mjs
 new file mode 100644
-index 0000000..fc03b44
+index 0000000..305ad36
 --- /dev/null
 +++ b/scripts/measure-resources.mjs
-@@ -0,0 +1,259 @@
+@@ -0,0 +1,254 @@
 +// Measure comparable request and container resource use for the two unique
 +// environments in a selected variant, or optionally its comparison group.
 +//
@@ -194,21 +194,16 @@ index 0000000..fc03b44
 +  item.project = projectName(item.env);
 +  item.dir = envDir(item.env);
 +  item.info = envInfo(item.env);
-+  item.containers = {
-+    web: `ddev-${item.project}-web`,
-+    db: `ddev-${item.project}-db`,
-+  };
++  item.containers = {};
++  for (const [service, name] of Object.entries({ web: `ddev-${item.project}-web`, db: `ddev-${item.project}-db` })) {
++    try { execFileSync('docker', ['inspect', name], { stdio: 'ignore' }); item.containers[service] = name; } catch { /* SQLite lab projects intentionally have no db container. */ }
++  }
++  if (!item.containers.web) fail(`The web container for ${item.env} is not running. Start the selected comparison before measuring.`);
 +  const config = fs.readFileSync(path.join(item.dir, '.ddev/config.yaml'), 'utf8');
 +  item.performanceMode = config.match(/^performance_mode:\s*["']?([^\s"']+)/m)?.[1] || 'global default';
 +}
 +
 +const containerNames = [...envs.values()].flatMap((item) => Object.values(item.containers));
-+try {
-+  execFileSync('docker', ['inspect', ...containerNames], { stdio: 'ignore' });
-+} catch {
-+  fail(`The required containers are not running:\n${containerNames.join('\n')}\nStart the selected comparison${has('group') ? ' group' : ''} before measuring.`);
-+}
-+
 +const runs = numberArg('runs', 5, 1);
 +const warmups = numberArg('warmups', 1, 0);
 +const pagePath = value('page', selected.demo?.start || selected.pages?.[0] || '/');
@@ -346,11 +341,11 @@ index 0000000..fc03b44
 +markdown += `| Version | Median response | Slowest | PHP peak | PHP allocated peak | Web memory peak | Web above idle | DB memory peak | Peak sampled CPU (web/db) | Failures |\n`;
 +markdown += `|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n`;
 +for (const summary of summaries) {
-+  markdown += `| ${summary.label} | ${display(summary.medianResponseMs, ' ms')} | ${display(summary.slowestResponseMs, ' ms')} | ${display(summary.phpPeakMb, ' MB')} | ${display(summary.phpAllocatedPeakMb, ' MB')} | ${display(mb(summary.containers.web.peakMemoryBytes), ' MB')} | ${display(mb(summary.containers.web.peakAboveIdleBytes), ' MB')} | ${display(mb(summary.containers.db.peakMemoryBytes), ' MB')} | ${display(summary.containers.web.peakCpuPercent, '%')} / ${display(summary.containers.db.peakCpuPercent, '%')} | ${summary.failures} |\n`;
++  markdown += `| ${summary.label} | ${display(summary.medianResponseMs, ' ms')} | ${display(summary.slowestResponseMs, ' ms')} | ${display(summary.phpPeakMb, ' MB')} | ${display(summary.phpAllocatedPeakMb, ' MB')} | ${display(mb(summary.containers.web.peakMemoryBytes), ' MB')} | ${display(mb(summary.containers.web.peakAboveIdleBytes), ' MB')} | ${display(mb(summary.containers.db?.peakMemoryBytes), ' MB')} | ${display(summary.containers.web.peakCpuPercent, '%')} / ${display(summary.containers.db?.peakCpuPercent, '%')} | ${summary.failures} |\n`;
 +}
 +markdown += `\n## Environment\n\n- ${result.system.platform}\n- Node ${result.system.node}\n- ${result.system.ddev}\n- Docker server ${result.system.docker}\n`;
 +for (const summary of summaries) markdown += `- ${summary.label}: DDEV performance mode \`${summary.performanceMode}\`\n`;
-+markdown += `\nContainer values are sampled and may miss very short peaks. PHP peak values come from the issue recipe's request logger when installed. Mutagen is shared host-side infrastructure and is recorded as configuration, not attributed to one Drupal version.\n`;
++markdown += `\nContainer values are sampled and may miss very short peaks. PHP peak values come from the issue recipe's request logger when installed. Database values are not applicable when the DDEV project uses SQLite and omits its database container. Mutagen is shared host-side infrastructure and is recorded as configuration, not attributed to one Drupal version.\n`;
 +fs.writeFileSync(mdPath, markdown);
 +console.log(path.relative(labRoot, mdPath));
 +console.log(path.relative(labRoot, jsonPath));
@@ -408,10 +403,10 @@ index 963cf68..2826daa 100644
  Checks without DDEV or native application launching:
  
 diff --git a/tools/compare/index.html b/tools/compare/index.html
-index 1120de8..955e061 100644
+index 1120de8..0a4de0b 100644
 --- a/tools/compare/index.html
 +++ b/tools/compare/index.html
-@@ -40,6 +40,13 @@
+@@ -40,6 +40,14 @@
    .topbar .goto { display: flex; gap: .4rem; flex: 1 1 16rem; min-width: 0; } .topbar .goto input { flex: 1; min-width: 6rem; }
    .topbar .state { flex-basis: 100%; display: flex; gap: .6rem; align-items: center; font-size: .85rem; color: var(--muted); }
    #status:not(:empty) { padding: 0 .6rem; border-radius: 999px; background: var(--surface2); color: var(--text); }
@@ -421,11 +416,12 @@ index 1120de8..955e061 100644
 +  .comparison-peers button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
 +  .comparison-peers button[data-available="false"] { border-style: dashed; }
 +  .audit-detail { max-width: 52rem; } .audit-detail pre { max-height: 18rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .75rem; background: var(--surface2); padding: .5rem; }
-+  .resource-command { display: block; overflow-wrap: anywhere; margin: .4rem 0; }
++  .panel-heading { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
++  .resource-command-block { margin: .65rem 0; } .resource-command-block pre { margin: .25rem 0; padding: .55rem; overflow: auto; background: var(--surface2); border: 1px solid var(--line); border-radius: 4px; }
  
    /* conditions toolbar: three always-visible choices, then popovers */
    .toolbar { display: flex; flex-wrap: wrap; gap: .5rem .9rem; align-items: end; padding: .45rem .75rem; background: var(--surface); border-bottom: 1px solid var(--line); }
-@@ -141,6 +148,7 @@
+@@ -141,6 +149,7 @@
    </span>
    <div id="browsers" class="browser-buttons" data-needs="live" role="group" aria-label="Open this comparison in another browser" hidden></div>
    <div class="state" data-needs="live"><span id="status" role="status" aria-live="polite">Loading…</span><span id="axemini" role="status" aria-live="polite"></span></div>
@@ -433,7 +429,7 @@ index 1120de8..955e061 100644
  </header>
  
  <div class="toolbar" data-needs="live" role="group" aria-label="Test conditions">
-@@ -196,8 +204,8 @@
+@@ -196,8 +205,8 @@
    </section>
    <p data-needs="live" id="legend" role="status" hidden></p>
    <div class="panes" id="panes" data-needs="live">
@@ -444,7 +440,7 @@ index 1120de8..955e061 100644
    </div>
  </main>
  
-@@ -217,6 +225,7 @@
+@@ -217,6 +226,7 @@
        <button type="button" role="tab" id="tab-manual" aria-controls="p-manual" data-tab="manual" data-needs="live">Manual <span class="chip" id="bd-manual"></span></button>
        <button type="button" role="tab" id="tab-axe" aria-controls="p-axe" data-tab="axe" data-needs="live">Accessibility <span class="chip" id="bd-axe"></span></button>
        <button type="button" role="tab" id="tab-lh" aria-controls="p-lh" data-tab="lh" data-needs="live">Lighthouse <span class="chip" id="bd-lh"></span></button>
@@ -452,7 +448,7 @@ index 1120de8..955e061 100644
        <button type="button" role="tab" id="tab-env" aria-controls="p-env" data-tab="env" data-needs="live">Environment <span class="chip" id="bd-env"></span></button>
      </div>
      <span class="sp"><button type="button" id="docksize" aria-pressed="false">Larger</button><button type="button" id="dockhide" aria-expanded="true">Hide panel</button></span>
-@@ -230,13 +239,13 @@
+@@ -230,13 +240,13 @@
        <h2>Checks <button type="button" id="runchecks" class="primary">Run checks</button> <span id="rcstat" class="path" role="status" aria-live="polite"></span></h2>
        <details class="help"><summary>How checks are judged</summary><p class="note">After the last step, press Run checks. Each check runs inside both frames and says Pass or Fail against what is expected. The rule: a <strong>fix</strong> check should <strong>fail on Before and pass on After</strong>; a <strong>regression</strong> check should pass on both; a <strong>precondition</strong> must pass on both or nothing else means anything.</p></details>
        <p id="verdict" class="verdict" role="status" hidden></p>
@@ -468,7 +464,7 @@ index 1120de8..955e061 100644
        <p class="note"><label>Notes (kept in the downloaded log) <input type="text" id="obsnote" size="60"></label></p>
      </div>
      <div role="tabpanel" id="p-axe" aria-labelledby="tab-axe" tabindex="0" data-needs="live" hidden>
-@@ -244,7 +253,7 @@
+@@ -244,7 +254,7 @@
        <details class="help"><summary>What this shows</summary><p class="note">Turn it on under Audits. axe-core runs in both frames after every page load and after interactions. Because both frames are driven the same way, a difference means the change affects accessibility. "Violations" are elements axe flags as failing WCAG A/AA rules. Automated checks find only a subset of problems; they do not replace a keyboard and screen-reader test.</p></details>
        <p id="axeverdict" class="verdict warn" role="status" aria-live="polite">Waiting for both frames to finish loading…</p>
        <table class="checks" id="axecounts"><caption class="note" style="text-align:left">Violating elements by impact (rules in brackets)</caption><thead><tr><th>Side</th><th>Critical</th><th>Serious</th><th>Moderate</th><th>Minor</th><th>Total</th></tr></thead><tbody></tbody></table>
@@ -477,7 +473,7 @@ index 1120de8..955e061 100644
        <details><summary>Log of changes as you navigate (<span id="axelogn">0</span>)</summary>
        <table class="checks" id="axelog"><thead><tr><th>Time</th><th>Page (reported by)</th><th>Before</th><th>After</th><th>Difference</th></tr></thead><tbody></tbody></table></details>
      </div>
-@@ -252,8 +261,16 @@
+@@ -252,8 +262,16 @@
        <h2>Lighthouse <button type="button" id="lhnow">Audit this page now</button></h2>
        <details class="help"><summary>What this shows</summary><p class="note">Turn on background audits under Audits. Lighthouse runs in its own headless Chrome and audits the page as it <strong>loads</strong>, logged in. It does not see states you reach by clicking (for example an error summary after Save) and takes about 10 seconds per site. Accessibility and best-practice audits are shown by default; use axe for live, interactive checking.</p></details>
        <p id="lhverdict" class="verdict warn" role="status" aria-live="polite" hidden></p>
@@ -487,8 +483,8 @@ index 1120de8..955e061 100644
 +      <table class="checks" id="lhdiff" hidden><caption class="note" style="text-align:left">Audits that fail on one side or both</caption><thead><tr><th>Audit</th><th data-side-label="before">Before</th><th data-side-label="after">After</th><th>Change</th></tr></thead><tbody></tbody></table>
 +    </div>
 +    <div role="tabpanel" id="p-resources" aria-labelledby="tab-resources" tabindex="0" data-needs="live" hidden>
-+      <h2>Recorded resource benchmark <button type="button" id="resourcesrefresh">Refresh results</button></h2>
-+      <p class="note">This shows the newest saved serial benchmark for this comparison. It does not benchmark the two visible frames concurrently.</p>
++      <h2 class="panel-heading"><span>Recorded resource benchmark</span><button type="button" id="resourcesrefresh">Refresh results</button></h2>
++      <p class="note">This shows the newest saved serial benchmark for this comparison. It does not benchmark the two visible frames concurrently. After a run, memory appears in the PHP peak, Web peak, Web above idle, and DB peak columns. DB is not applicable for SQLite projects without a database container.</p>
 +      <p id="resourcesstatus" class="verdict warn" role="status" aria-live="polite"></p>
 +      <div id="resourcescommands"></div>
 +      <table class="checks" id="resourcestable" hidden><thead><tr><th>Version</th><th>Median response</th><th>Slowest</th><th>PHP peak</th><th>Web peak</th><th>Web above idle</th><th>DB peak</th><th>Peak CPU web / DB</th><th>Failures</th></tr></thead><tbody></tbody></table>
@@ -496,7 +492,7 @@ index 1120de8..955e061 100644
      </div>
      <div role="tabpanel" id="p-env" aria-labelledby="tab-env" tabindex="0" data-needs="live" hidden>
        <h2>Where did you test? <span class="note">(saved with the downloaded log)</span></h2>
-@@ -288,7 +305,7 @@ let STATIC = /\.github\.io$/.test(location.hostname) || new URLSearchParams(loca
+@@ -288,7 +306,7 @@ let STATIC = /\.github\.io$/.test(location.hostname) || new URLSearchParams(loca
  const setRuntime = (s) => { STATIC = s; if (s) { const d = document.getElementById('loaddlg'); if (d && d.open) d.close(); } document.documentElement.dataset.runtime = s ? 'static' : 'local'; };
  setRuntime(STATIC);
  const F = { before: $('fb'), after: $('fa') }, P = { before: $('pb'), after: $('pa') };
@@ -505,7 +501,7 @@ index 1120de8..955e061 100644
  const other = (s) => (s === 'before' ? 'after' : 'before');
  const status = (t) => { $('status').textContent = t; };
  const radio = (name) => document.querySelector(`input[name="${name}"]:checked`).value;
-@@ -325,11 +342,39 @@ function renderSteps() { ticks = loadTicks(); const ol = $('steps'); ol.textCont
+@@ -325,11 +343,39 @@ function renderSteps() { ticks = loadTicks(); const ol = $('steps'); ol.textCont
  $('tickrecipe').addEventListener('click', () => { (v.steps || []).forEach((st, i) => { if (st.how === 'recipe') ticks[i] = true; }); saveTicks(); renderSteps(); });
  $('clearticks').addEventListener('click', () => { ticks = []; saveTicks(); renderSteps(); });
  function setVariant(slug) { v = variants.find((x) => x.slug === slug); $('desc').textContent = v.description; renderSteps(); buildObs(); document.title = `Compare: ${v.slug}`;
@@ -548,7 +544,7 @@ index 1120de8..955e061 100644
  function fillStaticPanel() {
    const root = (window.__repo || '').replace(/\/$/, '');
    $('spcmd').textContent = `node scripts/lab-env.mjs start ${v.slug}`;
-@@ -341,11 +386,11 @@ function fillStaticPanel() {
+@@ -341,11 +387,11 @@ function fillStaticPanel() {
  function fillComparisons(data) {
    $('variant').textContent = '';
    for (const item of variants) {
@@ -562,7 +558,7 @@ index 1120de8..955e061 100644
      $('variant').append(option);
    }
    if (!STATIC) {
-@@ -402,7 +447,7 @@ async function init() {
+@@ -402,7 +448,7 @@ async function init() {
      fillComparisons(d);
      const want = new URLSearchParams(location.search).get('variant'); const slug = variants.some((x) => x.slug === want) ? want : variants[0].slug;
      $('variant').value = slug; setVariant(slug); fillStaticPanel(); status('Read-only guide.'); return;
@@ -571,7 +567,7 @@ index 1120de8..955e061 100644
    fillComparisons(d);
    try { incoming = readHandoff(location.hash); }
    catch (error) { $('handoffnote').hidden = false; $('handoffnote').textContent = error.message; }
-@@ -429,7 +474,7 @@ async function init() {
+@@ -429,7 +475,7 @@ async function init() {
    sendState(); applyView(); refreshControls();
    renderBrowsers().catch(() => {});
  }
@@ -580,15 +576,17 @@ index 1120de8..955e061 100644
  document.querySelectorAll('input[name="width"]').forEach((r) => r.addEventListener('change', applyWidth));
  document.querySelectorAll('input[name="theme"]').forEach((r) => r.addEventListener('change', sendState));
  $('darkos').addEventListener('change', sendState);
-@@ -476,6 +521,7 @@ function refreshBadges() {
+@@ -476,7 +522,8 @@ function refreshBadges() {
    chipSet('bd-manual', ...verdictBadge('obsverdict', '✓ as expected', '✗ differs', 'partly answered'));
    chipSet('bd-axe', ...($('axeon').checked ? verdictBadge('axeverdict', '✓ no new', '⚠ worse', '…') : ['', 'off']));
    chipSet('bd-lh', ...($('lhverdict').hidden ? ['', $('lhon').checked ? '…' : 'off'] : verdictBadge('lhverdict', '✓ no worse', '⚠ worse', '…')));
-+  chipSet('bd-resources', ...verdictBadge('resourcesstatus', 'recorded', 'error', 'none'));
-   chipSet('bd-env', ...($('envremind').classList.contains('ok') ? ['ok', '✓'] : ['warn', 'to do']));
+-  chipSet('bd-env', ...($('envremind').classList.contains('ok') ? ['ok', '✓'] : ['warn', 'to do']));
++  chipSet('bd-resources', ...verdictBadge('resourcesstatus', 'recorded', 'error', 'not run'));
++  chipSet('bd-env', ...($('envremind').classList.contains('ok') ? ['ok', '✓ recorded'] : ['warn', 'not recorded']));
  }
  new MutationObserver(() => requestAnimationFrame(refreshBadges)).observe($('panels'), { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['class', 'hidden'] });
-@@ -753,6 +799,29 @@ function initEnv() { const b = browserInfo(); $('envbrowser').value = `${b.famil
+ document.addEventListener('change', () => setTimeout(refreshBadges, 0));
+@@ -753,6 +800,29 @@ function initEnv() { const b = browserInfo(); $('envbrowser').value = `${b.famil
  $('runchecks').addEventListener('click', () => recordTested('ran checks'));
  document.addEventListener('change', (e) => { if (e.target && e.target.name && /^obs-/.test(e.target.name)) recordTested('answered the manual panel'); });
  
@@ -600,7 +598,7 @@ index 1120de8..955e061 100644
 +  const S = $('resourcesstatus'), commands = $('resourcescommands'); commands.textContent = '';
 +  try {
 +    const response = await fetch('api/resources/latest'); const result = await response.json();
-+    const addCommand = (lead, command) => { if (!command) return; const p = document.createElement('p'); p.className = 'note'; p.append(document.createTextNode(lead + ' ')); const code = document.createElement('code'); code.className = 'resource-command'; code.textContent = command; p.append(code); commands.append(p); };
++    const addCommand = (lead, command) => { if (!command) return; const block = document.createElement('div'); block.className = 'resource-command-block'; const label = document.createElement('strong'); label.textContent = lead; const pre = document.createElement('pre'); const code = document.createElement('code'); code.textContent = command; pre.append(code); block.append(label, pre); commands.append(block); };
 +    addCommand('Measure this selected pair (the default):', result.command);
 +    addCommand('Optionally measure every unique environment in its comparison group:', result.groupCommand);
 +    const table = $('resourcestable'), body = table.querySelector('tbody'); body.textContent = '';
@@ -618,7 +616,7 @@ index 1120de8..955e061 100644
  // ---- Lighthouse (optional background audits, run by the viewer server in its own Chrome) ----
  const lhLog = []; let lhPath = '', lhTimer, lhPoll;
  async function lhStatus() { try { const s = await (await fetch('api/lighthouse/status')).json(); if (!s.ok) { $('lhverdict').hidden = false; $('lhverdict').className = 'verdict warn'; $('lhverdict').textContent = 'Lighthouse is not installed: ' + s.missing.join('; '); return false; } return true; } catch (e) { return false; } }
-@@ -766,21 +835,25 @@ async function lhRun() {
+@@ -766,21 +836,25 @@ async function lhRun() {
  }
  function showLighthouse(path, res) {
    const B = res.before, A = res.after, V = $('lhverdict'); if (B.runtimeError || A.runtimeError) { V.hidden = false; V.className = 'verdict bad'; V.textContent = `Lighthouse could not load the page: ${B.runtimeError || A.runtimeError}`; return; }

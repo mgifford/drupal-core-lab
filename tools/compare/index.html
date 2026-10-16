@@ -46,7 +46,8 @@
   .comparison-peers button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
   .comparison-peers button[data-available="false"] { border-style: dashed; }
   .audit-detail { max-width: 52rem; } .audit-detail pre { max-height: 18rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .75rem; background: var(--surface2); padding: .5rem; }
-  .resource-command { display: block; overflow-wrap: anywhere; margin: .4rem 0; }
+  .panel-heading { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .resource-command-block { margin: .65rem 0; } .resource-command-block pre { margin: .25rem 0; padding: .55rem; overflow: auto; background: var(--surface2); border: 1px solid var(--line); border-radius: 4px; }
 
   /* conditions toolbar: three always-visible choices, then popovers */
   .toolbar { display: flex; flex-wrap: wrap; gap: .5rem .9rem; align-items: end; padding: .45rem .75rem; background: var(--surface); border-bottom: 1px solid var(--line); }
@@ -265,8 +266,8 @@
       <table class="checks" id="lhdiff" hidden><caption class="note" style="text-align:left">Audits that fail on one side or both</caption><thead><tr><th>Audit</th><th data-side-label="before">Before</th><th data-side-label="after">After</th><th>Change</th></tr></thead><tbody></tbody></table>
     </div>
     <div role="tabpanel" id="p-resources" aria-labelledby="tab-resources" tabindex="0" data-needs="live" hidden>
-      <h2>Recorded resource benchmark <button type="button" id="resourcesrefresh">Refresh results</button></h2>
-      <p class="note">This shows the newest saved serial benchmark for this comparison. It does not benchmark the two visible frames concurrently.</p>
+      <h2 class="panel-heading"><span>Recorded resource benchmark</span><button type="button" id="resourcesrefresh">Refresh results</button></h2>
+      <p class="note">This shows the newest saved serial benchmark for this comparison. It does not benchmark the two visible frames concurrently. After a run, memory appears in the PHP peak, Web peak, Web above idle, and DB peak columns. DB is not applicable for SQLite projects without a database container.</p>
       <p id="resourcesstatus" class="verdict warn" role="status" aria-live="polite"></p>
       <div id="resourcescommands"></div>
       <table class="checks" id="resourcestable" hidden><thead><tr><th>Version</th><th>Median response</th><th>Slowest</th><th>PHP peak</th><th>Web peak</th><th>Web above idle</th><th>DB peak</th><th>Peak CPU web / DB</th><th>Failures</th></tr></thead><tbody></tbody></table>
@@ -521,8 +522,8 @@ function refreshBadges() {
   chipSet('bd-manual', ...verdictBadge('obsverdict', '✓ as expected', '✗ differs', 'partly answered'));
   chipSet('bd-axe', ...($('axeon').checked ? verdictBadge('axeverdict', '✓ no new', '⚠ worse', '…') : ['', 'off']));
   chipSet('bd-lh', ...($('lhverdict').hidden ? ['', $('lhon').checked ? '…' : 'off'] : verdictBadge('lhverdict', '✓ no worse', '⚠ worse', '…')));
-  chipSet('bd-resources', ...verdictBadge('resourcesstatus', 'recorded', 'error', 'none'));
-  chipSet('bd-env', ...($('envremind').classList.contains('ok') ? ['ok', '✓'] : ['warn', 'to do']));
+  chipSet('bd-resources', ...verdictBadge('resourcesstatus', 'recorded', 'error', 'not run'));
+  chipSet('bd-env', ...($('envremind').classList.contains('ok') ? ['ok', '✓ recorded'] : ['warn', 'not recorded']));
 }
 new MutationObserver(() => requestAnimationFrame(refreshBadges)).observe($('panels'), { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['class', 'hidden'] });
 document.addEventListener('change', () => setTimeout(refreshBadges, 0));
@@ -807,7 +808,7 @@ async function loadResources() {
   const S = $('resourcesstatus'), commands = $('resourcescommands'); commands.textContent = '';
   try {
     const response = await fetch('api/resources/latest'); const result = await response.json();
-    const addCommand = (lead, command) => { if (!command) return; const p = document.createElement('p'); p.className = 'note'; p.append(document.createTextNode(lead + ' ')); const code = document.createElement('code'); code.className = 'resource-command'; code.textContent = command; p.append(code); commands.append(p); };
+    const addCommand = (lead, command) => { if (!command) return; const block = document.createElement('div'); block.className = 'resource-command-block'; const label = document.createElement('strong'); label.textContent = lead; const pre = document.createElement('pre'); const code = document.createElement('code'); code.textContent = command; pre.append(code); block.append(label, pre); commands.append(block); };
     addCommand('Measure this selected pair (the default):', result.command);
     addCommand('Optionally measure every unique environment in its comparison group:', result.groupCommand);
     const table = $('resourcestable'), body = table.querySelector('tbody'); body.textContent = '';

@@ -97,21 +97,16 @@ for (const item of envs.values()) {
   item.project = projectName(item.env);
   item.dir = envDir(item.env);
   item.info = envInfo(item.env);
-  item.containers = {
-    web: `ddev-${item.project}-web`,
-    db: `ddev-${item.project}-db`,
-  };
+  item.containers = {};
+  for (const [service, name] of Object.entries({ web: `ddev-${item.project}-web`, db: `ddev-${item.project}-db` })) {
+    try { execFileSync('docker', ['inspect', name], { stdio: 'ignore' }); item.containers[service] = name; } catch { /* SQLite lab projects intentionally have no db container. */ }
+  }
+  if (!item.containers.web) fail(`The web container for ${item.env} is not running. Start the selected comparison before measuring.`);
   const config = fs.readFileSync(path.join(item.dir, '.ddev/config.yaml'), 'utf8');
   item.performanceMode = config.match(/^performance_mode:\s*["']?([^\s"']+)/m)?.[1] || 'global default';
 }
 
 const containerNames = [...envs.values()].flatMap((item) => Object.values(item.containers));
-try {
-  execFileSync('docker', ['inspect', ...containerNames], { stdio: 'ignore' });
-} catch {
-  fail(`The required containers are not running:\n${containerNames.join('\n')}\nStart the selected comparison${has('group') ? ' group' : ''} before measuring.`);
-}
-
 const runs = numberArg('runs', 5, 1);
 const warmups = numberArg('warmups', 1, 0);
 const pagePath = value('page', selected.demo?.start || selected.pages?.[0] || '/');
@@ -249,11 +244,11 @@ markdown += `Measured ${result.measuredAt}. Page: \`${pagePath}\`. ${runs} measu
 markdown += `| Version | Median response | Slowest | PHP peak | PHP allocated peak | Web memory peak | Web above idle | DB memory peak | Peak sampled CPU (web/db) | Failures |\n`;
 markdown += `|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n`;
 for (const summary of summaries) {
-  markdown += `| ${summary.label} | ${display(summary.medianResponseMs, ' ms')} | ${display(summary.slowestResponseMs, ' ms')} | ${display(summary.phpPeakMb, ' MB')} | ${display(summary.phpAllocatedPeakMb, ' MB')} | ${display(mb(summary.containers.web.peakMemoryBytes), ' MB')} | ${display(mb(summary.containers.web.peakAboveIdleBytes), ' MB')} | ${display(mb(summary.containers.db.peakMemoryBytes), ' MB')} | ${display(summary.containers.web.peakCpuPercent, '%')} / ${display(summary.containers.db.peakCpuPercent, '%')} | ${summary.failures} |\n`;
+  markdown += `| ${summary.label} | ${display(summary.medianResponseMs, ' ms')} | ${display(summary.slowestResponseMs, ' ms')} | ${display(summary.phpPeakMb, ' MB')} | ${display(summary.phpAllocatedPeakMb, ' MB')} | ${display(mb(summary.containers.web.peakMemoryBytes), ' MB')} | ${display(mb(summary.containers.web.peakAboveIdleBytes), ' MB')} | ${display(mb(summary.containers.db?.peakMemoryBytes), ' MB')} | ${display(summary.containers.web.peakCpuPercent, '%')} / ${display(summary.containers.db?.peakCpuPercent, '%')} | ${summary.failures} |\n`;
 }
 markdown += `\n## Environment\n\n- ${result.system.platform}\n- Node ${result.system.node}\n- ${result.system.ddev}\n- Docker server ${result.system.docker}\n`;
 for (const summary of summaries) markdown += `- ${summary.label}: DDEV performance mode \`${summary.performanceMode}\`\n`;
-markdown += `\nContainer values are sampled and may miss very short peaks. PHP peak values come from the issue recipe's request logger when installed. Mutagen is shared host-side infrastructure and is recorded as configuration, not attributed to one Drupal version.\n`;
+markdown += `\nContainer values are sampled and may miss very short peaks. PHP peak values come from the issue recipe's request logger when installed. Database values are not applicable when the DDEV project uses SQLite and omits its database container. Mutagen is shared host-side infrastructure and is recorded as configuration, not attributed to one Drupal version.\n`;
 fs.writeFileSync(mdPath, markdown);
 console.log(path.relative(labRoot, mdPath));
 console.log(path.relative(labRoot, jsonPath));
