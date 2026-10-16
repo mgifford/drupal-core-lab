@@ -6,8 +6,13 @@ local Docker. The full procedure, the status table and what is *not* verified li
 
 **Honesty first:** the steps below are assembled from the tested 2026-10-02 run plus the 2026-10-14 documentation
 refresh. Creating the workspace *from the web form* (rather than the CLI) is **not tested** — the cloud README's status table records
-that — and `--core-url` / `--use-existing-core` are dry-run tested only. One person running this once and recording it turns those
-rows into tested ones.
+that. On 2026-10-16 the core half of `--core-url` was checked outside a workspace (a Claude Code cloud container): the GitHub mirror
+has the pinned core commit of `3619127-pinned` and its three patches apply (`setup.mjs 3619127-pinned --checkout-only
+--core-url=https://github.com/drupal/drupal.git`, 8 seconds). The full build with the mirror *inside* a workspace, and
+`--use-existing-core`, have not been run. One person running this once and recording it turns those rows into tested ones.
+
+**No local tools needed.** Everything below happens in a browser: the Coder web pages and the workspace's own web terminal. You do
+not need the Coder CLI, Docker, Node or an AI assistant on your own computer.
 
 ## What needs what
 
@@ -41,6 +46,9 @@ rows into tested ones.
 
 ## 2. In the workspace web terminal
 
+Wait until the workspace page says **Running** and its startup scripts have finished, then click **Terminal** on the workspace page
+(it opens a shell in the workspace in a new browser tab). Paste:
+
     git clone https://github.com/mgifford/drupal-core-lab.git && cd drupal-core-lab
     node scripts/cloud-bootstrap.mjs 3619127-pinned --install-autostart --core-url=https://github.com/drupal/drupal.git
 
@@ -53,7 +61,11 @@ rows into tested ones.
 - `--check` only reports what is missing, if the bootstrap stops.
 
 Expect roughly 7 minutes from clone to smoke check in a fresh workspace (measured 2026-10-02). `cloud-smoke.mjs` runs at the end and
-prints PASS/FAIL/NOT CHECKED.
+prints PASS/FAIL/NOT CHECKED. If the workspace network will not let Playwright download Chromium, the bootstrap says so and carries
+on: the sites and the viewer are already running, and only the smoke check's frame check is NOT RUN (check the frames by hand).
+
+If the preflight says the three `drupal-compare*` project names are missing, it prints the fix: in the browser, the workspace page >
+**Settings** > **Parameters** (not tested), or create a new Freeform workspace with the names set at creation.
 
 ## 3. Open and use the viewer
 
@@ -65,8 +77,17 @@ Open it in a browser signed in to Coder (apps are owner-only). The viewer, both 
 `docs/USER-GUIDE.md`. **The smoke check cannot check the frames at the real Coder URLs** — it reports NOT CHECKED — so confirm them
 by hand in the signed-in browser.
 
+### What to do in the viewer for #3619127
+
+The viewer's Steps tab lists them; in short: press **Log in both as admin**, pick the **Tablet** or **Mobile** width, open
+`/node/add/article`, click **Expand sidebar**, open **URL alias** and type `no-slash`, close the sidebar, click **Save**. Then turn
+Mirror off and, in each frame, use the **URL alias** link in the error message with a real mouse click and again with the keyboard
+(Tab to it, press Enter). Before: nothing visibly happens. After: the sidebar opens and the URL alias field has focus. Then press
+**Run checks**. This is the first time the #3619127 steps are done in the cloud frames: note your browser and what you saw.
+
 ## 4. Lifespan, restarts and coming back
 
+- To stop the workspace when you are done, press **Stop** on the workspace page (files are kept; **Delete** removes everything).
 - A workspace has a **timed lifespan** (a deadline that activity extends) plus an idle autostop; it can expire. The app URL is
   derived from the workspace name, so recreating the workspace changes it.
 - After any restart, `--install-autostart` (or running the bootstrap again) brings everything back; a restart stops every DDEV
@@ -86,6 +107,6 @@ It prepares the chat prompt, you save the assistant's reply as `issue-pack-<nid>
 ## What is not covered
 
 - Frames and login at the real Coder URLs from a signed-in browser (section 3) — confirm by hand.
-- The 3619127 reproduction steps and keyboard behaviour inside the cloud frames.
+- The 3619127 reproduction steps and keyboard behaviour inside the cloud frames (the steps are above; nobody has recorded a run).
 - The web-form creation itself (this page documents the intended values; nobody has recorded a run).
 - Any user other than the pilot owner; the access gate is described in `docs/CLOUD-PLAN.md`.

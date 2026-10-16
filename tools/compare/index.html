@@ -86,7 +86,7 @@
   .panes.overlay.onion #fa { opacity: .5; }
   .panes.overlay.diff { isolation: isolate; background: #fff; }
   .panes.overlay.diff #fa { mix-blend-mode: difference; }
-  #staticpanel { margin: 0 .75rem; } #staticpanel h2 { margin-top: .75rem; }
+  #staticpanel { margin: 0 .75rem; } #staticpanel h2 { margin-top: .75rem; } #staticpanel code { overflow-wrap: anywhere; }
 
   /* the dock: Steps and every result, one tab each */
   .dock { grid-row: 5; background: var(--surface); border-top: 1px solid var(--line); display: grid; grid-template-rows: auto minmax(0, 1fr); height: var(--dock-h, 17rem); min-height: 0; }
@@ -181,7 +181,7 @@
     The steps below and what to look for still apply. To run this comparison:</p>
     <ol>
       <li>On your own computer (recommended): <code id="spcmd"></code></li>
-      <li id="spcloud">In a DDEV cloud workspace (needs access that DDEV grants; see the plan in the repository): <a id="spcloudlink" href="https://start.coder.ddev.com/drupal-issue">open the issue picker</a>.</li>
+      <li id="spcloud">In a DDEV Coder workspace, from a browser only (needs access that DDEV grants): follow the <a id="spcloudlink" href="https://github.com/mgifford/drupal-core-lab/blob/main/docs/CLOUD-QUICKSTART.md">cloud quickstart</a>. In short: create a workspace from the <strong>DDEV Freeform</strong> template (not the issue picker, which builds only one site) with the DDEV project names <code>drupal-compare,drupal-compare-before,drupal-compare-after</code>, then run this in the workspace terminal: <code id="spcloudcmd"></code></li>
       <li>Evidence and notes for this issue: <a id="spreports" href="#">reports</a>, <a id="spissue" href="#">issue on drupal.org</a>. Guides: <a id="spdocs" href="#">documentation</a>.</li>
     </ol>
   </section>
@@ -323,6 +323,9 @@ function setVariant(slug) { v = variants.find((x) => x.slug === slug); $('desc')
 function fillStaticPanel() {
   const root = (window.__repo || '').replace(/\/$/, '');
   $('spcmd').textContent = `node scripts/lab-env.mjs start ${v.slug}`;
+  const lab = root || 'https://github.com/mgifford/drupal-core-lab';
+  $('spcloudcmd').textContent = `git clone ${lab}.git && cd ${lab.split('/').pop()} && node scripts/cloud-bootstrap.mjs ${v.slug} --install-autostart --core-url=https://github.com/drupal/drupal.git`;
+  $('spcloudlink').href = `${lab}/blob/main/docs/CLOUD-QUICKSTART.md`;
   $('spreports').href = `${root}/tree/main/reports/issues/${v.issue}`; $('spdocs').href = `${root}/blob/main/docs/USER-GUIDE.md`; $('spissue').href = `https://www.drupal.org/project/drupal/issues/${v.issue}`;
 }
 async function init() {

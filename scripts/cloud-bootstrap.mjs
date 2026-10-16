@@ -58,8 +58,10 @@ if (inCoder) {
   if (missing.length) {
     const want = [...registered, ...missing].join(',');
     problems.push(`These DDEV project names are not registered in the workspace: ${missing.join(', ')}. Without them Coder creates no app URL for them.\n` +
-      `  Fix, from a machine with the Coder CLI (this restarts the workspace):  coder update ${process.env.CODER_WORKSPACE_NAME} --always-prompt\n` +
-      `  and enter at "DDEV project names":  ${want}\n  Keep Public Sharing at false. (Setting names with \`coder restart --parameter\` did not take effect in testing.)`);
+      `  Fix in the browser (not tested): the workspace page > Settings > Parameters, set "DDEV project names" to the line below, then update and restart.\n` +
+      `  Or from a machine with the Coder CLI (tested; this restarts the workspace):  coder update ${process.env.CODER_WORKSPACE_NAME} --always-prompt\n` +
+      `  and enter at "DDEV project names":  ${want}\n  Keep Public Sharing at false. (Setting names with \`coder restart --parameter\` did not take effect in testing.)\n` +
+      `  If neither works, create a new Freeform workspace with those names set at creation.`);
   }
 }
 for (const p of PROXY_PROJECTS) need(have(`${p.dir}/.ddev/config.yaml`), `Missing ${p.dir}/.ddev/config.yaml (is this checkout the cloud branch?).`);
@@ -122,14 +124,20 @@ if (args.includes('--install-autostart')) {
 if (!NO_DEPS) {
   say('Smoke check dependencies (Playwright and Chromium)');
   const pw = path.join(labRoot, 'tools/playwright');
-  if (!fs.existsSync(path.join(pw, 'node_modules/@playwright/test'))) run('npm', ['install'], { cwd: pw });
-  run('npx', ['playwright', 'install', 'chromium'], { cwd: pw });
-  // Chromium's files live in the persistent home directory, but the system libraries it needs do not survive a workspace restart
-  // (the container is recreated), so check for them each time and reinstall only when some are missing.
-  const missingLibs = sh('bash', ['-c', 'ldd ~/.cache/ms-playwright/chromium_headless_shell-*/chrome-headless-shell-linux64/chrome-headless-shell 2>&1 | grep -c "not found"']);
-  if (Number(missingLibs.stdout.trim()) === 0) console.log('Chromium system libraries are present.');
-  else if (sh('sudo', ['-n', 'true']).status === 0) run('sudo', ['-n', 'npx', 'playwright', 'install-deps', 'chromium'], { cwd: pw });
-  else console.log('Chromium system libraries are missing and passwordless sudo is not available; run `npx playwright install-deps chromium` in tools/playwright.');
+  // The sites and the viewer are already up, so a failed download (the workspace's egress is filtered) must not end the run as
+  // "Failed": say so and let the smoke check report its frame check as NOT RUN.
+  const soft = (cmd, argv) => { console.log(`$ ${[cmd, ...argv].join(' ')}   (in tools/playwright)`); return spawnSync(cmd, argv, { stdio: 'inherit', cwd: pw }).status === 0; };
+  const pwOk = (fs.existsSync(path.join(pw, 'node_modules/@playwright/test')) || soft('npm', ['install'])) && soft('npx', ['playwright', 'install', 'chromium']);
+  if (!pwOk) console.log('\nPlaywright or Chromium could not be installed (often the workspace network filter). The sites and the viewer are running;\n' +
+    'only the smoke check\'s frame check will be NOT RUN. Check the frames by hand at the viewer URL.');
+  else {
+    // Chromium's files live in the persistent home directory, but the system libraries it needs do not survive a workspace restart
+    // (the container is recreated), so check for them each time and reinstall only when some are missing.
+    const missingLibs = sh('bash', ['-c', 'ldd ~/.cache/ms-playwright/chromium_headless_shell-*/chrome-headless-shell-linux64/chrome-headless-shell 2>&1 | grep -c "not found"']);
+    if (Number(missingLibs.stdout.trim()) === 0) console.log('Chromium system libraries are present.');
+    else if (sh('sudo', ['-n', 'true']).status === 0) { if (!soft('sudo', ['-n', 'npx', 'playwright', 'install-deps', 'chromium'])) console.log('Installing Chromium\'s system libraries failed; the smoke check\'s frame check will be NOT RUN.'); }
+    else console.log('Chromium system libraries are missing and passwordless sudo is not available; run `npx playwright install-deps chromium` in tools/playwright.');
+  }
 }
 
 say('Smoke check');
