@@ -1,0 +1,10 @@
+name: 'Repro: #3593502 a Main navigation menu with thousands of links'
+description: 'Starting state for #3593502 (the menu edit form runs out of memory on large menus): the Standard install plus a large Main navigation menu, created by apply.sh the same way on both sides. Safe to apply more than once.'
+type: 'Testing'
+# The links themselves are made by apply.sh (seed-menu.php): a recipe cannot
+# create thousands of entities, and the merge request's own seeder needs Drush,
+# which the lab does not add to a core checkout.
+install:
+  - link
+  - menu_link_content
+  - menu_ui

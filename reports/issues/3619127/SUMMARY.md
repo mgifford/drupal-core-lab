@@ -35,6 +35,7 @@ persisted the open state to `localStorage` (patch-1 fixes) and the test used a f
 | Follow-up patches | [patch-0-vanilla-js-no-jquery.patch](patch-0-vanilla-js-no-jquery.patch) · [patch-1-no-persist-and-waits.patch](patch-1-no-persist-and-waits.patch) · [patch-2-optional-base-class.patch](patch-2-optional-base-class.patch) (optional) |
 | How the patches stack, and why | [`proposals/README.md`](proposals/README.md) |
 | Recipe (starting state) | [`recipes/ife_sidebar_repro/`](../../../recipes/ife_sidebar_repro/) |
+| Before and After in DDEV Coder without the lab (recipe to paste in VS Code, and a prompt for an agent in the workspace; not run yet) | [CODER-PROMPT.md](CODER-PROMPT.md) |
 | Evidence (layers, results, manual pass), exact commits | [EVIDENCE.md](EVIDENCE.md) |
 | Findings (including an unrelated upstream one) | [FINDINGS-2026-10-01.md](FINDINGS-2026-10-01.md) |
 | Scripted runs and screenshots | [`playwright/`](playwright/) · [`compare/`](compare/) |

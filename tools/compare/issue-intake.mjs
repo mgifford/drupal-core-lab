@@ -6,7 +6,7 @@
 // The signals are word patterns: they find candidates and say why; they do not understand the thread. What a thread means (the defect, what was
 // decided, what is still open) is interpretation, kept apart in handoffs (tools/compare/handoff.mjs), written by a model or a person and citing ids.
 import crypto from 'node:crypto';
-import { neutralize } from './pack-prepare.mjs';
+import { neutralize, CLOSED, relatedText, threadsText } from './pack-prepare.mjs';
 
 export const sha256 = (s) => crypto.createHash('sha256').update(s).digest('hex');
 export const sha8 = (s) => sha256(s).slice(0, 8);
@@ -44,8 +44,10 @@ export function buildSnapshot(g) {
     { id: 'attachments', revision: `${st.files.length} listed of ${st.limits.attachments.total}`, sha8: sha8(JSON.stringify(st.files)), limit: st.limits.attachments },
     ...(st.mr ? [{ id: 'mr', url: st.mr.url, revision: `state ${st.mr.state}, branch ${st.mr.branch}, head ${st.mr.sha || st.mr.branchHead || 'unknown'}, updated ${st.mr.updatedAt}`, sha8: sha8(JSON.stringify({ iid: st.mr.iid, state: st.mr.state, branch: st.mr.branch, sha: st.mr.sha, head: st.mr.branchHead, updated: st.mr.updatedAt })) }] : []),
     ...(st.diff ? [{ id: 'diff', url: st.mr && `${st.mr.url}.diff`, revision: `${st.limits.diff.servedBytes} bytes`, sha8: sha8(st.diff.text), bytes: st.limits.diff.servedBytes, limit: st.limits.diff }] : []),
+    ...(st.related ? [{ id: 'related', revision: `${st.related.length} issues, ${st.related.filter((r) => r.read && !CLOSED.has(String(r.status))).length} open`, sha8: sha8(JSON.stringify(st.related.map((r) => [r.nid, r.status, r.changed]))), count: st.related.length, limit: st.limits.related }] : []),
+    ...(st.threads ? [{ id: 'threads', revision: `${st.threads.length} review threads, ${st.threads.filter((t) => t.state === 'unresolved').length} unresolved`, sha8: sha8(JSON.stringify(st.threads.map((t) => [t.mr, t.id, t.state, t.notes.length]))), count: st.threads.length, limit: st.limits.threads }] : []),
   ];
-  return { version: 1, nid: g.nid, url: st.url, fetchedAt: st.fetchedAt, node: st.node, comments, files: st.files, mr: st.mr, diff: st.diff, limits: st.limits, gaps, sources };
+  return { version: 1, nid: g.nid, url: st.url, fetchedAt: st.fetchedAt, node: st.node, comments, files: st.files, mr: st.mr, diff: st.diff, related: st.related || null, threads: st.threads || null, limits: st.limits, gaps, sources };
 }
 
 // What goes in the committed manifest: no text, only identity and hashes.
@@ -94,8 +96,20 @@ export function renderBrief(snap, index, { labPatches = [], caps = { summary: 25
     `| Comments | ${snap.comments.length} fetched${snap.limits.comments.capped ? ' (LIMIT REACHED, see below)' : ''} |`,
     `| Merge request | ${mr ? `[!${mr.iid}](${mr.url}) ${mr.state}, branch \`${mr.branch}\` into \`${mr.target}\`, head \`${(mr.sha || mr.branchHead || 'unknown').slice(0, 12)}\`, updated ${mr.updatedAt}` : 'none found'} |`,
     `| Diff | ${snap.diff ? `${snap.limits.diff.servedBytes} bytes, sha256 ${sha8(snap.diff.text)}${snap.limits.diff.truncatedInPrompt ? `; **the pack prompt cuts it at ${snap.limits.diff.cap}**` : ''}` : 'not fetched'} |`);
+  const rel = snap.related, th = snap.threads, open = rel ? rel.filter((r) => r.read && !CLOSED.has(String(r.status))) : [], unresolved = th ? th.filter((t) => t.state === 'unresolved') : [];
+  L.push(`| Related issues | ${rel ? `${rel.length} (${open.length} open${rel.some((r) => !r.read) ? `, ${rel.filter((r) => !r.read).length} not read` : ''})` : 'not fetched'} |`,
+    `| Review threads | ${th ? `${th.length} on the merge request(s), **${unresolved.length} unresolved**` : 'not fetched'} |`);
   for (const p of labPatches) L.push(`| Patch in the lab | \`${p.path}\` sha256 ${p.sha8}${p.note ? ` (${p.note})` : ''} |`);
   L.push('', '## Limits and gaps of this fetch', '', ...(snap.gaps.length ? snap.gaps.map((g) => `- **${g.source}:** ${g.what}`) : ['- None detected by the fetch. (Status changes and tag edits that the web page shows inside comments are not in the API; comment numbers are counted in order.)']));
+  if (rel && rel.length) {
+    L.push('', '## Related issues', '', '_Parent, related, child, issues that list this one as related, and issues mentioned in the summary or comments. An open one may hold work this issue depends on or leaves behind._', '',
+      '| Issue | State | How it is linked | Project | Last changed | Title |', '|---|---|---|---|---|---|');
+    for (const r of rel) L.push(`| [#${r.nid}](https://www.drupal.org/i/${r.nid}) | ${!r.read ? 'not read' : `${CLOSED.has(String(r.status)) ? 'closed' : '**open**'}, status ${r.status ?? '?'}, priority ${r.priority ?? '?'}`} | ${r.how.join('; ')} | ${r.project || '?'} | ${r.changed ? day(r.changed) : '?'} | ${r.read ? neutralize(r.title).replace(/\|/g, '\\|') : ''} |`);
+  }
+  if (unresolved.length) {
+    L.push('', '## Unresolved review threads on the merge request(s) (verbatim)', '', '_Threads a reviewer opened on the code that are not marked resolved. Resolved threads and general merge request comments: `show threads`._');
+    for (const t of unresolved) { L.push('', `### !${t.mr} (${t.mrState})${t.file ? `, \`${t.file}\`${t.line != null ? ` line ${t.line}` : ''}` : ''}, opened by ${t.notes[0].author} ${t.notes[0].created}`); for (const c of t.notes) L.push('', `${c.author}, ${c.created}:`, '', quote(c.text, caps.comment)); }
+  }
   const sum = n.summary || '(empty)'; L.push('', '## Issue summary (verbatim; written by the reporter, may have been edited after the comments)', '', quote(sum, caps.summary));
   L.push('', '## Comments that carry decisions, proposals, questions or revisions (verbatim)', '', '_Found by word patterns in each comment, so a candidate is not a verdict. "Superseded" and "no later reference" come from the comments\' own references to each other._');
   for (const k of sel.verbatim.filter((x) => !sel.latest.includes(x) || !sel.why.get(x).every((w) => w === 'latest'))) {
@@ -121,6 +135,8 @@ export function showSource(snap, what) {
   if (w === 'issue') return `${neutralize(snap.node.title)}\n\n${neutralize(snap.node.summary || '')}\n`;
   if (w === 'diff') return snap.diff ? snap.diff.text : null;
   if (w === 'mr') return snap.mr ? `${JSON.stringify(snap.mr, null, 2)}\n` : null;
+  if (w === 'related') return snap.related ? `${neutralize(relatedText({ items: snap.related }).join('\n')).trim()}\n` : null;
+  if (w === 'threads') return snap.threads ? `${neutralize(threadsText({ threads: snap.threads }).join('\n')).trim()}\n` : null;
   return null;
 }
 

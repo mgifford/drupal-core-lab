@@ -10,8 +10,8 @@ const walk = (d) => (fs.existsSync(d) ? fs.readdirSync(d, { withFileTypes: true 
 const rows = [];
 for (const nid of fs.readdirSync(root).filter((n) => /^\d+$/.test(n)).sort()) {
   const dir = path.join(root, nid); const files = walk(dir).map((f) => path.relative(dir, f));
-  const heading = (f) => { if (!f) return ''; const p = path.join(dir, f); if (!fs.existsSync(p) || !fs.statSync(p).isFile()) return ''; const m = fs.readFileSync(p, 'utf8').match(/^#\s+(.*)$/m); if (!m) return ''; let t = m[1].replace(/^Reproduce #\d+:\s*/, '').trim(); if (t.length > 80) t = t.slice(0, 80).replace(/\s+\S*$/, '').trim() + '…'; return t; };
-  const title = heading('REPRODUCE.md') || heading(files.find((f) => /^(ISSUE-|STATUS|.*-update|.*\.md$)/.test(f)) || '') || '(see folder)';
+  const heading = (f) => { if (!f) return ''; const p = path.join(dir, f); if (!fs.existsSync(p) || !fs.statSync(p).isFile()) return ''; const m = fs.readFileSync(p, 'utf8').match(/^#\s+(.*)$/m); if (!m) return ''; let t = m[1].replace(/^Reproduce #\d+:\s*/, '').replace(/^#\d+:\s*/, '').trim(); if (t.length > 80) t = t.slice(0, 80).replace(/\s+\S*$/, '').trim() + '…'; return t; };
+  const title = heading('REPRODUCE.md') || heading('SUMMARY.md') || heading(files.find((f) => /^(ISSUE-|STATUS|.*-update|.*\.md$)/.test(f)) || '') || '(see folder)';
   const patches = files.filter((f) => f.endsWith('.patch')).length;
   const statusFile = files.filter((f) => /^STATUS(-.*)?\.md$/.test(f)).sort().pop();
   const snapshot = (() => { if (!statusFile) return ''; const p = path.join(dir, statusFile); const m = fs.existsSync(p) && fs.statSync(p).isFile() ? fs.readFileSync(p, 'utf8').match(/(\d{4}-\d{2}-\d{2})/) : null; return m ? m[1] : statusFile.replace(/^STATUS-?/, '').replace(/\.md$/, ''); })();
