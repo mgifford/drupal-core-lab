@@ -1328,13 +1328,13 @@
       },
       {
         "label": "After: textarea has minRows=1 and maxRows=6 attributes",
-        "probe": "const t=document.querySelector('.ck-text-alternative-form .ck-labeled-field-view__input-wrapper textarea'); t?{minRows:t.minRows,maxRows:t.maxRows}:null",
+        "probe": "((t) => (t ? { minRows: t.minRows, maxRows: t.maxRows } : null))(document.querySelector('.ck-text-alternative-form .ck-labeled-field-view__input-wrapper textarea'))",
         "expect": { "minRows": 1, "maxRows": 6 },
         "kind": "fix"
       },
       {
         "label": "After: textarea width is 100% (fills the form)",
-        "probe": "const t=document.querySelector('.ck-text-alternative-form .ck-labeled-field-view__input-wrapper textarea'); t?getComputedStyle(t).width:'none'",
+        "probe": "((t) => (t ? getComputedStyle(t).width : 'none'))(document.querySelector('.ck-text-alternative-form .ck-labeled-field-view__input-wrapper textarea'))",
         "expect": "100%",
         "kind": "fix"
       }

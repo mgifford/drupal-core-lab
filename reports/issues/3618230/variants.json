@@ -52,8 +52,14 @@
         "kind": "precondition"
       },
       {
-        "label": "The message container added by MR !16777 for MessageCommand targeting exists on the page",
-        "probe": "document.querySelector(\".file-upload-messages\") !== null",
+        "label": "An upload error is showing (do step 4 first: upload the oversized file in each frame)",
+        "probe": "document.querySelector('.messages--error, [data-drupal-message-type=\"error\"]') !== null",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "After the oversized upload, the error is inside a .file-upload-messages container (added by MR !16777; Before has none)",
+        "probe": "document.querySelector('.file-upload-messages .messages--error, .file-upload-messages [data-drupal-message-type=\"error\"]') !== null",
         "expect": true,
         "kind": "fix"
       },

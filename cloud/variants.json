@@ -1443,6 +1443,146 @@
       }
     },
     {
+      "slug": "3419891-pinned",
+      "issue": "3419891",
+      "label": "#3419891: Increase size of alternative text field in Image dialog, pinned core",
+      "description": "Test the CKEditor5 image dialog alternative text field. Before: single-line input ~35 chars visible, content scrolls horizontally. After: textarea that grows vertically (minRows=1, maxRows=6), all content visible.",
+      "steps": [
+        {
+          "text": "Standard install: the Basic page content type exists with a body field using CKEditor5.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /node/add/page in both frames (the viewer logs in as an administrator).",
+          "how": "mirror"
+        },
+        {
+          "text": "Click in the Body field to activate CKEditor5, then click the Image icon in the toolbar.",
+          "how": "each",
+          "lookFor": "The Image dialog opens with an 'Alternative text' field."
+        },
+        {
+          "text": "In the Alternative text field, type a long string that exceeds the visible width (e.g., '012345678 12345678 22345678 32345678 42345678 52345678 62345678 72345678').",
+          "how": "each",
+          "lookFor": "Before: content scrolls horizontally out of view. After: field grows vertically (up to 6 rows) and all content remains visible."
+        }
+      ],
+      "expected": "Before: the alt text field is a single-line input; typing past ~35 characters scrolls earlier content out of view. After: the alt text field is a textarea that grows vertically (min 1 row, max 6 rows); all typed content stays visible.",
+      "actual": "Reproduced and fixed on core 47430c368bbd (2026-10-06). Run 2026-10-15T21:21Z: Before field is input (28px, horizontal scroll); After field is textarea (74px, grows to fit, no horizontal scroll, rows=1). Patch from branch 3419891-increase-size-of (7 files). See reports/issues/3419891/EVIDENCE.md.",
+      "observe": [
+        {
+          "label": "Typing a long string into the Alternative text field: does earlier content scroll out of view (Before) or does the field grow vertically keeping all content visible (After)?",
+          "expectBefore": "content scrolls horizontally",
+          "expectAfter": "field grows vertically, all content visible"
+        }
+      ],
+      "checks": [
+        {
+          "label": "The CKEditor5 image dialog opens and shows an Alternative text field",
+          "probe": "!!document.querySelector('.ck-text-alternative-form .ck-labeled-field-view__input-wrapper')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Before: Alternative text field is an input (single line); After: Alternative text field is a textarea",
+          "probe": "document.querySelector('.ck-text-alternative-form .ck-labeled-field-view__input-wrapper textarea, .ck-text-alternative-form .ck-labeled-field-view__input-wrapper input')?.tagName.toLowerCase()",
+          "expect": "textarea",
+          "kind": "fix"
+        },
+        {
+          "label": "After: textarea has minRows=1 and maxRows=6 attributes",
+          "probe": "((t) => (t ? { minRows: t.minRows, maxRows: t.maxRows } : null))(document.querySelector('.ck-text-alternative-form .ck-labeled-field-view__input-wrapper textarea'))",
+          "expect": {
+            "minRows": 1,
+            "maxRows": 6
+          },
+          "kind": "fix"
+        },
+        {
+          "label": "After: textarea width is 100% (fills the form)",
+          "probe": "((t) => (t ? getComputedStyle(t).width : 'none'))(document.querySelector('.ck-text-alternative-form .ck-labeled-field-view__input-wrapper textarea'))",
+          "expect": "100%",
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/node/add/page"
+      ],
+      "demo": {
+        "start": "/node/add/page"
+      }
+    },
+    {
+      "slug": "3419891-latest",
+      "issue": "3419891",
+      "label": "#3419891: same steps against the LATEST core main",
+      "description": "Test the CKEditor5 image dialog alternative text field. Before: single-line input ~35 chars visible, content scrolls horizontally. After: textarea that grows vertically (minRows=1, maxRows=6), all content visible.",
+      "steps": [
+        {
+          "text": "Standard install: the Basic page content type exists with a body field using CKEditor5.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /node/add/page in both frames (the viewer logs in as an administrator).",
+          "how": "mirror"
+        },
+        {
+          "text": "Click in the Body field to activate CKEditor5, then click the Image icon in the toolbar.",
+          "how": "each",
+          "lookFor": "The Image dialog opens with an 'Alternative text' field."
+        },
+        {
+          "text": "In the Alternative text field, type a long string that exceeds the visible width (e.g., '012345678 12345678 22345678 32345678 42345678 52345678 62345678 72345678').",
+          "how": "each",
+          "lookFor": "Before: content scrolls horizontally out of view. After: field grows vertically (up to 6 rows) and all content remains visible."
+        }
+      ],
+      "expected": "Before: the alt text field is a single-line input; typing past ~35 characters scrolls earlier content out of view. After: the alt text field is a textarea that grows vertically (min 1 row, max 6 rows); all typed content stays visible.",
+      "actual": "Reproduced and fixed on core 47430c368bbd (2026-10-06). Run 2026-10-15T21:21Z: Before field is input (28px, horizontal scroll); After field is textarea (74px, grows to fit, no horizontal scroll, rows=1). Patch from branch 3419891-increase-size-of (7 files). See reports/issues/3419891/EVIDENCE.md.",
+      "observe": [
+        {
+          "label": "Typing a long string into the Alternative text field: does earlier content scroll out of view (Before) or does the field grow vertically keeping all content visible (After)?",
+          "expectBefore": "content scrolls horizontally",
+          "expectAfter": "field grows vertically, all content visible"
+        }
+      ],
+      "checks": [
+        {
+          "label": "The CKEditor5 image dialog opens and shows an Alternative text field",
+          "probe": "!!document.querySelector('.ck-text-alternative-form .ck-labeled-field-view__input-wrapper')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Before: Alternative text field is an input (single line); After: Alternative text field is a textarea",
+          "probe": "document.querySelector('.ck-text-alternative-form .ck-labeled-field-view__input-wrapper textarea, .ck-text-alternative-form .ck-labeled-field-view__input-wrapper input')?.tagName.toLowerCase()",
+          "expect": "textarea",
+          "kind": "fix"
+        },
+        {
+          "label": "After: textarea has minRows=1 and maxRows=6 attributes",
+          "probe": "((t) => (t ? { minRows: t.minRows, maxRows: t.maxRows } : null))(document.querySelector('.ck-text-alternative-form .ck-labeled-field-view__input-wrapper textarea'))",
+          "expect": {
+            "minRows": 1,
+            "maxRows": 6
+          },
+          "kind": "fix"
+        },
+        {
+          "label": "After: textarea width is 100% (fills the form)",
+          "probe": "((t) => (t ? getComputedStyle(t).width : 'none'))(document.querySelector('.ck-text-alternative-form .ck-labeled-field-view__input-wrapper textarea'))",
+          "expect": "100%",
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/node/add/page"
+      ],
+      "demo": {
+        "start": "/node/add/page"
+      }
+    },
+    {
       "slug": "3415961-pinned",
       "issue": "3415961",
       "label": "#3415961: [drupalMedia] Using the Insert Media button causes the window to scroll to the bottom of the page, pinned core",
@@ -1638,8 +1778,14 @@
           "kind": "precondition"
         },
         {
-          "label": "The message container added by MR !16777 for MessageCommand targeting exists on the page",
-          "probe": "document.querySelector(\".file-upload-messages\") !== null",
+          "label": "An upload error is showing (do step 4 first: upload the oversized file in each frame)",
+          "probe": "document.querySelector('.messages--error, [data-drupal-message-type=\"error\"]') !== null",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "After the oversized upload, the error is inside a .file-upload-messages container (added by MR !16777; Before has none)",
+          "probe": "document.querySelector('.file-upload-messages .messages--error, .file-upload-messages [data-drupal-message-type=\"error\"]') !== null",
           "expect": true,
           "kind": "fix"
         },
@@ -1703,8 +1849,14 @@
           "kind": "precondition"
         },
         {
-          "label": "The message container added by MR !16777 for MessageCommand targeting exists on the page",
-          "probe": "document.querySelector(\".file-upload-messages\") !== null",
+          "label": "An upload error is showing (do step 4 first: upload the oversized file in each frame)",
+          "probe": "document.querySelector('.messages--error, [data-drupal-message-type=\"error\"]') !== null",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "After the oversized upload, the error is inside a .file-upload-messages container (added by MR !16777; Before has none)",
+          "probe": "document.querySelector('.file-upload-messages .messages--error, .file-upload-messages [data-drupal-message-type=\"error\"]') !== null",
           "expect": true,
           "kind": "fix"
         },
@@ -1768,8 +1920,14 @@
           "kind": "precondition"
         },
         {
-          "label": "The message container added by MR !16777 for MessageCommand targeting exists on the page",
-          "probe": "document.querySelector(\".file-upload-messages\") !== null",
+          "label": "An upload error is showing (do step 4 first: upload the oversized file in each frame)",
+          "probe": "document.querySelector('.messages--error, [data-drupal-message-type=\"error\"]') !== null",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "After the oversized upload, the error is inside a .file-upload-messages container (added by MR !16777; Before has none)",
+          "probe": "document.querySelector('.file-upload-messages .messages--error, .file-upload-messages [data-drupal-message-type=\"error\"]') !== null",
           "expect": true,
           "kind": "fix"
         },

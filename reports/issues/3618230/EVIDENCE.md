@@ -128,3 +128,10 @@ After pressing Hide, Default Admin adds `visually-hidden` to the message (`core/
 ## Earlier run (2026-10-08, superseded)
 Coder cloud workspace, core `a19dfee86688`, headless Chromium, active theme not recorded. Result then: `.file-upload-messages` only on After, only after the failed upload. That agrees with this run. Its precondition (`input[type='file']`) was found too weak: the form has three file inputs.
 The folder `playwright/2026-10-14T09-26-37-241Z-chromium-light-1280x900/` is a first run of today's script with a loose check (it matched "size" anywhere). It is superseded by the 09-27-29 run above and can be deleted.
+
+## Manual test by the owner (reported the evening of 2026-10-15, local time)
+
+On the lab pair `3618230-latest` (core `3b94128e929`, the MR patch `912ccc95` on After), macOS 27.0.1. The owner uploaded an oversized file in each site and tried Tab, Enter on Hide, and VoiceOver.
+Reported in their words: no perceived problems, keyboard only and with VoiceOver; the error is heard once. Recorded as the answers to FB-002 (focus after Hide) and FB-003 (announced twice), both "met", in [FEEDBACK.md](FEEDBACK.md).
+This is a person's report: the lab did not measure or repeat it, the browser was not recorded, and only VoiceOver was tried (not NVDA or JAWS). The DOM the owner inspected on After matches the scripted run: the error is inside `.file-upload-messages`, with `role="alert"` and a Hide button.
+
