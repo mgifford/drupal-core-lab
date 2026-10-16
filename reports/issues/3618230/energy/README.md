@@ -75,13 +75,15 @@ A proper option (`browser.channel`) is on a local scanner branch, `fix/installed
   tokens the only difference is `drupalSettings.user.permissionsHash`, which is unique to each site. Scripts (15) and stylesheets (73) are identical.
 - **Browser updates.** The installed Firefox updates itself. Record its version, and do not compare runs across versions.
 - **Single pair is noise.** A one-pair smoke run just before this gave +9.3% for the same identical pages.
-- **Not checked:** the scanner's HTML report was not run through axe; it is the tool's own output, copied unchanged.
+- **Report markup:** the scanner's HTML report had no `main` landmark (axe 4.13: `landmark-one-main` and `region`, flagged on the pull
+  request by AccessLint). The lab copy wraps the body's content in `<main>`; nothing else in it changed. axe now reports 0 violations in
+  light and dark. Screen reader, keyboard and zoom were not checked. The scanner's generator (`src/report/html.ts`) still has this gap.
 
 ## Files
 
 | File | What it is |
 |---|---|
-| [`compare-2026-10-16T11-02-37-660Z.html`](compare-2026-10-16T11-02-37-660Z.html) | The scanner's report, unchanged |
+| [`compare-2026-10-16T11-02-37-660Z.html`](compare-2026-10-16T11-02-37-660Z.html) | The scanner's report, with its content wrapped in `<main>` (see Caveats) |
 | [`compare-2026-10-16T11-02-37-660Z.csv`](compare-2026-10-16T11-02-37-660Z.csv) | One row per run, unchanged |
 | [`compare-2026-10-16T11-02-37-660Z.trimmed.json`](compare-2026-10-16T11-02-37-660Z.trimmed.json) | The full result with the per-request lists (`network.resources`) removed; every per-run energy, timing and CO2 value is kept. The 1.3 MB original was in a temporary scratchpad and is not kept. |
 | [`compare-console.txt`](compare-console.txt) | The command's console output |
