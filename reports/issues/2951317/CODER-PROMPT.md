@@ -86,13 +86,13 @@ Start page: `/admin/config/development/lab-radios-2951317`.
    Observe: Required color, Required color with default, Optional color, and Dynamic color.
 
 2. **each:** With Required color empty, activate Save. Then choose Red and repeat. Inspect required attributes and the legend indicator.
-   Observe: After: native validation blocks an empty required group; one required indicator per group, no indicators beside individual options.
+   Observe: After: required attributes on radio inputs, one legend indicator, none beside options. Native blocking applies only if HTML5 validation is enabled; record novalidate.
 
 3. **each:** Reload. Toggle Require a dynamic color on and off with nothing selected.
    Observe: After: required inputs when on, no selection changes; None hides when on and returns when off.
 
 4. **each:** Reload. Select None, then toggle Require a dynamic color on. Fill Required color and activate Save. Toggle off.
-   Observe: After: hidden None stays checked, a visible color is invalid, Save is blocked. None returns checked when off.
+   Observe: After: hidden None stays checked and a visible color is invalid. With native validation disabled, this fixture permits POST; with it enabled, Save must be blocked. None returns checked when off.
 
 5. **each:** Select Red in Dynamic color, toggle on/off/on, then switch to Blue with arrow keys.
    Observe: Real selection remains checked and valid; no stale custom validation error.
@@ -102,7 +102,7 @@ Start page: `/admin/config/development/lab-radios-2951317`.
 
 **Expected:** After: required attributes are on radio inputs, not fieldsets; dynamic states preserve selection and reject hidden None while required.
 
-**Reported Before behaviour (verify on this run):** Reported Before behavior: static required attributes are placed on fieldsets; dynamic radio inputs do not receive correct required handling. Runtime reproduction pending.
+**Reported Before behaviour (verify on this run):** Before: static required attributes are on fieldsets, dynamic inputs remain optional. Both sides disable native submission validation by default; the fixture does not enforce dynamic requirements server-side.
 
 ### Viewer checks
 
@@ -116,7 +116,7 @@ Start page: `/admin/config/development/lab-radios-2951317`.
 
 - Only the legend has a required marker, not each option label
   Before: true; After: true.
-- With None selected and dynamic required on, Save is blocked until a real color is chosen
+- When native HTML5 validation is enabled, Save blocks hidden None until a real color is chosen; otherwise record not applicable
   Before: false; After: true.
 - Toggling required off restores the existing None selection
   Before: true; After: true.
