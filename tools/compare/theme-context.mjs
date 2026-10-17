@@ -17,7 +17,7 @@ export function browserThemeContext() {
     try {
       const url = new URL(link.href, location.href);
       if (url.origin !== location.origin) continue;
-      const match = url.pathname.match(/\/(?:core\/themes|themes(?:\/(?:custom|contrib))?)\/([^/]+)\//);
+      const match = url.pathname.match(/^\/(?:core\/themes|themes(?:\/(?:custom|contrib))?|sites\/[^/]+\/themes(?:\/(?:custom|contrib))?)\/([^/]+)\//);
       if (!match || !/^[a-zA-Z0-9_]+$/.test(match[1])) continue;
       if (!assetMap.has(match[1])) assetMap.set(match[1], []);
       const paths = assetMap.get(match[1]);

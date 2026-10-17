@@ -20,6 +20,7 @@ export function renderDesignReport(report) {
       entry.screen?.truncated || entry.print?.truncated ? `${row.id} ${side}: element inventory truncated` : null,
       entry.print?.sheets.some(sheet => !sheet.readable) ? `${row.id} ${side}: unreadable stylesheets` : null].filter(Boolean);
   }));
+  for (const [side, site] of Object.entries(report.sites || {})) if (site.configuration?.error) notes.push(`${side}: configuration evidence unavailable: ${site.configuration.error}`);
   const sections = report.pages.map(row => {
     const detail = ['Before', 'After'].map(label => {
       const side = label.toLowerCase(), entry = row.sides[side], context = entry.screen?.context;
@@ -39,12 +40,34 @@ export function renderDesignReport(report) {
       const a = row.sides.after.states?.find(value => value.name === state.name);
       return [state.name, state.screenComparison?.changes.length ?? 'not compared', state.printComparison?.changes.length ?? 'not compared', count(restyled(b)), count(restyled(a))];
     });
+    const reviewHeaders = ['Side/state/preference', 'Editor UI/content elements', 'Print navigation/overlaps', 'Running animations', 'Declared transitions'];
+    const reviewRows = [], preferenceRows = [];
+    for (const side of ['before', 'after']) {
+      const entry = row.sides[side];
+      for (const [state, measurement] of [['initial', entry], ...(entry.states || []).map(value => [value.name, value])]) {
+        for (const [preference, value] of [['requested', measurement], ...(measurement.reducedMotion ? [['reduce', measurement.reducedMotion]] : [])]) {
+          if (!value.screen) continue;
+          const motion = value.screen.motion, layout = value.print?.printLayout;
+          reviewRows.push([`${side}/${state}/${preference}`, value.screen.editor ? `${value.screen.editor.uiElements}/${value.screen.editor.contentElements}` : 'not recorded', layout ? `${layout.navigation.length}/${layout.overlapCount}` : 'not recorded', count(motion?.running), count(motion?.declaredTransitions)]);
+          if (value.readiness?.sampledStable === false || value.printReadiness?.sampledStable === false) notes.push(`${row.id} ${side} ${state} ${preference}: bounded readiness sample did not settle`);
+          if (value.readiness?.editorExpected && !value.readiness.editorReady) notes.push(`${row.id} ${side} ${state} ${preference}: expected CKEditor editable surface missing; raw page still captured`);
+          if (layout?.overlapCount) notes.push(`${row.id} ${side} ${state} ${preference}: ${layout.overlapCount} print navigation rectangle intersections; confirm in PDFs`);
+        }
+        if (measurement.preferenceComparisons) preferenceRows.push([side, state, measurement.preferenceComparisons.screen?.changes.length ?? 'not compared', measurement.preferenceComparisons.print?.changes.length ?? 'not compared']);
+      }
+    }
+    const reviewNote = 'Print overlap candidates use viewport rectangles, not occlusion or pagination proof. Motion counts describe visible captured elements; declared transitions may never run. These are existing-page observations, independent of patch regressions. Editor UI and content styles are counted separately; content is not edited or saved.';
+    const prefHeaders = ['Side', 'State', 'Default-to-reduced screen changes', 'Default-to-reduced print changes'];
+    const reducedPair = row.reducedMotionComparisons ? `Reduced-motion Before/After differences: ${row.reducedMotionComparisons.screen?.changes.length ?? 'not compared'} screen; ${row.reducedMotionComparisons.print?.changes.length ?? 'not compared'} print.` : '';
+    const geometryNote = `Before/after geometry changes (matched visible elements, >1 CSS pixel): ${row.screenLayoutComparison?.length ?? 'not recorded'} screen; ${row.printLayoutComparison?.length ?? 'not recorded'} print. Environment-specific text can change wrapping; values are not collected.`;
+    const reviewMd = '\n\n' + table(reviewHeaders, reviewRows) + '\n\n' + reviewNote + '\n\n' + geometryNote + (preferenceRows.length ? '\n\n' + table(prefHeaders, preferenceRows) + '\n\n' + reducedPair : '');
+    const reviewHtml = htmlTable('Editor, print layout and motion evidence', reviewHeaders, reviewRows) + `<p>${esc(reviewNote)}</p><p>${esc(geometryNote)}</p>` + (preferenceRows.length ? htmlTable('Within-page motion preference comparison', prefHeaders, preferenceRows) + `<p>${esc(reducedPair)}</p>` : '');
     const statesMd = stateRows.length ? '\n\nCurated interaction states:\n\n' + table(stateHeaders, stateRows) : '';
     const statesHtml = stateRows.length ? htmlTable('Curated interaction states', stateHeaders, stateRows) : '';
     const md = `## Page ${row.id}: ${row.spec.path}\n\n${themeStatus}. Account: ${row.spec.account}.\n\n` + detail.join('\n\n') + '\n\n' + table(printHeaders, printRows) + `\n\n${printPair}\n\n${idNote}\n\n` +
-      (changes.length ? 'Captured screen differences (first 20):\n\n' + changes.map(value => '- ' + value).join('\n') : 'No captured screen differences.') + statesMd + '\n';
+      (changes.length ? 'Captured screen differences (first 20):\n\n' + changes.map(value => '- ' + value).join('\n') : 'No captured screen differences.') + statesMd + reviewMd + '\n';
     const html = `<section><h2>Page ${esc(row.id)}: ${esc(row.spec.path)}</h2><p>${esc(themeStatus)}. Account: ${esc(row.spec.account)}.</p>` + detail.map(value => '<p>' + esc(value) + '</p>').join('') + htmlTable('Screen-to-print changes', printHeaders, printRows) + `<p>${esc(printPair)}</p><p>${esc(idNote)}</p>` +
-      (changes.length ? '<p>Captured screen differences (first 20):</p><ul>' + changes.map(value => '<li>' + esc(value) + '</li>').join('') + '</ul>' : '<p>No captured screen differences.</p>') + statesHtml + '</section>';
+      (changes.length ? '<p>Captured screen differences (first 20):</p><ul>' + changes.map(value => '<li>' + esc(value) + '</li>').join('') + '</ul>' : '<p>No captured screen differences.</p>') + statesHtml + reviewHtml + '</section>';
     return { md, html };
   });
   const transitions = report.themeTransitions.map(event => `${event.side} (${event.account}): ${event.from.theme} ${event.from.path} -> ${event.to.theme} ${event.to.path}`);
