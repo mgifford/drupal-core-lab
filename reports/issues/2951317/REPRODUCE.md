@@ -13,14 +13,14 @@ For DDEV Coder Freeform, follow [CODER-PROMPT.md](CODER-PROMPT.md). The bootstra
 
 Select `2951317-pinned` in the viewer and open `/admin/config/development/lab-radios-2951317` in both frames. The variant's numbered steps and checks are the scenario source of truth.
 
-1. On a fresh page, leave Required color empty and activate Save. After should stop with native validation. Choose Red and confirm a valid choice is accepted. Blue must stay selected in Required color with default. Optional color must remain optional.
+1. On a fresh page, leave Required color empty and activate Save. Record whether native validation is enabled. With Drupal defaults, native validation is disabled; a separate declared HTML5-enabled comparison must test browser blocking. Choose Red and confirm a valid choice is accepted. Blue must stay selected in Required color with default. Optional color must remain optional.
 2. Inspect the required group. After should place required attributes on inputs, omit required on the fieldset, and expose a radiogroup. Check one visible required marker on the legend and none on individual option labels.
-3. Reload. With no dynamic choice selected, toggle Require a dynamic color on/off/on. After must preserve no selection, hide None while required, and reject an empty choice.
-4. Reload. Select None, then toggle required on. None must stay selected while hidden, and a visible real option must be invalid. Fill Required color and activate Save: After should focus a visible invalid dynamic option and block submission. Toggle off: None returns checked, and custom validity clears.
+3. Reload. With no dynamic choice selected, toggle Require a dynamic color on/off/on. After must preserve no selection, hide None while required, and mark an empty choice invalid.
+4. Reload. Select None, then toggle required on. None must stay selected while hidden, and a visible real option must be invalid. Fill Required color and activate Save: With native validation enabled, After should focus a visible invalid dynamic option and block submission. With defaults, submission is allowed because the fixture provides no server-side dynamic validation. Toggle off: None returns checked, and custom validity clears.
 5. Choose Red, toggle required repeatedly, and use arrow keys to choose Blue. The real choice must persist and become valid without a stale custom error.
 6. Repeat under Default Admin and Claro, recording the actual theme. Check forced colors, focus visibility, and required indicators. Disable JavaScript and repeat static required validation only. Dynamic #states are client-side and do not establish server enforcement.
 
-The replay script records stage DOM, selection, validity, screenshots, accessibility snapshots, axe results, theme/modules, and announcements. Its keyboard activation and arrow key use Playwright's trusted input. It has not yet been executed against Drupal. Person-led checks and synthetic Guidepup comparison remain outstanding.
+The replay script records stage DOM, selection, validity, screenshots, accessibility snapshots, axe results, theme/modules, and announcements. Its keyboard activation and arrow key use Playwright's trusted input. The original and corrected replay summaries were reviewed; see EVIDENCE.md. Native-blocking coverage remains outstanding. Person-led checks and synthetic Guidepup comparison remain outstanding.
 
 ## Patch order and identity
 
