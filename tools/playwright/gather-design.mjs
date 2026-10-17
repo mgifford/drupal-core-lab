@@ -2,6 +2,9 @@
 // Usage: node tools/playwright/gather-design.mjs <slug> [--pages=file.json] [--contrast=more] [--motion=reduce] [--motion-matrix] [--forced-colors] [--crawl] [--max-pages=20] [--pdf]
 import fs from 'node:fs';
 import path from 'node:path';
+import { writeDesignEvidence } from './lib/design-artifacts.mjs';
+import { capturePaperLayouts, printReviewsForPage } from './lib/design-print.mjs';
+import { contextIdentity, resolvedIdentity, navigationOutcome, designCoverage } from './lib/design-crawl.mjs';
 import { runArgs, launch, openSide, siteContext, gitInfo } from './lib/lab-run.mjs';
 import { compareLayout, settleDesign, takeNextPage, routeFamily } from './lib/design-review.mjs';
 import { designStates, designScenarioNames } from './lib/design-scenarios.mjs';
@@ -9,8 +12,8 @@ import { renderDesignReport, designArtifactNames } from './lib/design-report.mjs
 import { observeDesign, compareObservations, printDelta } from './lib/design-observations.mjs';
 
 const option = (name, fallback) => process.argv.find(value => value.startsWith('--' + name + '='))?.slice(name.length + 3) ?? fallback;
-const help = `Usage: node tools/playwright/gather-design.mjs <registered-slug> [--pages=docs/design-pages.example.json] [--max-pages=20] [--crawl] [--contrast=more] [--motion=reduce] [--motion-matrix] [--forced-colors] [--scheme=dark] [--pdf] [--out=path]
-Collects screen + print DOM/style evidence, theme transitions and paired changes. --motion-matrix compares no-preference and reduce on the same document at each selected state. No content save, design verdict, or axe/Lighthouse crawl. The optional curated multivalue scenario submits AJAX add/remove controls only. --crawl only follows same-origin links under explicit crawlPrefixes in --pages. --pdf writes Chromium A4 and Letter output for manual pagination review.`;
+const help = `Usage: node tools/playwright/gather-design.mjs <registered-slug> [--pages=docs/design-pages.example.json] [--max-pages=20] [--crawl] [--contrast=more] [--motion=reduce] [--motion-matrix] [--forced-colors] [--scheme=dark] [--pdf] [--paper=Letter|A4|both] [--out=path]
+Collects compressed .json.gz screen + print evidence, paper-width layout candidates, theme transitions and paired changes. --motion-matrix compares no-preference and reduce on the same document at each selected state. No content save, design verdict, or axe/Lighthouse crawl. The optional curated multivalue scenario submits AJAX add/remove controls only. --crawl only follows same-origin links under explicit crawlPrefixes in --pages. --pdf writes Chromium output for manual print review. Letter is the default; --paper=A4 or --paper=both selects alternatives. Paper-width geometry remains supporting evidence, not exact PDF layout.`;
 if (process.argv.includes('--help')) { console.log(help); process.exit(0); }
 const run = runArgs();
 const maxPages = Number(option('max-pages', '20'));
@@ -23,6 +26,9 @@ const motion = option('motion', 'no-preference');
 if (!['reduce', 'no-preference'].includes(motion)) throw new Error('--motion must be reduce or no-preference');
 const motionMatrix = process.argv.includes('--motion-matrix');
 if (motionMatrix && motion !== 'no-preference') throw new Error('--motion-matrix starts at no-preference; omit --motion=reduce');
+const paperOption = option('paper', 'Letter').toLowerCase();
+if (!['letter', 'a4', 'both'].includes(paperOption)) throw new Error('--paper must be Letter, A4 or both');
+const paperFormats = paperOption === 'both' ? ['A4', 'Letter'] : [paperOption === 'a4' ? 'A4' : 'Letter'];
 const crawl = process.argv.includes('--crawl'), pdf = process.argv.includes('--pdf');
 if (pdf && run.browser !== 'chromium') throw new Error('--pdf requires Chromium');
 const manifest = option('pages', null) ? JSON.parse(fs.readFileSync(option('pages'), 'utf8')) : {
@@ -44,15 +50,15 @@ function enqueue(spec, discovered = false) {
   if (spec.editor !== undefined && typeof spec.editor !== 'boolean') throw new Error('editor must be a boolean');
   if (!['anonymous', 'administrator'].includes(spec.account)) throw new Error('account must be anonymous or administrator');
   const item = { ...spec, path: spec.path || left, beforePath: left, afterPath: right };
-  const key = JSON.stringify([left, right, item.account, item.context || {}]);
+  const key = JSON.stringify([left, right, contextIdentity(item)]);
   if (seen.has(key)) { if (discovered) report.coverage.duplicateLinks++; return; } seen.add(key);
   queue.push({ ...item, discovered });
 }
 for (const spec of manifest.pages) enqueue(spec);
 const { browser, environment } = await launch(run); run.browser = browser;
 const output = path.join(run.out, 'design'); fs.mkdirSync(output, { recursive: true });
-const report = { schema: 'lab-design-observations-2', status: 'DRAFT', slug: run.slug, when: new Date().toISOString(),
-  environment, requested: { contrast, reducedMotion: motion, forcedColors: run.forced, colorScheme: run.scheme, motionMatrix, media: ['screen', 'print'] },
+const report = { schema: 'lab-design-observations-3', status: 'DRAFT', slug: run.slug, when: new Date().toISOString(),
+  environment, requested: { contrast, reducedMotion: motion, forcedColors: run.forced, colorScheme: run.scheme, motionMatrix, paperFormats, media: ['screen', 'print'] },
   commits: { before: gitInfo(run.v.before.env), after: gitInfo(run.v.after.env) },
   core: run.v.core, patchStacks: { before: run.v.before.patches || [], after: run.v.after.patches || [] },
   coverage: { maxPages, maxElements: limit, crawling: crawl, discoveryLimit: maxPages * 10, visited: 0, rejectedLinks: 0, discoveryCapped: false, queuedNotVisited: 0, duplicateLinks: 0, rejectionReasons: {}, routeFamilies: {} },
@@ -60,13 +66,14 @@ const report = { schema: 'lab-design-observations-2', status: 'DRAFT', slug: run
   limitations: ['Initial loads plus explicitly selected multivalue add/remove scenario; no general focus/invalid-state coverage', 'No rule violations inferred from appearance differences',
     'Browser theme hint may be unavailable; negotiation reasons are not instrumented', 'Seed pages first; route-family fair ordering of discovered URLs, not structural template inference',
     'Forced colours and prefers-contrast are browser emulation, not native OS palettes',
-    'DOM element limit and CSSOM access gaps are explicit; no full cascade attribution', 'Print geometry uses the browser viewport, not paper pagination; PDF page counts and near-empty sheets still need manual review', 'Editor observations separate UI and editable content; no content entry, formatting interaction, or saved frontend rendering',
+    'DOM element limit and CSSOM access gaps are explicit; no full cascade attribution', 'Print geometry is sampled at selected paper widths; CSS @page margins, print fragmentation, PDF page counts and near-empty sheets still need manual review', 'Editor observations separate UI and editable content; no content entry, formatting interaction, or saved frontend rendering',
     'GET navigation does not prove arbitrary contrib routes are side-effect-free; use disposable sites and narrow allowlists'],
 };
 report.artifacts = designArtifactNames(run.slug, report.when);
 const contexts = {};
 const previous = {};
-const save = () => fs.writeFileSync(path.join(output, report.artifacts.observations), JSON.stringify(report, null, 2));
+const resolved = { before: new Map(), after: new Map() };
+const save = () => writeDesignEvidence(path.join(output, report.artifacts.observations), report);
 async function ensureContext(side, account) {
   const key = side + ':' + account;
   if (contexts[key]) return contexts[key];
@@ -104,15 +111,15 @@ async function measure(page, spec, i, side, state, preference) {
   measurement.print = await observeDesign(page, { limit });
   measurement.printDelta = printDelta(measurement.screen, measurement.print);
   measurement.layoutMediaChanges = compareLayout(measurement.screen, measurement.print);
-  if (pdf) {
-    measurement.pdfs = [];
-    for (const format of ['A4', 'Letter']) {
+  measurement.papers = await capturePaperLayouts(page, {
+    limit, editor: !!spec.editor, contrast, reducedMotion: preference, formats: paperFormats,
+    pdfFile: pdf ? format => {
       const suffix = motionMatrix ? '-motion-' + preference : '';
       const file = `${report.artifacts.runId}-${i + 1}-${side}-${state}${suffix}-${format}.pdf`;
-      await page.pdf({ path: path.join(output, file), format, printBackground: false, preferCSSPageSize: false });
-      measurement.pdfs.push(file);
-    }
-  }
+      return { path: path.join(output, file), name: file };
+    } : undefined,
+  });
+  measurement.pdfs = measurement.papers.flatMap(paper => paper.pdf ? [paper.pdf] : []);
   await page.emulateMedia({ media: 'screen', contrast, reducedMotion: motion });
   return measurement;
 }
@@ -127,21 +134,30 @@ try {
   }
   for (let i = 0; queue.length && i < maxPages; i++) {
     const spec = queue.some(value => !value.discovered) ? queue.splice(queue.findIndex(value => !value.discovered), 1)[0] : takeNextPage(queue, report.pages.map(row => row.spec));
-    const result = { id: i + 1, spec, sides: {} };
+    const result = { id: i + 1, spec, paperFormats, sides: {} };
     for (const side of ['before', 'after']) {
       const { page, base } = await ensureContext(side, spec.account);
       const target = spec[side + 'Path'];
       console.log(`${i + 1}/${Math.min(i + queue.length + 1, maxPages)} ${side} ${spec.account} ${target}`);
       const entry = { requestedPath: target };
       try {
+        const prior = resolved[side].get(resolvedIdentity(spec, target));
+        if (prior) {
+          Object.assign(entry, { status: prior.status, statusSource: 'Previous capture; no new request', finalPath: target, duplicateOf: prior, outcome: 'duplicate', notCompared: 'Already captured in this account, context and scenario' });
+          result.sides[side] = entry;
+          continue;
+        }
         await page.emulateMedia({ media: 'screen', contrast, reducedMotion: motion });
         const response = await page.goto(base + target, { waitUntil: 'domcontentloaded', timeout: 30000 });
         entry.status = response?.status() ?? null;
         await page.locator('body').waitFor();
         entry.finalPath = new URL(page.url()).pathname;
-        entry.redirected = entry.finalPath !== target;
-        if (entry.status >= 400 || entry.redirected) {
-          entry.notCompared = entry.status >= 400 ? 'HTTP error' : 'Redirected; supply the resolved path explicitly for evidence';
+        const finalURL = new URL(page.url());
+        entry.redirected = entry.finalPath !== target || !!finalURL.search || !!finalURL.hash;
+        entry.duplicateOf = resolved[side].get(resolvedIdentity(spec, entry.finalPath)) || null;
+        entry.outcome = navigationOutcome(entry);
+        if (entry.status == null || entry.status >= 400 || entry.redirected) {
+          entry.notCompared = entry.status == null || entry.status >= 400 ? 'HTTP error or missing response' : entry.duplicateOf ? 'Redirected to an already captured page in this account, context and scenario' : 'Redirected; supply the resolved path explicitly for evidence';
         } else {
           entry.states = [];
           for await (const state of designStates(page, spec)) {
@@ -158,6 +174,7 @@ try {
             }
             if (state !== 'initial') entry.states.push(measurement);
           }
+          resolved[side].set(resolvedIdentity(spec, entry.finalPath), { pageId: result.id, path: entry.finalPath, status: entry.status });
           if (crawl) {
             const links = await page.locator('a[href]').evaluateAll(anchors => anchors.map(anchor => anchor.href));
             for (const link of links) {
@@ -169,7 +186,7 @@ try {
             }
           }
         }
-      } catch (error) { entry.error = String(error.message).split('\n')[0].replace(/https?:\/\/\S+/g, '[URL]').slice(0, 300); }
+      } catch (error) { entry.outcome = 'failed'; entry.error = String(error.message).split('\n')[0].replace(/https?:\/\/\S+/g, '[URL]').slice(0, 300); }
       result.sides[side] = entry;
     }
     for (const medium of ['screen', 'print']) {
@@ -192,7 +209,9 @@ try {
       }
       result.stateComparisons.push(state);
     }
-    report.pages.push(result); report.coverage.visited++; report.coverage.queuedNotVisited = queue.length;
+    result.printReviews = printReviewsForPage(result);
+    report.pages.push(result); report.coverage.visited++;
+    Object.assign(report.coverage, designCoverage(report.pages)); report.coverage.queuedNotVisited = queue.length;
     const family = routeFamily(spec.path); report.coverage.routeFamilies[family] = (report.coverage.routeFamilies[family] || 0) + 1;
     save();
   }
@@ -205,4 +224,5 @@ fs.writeFileSync(path.join(output, report.artifacts.summary), rendered.markdown)
 fs.writeFileSync(path.join(output, report.artifacts.html), rendered.html);
 console.log('Evidence saved to ' + output);
 for (const name of [report.artifacts.observations, report.artifacts.summary, report.artifacts.html]) console.log('  ' + name);
-if (report.pages.some(row => Object.values(row.sides).some(side => side.error || side.notCompared || (side.readiness?.editorExpected && !side.readiness.editorReady)))) process.exitCode = 2;
+const incomplete = measurement => measurement.error || (measurement.notCompared && !measurement.duplicateOf) || (measurement.readiness?.editorExpected && !measurement.readiness.editorReady) || measurement.papers?.some(paper => paper.error || paper.pdfError) || (measurement.reducedMotion && incomplete(measurement.reducedMotion)) || measurement.states?.some(incomplete);
+if (report.pages.some(row => Object.values(row.sides).some(incomplete))) process.exitCode = 2;

@@ -3,17 +3,17 @@
 DRAFT. This extends design gathering. It does not change Drupal, the issue patch,
 accepted design standards, or the viewer UI. Use disposable Lab sites and test data.
 
-## First capture: eight distinct seed pages
+## First capture: seven distinct seed pages
 
 With the existing `3631337-pinned` pair running, from the repository root:
 
 ```sh
-node tools/playwright/gather-design.mjs 3631337-pinned --pages=docs/design-pages.review.json --motion-matrix --max-pages=8 --pdf
+node tools/playwright/gather-design.mjs 3631337-pinned --pages=docs/design-pages.review.json --motion-matrix --max-pages=7 --pdf
 ```
 
 This visits login, password reset, site information, account settings, the content
-listing, Article creation, Basic page creation and Help. The supplied sites were
-Standard installs with Article and Basic page available. Other recipes can remove
+listing, Article creation and Help. Basic page creation was removed from this
+manifest because it returned 404 in the supplied capture. Other recipes can remove
 or rename these content types; update the manifest rather than treating a 404 as a
 design defect. Missing expected CKEditor is reported as a coverage gap and exits 2.
 A textarea fallback is still captured so that evidence is not discarded.
@@ -25,8 +25,8 @@ it with `--motion=reduce`. Existing single-mode commands remain supported.
 Media changes are bounded by readiness sampling; continuing animations are not
 stopped or hidden. A sampled stable document is not proof of application readiness.
 
-With PDFs, this command normally generates 64 PDFs: eight pages, two sides,
-two preferences, two paper sizes. Prefer the following crawl without PDFs first
+With PDFs, this command normally generates 28 PDFs: seven pages, two sides,
+two preferences, Letter paper. Add `--paper=A4` or `--paper=both` when useful. Prefer the following crawl without PDFs first
 if disk space is limited. All output filenames retain the UTC run timestamp.
 
 ## Broader discovery
@@ -83,10 +83,10 @@ The optional existing 3630425 multivalue scenario remains a separate manifest.
   with content. This can identify an existing problem on both sides, independent
   of patch differences. It is not proof of occlusion: stacking, sticky positioning,
   viewport size and paper pagination require PDF/manual review.
-- PDFs use Chromium's A4 and Letter output with backgrounds off. Page counts,
+- PDFs use Chromium's Letter output by default, with backgrounds off; A4 is optional. Page counts,
   nearly empty final sheets, PDF accessibility and native printer output are NOT
-  automatically analysed in this update. The print DOM is measured at the browser
-  viewport, not separately at each paper size.
+  automatically analysed. The print DOM is now also sampled at each selected paper
+  width; CSS page margins and fragmentation still require PDF review.
 - Theme stylesheet paths support an inference only. A missing active-theme hint
   remains unknown. Vendor `themes` directories are no longer mistaken for Drupal
   theme names. This path inventory targets root-mounted Lab sites.
@@ -104,5 +104,6 @@ The optional existing 3630425 multivalue scenario remains a separate manifest.
    motion quality from zero Before/After differences.
 3. A help-only expansion underrepresents component diversity. Compare route-family
    coverage and queue counts before increasing the page budget.
-4. CKEditor should appear on the Article and Basic page forms in this Standard
-   setup. Missing editor readiness should become evidence, not a silent success.
+4. CKEditor should appear on the Article form in this captured setup. Missing editor readiness should become evidence, not a silent success.
+
+See [collector update](DESIGN-COLLECTOR-FIX.md) for compressed exports, coverage accounting and the three-page pilot.

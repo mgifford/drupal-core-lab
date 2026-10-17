@@ -22,17 +22,28 @@ export function motionEvidence(snapshot) {
 }
 export function printLayoutEvidence(snapshot) {
   const visible = (snapshot.nodes || []).filter(node => !node.hidden && node.rect?.width > 0 && node.rect?.height > 0);
-  const navigation = visible.filter(node => (['aside', 'nav'].includes(node.tag) || node.role === 'navigation') && ['fixed', 'sticky'].includes(node.style?.position));
-  const content = visible.filter(node => node.region !== 'navigation' && /^(h[1-6]|label|legend|input|textarea|select|th|td|p)$/.test(node.tag));
+  const navigation = visible.filter(node => ['fixed', 'sticky'].includes(node.style?.position));
+  const byKey = new Map(visible.map(node => [node.key, node]));
+  const contains = (ancestor, node) => {
+    const seen = new Set();
+    for (let key = node.parentKey; key && !seen.has(key); key = byKey.get(key)?.parentKey) {
+      if (key === ancestor.key) return true;
+      seen.add(key);
+    }
+    return false;
+  };
+  const content = visible.filter(node => node.region !== 'navigation' && /^(h[1-6]|label|legend|input|textarea|select|button|summary|th|td|p)$/.test(node.tag));
   const overlaps = [];
   for (const nav of navigation) for (const node of content) {
+    if (nav.key === node.key || contains(nav, node) || contains(node, nav)) continue;
     const a = nav.rect, b = node.rect;
     if (Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x) > 1 && Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y) > 1) {
       overlaps.push({ navigation: nav.key, content: node.key });
     }
   }
   return { navigation: navigation.map(node => node.key), overlapCount: overlaps.length, overlaps: overlaps.slice(0, 100), capped: overlaps.length > 100,
-    note: 'Rectangle intersections in the emulated print viewport, not occlusion or paper pagination proof. Confirm in A4 and Letter PDFs. Sticky positioning can produce false positives.' };
+    horizontalOverflow: snapshot.viewport ? content.filter(node => node.rect.x < -1 || node.rect.x + node.rect.width > snapshot.viewport.width + 1).map(node => node.key) : [],
+    note: 'Persistent-panel rectangle intersections and horizontal overflow at the recorded viewport. This is not occlusion, CSS page-margin resolution or fragmentation proof; confirm in the exported PDF. Sticky positioning and intentional overflow can produce false positives.' };
 }
 export function routeFamily(path) {
   if (/^\/admin\/help\/topic\//.test(path)) return '/admin/help/topic/*';

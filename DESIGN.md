@@ -16,7 +16,8 @@ policy. Known conflicts are tracked in the [register](docs/design/CONFLICTS.md).
   self-contained HTML, with print CSS and an embedded rule index.
 - [Draft contracts](docs/design/contracts.json): canonical source of the 26
   proposed reviewer rules and source references. Every rule is explicitly
-  unapproved. The current scanner does not load this file.
+  unapproved. The collector reads print-rule metadata for draft review candidates;
+  general contract enforcement is not implemented.
 - [Maintenance guide](docs/design/README.md): regeneration, validation and scope.
 - [Evidence provenance](docs/design/EVIDENCE.md): capture identity and limitations.
 
@@ -61,5 +62,5 @@ Observed Default Admin values are pinned examples, not universal token constants
 
 This package does not implement scanner rules, a viewer report/button, print CSS
 fixes, full-site axe/Lighthouse, or missing-theme instrumentation. Next work is
-contract review, source-level token inventory, correction of paper-size evidence,
+contract review, source-level token inventory, review of paper-width evidence,
 and representative interaction fixtures before expanding the crawl.
