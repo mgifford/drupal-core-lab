@@ -88,12 +88,14 @@
   main { grid-row: 4; min-height: 0; display: flex; flex-direction: column; }
   #legend { margin: 0; padding: .3rem .75rem; font-size: .85rem; background: var(--surface2); }
   .panes { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr); gap: .5rem; padding: .5rem .75rem; min-height: 0; flex: 1 1 0; }
-  .pane { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); overflow-x: auto; overflow-y: hidden; }
-  .pane h2 { white-space: nowrap; margin: 0; padding: .3rem .6rem; border-bottom: 1px solid var(--line); font-size: .9rem; display: flex; align-items: baseline; gap: .5rem; min-width: 0; }
-  .pane h2 .path { flex: 1 1 auto; min-width: 0; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pane { display: grid; grid-template-rows: 2.5rem minmax(0, 1fr); min-width: 0; min-height: 0; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); overflow-x: auto; overflow-y: hidden; }
+  .pane h2 { white-space: nowrap; margin: 0; padding: .3rem .6rem; border-bottom: 1px solid var(--line); font-size: .9rem; display: flex; align-items: center; gap: .5rem; min-width: 0; }
+  .pane h2 > span:first-child { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .pane h2 > a:not(.openext) { flex: 0 0 auto; }
+  .pane h2 small { flex: 0 1 12rem; min-width: 0; max-width: 32%; font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pane h2 .path { flex: 1 1 0; min-width: 0; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .pane h2 .openext { flex: 0 0 auto; margin-left: .1rem; color: var(--muted); text-decoration: none; line-height: 1; padding: .1rem .3rem; border-radius: 4px; font-size: .95rem; }
   .pane h2 .openext:hover, .pane h2 .openext:focus-visible { color: var(--accent); background: var(--surface2); }
-  .pane:hover h2 .path, .pane:focus-within h2 .path, .pane:focus h2 .path { white-space: normal; overflow-wrap: anywhere; overflow: visible; }
   .pane iframe { width: 100%; height: 100%; border: 0; background: #fff; display: block; }
 .frame-error { margin: .5rem .75rem; padding: .5rem .75rem; background: var(--error-bg, #fee); border: 1px solid var(--error-border, #f88); border-radius: var(--r); color: var(--error-text, #800); font-size: .85rem; display: none; }
 .frame-error:not([hidden]) { display: block; }
@@ -853,7 +855,7 @@ const themeCurrent = { before: null, after: null };
 const themePrevious = { before: null, after: null };
 const themeEvents = [];
 function themeEvidence() { return { source: 'browser-reported', current: themeCurrent, events: themeEvents, limit: 100 }; }
-function pendingTheme(side) { themeCurrent[side] = null; const el = $('theme-' + side); if (el) el.textContent = 'Theme: waiting'; renderThemeComparison(); }
+function pendingTheme(side) { themeCurrent[side] = null; const el = $('theme-' + side); if (el) { el.textContent = 'Theme: waiting'; el.title = ''; } renderThemeComparison(); }
 function resetThemeEvidence() {
   themeEvents.length = 0;
   for (const side of ['before', 'after']) { themePrevious[side] = null; pendingTheme(side); }
@@ -882,7 +884,14 @@ function receiveThemeContext(side, raw) {
   const event = { when: new Date().toISOString(), side, ...context, previousTheme: prior?.theme || null, themeChanged: changed };
   themeCurrent[side] = context; if (context.theme) themePrevious[side] = context;
   themeEvents.push(event); if (themeEvents.length > 100) themeEvents.shift();
-  $('theme-' + side).textContent = 'Theme: ' + (context.theme || 'unknown') + (!context.theme && context.themeAssets.length ? ' (styles: ' + context.themeAssets.map(asset => asset.name).join(', ') + '; supporting only)' : '') + (changed ? ' (changed from ' + prior.theme + ')' : '');
+  const themeLabel = $('theme-' + side);
+  const themeDetail = 'Theme: ' + (context.theme || 'unknown') + (!context.theme && context.themeAssets.length ? ' (styles: ' + context.themeAssets.map(asset => asset.name).join(', ') + '; supporting only)' : '') + (changed ? ' (changed from ' + prior.theme + ')' : '');
+  themeLabel.textContent = 'Theme: ' + (context.theme || 'unknown');
+  themeLabel.title = themeDetail;
+  const themeExtra = document.createElement('span');
+  themeExtra.className = 'sr';
+  themeExtra.textContent = themeDetail.slice(themeLabel.textContent.length);
+  themeLabel.append(themeExtra);
   $('theme-history').textContent = '';
   for (const item of [...themeEvents].reverse()) { const li = document.createElement('li'); li.textContent = item.side + ': ' + item.path + ' | ' + (item.theme || 'unknown') + ' | ' + (item.language || 'unknown language') + (item.themeChanged ? ' | THEME CHANGED from ' + item.previousTheme : '') + ' | source: ' + (item.source || 'unknown') + ' | stylesheet candidates: ' + item.themeAssets.map(asset => asset.name).join(', ') + ' (supporting only) | prefers-contrast: ' + (item.prefersContrast || 'unknown') + ' | reduced motion: ' + (item.reducedMotion || 'unknown') + ' | reduced transparency/data: ' + (item.reducedTransparency || 'unknown') + '/' + (item.reducedData || 'unknown') + ' | forced colours: ' + item.forcedColors + ' | theme mode markers: ' + item.themeModeMarkers.join(', ') + ' | ' + item.when; $('theme-history').append(li); }
   renderThemeComparison();
