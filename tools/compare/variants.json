@@ -638,7 +638,7 @@
     "slug": "3619154-pinned",
     "issue": "3619154",
     "label": "#3619154: Sidebar toggle fixes, pinned core",
-    "description": "MR !16911 (and any newer revision) reworks the Default Admin node add/edit meta sidebar: sidebar.js is split into a sidebar-toggle SDC + edit-sidebar.js; the toggle and close controls become <button> elements with aria-expanded; below 1024px the content under the overlay is inert, focus moves to the close button and Escape closes it; the sidebar sits below the top bar and does not flash on load; the resize handle works after AJAX, with touch and in RTL. Test on /node/1/edit across widths. Scripted: tools/playwright/evaluate-3619154.mjs (steps and checks in tools/playwright/sidebar-3619154.mjs).",
+    "description": "MR !16911 (reviewed at 6f7766cb on 2026-10-14; head 175e6f17 since 2026-10-17) reworks the Default Admin node add/edit meta sidebar: sidebar.js is split into a sidebar-toggle SDC + edit-sidebar.js; the toggle and close controls become <button> elements with aria-expanded; below 1024px the content under the overlay is inert, focus moves to the close button and Escape closes it; the sidebar sits below the top bar and does not flash on load; the resize handle works after AJAX, with touch and in RTL. Test on /node/1/edit across widths. Scripted: tools/playwright/evaluate-3619154.mjs (steps and checks in tools/playwright/sidebar-3619154.mjs).",
     "status": "ready: pinned = the 2026-10-14 review of MR !16911 @ 6f7766cb on 6868135a. For a new MR revision use 3619154-latest after refreshing the patch (reports/issues/3619154/REPRODUCE.md, 'Evaluate a new merge request revision').",
     "core": {
       "url": "https://git.drupalcode.org/project/drupal.git",
@@ -700,10 +700,25 @@
         "text": "Narrow the frame below 1024px and open the sidebar.",
         "how": "each",
         "lookFor": "After: focus moves to the close button; Tab stays within the sidebar, Navigation and the top bar (the page behind is inert); Escape closes it and returns focus to the toggle; the sidebar starts below the top bar. Before: the sidebar's top (and its close button) is under the top bar, focus stays on the toggle and Tab reaches the covered page. The resize handle is hidden below 976px."
+      },
+      {
+        "text": "Forced colours (local DDEV: the lab browser's switch; any lab: DevTools > Rendering > Emulate forced-colors, or a Windows contrast theme), below 976px: open the sidebar with Enter.",
+        "how": "each",
+        "lookFor": "After: the close button has focus and its × icon is visible inside the focus ring. With revision 6f7766cb only the ring showed (comment #23); 175e6f17 says it fixes that. Before: the close button is under the top bar."
+      },
+      {
+        "text": "Below 976px: close the sidebar once with the close button and once by clicking the overlay.",
+        "how": "each",
+        "lookFor": "The sidebar closes and the URL does not change."
+      },
+      {
+        "text": "Desktop: set dir=\"rtl\" on <html> (DevTools), then drag the resize handle outward (towards the middle of the page).",
+        "how": "each",
+        "lookFor": "After: the sidebar gets wider. Before: it gets narrower."
       }
     ],
     "expected": "After: the toggle and close are <button> elements operable with Enter and Space; aria-expanded tracks the sidebar state; open/closed state and width persist across reloads; nothing is painted on load below 1024px; below 1024px the content under the overlay is inert, focus moves to the close button, Escape closes the sidebar and returns focus to the toggle, and the sidebar starts below the top bar. Before: <a href=\"#\" role=\"button\"> controls, Space does not operate them, no inert overlay or focus trap, and the sidebar starts under the top bar below 1024px.",
-    "actual": "Previous revision (MR !16911 @ 6f7766cb) on core main f2abd41, scratch run 2026-10-17 (not DDEV): reproduced-and-fixed, 10 fix checks as expected (F11 not applicable on Before), no regressions, 0 axe violations. Not yet run on the new revision. reports/issues/3619154/validation/2026-10-17-scratch/SUMMARY.md",
+    "actual": "Previous revision (MR !16911 @ 6f7766cb) on core main f2abd41, scratch run 2026-10-17 (not DDEV): normal colours reproduced-and-fixed (11 of 12 fix checks as expected, F11 not applicable on Before; 14 regression checks pass; 0 axe violations); forced colours mixed: R12, the close button's icon disappears when focused (comment #23). Not yet run on 175e6f17. reports/issues/3619154/validation/2026-10-17-scratch/SUMMARY.md",
     "checks": [
       {
         "label": "Setup reached: the sidebar toggle is on the page",
@@ -805,7 +820,7 @@
     "after": {
       "env": "issue-3619154-latest"
     },
-    "status": "needs a refreshed patch: the stored MR !16911 patch (6f7766cb) no longer applies to main since aeca9d7 (2026-10-14, umami performance-test YAML only). See reports/issues/3619154/REPRODUCE.md."
+    "status": "needs a refreshed patch: MR !16911's head is 175e6f17 (2026-10-17), the lab has 6f7766cb, which no longer applies to main since aeca9d7 (umami performance-test YAML only). See reports/issues/3619154/REPRODUCE.md."
   },
   {
     "slug": "3273806-latest",

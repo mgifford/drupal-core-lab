@@ -5,13 +5,16 @@
 //
 // What it records, per side:
 //   desktop  1280px: the toggle and close controls; mouse, Enter, Space and Alt+S on the toggle; drag the resize handle and
-//            reload (width kept?); close, reload (stays closed? any frame with the sidebar on screen = flash); open, reload.
+//            reload (width kept?); set dir="rtl" on <html> and drag outward again (wider?); close, reload (stays closed? any frame
+//            with the sidebar on screen = flash); open, reload.
 //   nav      1100px (between 1024 and 1280, where opening the sidebar collapses Navigation): with the sidebar open, expand
 //            Navigation, then open and close the Image details in the main column (does Navigation collapse?).
 //   narrow   800px (or the --viewport width when below 1024px): first visit (flash?), open with Enter (where focus goes, what
-//            is inert), 20 Tabs (does focus reach the covered page?), Escape, overlay click, close button.
+//            is inert), 20 Tabs (does focus reach the covered page?), Escape; the close button photographed focused and at rest
+//            (is its icon drawn? comment #23: in forced colours it vanished when focused); overlay click, close button (URL kept?).
 //   widths   960px and 1000px: is the resize handle shown; does the sidebar start below the top bar.
 // Frames: from document start, every animation frame for 3 s records how much of the sidebar is inside the viewport.
+import { PNG } from 'pngjs';
 
 export const SEL = {
   toggle: '.meta-sidebar__trigger',
@@ -88,7 +91,7 @@ const STATE = (sel) => {
     navigation: document.documentElement.getAttribute('data-admin-toolbar'),
     htmlHeight: Math.round(document.documentElement.getBoundingClientRect().height),
     storage: Object.fromEntries(Object.entries(localStorage).filter(([k]) => /^Drupal\.(defaultAdmin|navigation)\./.test(k))),
-    url: location.pathname,
+    url: location.pathname + location.search + location.hash,
   };
 };
 
@@ -129,6 +132,26 @@ const summariseFrames = (frames) => {
   return { count: frames.length, everShown: painted.length > 0, shownFrames: painted.length, maxShownWidth: painted.length ? Math.max(...painted.map((f) => f.w)) : 0, firstShownAt: painted[0]?.t ?? null, topRange: tops.length ? [Math.min(...tops), Math.max(...tops)] : null, states: [...new Set(frames.map((f) => f.state))] };
 };
 
+// Pixels inside `inner` (CSS px within the clip) that differ by more than 100 (RGB distance) from the clip's most common colour,
+// which is taken as the background. A drawn icon gives dozens; an icon painted in the background colour gives almost none.
+function ink(buf, inner) {
+  const png = PNG.sync.read(buf), k = png.width / inner.clipWidth, counts = new Map();
+  const px = (x, y) => { const i = (y * png.width + x) * 4; return [png.data[i], png.data[i + 1], png.data[i + 2]]; };
+  for (let y = 0; y < png.height; y++) for (let x = 0; x < png.width; x++) { const c = px(x, y).join(','); counts.set(c, (counts.get(c) || 0) + 1); }
+  const bg = [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0].split(',').map(Number);
+  let n = 0;
+  for (let y = Math.round(inner.y * k); y < Math.round((inner.y + inner.h) * k); y++) for (let x = Math.round(inner.x * k); x < Math.round((inner.x + inner.w) * k); x++) {
+    const c = px(x, y); if (Math.hypot(c[0] - bg[0], c[1] - bg[1], c[2] - bg[2]) > 100) n++;
+  }
+  return { ink: Math.round(n / (k * k)), background: `rgb(${bg.join(', ')})` };
+}
+// CSS pixels that differ by more than 60 between two screenshots of the same clip.
+function changed(a, b, clipWidth) {
+  const p = PNG.sync.read(a), q = PNG.sync.read(b), k = p.width / clipWidth; let n = 0;
+  for (let i = 0; i < p.data.length; i += 4) if (Math.hypot(p.data[i] - q.data[i], p.data[i + 1] - q.data[i + 1], p.data[i + 2] - q.data[i + 2]) > 60) n++;
+  return Math.round(n / (k * k));
+}
+
 export async function replaySide(page, base, { out, side, axe, path, narrow = 800 } = {}) {
   const S = { narrowWidth: narrow };
   const state = async (extra = {}) => ({ ...(await page.evaluate(STATE, SEL)), ...extra });
@@ -137,8 +160,9 @@ export async function replaySide(page, base, { out, side, axe, path, narrow = 80
   const toggle = page.locator(SEL.toggle).first();
   // A real click that cannot crash the run: what is on top at the control's centre is recorded first, so a control covered by
   // another element (Before: the close button under the top bar below 1024px) is a result, not a timeout.
+  const coverOf = (loc) => loc.evaluate((el) => { const r = el.getBoundingClientRect(); const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); if (!e || el === e || el.contains(e)) return null; const region = e.closest('[aria-label]')?.getAttribute('aria-label'); return `${e.tagName.toLowerCase()}${typeof e.className === 'string' && e.className.trim() ? '.' + e.className.trim().split(/\s+/)[0] : ''}${region ? ` in "${region}"` : ''}`; }).catch(() => 'not found');
   const click = async (loc) => {
-    const coveredBy = await loc.evaluate((el) => { const r = el.getBoundingClientRect(); const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); if (!e || el === e || el.contains(e)) return null; const region = e.closest('[aria-label]')?.getAttribute('aria-label'); return `${e.tagName.toLowerCase()}${typeof e.className === 'string' && e.className.trim() ? '.' + e.className.trim().split(/\s+/)[0] : ''}${region ? ` in "${region}"` : ''}`; }).catch(() => 'not found');
+    const coveredBy = await coverOf(loc);
     try { await loc.click({ timeout: 3000 }); await settle(page); return { ok: true, coveredBy }; } catch (e) { return { ok: false, coveredBy, error: e.message.split('\n')[0] }; }
   };
   // Press a key on the focused toggle; record the state, and press again to undo if it changed anything.
@@ -150,6 +174,32 @@ export async function replaySide(page, base, { out, side, axe, path, narrow = 80
     const changed = after.toggle?.ariaExpanded !== before.toggle?.ariaExpanded || (after.sidebar?.shownWidth > 1) !== (before.sidebar?.shownWidth > 1);
     if (changed) { await toggle.focus(); await page.keyboard.press(key); await settle(page); }
     return { before, after, changed, restored: await state() };
+  };
+  // Drag the resize handle `px` outward (away from the sidebar's centre: left in LTR, right in RTL) with the mouse.
+  const handle = page.locator(SEL.handle).first();
+  const dragOutward = async (px) => {
+    const sb = await page.locator('#default_admin_sidebar').boundingBox().catch(() => null);
+    const hb = await handle.boundingBox().catch(() => null);
+    const start = (await state()).sidebar?.width;
+    if (!sb || !hb || !hb.width) return { start, handleBox: hb };
+    const x = hb.x + hb.width / 2, y = hb.y + Math.min(hb.height / 2, 200), dir = x < sb.x + sb.width / 2 ? -1 : 1;
+    await page.mouse.move(x, y); await page.mouse.down(); await page.mouse.move(x + dir * px, y, { steps: 12 }); await page.mouse.up(); await settle(page);
+    return { start, dragged: (await state()).sidebar?.width, placed: sb.x < 1 ? 'left' : 'right', handleBox: hb };
+  };
+  // Photograph the close button (6px around it) while it has focus, if it has, then with focus removed.
+  const closeLook = async () => {
+    const loc = page.locator(SEL.close).first();
+    const box = await loc.boundingBox().catch(() => null);
+    if (!box || box.width < 4) return { box: null };
+    const clip = { x: Math.max(0, box.x - 6), y: Math.max(0, box.y - 6), width: box.width + 12, height: box.height + 12 };
+    const inner = { x: box.x - clip.x, y: box.y - clip.y, w: box.width, h: box.height, clipWidth: clip.width };
+    const coveredBy = await coverOf(loc);
+    const focused = (await state()).active.where === 'close';
+    const save = (name) => (out && path ? path.join(out, `${side}-close-${name}.png`) : undefined);
+    const f = focused ? await page.screenshot({ clip, path: save('focus') }) : null;
+    await page.evaluate(() => document.activeElement?.blur()); await page.waitForTimeout(200);
+    const r = await page.screenshot({ clip, path: save('rest') });
+    return { box, coveredBy, focused, rest: ink(r, inner), focus: f ? ink(f, inner) : null, changed: f ? changed(f, r, clip.width) : null };
   };
   await page.context().addInitScript(FRAMES);
 
@@ -170,17 +220,16 @@ export async function replaySide(page, base, { out, side, axe, path, narrow = 80
   await page.evaluate(() => document.activeElement?.blur());
   { const before = await state(); await page.keyboard.press('Alt+s'); await settle(page); const after = await state(); d.altS = { before, after, changed: (after.sidebar?.shownWidth > 1) !== (before.sidebar?.shownWidth > 1) }; if (d.altS.changed) { await page.keyboard.press('Alt+s'); await settle(page); } }
   if (!((await state()).sidebar?.shownWidth > 1)) { await toggle.click(); await settle(page); }
-  // Drag the handle 120px outward (left in LTR), then reload.
-  const handle = page.locator(SEL.handle).first();
-  const box = await handle.boundingBox().catch(() => null);
-  d.width = { start: (await state()).sidebar?.width, handleBox: box };
-  if (box && box.width > 0) {
-    const x = box.x + box.width / 2, y = box.y + Math.min(box.height / 2, 200);
-    await page.mouse.move(x, y); await page.mouse.down(); await page.mouse.move(x - 120, y, { steps: 12 }); await page.mouse.up(); await settle(page);
-    d.width.dragged = (await state()).sidebar?.width;
+  // Drag the handle 120px outward, then reload.
+  d.width = await dragOutward(120);
+  if (d.width.dragged != null) {
     d.width.reloadFrames = await load(page, base);
     d.width.afterReload = (await state()).sidebar?.width;
   }
+  // Right to left, as the issue's testing steps do it (dir="rtl" on <html>): the sidebar moves to the left; outward is now right.
+  await page.evaluate(() => { document.documentElement.dir = 'rtl'; }); await settle(page);
+  d.rtl = await dragOutward(120);
+  await page.evaluate(() => { document.documentElement.dir = 'ltr'; }); await settle(page);
   // Close, reload: stays closed, no frame with the sidebar on screen.
   await toggle.click(); await settle(page);
   d.closed = await state({ aria: await aria() });
@@ -230,6 +279,10 @@ export async function replaySide(page, base, { out, side, axe, path, narrow = 80
   await page.keyboard.press('Escape'); await settle(page);
   m.escape = await state({ aria: await aria() });
   await shot('narrow-escape');
+  // Open with Enter again (After moves focus to the close button) and photograph the close button; then Escape.
+  if (!shown(await state())) { await toggle.focus(); await page.keyboard.press('Enter'); await settle(page); }
+  m.closeLook = await closeLook();
+  await page.keyboard.press('Escape'); await settle(page);
   // Mouse: open, close with the overlay; open, close with the close button.
   if (!((await state()).sidebar?.shownWidth > 1)) { await toggle.click(); await settle(page); }
   m.reopened = await state();
@@ -274,6 +327,7 @@ export const CHECKS = [
   ['F9', 'fix', 'First visit below 1024px: the sidebar is never painted on screen while the page loads', (S) => S.narrow.firstVisitFrames.count ? !S.narrow.firstVisitFrames.everShown : null],
   ['F11', 'fix', '1100px, sidebar open and Navigation expanded: opening and closing a details element does not collapse Navigation', (S) => shown(S.nav.navExpanded) && S.nav.navExpanded.navigation === 'expanded' && S.nav.afterDetails1 ? S.nav.afterDetails1.navigation === 'expanded' && S.nav.afterDetails2.navigation === 'expanded' : null],
   ['F12', 'fix', '1000px: the open sidebar starts at or below the bottom of the bars above it (no overlap)', (S) => shown(S.widths[1000].open) && S.widths[1000].open.barBottom != null ? S.widths[1000].open.sidebar.top >= S.widths[1000].open.barBottom - 1 : null],
+  ['F13', 'fix', 'Right to left (dir="rtl" on `<html>`): dragging the handle outward widens the sidebar', (S) => S.desktop.rtl?.dragged != null ? S.desktop.rtl.dragged > S.desktop.rtl.start : null],
   ['R1', 'regression', 'Mouse click on the toggle closes and reopens the sidebar', (S) => shown(S.desktop.initial) && !shown(S.desktop.click1) && shown(S.desktop.click2)],
   ['R2', 'regression', 'Enter on the focused toggle opens or closes the sidebar', (S) => S.desktop.enter.changed],
   ['R3', 'regression', 'aria-expanded on the toggle matches the sidebar after every desktop action', (S) => [S.desktop.initial, S.desktop.click1, S.desktop.click2, S.desktop.enter.after, S.desktop.space.after, S.desktop.closed, S.desktop.closedAfterReload, S.desktop.openAfterReload].every(tracks)],
@@ -286,6 +340,11 @@ export const CHECKS = [
   // The page has inert elements of its own (14 on both sides at the pinned core), so compare with the count before opening.
   ['R10', 'regression', 'Below 1024px: after closing, nothing more is inert than before opening', (S) => S.narrow.escape.inertCount === S.narrow.initial.inertCount && S.narrow.closeClick.inertCount === S.narrow.initial.inertCount && S.narrow.escape.titleFieldInert === false],
   ['R11', 'regression', 'Desktop, closed then reloaded: the sidebar is never painted on screen while the page loads', (S) => S.desktop.closedReloadFrames.count ? !S.desktop.closedReloadFrames.everShown : null],
+  // Comment #23: in forced colours the close button's icon disappeared when the button had focus. Measured on every run, in
+  // whatever colour mode the run uses; n/a where the button is covered (Before: under the top bar) or not drawn.
+  ['R12', 'regression', 'Below 1024px: the close button\'s icon is drawn at rest and when focused (pixels)', (S) => { const c = S.narrow.closeLook; if (!c?.rest || c.coveredBy) return null; return c.rest.ink >= 20 && (!c.focus || c.focus.ink >= Math.max(20, c.rest.ink / 2)); }],
+  ['R13', 'regression', 'Below 1024px: focus on the close button changes how it looks (focus indicator)', (S) => { const c = S.narrow.closeLook; return c?.focus && !c.coveredBy ? c.changed >= 40 : null; }],
+  ['R14', 'regression', 'Below 1024px: closing with the overlay or the close button leaves the URL unchanged', (S) => [S.narrow.overlayClick, S.narrow.closeClick].every((x) => x.url === S.narrow.reopened.url)],
   ['O1', 'observe', 'Toggle in the accessibility tree: open / closed', (S) => `${S.desktop.initial.aria ?? '—'} / ${S.desktop.click1.aria ?? '—'}`],
   ['O2', 'observe', 'Alt+S toggles the sidebar (keyboard shortcut)', (S) => S.desktop.altS.changed],
   ['O3', 'observe', 'Resize handle shown with the sidebar open at 960px / 1000px / 1280px', (S) => `${S.widths[960].open.handleShown} / ${S.widths[1000].open.handleShown} / ${S.desktop.initial.handleShown}`],
@@ -296,6 +355,8 @@ export const CHECKS = [
   ['O8', 'observe', '1100px: Navigation, sidebar shown (px) before / after opening details / after closing details (html height)', (S) => S.nav.afterDetails1 ? [S.nav.navExpanded, S.nav.afterDetails1, S.nav.afterDetails2].map((x) => `${x.navigation}, ${x.sidebar?.shownWidth ?? '—'}`).join(' / ') + ` (${S.nav.navExpanded.htmlHeight}→${S.nav.afterDetails1.htmlHeight})` : 'details not found'],
   ['O9', 'observe', 'Below 1024px: what covers the close button (mouse click blocked?)', (S) => S.narrow.closeClickResult.coveredBy ? `${S.narrow.closeClickResult.coveredBy}${S.narrow.closeClickResult.ok ? '' : ', click blocked'}` : 'nothing'],
   ['O10', 'observe', '1100px, both stored open, first load: sidebar shown (px) / Navigation', (S) => `${S.nav.initial.sidebar?.shownWidth ?? '—'} / ${S.nav.initial.navigation}`],
+  ['O11', 'observe', 'Close button icon pixels at rest / focused, and pixels changed by focus (screenshots `*-close-rest.png`, `*-close-focus.png`)', (S) => { const c = S.narrow.closeLook; return c?.rest ? `${c.rest.ink} / ${c.focus ? c.focus.ink : 'not focused'} / ${c.changed ?? '—'}${c.coveredBy ? ` (covered by ${c.coveredBy})` : ''}` : 'not drawn'; }],
+  ['O12', 'observe', 'RTL drag: sidebar side, width before → after dragging outward 120px', (S) => S.desktop.rtl?.dragged != null ? `${S.desktop.rtl.placed}, ${S.desktop.rtl.start} → ${S.desktop.rtl.dragged}` : 'no handle'],
 ];
 const gap = (s) => (s?.sidebar && s.barBottom != null ? s.sidebar.top - s.barBottom : '—');
 const tally = (tabs) => Object.entries(tabs.reduce((o, t) => ({ ...o, [t.where]: (o[t.where] || 0) + 1 }), {})).map(([k, v]) => `${k} ${v}`).join(', ');
@@ -307,7 +368,9 @@ export function evaluate(B, A) {
     const before = val(B), after = val(A);
     let status = 'recorded';
     if (kind === 'fix') status = before === null || after === null ? 'not applicable' : before === false && after === true ? 'as expected' : before === true ? 'NOT REPRODUCED on Before' : 'NOT FIXED on After';
-    if (kind === 'regression') status = after === null ? 'not applicable' : after === true ? (before === true ? 'as expected' : 'as expected (Before also fails)') : before === true ? 'REGRESSION on After' : 'fails on both';
+    if (kind === 'regression') status = after === null ? 'not applicable'
+      : after === true ? (before === true ? 'as expected' : before === null ? 'as expected (n/a on Before)' : 'as expected (Before also fails)')
+      : before === true ? 'REGRESSION on After' : before === null ? 'NOT as expected on After' : 'fails on both';
     return { id, kind, label, before, after, status };
   });
   const fix = rows.filter((r) => r.kind === 'fix' && r.status !== 'not applicable');

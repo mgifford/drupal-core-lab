@@ -3,7 +3,8 @@
 Issue: https://www.drupal.org/project/drupal/issues/3619154
 Pinned core: `6868135abe8e` (the 2026-10-14 review of MR !16911, branch `sidebar-toggle-fixes` @ `6f7766cb`).
 Last verified: 2026-10-14 (pinned, DDEV, toggle slice only). 2026-10-17: the evaluator was rewritten and checked against that same
-revision on core main `f2abd41` in a scratch environment, not DDEV ([validation/2026-10-17-scratch/](validation/2026-10-17-scratch/SUMMARY.md)).
+revision on core main `f2abd41`, in normal and forced colours, in a scratch environment, not DDEV
+([validation/2026-10-17-scratch/](validation/2026-10-17-scratch/SUMMARY.md)). MR head since 2026-10-17: `175e6f17`, not yet in the lab.
 
 ## The problem in one paragraph
 On entity edit forms in Default Admin, the meta sidebar's show/hide toggle and its close control are `<a href="#…" role="button">`
@@ -14,63 +15,94 @@ briefly paints the sidebar on screen before hiding it. Standards mapping is a pe
 authoring expectation, most often filed under 4.1.2 Name, Role, Value. Focus left behind an overlay, and Tab reaching the covered
 page, relate to 2.4.3 Focus Order.
 
-## Evaluate a new merge request revision
-The `3619154-latest` pair is Before = current core `main`, After = `main` plus the patch. **The patch the lab has (6f7766cb) no
-longer applies to `main`**: since core commit `aeca9d7` (2026-10-14, "Follow-up for SA-CORE-2026-016: update performance tests") its
-hunk for `core/profiles/demo_umami/tests/src/FunctionalJavascript/MultipleRequestsPerformanceTestAssertions/umamiNodeAddEditor.yml`
-fails. Everything else applies. So refresh the patch first.
+## Evaluate the new revision: MR !16911 at `175e6f17`
+Same MR and branch (`sidebar-toggle-fixes`) as the 2026-10-14 review. The 2026-10-17 14:55 UTC push merged `main` and ended with
+`175e6f17` "Fix close button focus state when in forced colors", the answer to comment #23 ([STATUS-2026-10-17.md](STATUS-2026-10-17.md)).
+The lab still has `6f7766cb`, which no longer applies to `main`. Since core commit `aeca9d7` (2026-10-14), its hunk for
+`core/profiles/demo_umami/tests/src/FunctionalJavascript/MultipleRequestsPerformanceTestAssertions/umamiNodeAddEditor.yml` fails.
 
-1. Read what changed, on drupal.org (AGENTS.md rule 15; this was not possible from the 2026-10-17 cloud session):
+**The first question:** does R12, the close button's icon when it has focus, pass in forced colours? It fails with `6f7766cb`
+([validation](validation/2026-10-17-scratch/SUMMARY.md)). **The second:** did anything else change? Compare the whole table with that
+validation run.
 
-        node scripts/issue-intake.mjs fetch 3619154      # issue, every MR, review threads, related issues -> intake/BRIEF.md
+### 1. Put the new revision's patch in the lab
+This needs a network that reaches git.drupalcode.org. **DDEV Coder workspaces and Claude Code cloud sessions do not**
+(`tools/compare/cloud/README.md`), so do this step on your laptop, or in a browser.
+
+- **Laptop (preferred: the lab records the tip and base for you):**
+
+        node scripts/issue-intake.mjs fetch 3619154      # issue, MR threads, related issues -> intake/BRIEF.md (AGENTS.md rule 15)
         node scripts/issue-status.mjs 3619154 --write    # MR head against the patch the lab tested
+        node tools/playwright/evaluate-3619154.mjs 3619154-pinned --forced-colors   # optional, BEFORE refreshing: 6f7766cb in the lab (R12 should fail)
+        node scripts/new-issue.mjs 3619154 --branch sidebar-toggle-fixes --refresh  # tip should read 175e6f17
 
-2. Get the new revision's patch. Use the case that matches the issue page:
+  The old patch is kept in `original-patches/`, with a row in `PATCH-CHANGES.md`. Commit the refreshed files and push them to this
+  branch if you also want to use Coder.
 
-   **A. New push to the same branch** (`sidebar-toggle-fixes`): the patch file is replaced in place. The old one is kept in
-   `original-patches/` with a row in `PATCH-CHANGES.md`. Both variants use the new file, and the 2026-10-14 run becomes stale.
+- **Browser only:** open the issue page's "plain diff" link (https://git.drupalcode.org/project/drupal/-/merge_requests/16911.diff)
+  and save it. Then give it to the lab in one of two ways. Attach it to the Claude session. Or upload it on GitHub with "Add file >
+  Upload files" into `reports/issues/3619154/incoming/` on this branch. Then, in any checkout with Node (a Coder workspace included):
 
-        node scripts/new-issue.mjs 3619154 --branch sidebar-toggle-fixes --refresh
+        cp reports/issues/3619154/incoming/16911.diff reports/issues/3619154/branches/sidebar-toggle-fixes.patch
+        node scripts/patch-change.mjs record reports/issues/3619154/branches/sidebar-toggle-fixes.patch --by "<you>" \
+          --reason "MR !16911 at 175e6f17 (head shown on the MR page), GitLab plain diff, downloaded <date>"
 
-   **B. New merge request from another branch**: this adds `branches/<new-branch>.patch` and a `BRANCHES.md` row. Variants are not touched.
+  A plain diff carries no commit hash, so the head goes in the reason. `BRANCHES.md` still names `6f7766cb` until someone runs the
+  laptop command.
 
-        node scripts/new-issue.mjs 3619154 --branch <new-branch>
-
-   then give only the latest pair the new patch, in `tools/compare/variants.json`, entry `3619154-latest`:
-
-        "after": { "env": "issue-3619154-latest", "patches": ["reports/issues/3619154/branches/<new-branch>.patch"] }
-
-   (`extends` merges `after` one level deep, so this replaces the patch list for `-latest` only; `-pinned` keeps the 2026-10-14
-   review.)
-
-   In DDEV Coder instead of local DDEV: after either case, `node scripts/coder-prompt.mjs 3619154-latest --write` and follow
-   `CODER-PROMPT.md` (it names the patch stack with its hash, so generate it only after the refresh).
-
-3. Build and compare:
+### 2a. Compare on your laptop (local DDEV)
 
         node scripts/doctor.mjs 3619154-latest
         node tools/compare/setup.mjs 3619154-latest --check-patches     # must say the patch applies
         node tools/compare/setup.mjs 3619154-latest                     # first time; --refresh-patches if it was built before
-        node scripts/lab-env.mjs start 3619154-latest --browser         # the viewer: Before | After, same page, same steps
-        node tools/playwright/evaluate-3619154.mjs 3619154-latest       # scripted Before/After; exit 0 = everything as expected
+        node scripts/lab-env.mjs start 3619154-latest --browser         # the viewer, with the lab browser's forced-colours switch
+        node tools/playwright/evaluate-3619154.mjs 3619154-latest --forced-colors   # R12 is the comment #23 question
+        node tools/playwright/evaluate-3619154.mjs 3619154-latest                   # normal colours; exit 0 = everything as expected
 
-4. Fill the coverage matrix, then the code checks:
+### 2b. Compare in DDEV Coder (browser only)
+Follow [docs/CLOUD-QUICKSTART.md](../../../docs/CLOUD-QUICKSTART.md). Its own status table says the web-form creation and the
+frames at the real Coder URLs have not been recorded by anyone yet.
+
+1. At https://coder.ddev.com/workspaces create a **DDEV Freeform** workspace. Set **DDEV project names** to
+   `drupal-compare,drupal-compare-before,drupal-compare-after` and leave **Public Sharing** off (the sites use admin / admin).
+2. In the workspace's web terminal:
+
+        git clone https://github.com/mgifford/drupal-core-lab.git && cd drupal-core-lab
+        git checkout ccr-93c98e37-lv7mfj             # until this work is merged into main
+        # step 1, browser-only route, if the refreshed patch is not in the repository yet
+        node scripts/cloud-bootstrap.mjs 3619154-latest --check --core-url=https://github.com/drupal/drupal.git
+        node scripts/cloud-bootstrap.mjs 3619154-latest --install-autostart --core-url=https://github.com/drupal/drupal.git
+
+3. Open the viewer address the bootstrap prints, in a browser signed in to Coder. The **Steps** tab lists the issue's testing steps,
+   including the forced-colours one. For forced colours in a cloud lab, use your own browser: Chrome or Edge DevTools > More tools >
+   Rendering > "Emulate CSS media feature forced-colors" (it applies to the whole tab, both frames), or a Windows contrast theme.
+   The lab browser and **Open preference emulation window** start Chromium on the machine that runs the lab, so they are for
+   local DDEV only.
+4. Scripted, in the same terminal (Chromium is installed by the bootstrap's smoke check unless the network refuses it; not yet run
+   inside a workspace):
+
+        node tools/playwright/evaluate-3619154.mjs 3619154-latest --forced-colors
+
+   For an agent in the workspace instead: `node scripts/coder-prompt.mjs 3619154-latest --write` writes `CODER-PROMPT.md`. Generate
+   it only after step 1: it names the patch with its hash.
+
+### 3. Fill the coverage matrix, then the code checks
 
         node tools/playwright/evaluate-3619154.mjs 3619154-latest --viewport=480x900
         node tools/playwright/evaluate-3619154.mjs 3619154-latest --scheme=dark
-        node tools/playwright/evaluate-3619154.mjs 3619154-latest --forced-colors
         node tools/playwright/evaluate-3619154.mjs 3619154-latest --browser=firefox
         node tools/playwright/evaluate-3619154.mjs 3619154-latest --browser=webkit
         node scripts/coverage.mjs 3619154
         node scripts/lint.mjs 3619154-latest
 
-5. Compare the new run's table with [the previous revision's](validation/2026-10-17-scratch/SUMMARY.md). Rows that change are
-   what the new revision changed. Then do a person's keyboard pass in the viewer and save its log under `manual/`.
+Then do a person's keyboard pass in the viewer and save its log under `manual/`.
 
 ## How to read the run
 `SUMMARY.md` in the run folder has one table. **Fix** rows (F) should fail Before and pass After. **Regression** rows (R) should
 pass After. **Observed** rows (O) are for a person:
 
+- R12 (with `--forced-colors`): the close button's icon with focus, comment #23. O11 gives the pixel counts; the run folder has
+  `*-close-rest.png` and `*-close-focus.png`.
 - O1, the toggle's accessible name. O2, the Alt+S shortcut (Before has one; the previous revision removed it).
 - O3, the resize handle at 960px. O4, the sidebar top against the top bar.
 - O10, 1100px with both panels stored open (After showed both; Before collapses Navigation).

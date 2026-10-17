@@ -4,7 +4,7 @@
 // Defaults: slug 3619154-latest (current core main; the comparison for a new merge request revision), chromium, light, 1280x900.
 // The steps and checks are in sidebar-3619154.mjs: desktop 1280px, 1100px with Navigation, narrow 800px (or the --viewport width
 // when it is below 1024px), and 960/1000px. Real input; axe on the open desktop sidebar, the closed one after reload, and the open
-// narrow overlay. The context, AJAX commands and announcements are recorded by tools/playwright/lib/lab-run.mjs (see there).
+// narrow overlay. Run it with --forced-colors too: R12 is the close button's icon in that mode (comment #23). The context, AJAX commands and announcements are recorded by tools/playwright/lib/lab-run.mjs (see there).
 // Writes reports/issues/3619154/playwright/<stamp>-<envTag>/ (results.json, SUMMARY.md, ajax-*.json, *.png) or --out.
 // Replaces the 2026-10-14 script, whose "sidebar shown" probe used offsetParent: always null for this position:fixed sidebar.
 import path from 'node:path';
@@ -44,9 +44,9 @@ md += `Fix: should fail Before and pass After. Regression: should pass After. Ob
 for (const r of ev.rows) md += `| ${r.id} | ${r.kind} | ${r.label} | ${cell(r.before)} | ${cell(r.after)} | ${r.status} |\n`;
 md += `\n## axe (WCAG 2.2 A/AA tags), violations\n\n| Stage | Before | After |\n|---|---|---|\n${axeRow('Desktop, sidebar open', ['desktop', 'axeOpen'])}\n${axeRow('Desktop, closed after reload', ['desktop', 'axeClosed'])}\n${axeRow(`${narrow}px, sidebar open`, ['narrow', 'axeOpen'])}\n`;
 md += `\nJavaScript errors: Before ${results.sides.before.jsErrors.length}, After ${results.sides.after.jsErrors.length}.\n`;
-md += `\n## Screenshots\n\n\`{before,after}-desktop-initial\`, \`-desktop-closed-reloaded\`, \`-nav-initial\`, \`-nav-after-details\`, \`-narrow-open\`, \`-narrow-escape\`, \`-width-960-open\`, \`-width-1000-open\` (.png).\n\n`;
+md += `\n## Screenshots\n\n\`{before,after}-desktop-initial\`, \`-desktop-closed-reloaded\`, \`-nav-initial\`, \`-nav-after-details\`, \`-narrow-open\`, \`-narrow-escape\`, \`-close-rest\`, \`-close-focus\`, \`-width-960-open\`, \`-width-1000-open\` (.png).\n\n`;
 md += contextMarkdown(results) + speechMarkdown(results);
-md += `## How to read it\n\n- F11 is "n/a" on a side where the sidebar and an expanded Navigation cannot both be open below 1280px: each closes the other when opened by a click. O10 shows what a page load from stored state gives.\n- A flash (F9, R11) is any animation frame, from document start for 3 s, with part of the sidebar inside the viewport while it should be closed.\n- Focus is placed with \`locator.focus()\` before each key press; the key presses, clicks and the drag are real input.\n\n`;
-md += `Not verified: a person's keyboard pass, a screen reader (synthetic or real), touch resizing, right-to-left, resizing after an AJAX rebuild, other entity forms than /node/1/edit, and themes other than Default Admin.\n`;
+md += `## How to read it\n\n- F11 is "n/a" on a side where the sidebar and an expanded Navigation cannot both be open below 1280px: each closes the other when opened by a click. O10 shows what a page load from stored state gives.\n- A flash (F9, R11) is any animation frame, from document start for 3 s, with part of the sidebar inside the viewport while it should be closed.\n- R12 photographs the close button (6px around it) with focus, after opening with Enter, and again with focus removed; it counts the pixels that differ from the most common colour. It fails when the focused icon has under half the pixels it has at rest (comment #23: in forced colours the icon vanished on focus). It is n/a where something covers the button.\n- F13 sets \`dir="rtl"\` on \`<html>\` after load, as the issue's testing steps do; it is not a right-to-left language install.\n- Focus is placed with \`locator.focus()\` before each key press; the key presses, clicks and the drags are real input.\n\n`;
+md += `Not verified: a person's keyboard pass, a screen reader (synthetic or real), touch resizing, a right-to-left language install, resizing after an AJAX rebuild, the site without the Navigation module, other entity forms than /node/1/edit, and themes other than Default Admin.\n`;
 console.log(writeRun(run, results, md));
 process.exitCode = results.unexpected ? 2 : 0;
