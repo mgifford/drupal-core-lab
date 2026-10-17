@@ -1,12 +1,13 @@
 // Read-only initial-state inventory. Does not infer intended design or conformance.
+import { printLayoutEvidence, motionEvidence } from './design-review.mjs';
 import { browserThemeContext } from '../../compare/theme-context.mjs';
 
 export async function observeDesign(page, { limit = 4000 } = {}) {
   const context = await page.evaluate(browserThemeContext);
   const data = await page.evaluate(async ({ limit }) => {
-    const properties = ['display', 'visibility', 'fontWeight', 'fontStyle', 'fontSize', 'fontFamily', 'lineHeight', 'color', 'backgroundColor', 'borderTopStyle', 'borderBottomStyle', 'borderInlineStartStyle', 'borderInlineStartWidth', 'borderInlineStartColor', 'outlineStyle', 'outlineWidth', 'forcedColorAdjust', 'overflowX', 'overflowY', 'animationName', 'animationDuration', 'animationDelay', 'animationIterationCount', 'animationTimingFunction', 'transitionProperty', 'transitionDuration', 'transitionDelay', 'scrollBehavior'];
+    const properties = ['display', 'visibility', 'position', 'fontWeight', 'fontStyle', 'fontSize', 'fontFamily', 'lineHeight', 'color', 'backgroundColor', 'borderTopStyle', 'borderBottomStyle', 'borderInlineStartStyle', 'borderInlineStartWidth', 'borderInlineStartColor', 'outlineStyle', 'outlineWidth', 'forcedColorAdjust', 'overflowX', 'overflowY', 'animationName', 'animationDuration', 'animationDelay', 'animationIterationCount', 'animationTimingFunction', 'transitionProperty', 'transitionDuration', 'transitionDelay', 'scrollBehavior'];
     const selector = element => {
-      if (element.id && !/\d{6,}|--/.test(element.id)) return '#' + CSS.escape(element.id);
+      if (element.id && !/\d{6,}|--|^ck(?:editor)?[-_]|^c[0-9a-f]{16,}$/i.test(element.id)) return '#' + CSS.escape(element.id);
       const parts = [];
       for (let node = element; node && node !== document.documentElement; node = node.parentElement) {
         const siblings = [...(node.parentElement?.children || [])].filter(other => other.tagName === node.tagName);
@@ -52,7 +53,10 @@ export async function observeDesign(page, { limit = 4000 } = {}) {
       }
       const semantic = /^(?:h[1-6]|label|legend|caption|th|button|a|summary|dt|em|strong)$/i.test(element.tagName) || element.hasAttribute('aria-label');
       const signature = semantic ? await targetEvidence(element) : null;
+      const r = element.getBoundingClientRect();
       return {
+        rect: Object.fromEntries(['x', 'y', 'width', 'height'].map(key => [key, Math.round(r[key] * 100) / 100])),
+        region: element.closest('.ck-editor__editable, .ck-content') ? 'editor-content' : element.closest('.ck, .ck-editor') ? 'editor-ui' : element.closest('aside,nav,[role=navigation]') ? 'navigation' : 'page',
         semanticText: signature ? { textHash: signature.textHash, ariaLabelHash: signature.ariaLabelHash } : null,
         key: selector(element), localThemeMode: element.closest('[data-theme-mode]')?.getAttribute('data-theme-mode') || null, runningAnimations: element.getAnimations ? element.getAnimations().filter(animation => animation.playState === 'running').length : null, tag: element.tagName.toLowerCase(),
         role: element.getAttribute('role'), classes: [...element.classList].filter(value => !/\d{6,}/.test(value)).slice(0, 30),
@@ -85,7 +89,11 @@ export async function observeDesign(page, { limit = 4000 } = {}) {
     for (const sheet of document.styleSheets) inspect(sheet);
     return { nodes, availableElements: elements.length, truncated: elements.length > limit, sheets, printRules, preferenceRules, media: { print: matchMedia('print').matches } };
   }, { limit });
-  return { context, ...data };
+  const snapshot = { context, ...data };
+  snapshot.motion = motionEvidence(snapshot);
+  snapshot.printLayout = data.media.print ? printLayoutEvidence(snapshot) : null;
+  snapshot.editor = { uiElements: data.nodes.filter(node => node.region === 'editor-ui').length, contentElements: data.nodes.filter(node => node.region === 'editor-content').length, note: 'Rendered editor UI and content styles only; no content entry, formatting actions, or saved frontend rendering.' };
+  return snapshot;
 }
 
 // Keep raw IDs as evidence, but compare ordered resolved relationships. Older

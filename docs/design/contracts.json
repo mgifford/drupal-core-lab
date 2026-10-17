@@ -1,0 +1,527 @@
+{
+  "schema": "drupal-design-review-draft-1",
+  "document_version": "0.1",
+  "status": "DRAFT_NOT_ADOPTED",
+  "date": "2026-10-17",
+  "target": "Default Admin and shared Drupal interface review",
+  "core_evidence_commit": "6868135abe8e18373329d51bcb2d2bc81967d8c0",
+  "automation": "Proposed contracts only; not implemented scanner rules. No automatic enforcement.",
+  "rules": [
+    {
+      "id": "CTX-01",
+      "title": "Compare equivalent contexts",
+      "section": "context",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Compare a component only within a declared theme, account, language, direction, viewport, state and preference context. Preserve unknown theme evidence.",
+      "applies_to": "All themes and regions",
+      "check": "Record actual, configured and stylesheet evidence separately; show context transitions.",
+      "exceptions": "Intentional theme or context changes are explained, not suppressed.",
+      "sources": [
+        "negotiation"
+      ],
+      "evidence": [
+        "crawl-20261017"
+      ]
+    },
+    {
+      "id": "SEM-01",
+      "title": "Structure before appearance",
+      "section": "semantics",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Preserve headings, labels, legends and table relationships when restyling. Visual weight alone is not a structural role.",
+      "applies_to": "Shared markup and all themes",
+      "check": "Inspect structure and relationships alongside computed styling.",
+      "exceptions": "A component redesign may change structure with explicit review.",
+      "sources": [
+        "ui"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "SEM-02",
+      "title": "Importance and emphasis",
+      "section": "semantics",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Use strong for importance or urgency, and em for stress emphasis. Choose meaning before its appearance.",
+      "applies_to": "Interface text and authored content",
+      "check": "Review the intended meaning; do not infer it from font weight or italics.",
+      "exceptions": "Other HTML elements have distinct meanings; do not replace b or i indiscriminately.",
+      "sources": [
+        "html"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "SEM-03",
+      "title": "Labels are components",
+      "section": "semantics",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Style labels through the label component. Do not add strong merely to obtain a heavier label.",
+      "applies_to": "Form labels",
+      "check": "Compare matching label variants; verify association with the control.",
+      "exceptions": "Required, optional, checkbox and composite labels can have different documented variants.",
+      "sources": [
+        "forms"
+      ],
+      "evidence": [
+        "article-labels"
+      ]
+    },
+    {
+      "id": "SEM-04",
+      "title": "References survive updates",
+      "section": "semantics",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Retain working, unambiguous naming, description and error references after AJAX updates.",
+      "applies_to": "Interactive components",
+      "check": "Resolve ordered ID references; distinguish generated-ID changes from broken relationships.",
+      "exceptions": "Matching hashes do not establish identical full accessible names.",
+      "sources": [],
+      "evidence": [
+        "crawl-20261017"
+      ]
+    },
+    {
+      "id": "TXT-01",
+      "title": "Consistent interface language",
+      "section": "components",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Use sentence case for ordinary interface headings and labels; retain proper names. Keep help separate from labels.",
+      "applies_to": "English interface strings",
+      "check": "Review text in context and against the published UI wording guidance.",
+      "exceptions": "Translation, proper nouns and established product names need language-aware review.",
+      "sources": [
+        "words",
+        "forms"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "TOK-01",
+      "title": "Reuse roles, not copied values",
+      "section": "foundations",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Use the existing component and token system before introducing another spacing, type or colour value.",
+      "applies_to": "Theme and component CSS",
+      "check": "Trace a computed value to its token, library and selector before proposing an override.",
+      "exceptions": "A deliberate component variant can justify a new token. Token names below are illustrative, not shipped CSS variables.",
+      "sources": [],
+      "evidence": []
+    },
+    {
+      "id": "COL-01",
+      "title": "Colour has an explicit purpose",
+      "section": "colour",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Map foreground, surface, boundary and state roles together. Do not assign meaning from a palette swatch alone.",
+      "applies_to": "All colour modes",
+      "check": "Review actual rendered pairs, simultaneous states and a non-colour cue.",
+      "exceptions": "Decorative colours need no state meaning. Existing colour-only failures are recorded rather than legitimized.",
+      "sources": [
+        "color"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "COL-02",
+      "title": "Check actual contrast pairs",
+      "section": "colour",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "external-requirement",
+      "statement": "Apply WCAG text contrast requirements to actual foreground/background pairs, including their exceptions.",
+      "applies_to": "Rendered text",
+      "check": "Use 4.5:1 for ordinary text and 3:1 for qualifying large text; inspect alpha, images and gradients.",
+      "exceptions": "Do not turn the exceptions into blanket permission to make disabled information unreadable.",
+      "sources": [
+        "contrast"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "COL-03",
+      "title": "Boundaries and indicators remain visible",
+      "section": "colour",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "external-requirement",
+      "statement": "Review the contrast of necessary control boundaries, state indicators and meaningful graphics.",
+      "applies_to": "Interactive and graphical components",
+      "check": "Apply SC 1.4.11 in context, including its 3:1 requirement and exceptions.",
+      "exceptions": "Not every decorative border is necessary to identify a control.",
+      "sources": [
+        "nontext"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "PREF-01",
+      "title": "Preferences are independent",
+      "section": "preferences",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Record colour scheme, forced colours, prefers-contrast and theme settings separately.",
+      "applies_to": "All themes",
+      "check": "Test individual preferences and useful combinations; retain unsupported values as unknown.",
+      "exceptions": "A site setting may deliberately override a browser preference; document its precedence.",
+      "sources": [
+        "forced"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "PREF-02",
+      "title": "Distinguish simultaneous states",
+      "section": "preferences",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Keep selected, invalid, focused and disabled states distinguishable when they occur together, including forced colours.",
+      "applies_to": "Forms, tabs, details and navigation",
+      "check": "Review text, shape, boundaries and keyboard focus in each combined state.",
+      "exceptions": "A double border in a local issue patch is not an accepted global Drupal design rule.",
+      "sources": [
+        "color",
+        "forced",
+        "focus"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "PREF-03",
+      "title": "Motion must have an alternative",
+      "section": "preferences",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "When motion communicates progress or the next action, retain an understandable static cue under reduced motion.",
+      "applies_to": "CSS and script-driven motion",
+      "check": "Trigger the behaviour in both modes and review completion, orientation and feedback.",
+      "exceptions": "Essential motion needs a documented rationale. SC 2.3.3 is AAA, not a blanket AA ban on animation.",
+      "sources": [
+        "motion"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "PREF-04",
+      "title": "Review residual transitions",
+      "section": "preferences",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Review remaining motion by property and purpose, not just duration or count.",
+      "applies_to": "All components, including third-party UI",
+      "check": "Separate declared transitions, observed animation and smooth scrolling. Trigger hover, focus, expand and validation states.",
+      "exceptions": "A short colour fade is not automatically equivalent to spatial movement or an accessibility failure.",
+      "sources": [],
+      "evidence": [
+        "motion-20261017"
+      ]
+    },
+    {
+      "id": "LAY-01",
+      "title": "Layout preserves task access",
+      "section": "components",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Keep content and focused controls usable under narrow widths, text expansion and persistent navigation.",
+      "applies_to": "Screen layout",
+      "check": "Check overlap, clipping, wrapping, zoom and keyboard access, including AJAX states.",
+      "exceptions": "Geometry intersections alone do not establish obscuration.",
+      "sources": [
+        "focus"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "CMP-01",
+      "title": "Action hierarchy matches purpose",
+      "section": "components",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Use buttons for actions and links for navigation; select a primary action deliberately.",
+      "applies_to": "Buttons, links and dropbuttons",
+      "check": "Review element behaviour, label and hierarchy against the task.",
+      "exceptions": "Wizard controls and component patterns need contextual review.",
+      "sources": [
+        "buttons"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "CMP-02",
+      "title": "Grouping conveys relationships",
+      "section": "components",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Use semantic grouping for related fields and disclosure patterns for optional detail.",
+      "applies_to": "Fieldsets, details and vertical tabs",
+      "check": "Review grouping, naming, expanded state and access to invalid fields.",
+      "exceptions": "Do not convert older numerical limits or collapse recommendations into universal automated failures.",
+      "sources": [
+        "forms"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "CMP-03",
+      "title": "Tables remain understandable",
+      "section": "components",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Retain identifiable column headers, row operations and sort state, including empty and dynamic tables.",
+      "applies_to": "Listings and multivalue widgets",
+      "check": "Review structural relationships and keyboard interaction after insertion, removal and filtering.",
+      "exceptions": "A visually empty utility header is a review question, not an automatic defect.",
+      "sources": [
+        "ui",
+        "words"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "CMP-04",
+      "title": "Messages explain the outcome",
+      "section": "components",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Make error, warning, success and progress messages distinguishable through words and semantics as well as colour.",
+      "applies_to": "Messages and validation feedback",
+      "check": "Review placement, field relationships, announcement behaviour and the next action.",
+      "exceptions": "Live announcements and focus movement need explicit scenarios; an initial-load crawl does not verify them.",
+      "sources": [
+        "color"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "PRN-01",
+      "title": "Declare what printing preserves",
+      "section": "print",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "For each page family, identify essential content, useful context and interactive chrome that may be omitted.",
+      "applies_to": "Print output",
+      "check": "Check inclusion, removal and restyling separately. Keep the reason for each omission.",
+      "exceptions": "Do not hide every nav, aside, button or form element globally; some are part of the document.",
+      "sources": [],
+      "evidence": [
+        "print-20261017"
+      ]
+    },
+    {
+      "id": "PRN-02",
+      "title": "Paper layout must not cover content",
+      "section": "print",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Prevent navigation, sticky panels and editor sidebars from covering or clipping printed content.",
+      "applies_to": "A4 and Letter output",
+      "check": "Inspect paper-width layout and exported pages. Browser-viewport rectangles are supporting evidence only.",
+      "exceptions": "An intentional repeated header is acceptable if it does not obscure content.",
+      "sources": [],
+      "evidence": [
+        "print-20261017"
+      ]
+    },
+    {
+      "id": "PRN-03",
+      "title": "Validate pagination and appearance",
+      "section": "print",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Review page breaks, repeated headers, blank trailing sheets and meaning with backgrounds disabled.",
+      "applies_to": "Browser printing and PDF export",
+      "check": "Inspect A4 and Letter, long tables, expanded detail and monochrome appearance.",
+      "exceptions": "A PDF file existing, or matching page counts, does not establish quality or accessible PDF structure.",
+      "sources": [],
+      "evidence": [
+        "print-20261017"
+      ]
+    },
+    {
+      "id": "EDT-01",
+      "title": "Separate editor UI and content",
+      "section": "editor",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Review editor controls, editable content and saved frontend output as separate styling contexts.",
+      "applies_to": "CKEditor integrations",
+      "check": "Record region, text format, editor version and owning stylesheet before overriding a difference.",
+      "exceptions": "Editor chrome can legitimately differ from the admin theme; changes need component-level validation.",
+      "sources": [
+        "ck-ui",
+        "ck-content"
+      ],
+      "evidence": [
+        "article-editor"
+      ]
+    },
+    {
+      "id": "EDT-02",
+      "title": "Formatting retains meaning",
+      "section": "editor",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Verify that allowed formatting produces the intended markup and survives saving and rendering.",
+      "applies_to": "Rich-text workflows",
+      "check": "Use explicit test content and editor actions; compare editor content with the saved frontend result.",
+      "exceptions": "Text-format filtering and content-theme overrides can intentionally change the allowed output. Current captures did not test this.",
+      "sources": [
+        "ck-content",
+        "html"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "I18N-01",
+      "title": "Adapt without changing intent",
+      "section": "localization",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Review translated text, direction and regional variants with the same component intent.",
+      "applies_to": "Localised and conditional themes",
+      "check": "Test language negotiation, logical directions, wrapping and state indicators in RTL and LTR.",
+      "exceptions": "Different fonts, strings and dimensions are expected; compare roles and behaviour, not identical pixels.",
+      "sources": [],
+      "evidence": []
+    },
+    {
+      "id": "GOV-01",
+      "title": "Exceptions are reviewable",
+      "section": "governance",
+      "status": "proposal",
+      "accepted": false,
+      "signal": "review",
+      "statement": "Record intentional differences with rule ID, scope, owner, rationale, evidence and review condition.",
+      "applies_to": "Modules, themes and recipes",
+      "check": "Compare exceptions and baseline identities before classifying a new finding.",
+      "exceptions": "Do not use a broad theme exception to suppress unrelated component or semantic failures.",
+      "sources": [],
+      "evidence": []
+    }
+  ],
+  "sources": {
+    "claro": {
+      "title": "Claro design system and standards",
+      "url": "https://www.drupal.org/docs/core-modules-and-themes/core-themes/claro-theme/claro-theme-design-system-and-standards",
+      "scope": "Historical design reference, updated 24 February 2026; its values are not adopted as Default Admin values here."
+    },
+    "ui": {
+      "title": "Drupal user interface standards",
+      "url": "https://www.drupal.org/docs/develop/user-interface-standards",
+      "scope": "Software UI guidance. Some recommendations and examples originate in older Drupal versions."
+    },
+    "forms": {
+      "title": "Drupal form elements",
+      "url": "https://www.drupal.org/docs/develop/user-interface-standards/form-elements",
+      "scope": "Published form guidance, updated 26 August 2025."
+    },
+    "buttons": {
+      "title": "Drupal buttons",
+      "url": "https://www.drupal.org/docs/develop/user-interface-standards/buttons",
+      "scope": "Published action and button guidance, updated 26 August 2025."
+    },
+    "words": {
+      "title": "Drupal interface text",
+      "url": "https://www.drupal.org/docs/develop/user-interface-standards/interface-text",
+      "scope": "Published UI wording guidance, updated 20 November 2024."
+    },
+    "org": {
+      "title": "Drupal.org style guide",
+      "url": "https://www.drupal.org/drupalorg/style-guide",
+      "scope": "Scope is Drupal.org content; not a universal software theme specification."
+    },
+    "initiative": {
+      "title": "Design Systems initiative",
+      "url": "https://www.drupal.org/community-initiatives/design-systems-initiative",
+      "scope": "Related work on configuring design-system artifacts in Drupal. Not approval of this draft."
+    },
+    "html": {
+      "title": "HTML text-level semantics",
+      "url": "https://html.spec.whatwg.org/multipage/text-level-semantics.html",
+      "scope": "Primary reference for strong and em."
+    },
+    "contrast": {
+      "title": "WCAG 2.2: contrast minimum",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html",
+      "scope": "Understanding document for SC 1.4.3, Level AA; includes exceptions and large-text definition."
+    },
+    "nontext": {
+      "title": "WCAG 2.2: non-text contrast",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html",
+      "scope": "Understanding document for SC 1.4.11, Level AA."
+    },
+    "color": {
+      "title": "WCAG 2.2: use of colour",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html",
+      "scope": "Understanding document for SC 1.4.1, Level A."
+    },
+    "motion": {
+      "title": "WCAG 2.2: animation from interactions",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html",
+      "scope": "SC 2.3.3 is Level AAA; this draft proposes broader motion-preference review as project practice."
+    },
+    "focus": {
+      "title": "WCAG 2.2: focus not obscured minimum",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum.html",
+      "scope": "Understanding document for SC 2.4.11, Level AA."
+    },
+    "forced": {
+      "title": "CSS Color Adjustment: forced colours",
+      "url": "https://www.w3.org/TR/css-color-adjust-1/#forced-colors-mode",
+      "scope": "Browser forced-colour behaviour and author controls."
+    },
+    "ck-content": {
+      "title": "CKEditor 5 content styles",
+      "url": "https://ckeditor.com/docs/ckeditor5/latest/getting-started/setup/content-styles.html",
+      "scope": "Content-style integration. Latest documentation may differ from the version bundled in a pinned Drupal checkout."
+    },
+    "ck-ui": {
+      "title": "CKEditor 5 theme customization",
+      "url": "https://ckeditor.com/docs/ckeditor5/latest/framework/deep-dive/ui/theme-customization.html",
+      "scope": "Editor UI styling and customization."
+    },
+    "login": {
+      "title": "Drupal main: UserLoginForm",
+      "url": "https://api.drupal.org/api/drupal/core!modules!user!src!Form!UserLoginForm.php/class/UserLoginForm/main",
+      "scope": "Moving main API reference; illustrates form ownership, not a source pinned to the Lab capture."
+    },
+    "negotiation": {
+      "title": "Drupal main: ThemeNegotiator",
+      "url": "https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Theme!ThemeNegotiator.php/class/ThemeNegotiator/main",
+      "scope": "Moving main API reference for request theme selection."
+    }
+  },
+  "canonical_rules": "docs/design/contracts.json",
+  "generated_reference": "docs/design/default-admin-design-system.html"
+}

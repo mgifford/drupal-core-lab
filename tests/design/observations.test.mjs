@@ -106,3 +106,16 @@ test('theme asset evidence is supporting only and excludes external URLs and que
   assert.equal(result.themeAssets[0].confidence, 'supporting-only'); assert.equal(result.themeAssets.length, 1);
   assert.ok(!JSON.stringify(result).includes('secret'));
 });
+test('vendor themes directories are not identified as Drupal themes', () => {
+  const result = vm.runInNewContext('(' + browserThemeContext.toString() + ')()', {
+    window: {}, URL,
+    document: { documentElement: { lang: 'en', dir: 'ltr', classList: [] }, querySelector: () => null,
+      querySelectorAll: () => [
+        { href: 'https://example.test/core/assets/vendor/jquery.ui/themes/base/core.css' },
+        { href: 'https://example.test/themes/custom/example/css/base.css?v=123' },
+        { href: 'https://example.test/sites/default/themes/contrib/another/css/base.css' },
+      ] },
+    location: { pathname: '/', href: 'https://example.test/', origin: 'https://example.test' }, matchMedia: () => ({ matches: false }),
+  });
+  assert.equal(result.themeAssets.map(asset => asset.name).join(','), 'example,another');
+});
