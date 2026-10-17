@@ -230,8 +230,8 @@
   </section>
   <p data-needs="live" id="legend" role="status" hidden></p>
   <div class="panes" id="panes" data-needs="live">
-    <section class="pane" aria-labelledby="hb" tabindex="0"><h2 id="hb"><span id="hblabel">Before patch</span> <span class="path" id="pb"></span><a class="openext" id="pob" target="_blank" rel="noopener" href="#" title="Open the Before page in a new window" aria-label="Open the Before page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fb" title="Before patch" data-side="before"></iframe><div class="frame-error" id="fbe" hidden aria-live="polite"></div></section>
-    <section class="pane" aria-labelledby="ha" tabindex="0"><h2 id="ha"><span id="halabel">After patch</span> <a id="haissue" target="_blank" rel="noopener" href="#" hidden></a><span class="path" id="pa"></span><a class="openext" id="poa" target="_blank" rel="noopener" href="#" title="Open the After page in a new window" aria-label="Open the After page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fa" title="After patch" data-side="after"></iframe><div class="frame-error" id="fae" hidden aria-live="polite"></div></section>
+    <section class="pane" aria-labelledby="hb" tabindex="0"><h2 id="hb"><span id="hblabel">Before patch</span> <span class="path" id="pb"></span><small id="theme-before">Theme: waiting</small><a class="openext" id="pob" target="_blank" rel="noopener" href="#" title="Open the Before page in a new window" aria-label="Open the Before page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fb" title="Before patch" data-side="before"></iframe><div class="frame-error" id="fbe" hidden aria-live="polite"></div></section>
+    <section class="pane" aria-labelledby="ha" tabindex="0"><h2 id="ha"><span id="halabel">After patch</span> <a id="haissue" target="_blank" rel="noopener" href="#" hidden></a><span class="path" id="pa"></span><small id="theme-after">Theme: waiting</small><a class="openext" id="poa" target="_blank" rel="noopener" href="#" title="Open the After page in a new window" aria-label="Open the After page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fa" title="After patch" data-side="after"></iframe><div class="frame-error" id="fae" hidden aria-live="polite"></div></section>
   </div>
 </main>
 
@@ -299,6 +299,12 @@
       <p id="resourcesmeta" class="note"></p>
     </div>
     <div role="tabpanel" id="p-env" aria-labelledby="tab-env" tabindex="0" data-needs="live" hidden>
+      <h2>Rendered themes</h2>
+      <p id="theme-comparison" role="status" aria-live="polite">Waiting for theme evidence from both pages.</p>
+      <p class="note">Browser-reported request themes, not the configured default/admin themes. Different themes may be intentional. Selection reasons are not inferred. Unknown means not determined. History records prefers-contrast, forced colours and root contrast-mode markers, reduced motion, transparency and data preferences separately; markers alone do not prove effective contrast support.</p>
+      <button type="button" id="theme-download">Download theme evidence</button>
+      <details><summary>Theme and page-context history</summary><ul id="theme-history"></ul></details>
+      <p class="note">Print observations: run <code>node tools/playwright/gather-design.mjs &lt;slug&gt;</code>. Screen/print evidence and printable reports are saved locally; see <code>docs/DESIGN-GATHERING.md</code>.</p>
       <h2>Where did you test? <span class="note">(saved with the downloaded log)</span></h2>
       <p id="envremind" class="verdict warn" role="status" aria-live="polite"></p>
       <div id="envbox" class="envgrid">
@@ -368,7 +374,7 @@ function renderSteps() { ticks = loadTicks(); const ol = $('steps'); ol.textCont
   $('exp').textContent = v.expected ? 'Expected: ' + v.expected : ''; $('act').textContent = v.actual ? 'Actual: ' + v.actual : ''; $('setup').textContent = v.setup ? 'Setup: ' + v.setup : ''; $('stepsbox').hidden = !(v.steps && v.steps.length); showProgress(); }
 $('tickrecipe').addEventListener('click', () => { (v.steps || []).forEach((st, i) => { if (st.how === 'recipe') ticks[i] = true; }); saveTicks(); renderSteps(); });
 $('clearticks').addEventListener('click', () => { ticks = []; saveTicks(); renderSteps(); });
-function setVariant(slug) { v = variants.find((x) => x.slug === slug); $('desc').textContent = v.description; renderSteps(); buildObs(); document.title = `Compare: ${v.slug}`;
+function setVariant(slug) { resetThemeEvidence(); v = variants.find((x) => x.slug === slug); $('desc').textContent = v.description; renderSteps(); buildObs(); document.title = `Compare: ${v.slug}`;
   const beforeLabel = v.before?.label || 'Before patch', afterLabel = v.after?.label || 'After patch';
   $('hblabel').textContent = beforeLabel; $('halabel').textContent = afterLabel;
   $('ob').textContent = beforeLabel; $('oa').textContent = afterLabel;
@@ -624,6 +630,7 @@ addEventListener('message', (e) => {
   const from = e.source === F.before.contentWindow ? 'before' : e.source === F.after.contentWindow ? 'after' : null;
   if (!from || !origins || e.origin !== origins[from]) return;
   const m = e.data; if (!m || !m.compare) return; m.side = from;
+  if (m.type === 'theme-context') receiveThemeContext(m.side, m.context);
   if (m.type === 'scroll') positions[m.side] = { x: m.x, y: m.y };
   if (m.type === 'scroll' && !incoming && $('syncscroll').checked) { toFrame(other(m.side), { compare: 1, type: 'scroll', x: m.x, y: m.y }); }
   if (m.type === 'mirror' && (/^hover/.test(m.kind) ? $('mirrorhover').checked : $('mirror').checked)) { toFrame(other(m.side), Object.assign({}, m, { compare: 1 })); }
@@ -783,7 +790,7 @@ $('axeon').addEventListener('change', () => { sendState(); if (!$('axeon').check
 $('axebest').addEventListener('change', () => { AX.before = AX.after = null; sendState(); setTimeout(() => { for (const s of ['before', 'after']) toFrame(s, { compare: 1, type: 'axe-now' }); }, 300); });
 $('axenow').addEventListener('click', () => { for (const s of ['before', 'after']) toFrame(s, { compare: 1, type: 'axe-now' }); });
 $('axeclr').addEventListener('click', () => { axeLog.length = 0; $('axelog').querySelector('tbody').textContent = ''; $('axelogn').textContent = 0; lastKey = ''; });
-$('axedl').addEventListener('click', () => { const blob = new Blob([JSON.stringify({ variant: v && v.slug, exported: new Date().toISOString(), checklist: (v.steps || []).map((st, i) => ({ step: st.text, done: !!ticks[i] })), environmentTested: envTested(), lighthouse: lhLog, manualObservations: (v.observe || []).map((o, i) => ({ question: o.label, expected: { before: !!o.expectBefore, after: !!o.expectAfter }, answered: obsAns[i] || null })), notes: $('obsnote').value, entries: axeLog }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `axe-log-${v ? v.slug : 'compare'}.json`; a.click(); });
+$('axedl').addEventListener('click', () => { const blob = new Blob([JSON.stringify({ variant: v && v.slug, exported: new Date().toISOString(), checklist: (v.steps || []).map((st, i) => ({ step: st.text, done: !!ticks[i] })), environmentTested: envTested(), themeEvidence: themeEvidence(), lighthouse: lhLog, manualObservations: (v.observe || []).map((o, i) => ({ question: o.label, expected: { before: !!o.expectBefore, after: !!o.expectAfter }, answered: obsAns[i] || null })), notes: $('obsnote').value, entries: axeLog }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `axe-log-${v ? v.slug : 'compare'}.json`; a.click(); });
 
 // ---- Manual confirmation ----
 const obsAns = {};
@@ -811,7 +818,7 @@ function renderObs() {
 
 // ---- Frame load watchdog: a frame that has not finished loading is reported, with a health check ----
 const startedAt = { before: 0, after: 0 }, loadedAt = { before: 0, after: 0 }; let warnTimer;
-const markStart = (side) => { startedAt[side] = Date.now(); loadedAt[side] = 0; };
+const markStart = (side) => { pendingTheme(side); startedAt[side] = Date.now(); loadedAt[side] = 0; };
 let healthTimer, dismissedLoad = false, healed = false;
 const dlg = () => $('loaddlg');
 function showLoading(h, stuck) {
@@ -840,6 +847,49 @@ const reloadSide = (s) => { markStart(s); const src = F[s].src; F[s].src = 'abou
 $('rb').addEventListener('click', () => reloadSide('before')); $('ra').addEventListener('click', () => reloadSide('after'));
 $('reloadboth').addEventListener('click', () => { reloadSide('before'); reloadSide('after'); });
 watchFrames();
+
+// ---- Per-request theme evidence; retained across navigation, reset per comparison ----
+const themeCurrent = { before: null, after: null };
+const themePrevious = { before: null, after: null };
+const themeEvents = [];
+function themeEvidence() { return { source: 'browser-reported', current: themeCurrent, events: themeEvents, limit: 100 }; }
+function pendingTheme(side) { themeCurrent[side] = null; const el = $('theme-' + side); if (el) el.textContent = 'Theme: waiting'; renderThemeComparison(); }
+function resetThemeEvidence() {
+  themeEvents.length = 0;
+  for (const side of ['before', 'after']) { themePrevious[side] = null; pendingTheme(side); }
+  if ($('theme-history')) $('theme-history').textContent = '';
+}
+function renderThemeComparison() {
+  const b = themeCurrent.before, a = themeCurrent.after, el = $('theme-comparison'); if (!el) return;
+  el.textContent = !b || !a ? 'Waiting for theme evidence from both pages.'
+    : !b.theme || !a.theme ? 'Theme not determined on one or both pages; visual profile comparison is limited.'
+    : b.path !== a.path || b.language !== a.language || b.direction !== a.direction ? 'Different page contexts: Before theme ' + b.theme + '; After theme ' + a.theme + '. Compare route, language and direction before judging consistency.'
+    : b.theme !== a.theme ? 'Different rendered themes: Before ' + b.theme + '; After ' + a.theme + '. Check whether this change is expected.'
+    : 'Both pages report ' + b.theme + '. This does not prove identical theme settings or styling.';
+}
+function receiveThemeContext(side, raw) {
+  if (!raw || typeof raw !== 'object') return;
+  const safe = (value) => typeof value === 'string' ? value.slice(0, 240) : null;
+  const context = Object.fromEntries(['theme', 'source', 'path', 'language', 'direction', 'prefersContrast', 'reducedMotion', 'reducedTransparency', 'reducedData'].map((key) => [key, safe(raw[key])]));
+  context.forcedColors = raw.forcedColors === true; context.darkPreference = raw.darkPreference === true;
+  context.themeModeMarkers = Array.isArray(raw.themeModeMarkers) ? raw.themeModeMarkers.filter(x => typeof x === 'string').slice(0, 20).map(x => x.slice(0, 80)) : [];
+  // Never retain reset-token paths or URL queries from a frame.
+  context.path = /\/user\/reset(?:\/|$)/.test(context.path || '') ? '/[one-time-login]' : (context.path || '').split(/[?#]/)[0];
+  if (JSON.stringify(themeCurrent[side]) === JSON.stringify(context)) return;
+  const prior = themePrevious[side];
+  const changed = !!prior?.theme && !!context.theme && prior.theme !== context.theme;
+  const event = { when: new Date().toISOString(), side, ...context, previousTheme: prior?.theme || null, themeChanged: changed };
+  themeCurrent[side] = context; if (context.theme) themePrevious[side] = context;
+  themeEvents.push(event); if (themeEvents.length > 100) themeEvents.shift();
+  $('theme-' + side).textContent = 'Theme: ' + (context.theme || 'unknown') + (changed ? ' (changed from ' + prior.theme + ')' : '');
+  $('theme-history').textContent = '';
+  for (const item of [...themeEvents].reverse()) { const li = document.createElement('li'); li.textContent = item.side + ': ' + item.path + ' | ' + (item.theme || 'unknown') + ' | ' + (item.language || 'unknown language') + (item.themeChanged ? ' | THEME CHANGED from ' + item.previousTheme : '') + ' | prefers-contrast: ' + (item.prefersContrast || 'unknown') + ' | reduced motion: ' + (item.reducedMotion || 'unknown') + ' | reduced transparency/data: ' + (item.reducedTransparency || 'unknown') + '/' + (item.reducedData || 'unknown') + ' | forced colours: ' + item.forcedColors + ' | theme mode markers: ' + item.themeModeMarkers.join(', ') + ' | ' + item.when; $('theme-history').append(li); }
+  renderThemeComparison();
+}
+$('theme-download').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify({ variant: v?.slug, ...themeEvidence() }, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = 'theme-evidence-' + (v?.slug || 'comparison') + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
 
 // ---- Where did you test: environment capture and reminders ----
 const browserInfo = () => { const u = navigator.userAgent; let m;
