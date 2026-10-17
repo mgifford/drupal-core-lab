@@ -1,6 +1,6 @@
 # Required radio groups: 2951317-pinned
 
-DRAFT automated evidence. 2026-10-17T15:27:16.706Z.
+DRAFT automated evidence. 2026-10-17T17:15:36.969Z.
 
 | Check | Result |
 |---|---|
@@ -22,16 +22,12 @@ Full stage markup, axe results, accessibility snapshots, native validity, and se
 | | Before | After |
 |---|---|---|
 | Core commit | `ad11ba71c0 2026-10-15` | `ad11ba71c0 2026-10-15` |
-| Drupal, PHP | undefined, undefined | undefined, undefined |
-| Profile; default / admin theme (config) | undefined; undefined / undefined | undefined; undefined / undefined |
-| Theme that rendered each page | /user/1/edit → default_admin<br>/admin/config/development/lab-radios-2951317 → default_admin<br>/admin/config/development/lab-radios-2951317 → null | /user/1/edit → default_admin<br>/admin/config/development/lab-radios-2951317 → default_admin<br>/admin/config/development/lab-radios-2951317 → null |
-| Languages (default) | none (undefined) | none (undefined) |
+| Drupal, PHP | 12.0-dev, 8.5.8 | 12.0-dev, 8.5.8 |
+| Profile; default / admin theme (config) | standard; default_admin / default_admin | standard; default_admin / default_admin |
+| Theme that rendered each page | /user/1/edit → default_admin<br>/admin/config/development/lab-radios-2951317 → null | /user/1/edit → default_admin<br>/admin/config/development/lab-radios-2951317 → null |
+| Languages (default) | none (en) | none (en) |
 | Modules only on this side | none | none |
-| Enabled modules | 0 | 0 |
-
-before: site context not read: [33mNot creating CMS settings files because disable_settings_management=true or project type doesn't require settings[0m
-
-after: site context not read: [33mNot creating CMS settings files because disable_settings_management=true or project type doesn't require settings[0m
+| Enabled modules | 40 | 40 |
 
 ## What could be announced
 

@@ -4,7 +4,7 @@
     "issue": "2951317",
     "label": "#2951317: Radios element missing required attribute, pinned core",
     "description": "Compare static and dynamic required radio groups, including hidden None selection and native validation.",
-    "status": "prepared: patch application verified; Drupal runtime not tested",
+    "status": "paused: corrected pinned summary has 11 applicable checks passed; native blocking not exercised",
     "core": {
       "url": "https://git.drupalcode.org/project/drupal.git",
       "commit": "ad11ba71c0f09b856e45dfdb8db155b5a588712d"
@@ -36,7 +36,7 @@
       {
         "text": "With Required color empty, activate Save. Then choose Red and repeat. Inspect required attributes and the legend indicator.",
         "how": "each",
-        "lookFor": "After: native validation blocks an empty required group; one required indicator per group, no indicators beside individual options."
+        "lookFor": "After: required attributes on radio inputs, one legend indicator, none beside options. Native blocking applies only if HTML5 validation is enabled; record novalidate."
       },
       {
         "text": "Reload. Toggle Require a dynamic color on and off with nothing selected.",
@@ -46,7 +46,7 @@
       {
         "text": "Reload. Select None, then toggle Require a dynamic color on. Fill Required color and activate Save. Toggle off.",
         "how": "each",
-        "lookFor": "After: hidden None stays checked, a visible color is invalid, Save is blocked. None returns checked when off."
+        "lookFor": "After: hidden None stays checked and a visible color is invalid. With native validation disabled, this fixture permits POST; with it enabled, Save must be blocked. None returns checked when off."
       },
       {
         "text": "Select Red in Dynamic color, toggle on/off/on, then switch to Blue with arrow keys.",
@@ -60,7 +60,7 @@
       }
     ],
     "expected": "After: required attributes are on radio inputs, not fieldsets; dynamic states preserve selection and reject hidden None while required.",
-    "actual": "Reported Before behavior: static required attributes are placed on fieldsets; dynamic radio inputs do not receive correct required handling. Runtime reproduction pending.",
+    "actual": "Before: static required attributes are on fieldsets, dynamic inputs remain optional. Both sides disable native submission validation by default; the fixture does not enforce dynamic requirements server-side.",
     "checks": [
       {
         "label": "Shared fixture has all four groups",
@@ -100,7 +100,7 @@
         "expectAfter": true
       },
       {
-        "label": "With None selected and dynamic required on, Save is blocked until a real color is chosen",
+        "label": "When native HTML5 validation is enabled, Save blocks hidden None until a real color is chosen; otherwise record not applicable",
         "expectBefore": false,
         "expectAfter": true
       },
