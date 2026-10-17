@@ -36,7 +36,7 @@ one: `node scripts/new-issue.mjs <nid> --branch <fork-branch>` (see `docs/NEW-IS
 | [3618230](3618230/SUMMARY.md) | Adopt the ajax MessageCommand for file uploads | [yes](3618230/REPRODUCE.md) | 3 | 2026-10-14 | 5 | `3618230-pinned`, `3618230-latest`, `3618230-pilot` |
 | [3618405](3618405/) | Purpose of views exposed filters form is unclear when zoomed in | [yes](3618405/REPRODUCE.md) | 2 | 2026-10-14 | 2 | `3618405-pinned`, `3618405-latest` |
 | [3619127](3619127/SUMMARY.md) | forms sidebar does not open from Inline Form Errors links | [yes](3619127/REPRODUCE.md) | 4 | 2026-10-02 | 8 | `3619127-pinned`, `3619127-latest` |
-| [3619154](3619154/) | Sidebar toggle fixes | [yes](3619154/REPRODUCE.md) | 1 | 2026-10-14 | 1 | `3619154-pinned`, `3619154-latest` |
+| [3619154](3619154/) | Sidebar toggle fixes (Default Admin meta sidebar) | [yes](3619154/REPRODUCE.md) | 1 | 2026-10-17 | 1 | `3619154-pinned`, `3619154-latest` |
 | [3619387](3619387/) | Sidebar toggle shows child errors (indicator and modal behavior) | [yes](3619387/REPRODUCE.md) | 4 | 2026-10-14 |  |  |
 | [3619933](3619933/) | Reproduce #3619933 (Default Admin theme) | [yes](3619933/REPRODUCE.md) | 6 | 2026-10-14 |  |  |
 | [3627936](3627936/) | Active workspace has a broken styling in dark mode | [yes](3627936/REPRODUCE.md) | 2 | 2026-10-15 | 3 | `3627936-pinned`, `3627936-latest` |
