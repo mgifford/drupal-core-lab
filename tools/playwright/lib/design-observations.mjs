@@ -2,9 +2,9 @@
 import { printLayoutEvidence, motionEvidence } from './design-review.mjs';
 import { browserThemeContext } from '../../compare/theme-context.mjs';
 
-export async function observeDesign(page, { limit = 4000 } = {}) {
+export async function observeDesign(page, { limit = 4000, geometryOnly = false } = {}) {
   const context = await page.evaluate(browserThemeContext);
-  const data = await page.evaluate(async ({ limit }) => {
+  const data = await page.evaluate(async ({ limit, geometryOnly }) => {
     const properties = ['display', 'visibility', 'position', 'fontWeight', 'fontStyle', 'fontSize', 'fontFamily', 'lineHeight', 'color', 'backgroundColor', 'borderTopStyle', 'borderBottomStyle', 'borderInlineStartStyle', 'borderInlineStartWidth', 'borderInlineStartColor', 'outlineStyle', 'outlineWidth', 'forcedColorAdjust', 'overflowX', 'overflowY', 'animationName', 'animationDuration', 'animationDelay', 'animationIterationCount', 'animationTimingFunction', 'transitionProperty', 'transitionDuration', 'transitionDelay', 'scrollBehavior'];
     const selector = element => {
       if (element.id && !/\d{6,}|--|^ck(?:editor)?[-_]|^c[0-9a-f]{16,}$/i.test(element.id)) return '#' + CSS.escape(element.id);
@@ -40,6 +40,14 @@ export async function observeDesign(page, { limit = 4000 } = {}) {
     };
     const nodes = await Promise.all(elements.slice(0, limit).map(async element => {
       const css = getComputedStyle(element);
+      const r = element.getBoundingClientRect();
+      const geometry = {
+        rect: Object.fromEntries(['x', 'y', 'width', 'height'].map(key => [key, Math.round(r[key] * 100) / 100])),
+        key: selector(element), parentKey: element.parentElement ? selector(element.parentElement) : null,
+        tag: element.tagName.toLowerCase(), role: element.getAttribute('role'), hidden: hidden(element),
+        region: element.closest('.ck-editor__editable, .ck-content') ? 'editor-content' : element.closest('.ck, .ck-editor') ? 'editor-ui' : element.closest('aside,nav,[role=navigation]') ? 'navigation' : 'page',
+      };
+      if (geometryOnly) return { ...geometry, style: { position: css.position } };
       const pseudo = name => {
         const style = getComputedStyle(element, name);
         return Object.fromEntries(['borderInlineStartStyle', 'borderInlineStartWidth', 'borderInlineStartColor', 'display', 'forcedColorAdjust'].map(key => [key, style[key]]));
@@ -53,10 +61,8 @@ export async function observeDesign(page, { limit = 4000 } = {}) {
       }
       const semantic = /^(?:h[1-6]|label|legend|caption|th|button|a|summary|dt|em|strong)$/i.test(element.tagName) || element.hasAttribute('aria-label');
       const signature = semantic ? await targetEvidence(element) : null;
-      const r = element.getBoundingClientRect();
       return {
-        rect: Object.fromEntries(['x', 'y', 'width', 'height'].map(key => [key, Math.round(r[key] * 100) / 100])),
-        region: element.closest('.ck-editor__editable, .ck-content') ? 'editor-content' : element.closest('.ck, .ck-editor') ? 'editor-ui' : element.closest('aside,nav,[role=navigation]') ? 'navigation' : 'page',
+        ...geometry,
         semanticText: signature ? { textHash: signature.textHash, ariaLabelHash: signature.ariaLabelHash } : null,
         key: selector(element), localThemeMode: element.closest('[data-theme-mode]')?.getAttribute('data-theme-mode') || null, runningAnimations: element.getAnimations ? element.getAnimations().filter(animation => animation.playState === 'running').length : null, tag: element.tagName.toLowerCase(),
         role: element.getAttribute('role'), classes: [...element.classList].filter(value => !/\d{6,}/.test(value)).slice(0, 30),
@@ -72,7 +78,7 @@ export async function observeDesign(page, { limit = 4000 } = {}) {
       for (const rule of rules) {
         const next = rule.media ? [...media, rule.media.mediaText] : media;
         if (rule.type === CSSRule.IMPORT_RULE && rule.styleSheet) { inspect(rule.styleSheet, next); continue; }
-        if (rule.type === CSSRule.PAGE_RULE) printRules.push({ type: 'page', selector: rule.selectorText || '', media: next });
+        if (rule.type === CSSRule.PAGE_RULE) printRules.push({ type: 'page', selector: rule.selectorText || '', media: next, declarations: Object.fromEntries([...rule.style].map(key => [key, rule.style.getPropertyValue(key)])) });
         if (rule.selectorText && next.some(value => /prefers-|forced-colors/i.test(value))) preferenceRules.push({ selector: rule.selectorText, media: next, properties: [...rule.style] });
         if (rule.selectorText && next.some(value => /\bprint\b/i.test(value))) printRules.push({ type: 'selector', selector: rule.selectorText, media: next, properties: [...rule.style] });
         if (rule.cssRules) walk(rule.cssRules, next);
@@ -87,8 +93,8 @@ export async function observeDesign(page, { limit = 4000 } = {}) {
       catch { sheets.push({ source, media, readable: false }); }
     };
     for (const sheet of document.styleSheets) inspect(sheet);
-    return { nodes, availableElements: elements.length, truncated: elements.length > limit, sheets, printRules, preferenceRules, media: { print: matchMedia('print').matches } };
-  }, { limit });
+    return { viewport: { width: innerWidth, height: innerHeight }, geometryOnly, nodes, availableElements: elements.length, truncated: elements.length > limit, sheets, printRules, preferenceRules, media: { print: matchMedia('print').matches } };
+  }, { limit, geometryOnly });
   const snapshot = { context, ...data };
   snapshot.motion = motionEvidence(snapshot);
   snapshot.printLayout = data.media.print ? printLayoutEvidence(snapshot) : null;

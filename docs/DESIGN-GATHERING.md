@@ -103,7 +103,7 @@ Print CSS cannot be judged by which declarations exist alone. Cross-origin unrea
 Collapsed content, fixed positioning, overflow and pagination need human output review.
 No beforeprint/afterprint script is triggered by print-media emulation alone. Optional PDF generation may trigger printing events; JSON snapshots are media-emulation observations, not proof of that event lifecycle.
 
-For A4 and Letter output with background printing disabled:
+For Letter output with background printing disabled (add `--paper=A4` or `--paper=both` to change formats):
 
 ```sh
 node tools/playwright/gather-design.mjs 3631337-pinned --pages=docs/design-pages.example.json --pdf
@@ -126,7 +126,7 @@ Do not infer active theme when the browser settings hint is unavailable. Record 
 
 ## What to return for review
 
-Send observations.json, SUMMARY.md and the Environment tab's theme-evidence JSON. report.html is the convenient human view.
+Send the timestamped observations.json.gz, SUMMARY.md and the Environment tab's theme-evidence JSON. report.html is the convenient human view.
 Use disposable test data. The collector excludes input values, passwords, full HTML, storage and URL queries; optional PDFs can still contain the visible page content.
 Do not send session profiles, cookies, one-time login URLs or credentials.
 Report which supported theme settings you selected, including whether they were global or per-user.
@@ -168,3 +168,17 @@ All artifacts from one run share that identifier. Colons and decimal points in t
 ## Forced-colour evaluator theme checks
 
 The shared #3631321/#3631337 evaluator uses browser settings and the embedded settings JSON as direct theme hints. It allows a bounded wait for deferred scripts. A conflicting hint still raises an error. If a hint is absent, it records an unverified theme check and continues gathering scenario evidence; configured themes or stylesheet paths are not promoted to proof of the rendered theme. The report includes these checks. Any unverified scenario entry page makes the final verdict mixed (inconclusive); exit 2 indicates this precondition gap when no After check has failed. Exit 1 still indicates failed After checks. The evaluator keeps its existing results.json/SUMMARY.md output layout for compatibility; the timestamped filenames above apply to design collection exports.
+
+## Compressed exports and print review
+
+New observations use schema 3 and `.json.gz`, written atomically without a raw JSON copy.
+Rebuild human reports from new gzip or older JSON evidence without a browser:
+
+```sh
+node tools/playwright/render-design.mjs /path/to/observations.json.gz
+```
+
+Letter is the default paper profile. Paper-width DOM measurements identify draft PRN-02
+intersection and overflow candidates by structural identity. Unknown themes and
+incomplete measurements remain inconclusive. PRN-01 content intent and PRN-03
+pagination still require manual review. See [collector update](DESIGN-COLLECTOR-FIX.md).

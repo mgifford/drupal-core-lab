@@ -27,7 +27,8 @@ Rule updates belong in contracts.json. Prose and document CSS belong in the
 template. Update evidence prose deliberately when evidence changes; it is a
 snapshot, not live scan data. Do not hand-edit the generated HTML.
 
-No scanner consumes these contracts yet. The build does not run accessibility,
+The collector reads PRN-01/02/03 metadata for explicitly labelled draft print review.
+It does not implement a general contract evaluator. The build does not run accessibility,
 contrast, browser, print or Drupal tests, and does not certify the reference.
 Visual, keyboard, print and assistive-technology review remain outstanding.
 
@@ -40,8 +41,9 @@ The document CSS illustrates readable documentation, not exact Default Admin UI.
 DESIGN.md is the AI/reviewer entry point. STYLE.md points to the existing STYLES.md
 and the new reference instead of creating a competing policy. This bundle adds a
 small companion notice to STYLES.md and preserves the rest of its content.
-AGENTS.md, ACCESSIBILITY.md and scanner code are unchanged.
+AGENTS.md and ACCESSIBILITY.md are unchanged. The collector update is documented in
+[DESIGN-COLLECTOR-FIX.md](../DESIGN-COLLECTOR-FIX.md).
 
-Review contracts and conflicts first. Then inventory pinned theme tokens, correct
-paper-size measurements and add representative interaction fixtures. A broad crawl
+Review contracts and conflicts first. Then inventory pinned theme tokens, review
+paper-width measurements and add representative interaction fixtures. A broad crawl
 is not a substitute for a reviewed rule or a known negative control.
