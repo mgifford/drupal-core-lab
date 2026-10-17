@@ -1,5 +1,6 @@
 // Shared live Drupal evaluator. Uses trusted Playwright input; no style injection.
 import path from 'node:path';
+import { checkRenderedTheme } from './rendered-theme.mjs';
 import { runArgs, launch, openSide, axeScan, baseResults, writeRun, contextMarkdown } from './lab-run.mjs';
 export async function evaluate(nid) {
   const run = runArgs({ slug: `${nid}-pinned` });
@@ -22,9 +23,10 @@ export async function evaluate(nid) {
         await page.goto(base + (rtl ? '/fa' : '') + '/admin/config/people/accounts');
         const direction = await page.locator('html').getAttribute('dir');
         if (rtl && direction !== 'rtl') throw new Error('Farsi route did not render RTL');
-        const theme = await page.evaluate(() => window.drupalSettings?.ajaxPageState?.theme);
-        if (theme !== 'default_admin') throw new Error(`Expected Default Admin, got ${theme}`);
+        rec.themeChecks = [await checkRenderedTheme(page, 'default_admin')];
+        if (rec.themeChecks[0].status === 'unverified') console.warn(`${side}: active theme hint unavailable; continuing with unverified theme evidence.`);
         const links = page.locator('.vertical-tabs__menu-item:not(.vertical-tab--hidden) > .vertical-tabs__menu-link');
+        await links.first().waitFor({ state: 'visible' });
         const count = await links.count();
         if (count < 3) throw new Error('Need at least three visible email tabs at desktop width');
         rec.states = [];
@@ -65,6 +67,7 @@ export async function evaluate(nid) {
         rec.details = [];
         for (const kind of ['details', 'accordion']) {
           await page.goto(base + (rtl ? '/fa' : '') + (kind === 'details' ? '/form_test/details-contains-required-fields' : '/node/add/article'));
+          rec.themeChecks.push(await checkRenderedTheme(page, 'default_admin'));
           if (kind === 'accordion') {
             await page.locator('[name="title[0][value]"]').fill('Forced colors test');
             const sum = page.locator('details:has([name="path[0][alias]"]) > summary');
@@ -86,7 +89,11 @@ export async function evaluate(nid) {
   results.checks = rows;
   results.unexpected = rows.filter(r => r.side === 'after' && !r.passed).length;
   results.verdict = !run.forced ? 'mixed' : results.unexpected ? 'reproduced-not-fixed' : rows.some(r => r.side === 'before' && !r.passed) ? 'reproduced-and-fixed' : 'not-reproduced';
-  const md = `# #${nid} live Drupal comparison\n\nDRAFT. ${results.verdict}. Normal-color runs are regression evidence only. Screenshots and focus appearance require human review.\n\n` + contextMarkdown(results) + '\n```json\n' + JSON.stringify(rows, null, 2) + '\n```\n';
+  results.themeUnverified = Object.values(results.sides).some(side => side.themeChecks.some(check => check.status !== 'confirmed'));
+  if (results.themeUnverified) results.verdict = 'mixed';
+  const themeNote = results.themeUnverified ? 'Active theme could not be confirmed on every scenario page. Configured themes and stylesheet candidates are supporting evidence only. Results remain inconclusive for the expected-theme precondition.' : 'Active theme hints confirmed Default Admin on all scenario entry pages.';
+  const md = `# #${nid} live Drupal comparison\n\nDRAFT. ${results.verdict}. Normal-color runs are regression evidence only. Screenshots and focus appearance require human review.\n\n${themeNote}\n\n` + '```json\n' + JSON.stringify(Object.fromEntries(Object.entries(results.sides).map(([side, data]) => [side, data.themeChecks])), null, 2) + '\n```\n\n' + contextMarkdown(results) + '\n```json\n' + JSON.stringify(rows, null, 2) + '\n```\n';
   console.log(writeRun(run, results, md));
   if (results.unexpected) process.exitCode = 1;
+  else if (results.themeUnverified) process.exitCode = 2;
 }

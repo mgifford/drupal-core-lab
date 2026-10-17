@@ -3,6 +3,7 @@
 // Each site is reached through a small proxy on its own *.localhost hostname so the two
 // sessions never share cookies, framing works, and a sync script can be injected.
 import http from 'node:http';
+import { browserThemeContext } from './theme-context.mjs';
 import https from 'node:https';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -89,6 +90,10 @@ const PARENTS=${JSON.stringify(VIEWER_ORIGINS)};
 const parentOrigin=(()=>{try{const a=location.ancestorOrigins;if(a&&a.length)return a[0];return new URL(document.referrer).origin}catch(e){return ''}})();
 const targets=PARENTS.includes(parentOrigin)?[parentOrigin]:(parentOrigin?[]:PARENTS);
 const post=(m)=>{const msg=Object.assign({compare:1,side},m);targets.forEach((o)=>{try{parent.postMessage(msg,o)}catch(e){}})};let quiet=false;
+const readThemeContext=${browserThemeContext.toString()};
+let previousThemeContext='';
+function reportThemeContext(){const context=readThemeContext();const key=JSON.stringify(context);if(key!==previousThemeContext){previousThemeContext=key;post({type:'theme-context',context})}}
+addEventListener('load',reportThemeContext);setInterval(reportThemeContext,2000);
 const fake=(m,q)=>({matches:m,media:q,onchange:null,addEventListener(){},removeEventListener(){},addListener(){},removeListener(){},dispatchEvent(){return false}});
 const real=window.matchMedia.bind(window);
 window.matchMedia=(q)=>{if(S.darkos&&/prefers-color-scheme:\\s*dark/.test(q))return fake(true,q);if(S.darkos&&/prefers-color-scheme:\\s*light/.test(q))return fake(false,q);return real(q)};
@@ -241,7 +246,13 @@ function proxyFor(side) {
   });
 }
 
-for (const x of list) for (const side of ['before', 'after']) { if (!fs.existsSync(envDir(x[side].env))) continue; try { info(x[side].env); } catch (e) { console.log(`could not look up ${x[side].env} yet (${String(e.message).split('\n')[0]}); will retry on first use`); } }
+// Start listening without waiting for Docker. Warm only the selected pair, once
+// per distinct environment; other environments are resolved when requested.
+for (const env of new Set(['before', 'after'].map(side => current()[side].env))) {
+  if (!fs.existsSync(envDir(env))) continue;
+  envInfoAsync(env).then(value => { if (!infoCache[env]) infoCache[env] = { v: value, t: Date.now() }; })
+    .catch(error => console.log(`could not look up ${env} yet (${String(error.message).split('\n')[0]}); will retry on first use`));
+}
 for (const side of Object.keys(SIDES)) { const srv = proxyFor(side); srv.keepAliveTimeout = 65000; srv.headersTimeout = 66000; srv.listen(SIDES[side].port, BIND); }
 
 http.createServer((req, res) => {

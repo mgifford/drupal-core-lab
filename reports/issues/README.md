@@ -11,6 +11,7 @@ one: `node scripts/new-issue.mjs <nid> --branch <fork-branch>` (see `docs/NEW-IS
 |---|---|---|---|---|---|---|
 | [2847425](2847425/) | `#states` not affecting visibility/requirement of `managed_file` | [yes](2847425/REPRODUCE.md) | 1 | 2026-10-14 |  |  |
 | [2848307](2848307/SUMMARY.md) | Tableselect inline errors | [yes](2848307/REPRODUCE.md) | 0 | 2026-10-14 |  |  |
+| [2951317](2951317/SUMMARY.md) | Reproduce #2951317 | [yes](2951317/REPRODUCE.md) | 2 |  |  | `2951317-pinned`, `2951317-latest` |
 | [3046089](3046089/SUMMARY.md) | Main toolbar items and internal editing | [yes](3046089/REPRODUCE.md) | 0 | 2026-10-14 |  |  |
 | [3083103](3083103/SUMMARY.md) | programmatic error association | [yes](3083103/REPRODUCE.md) | 4 | 2026-10-14 |  |  |
 | [3087389](3087389/SUMMARY.md) | Media Library selection text | [yes](3087389/REPRODUCE.md) | 0 | 2026-10-14 |  |  |
@@ -39,3 +40,6 @@ one: `node scripts/new-issue.mjs <nid> --branch <fork-branch>` (see `docs/NEW-IS
 | [3619387](3619387/) | Sidebar toggle shows child errors (indicator and modal behavior) | [yes](3619387/REPRODUCE.md) | 4 | 2026-10-14 |  |  |
 | [3619933](3619933/) | Reproduce #3619933 (Default Admin theme) | [yes](3619933/REPRODUCE.md) | 6 | 2026-10-14 |  |  |
 | [3627936](3627936/) | Active workspace has a broken styling in dark mode | [yes](3627936/REPRODUCE.md) | 2 | 2026-10-15 | 3 | `3627936-pinned`, `3627936-latest` |
+| [3630425](3630425/SUMMARY.md) | Reproduce #3630425 with Default Admin | [yes](3630425/REPRODUCE.md) | 3 | 2026-10-16 |  | `3630425-pinned`, `3630425-latest`, `3630425-mr-only` |
+| [3631321](3631321/SUMMARY.md) | Reproduce #3631321 | [yes](3631321/REPRODUCE.md) | 2 |  |  | `3631321-pinned`, `3631321-latest` |
+| [3631337](3631337/SUMMARY.md) | Reproduce #3631337 | [yes](3631337/REPRODUCE.md) | 1 |  |  | `3631337-pinned`, `3631337-latest`, `3631337-independent` |

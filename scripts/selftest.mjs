@@ -12,6 +12,7 @@ import { labRoot, rawVariants, variants } from '../tools/compare/lib.mjs';
 import { noChangeProblem } from '../tools/compare/change-under-test.mjs';
 import { resolveBase, unrecorded } from '../tools/compare/patch-change.mjs';
 import { matrixProblems } from '../tools/compare/coverage-matrix.mjs';
+import { testRunSummary } from '../tools/compare/test-output.mjs';
 import { runProblems } from '../tools/playwright/lib/run-schema.mjs';
 
 const args = process.argv.slice(2);
@@ -28,22 +29,22 @@ const SKIP = new Set(['node_modules', '.deps', '.git', 'envs', 'cloud', '.lab-br
 const files = [];
 (function walk(d) { for (const e of fs.readdirSync(d, { withFileTypes: true })) { if (SKIP.has(e.name)) continue; const p = path.join(d, e.name); if (e.isDirectory()) walk(p); else files.push(path.relative(labRoot, p)); } })(labRoot);
 const bad = [];
-for (const f of files.filter((x) => /\.(mjs|js)$/.test(x) && !/\.config\.|playwright\/tests\//.test(x))) { const r = run('node', ['--check', f]); if (r.status !== 0) bad.push(`${f}: ${first(r)}`); }
-for (const f of files.filter((x) => x.endsWith('.sh'))) { const r = run('bash', ['-n', f]); if (r.status !== 0) bad.push(`${f}: ${first(r)}`); }
+for (const f of files.filter((x) => /\.(mjs|js)$/.test(x) && !/\.config\.|playwright\/tests\//.test(x))) { const r = run('node', ['--check', f]); if (r.status !== 0) bad.push(`${f}: ${(r.error?.message || r.stderr || r.stdout || 'no diagnostics').trim().slice(0, 1400)}`); }
+for (const f of files.filter((x) => x.endsWith('.sh'))) { const r = run('bash', ['-n', f]); if (r.status !== 0) bad.push(`${f}: ${(r.error?.message || r.stderr || r.stdout || 'no diagnostics').trim().slice(0, 1400)}`); }
 const phpFiles = files.filter((x) => x.endsWith('.php') && /^(scripts|tools)\//.test(x));
-if (has('php')) for (const f of phpFiles) { const r = run('php', ['-l', f]); if (r.status !== 0) bad.push(`${f}: ${first(r)}`); }
+if (has('php')) for (const f of phpFiles) { const r = run('php', ['-l', f]); if (r.status !== 0) bad.push(`${f}: ${(r.error?.message || r.stderr || r.stdout || 'no diagnostics').trim().slice(0, 1400)}`); }
 record('syntax of scripts (node --check, bash -n' + (has('php') ? ', php -l' : '') + ')', bad.length ? 'FAIL' : 'ok', bad.length ? bad.join('; ') : `${files.filter((x) => /\.(mjs|js|sh)$/.test(x)).length + (has('php') ? phpFiles.length : 0)} files`);
 if (!has('php')) record('php -l', 'skip', 'no php on this machine');
 
 // 2. unit tests
 const glob = (dir) => (fs.existsSync(path.join(labRoot, dir)) ? fs.readdirSync(path.join(labRoot, dir)).filter((f) => f.endsWith('.test.mjs')).map((f) => path.join(dir, f)) : []);
 const yamlThere = fs.existsSync(path.join(labRoot, 'tools/compare/.deps/node_modules/js-yaml'));
-for (const [name, list, needsYaml] of [['unit tests: lab tools', glob('tests/lab'), false], ['unit tests: issue packs', glob('tests/issue-pack'), true]]) {
+for (const [name, list, needsYaml] of [['unit tests: lab tools', glob('tests/lab'), false], ['unit tests: issue packs', glob('tests/issue-pack'), true], ['unit tests: design observations', glob('tests/design'), false]]) {
   if (!list.length) { record(name, 'skip', 'no tests found'); continue; }
   if (needsYaml && !yamlThere) { record(name, 'skip', 'js-yaml not installed: npm install --prefix tools/compare/.deps js-yaml@4'); continue; }
-  const r = run('node', ['--test', ...list], { timeout: 600000 });
-  const pass = (r.stdout.match(/^# pass (\d+)/m) || [])[1], fail = (r.stdout.match(/^# fail (\d+)/m) || [])[1];
-  record(name, r.status === 0 ? 'ok' : 'FAIL', `${pass ?? '?'} passed, ${fail ?? '?'} failed${r.status === 0 ? '' : ': ' + (r.stdout.match(/^not ok .*$/gm) || []).slice(0, 5).join('; ')}`);
+  const r = run('node', ['--test', '--test-reporter=tap', '--test-concurrency=1', ...list], { timeout: 600000 });
+  const summary = testRunSummary(r);
+  record(name, summary.ok ? 'ok' : 'FAIL', summary.detail);
 }
 
 // 3. variants: each resolves, its patches and recipe exist, After has a change to test, slugs are unique, any coverage matrix is valid
