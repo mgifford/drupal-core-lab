@@ -1,0 +1,23 @@
+Firefox launch checks, 2026-10-16, Apple M2, macOS 27.0.1. Copied from the proof-of-concept scratchpad.
+
+== 1. Owner's run of the runner script (Playwright 1.62.1, Firefox 153 build firefox-1538), 10:42Z
+FAILED after 30010 ms: browserType.launch: Timeout 30000ms exceeded.
+Call log:
+[2m  - <launching> /Users/mgifford/Library/Caches/ms-playwright/firefox-1538/firefox/Nightly.app/Contents/MacOS/firefox -no-remote -headless -profile /var/folders/5k/zp136m754yx7_4pggbwsgn3c0000gn/T/playwright_firefoxdev_profile-vRGyUe -juggler-pipe -silent[22m
+[2m  - <launched> pid=53424[22m
+[2m  - [pid=53424][err] *** You are running in headless mode.[22m
+[2m  - [pid=53424][err] sandbox_extension_issue_file_to_process failed for /Users/mgifford/Library/Caches/ms-playwright/firefox-1538/firefox/Nightly.app/Contents/MacOS/plugin-container.app: 1 (Operation not permitted)[22m
+[2m  - [pid=53424][out] Crash Annotation GraphicsCriticalError: |[0][GFX1-]: RenderCompositorSWGL failed mapping default framebuffer, no dt (t=1.39393) [GFX1-]: RenderCompositorSWGL failed mapping default framebuffer, no dt[22m
+
+
+== 2. Installed Firefox 158 started directly: headless --screenshot about:blank, throwaway profile (exited 0 after 3 s, screenshot written)
+*** You are running in headless mode.
+sandbox_extension_issue_file_to_process failed for /Applications/Firefox.app/Contents/MacOS/plugin-container.app: 1 (Operation not permitted)
+sandbox_extension_issue_file_to_process failed for /Applications/Firefox.app/Contents/MacOS/plugin-container.app: 1 (Operation not permitted)
+sandbox_extension_issue_file_to_process failed for /Applications/Firefox.app/Contents/MacOS/plugin-container.app: 1 (Operation not permitted)
+sandbox_extension_issue_file_to_process failed for /Applications/Firefox.app/Contents/MacOS/plugin-container.app: 1 (Operation not permitted)
+
+== 3. Playwright's Firefox 153 started directly, same command (hung; killed after 40 s)
+*** You are running in headless mode.
+sandbox_extension_issue_file_to_process failed for /Users/mgifford/Library/Caches/ms-playwright/firefox-1538/firefox/Nightly.app/Contents/MacOS/plugin-container.app: 1 (Operation not permitted)
+Crash Annotation GraphicsCriticalError: |[0][GFX1-]: RenderCompositorSWGL failed mapping default framebuffer, no dt (t=0.592874) [GFX1-]: RenderCompositorSWGL failed mapping default framebuffer, no dt

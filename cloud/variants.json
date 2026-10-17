@@ -2585,7 +2585,7 @@
         },
         {
           "label": "The login link includes page",
-          "probe": "(() => { const b = document.querySelector('input[name=maintenance_mode]'); return (b?.getAttribute('aria-describedby') || '').split(/\\s+/).some(id => [...(document.getElementById(id)?.querySelectorAll('a') || [])].some(a => a.textContent.trim() === 'user login page')); })()",
+          "probe": "(document.querySelector('input[name=maintenance_mode]')?.getAttribute('aria-describedby') || '').split(/\\s+/).some(id => [...(document.getElementById(id)?.querySelectorAll('a') || [])].some(a => a.textContent.trim() === 'user login page'))",
           "expect": true,
           "kind": "fix"
         },
@@ -2653,7 +2653,7 @@
         },
         {
           "label": "The login link includes page",
-          "probe": "(() => { const b = document.querySelector('input[name=maintenance_mode]'); return (b?.getAttribute('aria-describedby') || '').split(/\\s+/).some(id => [...(document.getElementById(id)?.querySelectorAll('a') || [])].some(a => a.textContent.trim() === 'user login page')); })()",
+          "probe": "(document.querySelector('input[name=maintenance_mode]')?.getAttribute('aria-describedby') || '').split(/\\s+/).some(id => [...(document.getElementById(id)?.querySelectorAll('a') || [])].some(a => a.textContent.trim() === 'user login page'))",
           "expect": true,
           "kind": "fix"
         },
