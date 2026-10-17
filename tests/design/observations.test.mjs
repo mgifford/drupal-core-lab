@@ -56,3 +56,53 @@ test('reduced motion is independent of contrast and unsupported preferences stay
   assert.equal(result.reducedMotion, 'reduce'); assert.equal(result.prefersContrast, 'no-preference');
   assert.equal(result.forcedColors, false); assert.equal(result.reducedTransparency, null); assert.equal(result.reducedData, null);
 });
+
+const referenceNode = (id, overrides = {}) => ({ ...node('nav'), references: { 'aria-labelledby': [{ id, exists: true, count: 1,
+  target: { key: 'html>body>span', tag: 'span', role: null, textHash: 'same-text', ariaLabelHash: 'no-label', hidden: false, nestedNameReference: false, ...overrides } }] } });
+test('generated reference IDs are evidence, not a semantic difference when targets match', () => {
+  const delta = compareObservations(obs('a', [referenceNode('random-123456')]), obs('a', [referenceNode('random-789012')]));
+  assert.equal(delta.changes.length, 0); assert.equal(delta.referenceIdChanges.length, 1);
+});
+test('changed target text, changed target location and duplicate IDs remain differences', () => {
+  for (const overrides of [{ textHash: 'changed' }, { key: 'other-target' }]) {
+    assert.equal(compareObservations(obs('a', [referenceNode('id')]), obs('a', [referenceNode('id', overrides)])).changes.length, 1);
+  }
+  const duplicate = referenceNode('id'); duplicate.references['aria-labelledby'][0].count = 2;
+  assert.equal(compareObservations(obs('a', [referenceNode('id')]), obs('a', [duplicate])).changes.length, 1);
+});
+test('broken references and ordered targets are never suppressed', () => {
+  const broken = referenceNode('id'); broken.references['aria-labelledby'][0] = { id: 'missing', exists: false, count: 0, target: null };
+  assert.equal(compareObservations(obs('a', [referenceNode('id')]), obs('a', [broken])).changes.length, 1);
+  const ordered = referenceNode('id'); ordered.references['aria-labelledby'].push({ ...ordered.references['aria-labelledby'][0], id: 'second', target: { ...ordered.references['aria-labelledby'][0].target, key: 'second' } });
+  const reversed = structuredClone(ordered); reversed.references['aria-labelledby'].reverse();
+  assert.equal(compareObservations(obs('a', [ordered]), obs('a', [reversed])).changes.length, 1);
+});
+test('older snapshots without target signatures retain raw reference differences', () => {
+  const b = referenceNode('id'), a = referenceNode('other');
+  delete b.references['aria-labelledby'][0].target; delete a.references['aria-labelledby'][0].target;
+  assert.equal(compareObservations(obs('a', [b]), obs('a', [a])).changes.length, 1);
+});
+test('nested ARIA naming references retain raw differences for separate name review', () => {
+  assert.equal(compareObservations(obs('a', [referenceNode('id', { nestedNameReference: true })]), obs('a', [referenceNode('other', { nestedNameReference: true })])).changes.length, 1);
+});
+test('print summary separates restyling and visibility with deliberate positive and unchanged controls', () => {
+  const original = obs('a', [node('sample')]);
+  assert.equal(printDelta(original, original).restyledInPrint.length, 0);
+  const delta = printDelta(original, obs('a', [node('sample', false, '700')]));
+  assert.deepEqual(delta.restyledInPrint, ['sample']); assert.deepEqual(delta.hiddenInPrint, []);
+});
+test('semantic label content changes are detected without recording literal text', () => {
+  const b = { ...node('header'), semanticText: { textHash: 'empty' } };
+  const a = { ...b, semanticText: { textHash: 'operations' } };
+  assert.ok(compareObservations(obs('a', [b]), obs('a', [a])).changes[0].different.semanticText);
+});
+test('theme asset evidence is supporting only and excludes external URLs and queries', () => {
+  const result = vm.runInNewContext('(' + browserThemeContext.toString() + ')()', {
+    window: {}, document: { documentElement: { lang: '', dir: 'ltr', classList: [] }, querySelector: () => null,
+      querySelectorAll: () => [{ href: 'https://lab.test/core/themes/default_admin/css/base/print.css?token=secret' }, { href: 'https://external.test/themes/fake/style.css' }] },
+    URL, location: { pathname: '/user/login', href: 'https://lab.test/user/login', origin: 'https://lab.test' }, matchMedia: () => ({ matches: false }),
+  });
+  assert.equal(result.theme, null); assert.equal(result.themeAssets[0].name, 'default_admin');
+  assert.equal(result.themeAssets[0].confidence, 'supporting-only'); assert.equal(result.themeAssets.length, 1);
+  assert.ok(!JSON.stringify(result).includes('secret'));
+});

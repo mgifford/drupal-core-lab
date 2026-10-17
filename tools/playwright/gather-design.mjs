@@ -3,11 +3,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { runArgs, launch, openSide, siteContext, gitInfo } from './lib/lab-run.mjs';
+import { designStates, designScenarioNames } from './lib/design-scenarios.mjs';
+import { renderDesignReport, designArtifactNames } from './lib/design-report.mjs';
 import { observeDesign, compareObservations, printDelta } from './lib/design-observations.mjs';
 
 const option = (name, fallback) => process.argv.find(value => value.startsWith('--' + name + '='))?.slice(name.length + 3) ?? fallback;
 const help = `Usage: node tools/playwright/gather-design.mjs <registered-slug> [--pages=docs/design-pages.example.json] [--max-pages=20] [--crawl] [--contrast=more] [--motion=reduce] [--forced-colors] [--scheme=dark] [--pdf] [--out=path]
-Collects screen + print DOM/style evidence, theme transitions and paired changes. No form submission, design verdict, or axe/Lighthouse crawl. --crawl only follows same-origin links under explicit crawlPrefixes in --pages. --pdf writes Chromium A4 and Letter output for manual pagination review.`;
+Collects screen + print DOM/style evidence, theme transitions and paired changes. No content save, design verdict, or axe/Lighthouse crawl. The optional curated multivalue scenario submits AJAX add/remove controls only. --crawl only follows same-origin links under explicit crawlPrefixes in --pages. --pdf writes Chromium A4 and Letter output for manual pagination review.`;
 if (process.argv.includes('--help')) { console.log(help); process.exit(0); }
 const run = runArgs();
 const maxPages = Number(option('max-pages', '20'));
@@ -35,6 +37,7 @@ const queue = [], seen = new Set();
 function enqueue(spec, discovered = false) {
   const left = spec.beforePath || spec.path, right = spec.afterPath || spec.path;
   if (![left, right].every(safePath)) throw new Error('Unsafe path in manifest/discovery');
+  if (spec.scenario && (!designScenarioNames.includes(spec.scenario) || spec.path !== '/node/add/article' || spec.account !== 'administrator')) throw new Error('Unsupported scenario or scenario precondition');
   if (!['anonymous', 'administrator'].includes(spec.account)) throw new Error('account must be anonymous or administrator');
   const item = { ...spec, path: spec.path || left, beforePath: left, afterPath: right };
   const key = JSON.stringify([left, right, item.account, item.context || {}]);
@@ -44,23 +47,22 @@ function enqueue(spec, discovered = false) {
 for (const spec of manifest.pages) enqueue(spec);
 const { browser, environment } = await launch(run); run.browser = browser;
 const output = path.join(run.out, 'design'); fs.mkdirSync(output, { recursive: true });
-const report = { schema: 'lab-design-observations-1', status: 'DRAFT', slug: run.slug, when: new Date().toISOString(),
+const report = { schema: 'lab-design-observations-2', status: 'DRAFT', slug: run.slug, when: new Date().toISOString(),
   environment, requested: { contrast, reducedMotion: motion, forcedColors: run.forced, colorScheme: run.scheme, media: ['screen', 'print'] },
   commits: { before: gitInfo(run.v.before.env), after: gitInfo(run.v.after.env) },
   core: run.v.core, patchStacks: { before: run.v.before.patches || [], after: run.v.after.patches || [] },
   coverage: { maxPages, maxElements: limit, crawling: crawl, discoveryLimit: maxPages * 10, visited: 0, rejectedLinks: 0, discoveryCapped: false, queuedNotVisited: 0 },
   sites: {}, pages: [], themeTransitions: [],
-  limitations: ['Initial page loads only; no authored AJAX/focus/invalid states', 'No rule violations inferred from appearance differences',
+  limitations: ['Initial loads plus explicitly selected multivalue add/remove scenario; no general focus/invalid-state coverage', 'No rule violations inferred from appearance differences',
     'Browser theme hint may be unavailable; negotiation reasons are not instrumented', 'No structural sampling; visited pages only',
     'Forced colours and prefers-contrast are browser emulation, not native OS palettes',
     'DOM element limit and CSSOM access gaps are explicit; no full cascade attribution',
     'GET navigation does not prove arbitrary contrib routes are side-effect-free; use disposable sites and narrow allowlists'],
 };
+report.artifacts = designArtifactNames(run.slug, report.when);
 const contexts = {};
 const previous = {};
-const save = () => fs.writeFileSync(path.join(output, 'observations.json'), JSON.stringify(report, null, 2));
-const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
-const cell = value => String(value ?? 'unknown').replace(/\|/g, '\\|').replace(/[\r\n]/g, ' ');
+const save = () => fs.writeFileSync(path.join(output, report.artifacts.observations), JSON.stringify(report, null, 2));
 async function ensureContext(side, account) {
   const key = side + ':' + account;
   if (contexts[key]) return contexts[key];
@@ -110,23 +112,28 @@ try {
         if (entry.status >= 400 || entry.redirected) {
           entry.notCompared = entry.status >= 400 ? 'HTTP error' : 'Redirected; supply the resolved path explicitly for evidence';
         } else {
-          entry.screen = await observeDesign(page, { limit });
-          const theme = entry.screen.context.theme;
-          const key = side + ':' + spec.account + ':' + JSON.stringify(spec.context || {});
-          if (previous[key] && theme && previous[key].theme !== theme) report.themeTransitions.push({ side, account: spec.account, context: spec.context || {}, from: previous[key], to: { theme, path: target } });
-          if (theme) previous[key] = { theme, path: target };
-          // Same document is observed in print to isolate media changes from reload noise.
-          await page.emulateMedia({ media: 'print', contrast, reducedMotion: motion });
-          await ready(page); entry.print = await observeDesign(page, { limit });
-          entry.printDelta = printDelta(entry.screen, entry.print);
-          if (pdf) {
-            entry.pdfs = [];
-            for (const format of ['A4', 'Letter']) {
-              const file = `${i + 1}-${side}-${format}.pdf`;
-              await page.pdf({ path: path.join(output, file), format, printBackground: false, preferCSSPageSize: false }); entry.pdfs.push(file);
+          entry.states = [];
+          for await (const state of designStates(page, spec)) {
+            const measurement = state === 'initial' ? entry : { name: state };
+            measurement.screen = await observeDesign(page, { limit });
+            const theme = measurement.screen.context.theme;
+            const key = side + ':' + spec.account + ':' + JSON.stringify(spec.context || {});
+            if (previous[key] && theme && previous[key].theme !== theme) report.themeTransitions.push({ side, account: spec.account, context: spec.context || {}, from: previous[key], to: { theme, path: target, state } });
+            if (theme) previous[key] = { theme, path: target };
+            // Same document is observed in print to isolate media changes from reload noise.
+            await page.emulateMedia({ media: 'print', contrast, reducedMotion: motion });
+            await ready(page); measurement.print = await observeDesign(page, { limit });
+            measurement.printDelta = printDelta(measurement.screen, measurement.print);
+            if (pdf) {
+              measurement.pdfs = [];
+              for (const format of ['A4', 'Letter']) {
+                const file = `${report.artifacts.runId}-${i + 1}-${side}-${state}-${format}.pdf`;
+                await page.pdf({ path: path.join(output, file), format, printBackground: false, preferCSSPageSize: false }); measurement.pdfs.push(file);
+              }
             }
+            await page.emulateMedia({ media: 'screen', contrast, reducedMotion: motion });
+            if (state !== 'initial') entry.states.push(measurement);
           }
-          await page.emulateMedia({ media: 'screen', contrast, reducedMotion: motion });
           if (crawl) {
             const links = await page.locator('a[href]').evaluateAll(anchors => anchors.map(anchor => anchor.href));
             for (const link of links) {
@@ -144,6 +151,17 @@ try {
       const b = result.sides.before[medium], a = result.sides.after[medium];
       if (b && a) result[medium + 'Comparison'] = compareObservations(b, a);
     }
+    result.stateComparisons = [];
+    for (const name of new Set(['before', 'after'].flatMap(side => (result.sides[side].states || []).map(state => state.name)))) {
+      const state = { name };
+      for (const media of ['screen', 'print']) {
+        const before = result.sides.before.states?.find(value => value.name === name)?.[media];
+        const after = result.sides.after.states?.find(value => value.name === name)?.[media];
+        if (before && after) state[media + 'Comparison'] = compareObservations(before, after);
+        else state.notCompared = 'State unavailable on one or both sides';
+      }
+      result.stateComparisons.push(state);
+    }
     report.pages.push(result); report.coverage.visited++; report.coverage.queuedNotVisited = queue.length - report.coverage.visited;
     save();
   }
@@ -151,32 +169,9 @@ try {
   for (const item of Object.values(contexts)) await item.page.context().close().catch(() => {});
   await browser.close(); save();
 }
-const rows = report.pages.map(row => {
-  const b = row.sides.before, a = row.sides.after;
-  return [row.id, row.spec.path, row.spec.account, b.screen?.context.theme || 'unknown', a.screen?.context.theme || 'unknown', row.screenComparison?.themeChanged ? 'THEME CHANGE' : row.screenComparison?.themeComparable ? 'same theme' : 'not compared', row.screenComparison?.changes.length ?? 'not compared', b.screen ? JSON.stringify({contrast:b.screen.context.prefersContrast,forced:b.screen.context.forcedColors,motion:b.screen.context.reducedMotion,transparency:b.screen.context.reducedTransparency,data:b.screen.context.reducedData,markers:b.screen.context.themeModeMarkers}) : 'not observed', a.screen ? JSON.stringify({contrast:a.screen.context.prefersContrast,forced:a.screen.context.forcedColors,motion:a.screen.context.reducedMotion,transparency:a.screen.context.reducedTransparency,data:a.screen.context.reducedData,markers:a.screen.context.themeModeMarkers}) : 'not observed', b.printDelta?.hiddenInPrint.length ?? 'not checked', a.printDelta?.hiddenInPrint.length ?? 'not checked', b.printDelta?.revealedInPrint.length ?? 'not checked', a.printDelta?.revealedInPrint.length ?? 'not checked'];
-});
-const headers = ['#', 'Page', 'Account', 'Before theme', 'After theme', 'Theme comparison', 'Screen differences', 'Observed modes B', 'Observed modes A', 'Hidden in print B', 'Hidden in print A', 'Revealed in print B', 'Revealed in print A'];
-const notes = report.pages.flatMap(row => ['before', 'after'].flatMap(side => {
-  const entry = row.sides[side];
-  return [entry.error || entry.notCompared ? `${row.id} ${side}: ${entry.error || entry.notCompared}` : null,
-    entry.screen?.truncated || entry.print?.truncated ? `${row.id} ${side}: element inventory truncated` : null,
-    entry.print?.sheets.some(sheet => !sheet.readable) ? `${row.id} ${side}: unreadable stylesheet(s); print CSS inventory incomplete` : null].filter(Boolean);
-}));
-const transitions = report.themeTransitions.map(event => `${event.side} (${event.account}): ${event.from.theme} ${event.from.path} -> ${event.to.theme} ${event.to.path}`);
-const md = '# Design, theme and print observations\n\nDRAFT. Differences are review candidates, not violations.\n\n' +
-  `Variant: ${run.slug}. Requested prefers-contrast: ${contrast}; reduced motion: ${motion}; forced colours: ${run.forced}; colour scheme: ${run.scheme}.\n\n` +
-  '| ' + headers.join(' | ') + ' |\n|' + headers.map(() => '---').join('|') + '|\n' + rows.map(row => '| ' + row.map(cell).join(' | ') + ' |').join('\n') +
-  '\n\n## Configured theme settings (request/user overrides may differ)\n\n' + JSON.stringify(Object.fromEntries(Object.entries(report.sites).map(([side, site]) => [side, site.configuration.themeSettings || null]))) + '\n\n## Theme transitions during navigation\n\n' + (transitions.join('\n\n') || 'None observed (not proof of a single-theme site).') +
-  '\n\n## Gaps and errors\n\n' + (notes.join('\n\n') || 'No page-level errors recorded. See limitations and element caps in JSON.') +
-  '\n\n## Coverage\n\n' + JSON.stringify(report.coverage) + '\n\nInspect observations.json for per-element screen/print removals, additions, restyling, pseudo-element borders, observed media values and CSSOM gaps.\n\n' + report.limitations.join('\n\n') + '\n';
-fs.writeFileSync(path.join(output, 'SUMMARY.md'), md);
-const style = `body{font:1rem/1.5 system-ui;max-width:100rem;margin:2rem}table{border-collapse:collapse}th,td{padding:.4rem;border:1px solid #555;text-align:left}pre{white-space:pre-wrap;overflow-wrap:anywhere}table{width:100%;table-layout:fixed}td,th{overflow-wrap:anywhere}a{color:#003ecc}@media print{body{margin:0;color:#000;background:#fff;font-size:10pt}thead{display:table-header-group}tr{break-inside:avoid}h2{break-after:avoid}th,td{padding:3pt}pre{white-space:pre-wrap}@page{margin:12mm}}`;
-const summaryColumns = [0, 1, 3, 4, 5, 6];
-const detailsHtml = rows.map(row => '<section><h2>Page ' + esc(row[0]) + ': ' + esc(row[1]) + '</h2><p>Account: ' + esc(row[2]) + '</p><ul>' + [
-  'Before observed modes: ' + row[7], 'After observed modes: ' + row[8],
-  'Hidden in print: Before ' + row[9] + '; After ' + row[10],
-  'Revealed in print: Before ' + row[11] + '; After ' + row[12],
-].map(value => '<li>' + esc(value) + '</li>').join('') + '</ul></section>').join('');
-fs.writeFileSync(path.join(output, 'report.html'), '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Design, theme and print observations</title><style>' + style + '</style><body><h1>Design, theme and print observations</h1><p>DRAFT. Differences are review candidates. Element counts include descendants, not unique content blocks.</p><p>Variant: ' + esc(run.slug) + '; requested contrast: ' + esc(contrast) + '; reduced motion: ' + esc(motion) + '; forced colours: ' + esc(run.forced) + '; scheme: ' + esc(run.scheme) + '</p><table><caption>Paired page observations</caption><thead><tr>' + summaryColumns.map(index => '<th scope="col">' + esc(headers[index]) + '</th>').join('') + '</tr></thead><tbody>' + rows.map(row => '<tr>' + summaryColumns.map(index => '<td>' + esc(row[index]) + '</td>').join('') + '</tr>').join('') + '</tbody></table>' + detailsHtml + '<h2>Theme transitions</h2><pre>' + esc(transitions.join('\n') || 'None observed') + '</pre><h2>Gaps and errors</h2><pre>' + esc(notes.join('\n') || 'See JSON for element caps and stylesheet inventory') + '</pre><h2>Coverage</h2><pre>' + esc(JSON.stringify(report.coverage, null, 2)) + '</pre><h2>Limitations</h2><ul>' + report.limitations.map(value => '<li>' + esc(value) + '</li>').join('') + '</ul><p>Full per-element evidence is in observations.json.</p></body></html>');
+const rendered = renderDesignReport(report);
+fs.writeFileSync(path.join(output, report.artifacts.summary), rendered.markdown);
+fs.writeFileSync(path.join(output, report.artifacts.html), rendered.html);
 console.log('Evidence saved to ' + output);
+for (const name of [report.artifacts.observations, report.artifacts.summary, report.artifacts.html]) console.log('  ' + name);
 if (report.pages.some(row => Object.values(row.sides).some(side => side.error || side.notCompared))) process.exitCode = 2;

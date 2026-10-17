@@ -862,7 +862,7 @@ function resetThemeEvidence() {
 function renderThemeComparison() {
   const b = themeCurrent.before, a = themeCurrent.after, el = $('theme-comparison'); if (!el) return;
   el.textContent = !b || !a ? 'Waiting for theme evidence from both pages.'
-    : !b.theme || !a.theme ? 'Theme not determined on one or both pages; visual profile comparison is limited.'
+    : !b.theme || !a.theme ? 'Actual theme not determined on one or both pages. Stylesheet candidates are supporting evidence only; visual profile comparison is limited.'
     : b.path !== a.path || b.language !== a.language || b.direction !== a.direction ? 'Different page contexts: Before theme ' + b.theme + '; After theme ' + a.theme + '. Compare route, language and direction before judging consistency.'
     : b.theme !== a.theme ? 'Different rendered themes: Before ' + b.theme + '; After ' + a.theme + '. Check whether this change is expected.'
     : 'Both pages report ' + b.theme + '. This does not prove identical theme settings or styling.';
@@ -871,6 +871,7 @@ function receiveThemeContext(side, raw) {
   if (!raw || typeof raw !== 'object') return;
   const safe = (value) => typeof value === 'string' ? value.slice(0, 240) : null;
   const context = Object.fromEntries(['theme', 'source', 'path', 'language', 'direction', 'prefersContrast', 'reducedMotion', 'reducedTransparency', 'reducedData'].map((key) => [key, safe(raw[key])]));
+  context.themeAssets = Array.isArray(raw.themeAssets) ? raw.themeAssets.slice(0, 20).filter(asset => asset && typeof asset.name === 'string').map(asset => ({ name: safe(asset.name), paths: Array.isArray(asset.paths) ? asset.paths.filter(value => typeof value === 'string' && value.startsWith('/')).slice(0, 5).map(value => value.split(/[?#]/)[0].slice(0, 240)) : [], source: 'stylesheet-path', confidence: 'supporting-only' })) : [];
   context.forcedColors = raw.forcedColors === true; context.darkPreference = raw.darkPreference === true;
   context.themeModeMarkers = Array.isArray(raw.themeModeMarkers) ? raw.themeModeMarkers.filter(x => typeof x === 'string').slice(0, 20).map(x => x.slice(0, 80)) : [];
   // Never retain reset-token paths or URL queries from a frame.
@@ -881,9 +882,9 @@ function receiveThemeContext(side, raw) {
   const event = { when: new Date().toISOString(), side, ...context, previousTheme: prior?.theme || null, themeChanged: changed };
   themeCurrent[side] = context; if (context.theme) themePrevious[side] = context;
   themeEvents.push(event); if (themeEvents.length > 100) themeEvents.shift();
-  $('theme-' + side).textContent = 'Theme: ' + (context.theme || 'unknown') + (changed ? ' (changed from ' + prior.theme + ')' : '');
+  $('theme-' + side).textContent = 'Theme: ' + (context.theme || 'unknown') + (!context.theme && context.themeAssets.length ? ' (styles: ' + context.themeAssets.map(asset => asset.name).join(', ') + '; supporting only)' : '') + (changed ? ' (changed from ' + prior.theme + ')' : '');
   $('theme-history').textContent = '';
-  for (const item of [...themeEvents].reverse()) { const li = document.createElement('li'); li.textContent = item.side + ': ' + item.path + ' | ' + (item.theme || 'unknown') + ' | ' + (item.language || 'unknown language') + (item.themeChanged ? ' | THEME CHANGED from ' + item.previousTheme : '') + ' | prefers-contrast: ' + (item.prefersContrast || 'unknown') + ' | reduced motion: ' + (item.reducedMotion || 'unknown') + ' | reduced transparency/data: ' + (item.reducedTransparency || 'unknown') + '/' + (item.reducedData || 'unknown') + ' | forced colours: ' + item.forcedColors + ' | theme mode markers: ' + item.themeModeMarkers.join(', ') + ' | ' + item.when; $('theme-history').append(li); }
+  for (const item of [...themeEvents].reverse()) { const li = document.createElement('li'); li.textContent = item.side + ': ' + item.path + ' | ' + (item.theme || 'unknown') + ' | ' + (item.language || 'unknown language') + (item.themeChanged ? ' | THEME CHANGED from ' + item.previousTheme : '') + ' | source: ' + (item.source || 'unknown') + ' | stylesheet candidates: ' + item.themeAssets.map(asset => asset.name).join(', ') + ' (supporting only) | prefers-contrast: ' + (item.prefersContrast || 'unknown') + ' | reduced motion: ' + (item.reducedMotion || 'unknown') + ' | reduced transparency/data: ' + (item.reducedTransparency || 'unknown') + '/' + (item.reducedData || 'unknown') + ' | forced colours: ' + item.forcedColors + ' | theme mode markers: ' + item.themeModeMarkers.join(', ') + ' | ' + item.when; $('theme-history').append(li); }
   renderThemeComparison();
 }
 $('theme-download').addEventListener('click', () => {

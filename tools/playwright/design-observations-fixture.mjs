@@ -7,10 +7,10 @@ import assert from 'node:assert/strict';
 import AxeBuilder from '@axe-core/playwright';
 import { chromium } from '@playwright/test';
 import { browserThemeContext } from '../compare/theme-context.mjs';
-import { observeDesign, printDelta } from './lib/design-observations.mjs';
+import { observeDesign, printDelta, compareObservations } from './lib/design-observations.mjs';
 const root = path.resolve('tools/compare');
 let base;
-const fixture = `<!doctype html><html lang="en"><meta charset="utf-8"><title>Fixture</title><style>#print-only{display:none}@media print{#screen-only{display:none}#print-only{display:block}#restyled{font-style:italic}}@media (prefers-contrast:more){#restyled{border-inline-start:3px double}}#restyled{animation:lab-pulse 5s infinite}@keyframes lab-pulse{from{opacity:1}to{opacity:.8}}@media(prefers-reduced-motion:reduce){#restyled{animation:none;scroll-behavior:auto}}@page{margin:12mm}</style><body><h1>Fixture</h1><p id="screen-only">Screen only</p><p id="print-only">Print only</p><p id="restyled">Changed style</p><label for="test-input">Test</label><input id="test-input"><script>window.drupalSettings={ajaxPageState:{theme:'default_admin'}};const read=${browserThemeContext.toString()};function send(){parent.postMessage({compare:1,type:'theme-context',context:read()},location.origin)}addEventListener('load',send);setInterval(send,200);</script></body></html>`;
+const fixture = `<!doctype html><html lang="en"><meta charset="utf-8"><title>Fixture</title><link rel="stylesheet" href="/core/themes/default_admin/css/base/fixture.css"><style>#print-only{display:none}@media print{#screen-only{display:none}#print-only{display:block}#restyled{font-style:italic}}@media (prefers-contrast:more){#restyled{border-inline-start:3px double}}#restyled{animation:lab-pulse 5s infinite}@keyframes lab-pulse{from{opacity:1}to{opacity:.8}}@media(prefers-reduced-motion:reduce){#restyled{animation:none;scroll-behavior:auto}}@page{margin:12mm}</style><body><h1>Fixture</h1><p id="screen-only">Screen only</p><p id="print-only">Print only</p><p id="restyled">Changed style</p><span id="generated-123456">Navigation</span><nav id="named-nav" aria-labelledby="generated-123456"></nav><label for="test-input">Test</label><input id="test-input"><script>window.drupalSettings={ajaxPageState:{theme:'default_admin'}};const read=${browserThemeContext.toString()};function send(){parent.postMessage({compare:1,type:'theme-context',context:read()},location.origin)}addEventListener('load',send);setInterval(send,200);</script></body></html>`;
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://x');
   const json = data => { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify(data)); };
@@ -19,6 +19,7 @@ const server = http.createServer((req, res) => {
   if (url.pathname === '/api/browsers') return json({ browsers: [] });
   if (url.pathname === '/api/resources/latest') return json({ found: false, command: 'fixture' });
   if (url.pathname.startsWith('/api/')) return json({});
+  if (url.pathname === '/core/themes/default_admin/css/base/fixture.css') { res.writeHead(200, { 'content-type': 'text/css' }); res.end(''); return; }
   if (url.pathname === '/fixture') { res.writeHead(200, { 'content-type': 'text/html' }); res.end(fixture); return; }
   if (url.pathname === '/' || ['/browser-handoff.mjs', '/media-preferences.mjs'].includes(url.pathname)) {
     const file = path.join(root, url.pathname === '/' ? 'index.html' : path.basename(url.pathname));
@@ -35,6 +36,23 @@ try {
   const page = await context.newPage();
   await page.goto(base + '/fixture');
   const screen = await observeDesign(page);
+  assert.equal(compareObservations(screen, await observeDesign(page)).changes.length, 0, 'unchanged control');
+  await page.locator('#generated-123456').evaluate(el => el.id = 'generated-789012');
+  await page.locator('#named-nav').evaluate(el => el.setAttribute('aria-labelledby', 'generated-789012'));
+  const renumbered = await observeDesign(page);
+  const idDelta = compareObservations(screen, renumbered);
+  assert.equal(idDelta.changes.length, 0); assert.equal(idDelta.referenceIdChanges.length, 1);
+  await page.locator('#restyled').evaluate(el => el.style.fontWeight = '700');
+  assert.ok(compareObservations(renumbered, await observeDesign(page)).changes.some(row => row.key === '#restyled' && row.different.style));
+  await page.locator('#restyled').evaluate(el => el.style.removeProperty('font-weight'));
+  await page.locator('#named-nav').evaluate(el => el.setAttribute('aria-labelledby', 'missing'));
+  assert.ok(compareObservations(renumbered, await observeDesign(page)).changes.some(row => row.key === '#named-nav' && row.different.references));
+  await page.locator('#named-nav').evaluate(el => el.setAttribute('aria-labelledby', 'generated-789012'));
+  await page.evaluate(() => { delete window.drupalSettings; });
+  const unknown = await observeDesign(page);
+  assert.equal(unknown.context.theme, null); assert.equal(unknown.context.themeAssets[0].name, 'default_admin');
+  await page.evaluate(() => { window.drupalSettings = { ajaxPageState: { theme: 'default_admin' } }; });
+  console.log('PASS: unchanged control, deliberate bold change, generated IDs, broken references and anonymous theme assets');
   await page.emulateMedia({ media: 'print', contrast: 'more', forcedColors: 'active', reducedMotion: 'reduce' });
   const printed = await observeDesign(page), delta = printDelta(screen, printed);
   assert.ok(delta.hiddenInPrint.includes('#screen-only'));

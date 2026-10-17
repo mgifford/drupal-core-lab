@@ -131,12 +131,9 @@ Use disposable test data. The collector excludes input values, passwords, full H
 Do not send session profiles, cookies, one-time login URLs or credentials.
 Report which supported theme settings you selected, including whether they were global or per-user.
 
-## Verification status at preparation
+## Verification status
 
-Passed: six new Node regression tests; CLI help; JavaScript syntax; serialized proxy-script parsing; generated cloud consistency.
-Not run: Drupal runtime, actual screen/print browser fixture, native contrast palettes, keyboard/screen-reader check in Drupal, PHP lint (PHP unavailable).
-Browser fixture could not run because Chromium download failed in the preparation environment.
-The broad repository selftest was attempted: syntax/variants/docs/cloud checks passed, PHP and issue-pack tests were skipped, and its lab-tools unit-test subprocess failed without a summary. This is not presented as a clean full-suite result. A diagnostic serial run of tests/lab reported 152 passes and 3 failures: missing js-yaml, the real unreachable-host probe, and a contrib fixture Git ref fetch. These were not repaired or presented as passing. The new design tests passed independently.
+See [DESIGN-FOLLOWUP.md](DESIGN-FOLLOWUP.md) for the current follow-up changes and validation. Node checks cover observations, rendering, scenarios, test diagnostics and the legacy CLI commands. Real browser and Drupal scenario execution must be verified locally; Chromium download is unavailable in the preparation environment. PHP lint and human keyboard/screen-reader review are also pending there.
 
 ## Colour intent and additional user-preference observations
 
@@ -150,8 +147,24 @@ node tools/playwright/gather-design.mjs 3631337-pinned --pages=docs/design-pages
 The collector captures reduced-motion, reduced-transparency and reduced-data media results, animation/transition/scroll computed properties, preference CSS selectors and local data-theme-mode scope. It emulates only the reduced-motion preference through the new flag; transparency/data are observed, not forced by new CLI flags.
 The viewer history/download records these preferences. Compare requested and observed settings and inspect the same meaningful states.
 Initial-load animation snapshots do not prove a next-step cue survives an interaction. That needs the authored scenario described in the new guide.
-Seven new-design Node regression tests pass; the expanded browser fixture remains unrun here because Chromium is unavailable.
+The expanded Node tests include independent preference and print checks; the expanded browser fixture remains unrun in the preparation environment.
 
 ## General reviewer scope
 
 [STYLE-REVIEWER-SCOPE.md](STYLE-REVIEWER-SCOPE.md) clarifies the extensible review method. Colour, motion, print and preferences are examples; the reviewer must also surface unexplained differences when no accepted rule exists yet.
+
+## Output names and capture time
+
+New runs include the comparison slug and one UTC run-start timestamp in the JSON, Markdown, HTML and optional PDF filenames. For example:
+
+```text
+observations-3630425-pinned-2026-10-17T13-26-05-000Z.json
+SUMMARY-3630425-pinned-2026-10-17T13-26-05-000Z.md
+report-3630425-pinned-2026-10-17T13-26-05-000Z.html
+```
+
+All artifacts from one run share that identifier. Colons and decimal points in the timestamp are replaced with hyphens for filesystem compatibility; Z means UTC. JSON records the names in artifacts, and the human reports show the recorded capture-start time. Optional PDFs also carry the run identifier, page, side, state and paper format. The output directory behavior is unchanged. Generic observations.json, SUMMARY.md and report.html above refer to artifact types; new runs use the timestamped names without additional generic aliases. Existing reports are not renamed.
+
+## Forced-colour evaluator theme checks
+
+The shared #3631321/#3631337 evaluator uses browser settings and the embedded settings JSON as direct theme hints. It allows a bounded wait for deferred scripts. A conflicting hint still raises an error. If a hint is absent, it records an unverified theme check and continues gathering scenario evidence; configured themes or stylesheet paths are not promoted to proof of the rendered theme. The report includes these checks. Any unverified scenario entry page makes the final verdict mixed (inconclusive); exit 2 indicates this precondition gap when no After check has failed. Exit 1 still indicates failed After checks. The evaluator keeps its existing results.json/SUMMARY.md output layout for compatibility; the timestamped filenames above apply to design collection exports.

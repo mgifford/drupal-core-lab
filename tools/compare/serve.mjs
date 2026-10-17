@@ -246,7 +246,13 @@ function proxyFor(side) {
   });
 }
 
-for (const x of list) for (const side of ['before', 'after']) { if (!fs.existsSync(envDir(x[side].env))) continue; try { info(x[side].env); } catch (e) { console.log(`could not look up ${x[side].env} yet (${String(e.message).split('\n')[0]}); will retry on first use`); } }
+// Start listening without waiting for Docker. Warm only the selected pair, once
+// per distinct environment; other environments are resolved when requested.
+for (const env of new Set(['before', 'after'].map(side => current()[side].env))) {
+  if (!fs.existsSync(envDir(env))) continue;
+  envInfoAsync(env).then(value => { if (!infoCache[env]) infoCache[env] = { v: value, t: Date.now() }; })
+    .catch(error => console.log(`could not look up ${env} yet (${String(error.message).split('\n')[0]}); will retry on first use`));
+}
 for (const side of Object.keys(SIDES)) { const srv = proxyFor(side); srv.keepAliveTimeout = 65000; srv.headersTimeout = 66000; srv.listen(SIDES[side].port, BIND); }
 
 http.createServer((req, res) => {

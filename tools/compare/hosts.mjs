@@ -19,8 +19,8 @@ export function hostsFor(v, { coreUrl } = {}) {
 }
 
 // The default probe: an HTTPS request, any answer at all counts as reachable (404 and 403 included: the host is there).
-export const httpsProbe = (host, timeoutMs = 6000) => new Promise((resolve) => {
-  const req = https.request({ host, method: 'HEAD', path: '/', timeout: timeoutMs }, (res) => { res.resume(); resolve({ ok: true, detail: `HTTP ${res.statusCode}` }); });
+export const httpsProbe = (host, timeoutMs = 6000, request = https.request) => new Promise((resolve) => {
+  const req = request({ host, method: 'HEAD', path: '/', timeout: timeoutMs }, (res) => { res.resume(); resolve({ ok: true, detail: `HTTP ${res.statusCode}` }); });
   req.on('timeout', () => { req.destroy(); resolve({ ok: false, detail: `no answer in ${timeoutMs / 1000} s` }); });
   req.on('error', (e) => resolve({ ok: false, detail: e.code || e.message }));
   req.end();
