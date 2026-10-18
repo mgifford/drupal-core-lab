@@ -46,6 +46,21 @@ test('viewer: origins typed with capitals still accept the browser\'s lower-case
   } finally { child.kill('SIGTERM'); await exit; }
 });
 
+test('viewer: a headless emulation window (scripted checks) is not refused on a machine without a display', { timeout: 15000 }, async () => {
+  const port = 20000 + Math.floor(Math.random() * 25000);
+  const env = { ...process.env, PORT: String(port), LAB_BIND: '127.0.0.1', LAB_EMULATION_HEADLESS: '1', CODER_AGENT_URL: 'https://coder.example' };
+  for (const key of ['LAB_EXTRA_ORIGINS', 'LAB_BEFORE_ORIGIN', 'LAB_AFTER_ORIGIN']) delete env[key];
+  const child = spawn(process.execPath, ['tools/compare/serve.mjs'], { cwd: labRoot, env, stdio: ['ignore', 'pipe', 'pipe'] });
+  let output = '';
+  for (const stream of [child.stdout, child.stderr]) stream.on('data', (data) => { output = (output + data).slice(-6000); });
+  const exit = once(child, 'exit');
+  try {
+    for (let i = 0; i < 40 && !output.includes('compare:'); i++) await new Promise((r) => setTimeout(r, 200));
+    const body = await new Promise((resolve, reject) => http.get({ host: '127.0.0.1', port, path: '/variants.json', headers: { host: `localhost:${port}` } }, (r) => { let t = ''; r.on('data', (c) => (t += c)); r.on('end', () => resolve(t)); }).on('error', reject));
+    assert.equal(JSON.parse(body).noWindow, '');
+  } finally { child.kill('SIGTERM'); await exit; }
+});
+
 test('noWindowReason: a cloud workspace or a Linux machine without a display cannot show a window', () => {
   assert.match(noWindowReason({ platform: 'linux', env: { CODER_AGENT_URL: 'https://coder.example', DISPLAY: ':0' } }), /cloud workspace/);
   assert.match(noWindowReason({ platform: 'darwin', env: { CODESPACES: 'true' } }), /cloud workspace/);

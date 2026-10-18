@@ -11,6 +11,9 @@ import { execFile } from 'node:child_process';
 import { lighthouseAvailable, audit as lighthouseAudit } from './lighthouse.mjs';
 import * as emulation from './emulation.mjs';
 import { installedBrowsers, openBrowser, noWindowReason } from './browser-launch.mjs';
+// Why the preference emulation window cannot open here ('' when it can). A headless window (LAB_EMULATION_HEADLESS, for the scripted
+// checks such as tools/playwright/forced-window.mjs) needs no display.
+const noWindow = () => (process.env.LAB_EMULATION_HEADLESS ? '' : noWindowReason());
 import { labRoot, variants, envInfo, envInfoAsync, loginPathAsync, envDir } from './lib.mjs';
 
 const PAGE = Number(process.env.PORT || 8100);
@@ -269,7 +272,7 @@ http.createServer((req, res) => {
   if (u.pathname === '/variants.json') {
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
     const availability = Object.fromEntries(list.map(v => [v.slug, ['before', 'after'].every(s => fs.existsSync(path.join(envDir(v[s].env), '.ddev/config.yaml')))]));
-    res.end(JSON.stringify({ variants: list, availability, state, origins: { before: SIDES.before.origin, after: SIDES.after.origin }, sites: realSites(), noWindow: noWindowReason() }));
+    res.end(JSON.stringify({ variants: list, availability, state, origins: { before: SIDES.before.origin, after: SIDES.after.origin }, sites: realSites(), noWindow: noWindow() }));
   } else if (['/browser-handoff.mjs', '/media-preferences.mjs'].includes(u.pathname) || /^\/browser-icons\/(chrome|edge|firefox|safari)\.svg$/.test(u.pathname)) {
     const file = path.join(labRoot, 'tools/compare', u.pathname.slice(1));
     res.writeHead(200, { 'content-type': u.pathname.endsWith('.mjs') ? 'text/javascript' : 'image/svg+xml' }); res.end(fs.readFileSync(file));
@@ -324,7 +327,7 @@ http.createServer((req, res) => {
     // GET: state and what each frame reports. POST {mode}: forced-light | forced-dark | contrast | normal. POST /open: launch the controlled window.
     const send = (code, o) => { res.writeHead(code, { 'content-type': 'application/json' }); res.end(JSON.stringify(o)); };
     if (req.method === 'POST') { let b = ''; req.on('data', (c) => (b += c)); req.on('end', async () => {
-      try { const d = JSON.parse(b || '{}'); if (d.open && noWindowReason()) throw new Error(`The preference emulation window cannot open: ${noWindowReason()}. Use your browser's DevTools > More tools > Rendering instead.`); if (d.open) await emulation.open(`http://localhost:${PAGE}/?controlled=1`, d.mode || 'forced-light', [SIDES.before.origin, SIDES.after.origin]); else if (d.close) await emulation.close(); else if (Object.hasOwn(d, 'preferences')) await emulation.setPreferences(d.preferences); else await emulation.setMode(d.mode); send(200, await emulation.status()); }
+      try { const d = JSON.parse(b || '{}'); if (d.open && noWindow()) throw new Error(`The preference emulation window cannot open: ${noWindow()}. Use your browser's DevTools > More tools > Rendering instead.`); if (d.open) await emulation.open(`http://localhost:${PAGE}/?controlled=1`, d.mode || 'forced-light', [SIDES.before.origin, SIDES.after.origin]); else if (d.close) await emulation.close(); else if (Object.hasOwn(d, 'preferences')) await emulation.setPreferences(d.preferences); else await emulation.setMode(d.mode); send(200, await emulation.status()); }
       catch (e) { send(400, { error: String(e.message).split('\n')[0] }); } }); }
     else emulation.status().then((s) => send(200, s)).catch((e) => send(500, { error: String(e.message) }));
   } else if (u.pathname === '/api/login') {
