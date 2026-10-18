@@ -37,7 +37,8 @@ Follow [docs/CLOUD-QUICKSTART.md](../../../docs/CLOUD-QUICKSTART.md). Its own st
 frames at the real Coder URLs have not been recorded by anyone yet. An agent in the workspace can follow
 [CODER-PROMPT.md](CODER-PROMPT.md) instead of the steps below.
 
-1. At https://coder.ddev.com/workspaces create a **DDEV Freeform** workspace. Set **DDEV project names** to
+1. At https://coder.ddev.com/workspaces create a **DDEV Freeform** workspace named `lab-3619154` (instead of the generated name;
+   the viewer address becomes `https://drupal-compare--lab-3619154--<owner>.coder.ddev.com/`). Set **DDEV project names** to
    `drupal-compare,drupal-compare-before,drupal-compare-after` and leave **Public Sharing** off (the sites use admin / admin).
 2. In the workspace's web terminal:
 

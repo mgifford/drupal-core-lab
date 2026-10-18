@@ -11,12 +11,16 @@ Enter these values before creation; changing project names later has not been re
 
 | Field | Parameter | Value |
 |---|---|---|
+| Workspace name | (the name field above the parameters) | `lab-3619127` instead of the generated one (such as `magenta-chinchilla-15`) |
 | DDEV project names | `project_names` | `drupal-compare,drupal-compare-before,drupal-compare-after` |
 | Public Sharing | `share_projects` | off / `false` |
 | Enable Claude Code remote control | `enable_claude_code` | on only if you intend to use it |
 | Claude Code: skip permission prompts | `claude_code_skip_permissions` | off / `false` |
 
-These are the viewer and two frame proxy names, shared by every issue. Do not replace them with issue-specific names.
+The workspace name becomes part of every app address (`<project>--<workspace>--<owner>.coder.ddev.com`), so a name that says the
+issue makes the viewer link recognisable later. Use letters, digits and single hyphens (`--` separates the parts of the address);
+for a second workspace on the same issue add a suffix, such as `lab-3619127-2`.
+The project names are the viewer and two frame proxy names, shared by every issue. Do not replace them with issue-specific names.
 They are defined in `tools/compare/cloud/config.mjs`; the Freeform template reads its own `project_names` parameter, not that file.
 
 ## Instructions for the workspace agent
@@ -109,6 +113,8 @@ Open the viewer address in a browser signed in to Coder (apps are owner-only). I
 ```text
 https://drupal-compare--<workspace>--<owner>.coder.ddev.com/
 ```
+
+With the suggested workspace name that is `https://drupal-compare--lab-3619127--<owner>.coder.ddev.com/`.
 
 Confirm that the viewer and BOTH Drupal frames load, then use **Log in both as admin**.
 Smoke success does not verify authenticated frames at the real Coder URLs. Record that browser check separately.
