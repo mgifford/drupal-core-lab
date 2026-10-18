@@ -110,6 +110,16 @@ Mirror off and, in each frame, use the **URL alias** link in the error message w
 (Tab to it, press Enter). Before: nothing visibly happens. After: the sidebar opens and the URL alias field has focus. Then press
 **Run checks**. This is the first time the #3619127 steps are done in the cloud frames: note your browser and what you saw.
 
+### If the viewer or its frames do not load
+
+| You see | Why | Do this |
+|---|---|---|
+| The viewer stays at "Loading…", both frames are blank and each says "Theme: waiting" | The viewer was started with other addresses than the browser uses. Until 2026-10-18 a workspace name with capitals (`Compare`) caused this. | `cd ~/drupal-core-lab && git pull --ff-only`, then `node scripts/test-mr.mjs <nid>`: it restarts the viewer with the workspace's addresses. Reload the viewer tab. |
+| "Access denied" in both frames | Not logged in yet; the front page of these sites needs a login | Press **Log in both**. |
+| The viewer's "still loading" box names a site that does not answer | That site's DDEV project is not running | `ddev list` should show both `repro-…` projects running; `node scripts/test-mr.mjs <nid>` starts them. |
+
+Anything else: the "If something fails" table in `reports/issues/<nid>/CODER-PROMPT.md`.
+
 ## 4. Lifespan, restarts and coming back
 
 - To stop the workspace when you are done, press **Stop** on the workspace page (files are kept; **Delete** removes everything).

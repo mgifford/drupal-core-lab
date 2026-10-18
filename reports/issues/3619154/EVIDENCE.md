@@ -21,6 +21,7 @@ Date: 2026-10-18   Author/agent: AI-assisted (Claude Code), for Mike Gifford to 
 | [2026-10-17 scratch](validation/2026-10-17-scratch/SUMMARY.md) | current `evaluate-3619154.mjs` through a shim, core main `f2abd41`, Chromium 141 | **Previous** revision (`6f7766cb`). Normal colours: reproduced-and-fixed, 11 of 12 fix checks as expected (F11 not applicable on Before), 14 regression checks pass, 0 axe violations, no JS errors. Forced colours: mixed, R12 fails: the close button's icon has 64 pixels at rest and 12 with focus (comment #23). Not lab evidence. |
 | [2026-10-18 scratch](validation/2026-10-18-scratch-175e6f17/SUMMARY.md) | the same, with MR !16911 at `175e6f17` | **New revision.** Normal and forced colours: reproduced-and-fixed, 11 of 12 fix checks as expected (F11 not applicable on Before), 14 regression checks pass, 0 axe violations, no JS errors. R12 passes in forced colours: 76 icon pixels with focus, 64 at rest. Every other row equals the `6f7766cb` run. Not lab evidence. |
 | DDEV run of `175e6f17` | `node tools/playwright/evaluate-3619154.mjs 3619154-latest --forced-colors` (and without) | not run |
+| 2026-10-14 proposed test | `ddev phpunit core/themes/default_admin/tests/src/FunctionalJavascript/SidebarToggleTest.php` ([source](tests-proposal/SidebarToggleTest.php), [patch](branches/3619154-proposed-test.patch)) | **Previous** revision (`6f7766cb`): After OK, 5 tests, 51 assertions; Before 5 failures (toggle is `<a>`; no state, inert, focus or Escape handling). Covers the controls being `<button>`, `aria-expanded`, state and width kept across reload, and below 1024px `inert`, focus to the close button, Escape returning focus. Applies on `175e6f17`; not re-run. |
 
 ## Manual results (keyboard, screen reader, forced colours)
 AT/browser/OS versions: none yet.
@@ -42,4 +43,5 @@ None filed. Barriers outside this issue go to `scripts/findings.mjs`.
 - Anything in DDEV after 2026-10-14; Firefox, WebKit, dark; forced colours outside Chromium's emulation; a person's keyboard pass; any screen reader.
 - Touch resizing, a right-to-left language install (F13 sets `dir="rtl"` on `<html>` only), resizing after an AJAX rebuild, entity
   forms other than `/node/1/edit`.
-- Core PHPUnit, Nightwatch and performance tests, including the Umami performance assertions the patch edits.
+- Core PHPUnit, Nightwatch and performance tests, including the Umami performance assertions the patch edits. The lab's proposed
+  `SidebarToggleTest` ran only against `6f7766cb`.
