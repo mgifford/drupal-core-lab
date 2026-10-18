@@ -128,7 +128,8 @@ Everything is in `reports/issues/<nid>/`: start with `SUMMARY.md` (the entry poi
     node tools/compare/setup.mjs <nid>-latest --refresh-patches   # only if setup said BLOCKED: the patch file changed (a newer MR push) or a patched file was edited
     node tools/playwright/walkthrough.mjs <nid>-latest           # read its "Interpretation"
 The walkthrough says whether the problem was **reproduced and fixed**, **no longer reproduces** (upstream may have fixed it: check
-the issue before concluding anything), or **reproduces but the patch no longer fixes it** (reroll). To re-pin after verifying, set
+the issue before concluding anything; if it was, archive it as [ISSUE-LIFECYCLE.md](ISSUE-LIFECYCLE.md) describes), or **reproduces but
+the patch no longer fixes it** (reroll). To re-pin after verifying, set
 `core.commit` on the `-pinned` variant. To free resources when you move on: `ddev delete --omit-snapshot --yes` in each
 `envs/<name>/` and `git -C envs/core.git worktree remove --force ../<name>`; the evidence stays in `reports/`.
 

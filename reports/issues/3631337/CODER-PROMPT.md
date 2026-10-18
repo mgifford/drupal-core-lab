@@ -103,7 +103,8 @@ Match the first line that starts with `STOPPED`, `BLOCKED`, `Preflight failed` o
 | `could not download …` | The workspace network blocks git.drupalcode.org | Ask the person for the plain diff (above), then use `--diff=`. |
 | `is not a diff` | A saved login or error page | Ask for the plain diff again; it starts with `diff --git`. |
 | `DDEV project names are not registered` | The workspace was created without the three project names | Follow the fix printed under it, or create a new Freeform workspace with `drupal-compare,drupal-compare-before,drupal-compare-after` set at creation. |
-| `does not apply to the base commit` | Core moved and the patch needs a reroll | Report it; do not edit the patch. |
+| `does not apply to the base commit` … `already in this core commit` | Core has the change: the issue may be fixed upstream | Report it to the person; do not reroll or edit the patch (docs/ISSUE-LIFECYCLE.md). |
+| `does not apply to the base commit` (without that) | Core moved and the patch needs a reroll | Report it; do not edit the patch. |
 | `BLOCKED: the Before environment … has tracked changes` | The baseline was edited | Report `git -C envs/baseline-3631337 status`; do not change the baseline. |
 | `Another setup is already running` | An earlier run (or the autostart) is still building | Wait for it (`tail -f /tmp/lab-cloud-bootstrap.log` after a restart), then run the command again. |
 | `ddev-router failed to become ready` | A known DDEV start-up flake | Run the same command once more. A second failure is real: report it. |

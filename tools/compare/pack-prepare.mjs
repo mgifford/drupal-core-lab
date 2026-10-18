@@ -19,7 +19,8 @@ export const CLOSED = new Set(['2', '3', '5', '6', '7']);   // fixed or closed: 
 
 // Numeric codes from the drupal.org API. Each label is printed with its code, so a wrong label is visible. Unknown codes are shown as codes only.
 export const STATUS = { 1: 'Active', 2: 'Fixed', 3: 'Closed (duplicate)', 4: 'Postponed', 5: 'Closed (won\'t fix)', 6: 'Closed (works as designed)', 7: 'Closed (fixed)',
-  8: 'Needs review', 13: 'Needs work', 14: 'Reviewed & tested by the community', 15: 'Patch (to be ported)', 16: 'Postponed (maintainer needs more info)' };
+  8: 'Needs review', 13: 'Needs work', 14: 'Reviewed & tested by the community', 15: 'Patch (to be ported)', 16: 'Postponed (maintainer needs more info)',
+  17: 'Closed (outdated)', 18: 'Closed (cannot reproduce)' };
 export const PRIORITY = { 100: 'Minor', 200: 'Normal', 300: 'Major', 400: 'Critical' };
 export const CATEGORY = { 1: 'Bug report', 2: 'Task', 3: 'Feature request', 4: 'Support request', 5: 'Plan' };
 const label = (map, code) => (code === undefined || code === null || code === '' ? 'unknown' : `${map[code] ?? 'code ' + code} [${code}]`);

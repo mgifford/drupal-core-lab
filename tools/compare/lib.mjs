@@ -22,26 +22,31 @@ export const rawVariants = () => {
   }
   return all;
 };
-export const variants = () => {
-  const all = rawVariants();
+// `retired` (set by scripts/issue-archive.mjs on a variant that follows core main once its issue is archived) is not inherited: a
+// pinned variant may extend the retired one and still builds.
+export const resolveVariants = (all) => {
   const bySlug = Object.fromEntries(all.map((x) => [x.slug, x]));
   const resolve = (x) => {
     if (!x.extends) return x;
     const base = resolve(bySlug[x.extends]); const out = { ...base, ...x }; delete out.extends;
+    if (!Object.hasOwn(x, 'retired')) delete out.retired;
     for (const k of ['core', 'before', 'after']) if (base[k] || x[k]) out[k] = { ...(base[k] || {}), ...(x[k] || {}) };
     return out;
   };
   return all.map(resolve);
 };
+export const variants = () => resolveVariants(rawVariants());
 // A variant from what a person (or an agent) types: its slug, or an issue number (with or without #), which means <nid>-latest,
-// else <nid>-pinned, else the issue's only variant. Returns { v, note } or { error } naming what to type instead.
+// else <nid>-pinned, else the issue's only variant; retired variants are passed over. Returns { v, note } or { error } naming what to
+// type instead. A slug is returned even when retired: the caller says so (setup.mjs refuses to build it).
 export function resolveVariant(arg, all = variants()) {
   if (!arg) return { error: `Name a variant or an issue number, for example ${all[0] ? all[0].issue : '3619154'}.` };
   const exact = all.find((x) => x.slug === arg);
   if (exact) return { v: exact };
   const nid = String(arg).replace(/^#/, '');
   if (/^\d+$/.test(nid)) {
-    const mine = all.filter((x) => String(x.issue) === nid);
+    const every = all.filter((x) => String(x.issue) === nid), mine = every.filter((x) => !x.retired);
+    if (every.length && !mine.length) return { error: `Every variant of issue ${nid} is retired (${every[0].retired}). Name one to see it: ${every.map((x) => x.slug).join(', ')}.` };
     const pick = mine.find((x) => x.slug === `${nid}-latest`) || mine.find((x) => x.slug === `${nid}-pinned`) || (mine.length === 1 ? mine[0] : null);
     if (pick) return { v: pick, note: `Issue ${nid}: using variant ${pick.slug}${mine.length > 1 ? ` (others: ${mine.filter((x) => x !== pick).map((x) => x.slug).join(', ')})` : ''}.` };
     return { error: mine.length ? `Issue ${nid} has several variants: ${mine.map((x) => x.slug).join(', ')}. Name one.` : `No variant is registered for issue ${nid}. Scaffold one first: node scripts/new-issue.mjs ${nid} --branch <fork-branch> (docs/NEW-ISSUE.md).` };

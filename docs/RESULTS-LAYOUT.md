@@ -18,7 +18,10 @@ One directory per issue: `reports/issues/<nid>/`.
 - `intake/` (`scripts/issue-intake.mjs`): `BRIEF.md` (deterministic extract: identity of the issue and merge request, limits and gaps of the fetch, related issues (parent, related, child, reverse-related, mentioned) with their state, the unresolved review threads on the merge requests verbatim, the comments that carry decisions, proposals, questions or revisions verbatim and quoted as data, what was left out), `comment-index.json` (one entry per comment), `sources.json` (the manifest: each source's id, revision, fetch time and hash). The complete snapshot is in `.lab-cache/` and is not committed.
 - `handoffs/<stage>.json` (`issue-intake.mjs handoff`): a short summary, facts and open questions that each cite `comment:<n>`, `source:<id>` or `file:<path>`, pointers to files that hold the detail, and the hash of every source cited (`based_on`). `handoff check` says which are stale. Written by a model or a person; the brief is not.
 - `PATCH-CHANGES.md` and `original-patches/` (`scripts/patch-change.mjs`): who changed a patch under `branches/`, when and why, with the version it replaced.
-- `status.json`: the last `scripts/issue-status.mjs --write` fetch, so the next one can say what changed.
+- `status.json`: the issue's state on drupal.org and GitLab as of the last change `scripts/issue-status.mjs --write` found (it is
+  rewritten only when something changed; `since` is when the lab first saw that state). `STATUS-<date>.md` records each change after the first.
+- `ARCHIVED.md` (`scripts/issue-archive.mjs`): the issue is finished and archived in place; why, when, and which variants were retired
+  ([ISSUE-LIFECYCLE.md](ISSUE-LIFECYCLE.md)).
 - `variants.json` of a new issue carries `coverage.matrix`: the browser, scheme and width combinations that count as tested (`tools/compare/coverage-matrix.mjs`).
 
 Barriers found outside an issue's question go in `reports/findings/` (`scripts/findings.mjs`), not in the issue's folder.
