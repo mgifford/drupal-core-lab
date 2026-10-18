@@ -10,10 +10,10 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { labRoot, variants, resolveVariants, resolveVariant } from '../../tools/compare/lib.mjs';
 import { ensurePatches } from '../../tools/compare/patch-state.mjs';
-import { fetchStatus, changes, retestReason, nextStep, saveStatus, readStatus, readArchived, archivedMarkdown, markRetired, buildIndex, reasonFromStatus } from '../../tools/compare/issue-tracking.mjs';
+import { fetchStatus, recordedTip, changes, retestReason, nextStep, saveStatus, readStatus, readArchived, archivedMarkdown, markRetired, buildIndex, reasonFromStatus } from '../../tools/compare/issue-tracking.mjs';
 
 const tmp = (name) => { const d = fs.mkdtempSync(path.join(os.tmpdir(), `${name}-`)); after(() => fs.rmSync(d, { recursive: true, force: true })); return d; };
-const branchesMd = (branch, tip) => `# Branch patches\n\n| Patch | Source | Tip | Base | Base date and subject | Files |\n|---|---|---|---|---|---|\n| [\`branches/x.patch\`](branches/x.patch) | MR !1, https://git.drupalcode.org/issue/drupal-1.git \`${branch}\` | ${tip} | abc | 2026-10-17 s | 3 |\n`;
+const branchesMd = (branch, tip, mr = 5) => `# Branch patches\n\n| Patch | Source | Tip | Base | Base date and subject | Files |\n|---|---|---|---|---|---|\n| [\`branches/x.patch\`](branches/x.patch) | MR !${mr}, https://git.drupalcode.org/issue/drupal-1.git \`${branch}\` | ${tip} | abc | 2026-10-17 s | 3 |\n`;
 const fakeLab = () => { const root = tmp('lab'); fs.mkdirSync(path.join(root, 'reports/issues'), { recursive: true }); return root; };
 const addIssue = (root, nid, files = {}) => { const d = path.join(root, 'reports/issues', nid); fs.mkdirSync(d, { recursive: true }); for (const [f, t] of Object.entries(files)) fs.writeFileSync(path.join(d, f), t); return d; };
 
@@ -26,6 +26,7 @@ function stub({ status = 13, sha = '175e6f17aaaa' } = {}) {
     'https://www.drupal.org/api-d7/comment.json?node=3619154&limit=50&page=0': { list: Array.from({ length: 50 }, (_, i) => ({ cid: String(i + 1), name: 'a', created: '1792200000', comment_body: { value: `<p>c${i + 1}</p>` } })) },
     'https://www.drupal.org/api-d7/comment.json?node=3619154&limit=50&page=1': { list: [{ cid: '51', name: 'b', created: '1792300000', comment_body: { value: '<p>last</p>' } }] },
     'https://www.drupal.org/api-d7/taxonomy_term/42.json': { name: 'Accessibility' },
+    'https://git.drupalcode.org/api/v4/projects/project%2Fdrupal/merge_requests/16911': { iid: 16911, state: 'opened', source_branch: 'sidebar-toggle-fixes', sha, updated_at: '2026-10-17T10:00:00Z', source_project_id: 777 },
     'https://git.drupalcode.org/api/v4/projects/issue%2Fdrupal-3619154': { id: 777 },
     'https://git.drupalcode.org/api/v4/projects/777/repository/branches?search=3619154&per_page=100': [],
     'https://git.drupalcode.org/api/v4/projects/project%2Fdrupal/merge_requests?source_branch=sidebar-toggle-fixes&scope=all&state=all': [
@@ -37,15 +38,33 @@ function stub({ status = 13, sha = '175e6f17aaaa' } = {}) {
 }
 
 test('fetchStatus: status, all comment pages, tags asked for once, and only merge requests from the issue\'s own fork', async () => {
-  const root = fakeLab(); addIssue(root, '3619154', { 'BRANCHES.md': branchesMd('sidebar-toggle-fixes', '175e6f17') });
+  const root = fakeLab(); addIssue(root, '3619154', { 'BRANCHES.md': branchesMd('sidebar-toggle-fixes', '175e6f17', 16911) });
   const terms = new Map(), net = stub();
   const s = await fetchStatus('3619154', { getJson: net.getJson, labRoot: root, today: '2026-10-19', terms });
   assert.equal(s.status, 'Needs work'); assert.equal(s.statusCode, 13); assert.equal(s.comments, 51); assert.deepEqual(s.tags, ['Accessibility']);
-  assert.equal(s.mr.iid, 16911, 'the MR from another fork with the same branch name is left out'); assert.equal(s.otherMrs.length, 0);
+  assert.equal(s.mr.iid, 16911, 'the MR from another fork with the same branch name is left out'); assert.equal(s.otherMrs.length, 0, 'the recorded MR, asked for by number and by branch, is listed once');
+  assert.ok(net.calls.includes('https://git.drupalcode.org/api/v4/projects/project%2Fdrupal/merge_requests/16911'), 'the MR BRANCHES.md names is asked for by number');
   assert.equal(s.mr.sha, '175e6f17'); assert.equal(s.since, '2026-10-19'); assert.equal(s.latest.at(-1).text, 'last');
   await fetchStatus('3619154', { getJson: net.getJson, labRoot: root, today: '2026-10-19', terms });
   assert.equal(net.calls.filter((u) => u.includes('taxonomy_term')).length, 1, 'a tag name is asked for once per run');
   assert.equal((await fetchStatus('3619154', { getJson: stub({ status: 17 }).getJson, labRoot: root, terms })).status, 'Closed (outdated)');
+});
+
+test('recordedTip: the MR, branch and tested commit from each shape of BRANCHES.md, and nothing from unlabelled mentions', () => {
+  const root = fakeLab(), read = (nid, text) => { addIssue(root, nid, { 'BRANCHES.md': text }); return recordedTip(root, nid); };
+  assert.deepEqual(read('1', '# no table, no labels\n'), { mrIid: null, branch: null, tip: null });
+  assert.deepEqual(read('2', branchesMd('sidebar-toggle-fixes', '175e6f17', 16911)), { mrIid: 16911, branch: 'sidebar-toggle-fixes', tip: '175e6f17' });
+  assert.deepEqual(read('3', '| Patch | Source (fork) | Branch | Tip | Base |\n|---|---|---|---|---|\n| `branches/a.patch` | https://git.drupalcode.org/issue/toolbar-3.git | `3093378-use-aria` | `d1e97b5` | `871ce78` |\n'),
+    { mrIid: null, branch: '3093378-use-aria', tip: 'd1e97b5' }, 'a Branch column, and a branch name is never a tip');
+  assert.deepEqual(read('4', '| # | Patch | Source |\n|---|---|---|\n| 1 | `branches/p.patch` | [MR !15975 diff](https://git.drupalcode.org/project/drupal/-/merge_requests/15975.diff); reviewed revision `6d566c319bcf` |\n'),
+    { mrIid: 15975, branch: null, tip: '6d566c319bcf' }, 'no Tip column: the commit in the Source cell');
+  assert.deepEqual(read('5', '| Patch | Source | Tip |\n|---|---|---|\n| `branches/l.patch` | authored in the lab (no merge request) | - |\n'), { mrIid: null, branch: null, tip: null }, 'a lab-written patch has no tip');
+  assert.deepEqual(read('6', '# MR provenance\n\nSource: https://git.drupalcode.org/project/drupal/-/merge_requests/17421\nBranch: 3630425-multi-value-field-widget. Target: 11.4.x.\nExact MR head: `f1f524f92276`. MR base: `e1eb3d7487e9`.\n'),
+    { mrIid: 17421, branch: '3630425-multi-value-field-widget', tip: 'f1f524f92276' });
+  assert.deepEqual(read('7', 'Fetched 2026-10-16 from MR !16609: https://x\n\n- Branch: 3615469-maintenance-login-link-text.\n- MR head: 21bbeeb12c80.\n'),
+    { mrIid: 16609, branch: '3615469-maintenance-login-link-text', tip: '21bbeeb12c80' }, 'bullets and a "Fetched … from MR" line');
+  assert.deepEqual(read('8', 'Core base: `6868135abe8e`. Parent branch: `x`, MR !17078, exact head `c8136d010105`.\nNo issue fork or MR was found for this follow-up.\n'),
+    { mrIid: null, branch: null, tip: null }, "a parent issue's MR and a core base are not this issue's patch");
 });
 
 test('changes, retestReason and nextStep: what changed, whether to re-test, and where an issue goes in the list', () => {
@@ -69,7 +88,10 @@ test('changes, retestReason and nextStep: what changed, whether to re-test, and 
   assert.match(step({ ...base, status: 'Reviewed & tested by the community', statusCode: 14 }).text, /^RTBC/);
   assert.deepEqual(step({ ...base, status: 'Needs work', statusCode: 13 }), { group: 'waiting', text: 'Needs work: waiting on the MR' });
   assert.match(step(base).text, /the lab has tested the current MR head/);
-  assert.match(step(base, null).text, /no MR patch recorded/);
+  assert.match(step(base, null).text, /the lab has no BRANCHES\.md/);
+  assert.match(step({ ...base, mr: null }).text, /the MR the lab tested was not found on GitLab/);
+  assert.deepEqual(step(base, { mrIid: null, branch: null, tip: null }), { group: 'attention', text: 'Test MR !1 (at 175e6f17): BRANCHES.md records no MR commit the lab tested' });
+  assert.match(retestReason({ ...base.mr, iid: 9 }, { mrIid: 1, branch: 'b', tip: '175e6f17' }), /the MR is now !9; the lab tested !1/);
   assert.equal(reasonFromStatus(7), 'fixed'); assert.equal(reasonFromStatus(17), 'outdated'); assert.equal(reasonFromStatus(13), '');
 });
 
@@ -125,7 +147,7 @@ test('buildIndex: issues grouped by next step, from files in the lab only', () =
   assert.deepEqual(counts, { attention: 1, waiting: 1, unchecked: 1, archived: 1 });
   assert.match(md, /## Needs attention \(1\)[\s\S]*\[1000002\]\(1000002\/\)[^\n]*Re-test: MR !5 is at aaaa1111; the lab tested 175e6f17/);
   assert.match(md, /## Waiting \(1\)[\s\S]*Waiting \\\| with a pipe \| Needs work, updated 2026-10-18 \| !5 opened at `175e6f17` \| `175e6f17` \(\[how\]\(1000001\/REPRODUCE\.md\)\) \| Needs work: waiting on the MR \|/);
-  assert.match(md, /## Not checked yet \(1\)[\s\S]*\| \[1000003\]\(1000003\/SUMMARY\.md\) \| Not checked \| no MR patch \|/);
+  assert.match(md, /## Not checked yet \(1\)[\s\S]*\| \[1000003\]\(1000003\/SUMMARY\.md\) \| Not checked \| no BRANCHES\.md \|/);
   assert.match(md, /## Archived \(1\)[\s\S]*\| \[1000004\]\(1000004\/\) \| T \| 2026-10-20 \| Fixed upstream \|/);
 });
 
