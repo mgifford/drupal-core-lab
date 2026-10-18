@@ -4,8 +4,8 @@ name: Weekly issue status
 # reports/issues/README.md, and opens one pull request with what changed, for a person to review and merge. Mondays, and on demand
 # (Actions > Weekly issue status > Run workflow). See docs/ISSUE-LIFECYCLE.md.
 # Needs Settings > Actions > General > Workflow permissions > "Allow GitHub Actions to create and approve pull requests".
-# A pull request opened with this workflow's token does not start other workflows, so the self-test does not run on it; it only
-# changes files under reports/issues/.
+# Its pull request only changes files under reports/issues/ and gets the usual self-test and cloud checks: let them finish (about a
+# minute) before merging.
 on:
   schedule:
     - cron: '17 7 * * 1'   # Mondays 07:17 UTC

@@ -18,14 +18,35 @@ export const CLOSED_OTHER = new Set([3, 5, 6, 17, 18]);   // duplicate, won't fi
 export const REASONS = { fixed: 'Fixed upstream', duplicate: 'Closed (duplicate)', 'wont-fix': "Closed (won't fix)", 'works-as-designed': 'Closed (works as designed)', outdated: 'Closed (outdated)', 'cannot-reproduce': 'Closed (cannot reproduce)', other: 'Closed for another reason' };
 export const reasonFromStatus = (code) => ({ 2: 'fixed', 7: 'fixed', 3: 'duplicate', 5: 'wont-fix', 6: 'works-as-designed', 17: 'outdated', 18: 'cannot-reproduce' })[code] || '';
 
-// The patch the lab tests and the tip it was extracted at: the first table row of BRANCHES.md, or null when there is none.
+// What BRANCHES.md says the lab tested: { mrIid, branch, tip }, any of them null, or null when there is no BRANCHES.md. Issues
+// record it in different shapes, so only labelled places count: in a table, the row naming a `branches/…` patch, read by its header
+// (Source, Branch, Tip; with no Tip column, a commit in the Source cell such as "reviewed revision `6d566c31…`"); in prose, lines
+// (or "- " bullets) that start with "Source:", "Fetched … from MR !n", "Branch:", "Exact MR head:", "MR head:" or "Tip:". An MR or
+// commit mentioned anywhere else (a parent issue's MR, a
+// core base) is not what this issue's patch came from. Only a commit hash counts as the tip: "-", a branch name or a note does not,
+// so a patch written in the lab, or one whose tip was not recorded, has none.
 export function recordedTip(labRoot, nid) {
   const f = path.join(issueDir(labRoot, nid), 'BRANCHES.md');
   if (!fs.existsSync(f)) return null;
-  const row = fs.readFileSync(f, 'utf8').split('\n').find((l) => /^\| \[?`branches\//.test(l));   // the patch name may be a link
-  if (!row) return null;
-  const cells = row.split('|').map((c) => c.trim());
-  return { branch: (cells[2].match(/`([^`]+)`\s*$/) || [])[1] || null, tip: cells[3] || null };
+  const lines = fs.readFileSync(f, 'utf8').split('\n');
+  const sha = (t) => (String(t || '').match(/(?<![\w-])[0-9a-f]{7,40}(?![\w-])/i) || [])[0] || null;
+  const mrOf = (t) => { const m = String(t || '').match(/merge_requests\/(\d+)|\bMR !(\d+)/); return m ? Number(m[1] || m[2]) : null; };
+  const cellsOf = (l) => l.split('|').slice(1, -1).map((c) => c.trim());
+  const at = lines.findIndex((l) => /^\|.*`branches\/[^`]+`/.test(l));
+  if (at >= 0) {
+    const header = lines.slice(0, at).reverse().find((l) => /^\|/.test(l) && !/^\|[\s|:-]+\|?\s*$/.test(l));
+    const names = header ? cellsOf(header).map((c) => c.toLowerCase()) : [], row = cellsOf(lines[at]);
+    const col = (name) => names.findIndex((c) => c.startsWith(name));
+    const source = row[col('source')] ?? row[row.findIndex((c) => /`branches\//.test(c)) + 1] ?? '';
+    const branch = (col('branch') >= 0 ? row[col('branch')] : source).match(/`([^`]+)`\s*$/)?.[1] || null;
+    return { mrIid: mrOf(source), branch: branch && !sha(branch) ? branch : null, tip: col('tip') >= 0 ? sha(row[col('tip')]) : sha(source) };
+  }
+  const labelled = (re) => lines.find((l) => re.test(l.replace(/^[-*]\s+/, ''))) || '';
+  return {
+    mrIid: mrOf(labelled(/^(?:Source:|Fetched\b)/)),
+    branch: labelled(/^Branch:/).replace(/^[-*]\s+/, '').match(/^Branch:\s*`?([\w-]+(?:\.[\w-]+)*)/)?.[1] || null,
+    tip: sha(labelled(/^(?:Exact MR head|MR head|Tip):/)),
+  };
 }
 
 // One issue as drupal.org and GitLab report it now. `terms` caches tag names across issues, so a run asks for each tag once.
@@ -46,15 +67,18 @@ export async function fetchStatus(nid, { getJson, labRoot, today = new Date().to
   // Merge requests from this issue's fork: its branches named after the issue, plus the branch BRANCHES.md records (which may not
   // carry the number, such as sidebar-toggle-fixes). Another fork can have a branch of the same name, so only MRs from this fork count.
   const rec = recordedTip(labRoot, nid), mrs = [];
+  const add = (m) => { if (!mrs.some((x) => x.iid === m.iid)) mrs.push({ iid: m.iid, state: m.state, branch: m.source_branch, sha: String(m.sha || '').slice(0, 8), updated: String(m.updated_at).slice(0, 10), draft: !!m.draft }); };
+  // The MR BRANCHES.md names is asked for by number: it may come from a branch outside the issue fork.
+  if (rec && rec.mrIid) { const m = await getJson(`${GITLAB}/projects/project%2Fdrupal/merge_requests/${rec.mrIid}`); if (m && m.iid) add(m); }
   const fork = await getJson(`${GITLAB}/projects/issue%2Fdrupal-${nid}`);
   if (fork && fork.id) {
     const named = ((await getJson(`${GITLAB}/projects/${fork.id}/repository/branches?search=${nid}&per_page=100`)) || []).map((b) => b.name);
     for (const name of [...new Set([...named, ...(rec && rec.branch ? [rec.branch] : [])])]) {
       const list = (await getJson(`${GITLAB}/projects/project%2Fdrupal/merge_requests?source_branch=${encodeURIComponent(name)}&scope=all&state=all`)) || [];
-      mrs.push(...list.filter((m) => m.source_project_id === fork.id).map((m) => ({ iid: m.iid, state: m.state, branch: m.source_branch, sha: String(m.sha || '').slice(0, 8), updated: String(m.updated_at).slice(0, 10), draft: !!m.draft })));
+      list.filter((m) => m.source_project_id === fork.id).forEach(add);
     }
   }
-  mrs.sort((a, b) => (b.branch === rec?.branch) - (a.branch === rec?.branch) || (b.state === 'opened') - (a.state === 'opened') || b.updated.localeCompare(a.updated));
+  mrs.sort((a, b) => (b.iid === rec?.mrIid) - (a.iid === rec?.mrIid) || (b.branch === rec?.branch) - (a.branch === rec?.branch) || (b.state === 'opened') - (a.state === 'opened') || b.updated.localeCompare(a.updated));
   return {
     nid: String(nid), since: today, title: node.title, url: `https://www.drupal.org/project/drupal/issues/${nid}`,
     status: STATUS[node.field_issue_status] || `code ${node.field_issue_status}`, statusCode: Number(node.field_issue_status),
@@ -83,7 +107,8 @@ export function changes(s, prev) {
 // stored MR and the current BRANCHES.md, so re-extracting the patch clears it at once.
 export function retestReason(mr, rec) {
   if (!mr || !rec || !rec.tip) return '';
-  if (rec.branch && mr.branch !== rec.branch) return `the MR is now !${mr.iid} on branch ${mr.branch}; the lab tested ${rec.branch}`;
+  if (rec.mrIid && mr.iid !== rec.mrIid) return `the MR is now !${mr.iid}; the lab tested !${rec.mrIid}`;
+  if (!rec.mrIid && rec.branch && mr.branch !== rec.branch) return `the MR is now !${mr.iid} on branch ${mr.branch}; the lab tested ${rec.branch}`;
   const head = mr.sha.toLowerCase(), tip = rec.tip.toLowerCase();
   return head && (tip.startsWith(head) || head.startsWith(tip.slice(0, 8))) ? '' : `MR !${mr.iid} is at ${mr.sha}; the lab tested ${rec.tip.slice(0, 8)}`;
 }
@@ -108,10 +133,12 @@ export function nextStep({ nid, status: s, rec, archived }) {
   if (s.mr && s.mr.state === 'merged') return { group: 'attention', text: `MR !${s.mr.iid} is merged: confirm on core main, then archive (${archive})` };
   const retest = retestReason(s.mr, rec);
   if (retest) return { group: 'attention', text: `Re-test: ${retest}` };
+  // The lab's patch was written in the lab or its tip was not recorded, and the issue has an open MR now: that MR is untested.
+  if (rec && !rec.tip && s.mr && s.mr.state === 'opened') return { group: 'attention', text: `Test MR !${s.mr.iid} (at ${s.mr.sha}): BRANCHES.md records no MR commit the lab tested` };
   if (s.statusCode === 14) return { group: 'attention', text: 'RTBC: one final run on current core main' };
   if (s.mr && s.mr.state === 'closed') return { group: 'attention', text: `MR !${s.mr.iid} is closed: check the issue for a newer one` };
   if (s.statusCode === 13) return { group: 'waiting', text: 'Needs work: waiting on the MR' };
-  if (s.statusCode === 8) return { group: 'waiting', text: rec && s.mr ? 'Needs review: the lab has tested the current MR head' : 'Needs review; the lab has no MR patch recorded (BRANCHES.md)' };
+  if (s.statusCode === 8) return { group: 'waiting', text: !rec ? 'Needs review; the lab has no BRANCHES.md' : !s.mr ? 'Needs review; the MR the lab tested was not found on GitLab' : rec.tip ? 'Needs review: the lab has tested the current MR head' : 'Needs review' };
   return { group: 'waiting', text: s.mr ? s.status : `${s.status}; no MR found` };
 }
 
@@ -180,7 +207,7 @@ export function buildIndex(labRoot) {
     const step = nextStep({ nid, status: s, rec, archived });
     const issue = `[${nid}](${has('SUMMARY.md') ? `${nid}/SUMMARY.md` : `${nid}/`})`;
     if (step.group === 'archived') { groups.archived.push(`| ${issue} | ${esc(what)} | ${archived.date} | ${esc(archived.reason)} |`); continue; }
-    const lab = `${rec && rec.tip ? `\`${rec.tip.slice(0, 8)}\`` : 'no MR patch'}${has('REPRODUCE.md') ? ` ([how](${nid}/REPRODUCE.md))` : ''}`;
+    const lab = `${rec && rec.tip ? `\`${rec.tip.slice(0, 8)}\`` : rec ? 'no MR commit recorded' : 'no BRANCHES.md'}${has('REPRODUCE.md') ? ` ([how](${nid}/REPRODUCE.md))` : ''}`;
     if (step.group === 'unchecked') { groups.unchecked.push(`| ${issue} | ${esc(what)} | ${lab} |`); continue; }
     const dorg = s ? `${esc(s.status)}, updated ${s.changed}` : '';
     const mr = s ? (s.mr ? `!${s.mr.iid} ${s.mr.state} at \`${s.mr.sha}\`` : 'none found') : '';
