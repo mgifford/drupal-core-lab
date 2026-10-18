@@ -44,7 +44,7 @@ claims.
 
 **Layout.** The top bar always shows page navigation (Comparison, Page, Go, Log in both, Clear cache, Reload, Tools and browser buttons). Under it the conditions toolbar always shows **Device width** (Mobile, Tablet, Desktop), **Colour mode** (Light, Dark, Follow OS) and **Compare as** (Side by side, Onion skin, Difference); the **Conditions**, **Input** and **Audits** popovers hold the rest. A popover button shows how many of its settings are changed from the default, and a strip above the frames lists every changed setting with **Reset all**. The frames fill the window; under them the dock has one tab each for **Steps**, **Checks**, **Manual**, **Accessibility**, **Lighthouse** and **Environment**, each with a badge showing how that result stands. The viewer remembers your last tab and dock size.
 
-**Controls.** *Log in both* (as administrator); *Go (both)* opens the same page on both sides; *Clear cache* (both sites) and *Reset browser state
+**Controls.** *Log in both* (as administrator; it then clears both sites' caches and loads the page again, so neither side keeps Drupal's "You have used a one-time login link" message); *Go (both)* opens the same page on both sides; *Clear cache* (both sites) and *Reset browser state
 (both)* fix most "it should have worked" surprises (the second clears the saved sidebar preference); *Reload → Before / After / Both* for a stuck
 frame; *Open outside this tool* opens the real Before or After site in its own window. *Colour mode*, *Simulate a dark-mode OS* and *Device
 width* change how both sides look so you can check dark mode and narrow screens. *Sync scrolling* and *Sync navigation* keep the frames

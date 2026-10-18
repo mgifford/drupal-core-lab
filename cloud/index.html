@@ -142,7 +142,7 @@
   <label class="v">Comparison <select id="variant" title="Switch between comparisons already built in this lab"></select></label>
   <div class="goto" data-needs="live"><label class="sr" for="goto">Page</label><input type="text" id="goto" size="26" value="/" placeholder="/node/add/article"><button type="button" id="go" class="primary">Go (both)</button></div>
   <span data-needs="live" style="display:contents">
-    <button type="button" id="login" title="Log in as administrator on both sites">Log in both</button>
+    <button type="button" id="login" title="Log in as administrator on both sites, clear their caches and reload the page">Log in both</button>
     <button type="button" id="cache" title="Clear Drupal caches on both sites and reload them">Clear cache</button>
     <details class="pop" data-sec="reload"><summary class="btn">Reload</summary><div class="panelp end"><div class="actions"><button type="button" id="rb">Before</button><button type="button" id="ra">After</button><button type="button" id="reloadboth">Both</button></div></div></details>
     <details class="pop" data-sec="tools"><summary class="btn">Tools</summary>
@@ -619,12 +619,27 @@ $('go').addEventListener('click', () => loadBoth($('goto').value));
 $('goto').addEventListener('change', () => { $('goto').value = normPath($('goto').value); });
 $('goto').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('go').click(); });
 $('login').addEventListener('click', async () => {
-  status('Logging in…');
+  status('Logging in to both sites…');
   // Land on the page in the address box (the variant's start page), so the test can begin at once. Drupal follows ?destination= on the one-time login redirect; it accepts only a path on the same site.
   const dest = /^\/(?!\/)/.test($('goto').value) ? $('goto').value : '';
   const to = (u) => dest ? `${u}?destination=${encodeURIComponent(dest)}` : u;
-  try { const r = await (await fetch('api/login', { method: 'POST' })).json(); markStart('before'); markStart('after'); F.before.src = to(r.before); F.after.src = to(r.after); status(dest ? `Logged in; opening ${dest}.` : 'Logged in. Use Go to open a page.'); }
-  catch (e) { status('Login failed: ' + e); }
+  // Drupal keeps "You have used a one-time login link" for whichever page renders next, so one side often showed it and the other
+  // did not. The frames stay hidden while both log in, caches are cleared (as people did by hand after logging in) and the page is
+  // loaded again, so both sides start from the same clean state.
+  const sides = ['before', 'after'], show = () => { for (const s of sides) F[s].style.visibility = ''; };
+  $('login').disabled = true;
+  try {
+    const r = await (await fetch('api/login', { method: 'POST' })).json();
+    for (const s of sides) { F[s].style.visibility = 'hidden'; markStart(s); F[s].src = to(r[s]); }
+    await bothLoaded(30000);
+    status('Logged in. Clearing caches on both sites…');
+    const c = await (await fetch('api/cache', { method: 'POST' })).json();
+    const page = dest || '/';
+    for (const s of sides) load(s, page);
+    await bothLoaded(30000); show();
+    status(`Logged in on both sites; caches ${c.before === c.after ? c.before : `before ${c.before}, after ${c.after}`}; showing ${page}.`);
+  } catch (e) { show(); status('Login failed: ' + e); }
+  finally { $('login').disabled = false; }
 });
 // Talk only to our own frames, at their own origin: a frame that has navigated elsewhere neither receives typed text and probe code nor can send us commands.
 const toFrame = (side, msg) => { const w = F[side] && F[side].contentWindow; if (w && origins && origins[side]) w.postMessage(msg, origins[side]); };
@@ -821,6 +836,8 @@ function renderObs() {
 // ---- Frame load watchdog: a frame that has not finished loading is reported, with a health check ----
 const startedAt = { before: 0, after: 0 }, loadedAt = { before: 0, after: 0 }; let warnTimer;
 const markStart = (side) => { pendingTheme(side); startedAt[side] = Date.now(); loadedAt[side] = 0; };
+// Resolves once both frames have reported a loaded page since markStart, or after `ms` (a frame that never reports does not block).
+const bothLoaded = (ms) => new Promise((resolve) => { const end = Date.now() + ms; (function tick() { if ((loadedAt.before && loadedAt.after) || Date.now() > end) resolve(); else setTimeout(tick, 200); })(); });
 let healthTimer, dismissedLoad = false, healed = false;
 const dlg = () => $('loaddlg');
 function showLoading(h, stuck) {
