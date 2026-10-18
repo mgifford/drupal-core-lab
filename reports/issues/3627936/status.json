@@ -1,0 +1,48 @@
+{
+  "nid": "3627936",
+  "since": "2026-10-18",
+  "title": "Active workspace has a broken styling in dark mode",
+  "url": "https://www.drupal.org/project/drupal/issues/3627936",
+  "status": "Needs review",
+  "statusCode": 8,
+  "priority": "Normal",
+  "category": "Bug report",
+  "component": "Admin theme",
+  "version": "main",
+  "tags": [
+    "Accessibility",
+    "wcag143",
+    "wcag1411"
+  ],
+  "changed": "2026-10-16",
+  "comments": 16,
+  "latest": [
+    {
+      "n": 14,
+      "by": "rkoller",
+      "on": "2026-10-16",
+      "text": "i've manually tested #2.3 locally and that worked as a preliminary fix. as @shank115 proposed it is enough to set tr.active-workspace { background-color: var(--admin-color-bg-item); } i've tried to simply create a new MR to solve the naming"
+    },
+    {
+      "n": 15,
+      "by": "mgifford",
+      "on": "2026-10-16",
+      "text": "So agreed this isn't ideal: /** @todo Move to the admin theme before Workspaces is marked stable. */ tr.active-workspace { background-color: transparent; } I'm fine with your suggestion tr.active-workspace { background-color: var(--admin-co"
+    },
+    {
+      "n": 16,
+      "by": "rkoller",
+      "on": "2026-10-16",
+      "text": "i've pushed a commit to MR17471 replacing the transparent color / previous fixed color with the variable var(--admin-color-bg-item) proposed by @shank115 in #2. the MR also fixes the name collision in MR17349 with the main branch. and I agr"
+    }
+  ],
+  "mr": {
+    "iid": 17471,
+    "state": "opened",
+    "branch": "3627936-active-workspace-has-broken-styling",
+    "sha": "d888b0ce",
+    "updated": "2026-10-16",
+    "draft": false
+  },
+  "otherMrs": []
+}
