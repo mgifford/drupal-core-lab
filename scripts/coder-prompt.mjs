@@ -29,7 +29,7 @@ export function renderPrompt(v, root = labRoot) {
     `**Expected:** ${v.expected}`,
     `**Reported Before behaviour (verify on this run):** ${v.actual}`,
     '### Viewer checks\n\n' + ((v.checks || []).map((c) => `- **${c.kind}:** ${c.label}`).join('\n') || 'No scripted checks declared. Record manual observations.'),
-    '### Manual observations\n\n' + ((v.observe || []).map((o) => `- ${o.label}\n  Before: ${JSON.stringify(o.expectBefore)}; After: ${JSON.stringify(o.expectAfter)}.`).join('\n') || 'No manual questions declared. Complete the scenario before treating this handoff as ready for testing.'),
+    '### Manual observations\n\n' + ((v.observe || []).map((o) => (typeof o === 'string' ? `- ${o}` : `- ${o.label}\n  Before: ${JSON.stringify(o.expectBefore)}; After: ${JSON.stringify(o.expectAfter)}.`)).join('\n') || 'No manual questions declared. Complete the scenario before treating this handoff as ready for testing.'),
   ].filter(Boolean).join('\n\n');
   const fields = {
     ISSUE: v.issue, SLUG: v.slug, LABEL: v.label || '', PROJECT_NAMES,

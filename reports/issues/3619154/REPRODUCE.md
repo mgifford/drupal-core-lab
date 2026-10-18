@@ -39,13 +39,15 @@ frames at the real Coder URLs have not been recorded by anyone yet. An agent in 
 
 1. At https://coder.ddev.com/workspaces create a **DDEV Freeform** workspace. Set **DDEV project names** to
    `drupal-compare,drupal-compare-before,drupal-compare-after` and leave **Public Sharing** off (the sites use admin / admin).
-2. In the workspace's web terminal (core comes from the GitHub mirror, because Coder cannot reach git.drupalcode.org):
+2. In the workspace's web terminal:
 
         git clone https://github.com/mgifford/drupal-core-lab.git && cd drupal-core-lab
-        node scripts/cloud-bootstrap.mjs 3619154-latest --check --core-url=https://github.com/drupal/drupal.git
-        node scripts/cloud-bootstrap.mjs 3619154-latest --install-autostart --core-url=https://github.com/drupal/drupal.git
+        node scripts/test-mr.mjs 3619154
 
-3. Open the viewer address the bootstrap prints, in a browser signed in to Coder. The **Steps** tab lists the issue's testing steps,
+   It updates the checkout, builds both sites with core from the GitHub mirror (Coder cannot reach git.drupalcode.org), starts them
+   and the viewer, runs the smoke check, and ends with the viewer address. Run it again after a restart or a patch update.
+
+3. Open the viewer address it prints, in a browser signed in to Coder. The **Steps** tab lists the issue's testing steps,
    including the forced-colours one. For forced colours in a cloud lab, use your own browser: Chrome or Edge DevTools > More tools >
    Rendering > "Emulate CSS media feature forced-colors" (it applies to the whole tab, both frames), or a Windows contrast theme.
    The lab browser and **Open preference emulation window** start Chromium on the machine that runs the lab, so they are for
@@ -62,13 +64,12 @@ Bring the new head in, then rerun 1a or 1b and compare the table with the last v
   `node scripts/new-issue.mjs 3619154 --branch sidebar-toggle-fixes --refresh`. Commit and push.
 - **No machine that reaches git.drupalcode.org:** save the MR's plain diff
   (https://git.drupalcode.org/project/drupal/-/merge_requests/16911.diff) and attach it to a Claude session, or upload it into
-  [incoming/](incoming/README.md) on GitHub, then:
+  [incoming/](incoming/README.md) on GitHub, then (in Coder or anywhere):
 
-        cp reports/issues/3619154/incoming/16911.diff reports/issues/3619154/branches/sidebar-toggle-fixes.patch
-        node scripts/patch-change.mjs record reports/issues/3619154/branches/sidebar-toggle-fixes.patch --by "<you>" \
-          --reason "MR !16911 at <head shown on the MR page>, GitLab plain diff, downloaded <date>"
+        node scripts/test-mr.mjs 3619154 --diff=reports/issues/3619154/incoming/16911.diff
 
-  Then regenerate the Coder handoff: `node scripts/coder-prompt.mjs 3619154-latest --write`.
+  It replaces the patch, records the change (`PATCH-CHANGES.md`, the old version in `original-patches/`) and rebuilds the After side.
+  To share it, commit those files; then regenerate the Coder handoff: `node scripts/coder-prompt.mjs 3619154-latest --write`.
 
 ### 3. Fill the coverage matrix, then the code checks
 

@@ -106,16 +106,23 @@ See `prompts/README.md` for preview and freshness checks. Generation does not es
 3. Open `https://drupal-compare--<workspace>--<owner>.coder.ddev.com/` in a browser signed in to Coder. The bootstrap prints the exact URL.
 4. When finished, stop the workspace (**Stop** on the workspace page, or `coder stop <name>`). **Lifespan/autostop:** the workspace has a timed lifespan (a deadline), not just idle timeout; activity extends it. The app URL is `https://drupal-compare--<workspace>--<owner>.coder.ddev.com/` (derived from `{project}--{workspace}--{owner}.{domain}`), so if a workspace expires or is deleted, recreate it — you can reuse the `--use-existing-core` path if the `drupal-core` issue-picker checkout exists, or `--core-url` otherwise.
 
+For people and agents, `node scripts/test-mr.mjs <issue number | slug>` is the one command to start from: it updates the checkout
+(local changes in the way go to `git stash`), stops other comparisons' sites, and runs this bootstrap with the mirror and autostart.
+
 `node scripts/cloud-bootstrap.mjs <slug> --check` only reports what is missing. Its preflight names the exact fix for each problem
 (missing project names, no Docker, no `ddev coder-setup`, missing files).
 
 ## What the bootstrap does
 
 1. Preflight (Coder variables, Node 20+, `ddev`, Docker, the `coder-setup` host command, the three project names, the files).
-2. Builds both sites with `tools/compare/setup.mjs` unless they already exist (`--rebuild` forces it). `setup.mjs` refuses to run twice at once.
+2. Builds both sites with `tools/compare/setup.mjs` unless they already exist (`--rebuild` forces it). When they exist but a patch file
+   changed since they were built (a newer MR revision arrived with `git pull`), runs `setup.mjs --refresh-patches` instead of skipping;
+   a Before site with undeclared edits stops it (BLOCKED). `setup.mjs` refuses to run twice at once. An issue number works as the
+   slug (`3619154` means `3619154-latest`); there is no default variant.
 3. For `tools/compare/site` (the viewer address), `tools/compare/cloud/before` and `.../after`: `ddev coder-setup` and `ddev restart` the first time, `ddev start` later.
    The two small cloud projects give each frame its own Coder hostname and forward it to the viewer's proxy ports 8101 and 8102.
-4. `scripts/lab-env.mjs start <slug>`, then `tools/compare/cloud/start-viewer.sh`, which restarts the viewer with the Coder origins.
+4. `scripts/lab-env.mjs start <slug>`, then `tools/compare/cloud/start-viewer.sh <slug>`, which restarts the viewer with the Coder origins.
+   The slug is required: started without one, the viewer used to show the first variant, another issue than the sites.
 5. Installs Playwright and Chromium, and reinstalls Chromium's system libraries when they are missing (they do not survive a workspace restart).
 6. Runs `scripts/cloud-smoke.mjs`.
 7. With `--install-autostart`, writes `~/.coder-startup.sh`, which the template runs at each workspace start (log: `/tmp/lab-cloud-bootstrap.log`).

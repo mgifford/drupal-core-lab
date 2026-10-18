@@ -53,13 +53,22 @@ Wait until the workspace page says **Running** and its startup scripts have fini
 (it opens a shell in the workspace in a new browser tab). Paste:
 
     git clone https://github.com/mgifford/drupal-core-lab.git && cd drupal-core-lab
-    node scripts/cloud-bootstrap.mjs 3619127-pinned --install-autostart --core-url=https://github.com/drupal/drupal.git
+    node scripts/test-mr.mjs 3619127
 
-- Replace `3619127-pinned` with the variant you want (a `-latest` slug follows current core `main`).
-- `--core-url` points at the GitHub mirror: the workspace's egress filter blocks `git.drupalcode.org` and `drupal.org`.
-- If a `drupal-core` issue-picker checkout already exists in the workspace, use `--use-existing-core` instead of `--core-url` to seed
-  the same core revision with no clone at all.
-- `--install-autostart` writes `~/.coder-startup.sh`, so a workspace restart brings both sites and the viewer back by itself.
+- Replace `3619127` with the issue you want; an issue number means its `-latest` variant (current core `main`), and a full slug
+  such as `3619127-pinned` also works. `--dry-run` first prints the plan and changes nothing.
+- It runs from any folder, brings the checkout up to date (local changes in the way go to `git stash`, never deleted), stops other
+  comparisons' sites, and runs `scripts/cloud-bootstrap.mjs <slug> --install-autostart --core-url=https://github.com/drupal/drupal.git`:
+  the GitHub mirror because the workspace's egress filter blocks `git.drupalcode.org` and `drupal.org`, autostart so a workspace
+  restart brings both sites and the viewer back by itself. It ends with the viewer address in a framed block.
+- Run it again whenever you like; that is also how a changed patch reaches the After site (bootstrap reapplies a patch file that
+  changed since the site was built).
+- To test a newer merge request revision: save its plain diff in a browser, upload it on GitHub into
+  `reports/issues/<nid>/incoming/`, then `node scripts/test-mr.mjs <nid> --diff=reports/issues/<nid>/incoming/<file>`.
+- If a `drupal-core` issue-picker checkout already exists in the workspace, `node scripts/cloud-bootstrap.mjs <slug>
+  --install-autostart --use-existing-core` seeds the same core revision with no clone at all.
+- Do not also run `tools/compare/cloud/start-viewer.sh` or `ddev stop --all` by hand: the first, without a variant, showed another
+  issue in the viewer; the second stops the proxy projects the frames need.
 - For core's Yarn 4, also `export COREPACK_NPM_REGISTRY=https://registry.npmjs.org` if you plan to lint.
 - `--check` only reports what is missing, if the bootstrap stops.
 
@@ -105,7 +114,7 @@ The pack flow (`docs/ISSUE-TO-LAB.md`) runs in the workspace terminal too:
     node scripts/issue-from-url.mjs https://www.drupal.org/project/drupal/issues/<nid> --ai-recipe
 
 It prepares the chat prompt, you save the assistant's reply as `issue-pack-<nid>.yml`, run it again to validate and import, then
-`cloud-bootstrap.mjs <nid>-latest`. Nothing here posts, pushes or signs in to anything on its own.
+`node scripts/test-mr.mjs <nid>`. Nothing here posts, pushes or signs in to anything on its own.
 
 ## What is not covered
 

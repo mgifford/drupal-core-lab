@@ -16,7 +16,7 @@ Instruction precedence: `ACCESSIBILITY.md`, then this file, then `STYLES.md`, th
 choose the safer, more accessible option. (`.agents/DRUPAL_AGENTS.md` still describes the old layout with core at the repository
 root; where it disagrees with this file, this file wins.)
 
-For a browser-visible Drupal core change, the deliverable is a registered Before/After comparison in the Lab viewer. In DDEV Coder, use scripts/cloud-bootstrap.mjs and the cloud comparison instructions. Creating two independent sites does not complete this task. Each issue must identify its variant, recipe or explicit Standard-install precondition, exact patch revision, reproduction steps and evidence gaps.
+For a browser-visible Drupal core change, the deliverable is a registered Before/After comparison in the Lab viewer. In DDEV Coder, start with `node scripts/test-mr.mjs <issue number>` (it updates the checkout and runs scripts/cloud-bootstrap.mjs; the issue's CODER-PROMPT.md lists the errors it can stop with and what each means). Creating two independent sites does not complete this task. Each issue must identify its variant, recipe or explicit Standard-install precondition, exact patch revision, reproduction steps and evidence gaps.
 
 ## Before implementation: agent checklist
 
@@ -60,7 +60,7 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
     scripts/lab-config.mjs [key]  |  scripts/patch-change.mjs check|record|list  (a changed patch file leaves a record)
     scripts/issue-pack.mjs edit <pack> <edit.json> | sync-issue <pack> | validate <pack> --repair --targeted   fix the fields the validator named, not the whole pack
     scripts/issue-intake.mjs fetch|brief|show <nid> ... | handoff write|check|show   compact issue brief and named handoffs (reports/issues/<nid>/intake/, handoffs/); `issue-pack.mjs prepare --compact` uses the brief
-    scripts/selftest.mjs  |  scripts/build-cloud.mjs  |  scripts/cloud-bootstrap.mjs <slug>
+    scripts/selftest.mjs  |  scripts/build-cloud.mjs  |  scripts/cloud-bootstrap.mjs <slug>  |  scripts/test-mr.mjs <nid|slug> [--diff=<file>] [--dry-run]   (one command: update, build, start; Coder or local)
 
 ## Read on demand (not loaded every session)
 | When | Read |
