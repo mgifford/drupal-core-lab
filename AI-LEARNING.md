@@ -170,3 +170,26 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
   `kill <pid>`); a "done" check I wrote into a prompt (`git diff --stat`) was wrong until I replayed it (new files are untracked, and
   stacked patches can cancel out: use `git status --short --untracked-files=all <dir>`), so replay any command you hand to someone
   else; `cd` into `envs/<checkout>` made the harness treat that core checkout as the working directory (use absolute paths and `git -C`).
+
+## Learnings from Gherkin bug summaries (2026-10-16 to 2026-10-18, cloud session)
+- **Built and merged (PR #35): `BUG.feature`**, an issue's bug summary in Gherkin, one behaviour per scenario, each with `# Before:` and
+  `# After:` results naming the run or person behind them (`scripts/bug-feature.mjs draft|prompt|check|export`, `docs/BUG-FEATURE.md`).
+  The owner's idea was "an AI writes the bug summary as a BDD script". The value is in the rewrite, not in the mechanical draft: the draft
+  copies the viewer's steps ("in both frames", "press Go"), which `check` flags so the rewrite replaces them.
+- **Writing "Then" finds gaps.** The #3618230 rewrite turned up a question no run or person had asked: after Hide, the error is only
+  `visually-hidden`, so it stays in the accessibility tree. It is kept as an `@unverified` scenario, "not judged" on both sides, not as a finding.
+- **Recording a review:** the owner said "Bug.feature looks good" (2026-10-18). The assistant changed `@draft` to `@reviewed` with a
+  "Reviewed by" line quoting those words. A model never marks its own work reviewed; it records a person's review in their name.
+- **Check a format against the real parser once:** the checker reads a subset of Gherkin, so the drafts and the example were also parsed
+  with `@cucumber/gherkin` installed in the scratchpad (npm was reachable; the guide the owner linked, testquality.com, was not). No new dependency.
+- **`main` moves during a session.** Three times here (7, then about 50, then 4 commits); `ready-to-push.mjs` caught it each time. Merge, re-run, then push.
+- **Before blaming your change for a red test, run it on a clean `origin/main`** (`git worktree add <scratch> origin/main`). The
+  `3615469-pinned` probe failure came with `main` (`54e3930`); the owner fixed it in `857b7bc`. In a fresh container, the `ai-usage` test
+  fails with "js-yaml is not installed": `npm install --prefix tools/compare/.deps js-yaml@4` (git-ignored) before `selftest`.
+- **Check the PR is still open before adding to its branch.** The split-view to-do was committed minutes after PR #35 was merged.
+  Restarting the branch from `main` (`git checkout -B`) was refused as destructive, so `main` was merged in instead: the branch then
+  differs from `main` only by the new commit, and a new PR shows only that.
+- **Still open from this session:** #3419891's newest run summary says "NOT as expected" on every row while its `results.json` says
+  reproduced and fixed, and `EVIDENCE.md` claims `minRows=1, maxRows=6` where the run measured `N/A`. Find the cause before relying on
+  either (rule 9).
+- Stop-hook "please push" reminders came after almost every turn. Each was answered with "not pushed", and pushes waited for the owner's word.
