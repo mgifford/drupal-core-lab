@@ -1,10 +1,11 @@
 # Reproduce #3619154: Sidebar toggle fixes (Default Admin meta sidebar)
 
 Issue: https://www.drupal.org/project/drupal/issues/3619154
-Pinned core: `6868135abe8e` (the 2026-10-14 review of MR !16911, branch `sidebar-toggle-fixes` @ `6f7766cb`).
-Last verified: 2026-10-14 (pinned, DDEV, toggle slice only). 2026-10-17: the evaluator was rewritten and checked against that same
-revision on core main `f2abd41`, in normal and forced colours, in a scratch environment, not DDEV
-([validation/2026-10-17-scratch/](validation/2026-10-17-scratch/SUMMARY.md)). MR head since 2026-10-17: `175e6f17`, not yet in the lab.
+Pinned core: `f2abd4143f87` with MR !16911 at `175e6f17` (re-pinned 2026-10-18; the 2026-10-14 review was `6f7766cb` on
+`6868135abe8e`, kept in `original-patches/`).
+Last verified: 2026-10-18, `175e6f17` on core `f2abd41` in normal and forced colours, in a scratch environment, not DDEV
+([validation/2026-10-18-scratch-175e6f17/](validation/2026-10-18-scratch-175e6f17/SUMMARY.md)). In DDEV: 2026-10-14, `6f7766cb`,
+toggle slice only.
 
 ## The problem in one paragraph
 On entity edit forms in Default Admin, the meta sidebar's show/hide toggle and its close control are `<a href="#…" role="button">`
@@ -15,43 +16,15 @@ briefly paints the sidebar on screen before hiding it. Standards mapping is a pe
 authoring expectation, most often filed under 4.1.2 Name, Role, Value. Focus left behind an overlay, and Tab reaching the covered
 page, relate to 2.4.3 Focus Order.
 
-## Evaluate the new revision: MR !16911 at `175e6f17`
-Same MR and branch (`sidebar-toggle-fixes`) as the 2026-10-14 review. The 2026-10-17 14:55 UTC push merged `main` and ended with
-`175e6f17` "Fix close button focus state when in forced colors", the answer to comment #23 ([STATUS-2026-10-17.md](STATUS-2026-10-17.md)).
-The lab still has `6f7766cb`, which no longer applies to `main`. Since core commit `aeca9d7` (2026-10-14), its hunk for
-`core/profiles/demo_umami/tests/src/FunctionalJavascript/MultipleRequestsPerformanceTestAssertions/umamiNodeAddEditor.yml` fails.
+## Evaluate MR !16911 at `175e6f17` yourself
+The patch for `175e6f17` is in the lab (`branches/sidebar-toggle-fixes.patch`; how it was obtained is in [BRANCHES.md](BRANCHES.md)).
+Both pairs use it: `3619154-latest` follows core `main`, `3619154-pinned` is core `f2abd41`. The scratch run says the forced-colours
+close button (comment #23, R12) is fixed and nothing else changed from `6f7766cb`
+([validation](validation/2026-10-18-scratch-175e6f17/SUMMARY.md)). What is left is for a person: see it, in DDEV, with real input.
 
-**The first question:** does R12, the close button's icon when it has focus, pass in forced colours? It fails with `6f7766cb`
-([validation](validation/2026-10-17-scratch/SUMMARY.md)). **The second:** did anything else change? Compare the whole table with that
-validation run.
+### 1a. On your laptop (local DDEV)
 
-### 1. Put the new revision's patch in the lab
-This needs a network that reaches git.drupalcode.org. **DDEV Coder workspaces and Claude Code cloud sessions do not**
-(`tools/compare/cloud/README.md`), so do this step on your laptop, or in a browser.
-
-- **Laptop (preferred: the lab records the tip and base for you):**
-
-        node scripts/issue-intake.mjs fetch 3619154      # issue, MR threads, related issues -> intake/BRIEF.md (AGENTS.md rule 15)
-        node scripts/issue-status.mjs 3619154 --write    # MR head against the patch the lab tested
-        node tools/playwright/evaluate-3619154.mjs 3619154-pinned --forced-colors   # optional, BEFORE refreshing: 6f7766cb in the lab (R12 should fail)
-        node scripts/new-issue.mjs 3619154 --branch sidebar-toggle-fixes --refresh  # tip should read 175e6f17
-
-  The old patch is kept in `original-patches/`, with a row in `PATCH-CHANGES.md`. Commit the refreshed files and push them to this
-  branch if you also want to use Coder.
-
-- **Browser only:** open the issue page's "plain diff" link (https://git.drupalcode.org/project/drupal/-/merge_requests/16911.diff)
-  and save it. Then give it to the lab in one of two ways. Attach it to the Claude session. Or upload it on GitHub with "Add file >
-  Upload files" into `reports/issues/3619154/incoming/` on this branch. Then, in any checkout with Node (a Coder workspace included):
-
-        cp reports/issues/3619154/incoming/16911.diff reports/issues/3619154/branches/sidebar-toggle-fixes.patch
-        node scripts/patch-change.mjs record reports/issues/3619154/branches/sidebar-toggle-fixes.patch --by "<you>" \
-          --reason "MR !16911 at 175e6f17 (head shown on the MR page), GitLab plain diff, downloaded <date>"
-
-  A plain diff carries no commit hash, so the head goes in the reason. `BRANCHES.md` still names `6f7766cb` until someone runs the
-  laptop command.
-
-### 2a. Compare on your laptop (local DDEV)
-
+        git pull                                                        # main, with this folder
         node scripts/doctor.mjs 3619154-latest
         node tools/compare/setup.mjs 3619154-latest --check-patches     # must say the patch applies
         node tools/compare/setup.mjs 3619154-latest                     # first time; --refresh-patches if it was built before
@@ -59,17 +32,16 @@ This needs a network that reaches git.drupalcode.org. **DDEV Coder workspaces an
         node tools/playwright/evaluate-3619154.mjs 3619154-latest --forced-colors   # R12 is the comment #23 question
         node tools/playwright/evaluate-3619154.mjs 3619154-latest                   # normal colours; exit 0 = everything as expected
 
-### 2b. Compare in DDEV Coder (browser only)
+### 1b. In DDEV Coder (browser only)
 Follow [docs/CLOUD-QUICKSTART.md](../../../docs/CLOUD-QUICKSTART.md). Its own status table says the web-form creation and the
-frames at the real Coder URLs have not been recorded by anyone yet.
+frames at the real Coder URLs have not been recorded by anyone yet. An agent in the workspace can follow
+[CODER-PROMPT.md](CODER-PROMPT.md) instead of the steps below.
 
 1. At https://coder.ddev.com/workspaces create a **DDEV Freeform** workspace. Set **DDEV project names** to
    `drupal-compare,drupal-compare-before,drupal-compare-after` and leave **Public Sharing** off (the sites use admin / admin).
-2. In the workspace's web terminal:
+2. In the workspace's web terminal (core comes from the GitHub mirror, because Coder cannot reach git.drupalcode.org):
 
         git clone https://github.com/mgifford/drupal-core-lab.git && cd drupal-core-lab
-        git checkout ccr-93c98e37-lv7mfj             # until this work is merged into main
-        # step 1, browser-only route, if the refreshed patch is not in the repository yet
         node scripts/cloud-bootstrap.mjs 3619154-latest --check --core-url=https://github.com/drupal/drupal.git
         node scripts/cloud-bootstrap.mjs 3619154-latest --install-autostart --core-url=https://github.com/drupal/drupal.git
 
@@ -83,8 +55,20 @@ frames at the real Coder URLs have not been recorded by anyone yet.
 
         node tools/playwright/evaluate-3619154.mjs 3619154-latest --forced-colors
 
-   For an agent in the workspace instead: `node scripts/coder-prompt.mjs 3619154-latest --write` writes `CODER-PROMPT.md`. Generate
-   it only after step 1: it names the patch with its hash.
+### 2. When the MR moves again
+Bring the new head in, then rerun 1a or 1b and compare the table with the last validation; rows that change are what the revision changed.
+
+- **Laptop:** `node scripts/issue-intake.mjs fetch 3619154`, `node scripts/issue-status.mjs 3619154 --write`, then
+  `node scripts/new-issue.mjs 3619154 --branch sidebar-toggle-fixes --refresh`. Commit and push.
+- **No machine that reaches git.drupalcode.org:** save the MR's plain diff
+  (https://git.drupalcode.org/project/drupal/-/merge_requests/16911.diff) and attach it to a Claude session, or upload it into
+  [incoming/](incoming/README.md) on GitHub, then:
+
+        cp reports/issues/3619154/incoming/16911.diff reports/issues/3619154/branches/sidebar-toggle-fixes.patch
+        node scripts/patch-change.mjs record reports/issues/3619154/branches/sidebar-toggle-fixes.patch --by "<you>" \
+          --reason "MR !16911 at <head shown on the MR page>, GitLab plain diff, downloaded <date>"
+
+  Then regenerate the Coder handoff: `node scripts/coder-prompt.mjs 3619154-latest --write`.
 
 ### 3. Fill the coverage matrix, then the code checks
 
@@ -101,8 +85,8 @@ Then do a person's keyboard pass in the viewer and save its log under `manual/`.
 `SUMMARY.md` in the run folder has one table. **Fix** rows (F) should fail Before and pass After. **Regression** rows (R) should
 pass After. **Observed** rows (O) are for a person:
 
-- R12 (with `--forced-colors`): the close button's icon with focus, comment #23. O11 gives the pixel counts; the run folder has
-  `*-close-rest.png` and `*-close-focus.png`.
+- R12 (with `--forced-colors`): the close button's icon with focus, comment #23 (fails with `6f7766cb`, passes with `175e6f17`).
+  O11 gives the pixel counts; the run folder has `*-close-rest.png` and `*-close-focus.png`.
 - O1, the toggle's accessible name. O2, the Alt+S shortcut (Before has one; the previous revision removed it).
 - O3, the resize handle at 960px. O4, the sidebar top against the top bar.
 - O10, 1100px with both panels stored open (After showed both; Before collapses Navigation).
@@ -117,13 +101,15 @@ click that opens one closes the other: Before's `sidebar.js`, and Default Admin'
 | **NOT REPRODUCED on Before** | Core `main` changed, or a probe is wrong | Check recent commits to `core/themes/default_admin` before concluding anything. |
 | **NOT FIXED on After** / **REGRESSION on After** | The new revision behaves differently from the previous one | Compare with the 2026-10-17 validation table, then look in the viewer. |
 
-## Reproduce the 2026-10-14 review exactly (pinned core)
-    node tools/compare/setup.mjs 3619154-pinned
-    node tools/playwright/evaluate-3619154.mjs 3619154-pinned
+## The 2026-10-14 review of `6f7766cb`
+That revision is kept as `original-patches/sidebar-toggle-fixes.d4c7c754.patch` and needs core `6868135abe8e` (it no longer applies
+to `main`). To build it again, add a variant with `"core": {"commit": "6868135abe8e18373329d51bcb2d2bc81967d8c0"}` and that file as
+its `after.patches`. Its forced-colours result (R12 fails) is in [validation/2026-10-17-scratch/](validation/2026-10-17-scratch/SUMMARY.md).
 
 The 2026-10-14 run in `playwright/2026-10-14T15-27-15-737Z-evaluate/` came from the earlier script. Its "sidebar shown" row is
 always `false` because that script tested `offsetParent`, which is `null` for this `position: fixed` sidebar. Its element, Enter and
-Space rows stand.
+Space rows stand. It has no `when` field, and `scripts/coverage.mjs 3619154` stops with a TypeError on it (seen 2026-10-18,
+also on `main` before these changes).
 
 ## Re-pin to a newer core after verifying
 1. Run the `-latest` variant to the end and confirm the summary says `reproduced-and-fixed`.

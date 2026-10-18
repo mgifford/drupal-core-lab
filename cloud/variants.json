@@ -904,7 +904,7 @@
       "slug": "3619154-pinned",
       "issue": "3619154",
       "label": "#3619154: Sidebar toggle fixes, pinned core",
-      "description": "MR !16911 (reviewed at 6f7766cb on 2026-10-14; head 175e6f17 since 2026-10-17) reworks the Default Admin node add/edit meta sidebar: sidebar.js is split into a sidebar-toggle SDC + edit-sidebar.js; the toggle and close controls become <button> elements with aria-expanded; below 1024px the content under the overlay is inert, focus moves to the close button and Escape closes it; the sidebar sits below the top bar and does not flash on load; the resize handle works after AJAX, with touch and in RTL. Test on /node/1/edit across widths. Scripted: tools/playwright/evaluate-3619154.mjs (steps and checks in tools/playwright/sidebar-3619154.mjs).",
+      "description": "MR !16911 at 175e6f17 (2026-10-17; the lab reviewed 6f7766cb on 2026-10-14) reworks the Default Admin node add/edit meta sidebar: sidebar.js is split into a sidebar-toggle SDC + edit-sidebar.js; the toggle and close controls become <button> elements with aria-expanded; below 1024px the content under the overlay is inert, focus moves to the close button and Escape closes it; the sidebar sits below the top bar and does not flash on load; the resize handle works after AJAX, with touch and in RTL. Test on /node/1/edit across widths. Scripted: tools/playwright/evaluate-3619154.mjs (steps and checks in tools/playwright/sidebar-3619154.mjs).",
       "before": {},
       "after": {},
       "steps": [
@@ -953,7 +953,7 @@
         {
           "text": "Forced colours (local DDEV: the lab browser's switch; any lab: DevTools > Rendering > Emulate forced-colors, or a Windows contrast theme), below 976px: open the sidebar with Enter.",
           "how": "each",
-          "lookFor": "After: the close button has focus and its × icon is visible inside the focus ring. With revision 6f7766cb only the ring showed (comment #23); 175e6f17 says it fixes that. Before: the close button is under the top bar."
+          "lookFor": "After: the close button has focus and its × icon is visible inside the focus ring. With revision 6f7766cb only the ring showed (comment #23); with 175e6f17 the icon shows (measured 2026-10-18, Chromium). Before: the close button is under the top bar."
         },
         {
           "text": "Below 976px: close the sidebar once with the close button and once by clicking the overlay.",
@@ -967,19 +967,93 @@
         }
       ],
       "expected": "After: the toggle and close are <button> elements operable with Enter and Space; aria-expanded tracks the sidebar state; open/closed state and width persist across reloads; nothing is painted on load below 1024px; below 1024px the content under the overlay is inert, focus moves to the close button, Escape closes the sidebar and returns focus to the toggle, and the sidebar starts below the top bar. Before: <a href=\"#\" role=\"button\"> controls, Space does not operate them, no inert overlay or focus trap, and the sidebar starts under the top bar below 1024px.",
-      "actual": "Previous revision (MR !16911 @ 6f7766cb) on core main f2abd41, scratch run 2026-10-17 (not DDEV): normal colours reproduced-and-fixed (11 of 12 fix checks as expected, F11 not applicable on Before; 14 regression checks pass; 0 axe violations); forced colours mixed: R12, the close button's icon disappears when focused (comment #23). Not yet run on 175e6f17. reports/issues/3619154/validation/2026-10-17-scratch/SUMMARY.md",
+      "actual": "MR !16911 at 175e6f17 on core main f2abd41, scratch run 2026-10-18 (not DDEV): reproduced-and-fixed in normal and forced colours (11 of 12 fix checks as expected, F11 not applicable on Before; 14 regression checks pass; 0 axe violations). R12, the close button's icon with focus in forced colours (comment #23), now passes: 76 icon pixels focused, 64 at rest (12 with 6f7766cb). reports/issues/3619154/validation/2026-10-18-scratch-175e6f17/SUMMARY.md",
       "observe": [
-        "Toggle and close are <button> elements and operable with the Space key (after), vs <a role=button> that ignores Space (before).",
-        "aria-expanded on the toggle tracks the open/closed state.",
-        "No flash of the open sidebar on load; closed/open state persists across reload.",
-        "Desktop: the dragged sidebar width persists after reload; resizing works after AJAX, with touch, and in RTL.",
-        "Expanding a details element does not collapse the Navigation sidebar.",
-        "Below 1024px: content under the overlay is inert; focus moves to the close button on open; Escape closes the sidebar and returns focus to the toggle.",
-        "Sidebar top aligns with the bottom of the top bar (976-1023px and >=1024px); no jump or top-bar overlap on load.",
-        "The resize handle is hidden below 976px.",
-        "Alt+S toggles the sidebar on Before; the previous MR revision removed that shortcut. Intended?",
-        "The toggle's name: Before swaps 'Hide sidebar panel' / 'Show sidebar panel'; After keeps 'Sidebar panel' and relies on aria-expanded.",
-        "1100px, returning user with both panels stored open: After shows the sidebar and an expanded Navigation together; Before collapses Navigation. Is the narrower main column acceptable?"
+        {
+          "label": "The toggle and the close control are buttons, and Space on the focused toggle opens and closes the sidebar",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "aria-expanded on the toggle matches whether the sidebar is open",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "The toggle's accessible name stays the same when the sidebar opens and closes (the state comes from aria-expanded)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Alt+S opens and closes the sidebar (measured: Before yes, After no; is dropping it intended?)",
+          "expectBefore": true,
+          "expectAfter": false
+        },
+        {
+          "label": "1024px and wider: the open or closed state is kept after reload, with no flash of the open sidebar",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 1024px, first visit: the sidebar never appears while the page loads",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Desktop: a width set by dragging the handle is kept after reload",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "With dir=\"rtl\" on <html>, dragging the handle outward makes the sidebar wider",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Between 976 and 1023px, the open sidebar starts at the bottom of the top bar, with nothing of it hidden underneath",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 976px the resize handle is hidden",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 1024px, opening the sidebar moves focus to its close button",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 1024px, Tab never reaches the page under the overlay (Navigation and the top bar stay reachable)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 1024px, Escape closes the sidebar and focus returns to the toggle",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Closing with the close button or by clicking the overlay leaves the URL unchanged",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Forced colours, below 976px: the close button's × is visible when the button has focus (comment #23)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "At 1100px, with the sidebar open and Navigation expanded, opening a details element leaves Navigation expanded (MR's claim; Before collapses Navigation on load instead)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "At 1100px, a reload with both stored open shows the sidebar and an expanded Navigation together (measured: After yes, Before no; intended?)",
+          "expectBefore": false,
+          "expectAfter": true
+        }
       ],
       "checks": [
         {
@@ -1021,7 +1095,7 @@
       "slug": "3619154-latest",
       "issue": "3619154",
       "label": "#3619154: same steps against the LATEST core main (use this pair for a new MR revision)",
-      "description": "MR !16911 (reviewed at 6f7766cb on 2026-10-14; head 175e6f17 since 2026-10-17) reworks the Default Admin node add/edit meta sidebar: sidebar.js is split into a sidebar-toggle SDC + edit-sidebar.js; the toggle and close controls become <button> elements with aria-expanded; below 1024px the content under the overlay is inert, focus moves to the close button and Escape closes it; the sidebar sits below the top bar and does not flash on load; the resize handle works after AJAX, with touch and in RTL. Test on /node/1/edit across widths. Scripted: tools/playwright/evaluate-3619154.mjs (steps and checks in tools/playwright/sidebar-3619154.mjs).",
+      "description": "MR !16911 at 175e6f17 (2026-10-17; the lab reviewed 6f7766cb on 2026-10-14) reworks the Default Admin node add/edit meta sidebar: sidebar.js is split into a sidebar-toggle SDC + edit-sidebar.js; the toggle and close controls become <button> elements with aria-expanded; below 1024px the content under the overlay is inert, focus moves to the close button and Escape closes it; the sidebar sits below the top bar and does not flash on load; the resize handle works after AJAX, with touch and in RTL. Test on /node/1/edit across widths. Scripted: tools/playwright/evaluate-3619154.mjs (steps and checks in tools/playwright/sidebar-3619154.mjs).",
       "before": {},
       "after": {},
       "steps": [
@@ -1070,7 +1144,7 @@
         {
           "text": "Forced colours (local DDEV: the lab browser's switch; any lab: DevTools > Rendering > Emulate forced-colors, or a Windows contrast theme), below 976px: open the sidebar with Enter.",
           "how": "each",
-          "lookFor": "After: the close button has focus and its × icon is visible inside the focus ring. With revision 6f7766cb only the ring showed (comment #23); 175e6f17 says it fixes that. Before: the close button is under the top bar."
+          "lookFor": "After: the close button has focus and its × icon is visible inside the focus ring. With revision 6f7766cb only the ring showed (comment #23); with 175e6f17 the icon shows (measured 2026-10-18, Chromium). Before: the close button is under the top bar."
         },
         {
           "text": "Below 976px: close the sidebar once with the close button and once by clicking the overlay.",
@@ -1084,19 +1158,93 @@
         }
       ],
       "expected": "After: the toggle and close are <button> elements operable with Enter and Space; aria-expanded tracks the sidebar state; open/closed state and width persist across reloads; nothing is painted on load below 1024px; below 1024px the content under the overlay is inert, focus moves to the close button, Escape closes the sidebar and returns focus to the toggle, and the sidebar starts below the top bar. Before: <a href=\"#\" role=\"button\"> controls, Space does not operate them, no inert overlay or focus trap, and the sidebar starts under the top bar below 1024px.",
-      "actual": "Previous revision (MR !16911 @ 6f7766cb) on core main f2abd41, scratch run 2026-10-17 (not DDEV): normal colours reproduced-and-fixed (11 of 12 fix checks as expected, F11 not applicable on Before; 14 regression checks pass; 0 axe violations); forced colours mixed: R12, the close button's icon disappears when focused (comment #23). Not yet run on 175e6f17. reports/issues/3619154/validation/2026-10-17-scratch/SUMMARY.md",
+      "actual": "MR !16911 at 175e6f17 on core main f2abd41, scratch run 2026-10-18 (not DDEV): reproduced-and-fixed in normal and forced colours (11 of 12 fix checks as expected, F11 not applicable on Before; 14 regression checks pass; 0 axe violations). R12, the close button's icon with focus in forced colours (comment #23), now passes: 76 icon pixels focused, 64 at rest (12 with 6f7766cb). reports/issues/3619154/validation/2026-10-18-scratch-175e6f17/SUMMARY.md",
       "observe": [
-        "Toggle and close are <button> elements and operable with the Space key (after), vs <a role=button> that ignores Space (before).",
-        "aria-expanded on the toggle tracks the open/closed state.",
-        "No flash of the open sidebar on load; closed/open state persists across reload.",
-        "Desktop: the dragged sidebar width persists after reload; resizing works after AJAX, with touch, and in RTL.",
-        "Expanding a details element does not collapse the Navigation sidebar.",
-        "Below 1024px: content under the overlay is inert; focus moves to the close button on open; Escape closes the sidebar and returns focus to the toggle.",
-        "Sidebar top aligns with the bottom of the top bar (976-1023px and >=1024px); no jump or top-bar overlap on load.",
-        "The resize handle is hidden below 976px.",
-        "Alt+S toggles the sidebar on Before; the previous MR revision removed that shortcut. Intended?",
-        "The toggle's name: Before swaps 'Hide sidebar panel' / 'Show sidebar panel'; After keeps 'Sidebar panel' and relies on aria-expanded.",
-        "1100px, returning user with both panels stored open: After shows the sidebar and an expanded Navigation together; Before collapses Navigation. Is the narrower main column acceptable?"
+        {
+          "label": "The toggle and the close control are buttons, and Space on the focused toggle opens and closes the sidebar",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "aria-expanded on the toggle matches whether the sidebar is open",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "The toggle's accessible name stays the same when the sidebar opens and closes (the state comes from aria-expanded)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Alt+S opens and closes the sidebar (measured: Before yes, After no; is dropping it intended?)",
+          "expectBefore": true,
+          "expectAfter": false
+        },
+        {
+          "label": "1024px and wider: the open or closed state is kept after reload, with no flash of the open sidebar",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 1024px, first visit: the sidebar never appears while the page loads",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Desktop: a width set by dragging the handle is kept after reload",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "With dir=\"rtl\" on <html>, dragging the handle outward makes the sidebar wider",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Between 976 and 1023px, the open sidebar starts at the bottom of the top bar, with nothing of it hidden underneath",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 976px the resize handle is hidden",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 1024px, opening the sidebar moves focus to its close button",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 1024px, Tab never reaches the page under the overlay (Navigation and the top bar stay reachable)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 1024px, Escape closes the sidebar and focus returns to the toggle",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Closing with the close button or by clicking the overlay leaves the URL unchanged",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Forced colours, below 976px: the close button's × is visible when the button has focus (comment #23)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "At 1100px, with the sidebar open and Navigation expanded, opening a details element leaves Navigation expanded (MR's claim; Before collapses Navigation on load instead)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "At 1100px, a reload with both stored open shows the sidebar and an expanded Navigation together (measured: After yes, Before no; intended?)",
+          "expectBefore": false,
+          "expectAfter": true
+        }
       ],
       "checks": [
         {
