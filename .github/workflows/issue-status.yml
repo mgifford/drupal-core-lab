@@ -1,0 +1,66 @@
+name: Weekly issue status
+
+# Reads each issue's status on drupal.org and its merge request on git.drupalcode.org (read-only: nothing is posted), rebuilds
+# reports/issues/README.md, and opens one pull request with what changed, for a person to review and merge. Mondays, and on demand
+# (Actions > Weekly issue status > Run workflow). See docs/ISSUE-LIFECYCLE.md.
+# Needs Settings > Actions > General > Workflow permissions > "Allow GitHub Actions to create and approve pull requests".
+# A pull request opened with this workflow's token does not start other workflows, so the self-test does not run on it; it only
+# changes files under reports/issues/.
+on:
+  schedule:
+    - cron: '17 7 * * 1'   # Mondays 07:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: issue-status
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Read every issue that is not archived (read-only)
+        id: read
+        run: |
+          set +e
+          node scripts/issue-status.mjs --all --write 2>&1 | tee status.log
+          echo "exit=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+      - name: Rebuild the issue list
+        run: node scripts/index-issues.mjs
+      - name: Open a pull request with what changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LIST_URL: ${{ github.server_url }}/${{ github.repository }}/blob
+        run: |
+          if [ -z "$(git status --porcelain -- reports/issues)" ]; then echo "No issue changed since the last check."; exit 0; fi
+          day=$(date -u +%F); branch="issue-status/${day}-${{ github.run_number }}"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c "$branch"
+          git add -- reports/issues
+          git commit -q -m "Issue status: weekly check ${day}" -m "Read-only check of drupal.org and git.drupalcode.org by .github/workflows/issue-status.yml."
+          git push -q -u origin "$branch"
+          {
+            echo "Weekly read-only check of every issue that is not archived (\`node scripts/issue-status.mjs --all --write\`), then \`node scripts/index-issues.mjs\`. Nothing was posted anywhere."
+            echo
+            echo "Start with **Needs attention** in [reports/issues/README.md](${LIST_URL}/${branch}/reports/issues/README.md). What each next step means: docs/ISSUE-LIFECYCLE.md."
+            echo
+            echo '```'
+            tail -n 60 status.log
+            echo '```'
+          } > body.md
+          gh pr create --base main --head "$branch" --title "Issue status: weekly check ${day}" --body-file body.md
+      - name: Fail when an issue could not be read
+        if: steps.read.outputs.exit != '0'
+        run: |
+          echo "::error::Some issues could not be read from drupal.org or git.drupalcode.org (see the first step). The pull request, if any, holds the others."
+          exit 1

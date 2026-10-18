@@ -18,6 +18,8 @@ const git = (dir, args, o = {}) => spawnSync('git', ['--literal-pathspecs', ...a
 const firstLine = (r) => `${r.stderr || r.stdout || ''}`.trim().split('\n')[0].slice(0, 220);
 export const gitDir = (dir) => git(dir, ['rev-parse', '--absolute-git-dir']).stdout.trim();
 const stateFile = (dir) => path.join(gitDir(dir), 'lab-patches', 'state.json');
+// Said after "does not apply" when the patch applies in reverse (expectedMap's inCore). The issue number comes from the patch path.
+export const inCoreNote = (patchPath) => `Its changes are already in this core commit (the patch applies in reverse): the issue may be fixed upstream. Check the issue, then archive it if so: node scripts/issue-archive.mjs ${(String(patchPath).match(/reports\/issues\/(\d+)\//) || [])[1] || '<issue number>'} (docs/ISSUE-LIFECYCLE.md).`;
 const shown = (list, n = 6) => `${list.slice(0, n).join(', ')}${list.length > n ? `, and ${list.length - n} more` : ''}`;
 
 // The files a patch changes: both names of a rename, the old name of a deleted file.
@@ -44,7 +46,11 @@ export function expectedMap(dir, bufs) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lab-patch-index-')), env = { ...process.env, GIT_INDEX_FILE: path.join(tmp, 'index') };
   try {
     const rt = git(dir, ['read-tree', 'HEAD'], { env }); if (rt.status !== 0) return { ok: false, error: `could not read HEAD: ${firstLine(rt)}` };
-    for (const [i, b] of bufs.entries()) { const r = git(dir, ['apply', '--cached', '-'], { env, input: b }); if (r.status !== 0) return { ok: false, failed: i, error: firstLine(r) }; }
+    for (const [i, b] of bufs.entries()) {
+      const r = git(dir, ['apply', '--cached', '-'], { env, input: b });
+      // A patch that applies in reverse is already in this commit: its issue may be fixed upstream, and a reroll would be wrong.
+      if (r.status !== 0) return { ok: false, failed: i, error: firstLine(r), inCore: git(dir, ['apply', '--cached', '--check', '--reverse', '-'], { env, input: b }).status === 0 };
+    }
     const files = [...new Set(bufs.flatMap((b) => patchFileList(b.toString('utf8'))))].sort(), map = {};
     for (const f of files) {
       const l = git(dir, ['ls-files', '-s', '--', f], { env }).stdout.trim();
@@ -98,7 +104,7 @@ export function inspect(dir, labRoot, patchPaths, { deep = false } = {}) {
   const why = fs.existsSync(path.join(dir, MARKER)) ? 'the environment has only a list of patch names (no content record)' : 'the tree has changes and no record of any patch';
   if (!deep) return { ...out, state: 'unverified', reasons: [why] };
   const exp = expectedMap(dir, wanted.map((w) => w.buf));
-  if (!exp.ok) return { ...out, state: 'mismatch', reasons: [why, exp.failed === undefined ? exp.error : `patch ${exp.failed + 1} (${wanted[exp.failed].path}) does not apply to the base commit: ${exp.error}`] };
+  if (!exp.ok) return { ...out, state: 'mismatch', reasons: [why, exp.failed === undefined ? exp.error : `patch ${exp.failed + 1} (${wanted[exp.failed].path}) does not apply to the base commit: ${exp.error}${exp.inCore ? `. ${inCoreNote(wanted[exp.failed].path)}` : ''}`] };
   const now = treeMap(dir, wantedFiles), differing = wantedFiles.filter((f) => now[f] !== exp.map[f]);
   return differing.length ? { ...out, state: 'mismatch', differing, reasons: [why, 'and the files do not equal what the patches produce'] } : { ...out, state: 'upgrade', now };
 }
@@ -113,7 +119,7 @@ const record = (dir, info) => writeState(dir, info.wanted, treeMap(dir, info.wan
 // base commit, then the current patches are applied. Refuses before changing anything if the patches do not apply to the base.
 function refreshTree(dir, labRoot, info) {
   const exp = expectedMap(dir, info.wanted.map((w) => w.buf));
-  if (!exp.ok) return { error: exp.failed === undefined ? exp.error : `patch ${exp.failed + 1} (${info.wanted[exp.failed].path}) does not apply to the base commit (${exp.error}). Reroll it. Nothing was changed.` };
+  if (!exp.ok) return { error: exp.failed === undefined ? exp.error : `patch ${exp.failed + 1} (${info.wanted[exp.failed].path}) does not apply to the base commit (${exp.error}). ${exp.inCore ? inCoreNote(info.wanted[exp.failed].path) : 'Reroll it.'} Nothing was changed.` };
   const all = [...new Set([...info.wantedFiles, ...(info.rec ? Object.keys(info.rec.files) : [])])].sort();
   if (all.some((f) => path.isAbsolute(f) || f.split('/').includes('..'))) return { error: 'a patch names a path outside the checkout. Nothing was changed.' };
   const tracked = git(dir, ['ls-tree', '-r', '--name-only', '-z', 'HEAD', '--', ...all]).stdout.split('\0').filter(Boolean);
@@ -145,7 +151,7 @@ export function ensurePatches({ dir, labRoot, patchPaths, refresh = false, slug,
   if (info.state === 'verified') return done('verified', `patches verified by content in ${env}: ${info.wanted.map((w) => `${path.basename(w.path)} ${w.sha256.slice(0, 8)}`).join(', ')}`);
   if (info.state === 'fresh') {
     const exp = expectedMap(dir, info.wanted.map((w) => w.buf));
-    if (!exp.ok) return { status: 'failed', lines: [`patch ${exp.failed === undefined ? '' : `${exp.failed + 1} (${info.wanted[exp.failed].path}) `}does not apply to the base commit: ${exp.error}. Nothing was applied.`], info };
+    if (!exp.ok) return { status: 'failed', lines: [`patch ${exp.failed === undefined ? '' : `${exp.failed + 1} (${info.wanted[exp.failed].path}) `}does not apply to the base commit: ${exp.error}.${exp.inCore ? ` ${inCoreNote(info.wanted[exp.failed].path)}` : ''} Nothing was applied.`], info };
     const err = applyAll(dir, labRoot, info.wanted); if (err) return { status: 'failed', lines: [err], info };
     record(dir, info);
     return done('applied', `applied and recorded ${n} patch(es) in ${env}: ${info.wanted.map((w) => `${path.basename(w.path)} ${w.sha256.slice(0, 8)}`).join(', ')}`);

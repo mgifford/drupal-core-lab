@@ -34,6 +34,8 @@ const args = process.argv.slice(2);
 const dry = args.includes('--dry-run');
 const v = variants().find((x) => x.slug === (args.find((a) => !a.startsWith('--')) || variants()[0].slug));
 if (!v) { console.error('unknown variant'); process.exit(1); }
+// An archived issue's variant that follows core main is retired: core main already holds its change, so its patch no longer applies.
+if (v.retired) { console.error(`${v.slug} is retired: ${v.retired}.\nIts issue is archived (reports/issues/${v.issue}/ARCHIVED.md); the pinned variant still builds. To build this one anyway, remove "retired" from its entry in variants.json.`); process.exit(2); }
 const coreUrl = (args.find((a) => a.startsWith('--core-url=')) || '').slice('--core-url='.length);
 const coreFrom = (args.find((a) => a.startsWith('--core-from=')) || '').slice('--core-from='.length);   // seed the core commit from a local checkout instead of the network
 const core = { url: 'https://git.drupalcode.org/project/drupal.git', ref: 'main', ...(v.core || {}), ...(coreUrl ? { url: coreUrl } : {}) };
@@ -134,7 +136,8 @@ if (CHECK) {
       if (r.status === 0) rows.push(`| ${side} | \`${p}\` | applies cleanly |`);
       else {
         failed = true; sideFailed = true;
-        rows.push(`| ${side} | \`${p}\` | **does not apply**: ${String(r.stderr).split('\n').slice(0, 2).join(' ').slice(0, 160)} |`);
+        const inCore = spawnSync('git', ['apply', '--check', '--reverse', path.join(labRoot, p)], { cwd: wt, encoding: 'utf8' }).status === 0;
+        rows.push(`| ${side} | \`${p}\` | **does not apply**: ${inCore ? 'it applies in reverse, so this core already has its changes (fixed upstream?)' : String(r.stderr).split('\n').slice(0, 2).join(' ').slice(0, 160)} |`);
       }
     }
     spawnSync('git', ['-C', bare, 'worktree', 'remove', '--force', wt]);
