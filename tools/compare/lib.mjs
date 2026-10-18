@@ -50,6 +50,29 @@ export function resolveVariant(arg, all = variants()) {
   return { error: `Unknown variant: ${arg}.${near.length ? ` Did you mean ${near.join(', ')}?` : ''} An issue number also works.` };
 }
 export const envDir = (env) => path.join(labRoot, 'envs', env);
+// The DDEV project name of an environment (tools/compare/setup.mjs gives it to `ddev config`).
+export const ddevName = (env) => `repro-${env}`.slice(0, 60);
+
+// DDEV's projects from `ddev list -j`, which prints one JSON object per line (warnings first when there are any); the list is the
+// line with `raw`.
+export const parseDdevList = (stdout) => String(stdout || '').split('\n').map((l) => { try { return JSON.parse(l); } catch { return null; } }).map((o) => o && o.raw).find(Array.isArray) || [];
+// The lab checkout a folder is in: the nearest folder upwards holding tools/compare/variants.json, or '' for none.
+export function labCheckoutOf(dir) {
+  for (let d = path.resolve(dir); ; d = path.dirname(d)) {
+    if (fs.existsSync(path.join(d, 'tools/compare/variants.json'))) return d;
+    if (path.dirname(d) === d) return '';
+  }
+}
+// The names in `wanted` ([{ name, dir }]) that DDEV has registered to another folder. DDEV allows a name once, so building in `dir`
+// would stop at `ddev config` with "project root is already set to …". `lab` is the checkout that folder is in. (A registered folder
+// that was deleted is not listed: `ddev list` drops it from DDEV's registry itself, DDEV v1.24.10.)
+export function ddevNameClashes(projects, wanted) {
+  return wanted.flatMap(({ name, dir }) => {
+    const p = projects.find((x) => x.name === name);
+    if (!p || !p.approot || path.resolve(p.approot) === path.resolve(dir)) return [];
+    return [{ name, dir, approot: p.approot, lab: labCheckoutOf(p.approot) }];
+  });
+}
 
 // DDEV hostname and router port for an environment (the router needs a Host header).
 export function envInfo(env) {

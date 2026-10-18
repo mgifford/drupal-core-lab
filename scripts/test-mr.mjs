@@ -7,7 +7,9 @@
 //   2. pick the variant: an issue number means <nid>-latest, else <nid>-pinned (scripts and docs name variants; people use numbers).
 //   3. only with --diff or --mr: write that diff over the variant's After patch and record the change (scripts/patch-change.mjs).
 //      A Coder workspace usually cannot reach git.drupalcode.org; when a download fails this says how to bring the diff in by hand.
-//   4. stop the sites of other comparisons (DDEV projects under envs/ this variant does not use). The proxy projects stay.
+//   4. check DDEV's project names: a name another copy of the lab holds (a second clone, often one cloned inside the first) would stop
+//      the build part-way, so this stops first and names the copy to use. Then stop the sites of other comparisons (DDEV projects
+//      under envs/ this variant does not use). The proxy projects stay.
 //   5. build and start: in Coder, scripts/cloud-bootstrap.mjs with the GitHub core mirror and autostart (it builds what is missing,
 //      reapplies a changed patch, starts the sites and the viewer, and runs the smoke check); elsewhere tools/compare/setup.mjs and
 //      scripts/lab-env.mjs start.
@@ -21,7 +23,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { labRoot, resolveVariant, envDir } from '../tools/compare/lib.mjs';
+import { labRoot, resolveVariant, envDir, ddevName, parseDdevList, ddevNameClashes } from '../tools/compare/lib.mjs';
 import { PROXY_PROJECTS } from '../tools/compare/cloud/config.mjs';
 
 const USAGE = 'Usage: node scripts/test-mr.mjs <issue number | variant slug> [--diff=<file|url>] [--mr=<number|url>] [--patch=<path>] [--no-update] [--no-start] [--dry-run] [--core-url=<url>]';
@@ -144,16 +146,30 @@ else {
 }
 if (flags['no-start']) { note('\nStopping here (--no-start).'); process.exit(0); }
 
-// 4. Other comparisons' sites: two pairs at once is more than a workspace has room for, and a stale pair confuses everyone.
-step('Stop other comparisons');
+// 4. DDEV projects. DDEV allows each project name once, so a name held by another copy of the lab stops `ddev config` part-way through
+// the build ("project root is already set to …"): check before building. Then other comparisons' sites: two pairs at once is more
+// than a workspace has room for, and a stale pair confuses everyone.
+step('Check DDEV projects');
 const list = sh('ddev', ['list', '-j']);
-if (list.error || list.status !== 0) note('DDEV is not available here, so there is nothing to stop.');
+if (list.error || list.status !== 0) note('DDEV is not available here, so there is nothing to check or stop.');
 else {
-  // `ddev list -j` prints one JSON object per line (warnings first when there are any); the project list is the line with `raw`.
-  const projects = list.stdout.split('\n').map((l) => { try { return JSON.parse(l); } catch { return null; } }).map((o) => o && o.raw).find(Array.isArray) || [];
+  const projects = parseDdevList(list.stdout);
+  const wanted = [v.before.env, v.after.env].map((env) => ({ name: ddevName(env), dir: envDir(env) }));
+  if (inCoder) wanted.push(...PROXY_PROJECTS.map((p) => ({ name: p.name, dir: path.join(labRoot, p.dir) })));
+  const held = ddevNameClashes(projects, wanted);
+  if (held.length) {
+    const other = held[0].lab, nested = other && labRoot.startsWith(other + path.sep), names = held.map((c) => c.name).join(' ');
+    const again = `node scripts/test-mr.mjs ${positional[0] || slug}`;
+    fail(`DDEV already has ${held.map((c) => `${c.name} at ${c.approot}`).join(', ')}. DDEV allows each project name once` +
+      `${other ? `, and ${held.length === 1 ? 'it belongs' : 'they belong'} to the lab copy in ${other}` : ''}; this copy is ${labRoot}.` +
+      `${nested ? ' This copy is a second clone made inside that one.' : ''}`,
+      nested ? `remove this copy (check first that nothing of yours is in it: git -C ${labRoot} status) and use the other one:\n  cd ${other} && rm -rf ${labRoot} && ${again}`
+        : other ? `use that copy: cd ${other} && ${again}\n  (To build in this copy instead, free the names first: ddev stop --unlist ${names}; the other copy's files are kept.)`
+          : `free the names (their files are kept): ddev stop --unlist ${names}, then run this again.`);
+  }
   const envsRoot = path.join(labRoot, 'envs') + path.sep, keep = new Set([envDir(v.before.env), envDir(v.after.env)]);
   const others = projects.filter((p) => p.status === 'running' && p.approot && p.approot.startsWith(envsRoot) && !keep.has(p.approot));
-  if (!others.length) note('None running.');
+  if (!others.length) note('No other comparison is running.');
   for (const p of others) {
     if (DRY) { note(`Would stop ${p.name} (${path.relative(labRoot, p.approot)}).`); continue; }
     note(`Stopping ${p.name} (${path.relative(labRoot, p.approot)}); its data is kept.`);

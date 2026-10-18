@@ -79,7 +79,9 @@ See `prompts/README.md` for preview and freshness checks. Generation does not es
 1. Create the workspace. Go to https://coder.ddev.com/workspaces and click **New workspace**, then search for and select **DDEV Freeform** from the dropdown.
    (Or open the template list at https://coder.ddev.com/templates and pick **DDEV Freeform**.)
 
-   **Web UI (recommended):** After selecting the template, fill the parameters (UI label → Terraform name):
+   **Web UI (recommended):** After selecting the template, name the workspace after the issue (`lab-<issue number>`, such as
+   `lab-3619154`, rather than the generated name; letters, digits and single hyphens, since the name becomes part of each app address
+   `<project>--<workspace>--<owner>.coder.ddev.com`), then fill the parameters (UI label → Terraform name):
 
    - **DDEV project names** → `project_names`: `drupal-compare,drupal-compare-before,drupal-compare-after` (add `repro-<env>` names only if you want a direct URL to each site; they match a variant's environments)
    - **Public Sharing** → `share_projects`: unchecked / `false`
@@ -87,7 +89,7 @@ See `prompts/README.md` for preview and freshness checks. Generation does not es
    - **Claude Code: skip permission prompts** → `claude_code_skip_permissions`: unchecked / `false`
    - **VS Code Extensions** → `vscode_extensions`: leave empty / `[]`
 
-   **CLI (alternative):** put them in `params.yaml` (using Terraform names) and run `coder create --template freeform <name> --rich-parameter-file params.yaml --yes`.
+   **CLI (alternative):** put them in `params.yaml` (using Terraform names) and run `coder create --template freeform lab-<nid> --rich-parameter-file params.yaml --yes`.
 
    The DDEV project names must include the three proxy projects (`drupal-compare`, `drupal-compare-before`, `drupal-compare-after`).
    The two `repro-` names are the variant's environments; they are only needed if you also want a direct Coder URL to each site.
@@ -100,8 +102,8 @@ See `prompts/README.md` for preview and freshness checks. Generation does not es
    field names above are the template's, which the form shows directly. Record a run if you are the first to use it.
 2. `coder ssh <name>`, wait for the startup scripts to finish, then:
 
-       git clone https://github.com/mgifford/drupal-core-lab.git && cd drupal-core-lab
-       node scripts/cloud-bootstrap.mjs 3619127-pinned --install-autostart
+       [ -d ~/drupal-core-lab ] || git clone https://github.com/mgifford/drupal-core-lab.git ~/drupal-core-lab
+       cd ~/drupal-core-lab && node scripts/cloud-bootstrap.mjs 3619127-pinned --install-autostart
 
 3. Open `https://drupal-compare--<workspace>--<owner>.coder.ddev.com/` in a browser signed in to Coder. The bootstrap prints the exact URL.
 4. When finished, stop the workspace (**Stop** on the workspace page, or `coder stop <name>`). **Lifespan/autostop:** the workspace has a timed lifespan (a deadline), not just idle timeout; activity extends it. The app URL is `https://drupal-compare--<workspace>--<owner>.coder.ddev.com/` (derived from `{project}--{workspace}--{owner}.{domain}`), so if a workspace expires or is deleted, recreate it — you can reuse the `--use-existing-core` path if the `drupal-core` issue-picker checkout exists, or `--core-url` otherwise.

@@ -38,11 +38,16 @@ paste in VS Code ([`reports/issues/3619127/CODER-PROMPT.md`](../reports/issues/3
 
    | UI Label | Terraform Name | Value |
    |---|---|---|
+   | **Workspace name** | (not a parameter) | `lab-<issue number>`, such as `lab-3619154`, instead of the generated name (such as `magenta-chinchilla-15`) |
    | **DDEV project names** | `project_names` | `drupal-compare,drupal-compare-before,drupal-compare-after` (add `repro-<env>` names only if you want a direct URL to each site) |
    | **Public Sharing** | `share_projects` | Unchecked / `false` — keep the workspace owner-only; the sites use `admin` / `admin` |
    | **Enable Claude Code remote control** | `enable_claude_code` | Unchecked / `false` |
    | **Claude Code: skip permission prompts** | `claude_code_skip_permissions` | Unchecked / `false` |
    | **VS Code Extensions** | `vscode_extensions` | Leave empty / `[]` |
+
+   The workspace name becomes part of every app address (`<project>--<workspace>--<owner>.coder.ddev.com`), so naming it after the
+   issue makes the viewer link recognisable later. Use letters, digits and single hyphens (`--` separates the parts of the address);
+   for a second workspace on the same issue add a suffix, such as `lab-3619154-2`.
 
    The three `drupal-compare*` names are required: two give each frame its own hostname and the third is the viewer's own address.
    Set `project_names` at creation; changing it afterwards was unreliable in the 2026-10-02 trial.
@@ -50,11 +55,14 @@ paste in VS Code ([`reports/issues/3619127/CODER-PROMPT.md`](../reports/issues/3
 ## 2. In the workspace web terminal
 
 Wait until the workspace page says **Running** and its startup scripts have finished, then click **Terminal** on the workspace page
-(it opens a shell in the workspace in a new browser tab). Paste:
+(it opens a shell in the workspace in a new browser tab). Paste both lines as they are, from any folder:
 
-    git clone https://github.com/mgifford/drupal-core-lab.git && cd drupal-core-lab
-    node scripts/test-mr.mjs 3619127
+    [ -d ~/drupal-core-lab ] || git clone https://github.com/mgifford/drupal-core-lab.git ~/drupal-core-lab
+    cd ~/drupal-core-lab && node scripts/test-mr.mjs 3619127
 
+- The first line clones only when `~/drupal-core-lab` is missing, so pasting them again (in a workspace that already has the lab)
+  never makes a second copy inside the first. DDEV allows each project name once; a second copy stops with `DDEV already has …`
+  and names the copy to use.
 - Replace `3619127` with the issue you want; an issue number means its `-latest` variant (current core `main`), and a full slug
   such as `3619127-pinned` also works. `--dry-run` first prints the plan and changes nothing.
 - It runs from any folder, brings the checkout up to date (local changes in the way go to `git stash`, never deleted), stops other

@@ -11,12 +11,16 @@ Enter these values before creation; changing project names later has not been re
 
 | Field | Parameter | Value |
 |---|---|---|
+| Workspace name | (the name field above the parameters) | `lab-2951317` instead of the generated one (such as `magenta-chinchilla-15`) |
 | DDEV project names | `project_names` | `drupal-compare,drupal-compare-before,drupal-compare-after` |
 | Public Sharing | `share_projects` | off / `false` |
 | Enable Claude Code remote control | `enable_claude_code` | on only if you intend to use it |
 | Claude Code: skip permission prompts | `claude_code_skip_permissions` | off / `false` |
 
-These are the viewer and two frame proxy names, shared by every issue. Do not replace them with issue-specific names.
+The workspace name becomes part of every app address (`<project>--<workspace>--<owner>.coder.ddev.com`), so a name that says the
+issue makes the viewer link recognisable later. Use letters, digits and single hyphens (`--` separates the parts of the address);
+for a second workspace on the same issue add a suffix, such as `lab-2951317-2`.
+The project names are the viewer and two frame proxy names, shared by every issue. Do not replace them with issue-specific names.
 They are defined in `tools/compare/cloud/config.mjs`; the Freeform template reads its own `project_names` parameter, not that file.
 
 ## Instructions for the workspace agent
@@ -53,7 +57,7 @@ Check the issue report's provenance before attributing a patch to an MR. Record 
 ## Build and open the comparison: one command
 
 ```bash
-cd ~ && { [ -d drupal-core-lab ] || git clone https://github.com/mgifford/drupal-core-lab.git; }
+[ -d ~/drupal-core-lab ] || git clone https://github.com/mgifford/drupal-core-lab.git ~/drupal-core-lab   # only when missing
 cd ~/drupal-core-lab
 node scripts/test-mr.mjs 2951317-pinned --dry-run    # prints the plan, changes nothing
 node scripts/test-mr.mjs 2951317-pinned              # updates the checkout, builds or refreshes both sites, starts them and the viewer, smoke check
@@ -88,6 +92,8 @@ Match the first line that starts with `STOPPED`, `BLOCKED`, `Preflight failed` o
 | The message says | It means | Do this |
 |---|---|---|
 | `Unknown option --…` | A flag that does not exist | `node scripts/test-mr.mjs --help`, then use only those options. |
+| `Cannot find module '…/scripts/test-mr.mjs'` | Not in the lab folder (a `git clone` that failed skips the `cd` after it), or a checkout older than this script | `cd ~/drupal-core-lab && git pull --ff-only`, then run the command again. Do not clone again. |
+| `DDEV already has …` (or DDEV's `project root is already set to … refusing to change it`) | A second copy of the lab, usually a clone made inside `~/drupal-core-lab`; DDEV allows each project name once | Follow the `Next:` line: use the copy it names, and remove the second copy only after `git status` in it shows nothing of the person's. |
 | `No variant is registered for issue` | The lab has no comparison for that issue yet | Stop and tell the person; registering one needs git.drupalcode.org (`docs/NEW-ISSUE.md`). |
 | `could not download …` | The workspace network blocks git.drupalcode.org | Ask the person for the plain diff (above), then use `--diff=`. |
 | `is not a diff` | A saved login or error page | Ask for the plain diff again; it starts with `diff --git`. |
@@ -108,6 +114,8 @@ Open the viewer address in a browser signed in to Coder (apps are owner-only). I
 ```text
 https://drupal-compare--<workspace>--<owner>.coder.ddev.com/
 ```
+
+With the suggested workspace name that is `https://drupal-compare--lab-2951317--<owner>.coder.ddev.com/`.
 
 Confirm that the viewer and BOTH Drupal frames load, then use **Log in both as admin**.
 Smoke success does not verify authenticated frames at the real Coder URLs. Record that browser check separately.
