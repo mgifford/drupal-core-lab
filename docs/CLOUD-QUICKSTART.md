@@ -58,11 +58,15 @@ Wait until the workspace page says **Running** and its startup scripts have fini
 (it opens a shell in the workspace in a new browser tab). Paste both lines as they are, from any folder:
 
     [ -d ~/drupal-core-lab ] || git clone https://github.com/mgifford/drupal-core-lab.git ~/drupal-core-lab
-    cd ~/drupal-core-lab && node scripts/test-mr.mjs 3619127
+    cd ~/drupal-core-lab && git pull --ff-only
+    node scripts/test-mr.mjs 3619127
 
 - The first line clones only when `~/drupal-core-lab` is missing, so pasting them again (in a workspace that already has the lab)
   never makes a second copy inside the first. DDEV allows each project name once; a second copy stops with `DDEV already has …`
   and names the copy to use.
+- The second brings an existing copy up to date: one older than 2026-10-18 has no `test-mr.mjs` (`Cannot find module`). If
+  `git pull` refuses because of local changes, `test-mr.mjs` sets them aside itself; if it is the missing one, run `git stash -u`
+  (it keeps them), then the last two lines again.
 - Replace `3619127` with the issue you want; an issue number means its `-latest` variant (current core `main`), and a full slug
   such as `3619127-pinned` also works. `--dry-run` first prints the plan and changes nothing.
 - It runs from any folder, brings the checkout up to date (local changes in the way go to `git stash`, never deleted), stops other

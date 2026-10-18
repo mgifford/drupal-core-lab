@@ -103,7 +103,8 @@ See `prompts/README.md` for preview and freshness checks. Generation does not es
 2. `coder ssh <name>`, wait for the startup scripts to finish, then:
 
        [ -d ~/drupal-core-lab ] || git clone https://github.com/mgifford/drupal-core-lab.git ~/drupal-core-lab
-       cd ~/drupal-core-lab && node scripts/cloud-bootstrap.mjs 3619127-pinned --install-autostart
+       cd ~/drupal-core-lab && git pull --ff-only
+       node scripts/cloud-bootstrap.mjs 3619127-pinned --install-autostart
 
 3. Open `https://drupal-compare--<workspace>--<owner>.coder.ddev.com/` in a browser signed in to Coder. The bootstrap prints the exact URL.
 4. When finished, stop the workspace (**Stop** on the workspace page, or `coder stop <name>`). **Lifespan/autostop:** the workspace has a timed lifespan (a deadline), not just idle timeout; activity extends it. The app URL is `https://drupal-compare--<workspace>--<owner>.coder.ddev.com/` (derived from `{project}--{workspace}--{owner}.{domain}`), so if a workspace expires or is deleted, recreate it — you can reuse the `--use-existing-core` path if the `drupal-core` issue-picker checkout exists, or `--core-url` otherwise.

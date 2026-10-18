@@ -23,14 +23,16 @@ close button (comment #23, R12) is fixed and nothing else changed from `6f7766cb
 ([validation](validation/2026-10-18-scratch-175e6f17/SUMMARY.md)). What is left is for a person: see it, in DDEV, with real input.
 
 ### 1a. On your laptop (local DDEV)
+In your lab checkout, on `main`:
 
-        git pull                                                        # main, with this folder
-        node scripts/doctor.mjs 3619154-latest
-        node tools/compare/setup.mjs 3619154-latest --check-patches     # must say the patch applies
-        node tools/compare/setup.mjs 3619154-latest                     # first time; --refresh-patches if it was built before
-        node scripts/lab-env.mjs start 3619154-latest --browser         # the viewer, with the lab browser's forced-colours switch
+        git pull --ff-only                                              # a checkout older than 2026-10-18 has no test-mr.mjs yet
+        node scripts/test-mr.mjs 3619154                                # builds or refreshes both sites, starts them and the viewer
+        node scripts/lab-env.mjs browser                                # optional: the viewer in the lab browser (forced-colours switch)
         node tools/playwright/evaluate-3619154.mjs 3619154-latest --forced-colors   # R12 is the comment #23 question
         node tools/playwright/evaluate-3619154.mjs 3619154-latest                   # normal colours; exit 0 = everything as expected
+
+If `git pull` refuses because of local changes, `git stash -u` sets them aside (kept; `git stash list` shows them), then pull again.
+`node scripts/doctor.mjs 3619154-latest` checks DDEV, Docker and the lab if something does not start.
 
 ### 1b. In DDEV Coder (browser only)
 Follow [docs/CLOUD-QUICKSTART.md](../../../docs/CLOUD-QUICKSTART.md). Its own status table says the web-form creation and the
@@ -43,10 +45,13 @@ frames at the real Coder URLs have not been recorded by anyone yet. An agent in 
 2. In the workspace's web terminal, paste both lines as they are (from any folder):
 
         [ -d ~/drupal-core-lab ] || git clone https://github.com/mgifford/drupal-core-lab.git ~/drupal-core-lab
-        cd ~/drupal-core-lab && node scripts/test-mr.mjs 3619154
+        cd ~/drupal-core-lab && git pull --ff-only
+        node scripts/test-mr.mjs 3619154
 
    The first line clones only when `~/drupal-core-lab` is missing, so pasting them again never makes a second copy inside the
-   first (DDEV allows each project name once, and a second copy stops with `DDEV already has …`).
+   first (DDEV allows each project name once, and a second copy stops with `DDEV already has …`). The second brings an existing
+   copy up to date: one older than 2026-10-18 has no `test-mr.mjs` (`Cannot find module`). If `git pull` refuses because of local
+   changes, `test-mr.mjs` sets them aside itself (`git stash`); if it is the missing one, run `git stash -u`, then the last two lines again.
    It updates the checkout, builds both sites with core from the GitHub mirror (Coder cannot reach git.drupalcode.org), starts them
    and the viewer, runs the smoke check, and ends with the viewer address. Run it again after a restart or a patch update.
 
