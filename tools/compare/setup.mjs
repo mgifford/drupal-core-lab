@@ -24,7 +24,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { labRoot, variants, envDir } from './lib.mjs';
+import { labRoot, variants, envDir, ddevName } from './lib.mjs';
 import { ensurePatches } from './patch-state.mjs';
 import { identity, blockMessage, headOf, recipeStatus } from './env-state.mjs';
 import { ensureContrib } from './contrib-state.mjs';
@@ -166,7 +166,7 @@ for (const [side, spec] of sides) addCheckout(side, spec);
 if (!dry) { const id = identity(v, { labRoot, envDir, checks: ['base', 'pin'] }); if (id.problems.length) { console.error(blockMessage(id)); process.exit(4); } }
 for (const [side, spec] of sides) {
   const dir = envDir(spec.env);
-  const name = `repro-${spec.env}`.slice(0, 60);
+  const name = ddevName(spec.env);
   step(`${side}: ${spec.env}`);
 
   // Patches, tracked by content (tools/compare/patch-state.mjs): a re-run reuses them only when the recorded hashes and the files still

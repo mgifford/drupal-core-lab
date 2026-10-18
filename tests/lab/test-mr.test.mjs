@@ -1,5 +1,6 @@
-// Tests for scripts/test-mr.mjs (the one command for a Coder or local comparison), resolveVariant in tools/compare/lib.mjs, and the
-// patch-state message scripts/cloud-bootstrap.mjs relies on to reapply a changed patch. No DDEV, no network; temp folders only.
+// Tests for scripts/test-mr.mjs (the one command for a Coder or local comparison), resolveVariant and the DDEV name helpers in
+// tools/compare/lib.mjs, and the patch-state message scripts/cloud-bootstrap.mjs relies on to reapply a changed patch. No DDEV (a
+// stand-in `ddev` on PATH where one is needed), no network; temp folders only.
 //   node --test tests/lab/test-mr.test.mjs
 import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -7,7 +8,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { labRoot, variants, resolveVariant } from '../../tools/compare/lib.mjs';
+import { labRoot, variants, resolveVariant, envDir, ddevName, parseDdevList, labCheckoutOf, ddevNameClashes } from '../../tools/compare/lib.mjs';
 import { ensurePatches, runBlockReason } from '../../tools/compare/patch-state.mjs';
 import { sideState } from '../../tools/compare/contrib-state.mjs';
 
@@ -68,4 +69,51 @@ test('test-mr.mjs: --help, an invented flag, an unknown issue, and dry runs that
   assert.equal(coder.status, 0, coder.stderr);
   assert.match(coder.stdout, new RegExp(`Would run: node scripts/cloud-bootstrap\\.mjs ${latest.issue}-latest --install-autostart --core-url=https://github\\.com/drupal/drupal\\.git`));
   assert.equal(spawnSync('git', ['status', '--porcelain'], { cwd: labRoot, encoding: 'utf8' }).stdout, before, 'a dry run leaves the checkout as it was');
+});
+
+test('DDEV names: parse `ddev list -j`, find the lab copy a folder is in, and report names another folder holds', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'test-mr-ddev-'));
+  after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const first = path.join(root, 'drupal-core-lab'), second = path.join(first, 'drupal-core-lab');   // a clone made inside the first
+  for (const d of [first, second]) { fs.mkdirSync(path.join(d, 'tools/compare'), { recursive: true }); fs.writeFileSync(path.join(d, 'tools/compare/variants.json'), '[]'); }
+  fs.mkdirSync(path.join(first, 'envs/baseline-x'), { recursive: true });
+  assert.equal(labCheckoutOf(path.join(first, 'envs/baseline-x')), first);
+  assert.equal(labCheckoutOf(path.join(second, 'envs/not-built-yet')), second, 'a folder that does not exist yet still has a checkout above it');
+  assert.equal(labCheckoutOf(root), '');
+
+  const lines = ['{"level":"warning","msg":"a warning comes first"}', JSON.stringify({ level: 'info', raw: [
+    { name: 'repro-baseline-x', approot: path.join(first, 'envs/baseline-x'), status: 'stopped' },
+    { name: 'repro-issue-x', approot: path.join(root, 'elsewhere/envs/issue-x'), status: 'stopped' },
+  ] })].join('\n');
+  const projects = parseDdevList(lines);
+  assert.equal(projects.length, 2); assert.deepEqual(parseDdevList('not json'), []);
+
+  const wanted = (lab) => ['baseline-x', 'issue-x', 'other-x'].map((env) => ({ name: ddevName(env), dir: path.join(lab, 'envs', env) }));
+  assert.deepEqual(ddevNameClashes(projects, wanted(first)).map((c) => [c.name, c.lab]), [['repro-issue-x', '']], 'its own folder is not a clash; one outside any lab copy is');
+  assert.deepEqual(ddevNameClashes(projects, wanted(second)).map((c) => [c.name, c.lab]), [['repro-baseline-x', first], ['repro-issue-x', '']], 'from the clone inside: the first copy holds the name');
+  assert.equal(ddevName('x'.repeat(80)).length, 60, 'the name setup.mjs gives to ddev config');
+});
+
+test('test-mr.mjs stops before building when another lab copy holds a DDEV name, and goes on when the names are its own', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'test-mr-clash-'));
+  after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const other = path.join(root, 'drupal-core-lab'), bin = path.join(root, 'bin'), listFile = path.join(root, 'list.json');
+  fs.mkdirSync(path.join(other, 'tools/compare'), { recursive: true }); fs.writeFileSync(path.join(other, 'tools/compare/variants.json'), '[]');
+  fs.mkdirSync(path.join(other, 'envs', latest.before.env), { recursive: true }); fs.mkdirSync(bin);
+  // A stand-in for ddev: `ddev list -j` prints the list file; anything else succeeds and does nothing.
+  fs.writeFileSync(path.join(bin, 'ddev'), `#!/bin/sh\nif [ "$1" = list ]; then cat '${listFile}'; fi\nexit 0\n`, { mode: 0o755 });
+  const env = { ...noCoder, PATH: `${bin}${path.delimiter}${process.env.PATH}` };
+  const list = (raw) => fs.writeFileSync(listFile, `{"level":"warning","msg":"first"}\n${JSON.stringify({ level: 'info', raw })}\n`);
+
+  list([{ name: ddevName(latest.before.env), approot: path.join(other, 'envs', latest.before.env), status: 'running' }]);
+  const held = cli([String(latest.issue), '--dry-run', '--no-update'], env);
+  assert.equal(held.status, 1, held.stdout);
+  assert.match(held.stderr, new RegExp(`STOPPED: DDEV already has ${ddevName(latest.before.env)} at .*DDEV allows each project name once, and it belongs to the lab copy in ${other.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+  assert.match(held.stderr, new RegExp(`Next: use that copy: cd .* && node scripts/test-mr\\.mjs ${latest.issue}`));
+  assert.doesNotMatch(held.stdout, /Would run/, 'nothing is built');
+
+  list([{ name: ddevName(latest.before.env), approot: envDir(latest.before.env), status: 'stopped' }]);
+  const own = cli([String(latest.issue), '--dry-run', '--no-update'], env);
+  assert.equal(own.status, 0, own.stderr);
+  assert.match(own.stdout, /Would run: node tools\/compare\/setup\.mjs/);
 });

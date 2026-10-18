@@ -40,11 +40,13 @@ frames at the real Coder URLs have not been recorded by anyone yet. An agent in 
 1. At https://coder.ddev.com/workspaces create a **DDEV Freeform** workspace named `lab-3619154` (instead of the generated name;
    the viewer address becomes `https://drupal-compare--lab-3619154--<owner>.coder.ddev.com/`). Set **DDEV project names** to
    `drupal-compare,drupal-compare-before,drupal-compare-after` and leave **Public Sharing** off (the sites use admin / admin).
-2. In the workspace's web terminal:
+2. In the workspace's web terminal, paste both lines as they are (from any folder):
 
-        git clone https://github.com/mgifford/drupal-core-lab.git && cd drupal-core-lab
-        node scripts/test-mr.mjs 3619154
+        [ -d ~/drupal-core-lab ] || git clone https://github.com/mgifford/drupal-core-lab.git ~/drupal-core-lab
+        cd ~/drupal-core-lab && node scripts/test-mr.mjs 3619154
 
+   The first line clones only when `~/drupal-core-lab` is missing, so pasting them again never makes a second copy inside the
+   first (DDEV allows each project name once, and a second copy stops with `DDEV already has …`).
    It updates the checkout, builds both sites with core from the GitHub mirror (Coder cannot reach git.drupalcode.org), starts them
    and the viewer, runs the smoke check, and ends with the viewer address. Run it again after a restart or a patch update.
 
