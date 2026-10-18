@@ -173,7 +173,7 @@
         <label><input type="radio" name="dir" value="auto" checked> Page default</label><label><input type="radio" name="dir" value="ltr"> LTR</label><label><input type="radio" name="dir" value="rtl"> RTL</label></div></fieldset>
       <div class="row" data-label="Simulate a dark-mode OS"><label class="sw"><span class="lab">Simulate a dark-mode OS</span><input type="checkbox" id="darkos" role="switch"></label></div>
       <div class="row" data-label="JavaScript off"><label class="sw"><span class="lab">JavaScript off</span><input type="checkbox" id="nojs" role="switch"></label><span class="hint">Turns the sites' JavaScript off and reloads both.</span></div>
-      <div class="row" id="emulrow"><span id="emulopenwrap"><button type="button" id="emulopen">Open preference emulation window</button><span class="hint">User preferences can be emulated in the lab browser window.</span></span>
+      <div class="row" id="emulrow"><span id="emulopenwrap"><button type="button" id="emulopen">Open preference emulation window</button><span class="hint" id="emulopenhint">User preferences can be emulated in the lab browser window.</span></span>
         <fieldset id="emulbox" class="row" hidden><legend>User preferences</legend>
           <fieldset class="row" data-label="Forced colours"><legend>Forced colours</legend><div class="seg">
             <label><input type="radio" name="emul" value="normal" checked> Off</label><label><input type="radio" name="emul" value="forced-light"> Light</label><label><input type="radio" name="emul" value="forced-dark"> Dark</label></div></fieldset>
@@ -483,6 +483,8 @@ async function init() {
     const want = new URLSearchParams(location.search).get('variant'); const slug = variants.some((x) => x.slug === want) ? want : variants[0].slug;
     $('variant').value = slug; setVariant(slug); fillStaticPanel(); status('Read-only guide.'); return;
   } origins = d.origins; sites = d.sites || {}; variants = d.variants; availability = d.availability || {};
+  // The emulation window opens on the machine that runs the lab: in a cloud workspace that is not the person's screen.
+  if (d.noWindow) { $('emulopen').hidden = true; $('emulopenhint').textContent = `The preference emulation window is not available here: ${d.noWindow}. In your own browser, open DevTools > More tools > Rendering and use "Emulate CSS media feature" (forced-colors, prefers-color-scheme, prefers-contrast, prefers-reduced-motion). It applies to the whole tab, so to both frames.`; }
   fillComparisons(d);
   try { incoming = readHandoff(location.hash); }
   catch (error) { $('handoffnote').hidden = false; $('handoffnote').textContent = error.message; }

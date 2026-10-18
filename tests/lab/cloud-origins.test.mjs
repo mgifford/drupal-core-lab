@@ -1,5 +1,6 @@
 // A Coder workspace name may have capitals ("Compare"), but browsers send hostnames in lower case (Host, Origin, ancestorOrigins).
-// The viewer must accept its own page at the lower-case address however the origins were typed. Real local HTTP; no DDEV or browser.
+// The viewer must accept its own page at the lower-case address however the origins were typed, and must say that no browser window
+// can be opened from a cloud workspace. Real local HTTP; no DDEV or browser.
 //   node --test tests/lab/cloud-origins.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -9,13 +10,14 @@ import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
+import { noWindowReason } from '../../tools/compare/browser-launch.mjs';
 
 const labRoot = fileURLToPath(new URL('../..', import.meta.url));
 
 test('viewer: origins typed with capitals still accept the browser\'s lower-case Host and Origin', { timeout: 15000 }, async () => {
   const port = 20000 + Math.floor(Math.random() * 25000);
   const app = (project) => `https://${project}--Compare--Mike.coder.example`;   // as start-viewer.sh built them from CODER_WORKSPACE_NAME
-  const env = { ...process.env, PORT: String(port), LAB_BIND: '127.0.0.1', LAB_EXTRA_ORIGINS: app('drupal-compare'), LAB_BEFORE_ORIGIN: app('drupal-compare-before'), LAB_AFTER_ORIGIN: app('drupal-compare-after') };
+  const env = { ...process.env, PORT: String(port), LAB_BIND: '127.0.0.1', LAB_EXTRA_ORIGINS: app('drupal-compare'), LAB_BEFORE_ORIGIN: app('drupal-compare-before'), LAB_AFTER_ORIGIN: app('drupal-compare-after'), CODER_AGENT_URL: 'https://coder.example' };
   const child = spawn(process.execPath, ['tools/compare/serve.mjs'], { cwd: labRoot, env, stdio: ['ignore', 'pipe', 'pipe'] });
   let output = '';
   for (const stream of [child.stdout, child.stderr]) stream.on('data', (data) => { output = (output + data).slice(-6000); });
@@ -37,7 +39,19 @@ test('viewer: origins typed with capitals still accept the browser\'s lower-case
     const v = JSON.parse((await raw('GET', '/variants.json', sameOrigin)).text);
     assert.deepEqual(v.origins, { before: 'https://drupal-compare-before--compare--mike.coder.example', after: 'https://drupal-compare-after--compare--mike.coder.example' });
     assert.equal((await raw('POST', '/api/state', { origin: 'https://evil.example' }, '{}')).code, 403, 'other origins are still refused');
+    // A window opened from a cloud workspace would be on the remote machine: the viewer is told why, and opening one is refused.
+    assert.match(v.noWindow, /cloud workspace/);
+    const open = await raw('POST', '/api/emulation', sameOrigin, JSON.stringify({ open: true, mode: 'normal' }));
+    assert.equal(open.code, 400); assert.match(JSON.parse(open.text).error, /cannot open: this lab runs in a cloud workspace.*DevTools > More tools > Rendering/);
   } finally { child.kill('SIGTERM'); await exit; }
+});
+
+test('noWindowReason: a cloud workspace or a Linux machine without a display cannot show a window', () => {
+  assert.match(noWindowReason({ platform: 'linux', env: { CODER_AGENT_URL: 'https://coder.example', DISPLAY: ':0' } }), /cloud workspace/);
+  assert.match(noWindowReason({ platform: 'darwin', env: { CODESPACES: 'true' } }), /cloud workspace/);
+  assert.match(noWindowReason({ platform: 'linux', env: {} }), /no display/);
+  assert.equal(noWindowReason({ platform: 'linux', env: { WAYLAND_DISPLAY: 'wayland-0' } }), '');
+  assert.equal(noWindowReason({ platform: 'darwin', env: {} }), '');
 });
 
 test('start-viewer.sh, cloud-smoke.mjs and test-mr.mjs build Coder app addresses in lower case', () => {
