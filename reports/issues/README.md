@@ -6,58 +6,59 @@ something changed. "Lab tested" is the merge request commit in the issue's `BRAN
 an issue is archived: [docs/ISSUE-LIFECYCLE.md](../../docs/ISSUE-LIFECYCLE.md). To start a new issue:
 `node scripts/new-issue.mjs <nid> --branch <fork-branch>` ([docs/NEW-ISSUE.md](../../docs/NEW-ISSUE.md)).
 
-## Needs attention (0)
+## Needs attention (10)
 
 Something changed upstream that the lab should act on.
 
-None.
+| Issue | What | drupal.org | Merge request | Lab tested | Next step |
+|---|---|---|---|---|---|
+| [3087389](3087389/SUMMARY.md) | When selecting media to add through the media library modal, the # of #… | Closed (duplicate), updated 2026-03-04 | none found | no MR patch ([how](3087389/REPRODUCE.md)) | Closed (duplicate): archive (node scripts/issue-archive.mjs 3087389) |
+| [3093378](3093378/SUMMARY.md) | Use ARIA disclosure pattern for submenu buttons in vertical toolbar orientation | Fixed, updated 2026-10-13 | !6821 opened at `f2fd22d9` | ``3093378` ([how](3093378/REPRODUCE.md)) | Fixed upstream: confirm on core main, then archive (node scripts/issue-archive.mjs 3093378) |
+| [3273806](3273806/SUMMARY.md) | WCAG color constrast fails on toolbar direction icon | Closed (duplicate), updated 2026-10-15 | none found | ``40434c4` | Closed (duplicate): archive (node scripts/issue-archive.mjs 3273806) |
+| [3604037](3604037/SUMMARY.md) | Indicate that grouping elements have child element errors for UX and a11y | Reviewed & tested by the community, updated 2026-10-16 | !17078 opened at `c8136d01` | `e8b2e166` ([how](3604037/REPRODUCE.md)) | Re-test: MR !17078 is at c8136d01; the lab tested e8b2e166 |
+| [3615469](3615469/SUMMARY.md) | Maintenance mode form: "user login" link text excludes "page", read as "user… | Reviewed & tested by the community, updated 2026-10-16 | !16609 opened at `21bbeeb1` | no MR patch ([how](3615469/REPRODUCE.md)) | RTBC: one final run on current core main |
+| [3617875](3617875/SUMMARY.md) | Better Dark Mode Support for Disabled Elements | Closed (fixed), updated 2026-09-29 | !16905 closed at `71cd2aca` | `e87837c4` ([how](3617875/REPRODUCE.md)) | Closed (fixed) upstream: confirm on core main, then archive (node scripts/issue-archive.mjs 3617875) |
+| [3618230](3618230/SUMMARY.md) | Adopt the ajax MessageCommand for file uploads | Active, updated 2026-10-14 | !16777 opened at `01e19a6f` | `2d600f40` ([how](3618230/REPRODUCE.md)) | Re-test: MR !16777 is at 01e19a6f; the lab tested 2d600f40 |
+| [3619154](3619154/) | Accessibility fixes for Admin theme's node add/edit sidebar toggle control | Reviewed & tested by the community, updated 2026-10-18 | !16911 opened at `175e6f17` | `175e6f17` ([how](3619154/REPRODUCE.md)) | RTBC: one final run on current core main |
+| [3619387](3619387/) | Indicate on forms sidebar toggle button that sidebar has child element errors | Reviewed & tested by the community, updated 2026-10-07 | !17013 opened at `cb915a48` | `cb915a48` ([how](3619387/REPRODUCE.md)) | RTBC: one final run on current core main |
+| [3627936](3627936/) | Active workspace has a broken styling in dark mode | Needs review, updated 2026-10-16 | !17471 opened at `d888b0ce` | `-` ([how](3627936/REPRODUCE.md)) | Re-test: MR !17471 is at d888b0ce; the lab tested - |
 
-## Waiting (0)
+## Waiting (24)
 
 Nothing for the lab to do until the issue moves.
 
-None.
+| Issue | What | drupal.org | Merge request | Lab tested | Next step |
+|---|---|---|---|---|---|
+| [2847425](2847425/) | #states not affecting visibility/requirement of managed_file | Needs review, updated 2026-09-16 | none found | `71b1ad1d` ([how](2847425/REPRODUCE.md)) | Needs review; the lab has no MR patch recorded (BRANCHES.md) |
+| [2848307](2848307/SUMMARY.md) | Inline errors not working on form table elements | Needs work, updated 2026-08-05 | !16355 opened at `46e9b7e7` | no MR patch ([how](2848307/REPRODUCE.md)) | Needs work: waiting on the MR |
+| [2951317](2951317/SUMMARY.md) | Radios element missing "required" attribute | Needs review, updated 2026-10-16 | !15536 opened at `ab7ab046` | `ab7ab046` ([how](2951317/REPRODUCE.md)) | Needs review: the lab has tested the current MR head |
+| [3046089](3046089/SUMMARY.md) | Accessibility of Main toolbar items and internal editing | Active, updated 2026-10-14 | none found | no MR patch ([how](3046089/REPRODUCE.md)) | Active; no MR found |
+| [3083103](3083103/SUMMARY.md) | Programmatically associate error messages with inputs | Needs work, updated 2026-08-06 | !15692 opened at `ed60e948` | `ed60e948` ([how](3083103/REPRODUCE.md)) | Needs work: waiting on the MR |
+| [3155130](3155130/SUMMARY.md) | "Edit summary" toggle on text fields has many accessibility issues | Needs work, updated 2026-03-10 | none found | no MR patch ([how](3155130/REPRODUCE.md)) | Needs work: waiting on the MR |
+| [3207233](3207233/SUMMARY.md) | Improve the visual indication of the active workspace in the Workspaces listing… | Needs review, updated 2026-10-16 | !17464 opened at `278ea9ee` | no MR patch ([how](3207233/REPRODUCE.md)) | Needs review; the lab has no MR patch recorded (BRANCHES.md) |
+| [3243173](3243173/SUMMARY.md) | Form focus / screen reader issues related to server side form validation | Active, updated 2026-08-08 | none found | no MR patch ([how](3243173/REPRODUCE.md)) | Active; no MR found |
+| [3273054](3273054/SUMMARY.md) | Checkboxes of text formats in the filter section on the permissions page have… | Active, updated 2023-05-26 | none found | no MR patch ([how](3273054/REPRODUCE.md)) | Active; no MR found |
+| [3370946](3370946/SUMMARY.md) | Page title should contextualize the local navigation | Needs work, updated 2026-08-24 | !4479 opened at `1ff37e70` | no MR patch ([how](3370946/REPRODUCE.md)) | Needs work: waiting on the MR |
+| [3415961](3415961/SUMMARY.md) | [drupalMedia] Using the Insert Media button causes the window to scroll to the… | Needs work, updated 2026-10-14 | !12348 opened at `2dfd37b4` | `2dfd37b4` ([how](3415961/REPRODUCE.md)) | Needs work: waiting on the MR |
+| [3419891](3419891/SUMMARY.md) | Increase size of alternative text field in Image dialog | Needs work, updated 2026-10-16 | !16984 opened at `1931822c` | `1931822c` ([how](3419891/REPRODUCE.md)) | Needs work: waiting on the MR |
+| [3426468](3426468/) | Make the active menu item visually stand out more | Needs work, updated 2026-09-06 | !8446 opened at `da537706` | `da537706` ([how](3426468/REPRODUCE.md)) | Needs work: waiting on the MR |
+| [3587680](3587680/SUMMARY.md) | empty-heading: Ensure headings have discernible text | Active, updated 2026-08-07 | none found | no MR patch ([how](3587680/REPRODUCE.md)) | Active; no MR found |
+| [3593502](3593502/SUMMARY.md) | Introduce a new Menu UI to resolve memory issues and improve user experience | Needs work, updated 2026-10-16 | !15975 opened at `6d566c31` | no MR patch ([how](3593502/REPRODUCE.md)) | Needs work: waiting on the MR |
+| [3593539](3593539/SUMMARY.md) | [PP-1] Replace compact mode link with a switch to improve accessibility | Postponed, updated 2026-08-20 | none found | no MR patch ([how](3593539/REPRODUCE.md)) | Postponed; no MR found |
+| [3606655](3606655/) | Allow user-configurable UI settings - starting with dark mode | Needs review, updated 2026-10-16 | !16432 opened at `08a4cb4c` | `08a4cb4c` ([how](3606655/REPRODUCE.md)) | Needs review: the lab has tested the current MR head |
+| [3614293](3614293/SUMMARY.md) | Automated Form Validation Accessibility Testing | Active, updated 2026-08-06 | none found | no MR patch ([how](3614293/REPRODUCE.md)) | Active; no MR found |
+| [3618405](3618405/) | Purpose of views exposed filters form is unclear when zoomed in | Needs work, updated 2026-10-14 | !17043 opened at `c95dbac4` | `c95dbac4` ([how](3618405/REPRODUCE.md)) | Needs work: waiting on the MR |
+| [3619127](3619127/SUMMARY.md) | Forms sidebar doesn't open with error links from Inline Form Errors module | Needs review, updated 2026-10-01 | !16895 opened at `cdff6661` | `cdff6661` ([how](3619127/REPRODUCE.md)) | Needs review: the lab has tested the current MR head |
+| [3619933](3619933/) | Drupal Admin Theme Colors | Active, updated 2026-10-16 | !16922 opened at `63ea50be` | `63ea50be` ([how](3619933/REPRODUCE.md)) | Active |
+| [3630425](3630425/SUMMARY.md) | Multi-value field widget table renders an empty <th> for the actions (Remove)… | Needs review, updated 2026-10-16 | !17421 opened at `f1f524f9` | no MR patch ([how](3630425/REPRODUCE.md)) | Needs review; the lab has no MR patch recorded (BRANCHES.md) |
+| [3631321](3631321/SUMMARY.md) | Improve the visual representation of none active vertical tabs in forced color… | Active, updated 2026-10-16 | none found | no MR patch ([how](3631321/REPRODUCE.md)) | Active; no MR found |
+| [3631337](3631337/SUMMARY.md) | Decide how to semantically label HTML elements for errors/warnings in forced… | Active, updated 2026-10-16 | none found | no MR patch ([how](3631337/REPRODUCE.md)) | Active; no MR found |
 
-## Not checked yet (34)
+## Not checked yet (0)
 
 No `status.json` yet: the next weekly check fills these in, or `node scripts/issue-status.mjs <nid> --write` for one.
 
-| Issue | What | Lab tested |
-|---|---|---|
-| [2847425](2847425/) | `#states` not affecting visibility/requirement of `managed_file` | `71b1ad1d` ([how](2847425/REPRODUCE.md)) |
-| [2848307](2848307/SUMMARY.md) | Tableselect inline errors | no MR patch ([how](2848307/REPRODUCE.md)) |
-| [2951317](2951317/SUMMARY.md) | Reproduce #2951317 | `ab7ab046` ([how](2951317/REPRODUCE.md)) |
-| [3046089](3046089/SUMMARY.md) | Main toolbar items and internal editing | no MR patch ([how](3046089/REPRODUCE.md)) |
-| [3083103](3083103/SUMMARY.md) | programmatic error association | `ed60e948` ([how](3083103/REPRODUCE.md)) |
-| [3087389](3087389/SUMMARY.md) | Media Library selection text | no MR patch ([how](3087389/REPRODUCE.md)) |
-| [3093378](3093378/SUMMARY.md) | Use ARIA disclosure pattern for submenu buttons in vertical toolbar orientation | ``3093378` ([how](3093378/REPRODUCE.md)) |
-| [3155130](3155130/SUMMARY.md) | "Edit summary" toggle | no MR patch ([how](3155130/REPRODUCE.md)) |
-| [3207233](3207233/SUMMARY.md) | active workspace indication | no MR patch ([how](3207233/REPRODUCE.md)) |
-| [3243173](3243173/SUMMARY.md) | HTML5 validation setting / form focus management | no MR patch ([how](3243173/REPRODUCE.md)) |
-| [3273054](3273054/SUMMARY.md) | text-format permission checkboxes have a hidden focus stop | no MR patch ([how](3273054/REPRODUCE.md)) |
-| [3273806](3273806/SUMMARY.md) | #3273806 — WCAG non-text contrast on the toolbar orientation (direction) icon | ``40434c4` |
-| [3370946](3370946/SUMMARY.md) | contextual page title | no MR patch ([how](3370946/REPRODUCE.md)) |
-| [3415961](3415961/SUMMARY.md) | [drupalMedia] Using the Insert Media button causes the window to scroll to the… | `2dfd37b4` ([how](3415961/REPRODUCE.md)) |
-| [3419891](3419891/SUMMARY.md) | Increase size of alternative text field in Image dialog | `1931822c` ([how](3419891/REPRODUCE.md)) |
-| [3426468](3426468/) | Make the active menu item visually stand out more | `da537706` ([how](3426468/REPRODUCE.md)) |
-| [3587680](3587680/SUMMARY.md) | Empty heading tags on dialog and tabs pages | no MR patch ([how](3587680/REPRODUCE.md)) |
-| [3593502](3593502/SUMMARY.md) | Introduce a new Menu UI to resolve memory issues and improve user experience | no MR patch ([how](3593502/REPRODUCE.md)) |
-| [3593539](3593539/SUMMARY.md) | replace the compact mode link with a switch | no MR patch ([how](3593539/REPRODUCE.md)) |
-| [3604037](3604037/SUMMARY.md) | Indicate that grouping elements have child element errors | `e8b2e166` ([how](3604037/REPRODUCE.md)) |
-| [3606655](3606655/) | Allow user-configurable UI settings - starting with dark mode | `08a4cb4c` ([how](3606655/REPRODUCE.md)) |
-| [3614293](3614293/SUMMARY.md) | aria-invalid test coverage | no MR patch ([how](3614293/REPRODUCE.md)) |
-| [3615469](3615469/SUMMARY.md) | maintenance form login link text | no MR patch ([how](3615469/REPRODUCE.md)) |
-| [3617875](3617875/SUMMARY.md) | disabled elements in dark mode | `e87837c4` ([how](3617875/REPRODUCE.md)) |
-| [3618230](3618230/SUMMARY.md) | Adopt the ajax MessageCommand for file uploads | `2d600f40` ([how](3618230/REPRODUCE.md)) |
-| [3618405](3618405/) | Purpose of views exposed filters form is unclear when zoomed in | `c95dbac4` ([how](3618405/REPRODUCE.md)) |
-| [3619127](3619127/SUMMARY.md) | forms sidebar does not open from Inline Form Errors links | `cdff6661` ([how](3619127/REPRODUCE.md)) |
-| [3619154](3619154/) | Sidebar toggle fixes (Default Admin meta sidebar) | `175e6f17` ([how](3619154/REPRODUCE.md)) |
-| [3619387](3619387/) | Sidebar toggle shows child errors (indicator and modal behavior) | `cb915a48` ([how](3619387/REPRODUCE.md)) |
-| [3619933](3619933/) | Reproduce #3619933 (Default Admin theme) | `63ea50be` ([how](3619933/REPRODUCE.md)) |
-| [3627936](3627936/) | Active workspace has a broken styling in dark mode | `-` ([how](3627936/REPRODUCE.md)) |
-| [3630425](3630425/SUMMARY.md) | Reproduce #3630425 with Default Admin | no MR patch ([how](3630425/REPRODUCE.md)) |
-| [3631321](3631321/SUMMARY.md) | Reproduce #3631321 | no MR patch ([how](3631321/REPRODUCE.md)) |
-| [3631337](3631337/SUMMARY.md) | Reproduce #3631337 | no MR patch ([how](3631337/REPRODUCE.md)) |
+None.
 
 ## Archived (0)
 
