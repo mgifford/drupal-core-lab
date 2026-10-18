@@ -48,6 +48,9 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/index-issues.mjs                        # refresh reports/issues/README.md
     node scripts/issue-status.mjs <nid> [--write] | --all  # read-only: status, comments, MR head vs the patch the lab tested (flags a stale patch)
     node scripts/check-draft.mjs <nid>                   # the comment draft against core's AGENTS.md rules (180 words, no headers, disclosure line)
+    node scripts/bug-feature.mjs draft <nid> [--variant <slug>] [--write [--force]]   # a mechanical Gherkin draft of the bug summary from the variant and its runs (reports/issues/<nid>/BUG.feature)
+    node scripts/bug-feature.mjs prompt <nid> [--out <file>]   # the message for a model to rewrite BUG.feature per behaviour: rules (prompts/bug-feature.md), the draft, the issue's files as data
+    node scripts/bug-feature.mjs check <nid | file> [--strict] | export <nid | file>   # Gherkin structure and the lab's rules (exit 1 on an error); export drops comments and lab tags for a drupal.org summary (docs/BUG-FEATURE.md)
     node scripts/findings.mjs add | from-run <run> | set | list   # barriers spotted outside the issue (reports/findings/); every entry starts unconfirmed
     node scripts/run-mark.mjs <run> --superseded --reason "<why>" [--by <run>]   # keep a run as history; coverage stops counting it (coverage also marks a run stale by itself when its recorded patch hashes, recipe or pin no longer match)
     node scripts/lab-env.mjs retire <slug> --yes         # delete a pair only once reports/issues/<nid>/ is committed and pushed
