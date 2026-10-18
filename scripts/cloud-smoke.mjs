@@ -1,5 +1,5 @@
 // Smoke check for the cloud comparison in a DDEV Coder workspace. Does not report success if anything it can run fails.
-//   node scripts/cloud-smoke.mjs [slug]
+//   node scripts/cloud-smoke.mjs <slug | issue number>   (the variant the sites and viewer were started for; there is no default)
 // Exit code: 0 all runnable checks passed, 1 at least one FAILED, 3 none failed but a check could not run (NOT RUN).
 // What it can and cannot show from inside the workspace:
 //   - Routes: each Coder app hostname is requested through the DDEV router with that Host header. The two site proxies must answer
@@ -12,16 +12,20 @@ import http from 'node:http';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
-import { labRoot, variants } from '../tools/compare/lib.mjs';
+import { labRoot, resolveVariant } from '../tools/compare/lib.mjs';
+import { PROXY_PROJECTS } from '../tools/compare/cloud/config.mjs';
+const projectName = (role) => PROXY_PROJECTS.find((p) => p.role === role).name;
 
-const slug = process.argv.slice(2).find((a) => !a.startsWith('--')) || variants()[0].slug;
+const found = resolveVariant(process.argv.slice(2).find((a) => !a.startsWith('--')));
+if (found.error) { console.error(found.error); process.exit(2); }
+const slug = found.v.slug;
 const results = [];
 const add = (name, status, detail = '') => { results.push({ name, status, detail }); console.log(`${status.padEnd(11)} ${name}${detail ? `  (${detail})` : ''}`); };
 
 const ws = process.env.CODER_WORKSPACE_NAME, owner = process.env.CODER_WORKSPACE_OWNER_NAME, agent = process.env.CODER_AGENT_URL;
 if (!ws || !owner || !agent) { console.error('Not inside a Coder workspace (CODER_WORKSPACE_NAME, CODER_WORKSPACE_OWNER_NAME or CODER_AGENT_URL unset).'); process.exit(1); }
 const domain = agent.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
-const appHost = (project) => `${project}--${ws}--${owner}.${domain}`;
+const appHost = (project) => `${project}--${ws}--${owner}.${domain}`.toLowerCase();   // as the browser sends it; a workspace name may have capitals
 
 const get = (port, host, p = '/') => new Promise((resolve) => {
   const req = http.request({ host: '127.0.0.1', port, path: p, headers: { host }, timeout: 20000 }, (res) => {
@@ -49,7 +53,8 @@ const getRoute = async (project, kind) => {
   }
   return r;
 };
-for (const [project, kind] of [['drupal-compare', 'viewer'], ['drupal-compare-before', 'proxy'], ['drupal-compare-after', 'proxy']]) {
+for (const { name: project, role } of PROXY_PROJECTS) {
+  const kind = role === 'viewer' ? 'viewer' : 'proxy';
   const r = await getRoute(project, kind);
   if (kind === 'viewer') {
     if (r.status === 200 && /Drupal core compare/i.test(r.body)) add(`Route ${project}: viewer page`, 'PASS', `HTTP ${r.status}`);
@@ -59,14 +64,14 @@ for (const [project, kind] of [['drupal-compare', 'viewer'], ['drupal-compare-be
 }
 
 // 2. Viewer health and origins, as the browser would be told.
-const viewerHost = appHost('drupal-compare');
+const viewerHost = appHost(projectName('viewer'));
 const health = await get(8100, viewerHost, '/api/health');
 try { const h = JSON.parse(health.body); add('Viewer /api/health: both sites answer', h.before.ok && h.after.ok ? 'PASS' : 'FAIL', `${h.before.text}; ${h.after.text}`); }
 catch { add('Viewer /api/health: both sites answer', 'FAIL', health.error || `HTTP ${health.status}, not JSON`); }
 const vj = await get(8100, viewerHost, '/variants.json');
 try {
-  const o = JSON.parse(vj.body).origins; const want = { before: `https://${appHost('drupal-compare-before')}`, after: `https://${appHost('drupal-compare-after')}` };
-  add('Viewer frame origins are the Coder app URLs', o.before === want.before && o.after === want.after ? 'PASS' : 'FAIL', o.before === want.before && o.after === want.after ? '' : `got ${o.before} and ${o.after}; start the viewer with tools/compare/cloud/start-viewer.sh`);
+  const o = JSON.parse(vj.body).origins; const want = { before: `https://${appHost(projectName('before'))}`, after: `https://${appHost(projectName('after'))}` };
+  add('Viewer frame origins are the Coder app URLs', o.before === want.before && o.after === want.after ? 'PASS' : 'FAIL', o.before === want.before && o.after === want.after ? '' : `got ${o.before} and ${o.after}; start the viewer with tools/compare/cloud/start-viewer.sh ${slug}`);
 } catch { add('Viewer frame origins are the Coder app URLs', 'FAIL', vj.error || `HTTP ${vj.status}`); }
 
 // 3. Frames load Drupal pages, in a real browser, through a temporary viewer on port 8200 (local frame origins).

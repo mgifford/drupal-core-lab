@@ -25,28 +25,13 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
-
-// ── Types ────────────────────────────────────────────────────────────────────
-
-interface IssueInfo {
-  nid: string;
-  title: string;
-  description: string;
-  affectedPages: string[];
-  expectedFixes: string[];
-  affectedElements: string[];
-}
-
-interface TestTemplate {
-  name: string;
-  description: string;
-  generate: (issue: IssueInfo) => string;
-}
+import { fileURLToPath } from 'node:url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ── Configuration ────────────────────────────────────────────────────────────
 
 const OUTPUT_DIR = path.resolve(__dirname, '../tests');
-const TEMPLATES: Record<string, TestTemplate> = {
+const TEMPLATES = {
   basic: {
     name: 'basic',
     description: 'Basic accessibility test with virtual SR',
@@ -69,7 +54,7 @@ const TEMPLATES: Record<string, TestTemplate> = {
 /**
  * Extract issue NID from URL.
  */
-function extractNid(url: string): string {
+function extractNid(url) {
   const match = url.match(/\/issues\/(\d+)/);
   if (!match) {
     throw new Error(`Invalid issue URL: ${url}`);
@@ -80,8 +65,8 @@ function extractNid(url: string): string {
 /**
  * Detect affected pages based on issue content.
  */
-function detectAffectedPages(issue: IssueInfo): string[] {
-  const pages: string[] = [];
+function detectAffectedPages(issue) {
+  const pages = [];
   const title = issue.title.toLowerCase();
   const description = issue.description.toLowerCase();
 
@@ -123,8 +108,8 @@ function detectAffectedPages(issue: IssueInfo): string[] {
 /**
  * Detect expected fixes based on issue content.
  */
-function detectExpectedFixes(issue: IssueInfo): string[] {
-  const fixes: string[] = [];
+function detectExpectedFixes(issue) {
+  const fixes = [];
   const title = issue.title.toLowerCase();
   const description = issue.description.toLowerCase();
 
@@ -168,8 +153,8 @@ function detectExpectedFixes(issue: IssueInfo): string[] {
 /**
  * Detect affected elements based on issue content.
  */
-function detectAffectedElements(issue: IssueInfo): string[] {
-  const elements: string[] = [];
+function detectAffectedElements(issue) {
+  const elements = [];
   const title = issue.title.toLowerCase();
   const description = issue.description.toLowerCase();
 
@@ -209,7 +194,7 @@ function detectAffectedElements(issue: IssueInfo): string[] {
 /**
  * Generate a basic test.
  */
-function generateBasicTest(issue: IssueInfo): string {
+function generateBasicTest(issue) {
   const pagesList = issue.affectedPages.map(p => `  '${p}'`).join(',\n');
   const fixesList = issue.expectedFixes.map(f => `  '${f}'`).join(',\n');
 
@@ -262,7 +247,7 @@ test.describe('Issue #${issue.nid} - ${issue.title}', () => {
 /**
  * Generate a detailed test.
  */
-function generateDetailedTest(issue: IssueInfo): string {
+function generateDetailedTest(issue) {
   const pagesList = issue.affectedPages.map(p => `  '${p}'`).join(',\n');
   const fixesList = issue.expectedFixes.map(f => `  '${f}'`).join(',\n');
   const elementsList = issue.affectedElements.map(e => `  '${e}'`).join(',\n');
@@ -393,16 +378,16 @@ function generateMarkdownReport(report: any): string {
   const lines = [
     '# Issue #${issue.nid} - ${issue.title}',
     '',
-    `**URL:** https://www.drupal.org/project/drupal/issues/${issue.nid}`,
-    `**Generated:** ${report.timestamp}`,
+    \`**URL:** https://www.drupal.org/project/drupal/issues/${issue.nid}\`,
+    \`**Generated:** \${report.timestamp}\`,
     '',
     '## Summary',
     '',
-    `- **Total Pages:** ${report.summary.totalPages}`,
-    `- **Passed:** ${report.summary.passedPages}`,
-    `- **Failed:** ${report.summary.failedPages}`,
-    `- **Total Findings:** ${report.summary.totalFindings}`,
-    `- **Total Issues:** ${report.summary.totalIssues}`,
+    \`- **Total Pages:** \${report.summary.totalPages}\`,
+    \`- **Passed:** \${report.summary.passedPages}\`,
+    \`- **Failed:** \${report.summary.failedPages}\`,
+    \`- **Total Findings:** \${report.summary.totalFindings}\`,
+    \`- **Total Issues:** \${report.summary.totalIssues}\`,
     '',
     '## Results',
     '',
@@ -410,22 +395,22 @@ function generateMarkdownReport(report: any): string {
 
   for (const result of report.results) {
     const status = result.passed ? '✅ PASS' : '❌ FAIL';
-    lines.push(`### ${result.page}`);
+    lines.push(\`### \${result.page}\`);
     lines.push('');
-    lines.push(`- **Status:** ${status}`);
-    lines.push(`- **Spoken Phrases:** ${result.spokenPhrases}`);
-    lines.push(`- **Findings:** ${result.findings.length}`);
-    lines.push(`- **Issues:** ${result.issues.length}`);
+    lines.push(\`- **Status:** \${status}\`);
+    lines.push(\`- **Spoken Phrases:** \${result.spokenPhrases}\`);
+    lines.push(\`- **Findings:** \${result.findings.length}\`);
+    lines.push(\`- **Issues:** \${result.issues.length}\`);
     lines.push('');
 
     if (result.issues.length > 0) {
       lines.push('#### Issues');
       lines.push('');
       for (const issue of result.issues) {
-        lines.push(`- **${issue.severity}** (${issue.rule})`);
-        lines.push(`  - Position: ${issue.position}`);
-        lines.push(`  - Phrase: \`${issue.phrase}\``);
-        lines.push(`  - ${issue.description}`);
+        lines.push(\`- **\${issue.severity}** (\${issue.rule})\`);
+        lines.push(\`  - Position: \${issue.position}\`);
+        lines.push(\`  - Phrase: \\\`\${issue.phrase}\\\`\`);
+        lines.push(\`  - \${issue.description}\`);
       }
       lines.push('');
     }
@@ -439,7 +424,7 @@ function generateMarkdownReport(report: any): string {
 /**
  * Generate a VoiceOver test.
  */
-function generateVoiceOverTest(issue: IssueInfo): string {
+function generateVoiceOverTest(issue) {
   const pagesList = issue.affectedPages.map(p => `  '${p}'`).join(',\n');
 
   return `/**
@@ -524,11 +509,11 @@ function main() {
   }
 
   const issueUrl = args[0];
-  const outputDir = args.includes('--output-dir') 
-    ? args[args.indexOf('--output-dir') + 1] 
+  const outputDir = args.includes('--output-dir')
+    ? args[args.indexOf('--output-dir') + 1]
     : OUTPUT_DIR;
-  const templateName = args.includes('--template') 
-    ? args[args.indexOf('--template') + 1] 
+  const templateName = args.includes('--template')
+    ? args[args.indexOf('--template') + 1]
     : 'basic';
   const dryRun = args.includes('--dry-run');
 
@@ -543,7 +528,7 @@ function main() {
   try {
     // Extract issue info
     const nid = extractNid(issueUrl);
-    const issue: IssueInfo = {
+    const issue = {
       nid,
       title: `Issue #${nid}`,
       description: '',

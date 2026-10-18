@@ -1,0 +1,20 @@
+diff --git a/core/lib/Drupal/Core/Field/FieldPreprocess.php b/core/lib/Drupal/Core/Field/FieldPreprocess.php
+index 4f06ce2403fd9dcbb66f5e3c048cc3039079d972..15c8ca017ba994b253cded260aa1103fefcbfea1 100644
+--- a/core/lib/Drupal/Core/Field/FieldPreprocess.php
++++ b/core/lib/Drupal/Core/Field/FieldPreprocess.php
+@@ -115,7 +115,14 @@ public function preprocessFieldMultipleValueForm(array &$variables): void {
+           'colspan' => 2,
+           'class' => ['field-label'],
+         ],
+-        [],
++        [
++          'data' => [
++            '#type' => 'html_tag',
++            '#tag' => 'span',
++            '#value' => $this->t('Operations'),
++            '#attributes' => ['class' => ['visually-hidden']],
++          ],
++        ],
+         $this->t('Order', [], ['context' => 'Sort order']),
+       ];
+       $rows = [];

@@ -1,0 +1,76 @@
+diff --git a/core/themes/default_admin/css/components/details.css b/core/themes/default_admin/css/components/details.css
+index e6d78500f42b3ec8342a7a57f1f41d212abb5b3e..1f6509b4f060a854daf9f1da994918128f0a27dc 100644
+--- a/core/themes/default_admin/css/components/details.css
++++ b/core/themes/default_admin/css/components/details.css
+@@ -363,6 +363,14 @@
+   background-size: 0.4375rem 0.4375rem;
+ }
+ 
++@media (forced-colors: active) {
++  /* Match the vertical-tab error marker without assigning color a new meaning. */
++  .details.error::before {
++    border-inline-start-style: double;
++    border-inline-start-color: CanvasText;
++  }
++}
++
+ .details.details--package-listing,
+ .details.module-list__module-details,
+ .system-status-report .details {
+diff --git a/core/themes/default_admin/css/components/details.pcss.css b/core/themes/default_admin/css/components/details.pcss.css
+index 7847146c1805be5dc2c8e78c0ec2c3b85db52645..9d87ed273177c786086029cb3ad976ec1b0cb2d6 100644
+--- a/core/themes/default_admin/css/components/details.pcss.css
++++ b/core/themes/default_admin/css/components/details.pcss.css
+@@ -356,6 +356,14 @@
+   background-size: 0.4375rem 0.4375rem;
+ }
+ 
++@media (forced-colors: active) {
++  /* Match the vertical-tab error marker without assigning color a new meaning. */
++  .details.error::before {
++    border-inline-start-style: double;
++    border-inline-start-color: CanvasText;
++  }
++}
++
+ .details.details--package-listing,
+ .details.module-list__module-details,
+ .system-status-report .details {
+diff --git a/core/themes/default_admin/css/components/vertical-tabs.css b/core/themes/default_admin/css/components/vertical-tabs.css
+index b459091b9f7cc74c52815310f3565702f7031b6b..96b9dd4f8622eb73fbaae1d223e1fcd0bc526dd1 100644
+--- a/core/themes/default_admin/css/components/vertical-tabs.css
++++ b/core/themes/default_admin/css/components/vertical-tabs.css
+@@ -252,6 +252,14 @@
+   }
+ }
+ 
++@media (forced-colors: active) {
++  /* Error and selection must differ even when their system colors coincide. */
++  .vertical-tabs__menu-item.error .vertical-tabs__menu-link::before {
++    border-inline-start-style: double;
++    border-inline-start-color: CanvasText;
++  }
++}
++
+ .vertical-tabs__menu-link-content {
+   position: relative;
+   z-index: 1; /* Keep text above the pseudo element that paints the hover background. */
+diff --git a/core/themes/default_admin/css/components/vertical-tabs.pcss.css b/core/themes/default_admin/css/components/vertical-tabs.pcss.css
+index 0c4fcc62ba585c279ad3d98476a2fd647abd8d9b..d322c56ee47da501f570b94932fe781860292d06 100644
+--- a/core/themes/default_admin/css/components/vertical-tabs.pcss.css
++++ b/core/themes/default_admin/css/components/vertical-tabs.pcss.css
+@@ -247,6 +247,14 @@
+   }
+ }
+ 
++@media (forced-colors: active) {
++  /* Error and selection must differ even when their system colors coincide. */
++  .vertical-tabs__menu-item.error .vertical-tabs__menu-link::before {
++    border-inline-start-style: double;
++    border-inline-start-color: CanvasText;
++  }
++}
++
+ .vertical-tabs__menu-link-content {
+   position: relative;
+   z-index: 1; /* Keep text above the pseudo element that paints the hover background. */

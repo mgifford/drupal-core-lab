@@ -1,0 +1,771 @@
+diff --git a/docs/USER-GUIDE.md b/docs/USER-GUIDE.md
+index 2062f40..60b8d3d 100644
+--- a/docs/USER-GUIDE.md
++++ b/docs/USER-GUIDE.md
+@@ -52,7 +52,19 @@ in step.
+ 
+ **Switch browsers.** The top-right logo buttons open this comparison in another installed browser: Edge, Chrome, Firefox, and Safari on a Mac. The current browser is omitted. Both page paths, scroll positions, test conditions, comparison mode and dock layout travel with it. Each browser has its own login session; sign in there if needed. Cookies, typed form contents, observations and audit results are not copied. Forced colours must be enabled separately in the destination browser or operating system. The buttons work when the lab server runs on your desktop computer; a cloud lab cannot launch applications on your laptop. Use **Tools → Copy comparison link** and paste it into another browser instead.
+ 
+-**Switch comparisons.** The Comparison menu lists pairs already built in this lab, using shorter issue and revision labels. It does not build or start environments. Start another pair in the terminal with `node scripts/lab-env.mjs start <slug>` before selecting it; refresh the viewer after building a new pair.
++**Switch comparisons.** The Comparison menu lists every configured pair. A pair
++whose environments do not exist is marked **not built** and cannot be selected
++from the menu. Build it with `node tools/compare/setup.mjs <slug>`, then start it
++with `node scripts/lab-env.mjs start <slug>`.
++
++Some reviews compare more than pristine core against one finished patch. For
++example, a review may need Core to MR, MR to MR plus interdiff, and Core to MR
++plus interdiff. Those variants can declare the same `comparisonGroup`; the
++viewer then adds a visible **Compare patch stacks** row. Missing pairings remain
++visible there as **build required**. Selecting one reports its exact setup
++command instead of silently hiding it. Once the shared environments are built
++and running, these buttons switch the two frames without rebuilding either
++site.
+ 
+ **Forced colours** (Windows contrast themes): start with `node scripts/lab-env.mjs start <slug> --browser` to use the viewer inside a lab browser that has a built-in switch for both frames, or press **Open forced-colours window** from a normal tab (see `docs/FORCED-COLORS.md`).
+ 
+@@ -94,7 +106,7 @@ in the downloaded log. It does not depend on the automated checks.
+ ## 7. Watch for accessibility regressions as you click around
+ **Accessibility, live (axe-core)** (switch it on under **Audits**; results are in the **Accessibility** tab) re-checks both frames after every page load and interaction and tells you when After has **more or
+ fewer** violations than Before, with the exact elements. A tab-title prefix (⚠) warns you if you are in another tab. Optionally,
+-**Lighthouse** audits the page as it loads (accessibility and best practices; performance is opt-in). Lighthouse needs
++**Lighthouse** audits the page as it loads (accessibility and best practices; performance is opt-in). Failed audits include expandable diagnostic evidence. Because performance audits can vary between runs, repeat a surprising result before treating it as a regression. Lighthouse needs
+ `npm install --prefix tools/compare/.deps lighthouse` and Node 22.19+, and sees fresh page loads only, not states you reach by clicking.
+ 
+ ![The live accessibility panel showing a red alert: After has 2 more accessibility violations than Before, with the rules image-alt and label and the exact elements. This image is a demonstration: two defects were deliberately added to the After frame.](images/viewer-axe-alert.png)
+@@ -104,7 +116,33 @@ in light mode. Dark mode found a real, pre-existing contrast problem; see `repor
+ 
+ ![The Lighthouse panel: both sites score 100 for accessibility and 100 for best practices on the page, with the same failing audits (none).](images/viewer-lighthouse.png)
+ 
+-## 8. Record where you tested (and what you have not)
++## 8. Compare resource use
++
++Run the resource benchmark in a separate terminal while the environments are
++running:
++
++    node scripts/measure-resources.mjs 3593502-interdiff
++
++By default this measures only the selected comparison's two unique environments,
++one request at a time. For a grouped review, opt in to all unique patch stacks
++(up to three in the #3593502 setup):
++
++    node scripts/measure-resources.mjs 3593502-interdiff --group
++
++Results are written as JSON and Markdown under
++`reports/issues/<issue>/resources/`. Refresh the viewer's **Resources** tab to
++see the newest matching result. Use `--runs=10` for a longer sample,
++`--page=/path` for another route, or `--cold` to clear Drupal caches before each
++measured request. The benchmark authenticates first, warms each environment,
++and rotates the order while making requests sequentially so one Drupal version
++does not compete with another during the operation being measured.
++
++The report separates Drupal/PHP request peaks, sampled web and database
++container use, and response time. Container sampling can miss very short peaks.
++DDEV Mutagen is shared host-side file-sync infrastructure, so its mode is
++recorded as context rather than attributed to one Drupal version.
++
++## 9. Record where you tested (and what you have not)
+ It is easy to test only in one browser in light mode. The viewer notes the browser and colour mode as you test, and **Where did you test?**
+ reminds you what is still missing for this issue.
+ 
+@@ -118,7 +156,7 @@ Click **Download log** (in the **Accessibility** tab) and save it in `reports/is
+ runs fill the automated rows: `node tools/playwright/walkthrough.mjs 3619127-pinned --browser=webkit --scheme=dark`.
+ Browsers: Chromium, Firefox and WebKit (Safari's engine). Colour modes: light, dark, forced colours.
+ 
+-## 9. If something looks wrong
++## 10. If something looks wrong
+ | What you see | What to do |
+ |---|---|
+ | A frame stays blank | An alert appears after 12 seconds and checks both sites. Use **Reload → Before / After / Both**. See `docs/FRAME-LOADING-2026-10-01.md`. |
+diff --git a/scripts/build-cloud.mjs b/scripts/build-cloud.mjs
+index 95ba0ea..3b850cf 100644
+--- a/scripts/build-cloud.mjs
++++ b/scripts/build-cloud.mjs
+@@ -12,7 +12,7 @@ const check = process.argv.includes('--check');
+ const out = path.join(labRoot, 'cloud');
+ const remote = execFileSync('git', ['-C', labRoot, 'remote', 'get-url', 'origin'], { encoding: 'utf8' }).trim();
+ const repo = remote.replace(/^git@github\.com:/, 'https://github.com/').replace(/\.git$/, '');
+-const pick = (v) => ({ slug: v.slug, issue: v.issue, label: v.label, description: v.description, steps: v.steps, expected: v.expected, actual: v.actual, setup: v.setup, observe: v.observe, checks: v.checks, pages: v.pages, demo: v.demo });
++const pick = (v) => ({ slug: v.slug, issue: v.issue, label: v.label, description: v.description, comparisonGroup: v.comparisonGroup, comparisonLabel: v.comparisonLabel, before: { label: v.before.label }, after: { label: v.after.label }, steps: v.steps, expected: v.expected, actual: v.actual, setup: v.setup, observe: v.observe, checks: v.checks, pages: v.pages, demo: v.demo });
+ const files = {
+   'browser-handoff.mjs': fs.readFileSync(path.join(labRoot, 'tools/compare/browser-handoff.mjs'), 'utf8'),
+   'index.html': fs.readFileSync(path.join(labRoot, 'tools/compare/index.html'), 'utf8').replace('__BUILD__', 'static'),
+diff --git a/scripts/measure-resources.mjs b/scripts/measure-resources.mjs
+new file mode 100644
+index 0000000..305ad36
+--- /dev/null
++++ b/scripts/measure-resources.mjs
+@@ -0,0 +1,254 @@
++// Measure comparable request and container resource use for the two unique
++// environments in a selected variant, or optionally its comparison group.
++//
++//   node scripts/measure-resources.mjs <slug> [--runs=5] [--warmups=1]
++//     [--page=/path] [--cold] [--group] [--out=directory]
++//
++// The selected pair is the default. --group expands a grouped review to every
++// unique environment in that group (for example, three patch stacks). Requests
++// are made serially, not through both viewer frames at once, so the versions do not
++// compete during the operation being measured. Docker statistics are sampled
++// for the web and database containers; an issue recipe may additionally write
++// /tmp/lab-peak-memory.log for exact per-request PHP measurements.
++import fs from 'node:fs';
++import path from 'node:path';
++import os from 'node:os';
++import { execFileSync, spawn } from 'node:child_process';
++import {
++  envDir,
++  envFetch,
++  envInfo,
++  labRoot,
++  loginPathAsync,
++  variants,
++} from '../tools/compare/lib.mjs';
++
++const args = process.argv.slice(2);
++const value = (name, fallback) => {
++  const found = args.find((arg) => arg.startsWith(`--${name}=`));
++  return found ? found.slice(name.length + 3) : fallback;
++};
++const has = (name) => args.includes(`--${name}`);
++const slug = args.find((arg) => !arg.startsWith('--'));
++
++function fail(message) {
++  console.error(message);
++  process.exit(1);
++}
++
++function numberArg(name, fallback, minimum = 0) {
++  const parsed = Number(value(name, fallback));
++  if (!Number.isInteger(parsed) || parsed < minimum) fail(`--${name} must be an integer of at least ${minimum}`);
++  return parsed;
++}
++
++export function bytes(text) {
++  const match = String(text || '').trim().match(/^([\d.]+)\s*([kmgt]?i?b)$/i);
++  if (!match) return null;
++  const powers = { b: 0, kb: 1, kib: 1, mb: 2, mib: 2, gb: 3, gib: 3, tb: 4, tib: 4 };
++  const binary = /iB$/i.test(match[2]);
++  return Number(match[1]) * (binary ? 1024 : 1000) ** powers[match[2].toLowerCase()];
++}
++
++const median = (numbers) => {
++  if (!numbers.length) return null;
++  const sorted = numbers.slice().sort((a, b) => a - b);
++  const middle = Math.floor(sorted.length / 2);
++  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
++};
++const round = (number, digits = 1) => number == null ? null : Number(number.toFixed(digits));
++const mb = (number) => number == null ? null : round(number / 1048576);
++const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
++
++if (has('self-test')) {
++  const cases = { '1B': 1, '1kB': 1000, '1KiB': 1024, '1.5MiB': 1572864, '2GB': 2000000000 };
++  for (const [input, expected] of Object.entries(cases)) if (bytes(input) !== expected) fail(`byte parser failed for ${input}`);
++  console.log('resource measurement helpers: PASS');
++  process.exit(0);
++}
++
++if (!slug || has('help')) {
++  console.log('Usage: node scripts/measure-resources.mjs <slug> [--runs=5] [--warmups=1] [--page=/path] [--cold] [--group] [--out=directory]');
++  process.exit(slug ? 0 : 1);
++}
++
++const all = variants();
++const selected = all.find((variant) => variant.slug === slug);
++if (!selected) fail(`Unknown variant: ${slug}`);
++const scope = selected.comparisonGroup && has('group')
++  ? all.filter((variant) => variant.comparisonGroup === selected.comparisonGroup)
++  : [selected];
++const envs = new Map();
++for (const variant of scope) {
++  for (const side of ['before', 'after']) {
++    const spec = variant[side];
++    if (!envs.has(spec.env)) envs.set(spec.env, { env: spec.env, label: spec.label || spec.env });
++  }
++}
++
++function projectName(env) {
++  const config = path.join(envDir(env), '.ddev/config.yaml');
++  if (!fs.existsSync(config)) fail(`${env} is not built. Run: node tools/compare/setup.mjs ${slug}`);
++  const match = fs.readFileSync(config, 'utf8').match(/^name:\s*["']?([^\s"']+)/m);
++  return match ? match[1] : path.basename(envDir(env));
++}
++
++for (const item of envs.values()) {
++  item.project = projectName(item.env);
++  item.dir = envDir(item.env);
++  item.info = envInfo(item.env);
++  item.containers = {};
++  for (const [service, name] of Object.entries({ web: `ddev-${item.project}-web`, db: `ddev-${item.project}-db` })) {
++    try { execFileSync('docker', ['inspect', name], { stdio: 'ignore' }); item.containers[service] = name; } catch { /* SQLite lab projects intentionally have no db container. */ }
++  }
++  if (!item.containers.web) fail(`The web container for ${item.env} is not running. Start the selected comparison before measuring.`);
++  const config = fs.readFileSync(path.join(item.dir, '.ddev/config.yaml'), 'utf8');
++  item.performanceMode = config.match(/^performance_mode:\s*["']?([^\s"']+)/m)?.[1] || 'global default';
++}
++
++const containerNames = [...envs.values()].flatMap((item) => Object.values(item.containers));
++const runs = numberArg('runs', 5, 1);
++const warmups = numberArg('warmups', 1, 0);
++const pagePath = value('page', selected.demo?.start || selected.pages?.[0] || '/');
++const issue = String(selected.issue || 'unfiled');
++const stamp = new Date().toISOString().replace(/[:.]/g, '-');
++const outDir = path.resolve(labRoot, value('out', `reports/issues/${issue}/resources`));
++fs.mkdirSync(outDir, { recursive: true });
++
++const phase = { kind: 'initialising', env: null, round: null };
++const samples = [];
++let statsBuffer = '';
++const stats = spawn('docker', ['stats', '--format', '{{json .}}', ...containerNames], { stdio: ['ignore', 'pipe', 'pipe'] });
++stats.stdout.setEncoding('utf8');
++stats.stdout.on('data', (chunk) => {
++  statsBuffer += chunk;
++  const lines = statsBuffer.split('\n'); statsBuffer = lines.pop();
++  for (const line of lines) {
++    if (!line.trim()) continue;
++    try {
++      const raw = JSON.parse(line); const usage = String(raw.MemUsage || '').split('/')[0].trim();
++      samples.push({
++        at: new Date().toISOString(), phase: { ...phase }, container: raw.Name,
++        cpuPercent: Number.parseFloat(raw.CPUPerc) || 0, memoryBytes: bytes(usage),
++        memoryPercent: Number.parseFloat(raw.MemPerc) || 0, netIO: raw.NetIO,
++        blockIO: raw.BlockIO, pids: Number(raw.PIDs) || 0,
++      });
++    } catch { /* Docker may emit a partial line while stopping. */ }
++  }
++});
++
++const requestResults = [];
++const jars = new Map();
++async function request(item, measured, roundNumber) {
++  if (has('cold')) {
++    phase.kind = 'cache-clear'; phase.env = item.env; phase.round = roundNumber;
++    execFileSync('ddev', ['drupal', 'cache'], { cwd: item.dir, stdio: 'ignore', timeout: 120000 });
++  }
++  phase.kind = measured ? 'measured-request' : 'warmup'; phase.env = item.env; phase.round = roundNumber;
++  const started = performance.now();
++  const response = await envFetch(item.env, item.info, pagePath, jars.get(item.env));
++  const durationMs = performance.now() - started;
++  if (measured) requestResults.push({ env: item.env, round: roundNumber, status: response.status, bytes: response.body.length, durationMs: round(durationMs) });
++  // Docker updates stats about once per second. Keep the phase assigned long
++  // enough to obtain a sample after a short request has completed.
++  await delay(1100);
++}
++
++function clearPhpLog(item) {
++  try { execFileSync('ddev', ['exec', 'truncate', '-s', '0', '/tmp/lab-peak-memory.log'], { cwd: item.dir, stdio: 'ignore' }); } catch { /* optional */ }
++}
++function readPhpLog(item) {
++  try {
++    return execFileSync('ddev', ['exec', 'cat', '/tmp/lab-peak-memory.log'], { cwd: item.dir, encoding: 'utf8' })
++      .split('\n').filter(Boolean);
++  } catch { return []; }
++}
++function phpValues(lines, key) {
++  return lines.flatMap((line) => {
++    const match = line.match(new RegExp(`(?:^|\\s)${key}=([\\d.]+)`));
++    return match ? [Number(match[1])] : [];
++  });
++}
++
++try {
++  // Authenticate before sampling so login and one-time-token work is excluded.
++  for (const item of envs.values()) {
++    const jar = {}; jars.set(item.env, jar);
++    await envFetch(item.env, item.info, await loginPathAsync(item.env), jar);
++  }
++  for (let warmup = 0; warmup < warmups; warmup++) for (const item of envs.values()) await request(item, false, warmup + 1);
++  for (const item of envs.values()) clearPhpLog(item);
++  phase.kind = 'idle'; phase.env = null; phase.round = null; await delay(3500);
++
++  const list = [...envs.values()];
++  for (let run = 0; run < runs; run++) {
++    const rotated = list.slice(run % list.length).concat(list.slice(0, run % list.length));
++    for (const item of rotated) await request(item, true, run + 1);
++  }
++  phase.kind = 'cooldown'; phase.env = null; phase.round = null; await delay(2200);
++} finally {
++  stats.kill('SIGINT');
++  await Promise.race([new Promise((resolve) => stats.once('close', resolve)), delay(2000)]);
++}
++
++const summaries = [];
++for (const item of envs.values()) {
++  const requests = requestResults.filter((result) => result.env === item.env);
++  const phpLines = readPhpLog(item);
++  const containers = {};
++  for (const [service, name] of Object.entries(item.containers)) {
++    const idle = samples.filter((sample) => sample.container === name && sample.phase.kind === 'idle');
++    const active = samples.filter((sample) => sample.container === name && sample.phase.env === item.env && sample.phase.kind === 'measured-request');
++    const idleMemory = median(idle.map((sample) => sample.memoryBytes).filter(Number.isFinite));
++    const peakMemory = Math.max(...active.map((sample) => sample.memoryBytes).filter(Number.isFinite), 0) || null;
++    containers[service] = {
++      samples: active.length, idleMemoryBytes: round(idleMemory, 0), peakMemoryBytes: round(peakMemory, 0),
++      peakAboveIdleBytes: idleMemory == null || peakMemory == null ? null : round(Math.max(0, peakMemory - idleMemory), 0),
++      peakCpuPercent: round(Math.max(...active.map((sample) => sample.cpuPercent), 0)),
++      peakPids: Math.max(...active.map((sample) => sample.pids), 0),
++    };
++  }
++  const durations = requests.map((request) => request.durationMs);
++  const phpPeak = phpValues(phpLines, 'peak_mb');
++  const allocatedPeak = phpValues(phpLines, 'allocated_peak_mb');
++  summaries.push({
++    env: item.env, label: item.label, performanceMode: item.performanceMode,
++    requests: requests.length, failures: requests.filter((request) => request.status >= 400).length,
++    medianResponseMs: round(median(durations)), slowestResponseMs: round(Math.max(...durations)),
++    medianResponseBytes: round(median(requests.map((request) => request.bytes)), 0),
++    phpPeakMb: phpPeak.length ? round(Math.max(...phpPeak)) : null,
++    phpAllocatedPeakMb: allocatedPeak.length ? round(Math.max(...allocatedPeak)) : null,
++    phpLogLines: phpLines.length, containers,
++  });
++}
++
++const result = {
++  schemaVersion: 1, measuredAt: new Date().toISOString(), issue, slug,
++  comparisonGroup: selected.comparisonGroup || null, page: pagePath,
++  settings: { runs, warmups, cold: has('cold'), serial: true, group: has('group') },
++  system: {
++    platform: `${os.platform()} ${os.release()} ${os.arch()}`, node: process.version,
++    ddev: execFileSync('ddev', ['--version'], { encoding: 'utf8' }).trim(),
++    docker: execFileSync('docker', ['version', '--format', '{{.Server.Version}}'], { encoding: 'utf8' }).trim(),
++  },
++  summaries, requests: requestResults, samples,
++};
++const base = `${stamp}-${slug}`;
++const jsonPath = path.join(outDir, `${base}.json`);
++const mdPath = path.join(outDir, `${base}.md`);
++fs.writeFileSync(jsonPath, JSON.stringify(result, null, 2) + '\n');
++
++const display = (number, suffix = '') => number == null ? 'not recorded' : `${number}${suffix}`;
++let markdown = `# Resource measurement: ${slug}\n\n`;
++markdown += `Measured ${result.measuredAt}. Page: \`${pagePath}\`. ${runs} measured request${runs === 1 ? '' : 's'} per environment after ${warmups} warm-up request${warmups === 1 ? '' : 's'}. Requests were serial. Cache mode: ${has('cold') ? 'cold before each request' : 'warm'}.\n\n`;
++markdown += `| Version | Median response | Slowest | PHP peak | PHP allocated peak | Web memory peak | Web above idle | DB memory peak | Peak sampled CPU (web/db) | Failures |\n`;
++markdown += `|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n`;
++for (const summary of summaries) {
++  markdown += `| ${summary.label} | ${display(summary.medianResponseMs, ' ms')} | ${display(summary.slowestResponseMs, ' ms')} | ${display(summary.phpPeakMb, ' MB')} | ${display(summary.phpAllocatedPeakMb, ' MB')} | ${display(mb(summary.containers.web.peakMemoryBytes), ' MB')} | ${display(mb(summary.containers.web.peakAboveIdleBytes), ' MB')} | ${display(mb(summary.containers.db?.peakMemoryBytes), ' MB')} | ${display(summary.containers.web.peakCpuPercent, '%')} / ${display(summary.containers.db?.peakCpuPercent, '%')} | ${summary.failures} |\n`;
++}
++markdown += `\n## Environment\n\n- ${result.system.platform}\n- Node ${result.system.node}\n- ${result.system.ddev}\n- Docker server ${result.system.docker}\n`;
++for (const summary of summaries) markdown += `- ${summary.label}: DDEV performance mode \`${summary.performanceMode}\`\n`;
++markdown += `\nContainer values are sampled and may miss very short peaks. PHP peak values come from the issue recipe's request logger when installed. Database values are not applicable when the DDEV project uses SQLite and omits its database container. Mutagen is shared host-side infrastructure and is recorded as configuration, not attributed to one Drupal version.\n`;
++fs.writeFileSync(mdPath, markdown);
++console.log(path.relative(labRoot, mdPath));
++console.log(path.relative(labRoot, jsonPath));
+diff --git a/tools/compare/README.md b/tools/compare/README.md
+index 963cf68..2826daa 100644
+--- a/tools/compare/README.md
++++ b/tools/compare/README.md
+@@ -20,7 +20,7 @@ Both have Inline Form Errors on, the Article content type (recipe
+ 
+     node tools/compare/serve.mjs [slug]       # then open http://localhost:8100/
+ 
+-The **top bar** always shows page navigation: **Compare upstream with** (variant), **Page**, **Go (both)**, **Log in both as admin**, **Reload → Before / After**, **Tools** (Clear Drupal caches, Reset browser state, Open outside this tool) and the status line.
++The **top bar** always shows page navigation: **Comparison** (variant), **Page**, **Go (both)**, **Log in both**, **Clear cache**, **Reload → Before / After / Both**, **Tools**, browser handoff buttons and the status line. A grouped multi-stack review also shows a **Compare patch stacks** row.
+ Below it, the **conditions toolbar** keeps the three choices you change most always visible: **Device width** (Mobile / Tablet / Desktop, the default), **Colour mode** (Light / Dark / Follow OS) and **Compare as** (Side by side / Onion skin / Difference). Three popovers hold the rest:
+ **Conditions** (Text direction, Simulate a dark-mode OS, JavaScript off, the forced-colours window), **Input** (Sync scrolling, Sync navigation, Mirror clicks, typing and drags, Mirror hover and focus) and **Audits** (live axe-core, best-practice rules, Lighthouse).
+ A popover button shows how many settings inside it are not at their default, a strip above the frames lists everything that is not default (with Reset all), and each changed setting in a popover has its own Reset link. Escape closes a popover.
+@@ -189,8 +189,9 @@ fields (`core`, `before`, `after` merge one level deep, so `after.patches` is in
+ | Field | Meaning |
+ |---|---|
+ | `slug`, `issue`, `label`, `description` | Identity and the sentence shown above the frames. |
++| `comparisonGroup`, `comparisonLabel` | Optional. Give related variants the same group value to show direct patch-stack buttons. `comparisonLabel` supplies the short button text, for example `MR → MR + interdiff`. Set the group to `null` on an inherited variant that should not join the group. |
+ | `core` | `{ "commit": "<sha>" }` pins an exact core commit; `{ "ref": "main", "commit": null }` follows the branch (fetched when an environment is first created). |
+-| `before.env`, `after.env` | Directory names under `envs/`. `after.patches` lists patch files (paths from the repository root) applied in order. `url` overrides the link for "open outside". |
++| `before.env`, `after.env` | Directory names under `envs/`. Either side may have `patches`, listing patch files (paths from the repository root) applied in order. This supports pristine-core versus patch and earlier-patch-stack versus revised-patch-stack comparisons. Optional `label` values name the stacks in the viewer. `url` overrides the link for "open outside". |
+ | `recipe` | Directory under `recipes/` applied to both sites (the starting state). Omit for a plain Standard install. |
+ | `pages`, `login` | Pages the diff report fetches; whether it logs in. |
+ | `steps`, `expected`, `actual`, `setup` | Shown above the frames. Each step: `{ text, how: "recipe" / "mirror" / "each", lookFor }`. |
+@@ -226,7 +227,27 @@ The local toolbar offers installed Edge, Chrome, Firefox and (on macOS) Safari,
+ 
+ The snapshot restores both relative page paths, frame scroll positions, viewport width, comparison mode, test conditions and dock layout. Authentication, form values, audit results and notes remain separate. Forced-colour emulation cannot move between browsers; the destination displays a reminder. Native launching is unavailable on headless/cloud servers. **Tools → Copy comparison link** provides a portable alternative. Linux desktop discovery requires DISPLAY or WAYLAND_DISPLAY; macOS and Windows use standard installation locations. Nonstandard installations can use the copied link.
+ 
+-The Comparison menu lists built pairs (both `.ddev/config.yaml` files exist), plus the active pair. This is not a running-status check; start the pair with `node scripts/lab-env.mjs start <slug>` before switching. **Reload** reloads Before, After or Both without changing their paths or logging in. **Clear cache** remains visible and clears both Drupal caches; **Tools** holds browser-state reset and external links.
++The Comparison menu lists every configured pair. Unbuilt pairs are disabled and marked **not built**. This is not a running-status check; build with `node tools/compare/setup.mjs <slug>` and start with `node scripts/lab-env.mjs start <slug>` before switching. Variants sharing `comparisonGroup` also appear as direct **Compare patch stacks** buttons. Unbuilt group members remain visible as **build required**; activating one reports the setup command in the status line. **Reload** reloads Before, After or Both without changing their paths or logging in. **Clear cache** remains visible and clears both Drupal caches; **Tools** holds browser-state reset and external links.
++
++## Repeatable resource benchmark
++
++With the selected environments running, measure the comparison pair serially:
++
++    node scripts/measure-resources.mjs <slug>
++
++This defaults to the two unique environments on that variant. `--group` opts
++into every unique environment in the variant's `comparisonGroup`, which allows
++a three-way Core, MR and MR-plus-interdiff measurement without making the three
++sites compete during a request. Results are saved as timestamped JSON and
++Markdown in `reports/issues/<issue>/resources/`; the viewer's **Resources** tab
++shows the newest result that contains the current pair.
++
++Useful options are `--runs=10`, `--warmups=2`, `--page=/some/path`, and `--cold`
++(clear Drupal caches before each measured request). The script samples the DDEV
++web and database containers and uses `/tmp/lab-peak-memory.log` when an issue
++recipe provides exact PHP request logging. DDEV performance mode is recorded.
++Mutagen is shared host-side file-sync overhead and is not assigned to an
++individual Drupal version. Run comparable trials on an otherwise idle machine.
+ 
+ Checks without DDEV or native application launching:
+ 
+diff --git a/tools/compare/index.html b/tools/compare/index.html
+index 1120de8..0a4de0b 100644
+--- a/tools/compare/index.html
++++ b/tools/compare/index.html
+@@ -40,6 +40,14 @@
+   .topbar .goto { display: flex; gap: .4rem; flex: 1 1 16rem; min-width: 0; } .topbar .goto input { flex: 1; min-width: 6rem; }
+   .topbar .state { flex-basis: 100%; display: flex; gap: .6rem; align-items: center; font-size: .85rem; color: var(--muted); }
+   #status:not(:empty) { padding: 0 .6rem; border-radius: 999px; background: var(--surface2); color: var(--text); }
++  .comparison-peers { flex: 1 0 100%; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; padding-top: .4rem; border-top: 1px solid var(--line); }
++  .comparison-peers .lab { margin-right: .15rem; font-size: .8rem; font-weight: 600; color: var(--muted); }
++  .comparison-peers button { min-height: 1.8rem; padding: .2rem .55rem; font-size: .8rem; }
++  .comparison-peers button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
++  .comparison-peers button[data-available="false"] { border-style: dashed; }
++  .audit-detail { max-width: 52rem; } .audit-detail pre { max-height: 18rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .75rem; background: var(--surface2); padding: .5rem; }
++  .panel-heading { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
++  .resource-command-block { margin: .65rem 0; } .resource-command-block pre { margin: .25rem 0; padding: .55rem; overflow: auto; background: var(--surface2); border: 1px solid var(--line); border-radius: 4px; }
+ 
+   /* conditions toolbar: three always-visible choices, then popovers */
+   .toolbar { display: flex; flex-wrap: wrap; gap: .5rem .9rem; align-items: end; padding: .45rem .75rem; background: var(--surface); border-bottom: 1px solid var(--line); }
+@@ -141,6 +149,7 @@
+   </span>
+   <div id="browsers" class="browser-buttons" data-needs="live" role="group" aria-label="Open this comparison in another browser" hidden></div>
+   <div class="state" data-needs="live"><span id="status" role="status" aria-live="polite">Loading…</span><span id="axemini" role="status" aria-live="polite"></span></div>
++  <nav id="comparisonPeers" class="comparison-peers" aria-label="Related patch-stack comparisons" hidden></nav>
+ </header>
+ 
+ <div class="toolbar" data-needs="live" role="group" aria-label="Test conditions">
+@@ -196,8 +205,8 @@
+   </section>
+   <p data-needs="live" id="legend" role="status" hidden></p>
+   <div class="panes" id="panes" data-needs="live">
+-    <section class="pane" aria-labelledby="hb" tabindex="0"><h2 id="hb">Before patch <span class="path" id="pb"></span><a class="openext" id="pob" target="_blank" rel="noopener" href="#" title="Open the Before page in a new window" aria-label="Open the Before page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fb" title="Before patch" data-side="before"></iframe><div class="frame-error" id="fbe" hidden aria-live="polite"></div></section>
+-    <section class="pane" aria-labelledby="ha" tabindex="0"><h2 id="ha">After patch <a id="haissue" target="_blank" rel="noopener" href="#" hidden></a><span class="path" id="pa"></span><a class="openext" id="poa" target="_blank" rel="noopener" href="#" title="Open the After page in a new window" aria-label="Open the After page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fa" title="After patch" data-side="after"></iframe><div class="frame-error" id="fae" hidden aria-live="polite"></div></section>
++    <section class="pane" aria-labelledby="hb" tabindex="0"><h2 id="hb"><span id="hblabel">Before patch</span> <span class="path" id="pb"></span><a class="openext" id="pob" target="_blank" rel="noopener" href="#" title="Open the Before page in a new window" aria-label="Open the Before page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fb" title="Before patch" data-side="before"></iframe><div class="frame-error" id="fbe" hidden aria-live="polite"></div></section>
++    <section class="pane" aria-labelledby="ha" tabindex="0"><h2 id="ha"><span id="halabel">After patch</span> <a id="haissue" target="_blank" rel="noopener" href="#" hidden></a><span class="path" id="pa"></span><a class="openext" id="poa" target="_blank" rel="noopener" href="#" title="Open the After page in a new window" aria-label="Open the After page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fa" title="After patch" data-side="after"></iframe><div class="frame-error" id="fae" hidden aria-live="polite"></div></section>
+   </div>
+ </main>
+ 
+@@ -217,6 +226,7 @@
+       <button type="button" role="tab" id="tab-manual" aria-controls="p-manual" data-tab="manual" data-needs="live">Manual <span class="chip" id="bd-manual"></span></button>
+       <button type="button" role="tab" id="tab-axe" aria-controls="p-axe" data-tab="axe" data-needs="live">Accessibility <span class="chip" id="bd-axe"></span></button>
+       <button type="button" role="tab" id="tab-lh" aria-controls="p-lh" data-tab="lh" data-needs="live">Lighthouse <span class="chip" id="bd-lh"></span></button>
++      <button type="button" role="tab" id="tab-resources" aria-controls="p-resources" data-tab="resources" data-needs="live">Resources <span class="chip" id="bd-resources"></span></button>
+       <button type="button" role="tab" id="tab-env" aria-controls="p-env" data-tab="env" data-needs="live">Environment <span class="chip" id="bd-env"></span></button>
+     </div>
+     <span class="sp"><button type="button" id="docksize" aria-pressed="false">Larger</button><button type="button" id="dockhide" aria-expanded="true">Hide panel</button></span>
+@@ -230,13 +240,13 @@
+       <h2>Checks <button type="button" id="runchecks" class="primary">Run checks</button> <span id="rcstat" class="path" role="status" aria-live="polite"></span></h2>
+       <details class="help"><summary>How checks are judged</summary><p class="note">After the last step, press Run checks. Each check runs inside both frames and says Pass or Fail against what is expected. The rule: a <strong>fix</strong> check should <strong>fail on Before and pass on After</strong>; a <strong>regression</strong> check should pass on both; a <strong>precondition</strong> must pass on both or nothing else means anything.</p></details>
+       <p id="verdict" class="verdict" role="status" hidden></p>
+-      <table class="checks" id="checks"><thead><tr><th>Type</th><th>Check</th><th>Expected</th><th>Before</th><th>After</th><th>Verdict</th></tr></thead><tbody></tbody></table>
++      <table class="checks" id="checks"><thead><tr><th>Type</th><th>Check</th><th>Expected</th><th data-side-label="before">Before</th><th data-side-label="after">After</th><th>Verdict</th></tr></thead><tbody></tbody></table>
+     </div>
+     <div role="tabpanel" id="p-manual" aria-labelledby="tab-manual" tabindex="0" data-needs="live" hidden>
+       <h2>Manual confirmation: what do you see?</h2>
+       <details class="help"><summary>How this works</summary><p class="note">The two frames stay in step, so you can confirm the change by eye. Do the steps, click the "URL alias" link yourself in each frame (Mirror off), then answer for each side. Your answers are compared with what is expected and saved in the downloaded log. This does not replace testing with a keyboard and a screen reader.</p></details>
+       <p id="obsverdict" class="verdict warn" role="status" aria-live="polite" hidden></p>
+-      <table class="checks" id="obs"><thead><tr><th>Did you see this?</th><th>Expected Before / After</th><th>Before</th><th>After</th><th>Result</th></tr></thead><tbody></tbody></table>
++      <table class="checks" id="obs"><thead><tr><th>Did you see this?</th><th>Expected first / second</th><th data-side-label="before">Before</th><th data-side-label="after">After</th><th>Result</th></tr></thead><tbody></tbody></table>
+       <p class="note"><label>Notes (kept in the downloaded log) <input type="text" id="obsnote" size="60"></label></p>
+     </div>
+     <div role="tabpanel" id="p-axe" aria-labelledby="tab-axe" tabindex="0" data-needs="live" hidden>
+@@ -244,7 +254,7 @@
+       <details class="help"><summary>What this shows</summary><p class="note">Turn it on under Audits. axe-core runs in both frames after every page load and after interactions. Because both frames are driven the same way, a difference means the change affects accessibility. "Violations" are elements axe flags as failing WCAG A/AA rules. Automated checks find only a subset of problems; they do not replace a keyboard and screen-reader test.</p></details>
+       <p id="axeverdict" class="verdict warn" role="status" aria-live="polite">Waiting for both frames to finish loading…</p>
+       <table class="checks" id="axecounts"><caption class="note" style="text-align:left">Violating elements by impact (rules in brackets)</caption><thead><tr><th>Side</th><th>Critical</th><th>Serious</th><th>Moderate</th><th>Minor</th><th>Total</th></tr></thead><tbody></tbody></table>
+-      <table class="checks" id="axediff" hidden><caption class="note" style="text-align:left">Rules that differ, or that fail on both sides</caption><thead><tr><th>Rule</th><th>Impact</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody></tbody></table>
++      <table class="checks" id="axediff" hidden><caption class="note" style="text-align:left">Rules that differ, or that fail on both sides</caption><thead><tr><th>Rule</th><th>Impact</th><th data-side-label="before">Before</th><th data-side-label="after">After</th><th>Change</th></tr></thead><tbody></tbody></table>
+       <details><summary>Log of changes as you navigate (<span id="axelogn">0</span>)</summary>
+       <table class="checks" id="axelog"><thead><tr><th>Time</th><th>Page (reported by)</th><th>Before</th><th>After</th><th>Difference</th></tr></thead><tbody></tbody></table></details>
+     </div>
+@@ -252,8 +262,16 @@
+       <h2>Lighthouse <button type="button" id="lhnow">Audit this page now</button></h2>
+       <details class="help"><summary>What this shows</summary><p class="note">Turn on background audits under Audits. Lighthouse runs in its own headless Chrome and audits the page as it <strong>loads</strong>, logged in. It does not see states you reach by clicking (for example an error summary after Save) and takes about 10 seconds per site. Accessibility and best-practice audits are shown by default; use axe for live, interactive checking.</p></details>
+       <p id="lhverdict" class="verdict warn" role="status" aria-live="polite" hidden></p>
+-      <table class="checks" id="lhtable" hidden><thead><tr><th>Category</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody></tbody></table>
+-      <table class="checks" id="lhdiff" hidden><caption class="note" style="text-align:left">Audits that fail on one side or both</caption><thead><tr><th>Audit</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody></tbody></table>
++      <table class="checks" id="lhtable" hidden><thead><tr><th>Category</th><th data-side-label="before">Before</th><th data-side-label="after">After</th><th>Change</th></tr></thead><tbody></tbody></table>
++      <table class="checks" id="lhdiff" hidden><caption class="note" style="text-align:left">Audits that fail on one side or both</caption><thead><tr><th>Audit</th><th data-side-label="before">Before</th><th data-side-label="after">After</th><th>Change</th></tr></thead><tbody></tbody></table>
++    </div>
++    <div role="tabpanel" id="p-resources" aria-labelledby="tab-resources" tabindex="0" data-needs="live" hidden>
++      <h2 class="panel-heading"><span>Recorded resource benchmark</span><button type="button" id="resourcesrefresh">Refresh results</button></h2>
++      <p class="note">This shows the newest saved serial benchmark for this comparison. It does not benchmark the two visible frames concurrently. After a run, memory appears in the PHP peak, Web peak, Web above idle, and DB peak columns. DB is not applicable for SQLite projects without a database container.</p>
++      <p id="resourcesstatus" class="verdict warn" role="status" aria-live="polite"></p>
++      <div id="resourcescommands"></div>
++      <table class="checks" id="resourcestable" hidden><thead><tr><th>Version</th><th>Median response</th><th>Slowest</th><th>PHP peak</th><th>Web peak</th><th>Web above idle</th><th>DB peak</th><th>Peak CPU web / DB</th><th>Failures</th></tr></thead><tbody></tbody></table>
++      <p id="resourcesmeta" class="note"></p>
+     </div>
+     <div role="tabpanel" id="p-env" aria-labelledby="tab-env" tabindex="0" data-needs="live" hidden>
+       <h2>Where did you test? <span class="note">(saved with the downloaded log)</span></h2>
+@@ -288,7 +306,7 @@ let STATIC = /\.github\.io$/.test(location.hostname) || new URLSearchParams(loca
+ const setRuntime = (s) => { STATIC = s; if (s) { const d = document.getElementById('loaddlg'); if (d && d.open) d.close(); } document.documentElement.dataset.runtime = s ? 'static' : 'local'; };
+ setRuntime(STATIC);
+ const F = { before: $('fb'), after: $('fa') }, P = { before: $('pb'), after: $('pa') };
+-const last = { before: '', after: '' }; let origins, sites = {}; let variants = []; let v;
++const last = { before: '', after: '' }; let origins, sites = {}; let variants = []; let availability = {}; let v;
+ const other = (s) => (s === 'before' ? 'after' : 'before');
+ const status = (t) => { $('status').textContent = t; };
+ const radio = (name) => document.querySelector(`input[name="${name}"]:checked`).value;
+@@ -325,11 +343,39 @@ function renderSteps() { ticks = loadTicks(); const ol = $('steps'); ol.textCont
+ $('tickrecipe').addEventListener('click', () => { (v.steps || []).forEach((st, i) => { if (st.how === 'recipe') ticks[i] = true; }); saveTicks(); renderSteps(); });
+ $('clearticks').addEventListener('click', () => { ticks = []; saveTicks(); renderSteps(); });
+ function setVariant(slug) { v = variants.find((x) => x.slug === slug); $('desc').textContent = v.description; renderSteps(); buildObs(); document.title = `Compare: ${v.slug}`;
++  const beforeLabel = v.before?.label || 'Before patch', afterLabel = v.after?.label || 'After patch';
++  $('hblabel').textContent = beforeLabel; $('halabel').textContent = afterLabel;
++  $('ob').textContent = beforeLabel; $('oa').textContent = afterLabel;
++  document.querySelectorAll('[data-side-label="before"]').forEach((element) => { element.textContent = beforeLabel; });
++  document.querySelectorAll('[data-side-label="after"]').forEach((element) => { element.textContent = afterLabel; });
++  F.before.title = beforeLabel; F.after.title = afterLabel;
+   const iss = $('haissue');
+-  if (v.issue) { iss.hidden = false; iss.textContent = `(#${v.issue})`; iss.href = `https://www.drupal.org/project/drupal/issues/${v.issue}`; iss.title = `Open Drupal issue #${v.issue} in a new window`; iss.setAttribute('aria-label', `Open Drupal issue ${v.issue} in a new window`); $('fa').title = `After patch (#${v.issue})`; }
+-  else { iss.hidden = true; iss.textContent = ''; iss.removeAttribute('href'); $('fa').title = 'After patch'; }
++  if (v.issue) { iss.hidden = false; iss.textContent = `(#${v.issue})`; iss.href = `https://www.drupal.org/project/drupal/issues/${v.issue}`; iss.title = `Open Drupal issue #${v.issue} in a new window`; iss.setAttribute('aria-label', `Open Drupal issue ${v.issue} in a new window`); F.after.title = `${afterLabel} (#${v.issue})`; }
++  else { iss.hidden = true; iss.textContent = ''; iss.removeAttribute('href'); }
+   const start = (v.demo && v.demo.start) || v.pages[0] || '/'; $('goto').value = start;
+-  document.querySelector('input[name="width"][value="half"]').checked = true; applyWidth(); }
++  document.querySelector('input[name="width"][value="half"]').checked = true; applyWidth(); renderComparisonPeers(); if (!STATIC) loadResources(); }
++async function chooseVariant(slug) {
++  if (slug === v.slug) return;
++  if (!STATIC && !availability[slug]) { status(`Not built. Run: node tools/compare/setup.mjs ${slug}`); return; }
++  $('variant').value = slug;
++  if (STATIC) { setVariant(slug); fillStaticPanel(); return; }
++  await post({ slug }); setVariant(slug); loadBoth($('goto').value);
++}
++function renderComparisonPeers() {
++  const nav = $('comparisonPeers'); nav.textContent = '';
++  const peers = v.comparisonGroup ? variants.filter((item) => item.comparisonGroup === v.comparisonGroup) : [];
++  if (peers.length < 2) { nav.hidden = true; return; }
++  const label = document.createElement('span'); label.className = 'lab'; label.textContent = 'Compare patch stacks:'; nav.append(label);
++  for (const item of peers) {
++    const available = STATIC || !!availability[item.slug];
++    const button = document.createElement('button'); button.type = 'button'; button.dataset.available = String(available);
++    button.textContent = (item.comparisonLabel || item.label) + (available ? '' : ' (build required)');
++    button.setAttribute('aria-pressed', String(item.slug === v.slug));
++    button.title = available ? item.description : `Run node tools/compare/setup.mjs ${item.slug} in the terminal`;
++    button.addEventListener('click', () => chooseVariant(item.slug)); nav.append(button);
++  }
++  nav.hidden = false;
++}
+ function fillStaticPanel() {
+   const root = (window.__repo || '').replace(/\/$/, '');
+   $('spcmd').textContent = `node scripts/lab-env.mjs start ${v.slug}`;
+@@ -341,11 +387,11 @@ function fillStaticPanel() {
+ function fillComparisons(data) {
+   $('variant').textContent = '';
+   for (const item of variants) {
+-    if (!STATIC && data.availability && !data.availability[item.slug] && item.slug !== data.state?.slug) continue;
+     const option = document.createElement('option'); option.value = item.slug;
+     const revision = /-latest$/.test(item.slug) ? 'latest' : /-pinned$/.test(item.slug) ? 'pinned' : item.slug;
+     const title = item.label.replace(/^#\d+:\s*/, '').replace(/,?\s*pinned core.*$/i, '').slice(0, 65);
+-    option.textContent = `#${item.issue || item.slug} · ${revision} · ${title}`; option.title = item.label;
++    const available = STATIC || !data.availability || data.availability[item.slug] || item.slug === data.state?.slug;
++    option.textContent = `#${item.issue || item.slug} · ${revision} · ${title}${available ? '' : ' · not built'}`; option.title = item.label; option.disabled = !available;
+     $('variant').append(option);
+   }
+   if (!STATIC) {
+@@ -402,7 +448,7 @@ async function init() {
+     fillComparisons(d);
+     const want = new URLSearchParams(location.search).get('variant'); const slug = variants.some((x) => x.slug === want) ? want : variants[0].slug;
+     $('variant').value = slug; setVariant(slug); fillStaticPanel(); status('Read-only guide.'); return;
+-  } origins = d.origins; sites = d.sites || {}; variants = d.variants;
++  } origins = d.origins; sites = d.sites || {}; variants = d.variants; availability = d.availability || {};
+   fillComparisons(d);
+   try { incoming = readHandoff(location.hash); }
+   catch (error) { $('handoffnote').hidden = false; $('handoffnote').textContent = error.message; }
+@@ -429,7 +475,7 @@ async function init() {
+   sendState(); applyView(); refreshControls();
+   renderBrowsers().catch(() => {});
+ }
+-$('variant').addEventListener('change', async () => { if (STATIC) { setVariant($('variant').value); fillStaticPanel(); return; } await post({ slug: $('variant').value }); setVariant($('variant').value); loadBoth($('goto').value); });
++$('variant').addEventListener('change', () => chooseVariant($('variant').value));
+ document.querySelectorAll('input[name="width"]').forEach((r) => r.addEventListener('change', applyWidth));
+ document.querySelectorAll('input[name="theme"]').forEach((r) => r.addEventListener('change', sendState));
+ $('darkos').addEventListener('change', sendState);
+@@ -476,7 +522,8 @@ function refreshBadges() {
+   chipSet('bd-manual', ...verdictBadge('obsverdict', '✓ as expected', '✗ differs', 'partly answered'));
+   chipSet('bd-axe', ...($('axeon').checked ? verdictBadge('axeverdict', '✓ no new', '⚠ worse', '…') : ['', 'off']));
+   chipSet('bd-lh', ...($('lhverdict').hidden ? ['', $('lhon').checked ? '…' : 'off'] : verdictBadge('lhverdict', '✓ no worse', '⚠ worse', '…')));
+-  chipSet('bd-env', ...($('envremind').classList.contains('ok') ? ['ok', '✓'] : ['warn', 'to do']));
++  chipSet('bd-resources', ...verdictBadge('resourcesstatus', 'recorded', 'error', 'not run'));
++  chipSet('bd-env', ...($('envremind').classList.contains('ok') ? ['ok', '✓ recorded'] : ['warn', 'not recorded']));
+ }
+ new MutationObserver(() => requestAnimationFrame(refreshBadges)).observe($('panels'), { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['class', 'hidden'] });
+ document.addEventListener('change', () => setTimeout(refreshBadges, 0));
+@@ -753,6 +800,29 @@ function initEnv() { const b = browserInfo(); $('envbrowser').value = `${b.famil
+ $('runchecks').addEventListener('click', () => recordTested('ran checks'));
+ document.addEventListener('change', (e) => { if (e.target && e.target.name && /^obs-/.test(e.target.name)) recordTested('answered the manual panel'); });
+ 
++// ---- Saved serial resource benchmarks (recorded by scripts/measure-resources.mjs) ----
++const resourceMb = (bytes) => bytes == null ? 'not recorded' : `${(bytes / 1048576).toFixed(1)} MB`;
++const resourceValue = (value, suffix = '') => value == null ? 'not recorded' : `${value}${suffix}`;
++async function loadResources() {
++  if (STATIC || !v) return;
++  const S = $('resourcesstatus'), commands = $('resourcescommands'); commands.textContent = '';
++  try {
++    const response = await fetch('api/resources/latest'); const result = await response.json();
++    const addCommand = (lead, command) => { if (!command) return; const block = document.createElement('div'); block.className = 'resource-command-block'; const label = document.createElement('strong'); label.textContent = lead; const pre = document.createElement('pre'); const code = document.createElement('code'); code.textContent = command; pre.append(code); block.append(label, pre); commands.append(block); };
++    addCommand('Measure this selected pair (the default):', result.command);
++    addCommand('Optionally measure every unique environment in its comparison group:', result.groupCommand);
++    const table = $('resourcestable'), body = table.querySelector('tbody'); body.textContent = '';
++    if (!result.found) { table.hidden = true; $('resourcesmeta').textContent = ''; S.className = 'verdict warn'; S.textContent = 'No recorded benchmark for this pair yet. Run the command above in another terminal, then refresh results.'; return; }
++    for (const summary of result.data.summaries || []) {
++      const cells = [summary.label || summary.env, resourceValue(summary.medianResponseMs, ' ms'), resourceValue(summary.slowestResponseMs, ' ms'), resourceValue(summary.phpPeakMb, ' MB'), resourceMb(summary.containers?.web?.peakMemoryBytes), resourceMb(summary.containers?.web?.peakAboveIdleBytes), resourceMb(summary.containers?.db?.peakMemoryBytes), `${resourceValue(summary.containers?.web?.peakCpuPercent, '%')} / ${resourceValue(summary.containers?.db?.peakCpuPercent, '%')}`, summary.failures];
++      const tr = document.createElement('tr'); for (const value of cells) { const td = document.createElement('td'); td.textContent = value; tr.append(td); } body.append(tr);
++    }
++    table.hidden = false; S.className = 'verdict ok'; S.textContent = `Latest benchmark: ${result.data.summaries.length} environment${result.data.summaries.length === 1 ? '' : 's'}, measured sequentially.`;
++    $('resourcesmeta').textContent = `${result.data.measuredAt}; page ${result.data.page}; ${result.data.settings.runs} runs after ${result.data.settings.warmups} warm-up(s); ${result.data.settings.cold ? 'cold-cache' : 'warm-cache'}; ${result.file}. Container peaks are sampled and PHP peaks require the recipe logger.`;
++  } catch (error) { S.className = 'verdict bad'; S.textContent = 'Could not read resource results: ' + error.message; }
++}
++$('resourcesrefresh').addEventListener('click', loadResources);
++
+ // ---- Lighthouse (optional background audits, run by the viewer server in its own Chrome) ----
+ const lhLog = []; let lhPath = '', lhTimer, lhPoll;
+ async function lhStatus() { try { const s = await (await fetch('api/lighthouse/status')).json(); if (!s.ok) { $('lhverdict').hidden = false; $('lhverdict').className = 'verdict warn'; $('lhverdict').textContent = 'Lighthouse is not installed: ' + s.missing.join('; '); return false; } return true; } catch (e) { return false; } }
+@@ -766,21 +836,25 @@ async function lhRun() {
+ }
+ function showLighthouse(path, res) {
+   const B = res.before, A = res.after, V = $('lhverdict'); if (B.runtimeError || A.runtimeError) { V.hidden = false; V.className = 'verdict bad'; V.textContent = `Lighthouse could not load the page: ${B.runtimeError || A.runtimeError}`; return; }
++  const beforeLabel = v.before?.label || 'Before patch', afterLabel = v.after?.label || 'After patch';
+   const cats = Object.keys(B.scores); const tb = $('lhtable').querySelector('tbody'); tb.textContent = ''; let worse = 0, better = 0;
+   for (const c of cats) { const b = B.scores[c], a = A.scores[c], d = a - b; if (d < 0) worse++; else if (d > 0) better++;
+     const tr = document.createElement('tr'); for (const t of [c, b, a, d < 0 ? `↓ ${d} (worse)` : d > 0 ? `↑ +${d} (better)` : '= same']) { const td = document.createElement('td'); td.textContent = t; tr.append(td); } tr.lastChild.className = d < 0 ? 'bad v' : d > 0 ? 'ok v' : 'na v'; tb.append(tr); }
+   $('lhtable').hidden = false;
+   const ids = new Set([...B.failed.map((x) => x.id), ...A.failed.map((x) => x.id)]); const db = $('lhdiff').querySelector('tbody'); db.textContent = ''; let newFail = [];
+   for (const id of ids) { const b = B.failed.find((x) => x.id === id), a = A.failed.find((x) => x.id === id), info = a || b;
+-    const status = a && !b ? ['bad v', '↑ New in After'] : !a && b ? ['ok v', '↓ Fixed in After'] : ['na v', '= Fails on both'];
++    const status = a && !b ? ['bad v', `↑ New in ${afterLabel}`] : !a && b ? ['ok v', `↓ Fixed in ${afterLabel}`] : ['na v', '= Fails on both'];
+     if (a && !b) newFail.push(id); const tr = document.createElement('tr');
+-    for (const t of [`${id}: ${info.title}`, b ? `fails (${b.items})` : 'passes', a ? `fails (${a.items})` : 'passes', status[1]]) { const td = document.createElement('td'); td.textContent = t; tr.append(td); } tr.lastChild.className = status[0]; db.append(tr); }
++    const audit = document.createElement('td'); audit.textContent = `${id}: ${info.title}`;
++    if (b?.details || a?.details) { const details = document.createElement('details'); details.className = 'audit-detail'; const summary = document.createElement('summary'); summary.textContent = 'Diagnostic evidence'; const pre = document.createElement('pre'); pre.textContent = JSON.stringify({ [beforeLabel]: b?.details || null, [afterLabel]: a?.details || null }, null, 2); details.append(summary, pre); audit.append(details); }
++    tr.append(audit);
++    for (const t of [b ? `fails (${b.items})` : 'passes', a ? `fails (${a.items})` : 'passes', status[1]]) { const td = document.createElement('td'); td.textContent = t; tr.append(td); } tr.lastChild.className = status[0]; db.append(tr); }
+   $('lhdiff').hidden = ids.size === 0;
+   V.hidden = false; V.setAttribute('role', worse || newFail.length ? 'alert' : 'status');
+   V.className = 'verdict ' + (worse || newFail.length ? 'bad' : better ? 'ok' : 'ok');
+-  V.textContent = worse || newFail.length ? `⚠ Lighthouse (${path}): After is worse. ${worse ? worse + ' category score' + (worse > 1 ? 's' : '') + ' lower. ' : ''}${newFail.length ? 'New failing audits in After: ' + newFail.join(', ') + '.' : ''}`
+-    : better ? `✓ Lighthouse (${path}): After is better on ${better} categor${better > 1 ? 'ies' : 'y'}.` : `= Lighthouse (${path}): same scores and the same failing audits on both sides (${cats.map((c) => c + ' ' + A.scores[c]).join(', ')}). Lighthouse ${A.lighthouseVersion}.`;
+-  lhLog.push({ t: new Date().toISOString(), path, before: B.scores, after: A.scores, newFailingInAfter: newFail, lighthouseVersion: A.lighthouseVersion });
++  V.textContent = worse || newFail.length ? `⚠ Lighthouse (${path}): ${afterLabel} is worse than ${beforeLabel}. ${worse ? worse + ' category score' + (worse > 1 ? 's' : '') + ' lower. ' : ''}${newFail.length ? `New failing audits in ${afterLabel}: ` + newFail.join(', ') + '.' : ''}`
++    : better ? `✓ Lighthouse (${path}): ${afterLabel} is better than ${beforeLabel} on ${better} categor${better > 1 ? 'ies' : 'y'}.` : `= Lighthouse (${path}): same scores and the same failing audits for ${beforeLabel} and ${afterLabel} (${cats.map((c) => c + ' ' + A.scores[c]).join(', ')}). Lighthouse ${A.lighthouseVersion}.`;
++  lhLog.push({ t: new Date().toISOString(), path, beforeLabel, afterLabel, before: B, after: A, newFailingInAfter: newFail, lighthouseVersion: A.lighthouseVersion });
+ }
+ $('lhon').addEventListener('change', () => { if ($('lhon').checked) { lhRun.force = true; lhRun(); } });
+ $('lhnow').addEventListener('click', () => { lhRun.force = true; lhRun(); });
+diff --git a/tools/compare/lighthouse.mjs b/tools/compare/lighthouse.mjs
+index f2c5ad2..7218c4c 100644
+--- a/tools/compare/lighthouse.mjs
++++ b/tools/compare/lighthouse.mjs
+@@ -18,6 +18,19 @@ export function lighthouseAvailable() {
+   return { ok: missing.length === 0, missing };
+ }
+ 
++// Keep enough diagnostic evidence to investigate a regression without storing
++// the complete Lighthouse result (which can be many megabytes). Values and
++// arrays are bounded so the viewer API and downloaded log remain manageable.
++function compact(value, depth = 0) {
++  if (value == null || typeof value === 'number' || typeof value === 'boolean') return value;
++  if (typeof value === 'string') return value.length > 600 ? value.slice(0, 597) + '...' : value;
++  if (depth >= 5) return '[truncated]';
++  if (Array.isArray(value)) return value.slice(0, 20).map((item) => compact(item, depth + 1));
++  const out = {};
++  for (const [key, item] of Object.entries(value).slice(0, 40)) out[key] = compact(item, depth + 1);
++  return out;
++}
++
+ // Audit one page of one environment. Returns scores and the audits that did not pass.
+ // A real (Playwright) browser logs in by normal navigation, so its cookie jar is right by construction, and Lighthouse is then
+ // pointed at that same browser through its debugging port.
+@@ -40,7 +53,13 @@ export async function audit({ env, host: hostArg, pagePath, performance = false,
+     const scores = Object.fromEntries(Object.entries(lhr.categories).map(([k, c]) => [k, Math.round((c.score ?? 0) * 100)]));
+     const perfIds = new Set(((lhr.categories.performance || {}).auditRefs || []).map((r) => r.id));
+     const failed = Object.values(lhr.audits).filter((a) => a.score !== null && a.score < 1 && !['informative', 'notApplicable', 'manual'].includes(a.scoreDisplayMode))
+-      .map((a) => ({ id: a.id, title: a.title, score: a.score, items: (a.details && a.details.items ? a.details.items.length : 0), perf: perfIds.has(a.id) }));
++      .map((a) => ({
++        id: a.id, title: a.title, description: a.description, score: a.score,
++        displayValue: a.displayValue || null,
++        items: (a.details && a.details.items ? a.details.items.length : 0),
++        details: a.details ? compact({ type: a.details.type, headings: a.details.headings, items: a.details.items }) : null,
++        perf: perfIds.has(a.id),
++      }));
+     return { env, url: `https://${host}${pagePath}`, lighthouseVersion: lhr.lighthouseVersion, scores, failed, runtimeError: lhr.runtimeError ? lhr.runtimeError.message : null };
+   } finally { await ctx.close().catch(() => {}); fs.rmSync(userDataDir, { recursive: true, force: true }); }
+ }
+diff --git a/tools/compare/serve.mjs b/tools/compare/serve.mjs
+index 53f093c..264b793 100644
+--- a/tools/compare/serve.mjs
++++ b/tools/compare/serve.mjs
+@@ -41,6 +41,22 @@ const VIEWER_HOSTS = VIEWER_ORIGINS.map((o) => new URL(o).host);
+ const list = variants();
+ const state = { slug: process.argv.slice(2).find((x) => !x.startsWith('--')) || list[0].slug, theme: 'auto', darkos: false, axe: false, axeBest: false, dir: 'auto', nojs: false };
+ const current = () => list.find((x) => x.slug === state.slug) || list[0];
++function latestResources() {
++  const v = current(); const dir = path.join(labRoot, 'reports/issues', String(v.issue || ''), 'resources');
++  const command = `node scripts/measure-resources.mjs ${v.slug}`;
++  if (!fs.existsSync(dir)) return { found: false, command, groupCommand: v.comparisonGroup ? command + ' --group' : null };
++  const files = fs.readdirSync(dir).filter((name) => name.endsWith('.json'))
++    .map((name) => ({ name, mtime: fs.statSync(path.join(dir, name)).mtimeMs })).sort((a, b) => b.mtime - a.mtime);
++  for (const file of files) {
++    try {
++      const data = JSON.parse(fs.readFileSync(path.join(dir, file.name), 'utf8'));
++      const measured = new Set((data.summaries || []).map((summary) => summary.env));
++      if (data.slug !== v.slug && ![v.before.env, v.after.env].every((env) => measured.has(env))) continue;
++      return { found: true, command, groupCommand: v.comparisonGroup ? command + ' --group' : null, file: path.relative(labRoot, path.join(dir, file.name)), data };
++    } catch { /* Ignore an incomplete or invalid result and try the next one. */ }
++  }
++  return { found: false, command, groupCommand: v.comparisonGroup ? command + ' --group' : null };
++}
+ // Lighthouse jobs run one at a time, each in its own Chrome, and never block the proxies (login and DDEV lookups are async or cached).
+ const lh = { seq: 0, running: false, pending: null, jobs: new Map() };
+ async function runLighthouse(id, job) {
+@@ -284,6 +300,8 @@ http.createServer((req, res) => {
+   } else if (u.pathname === '/api/lighthouse/result') {
+     const job = lh.jobs.get(Number(u.searchParams.get('id'))) || { state: 'error', error: 'unknown job' };
+     res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify(job));
++  } else if (u.pathname === '/api/resources/latest') {
++    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }); res.end(JSON.stringify(latestResources()));
+   } else if (u.pathname === '/api/cache') {
+     const v = current();
+     const run = (env) => new Promise((resolve) => execFile('ddev', ['drupal', 'cache'], { cwd: envDir(env), timeout: 120000 }, (err, so, se) => resolve(err ? `failed: ${String(se || err.message).trim().slice(0, 200)}` : 'cleared')));
+diff --git a/tools/compare/setup.mjs b/tools/compare/setup.mjs
+index 95bcb1a..2f80e42 100644
+--- a/tools/compare/setup.mjs
++++ b/tools/compare/setup.mjs
+@@ -117,19 +117,31 @@ if (core.commit ? !hasRef() : (CHECK || needEnv || !hasRef())) {
+ if (!dry) console.log('core is at: ' + out('git', ['-C', bare, 'log', '-1', '--format=%H %cs %s', coreRef]));
+ 
+ if (CHECK) {
+-  // Do the patches still apply to this core? Applies them in order to a throwaway checkout, builds nothing.
+-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'patchcheck-')); const wt = path.join(tmp, 'core');
+-  run('git', ['-C', bare, 'worktree', 'add', '-q', '--detach', wt, coreRef]);
++  // Do both patch stacks still apply to this core? Each side starts from its
++  // own clean throwaway checkout. This matters when Before is an earlier MR or
++  // patch revision rather than pristine core.
++  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'patchcheck-'));
+   let failed = false; const rows = [];
+-  for (const p of v.after.patches || []) {
+-    if (failed) { rows.push(`| \`${p}\` | not tried (an earlier patch failed) |`); continue; }
+-    const r = spawnSync('git', ['apply', path.join(labRoot, p)], { cwd: wt, encoding: 'utf8' });
+-    if (r.status === 0) rows.push(`| \`${p}\` | applies cleanly |`);
+-    else { failed = true; rows.push(`| \`${p}\` | **does not apply**: ${String(r.stderr).split('\n').slice(0, 2).join(' ').slice(0, 160)} |`); }
++  for (const side of ['before', 'after']) {
++    const wt = path.join(tmp, side);
++    run('git', ['-C', bare, 'worktree', 'add', '-q', '--detach', wt, coreRef]);
++    let sideFailed = false;
++    const patches = v[side].patches || [];
++    if (!patches.length) rows.push(`| ${side} | _(pristine core)_ | no patches |`);
++    for (const p of patches) {
++      if (sideFailed) { rows.push(`| ${side} | \`${p}\` | not tried (an earlier patch failed) |`); continue; }
++      const r = spawnSync('git', ['apply', path.join(labRoot, p)], { cwd: wt, encoding: 'utf8' });
++      if (r.status === 0) rows.push(`| ${side} | \`${p}\` | applies cleanly |`);
++      else {
++        failed = true; sideFailed = true;
++        rows.push(`| ${side} | \`${p}\` | **does not apply**: ${String(r.stderr).split('\n').slice(0, 2).join(' ').slice(0, 160)} |`);
++      }
++    }
++    spawnSync('git', ['-C', bare, 'worktree', 'remove', '--force', wt]);
+   }
+-  spawnSync('git', ['-C', bare, 'worktree', 'remove', '--force', wt]); fs.rmSync(tmp, { recursive: true, force: true });
+-  console.log(`\n| Patch (in order) | Result on core ${core.commit ? core.commit.slice(0, 12) : core.ref} |\n|---|---|\n${rows.join('\n')}`);
+-  console.log(failed ? '\nThe patch stack needs rerolling for this core (see reports/issues/<nid>/REPRODUCE.md).' : '\nAll patches apply. Build the environments and run the walkthrough to see whether the problem still reproduces and the fix still works.');
++  fs.rmSync(tmp, { recursive: true, force: true });
++  console.log(`\n| Side | Patch (in order) | Result on core ${core.commit ? core.commit.slice(0, 12) : core.ref} |\n|---|---|---|\n${rows.join('\n')}`);
++  console.log(failed ? '\nAt least one patch stack needs rerolling for this core (see reports/issues/<nid>/REPRODUCE.md).' : '\nBoth patch stacks apply. Build the environments and run the walkthrough to compare them.');
+   process.exit(failed ? 3 : 0);
+ }
+ 

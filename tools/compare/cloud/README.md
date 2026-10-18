@@ -50,12 +50,38 @@ owner — are unchanged and still gate whether this is usable by anyone but its 
   GitHub mirror and its patches applied outside a workspace on 2026-10-16; `--core-from` is on-disk tested only. Record the first
   workspace run.
 
+## Consistent project names and generated handoffs
+
+Set the names in the **Coder web form**, not by editing this README: **New workspace → DDEV Freeform → DDEV project names**.
+The Terraform parameter is `project_names`. Paste this exact value at workspace creation:
+
+```text
+drupal-compare,drupal-compare-before,drupal-compare-after
+```
+
+The repository source is `tools/compare/cloud/config.mjs`. Print the copyable value from the repository root with:
+
+```bash
+node tools/compare/cloud/config.mjs --project-names
+```
+
+The Freeform template does not read the repository module: the user supplies the value to its parameter.
+The names stay the same for every issue. The selected variant supplies the underlying Before and After core environments.
+Bootstrap, smoke checks, viewer startup and the Coder prompt generator share this module.
+DDEV YAML and nginx declarations must match it; the Lab's unit tests catch drift. This is not a runtime rename option.
+
+Generate an issue's handoff with `node scripts/coder-prompt.mjs <slug> --write`.
+Common instructions come from `prompts/coder-prompt.md`; the registered variant supplies the scenario, recipe and ordered patch stacks.
+See `prompts/README.md` for preview and freshness checks. Generation does not establish that the workspace or scenario was tested.
+
 ## Procedure
 
 1. Create the workspace. Go to https://coder.ddev.com/workspaces and click **New workspace**, then search for and select **DDEV Freeform** from the dropdown.
    (Or open the template list at https://coder.ddev.com/templates and pick **DDEV Freeform**.)
 
-   **Web UI (recommended):** After selecting the template, fill the parameters (UI label → Terraform name):
+   **Web UI (recommended):** After selecting the template, name the workspace after the issue (`lab-<issue number>`, such as
+   `lab-3619154`, rather than the generated name; lowercase letters, digits and single hyphens, since the name becomes part of each app address
+   `<project>--<workspace>--<owner>.coder.ddev.com`), then fill the parameters (UI label → Terraform name):
 
    - **DDEV project names** → `project_names`: `drupal-compare,drupal-compare-before,drupal-compare-after` (add `repro-<env>` names only if you want a direct URL to each site; they match a variant's environments)
    - **Public Sharing** → `share_projects`: unchecked / `false`
@@ -63,7 +89,7 @@ owner — are unchanged and still gate whether this is usable by anyone but its 
    - **Claude Code: skip permission prompts** → `claude_code_skip_permissions`: unchecked / `false`
    - **VS Code Extensions** → `vscode_extensions`: leave empty / `[]`
 
-   **CLI (alternative):** put them in `params.yaml` (using Terraform names) and run `coder create --template freeform <name> --rich-parameter-file params.yaml --yes`.
+   **CLI (alternative):** put them in `params.yaml` (using Terraform names) and run `coder create --template freeform lab-<nid> --rich-parameter-file params.yaml --yes`.
 
    The DDEV project names must include the three proxy projects (`drupal-compare`, `drupal-compare-before`, `drupal-compare-after`).
    The two `repro-` names are the variant's environments; they are only needed if you also want a direct Coder URL to each site.
@@ -76,11 +102,15 @@ owner — are unchanged and still gate whether this is usable by anyone but its 
    field names above are the template's, which the form shows directly. Record a run if you are the first to use it.
 2. `coder ssh <name>`, wait for the startup scripts to finish, then:
 
-       git clone https://github.com/mgifford/drupal-core-lab.git && cd drupal-core-lab
+       [ -d ~/drupal-core-lab ] || git clone https://github.com/mgifford/drupal-core-lab.git ~/drupal-core-lab
+       cd ~/drupal-core-lab && git pull --ff-only
        node scripts/cloud-bootstrap.mjs 3619127-pinned --install-autostart
 
 3. Open `https://drupal-compare--<workspace>--<owner>.coder.ddev.com/` in a browser signed in to Coder. The bootstrap prints the exact URL.
 4. When finished, stop the workspace (**Stop** on the workspace page, or `coder stop <name>`). **Lifespan/autostop:** the workspace has a timed lifespan (a deadline), not just idle timeout; activity extends it. The app URL is `https://drupal-compare--<workspace>--<owner>.coder.ddev.com/` (derived from `{project}--{workspace}--{owner}.{domain}`), so if a workspace expires or is deleted, recreate it — you can reuse the `--use-existing-core` path if the `drupal-core` issue-picker checkout exists, or `--core-url` otherwise.
+
+For people and agents, `node scripts/test-mr.mjs <issue number | slug>` is the one command to start from: it updates the checkout
+(local changes in the way go to `git stash`), stops other comparisons' sites, and runs this bootstrap with the mirror and autostart.
 
 `node scripts/cloud-bootstrap.mjs <slug> --check` only reports what is missing. Its preflight names the exact fix for each problem
 (missing project names, no Docker, no `ddev coder-setup`, missing files).
@@ -88,10 +118,14 @@ owner — are unchanged and still gate whether this is usable by anyone but its 
 ## What the bootstrap does
 
 1. Preflight (Coder variables, Node 20+, `ddev`, Docker, the `coder-setup` host command, the three project names, the files).
-2. Builds both sites with `tools/compare/setup.mjs` unless they already exist (`--rebuild` forces it). `setup.mjs` refuses to run twice at once.
+2. Builds both sites with `tools/compare/setup.mjs` unless they already exist (`--rebuild` forces it). When they exist but a patch file
+   changed since they were built (a newer MR revision arrived with `git pull`), runs `setup.mjs --refresh-patches` instead of skipping;
+   a Before site with undeclared edits stops it (BLOCKED). `setup.mjs` refuses to run twice at once. An issue number works as the
+   slug (`3619154` means `3619154-latest`); there is no default variant.
 3. For `tools/compare/site` (the viewer address), `tools/compare/cloud/before` and `.../after`: `ddev coder-setup` and `ddev restart` the first time, `ddev start` later.
    The two small cloud projects give each frame its own Coder hostname and forward it to the viewer's proxy ports 8101 and 8102.
-4. `scripts/lab-env.mjs start <slug>`, then `tools/compare/cloud/start-viewer.sh`, which restarts the viewer with the Coder origins.
+4. `scripts/lab-env.mjs start <slug>`, then `tools/compare/cloud/start-viewer.sh <slug>`, which restarts the viewer with the Coder origins.
+   The slug is required: started without one, the viewer used to show the first variant, another issue than the sites.
 5. Installs Playwright and Chromium, and reinstalls Chromium's system libraries when they are missing (they do not survive a workspace restart).
 6. Runs `scripts/cloud-smoke.mjs`.
 7. With `--install-autostart`, writes `~/.coder-startup.sh`, which the template runs at each workspace start (log: `/tmp/lab-cloud-bootstrap.log`).

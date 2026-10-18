@@ -27,6 +27,15 @@ $k = Drupal\Core\DrupalKernel::createFromRequest($r, $a, 'prod');
 $k->boot();
 $k->preHandle($r);
 
+// The recipe is shared by Before and After. Enable the experimental UI only
+// where the MR patch has added it; unchanged core must remain unchanged.
+if (is_dir(DRUPAL_ROOT . '/core/modules/menu_tree_ui')) {
+  if (!\Drupal::moduleHandler()->moduleExists('menu_tree_ui')) {
+    \Drupal::service('module_installer')->install(['menu_tree_ui']);
+    echo "Enabled menu_tree_ui on the patched site.\n";
+  }
+}
+
 $total = max(1, (int) (getenv('LAB_MENU_LINKS') ?: 15000));
 $fanout = max(2, (int) (getenv('LAB_MENU_FANOUT') ?: 10));
 $prefix = 'Lab seed';

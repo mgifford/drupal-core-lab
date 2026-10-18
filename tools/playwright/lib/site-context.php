@@ -27,6 +27,12 @@ try {
   $out['profile'] = $ext['profile'] ?? NULL;
   $out['theme'] = ['default' => $theme['default'] ?? NULL, 'admin' => $theme['admin'] ?? NULL];
   $out['themes'] = array_keys($ext['theme'] ?? []);
+  // Configured values only: request/user overrides can differ. Never export arbitrary settings.
+  $out['themeSettings'] = [];
+  foreach ($out['themes'] as $theme_name) {
+    $settings = $cfg($theme_name . '.settings') ?? [];
+    $out['themeSettings'][$theme_name] = array_intersect_key($settings, array_flip(['high_contrast_mode', 'enable_dark_mode', 'layout_density']));
+  }
   $out['modules'] = array_keys($ext['module'] ?? []);
   sort($out['modules']);
   $out['defaultLangcode'] = $site['default_langcode'] ?? NULL;

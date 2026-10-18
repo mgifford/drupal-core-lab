@@ -1,5 +1,8 @@
 // Package one comparison as a self-contained zip that someone else can unpack and run.
-//   node scripts/make-bundle.mjs [slug]      writes bundles/drupal-repro-<issue>-<date>.zip (replaces an older zip for the same issue)
+//   node scripts/make-bundle.mjs [slug] [--revision=N]
+// Writes bundles/drupal-repro-<issue>-<date>-v<N>.zip and never removes an
+// earlier revision. When --revision is omitted, the next revision number for
+// that issue and date is selected.
 // The zip is a slice of this lab with the same layout (so the tools run unchanged): the viewer,
 // the recipe, the patches, the steps and checks, the evidence, and a setup command. It does not
 // contain Drupal core; setup clones it.
@@ -9,20 +12,36 @@ import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { labRoot, rawVariants } from '../tools/compare/lib.mjs';
 
+const args = process.argv.slice(2);
 const all = rawVariants();
-const v = all.find((x) => x.slug === (process.argv[2] || all[0].slug));
+const slug = args.find((x) => !x.startsWith('--')) || all[0].slug;
+const v = all.find((x) => x.slug === slug);
 if (!v) { console.error('unknown variant'); process.exit(1); }
 const name = `drupal-repro-${v.issue}`;
+const date = new Date().toISOString().slice(0, 10);
+const bundles = path.join(labRoot, 'bundles');
+fs.mkdirSync(bundles, { recursive: true });
+const revisionArg = (args.find((x) => x.startsWith('--revision=')) || '').slice('--revision='.length);
+if (revisionArg && !/^\d+$/.test(revisionArg)) { console.error('--revision must be a positive integer'); process.exit(2); }
+const used = fs.readdirSync(bundles).flatMap((f) => {
+  const m = f.match(new RegExp(`^${name}-${date}-v(\\d+)\\.zip$`));
+  return m ? [Number(m[1])] : [];
+});
+const revision = revisionArg ? Number(revisionArg) : Math.max(0, ...used) + 1;
+if (revision < 1) { console.error('--revision must be a positive integer'); process.exit(2); }
+const archiveName = `${name}-${date}-v${revision}`;
+const zip = path.join(bundles, `${archiveName}.zip`);
+if (fs.existsSync(zip)) { console.error(`${path.relative(labRoot, zip)} already exists; choose another --revision`); process.exit(2); }
 const stage = fs.mkdtempSync(path.join(os.tmpdir(), 'bundle-'));
-const root = path.join(stage, name);
+const root = path.join(stage, archiveName);
 
 const copy = (rel, filter = () => true) => {
   const src = path.join(labRoot, rel), dst = path.join(root, rel);
   if (!fs.existsSync(src)) { console.error(`missing: ${rel}`); process.exit(1); }
   fs.cpSync(src, dst, { recursive: true, filter: (f) => !/\.DS_Store$|node_modules/.test(f) && filter(f) });
 };
-for (const f of ['serve.mjs', 'index.html', 'lib.mjs', 'diff.mjs', 'setup.mjs', 'lighthouse.mjs', 'emulation.mjs', 'README.md']) copy(`tools/compare/${f}`);
-for (const f of ['coverage.mjs', 'lab-env.mjs', 'doctor.mjs', 'add-language.php']) copy(`scripts/${f}`);
+for (const f of ['serve.mjs', 'index.html', 'lib.mjs', 'diff.mjs', 'setup.mjs', 'lighthouse.mjs', 'emulation.mjs', 'media-preferences.mjs', 'README.md']) copy(`tools/compare/${f}`);
+for (const f of ['coverage.mjs', 'lab-env.mjs', 'doctor.mjs', 'add-language.php', 'build-cloud.mjs', 'make-bundle.mjs', 'measure-resources.mjs']) copy(`scripts/${f}`);
 for (const f of ['USER-GUIDE.md', 'FORCED-COLORS.md']) copy(`docs/${f}`);
 copy('docs/images');
 copy('scripts/lab-site.sh');
@@ -39,17 +58,57 @@ const rawAll = rawVariants();
 const issueVariants = rawAll.filter((x) => String(x.issue || '') === String(v.issue) || rawAll.some((y) => y.slug === x.extends && String(y.issue) === String(v.issue)));
 fs.writeFileSync(path.join(root, 'tools/compare/variants.json'), JSON.stringify(issueVariants, null, 2) + '\n');
 const latestSlug = (issueVariants.find((x) => /-latest$/.test(x.slug)) || {}).slug;
+const interdiffSlug = (issueVariants.find((x) => /-interdiff$/.test(x.slug)) || {}).slug;
+const evaluator = fs.existsSync(path.join(labRoot, 'tools/playwright', `evaluate-${v.issue}.mjs`))
+  ? `evaluate-${v.issue}.mjs`
+  : 'walkthrough.mjs';
+const labPatch = `reports/issues/${v.issue}/lab/patch-stack-baselines.patch`;
+const labPatchInstructions = fs.existsSync(path.join(labRoot, labPatch)) ? `
+Apply the focused lab infrastructure patch before regenerating indexes:
+
+\`\`\`shell
+git apply --check ${labPatch}
+git apply ${labPatch}
+\`\`\`
+` : '';
+const interdiffInstructions = interdiffSlug ? `
+## Build the MR-to-interdiff comparison
+
+The default build compares Drupal core with the completed patch stack. Build
+the additional variant below to compare the published MR directly with the MR
+plus the proposed interdiff:
+
+\`\`\`shell
+node tools/compare/setup.mjs ${interdiffSlug} --check-patches
+node tools/compare/setup.mjs ${interdiffSlug}
+node scripts/lab-env.mjs start ${interdiffSlug} --browser
+\`\`\`
+
+The viewer will show direct patch-stack comparison buttons. Any comparison
+whose environment is missing is labelled **build required** and reports the
+exact setup command when selected.
+` : '';
 
 const steps = (v.steps || []).map((s, i) => `${i + 1}. ${s.text}${s.lookFor ? `\n   *Look for:* ${s.lookFor}` : ''}`).join('\n');
 const checks = (v.checks || []).map((c) => `| ${c.kind} | ${c.label} | ${c.expect === 'same' ? 'same on both sides' : c.expect} |`).join('\n');
-const date = new Date().toISOString().slice(0, 10);
+const builtAt = new Date().toISOString();
+let labCommit = null;
+try { labCommit = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: labRoot, encoding: 'utf8' }).stdout.trim() || null; } catch { /* not a checkout */ }
+fs.writeFileSync(path.join(root, 'BUNDLE-MANIFEST.json'), JSON.stringify({
+  bundle: archiveName,
+  issue: String(v.issue),
+  slug: v.slug,
+  revision,
+  builtAt,
+  labCommit,
+}, null, 2) + '\n');
 fs.writeFileSync(path.join(root, 'README.md'), `# Reproduce and review: Drupal core issue #${v.issue}
 
 ${v.label}
 
 ${v.description}
 
-Bundle built ${date}. Issue: https://www.drupal.org/project/drupal/issues/${v.issue}
+Bundle revision v${revision}, built ${builtAt}. Issue: https://www.drupal.org/project/drupal/issues/${v.issue}
 
 **Local development only.** Everything runs on your machine. The sites use \`admin\` / \`admin\`.
 Nothing here is sent anywhere except downloads (Drupal core from git.drupalcode.org, Composer
@@ -65,11 +124,62 @@ window, with the steps, the expected result, and pass/fail checks on the page.
 - About 10 GB of disk and 8 GB of memory free. First setup takes 10 to 20 minutes.
 - Network access: Drupal core (git.drupalcode.org), Composer, npm (axe-core, installed by setup), the DDEV add-on.
 
-## Quick start
-\`\`\`bash
-cd ${name}
-node tools/compare/setup.mjs ${v.slug}      # builds both sites (clones Drupal core, installs, applies the recipe and patches)
-node tools/compare/serve.mjs ${v.slug}      # then open http://localhost:8100/
+## Add this issue to an existing drupal-core-lab checkout
+
+This is the recommended path when you already have the complete lab. From the
+root of this extracted bundle, copy only the issue-specific files and the
+bundle-generator correction into the matching paths:
+
+\`\`\`shell
+rsync -a recipes/${v.recipe}/ "$HOME/drupal-core-lab/recipes/${v.recipe}/"
+rsync -a reports/issues/${v.issue}/ "$HOME/drupal-core-lab/reports/issues/${v.issue}/"
+cp tools/playwright/evaluate-${v.issue}.mjs "$HOME/drupal-core-lab/tools/playwright/"
+cp scripts/make-bundle.mjs "$HOME/drupal-core-lab/scripts/"
+cd "$HOME/drupal-core-lab"
+
+\`\`\`
+${labPatchInstructions}
+\`\`\`shell
+node scripts/index-issues.mjs
+node scripts/build-cloud.mjs
+git status --short
+\`\`\`
+
+Keep \`reports/issues/${v.issue}/variants.json\` in the issue report. The lab
+loads it automatically. Do not replace the existing checkout's global
+\`tools/compare/variants.json\` with the bundle's reduced standalone copy.
+
+Stop the currently running comparison before starting this one:
+
+\`\`\`shell
+node scripts/lab-env.mjs status
+node scripts/lab-env.mjs stop all
+node scripts/doctor.mjs ${v.slug}
+node tools/compare/setup.mjs ${v.slug} --check-patches
+node tools/compare/setup.mjs ${v.slug}
+node scripts/lab-env.mjs start ${v.slug} --browser
+\`\`\`
+${interdiffInstructions}
+
+Do not append explanatory comments to commands pasted into interactive zsh.
+Depending on its options, zsh can treat the text after \`#\` as command input.
+
+If ports 8100, 8101, or 8102 are already in use, another viewer is still
+running. Stop it from the lab that started it. To identify the process:
+
+\`\`\`shell
+lsof -nP -iTCP:8100 -sTCP:LISTEN
+\`\`\`
+
+## Run this bundle as a separate standalone lab
+
+Use this only when you do not want to add the issue to an existing checkout.
+
+\`\`\`shell
+cd ${archiveName}
+node tools/compare/setup.mjs ${v.slug} --check-patches
+node tools/compare/setup.mjs ${v.slug}
+node scripts/lab-env.mjs start ${v.slug} --browser
 \`\`\`
 In the page: press **Log in both as admin**, choose **Phone** frame width, and follow the steps.
 **Mirror clicks and typing** repeats your actions in both frames; turn it off for the final step,
@@ -78,15 +188,25 @@ Switch **View** to **Difference** to see anything that looks different (black me
 The **Accessibility, live (axe-core)** panel compares both sides after every page load and interaction and
 alerts when After has more (or fewer) violations than Before.
 
+Record a repeatable serial resource comparison as JSON and Markdown:
+
+\`\`\`shell
+node scripts/measure-resources.mjs ${interdiffSlug || v.slug}
+\`\`\`
+
+That command measures the selected pair's two unique environments by default.
+Add \`--group\` only when you want every unique environment in a grouped review
+(up to three for this issue). Refresh the viewer's **Resources** tab afterward.
+
 ## Coming back later, or trying updated Drupal core
 \`${v.slug}\` uses ${v.core && v.core.commit ? 'the pinned core commit `' + v.core.commit.slice(0, 12) + '`, so it reproduces exactly as verified' : 'core as configured in variants.json'}.${latestSlug ? `
 To see whether it still works on current core:
 
 \`\`\`bash
-node tools/compare/setup.mjs ${v.slug} --check-patches    # do the patches still apply to the pinned core?
-node tools/compare/setup.mjs ${latestSlug} --check-patches    # ...and to the current core main?
-node tools/compare/setup.mjs ${latestSlug}                     # build Before and After on current main
-node tools/playwright/walkthrough.mjs ${latestSlug}            # needs: cd tools/playwright && npm install && npx playwright install chromium
+node tools/compare/setup.mjs ${v.slug} --check-patches
+node tools/compare/setup.mjs ${latestSlug} --check-patches
+node tools/compare/setup.mjs ${latestSlug}
+node tools/playwright/${evaluator} ${latestSlug}
 \`\`\`
 ` : ''}
 \`reports/issues/${v.issue}/REPRODUCE.md\` explains what each outcome means (a patch that no longer applies, a problem that no longer
@@ -95,7 +215,7 @@ reproduces because upstream fixed it, a fix that no longer works) and how to re-
 ## What is in this bundle
 | Path | What |
 |---|---|
-| \`recipes/${v.recipe}/\` | Drupal recipe that creates the starting state (Article type, Path module, Inline Form Errors). |
+| \`recipes/${v.recipe}/\` | Drupal recipe and post-setup scripts that create this issue's starting state on both sides. |
 | \`reports/issues/${v.issue}/\` | The patches (\`*.patch\`, \`branches/\`), validation steps, status of related issues, and diff evidence. |
 | \`tools/compare/variants.json\` | This comparison: environments, patches, steps, expected result, checks. |
 | \`tools/compare/\` | The viewer (\`serve.mjs\`, \`index.html\`), the diff report (\`diff.mjs\`), and \`setup.mjs\`. |
@@ -134,10 +254,7 @@ git.drupalcode.org, not included. The viewer and scripts were written with AI as
 for sources and dates. Always check the issue on drupal.org: it is the source of truth.
 `);
 
-fs.mkdirSync(path.join(labRoot, 'bundles'), { recursive: true });
-for (const f of fs.readdirSync(path.join(labRoot, 'bundles'))) if (f.startsWith(`${name}-`) && f.endsWith('.zip')) fs.rmSync(path.join(labRoot, 'bundles', f));
-const zip = path.join(labRoot, 'bundles', `${name}-${date}.zip`);
-const r = spawnSync('zip', ['-qr', zip, name], { cwd: stage, stdio: 'inherit' });
+const r = spawnSync('zip', ['-qr', zip, archiveName], { cwd: stage, stdio: 'inherit' });
 if (r.status !== 0) { console.error('zip failed (is the zip command installed?)'); process.exit(1); }
 fs.rmSync(stage, { recursive: true, force: true });
 console.log(`${path.relative(labRoot, zip)}  (${(fs.statSync(zip).size / 1024).toFixed(0)} KB)`);

@@ -3,6 +3,7 @@
 // Each site is reached through a small proxy on its own *.localhost hostname so the two
 // sessions never share cookies, framing works, and a sync script can be injected.
 import http from 'node:http';
+import { browserThemeContext } from './theme-context.mjs';
 import https from 'node:https';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -36,11 +37,29 @@ for (const [side, key] of [['before', 'LAB_BEFORE_ORIGIN'], ['after', 'LAB_AFTER
 // Origins allowed to use the viewer, to frame the proxied sites, and to send them commands. Everything else is refused.
 // Add more (for example a cloud workspace) with LAB_EXTRA_ORIGINS="https://host.example,https://other.example". An IP allowlist would not help here:
 // the requests that matter come from the owner's own browser (so from 127.0.0.1) via a web page they happen to visit; the Host, Origin and frame-ancestors checks are what stop those.
-const VIEWER_ORIGINS = [`http://localhost:${PAGE}`, `http://127.0.0.1:${PAGE}`, 'https://drupal-compare.ddev.site', ...(process.env.LAB_EXTRA_ORIGINS || '').split(',').map((x) => x.trim()).filter(Boolean)];
+// Each is normalised with new URL(…).origin, which lower-cases the host as browsers do in Origin and ancestorOrigins: a Coder workspace
+// named "Compare" is reached at …--compare--…, and a list kept as typed refused the viewer's own page and left it at "Loading…".
+const VIEWER_ORIGINS = [`http://localhost:${PAGE}`, `http://127.0.0.1:${PAGE}`, 'https://drupal-compare.ddev.site', ...(process.env.LAB_EXTRA_ORIGINS || '').split(',').map((x) => x.trim()).filter(Boolean)].map((o) => new URL(o).origin);
 const VIEWER_HOSTS = VIEWER_ORIGINS.map((o) => new URL(o).host);
 const list = variants();
 const state = { slug: process.argv.slice(2).find((x) => !x.startsWith('--')) || list[0].slug, theme: 'auto', darkos: false, axe: false, axeBest: false, dir: 'auto', nojs: false };
 const current = () => list.find((x) => x.slug === state.slug) || list[0];
+function latestResources() {
+  const v = current(); const dir = path.join(labRoot, 'reports/issues', String(v.issue || ''), 'resources');
+  const command = `node scripts/measure-resources.mjs ${v.slug}`;
+  if (!fs.existsSync(dir)) return { found: false, command, groupCommand: v.comparisonGroup ? command + ' --group' : null };
+  const files = fs.readdirSync(dir).filter((name) => name.endsWith('.json'))
+    .map((name) => ({ name, mtime: fs.statSync(path.join(dir, name)).mtimeMs })).sort((a, b) => b.mtime - a.mtime);
+  for (const file of files) {
+    try {
+      const data = JSON.parse(fs.readFileSync(path.join(dir, file.name), 'utf8'));
+      const measured = new Set((data.summaries || []).map((summary) => summary.env));
+      if (data.slug !== v.slug && ![v.before.env, v.after.env].every((env) => measured.has(env))) continue;
+      return { found: true, command, groupCommand: v.comparisonGroup ? command + ' --group' : null, file: path.relative(labRoot, path.join(dir, file.name)), data };
+    } catch { /* Ignore an incomplete or invalid result and try the next one. */ }
+  }
+  return { found: false, command, groupCommand: v.comparisonGroup ? command + ' --group' : null };
+}
 // Lighthouse jobs run one at a time, each in its own Chrome, and never block the proxies (login and DDEV lookups are async or cached).
 const lh = { seq: 0, running: false, pending: null, jobs: new Map() };
 async function runLighthouse(id, job) {
@@ -73,6 +92,10 @@ const PARENTS=${JSON.stringify(VIEWER_ORIGINS)};
 const parentOrigin=(()=>{try{const a=location.ancestorOrigins;if(a&&a.length)return a[0];return new URL(document.referrer).origin}catch(e){return ''}})();
 const targets=PARENTS.includes(parentOrigin)?[parentOrigin]:(parentOrigin?[]:PARENTS);
 const post=(m)=>{const msg=Object.assign({compare:1,side},m);targets.forEach((o)=>{try{parent.postMessage(msg,o)}catch(e){}})};let quiet=false;
+const readThemeContext=${browserThemeContext.toString()};
+let previousThemeContext='';
+function reportThemeContext(){const context=readThemeContext();const key=JSON.stringify(context);if(key!==previousThemeContext){previousThemeContext=key;post({type:'theme-context',context})}}
+addEventListener('load',reportThemeContext);setInterval(reportThemeContext,2000);
 const fake=(m,q)=>({matches:m,media:q,onchange:null,addEventListener(){},removeEventListener(){},addListener(){},removeListener(){},dispatchEvent(){return false}});
 const real=window.matchMedia.bind(window);
 window.matchMedia=(q)=>{if(S.darkos&&/prefers-color-scheme:\\s*dark/.test(q))return fake(true,q);if(S.darkos&&/prefers-color-scheme:\\s*light/.test(q))return fake(false,q);return real(q)};
@@ -83,6 +106,7 @@ const sweep=(rules)=>{for(const r of rules){try{
  if(r.cssRules)sweep(r.cssRules)}catch(e){}}};
 const applyOs=()=>{for(const sh of document.styleSheets){try{sweep(sh.cssRules)}catch(e){}}};
 const applyTheme=()=>{const h=document.documentElement;const dark=S.theme==='dark'||(S.theme==='auto'&&(S.darkos||real('(prefers-color-scheme: dark)').matches));h.classList.toggle('dark-mode',dark)};
+real('(prefers-color-scheme: dark)').addEventListener('change',applyTheme);
 const origDir=document.documentElement.getAttribute('dir');
 const applyDir=()=>{const h=document.documentElement;if(S.dir==='rtl'||S.dir==='ltr')h.setAttribute('dir',S.dir);else if(origDir===null)h.removeAttribute('dir');else h.setAttribute('dir',origDir)};
 const applyAll=()=>{applyOs();applyTheme();applyDir()};
@@ -224,7 +248,13 @@ function proxyFor(side) {
   });
 }
 
-for (const x of list) for (const side of ['before', 'after']) { if (!fs.existsSync(envDir(x[side].env))) continue; try { info(x[side].env); } catch (e) { console.log(`could not look up ${x[side].env} yet (${String(e.message).split('\n')[0]}); will retry on first use`); } }
+// Start listening without waiting for Docker. Warm only the selected pair, once
+// per distinct environment; other environments are resolved when requested.
+for (const env of new Set(['before', 'after'].map(side => current()[side].env))) {
+  if (!fs.existsSync(envDir(env))) continue;
+  envInfoAsync(env).then(value => { if (!infoCache[env]) infoCache[env] = { v: value, t: Date.now() }; })
+    .catch(error => console.log(`could not look up ${env} yet (${String(error.message).split('\n')[0]}); will retry on first use`));
+}
 for (const side of Object.keys(SIDES)) { const srv = proxyFor(side); srv.keepAliveTimeout = 65000; srv.headersTimeout = 66000; srv.listen(SIDES[side].port, BIND); }
 
 http.createServer((req, res) => {
@@ -240,7 +270,7 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
     const availability = Object.fromEntries(list.map(v => [v.slug, ['before', 'after'].every(s => fs.existsSync(path.join(envDir(v[s].env), '.ddev/config.yaml')))]));
     res.end(JSON.stringify({ variants: list, availability, state, origins: { before: SIDES.before.origin, after: SIDES.after.origin }, sites: realSites() }));
-  } else if (u.pathname === '/browser-handoff.mjs' || /^\/browser-icons\/(chrome|edge|firefox|safari)\.svg$/.test(u.pathname)) {
+  } else if (['/browser-handoff.mjs', '/media-preferences.mjs'].includes(u.pathname) || /^\/browser-icons\/(chrome|edge|firefox|safari)\.svg$/.test(u.pathname)) {
     const file = path.join(labRoot, 'tools/compare', u.pathname.slice(1));
     res.writeHead(200, { 'content-type': u.pathname.endsWith('.mjs') ? 'text/javascript' : 'image/svg+xml' }); res.end(fs.readFileSync(file));
   } else if (u.pathname === '/api/browsers') {
@@ -284,6 +314,8 @@ http.createServer((req, res) => {
   } else if (u.pathname === '/api/lighthouse/result') {
     const job = lh.jobs.get(Number(u.searchParams.get('id'))) || { state: 'error', error: 'unknown job' };
     res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify(job));
+  } else if (u.pathname === '/api/resources/latest') {
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }); res.end(JSON.stringify(latestResources()));
   } else if (u.pathname === '/api/cache') {
     const v = current();
     const run = (env) => new Promise((resolve) => execFile('ddev', ['drupal', 'cache'], { cwd: envDir(env), timeout: 120000 }, (err, so, se) => resolve(err ? `failed: ${String(se || err.message).trim().slice(0, 200)}` : 'cleared')));
@@ -292,7 +324,7 @@ http.createServer((req, res) => {
     // GET: state and what each frame reports. POST {mode}: forced-light | forced-dark | contrast | normal. POST /open: launch the controlled window.
     const send = (code, o) => { res.writeHead(code, { 'content-type': 'application/json' }); res.end(JSON.stringify(o)); };
     if (req.method === 'POST') { let b = ''; req.on('data', (c) => (b += c)); req.on('end', async () => {
-      try { const d = JSON.parse(b || '{}'); if (d.open) await emulation.open(`http://localhost:${PAGE}/?controlled=1`, d.mode || 'forced-light'); else if (d.close) await emulation.close(); else await emulation.setMode(d.mode); send(200, await emulation.status()); }
+      try { const d = JSON.parse(b || '{}'); if (d.open) await emulation.open(`http://localhost:${PAGE}/?controlled=1`, d.mode || 'forced-light', [SIDES.before.origin, SIDES.after.origin]); else if (d.close) await emulation.close(); else if (Object.hasOwn(d, 'preferences')) await emulation.setPreferences(d.preferences); else await emulation.setMode(d.mode); send(200, await emulation.status()); }
       catch (e) { send(400, { error: String(e.message).split('\n')[0] }); } }); }
     else emulation.status().then((s) => send(200, s)).catch((e) => send(500, { error: String(e.message) }));
   } else if (u.pathname === '/api/login') {

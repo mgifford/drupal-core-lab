@@ -12,8 +12,9 @@ const check = process.argv.includes('--check');
 const out = path.join(labRoot, 'cloud');
 const remote = execFileSync('git', ['-C', labRoot, 'remote', 'get-url', 'origin'], { encoding: 'utf8' }).trim();
 const repo = remote.replace(/^git@github\.com:/, 'https://github.com/').replace(/\.git$/, '');
-const pick = (v) => ({ slug: v.slug, issue: v.issue, label: v.label, description: v.description, steps: v.steps, expected: v.expected, actual: v.actual, setup: v.setup, observe: v.observe, checks: v.checks, pages: v.pages, demo: v.demo });
+const pick = (v) => ({ slug: v.slug, issue: v.issue, label: v.label, description: v.description, comparisonGroup: v.comparisonGroup, comparisonLabel: v.comparisonLabel, before: { label: v.before.label }, after: { label: v.after.label }, steps: v.steps, expected: v.expected, actual: v.actual, setup: v.setup, observe: v.observe, checks: v.checks, pages: v.pages, demo: v.demo });
 const files = {
+  'media-preferences.mjs': fs.readFileSync(path.join(labRoot, 'tools/compare/media-preferences.mjs'), 'utf8'),
   'browser-handoff.mjs': fs.readFileSync(path.join(labRoot, 'tools/compare/browser-handoff.mjs'), 'utf8'),
   'index.html': fs.readFileSync(path.join(labRoot, 'tools/compare/index.html'), 'utf8').replace('__BUILD__', 'static'),
   'variants.json': JSON.stringify({ static: true, repo, variants: variants().map(pick) }, null, 2) + '\n',

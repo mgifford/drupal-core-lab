@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { labRoot } from '../tools/compare/lib.mjs';
+import { renderIssueSummary } from '../tools/compare/issue-summary.mjs';
 import { NEW_ISSUE_MATRIX } from '../tools/compare/coverage-matrix.mjs';
 import { upsertBranchRow, comparePatch } from '../tools/compare/branch-patch.mjs';
 import { recordChange } from '../tools/compare/patch-change.mjs';
@@ -77,6 +78,11 @@ for (const [tpl, out] of [['REPRODUCE.md', 'REPRODUCE.md'], ['EVIDENCE.md', 'EVI
   const dst = path.join(dir, out); if (fs.existsSync(dst)) { console.log(`kept existing ${out}`); continue; }
   fs.writeFileSync(dst, sub(fs.readFileSync(path.join(labRoot, 'reports/_templates', tpl), 'utf8')));
 }
+const summaryFile = path.join(dir, 'SUMMARY.md');
+if (!fs.existsSync(summaryFile)) fs.writeFileSync(summaryFile, renderIssueSummary({
+  nid, title, metadata: `Selected base: \`${base}\`. Prepared: ${date}.\nFork branch: ${branch || 'none (local authoring)'}.`,
+}));
+else console.log('kept existing SUMMARY.md');
 const status = path.join(dir, `STATUS-${date}.md`);
 if (!fs.existsSync(status)) fs.writeFileSync(status, `# #${nid} status snapshot (${date})\n\nFill in from the issue page: title, status, tags, MR link, related issues, unresolved review threads, blockers.\nRe-check on drupal.org before relying on it.\n`);
 

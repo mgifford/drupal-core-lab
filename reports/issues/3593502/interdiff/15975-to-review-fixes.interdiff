@@ -1,0 +1,339 @@
+diff --git a/core/modules/menu_tree_ui/css/menu-tree-ui.css b/core/modules/menu_tree_ui/css/menu-tree-ui.css
+index 39725e73..fe4e063c 100644
+--- a/core/modules/menu_tree_ui/css/menu-tree-ui.css
++++ b/core/modules/menu_tree_ui/css/menu-tree-ui.css
+@@ -344,6 +344,25 @@
+   box-shadow: -3px 0 0 var(--mtu-color-focus);
+ }
+ 
++@media (forced-colors: active) {
++  .menu-tree-ui-row__handle-icon {
++    background: LinkText;
++  }
++
++  .menu-tree-ui-row--drop-as-child,
++  .menu-tree-ui-row--grabbed {
++    background-color: Canvas;
++    outline-color: Highlight;
++  }
++
++  .menu-tree-ui-drop-indicator {
++    height: 0;
++    border-block-start: 3px solid Highlight;
++    background: none;
++    box-shadow: none;
++  }
++}
++
+ .menu-tree-ui-row__toggle {
+   display: inline-flex;
+   align-items: center;
+diff --git a/core/modules/menu_tree_ui/js/menu-tree.js b/core/modules/menu_tree_ui/js/menu-tree.js
+index ebb2b3e6..6e9be8d9 100644
+--- a/core/modules/menu_tree_ui/js/menu-tree.js
++++ b/core/modules/menu_tree_ui/js/menu-tree.js
+@@ -125,8 +125,8 @@
+    *   The toggled checkbox.
+    * @param {string} url
+    *   The column-update endpoint.
+-   * @param {function(): (string|undefined)} getToken
+-   *   Returns the current CSRF token.
++   * @param {function(): Promise<string>} getToken
++   *   Returns a promise for the CSRF token.
+    *
+    * @return {Promise<void>}
+    *   Resolves once the update round-trips (or is reverted).
+@@ -141,13 +141,15 @@
+     }
+ 
+     const newValue = checkbox.checked;
++    checkbox.disabled = true;
+ 
+     try {
++      const token = await getToken();
+       const response = await fetch(url, {
+         method: 'POST',
+         headers: {
+           'Content-Type': 'application/json',
+-          'X-CSRF-Token': getToken() ?? '',
++          'X-CSRF-Token': token,
+         },
+         credentials: 'same-origin',
+         body: JSON.stringify({
+@@ -164,6 +166,8 @@
+     } catch (e) {
+       checkbox.checked = !newValue;
+       announce(Drupal.t('Update failed.'), 'assertive');
++    } finally {
++      checkbox.disabled = false;
+     }
+   }
+ 
+@@ -207,9 +211,27 @@
+       stickyObserver.observe(actionBar);
+     }
+ 
+-    let csrfToken;
+     let drag = null;
+-    const getToken = () => csrfToken;
++    let csrfToken;
++    const base = drupalSettings.path?.baseUrl ?? '/';
++    const csrfTokenPromise = fetch(`${base}session/token`, {
++      credentials: 'same-origin',
++    })
++      .then((response) => {
++        if (!response.ok) {
++          throw new Error(`CSRF token request failed: ${response.status}`);
++        }
++        return response.text();
++      })
++      .then((token) => {
++        if (!token) {
++          throw new Error('CSRF token request returned an empty token.');
++        }
++        csrfToken = token;
++        return token;
++      });
++    const getToken = () => csrfTokenPromise;
++    const getResolvedToken = () => csrfToken;
+ 
+     // One drop indicator, shared by pointer drag and keyboard move mode so the
+     // two never render into separate live regions. The host owns its position.
+@@ -220,7 +242,7 @@
+           moveUrl,
+           expand,
+           indicator,
+-          getToken,
++          getResolvedToken,
+           REORDER_CONFIG,
+         )
+       : null;
+@@ -236,7 +258,7 @@
+      *   The row whose handle was tapped.
+      */
+     const onHandleTap = (row) => {
+-      if (!moveMode) {
++      if (!moveMode || !csrfToken) {
+         return;
+       }
+       if (moveMode.isActive()) {
+@@ -288,7 +310,7 @@
+       // Space grabs a movable row; if it cannot grab, fall through so the spine
+       // toggles expand on a parent (Space's pre-move-mode role).
+       if (event.key === ' ') {
+-        if (moveMode && moveMode.tryGrab(row)) {
++        if (moveMode && csrfToken && moveMode.tryGrab(row)) {
+           event.preventDefault();
+           return true;
+         }
+@@ -298,7 +320,7 @@
+         event.shiftKey &&
+         (event.key === 'ArrowUp' || event.key === 'ArrowDown')
+       ) {
+-        if (moveUrl) {
++        if (moveUrl && csrfToken) {
+           rr.reorderSibling(row, event.key === 'ArrowUp' ? 'up' : 'down', {
+             moveUrl,
+             csrfToken,
+@@ -349,19 +371,12 @@
+       helpToggle.addEventListener('click', openHelp);
+     }
+ 
+-    // Drag needs the CSRF token; defer the controller until it resolves, keeping
+-    // the token out of URLs (and access logs). move-mode and the column toggle
+-    // read it lazily through getToken().
+-    const base = drupalSettings.path?.baseUrl ?? '/';
+-    fetch(`${base}session/token`, { credentials: 'same-origin' })
+-      .then((response) => response.text())
++    // Drag and move mode need the CSRF token. Defer drag, guard keyboard and
++    // handle pickup, and let column updates await the same promise. This keeps
++    // the token out of URLs and prevents an early interaction sending an empty
++    // X-CSRF-Token header.
++    csrfTokenPromise
+       .then((token) => {
+-        csrfToken = token;
+-      })
+-      .catch(() => {
+-        csrfToken = undefined;
+-      })
+-      .finally(() => {
+         if (!moveUrl) {
+           // eslint-disable-next-line no-console
+           console.warn(
+@@ -373,7 +388,7 @@
+           tree,
+           moveUrl,
+           expand,
+-          csrfToken,
++          token,
+           indicator,
+           () => moveMode?.cancel(),
+           (row) => onHandleTap(row),
+@@ -385,6 +400,10 @@
+         // wait on this before dispatching a move so they do not race the
+         // deferred wiring.
+         element.dataset.treegridReorderReady = 'true';
++      })
++      .catch((error) => {
++        // eslint-disable-next-line no-console
++        console.error('[menu-tree] Reordering disabled.', error);
+       });
+ 
+     element.addEventListener(
+diff --git a/core/modules/menu_tree_ui/tests/modules/menu_tree_ui_test/menu_tree_ui_test.services.yml b/core/modules/menu_tree_ui/tests/modules/menu_tree_ui_test/menu_tree_ui_test.services.yml
+new file mode 100644
+index 00000000..5a9248ec
+--- /dev/null
++++ b/core/modules/menu_tree_ui/tests/modules/menu_tree_ui_test/menu_tree_ui_test.services.yml
+@@ -0,0 +1,6 @@
++services:
++  menu_tree_ui_test.route_subscriber:
++    class: Drupal\menu_tree_ui_test\Routing\MenuTreeUiTestRouteSubscriber
++    tags:
++      - { name: event_subscriber }
++
+diff --git a/core/modules/menu_tree_ui/tests/modules/menu_tree_ui_test/src/Controller/MenuTreeUiTestCsrfTokenController.php b/core/modules/menu_tree_ui/tests/modules/menu_tree_ui_test/src/Controller/MenuTreeUiTestCsrfTokenController.php
+new file mode 100644
+index 00000000..adeb49a6
+--- /dev/null
++++ b/core/modules/menu_tree_ui/tests/modules/menu_tree_ui_test/src/Controller/MenuTreeUiTestCsrfTokenController.php
+@@ -0,0 +1,23 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\menu_tree_ui_test\Controller;
++
++use Drupal\system\Controller\CsrfTokenController;
++
++/**
++ * Delays the session token response to expose initialization races in tests.
++ */
++final class MenuTreeUiTestCsrfTokenController extends CsrfTokenController {
++
++  /**
++   * {@inheritdoc}
++   */
++  public function csrfToken() {
++    usleep(3000000);
++    return parent::csrfToken();
++  }
++
++}
++
+diff --git a/core/modules/menu_tree_ui/tests/modules/menu_tree_ui_test/src/Routing/MenuTreeUiTestRouteSubscriber.php b/core/modules/menu_tree_ui/tests/modules/menu_tree_ui_test/src/Routing/MenuTreeUiTestRouteSubscriber.php
+new file mode 100644
+index 00000000..1b2f8597
+--- /dev/null
++++ b/core/modules/menu_tree_ui/tests/modules/menu_tree_ui_test/src/Routing/MenuTreeUiTestRouteSubscriber.php
+@@ -0,0 +1,25 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\menu_tree_ui_test\Routing;
++
++use Drupal\Core\Routing\RouteSubscriberBase;
++use Drupal\menu_tree_ui_test\Controller\MenuTreeUiTestCsrfTokenController;
++use Symfony\Component\Routing\RouteCollection;
++
++/**
++ * Replaces the session token controller with a deliberately slow test double.
++ */
++final class MenuTreeUiTestRouteSubscriber extends RouteSubscriberBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  protected function alterRoutes(RouteCollection $collection): void {
++    $route = $collection->get('system.csrftoken');
++    $route?->setDefault('_controller', MenuTreeUiTestCsrfTokenController::class . '::csrfToken');
++  }
++
++}
++
+diff --git a/core/modules/menu_tree_ui/tests/src/FunctionalJavascript/MenuTreeUiColumnToggleTest.php b/core/modules/menu_tree_ui/tests/src/FunctionalJavascript/MenuTreeUiColumnToggleTest.php
+index 80dde94b..f6f90e76 100644
+--- a/core/modules/menu_tree_ui/tests/src/FunctionalJavascript/MenuTreeUiColumnToggleTest.php
++++ b/core/modules/menu_tree_ui/tests/src/FunctionalJavascript/MenuTreeUiColumnToggleTest.php
+@@ -31,6 +31,7 @@ final class MenuTreeUiColumnToggleTest extends WebDriverTestBase {
+   protected static $modules = [
+     'menu_link_content',
+     'menu_tree_ui',
++    'menu_tree_ui_test',
+   ];
+ 
+   /**
+@@ -69,11 +70,15 @@ protected function setUp(): void {
+   }
+ 
+   /**
+-   * Clicking the Enabled checkbox unchecks it and persists enabled = FALSE.
++   * A toggle made before the delayed CSRF token arrives is persisted.
+    */
+   public function testTogglePersists(): void {
+     $checkbox = $this->enabledCheckbox();
+     $this->assertTrue($checkbox->isChecked(), 'The Enabled checkbox starts checked.');
++    $this->assertSession()->elementNotExists(
++      'css',
++      'drupal-treegrid[data-treegrid-reorder-ready="true"]',
++    );
+ 
+     $checkbox->click();
+     $this->assertFalse(
+diff --git a/core/modules/menu_tree_ui/tests/src/FunctionalJavascript/MenuTreeUiSearchTest.php b/core/modules/menu_tree_ui/tests/src/FunctionalJavascript/MenuTreeUiSearchTest.php
+index d27d81a4..0d38f8ea 100644
+--- a/core/modules/menu_tree_ui/tests/src/FunctionalJavascript/MenuTreeUiSearchTest.php
++++ b/core/modules/menu_tree_ui/tests/src/FunctionalJavascript/MenuTreeUiSearchTest.php
+@@ -78,4 +78,51 @@ public function testSearchSwapsResultsAndJumps(): void {
+     $this->assertSame($apricot_id, $focused_id, 'The jumped-to row receives focus.');
+   }
+ 
++  /**
++   * Escape dismisses results without clearing the search query.
++   */
++  public function testEscapeDismissesResults(): void {
++    $page = $this->getSession()->getPage();
++    $input = $page->find('css', '#menu-tree-ui-search-input');
++    $this->assertNotNull($input);
++
++    $input->setValue('Apple');
++    $this->assertSession()->waitForElementVisible(
++      'css',
++      '#menu-tree-ui-search-results .menu-tree-ui-search-results__list',
++    );
++    $input->keyDown(27);
++    $input->keyUp(27);
++
++    $this->assertSession()->waitForElementRemoved(
++      'css',
++      '#menu-tree-ui-search-results > *',
++    );
++    $this->assertSame('Apple', $input->getValue());
++  }
++
++  /**
++   * Clicking outside the search container dismisses the results.
++   */
++  public function testOutsideClickDismissesResults(): void {
++    $page = $this->getSession()->getPage();
++    $input = $page->find('css', '#menu-tree-ui-search-input');
++    $this->assertNotNull($input);
++
++    $input->setValue('Apple');
++    $this->assertSession()->waitForElementVisible(
++      'css',
++      '#menu-tree-ui-search-results .menu-tree-ui-search-results__list',
++    );
++    $outside = $page->find('css', 'h1');
++    $this->assertNotNull($outside);
++    $outside->click();
++
++    $this->assertSession()->waitForElementRemoved(
++      'css',
++      '#menu-tree-ui-search-results > *',
++    );
++    $this->assertSame('Apple', $input->getValue());
++  }
++
+ }

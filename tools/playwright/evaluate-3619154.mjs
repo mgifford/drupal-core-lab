@@ -1,113 +1,52 @@
-// #3619154 / MR !16911: exercise the Default Admin sidebar toggle, Before and After.
-//   node tools/playwright/evaluate-3619154.mjs [slug]        (default 3619154-pinned)
-// On the node edit form it records, for each side:
-//   - the toggle and close control: tag, role, aria-controls, aria-expanded,
-//   - whether a mouse click toggles the sidebar and flips aria-expanded,
-//   - whether the keyboard activates it: Enter and (the telling one) Space,
-//   - whether the close button is the first focusable element in the sidebar (focus order),
-//   - screenshots of the expanded and collapsed states.
-// Output: reports/issues/3619154/playwright/<timestamp>-evaluate/ (SUMMARY.md, results.json, *.png)
-import fs from 'node:fs';
+// Evidence for #3619154: Default Admin meta sidebar toggle fixes (the merge request reworks the toggle, close button, overlay,
+// stored state and resize handle on entity edit forms).
+//   node tools/playwright/evaluate-3619154.mjs [slug] [--browser=chromium|firefox|webkit] [--scheme=light|dark] [--forced-colors] [--viewport=WxH] [--out=<dir>]
+// Defaults: slug 3619154-latest (current core main; the comparison for a new merge request revision), chromium, light, 1280x900.
+// The steps and checks are in sidebar-3619154.mjs: desktop 1280px, 1100px with Navigation, narrow 800px (or the --viewport width
+// when it is below 1024px), and 960/1000px. Real input; axe on the open desktop sidebar, the closed one after reload, and the open
+// narrow overlay. Run it with --forced-colors too: R12 is the close button's icon in that mode (comment #23). The context, AJAX commands and announcements are recorded by tools/playwright/lib/lab-run.mjs (see there).
+// Writes reports/issues/3619154/playwright/<stamp>-<envTag>/ (results.json, SUMMARY.md, ajax-*.json, *.png) or --out.
+// Replaces the 2026-10-14 script, whose "sidebar shown" probe used offsetParent: always null for this position:fixed sidebar.
 import path from 'node:path';
-import { execFileSync } from 'node:child_process';
-import { chromium } from '@playwright/test';
-import { labRoot, variants, envInfo, loginPath } from '../compare/lib.mjs';
+import { runArgs, launch, openSide, axeScan, baseResults, writeRun, contextMarkdown, speechMarkdown } from './lib/lab-run.mjs';
+import { replaySide, evaluate } from './sidebar-3619154.mjs';
 
-const slug = process.argv.slice(2).find((a) => !a.startsWith('--')) || '3619154-pinned';
-const v = variants().find((x) => x.slug === slug);
-if (!v) { console.error(`no such variant: ${slug}`); process.exit(2); }
-const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-const out = path.join(labRoot, 'reports/issues', v.issue, 'playwright', `${stamp}-evaluate`);
-fs.mkdirSync(out, { recursive: true });
-const shortHost = (env) => envInfo(env).hosts.slice().sort((a, b) => a.length - b.length)[0];
-const commit = (env) => { try { return execFileSync('git', ['-C', path.join(labRoot, 'envs', env), 'rev-parse', '--short', 'HEAD'], { encoding: 'utf8' }).trim(); } catch { return 'unknown'; } };
-const SIDES = { before: v.before.env, after: v.after.env };
+const run = runArgs({ slug: '3619154-latest' });
+const narrow = run.viewport.width < 1024 ? run.viewport.width : 800;
 
-// Serialised into the browser: read the toggle, the close control, and whether the sidebar is shown.
-const measure = () => {
-  const t = document.querySelector('.meta-sidebar__trigger');
-  const c = document.querySelector('.meta-sidebar__close');
-  const sbId = t && t.getAttribute('aria-controls');
-  const sb = sbId ? document.getElementById(sbId) : null;
-  const visible = (el) => !!el && !!el.offsetParent && getComputedStyle(el).visibility !== 'hidden';
-  // First focusable element inside the sidebar (focus order check).
-  let firstFocusable = null;
-  if (sb) {
-    const f = sb.querySelector('a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
-    if (f) firstFocusable = (f.className || f.tagName).toString().split(' ')[0];
+async function replay(side) {
+  const { page, base, rec } = await openSide(run, side);
+  try {
+    rec.states = await replaySide(page, base, { out: run.out, side, axe: axeScan, path, narrow });
+    return rec;
+  } finally {
+    await rec.close(run.out);
   }
-  const desc = (el) => el ? { tag: el.tagName.toLowerCase(), role: el.getAttribute('role'), ariaControls: el.getAttribute('aria-controls'), ariaExpanded: el.getAttribute('aria-expanded') } : null;
-  return { toggle: desc(t), close: desc(c), sidebarVisible: visible(sb), firstFocusableInSidebar: firstFocusable };
-};
-
-const browser = await chromium.launch();
-const results = {};
-for (const [side, env] of Object.entries(SIDES)) {
-  const base = `https://${shortHost(env)}`;
-  const ctx = await browser.newContext({ ignoreHTTPSErrors: true, viewport: { width: 1280, height: 900 }, deviceScaleFactor: 1 });
-  const page = await ctx.newPage();
-  await page.goto(base + loginPath(env), { waitUntil: 'networkidle' });
-  await page.goto(base + '/node/1/edit', { waitUntil: 'networkidle' });
-  await page.waitForTimeout(800);
-  const toggle = page.locator('.meta-sidebar__trigger').first();
-
-  const data = { env, commit: commit(env), initial: await page.evaluate(measure) };
-  await page.screenshot({ path: path.join(out, `${side}-1-initial.png`), fullPage: false });
-
-  // Mouse click toggles the sidebar.
-  if (await toggle.count()) { await toggle.click({ trial: false }); await page.waitForTimeout(600); }
-  data.afterMouseClick = await page.evaluate(measure);
-  await page.screenshot({ path: path.join(out, `${side}-2-after-click.png`), fullPage: false });
-
-  // Restore, then keyboard: focus the toggle and press Enter.
-  if (await toggle.count()) { await toggle.click(); await page.waitForTimeout(500); }           // back to initial
-  if (await toggle.count()) { await toggle.focus(); await page.keyboard.press('Enter'); await page.waitForTimeout(500); }
-  data.afterEnter = await page.evaluate(measure);
-
-  // Restore, then press Space (anchors do NOT activate on Space; real buttons do).
-  if (await toggle.count()) { await toggle.click(); await page.waitForTimeout(500); }           // back to initial
-  if (await toggle.count()) { await toggle.focus(); await page.keyboard.press('Space'); await page.waitForTimeout(500); }
-  data.afterSpace = await page.evaluate(measure);
-
-  results[side] = data;
-  await ctx.close();
 }
-await browser.close();
-fs.writeFileSync(path.join(out, 'results.json'), JSON.stringify(results, null, 2) + '\n');
 
-const row = (label, pick) => `| ${label} | ${pick(results.before)} | ${pick(results.after)} |`;
-const t = (d) => d.initial.toggle;
-const flipped = (d, state) => (d.initial.toggle && d[state].toggle) ? `${d.initial.toggle.ariaExpanded} → ${d[state].toggle.ariaExpanded}` : 'n/a';
-const vis = (d, state) => `${d.initial.sidebarVisible} → ${d[state].sidebarVisible}`;
-const md = `# #3619154 / MR !16911 evaluate — ${slug}
+const { browser, environment } = await launch(run);
+run.browser = browser;
+const results = baseResults(run, environment);
+try {
+  for (const side of ['before', 'after']) results.sides[side] = await replay(side);
+} finally { await browser.close(); }
 
-Generated ${new Date().toISOString()}.
-Before: \`${results.before.env}\` @ ${results.before.commit}  ·  After: \`${results.after.env}\` @ ${results.after.commit}
-Page: /node/1/edit (Default Admin). Logged in as user 1. Viewport 1280×900.
-
-## Sidebar toggle control
-${row('Element', (d) => t(d) ? `\`<${t(d).tag}${t(d).role ? ` role=${t(d).role}` : ''}>\`` : '—')}
-${row('aria-controls', (d) => t(d)?.ariaControls || '—')}
-${row('aria-expanded (initial)', (d) => t(d)?.ariaExpanded ?? '— (absent)')}
-
-## Does it toggle? (aria-expanded, and sidebar visibility)
-${row('Mouse click — aria-expanded', (d) => flipped(d, 'afterMouseClick'))}
-${row('Mouse click — sidebar shown', (d) => vis(d, 'afterMouseClick'))}
-${row('Keyboard Enter — aria-expanded', (d) => flipped(d, 'afterEnter'))}
-${row('Keyboard **Space** — aria-expanded', (d) => flipped(d, 'afterSpace'))}
-
-## Focus order
-${row('Close control', (d) => d.initial.close ? `\`<${d.initial.close.tag}${d.initial.close.role ? ` role=${d.initial.close.role}` : ''}>\`` : '—')}
-${row('First focusable in sidebar', (d) => d.initial.firstFocusableInSidebar || '—')}
-
-## Screenshots
-- {before,after}-1-initial.png — sidebar in its initial state
-- {before,after}-2-after-click.png — after activating the toggle
-
-## Notes
-- The telling keyboard row is **Space**: a native \`<button>\` activates on Space, an \`<a role="button">\` does not. Compare the Before/After Space rows.
-- aria-expanded absent in Before means assistive tech cannot tell whether the sidebar is open.
-`;
-fs.writeFileSync(path.join(out, 'SUMMARY.md'), md);
-console.log(`Wrote ${path.relative(labRoot, out)}/`);
-console.log(md);
+const B = results.sides.before.states, A = results.sides.after.states;
+const ev = evaluate(B, A);
+results.checks = ev.rows;
+results.verdict = ev.verdict;
+results.unexpected = ev.unexpected + results.sides.after.jsErrors.length;
+const axeRow = (k, sub) => `| ${k} | ${B[sub[0]][sub[1]]?.total ?? '—'} | ${A[sub[0]][sub[1]]?.total ?? '—'} |`;
+const cell = (x) => (x === null ? 'n/a' : typeof x === 'string' ? x.replace(/\|/g, '\\|').replace(/\n/g, ' ') : String(x));
+let md = `# #3619154 sidebar toggle: ${run.v.slug}\n\nDRAFT automated evidence, not reviewed by a person. ${results.when}. Verdict: **${results.verdict}** (${results.unexpected} not as expected).\n`;
+md += `Before \`${results.commits.before}\`, After \`${results.commits.after}\`. Patches on After: ${(run.v.after.patches || []).map((p) => `\`${path.basename(p)}\``).join(', ') || 'none'}. ${environment.browser} ${environment.browserVersion}, ${environment.colorScheme}${environment.forcedColors ? ', forced colours' : ''}; widths 1280, 1100, ${narrow}, 1000 and 960px.\n\n`;
+md += `Fix: should fail Before and pass After. Regression: should pass After. Observed: recorded for a person to judge.\n\n| | Kind | Check | Before | After | Result |\n|---|---|---|---|---|---|\n`;
+for (const r of ev.rows) md += `| ${r.id} | ${r.kind} | ${r.label} | ${cell(r.before)} | ${cell(r.after)} | ${r.status} |\n`;
+md += `\n## axe (WCAG 2.2 A/AA tags), violations\n\n| Stage | Before | After |\n|---|---|---|\n${axeRow('Desktop, sidebar open', ['desktop', 'axeOpen'])}\n${axeRow('Desktop, closed after reload', ['desktop', 'axeClosed'])}\n${axeRow(`${narrow}px, sidebar open`, ['narrow', 'axeOpen'])}\n`;
+md += `\nJavaScript errors: Before ${results.sides.before.jsErrors.length}, After ${results.sides.after.jsErrors.length}.\n`;
+md += `\n## Screenshots\n\n\`{before,after}-desktop-initial\`, \`-desktop-closed-reloaded\`, \`-nav-initial\`, \`-nav-after-details\`, \`-narrow-open\`, \`-narrow-escape\`, \`-close-rest\`, \`-close-focus\`, \`-width-960-open\`, \`-width-1000-open\` (.png).\n\n`;
+md += contextMarkdown(results) + speechMarkdown(results);
+md += `## How to read it\n\n- F11 is "n/a" on a side where the sidebar and an expanded Navigation cannot both be open below 1280px: each closes the other when opened by a click. O10 shows what a page load from stored state gives.\n- A flash (F9, R11) is any animation frame, from document start for 3 s, with part of the sidebar inside the viewport while it should be closed.\n- R12 photographs the close button (6px around it) with focus, after opening with Enter, and again with focus removed; it counts the pixels that differ from the most common colour. It fails when the focused icon has under half the pixels it has at rest (comment #23: in forced colours the icon vanished on focus). It is n/a where something covers the button.\n- F13 sets \`dir="rtl"\` on \`<html>\` after load, as the issue's testing steps do; it is not a right-to-left language install.\n- Focus is placed with \`locator.focus()\` before each key press; the key presses, clicks and the drags are real input.\n\n`;
+md += `Not verified: a person's keyboard pass, a screen reader (synthetic or real), touch resizing, a right-to-left language install, resizing after an AJAX rebuild, the site without the Navigation module, other entity forms than /node/1/edit, and themes other than Default Admin.\n`;
+console.log(writeRun(run, results, md));
+process.exitCode = results.unexpected ? 2 : 0;

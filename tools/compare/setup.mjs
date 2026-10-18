@@ -24,7 +24,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { labRoot, variants, envDir } from './lib.mjs';
+import { labRoot, variants, envDir, ddevName } from './lib.mjs';
 import { ensurePatches } from './patch-state.mjs';
 import { identity, blockMessage, headOf, recipeStatus } from './env-state.mjs';
 import { ensureContrib } from './contrib-state.mjs';
@@ -117,19 +117,31 @@ if (core.commit ? !hasRef() : (CHECK || needEnv || !hasRef())) {
 if (!dry) console.log('core is at: ' + out('git', ['-C', bare, 'log', '-1', '--format=%H %cs %s', coreRef]));
 
 if (CHECK) {
-  // Do the patches still apply to this core? Applies them in order to a throwaway checkout, builds nothing.
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'patchcheck-')); const wt = path.join(tmp, 'core');
-  run('git', ['-C', bare, 'worktree', 'add', '-q', '--detach', wt, coreRef]);
+  // Do both patch stacks still apply to this core? Each side starts from its
+  // own clean throwaway checkout. This matters when Before is an earlier MR or
+  // patch revision rather than pristine core.
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'patchcheck-'));
   let failed = false; const rows = [];
-  for (const p of v.after.patches || []) {
-    if (failed) { rows.push(`| \`${p}\` | not tried (an earlier patch failed) |`); continue; }
-    const r = spawnSync('git', ['apply', path.join(labRoot, p)], { cwd: wt, encoding: 'utf8' });
-    if (r.status === 0) rows.push(`| \`${p}\` | applies cleanly |`);
-    else { failed = true; rows.push(`| \`${p}\` | **does not apply**: ${String(r.stderr).split('\n').slice(0, 2).join(' ').slice(0, 160)} |`); }
+  for (const side of ['before', 'after']) {
+    const wt = path.join(tmp, side);
+    run('git', ['-C', bare, 'worktree', 'add', '-q', '--detach', wt, coreRef]);
+    let sideFailed = false;
+    const patches = v[side].patches || [];
+    if (!patches.length) rows.push(`| ${side} | _(pristine core)_ | no patches |`);
+    for (const p of patches) {
+      if (sideFailed) { rows.push(`| ${side} | \`${p}\` | not tried (an earlier patch failed) |`); continue; }
+      const r = spawnSync('git', ['apply', path.join(labRoot, p)], { cwd: wt, encoding: 'utf8' });
+      if (r.status === 0) rows.push(`| ${side} | \`${p}\` | applies cleanly |`);
+      else {
+        failed = true; sideFailed = true;
+        rows.push(`| ${side} | \`${p}\` | **does not apply**: ${String(r.stderr).split('\n').slice(0, 2).join(' ').slice(0, 160)} |`);
+      }
+    }
+    spawnSync('git', ['-C', bare, 'worktree', 'remove', '--force', wt]);
   }
-  spawnSync('git', ['-C', bare, 'worktree', 'remove', '--force', wt]); fs.rmSync(tmp, { recursive: true, force: true });
-  console.log(`\n| Patch (in order) | Result on core ${core.commit ? core.commit.slice(0, 12) : core.ref} |\n|---|---|\n${rows.join('\n')}`);
-  console.log(failed ? '\nThe patch stack needs rerolling for this core (see reports/issues/<nid>/REPRODUCE.md).' : '\nAll patches apply. Build the environments and run the walkthrough to see whether the problem still reproduces and the fix still works.');
+  fs.rmSync(tmp, { recursive: true, force: true });
+  console.log(`\n| Side | Patch (in order) | Result on core ${core.commit ? core.commit.slice(0, 12) : core.ref} |\n|---|---|---|\n${rows.join('\n')}`);
+  console.log(failed ? '\nAt least one patch stack needs rerolling for this core (see reports/issues/<nid>/REPRODUCE.md).' : '\nBoth patch stacks apply. Build the environments and run the walkthrough to compare them.');
   process.exit(failed ? 3 : 0);
 }
 
@@ -154,7 +166,7 @@ for (const [side, spec] of sides) addCheckout(side, spec);
 if (!dry) { const id = identity(v, { labRoot, envDir, checks: ['base', 'pin'] }); if (id.problems.length) { console.error(blockMessage(id)); process.exit(4); } }
 for (const [side, spec] of sides) {
   const dir = envDir(spec.env);
-  const name = `repro-${spec.env}`.slice(0, 60);
+  const name = ddevName(spec.env);
   step(`${side}: ${spec.env}`);
 
   // Patches, tracked by content (tools/compare/patch-state.mjs): a re-run reuses them only when the recorded hashes and the files still

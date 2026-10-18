@@ -18,6 +18,19 @@ export function lighthouseAvailable() {
   return { ok: missing.length === 0, missing };
 }
 
+// Keep enough diagnostic evidence to investigate a regression without storing
+// the complete Lighthouse result (which can be many megabytes). Values and
+// arrays are bounded so the viewer API and downloaded log remain manageable.
+function compact(value, depth = 0) {
+  if (value == null || typeof value === 'number' || typeof value === 'boolean') return value;
+  if (typeof value === 'string') return value.length > 600 ? value.slice(0, 597) + '...' : value;
+  if (depth >= 5) return '[truncated]';
+  if (Array.isArray(value)) return value.slice(0, 20).map((item) => compact(item, depth + 1));
+  const out = {};
+  for (const [key, item] of Object.entries(value).slice(0, 40)) out[key] = compact(item, depth + 1);
+  return out;
+}
+
 // Audit one page of one environment. Returns scores and the audits that did not pass.
 // A real (Playwright) browser logs in by normal navigation, so its cookie jar is right by construction, and Lighthouse is then
 // pointed at that same browser through its debugging port.
@@ -40,7 +53,13 @@ export async function audit({ env, host: hostArg, pagePath, performance = false,
     const scores = Object.fromEntries(Object.entries(lhr.categories).map(([k, c]) => [k, Math.round((c.score ?? 0) * 100)]));
     const perfIds = new Set(((lhr.categories.performance || {}).auditRefs || []).map((r) => r.id));
     const failed = Object.values(lhr.audits).filter((a) => a.score !== null && a.score < 1 && !['informative', 'notApplicable', 'manual'].includes(a.scoreDisplayMode))
-      .map((a) => ({ id: a.id, title: a.title, score: a.score, items: (a.details && a.details.items ? a.details.items.length : 0), perf: perfIds.has(a.id) }));
+      .map((a) => ({
+        id: a.id, title: a.title, description: a.description, score: a.score,
+        displayValue: a.displayValue || null,
+        items: (a.details && a.details.items ? a.details.items.length : 0),
+        details: a.details ? compact({ type: a.details.type, headings: a.details.headings, items: a.details.items }) : null,
+        perf: perfIds.has(a.id),
+      }));
     return { env, url: `https://${host}${pagePath}`, lighthouseVersion: lhr.lighthouseVersion, scores, failed, runtimeError: lhr.runtimeError ? lhr.runtimeError.message : null };
   } finally { await ctx.close().catch(() => {}); fs.rmSync(userDataDir, { recursive: true, force: true }); }
 }

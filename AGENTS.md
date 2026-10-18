@@ -16,6 +16,22 @@ Instruction precedence: `ACCESSIBILITY.md`, then this file, then `STYLES.md`, th
 choose the safer, more accessible option. (`.agents/DRUPAL_AGENTS.md` still describes the old layout with core at the repository
 root; where it disagrees with this file, this file wins.)
 
+For a browser-visible Drupal core change, the deliverable is a registered Before/After comparison in the Lab viewer. In DDEV Coder, start with `node scripts/test-mr.mjs <issue number>` (it updates the checkout and runs scripts/cloud-bootstrap.mjs; the issue's CODER-PROMPT.md lists the errors it can stop with and what each means). Creating two independent sites does not complete this task. Each issue must identify its variant, recipe or explicit Standard-install precondition, exact patch revision, reproduction steps and evidence gaps.
+
+## Before implementation: agent checklist
+
+State these five items before changing files or writing setup commands:
+
+- Issue number and URL, plus the selected MR or local proposal.
+- Execution environment: local DDEV, DDEV Coder Freeform, or preparation only without Docker.
+- Exact registered comparison slug; if missing, scaffold and register it first.
+- Recipe path, including optional post-recipe scripts, or an explicit plain Standard-install precondition.
+- Ordered Before and After patch stacks and their revisions/hashes; distinguish the MR from local follow-ups.
+
+For Coder handoffs, put the issue-specific scenario in the variant's `steps`, `expected`, `actual`, `checks` and `observe`.
+Generate the common instructions with `node scripts/coder-prompt.mjs <slug> --write`; do not write an independent-site setup.
+The shared template is `prompts/coder-prompt.md`. Regenerate after changing a scenario or patch stack.
+
 ## Start here (the normal sequence for an issue)
 
     node scripts/doctor.mjs [slug]                       1. is this machine ready? fix what it reports (read-only)
@@ -45,7 +61,7 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
     scripts/lab-config.mjs [key]  |  scripts/patch-change.mjs check|record|list  (a changed patch file leaves a record)
     scripts/issue-pack.mjs edit <pack> <edit.json> | sync-issue <pack> | validate <pack> --repair --targeted   fix the fields the validator named, not the whole pack
     scripts/issue-intake.mjs fetch|brief|show <nid> ... | handoff write|check|show   compact issue brief and named handoffs (reports/issues/<nid>/intake/, handoffs/); `issue-pack.mjs prepare --compact` uses the brief
-    scripts/selftest.mjs  |  scripts/build-cloud.mjs  |  scripts/cloud-bootstrap.mjs <slug>
+    scripts/selftest.mjs  |  scripts/build-cloud.mjs  |  scripts/cloud-bootstrap.mjs <slug>  |  scripts/test-mr.mjs <nid|slug> [--diff=<file>] [--dry-run]   (one command: update, build, start; Coder or local)
 
 ## Read on demand (not loaded every session)
 | When | Read |
@@ -55,6 +71,8 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
 | building, resetting or removing an environment; which environments exist; the manual fallback | `docs/ENVIRONMENTS.md` |
 | changing the viewer (`tools/compare/index.html`, `serve.mjs`) | `docs/VIEWER-DEV.md` (the security rules are there) |
 | writing results into `reports/issues/<nid>/` | `docs/RESULTS-LAYOUT.md` |
+| a DDEV Coder task, before writing commands | `docs/CLOUD-QUICKSTART.md` and `tools/compare/cloud/README.md` |
+| generating a Coder handoff | `prompts/README.md`; `node scripts/coder-prompt.mjs <slug> --write` |
 | starting a new issue | `docs/NEW-ISSUE.md` |
 
 ## Rules for agents

@@ -7,6 +7,8 @@
       "issue": "3619127",
       "label": "#3619127: sidebar opens from Inline Form Errors links (MR + vanilla JS), pinned core",
       "description": "Before: upstream main. After: MR !16895 with patch-0 (no jQuery) and patch-1 (no persist). Open /node/add/article in a narrow window, set a URL alias of 'no-slash' inside the sidebar, close the sidebar, Save, then use the error link. Before: nothing opens. After: the sidebar opens and the field gets focus.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Default Admin is the admin theme.",
@@ -134,6 +136,8 @@
       "issue": "3619127",
       "label": "#3619127: same steps against the LATEST Drupal core main",
       "description": "Before: upstream main. After: MR !16895 with patch-0 (no jQuery) and patch-1 (no persist). Open /node/add/article in a narrow window, set a URL alias of 'no-slash' inside the sidebar, close the sidebar, Save, then use the error link. Before: nothing opens. After: the sidebar opens and the field gets focus.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Default Admin is the admin theme.",
@@ -261,6 +265,8 @@
       "issue": "3604037",
       "label": "#3604037: groups (details, vertical tabs) that contain a field error say so, pinned core",
       "description": "Forms group fields in closed <details> and vertical tabs. When a field inside a closed or inactive group has an error, nothing on the group says so. The change (MR !17078, Default Admin theme) marks such groups with a red border, an icon, red label text, a hidden \" (contains error)\" label for screen readers and a data-child-error-count attribute. Follow the steps on three pages, then press Run checks on each page: the checks apply to the page the frames are on. Both sites carry the same test-page change (a second required field), so the page looks the same on both sides; only the code under test differs.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Default Admin is the admin theme.",
@@ -456,6 +462,8 @@
       "issue": "3604037",
       "label": "#3604037: same steps against the LATEST core main",
       "description": "Forms group fields in closed <details> and vertical tabs. When a field inside a closed or inactive group has an error, nothing on the group says so. The change (MR !17078, Default Admin theme) marks such groups with a red border, an icon, red label text, a hidden \" (contains error)\" label for screen readers and a data-child-error-count attribute. Follow the steps on three pages, then press Run checks on each page: the checks apply to the page the frames are on. Both sites carry the same test-page change (a second required field), so the page looks the same on both sides; only the code under test differs.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Default Admin is the admin theme.",
@@ -651,6 +659,8 @@
       "issue": "3093378",
       "label": "#3093378: ARIA disclosure for vertical toolbar submenu buttons (contrib toolbar 2.x, current core main)",
       "description": "The toolbar module has moved out of Drupal core into the contrib project 'toolbar'. Both sites run current core main with contrib toolbar 2.x at commit 871ce78 checked out into modules/contrib/toolbar and enabled. Before: the module as-is. After: the module with merge request !6 applied (a real ARIA disclosure: aria-expanded plus a '<name> menu' accessible name, and no text-indent hack). The change is meant to be visually identical, so the difference is in the markup and the accessibility tree, not the pixels.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Standard install on current core main with the contrib toolbar module (2.x, commit 871ce78) in modules/contrib and enabled. Default Admin is the admin theme.",
@@ -751,6 +761,8 @@
       "issue": "3093378",
       "label": "#3093378: ARIA disclosure for vertical toolbar submenu buttons (contrib toolbar 2.x, core pinned to the verified commit)",
       "description": "The toolbar module has moved out of Drupal core into the contrib project 'toolbar'. Both sites run current core main with contrib toolbar 2.x at commit 871ce78 checked out into modules/contrib/toolbar and enabled. Before: the module as-is. After: the module with merge request !6 applied (a real ARIA disclosure: aria-expanded plus a '<name> menu' accessible name, and no text-indent hack). The change is meant to be visually identical, so the difference is in the markup and the accessibility tree, not the pixels.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Standard install on current core main with the contrib toolbar module (2.x, commit 871ce78) in modules/contrib and enabled. Default Admin is the admin theme.",
@@ -851,6 +863,8 @@
       "issue": "3618405",
       "label": "#3618405: Purpose of views exposed filters form is unclear when zoomed in, pinned core",
       "description": "MR !17043 replaces the exposed filter form's screen-reader-only aria-label with a visible <h2> heading (\"Filter <view title>\") in the Default Admin theme. Compare /admin/content before and after.",
+      "before": {},
+      "after": {},
       "steps": [],
       "expected": "After: a visible <h2>Filter Content</h2> heading sits above the exposed filter fields on /admin/content, the heading appears in the screen-reader heading rotor, and the form no longer carries an aria-label. Before: no visible heading; the form carries only an aria-label.",
       "actual": "TODO after running",
@@ -870,6 +884,8 @@
       "issue": "3618405",
       "label": "#3618405: same steps against the LATEST core main",
       "description": "MR !17043 replaces the exposed filter form's screen-reader-only aria-label with a visible <h2> heading (\"Filter <view title>\") in the Default Admin theme. Compare /admin/content before and after.",
+      "before": {},
+      "after": {},
       "steps": [],
       "expected": "After: a visible <h2>Filter Content</h2> heading sits above the exposed filter fields on /admin/content, the heading appears in the screen-reader heading rotor, and the form no longer carries an aria-label. Before: no visible heading; the form carries only an aria-label.",
       "actual": "TODO after running",
@@ -888,7 +904,9 @@
       "slug": "3619154-pinned",
       "issue": "3619154",
       "label": "#3619154: Sidebar toggle fixes, pinned core",
-      "description": "MR !16911 reworks the Default Admin node add/edit meta sidebar: sidebar.js is split into a sidebar-toggle SDC + edit-sidebar.js; the toggle and close controls become <button> elements with aria-expanded; open/closed state and width persist across reloads with no flash; below 1024px the overlay content is inert with a focus trap and Escape-to-close; the sidebar is positioned with CSS variables; resizing works after AJAX, with touch and in RTL. Test on a node edit form across widths.",
+      "description": "MR !16911 at 175e6f17 (2026-10-17; the lab reviewed 6f7766cb on 2026-10-14) reworks the Default Admin node add/edit meta sidebar: sidebar.js is split into a sidebar-toggle SDC + edit-sidebar.js; the toggle and close controls become <button> elements with aria-expanded; below 1024px the content under the overlay is inert, focus moves to the close button and Escape closes it; the sidebar sits below the top bar and does not flash on load; the resize handle works after AJAX, with touch and in RTL. Test on /node/1/edit across widths. Scripted: tools/playwright/evaluate-3619154.mjs (steps and checks in tools/playwright/sidebar-3619154.mjs).",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Default Admin is the admin theme.",
@@ -910,7 +928,12 @@
         {
           "text": "Desktop (>=1024px): toggle the sidebar closed, then reload the frame.",
           "how": "each",
-          "lookFor": "After: it stays closed with no flash of the open sidebar. Before: it flashes open on load."
+          "lookFor": "Neither side should show the open sidebar while the page loads, and it stays closed. Measured 2026-10-17: no flash on either side at 1280px; Before's flash is on a first visit below 1024px (next step)."
+        },
+        {
+          "text": "Below 1024px, with no stored sidebar state (first visit, or clear Drupal.defaultAdmin.* in localStorage), load /node/1/edit.",
+          "how": "each",
+          "lookFor": "After: the sidebar never appears during the load. Before: it is painted on screen for a few frames, then hidden."
         },
         {
           "text": "Toggle the sidebar open, drag the resize handle, then reload.",
@@ -918,27 +941,119 @@
           "lookFor": "After: open state and the chosen width persist after reload."
         },
         {
-          "text": "Expand a details section in the form.",
+          "text": "At 1100px, with the sidebar open and Navigation expanded, open and close a details element in the main column (Image).",
           "how": "each",
-          "lookFor": "After: the Navigation sidebar does not collapse when content height changes."
+          "lookFor": "After: Navigation stays expanded. Below 1280px a click that opens one panel closes the other on both sides, so both are open only after a reload from stored state; on Before that reload collapses Navigation."
         },
         {
           "text": "Narrow the frame below 1024px and open the sidebar.",
           "how": "each",
-          "lookFor": "After: focus moves to the close button; Tab stays within the sidebar (content behind is inert); Escape closes it and returns focus to the toggle. The resize handle is hidden below 976px."
+          "lookFor": "After: focus moves to the close button; Tab stays within the sidebar, Navigation and the top bar (the page behind is inert); Escape closes it and returns focus to the toggle; the sidebar starts below the top bar. Before: the sidebar's top (and its close button) is under the top bar, focus stays on the toggle and Tab reaches the covered page. The resize handle is hidden below 976px."
+        },
+        {
+          "text": "Forced colours (local DDEV: the lab browser's switch; any lab: DevTools > Rendering > Emulate forced-colors, or a Windows contrast theme), below 976px: open the sidebar with Enter.",
+          "how": "each",
+          "lookFor": "After: the close button has focus and its × icon is visible inside the focus ring. With revision 6f7766cb only the ring showed (comment #23); with 175e6f17 the icon shows (measured 2026-10-18, Chromium). Before: the close button is under the top bar."
+        },
+        {
+          "text": "Below 976px: close the sidebar once with the close button and once by clicking the overlay.",
+          "how": "each",
+          "lookFor": "The sidebar closes and the URL does not change."
+        },
+        {
+          "text": "Desktop: set dir=\"rtl\" on <html> (DevTools), then drag the resize handle outward (towards the middle of the page).",
+          "how": "each",
+          "lookFor": "After: the sidebar gets wider. Before: it gets narrower."
         }
       ],
-      "expected": "After: the toggle and close are <button> elements operable with Enter and Space; aria-expanded tracks the sidebar state; closed/open state and width persist across reloads with no flash; expanding a details element does not collapse Navigation; below 1024px the content under the overlay is inert, focus moves to the close button, and Escape closes the sidebar and returns focus to the toggle. Before: <a href=\"#\" role=\"button\"> controls, Space does not operate them, the sidebar flashes open, and there is no inert overlay or focus trap.",
-      "actual": "TODO after running",
+      "expected": "After: the toggle and close are <button> elements operable with Enter and Space; aria-expanded tracks the sidebar state; open/closed state and width persist across reloads; nothing is painted on load below 1024px; below 1024px the content under the overlay is inert, focus moves to the close button, Escape closes the sidebar and returns focus to the toggle, and the sidebar starts below the top bar. Before: <a href=\"#\" role=\"button\"> controls, Space does not operate them, no inert overlay or focus trap, and the sidebar starts under the top bar below 1024px.",
+      "actual": "MR !16911 at 175e6f17 on core main f2abd41, scratch run 2026-10-18 (not DDEV): reproduced-and-fixed in normal and forced colours (11 of 12 fix checks as expected, F11 not applicable on Before; 14 regression checks pass; 0 axe violations). R12, the close button's icon with focus in forced colours (comment #23), now passes: 76 icon pixels focused, 64 at rest (12 with 6f7766cb). reports/issues/3619154/validation/2026-10-18-scratch-175e6f17/SUMMARY.md",
       "observe": [
-        "Toggle and close are <button> elements and operable with the Space key (after), vs <a role=button> that ignores Space (before).",
-        "aria-expanded on the toggle tracks the open/closed state.",
-        "No flash of the open sidebar on load; closed/open state persists across reload.",
-        "Desktop: the dragged sidebar width persists after reload; resizing works after AJAX, with touch, and in RTL.",
-        "Expanding a details element does not collapse the Navigation sidebar.",
-        "Below 1024px: content under the overlay is inert; focus moves to the close button on open; Escape closes the sidebar and returns focus to the toggle.",
-        "Sidebar top aligns with the bottom of the top bar (976-1023px and >=1024px); no jump or top-bar overlap on load.",
-        "The resize handle is hidden below 976px."
+        {
+          "label": "The toggle and the close control are buttons, and Space on the focused toggle opens and closes the sidebar",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "aria-expanded on the toggle matches whether the sidebar is open",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "The toggle's accessible name stays the same when the sidebar opens and closes (the state comes from aria-expanded)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Alt+S opens and closes the sidebar (measured: Before yes, After no; is dropping it intended?)",
+          "expectBefore": true,
+          "expectAfter": false
+        },
+        {
+          "label": "1024px and wider: the open or closed state is kept after reload, with no flash of the open sidebar",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 1024px, first visit: the sidebar never appears while the page loads",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Desktop: a width set by dragging the handle is kept after reload",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "With dir=\"rtl\" on <html>, dragging the handle outward makes the sidebar wider",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Between 976 and 1023px, the open sidebar starts at the bottom of the top bar, with nothing of it hidden underneath",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 976px the resize handle is hidden",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 1024px, opening the sidebar moves focus to its close button",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 1024px, Tab never reaches the page under the overlay (Navigation and the top bar stay reachable)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 1024px, Escape closes the sidebar and focus returns to the toggle",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Closing with the close button or by clicking the overlay leaves the URL unchanged",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Forced colours, below 976px: the close button's × is visible when the button has focus (comment #23)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "At 1100px, with the sidebar open and Navigation expanded, opening a details element leaves Navigation expanded (MR's claim; Before collapses Navigation on load instead)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "At 1100px, a reload with both stored open shows the sidebar and an expanded Navigation together (measured: After yes, Before no; intended?)",
+          "expectBefore": false,
+          "expectAfter": true
+        }
       ],
       "checks": [
         {
@@ -979,8 +1094,10 @@
     {
       "slug": "3619154-latest",
       "issue": "3619154",
-      "label": "#3619154: same steps against the LATEST core main",
-      "description": "MR !16911 reworks the Default Admin node add/edit meta sidebar: sidebar.js is split into a sidebar-toggle SDC + edit-sidebar.js; the toggle and close controls become <button> elements with aria-expanded; open/closed state and width persist across reloads with no flash; below 1024px the overlay content is inert with a focus trap and Escape-to-close; the sidebar is positioned with CSS variables; resizing works after AJAX, with touch and in RTL. Test on a node edit form across widths.",
+      "label": "#3619154: same steps against the LATEST core main (use this pair for a new MR revision)",
+      "description": "MR !16911 at 175e6f17 (2026-10-17; the lab reviewed 6f7766cb on 2026-10-14) reworks the Default Admin node add/edit meta sidebar: sidebar.js is split into a sidebar-toggle SDC + edit-sidebar.js; the toggle and close controls become <button> elements with aria-expanded; below 1024px the content under the overlay is inert, focus moves to the close button and Escape closes it; the sidebar sits below the top bar and does not flash on load; the resize handle works after AJAX, with touch and in RTL. Test on /node/1/edit across widths. Scripted: tools/playwright/evaluate-3619154.mjs (steps and checks in tools/playwright/sidebar-3619154.mjs).",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Default Admin is the admin theme.",
@@ -1002,7 +1119,12 @@
         {
           "text": "Desktop (>=1024px): toggle the sidebar closed, then reload the frame.",
           "how": "each",
-          "lookFor": "After: it stays closed with no flash of the open sidebar. Before: it flashes open on load."
+          "lookFor": "Neither side should show the open sidebar while the page loads, and it stays closed. Measured 2026-10-17: no flash on either side at 1280px; Before's flash is on a first visit below 1024px (next step)."
+        },
+        {
+          "text": "Below 1024px, with no stored sidebar state (first visit, or clear Drupal.defaultAdmin.* in localStorage), load /node/1/edit.",
+          "how": "each",
+          "lookFor": "After: the sidebar never appears during the load. Before: it is painted on screen for a few frames, then hidden."
         },
         {
           "text": "Toggle the sidebar open, drag the resize handle, then reload.",
@@ -1010,27 +1132,119 @@
           "lookFor": "After: open state and the chosen width persist after reload."
         },
         {
-          "text": "Expand a details section in the form.",
+          "text": "At 1100px, with the sidebar open and Navigation expanded, open and close a details element in the main column (Image).",
           "how": "each",
-          "lookFor": "After: the Navigation sidebar does not collapse when content height changes."
+          "lookFor": "After: Navigation stays expanded. Below 1280px a click that opens one panel closes the other on both sides, so both are open only after a reload from stored state; on Before that reload collapses Navigation."
         },
         {
           "text": "Narrow the frame below 1024px and open the sidebar.",
           "how": "each",
-          "lookFor": "After: focus moves to the close button; Tab stays within the sidebar (content behind is inert); Escape closes it and returns focus to the toggle. The resize handle is hidden below 976px."
+          "lookFor": "After: focus moves to the close button; Tab stays within the sidebar, Navigation and the top bar (the page behind is inert); Escape closes it and returns focus to the toggle; the sidebar starts below the top bar. Before: the sidebar's top (and its close button) is under the top bar, focus stays on the toggle and Tab reaches the covered page. The resize handle is hidden below 976px."
+        },
+        {
+          "text": "Forced colours (local DDEV: the lab browser's switch; any lab: DevTools > Rendering > Emulate forced-colors, or a Windows contrast theme), below 976px: open the sidebar with Enter.",
+          "how": "each",
+          "lookFor": "After: the close button has focus and its × icon is visible inside the focus ring. With revision 6f7766cb only the ring showed (comment #23); with 175e6f17 the icon shows (measured 2026-10-18, Chromium). Before: the close button is under the top bar."
+        },
+        {
+          "text": "Below 976px: close the sidebar once with the close button and once by clicking the overlay.",
+          "how": "each",
+          "lookFor": "The sidebar closes and the URL does not change."
+        },
+        {
+          "text": "Desktop: set dir=\"rtl\" on <html> (DevTools), then drag the resize handle outward (towards the middle of the page).",
+          "how": "each",
+          "lookFor": "After: the sidebar gets wider. Before: it gets narrower."
         }
       ],
-      "expected": "After: the toggle and close are <button> elements operable with Enter and Space; aria-expanded tracks the sidebar state; closed/open state and width persist across reloads with no flash; expanding a details element does not collapse Navigation; below 1024px the content under the overlay is inert, focus moves to the close button, and Escape closes the sidebar and returns focus to the toggle. Before: <a href=\"#\" role=\"button\"> controls, Space does not operate them, the sidebar flashes open, and there is no inert overlay or focus trap.",
-      "actual": "TODO after running",
+      "expected": "After: the toggle and close are <button> elements operable with Enter and Space; aria-expanded tracks the sidebar state; open/closed state and width persist across reloads; nothing is painted on load below 1024px; below 1024px the content under the overlay is inert, focus moves to the close button, Escape closes the sidebar and returns focus to the toggle, and the sidebar starts below the top bar. Before: <a href=\"#\" role=\"button\"> controls, Space does not operate them, no inert overlay or focus trap, and the sidebar starts under the top bar below 1024px.",
+      "actual": "MR !16911 at 175e6f17 on core main f2abd41, scratch run 2026-10-18 (not DDEV): reproduced-and-fixed in normal and forced colours (11 of 12 fix checks as expected, F11 not applicable on Before; 14 regression checks pass; 0 axe violations). R12, the close button's icon with focus in forced colours (comment #23), now passes: 76 icon pixels focused, 64 at rest (12 with 6f7766cb). reports/issues/3619154/validation/2026-10-18-scratch-175e6f17/SUMMARY.md",
       "observe": [
-        "Toggle and close are <button> elements and operable with the Space key (after), vs <a role=button> that ignores Space (before).",
-        "aria-expanded on the toggle tracks the open/closed state.",
-        "No flash of the open sidebar on load; closed/open state persists across reload.",
-        "Desktop: the dragged sidebar width persists after reload; resizing works after AJAX, with touch, and in RTL.",
-        "Expanding a details element does not collapse the Navigation sidebar.",
-        "Below 1024px: content under the overlay is inert; focus moves to the close button on open; Escape closes the sidebar and returns focus to the toggle.",
-        "Sidebar top aligns with the bottom of the top bar (976-1023px and >=1024px); no jump or top-bar overlap on load.",
-        "The resize handle is hidden below 976px."
+        {
+          "label": "The toggle and the close control are buttons, and Space on the focused toggle opens and closes the sidebar",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "aria-expanded on the toggle matches whether the sidebar is open",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "The toggle's accessible name stays the same when the sidebar opens and closes (the state comes from aria-expanded)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Alt+S opens and closes the sidebar (measured: Before yes, After no; is dropping it intended?)",
+          "expectBefore": true,
+          "expectAfter": false
+        },
+        {
+          "label": "1024px and wider: the open or closed state is kept after reload, with no flash of the open sidebar",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 1024px, first visit: the sidebar never appears while the page loads",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Desktop: a width set by dragging the handle is kept after reload",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "With dir=\"rtl\" on <html>, dragging the handle outward makes the sidebar wider",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Between 976 and 1023px, the open sidebar starts at the bottom of the top bar, with nothing of it hidden underneath",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 976px the resize handle is hidden",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 1024px, opening the sidebar moves focus to its close button",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 1024px, Tab never reaches the page under the overlay (Navigation and the top bar stay reachable)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Below 1024px, Escape closes the sidebar and focus returns to the toggle",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Closing with the close button or by clicking the overlay leaves the URL unchanged",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Forced colours, below 976px: the close button's × is visible when the button has focus (comment #23)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "At 1100px, with the sidebar open and Navigation expanded, opening a details element leaves Navigation expanded (MR's claim; Before collapses Navigation on load instead)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "At 1100px, a reload with both stored open shows the sidebar and an expanded Navigation together (measured: After yes, Before no; intended?)",
+          "expectBefore": false,
+          "expectAfter": true
+        }
       ],
       "checks": [
         {
@@ -1073,6 +1287,8 @@
       "issue": "3273806",
       "label": "#3273806: Toolbar orientation icon contrast (core main + Toolbar 2.x)",
       "description": "Toolbar (contrib) orientation toggle icon fails WCAG 1.4.11 (1.7:1). The After side carries the fix: rest icon #bebebe -> #787878 plus a :focus-visible outline. Open the admin toolbar's Manage tray and look at the orientation (push) toggle icon.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Core main with the contrib Toolbar module (2.x @ 40434c42) installed.",
@@ -1112,6 +1328,8 @@
       "issue": "3426468",
       "label": "#3426468: Make the active menu item visually stand out more, pinned core (original 2024 MR)",
       "description": "The original 2024 MR !8446 patch, against the core commit it was based on. Kept for history; the navigation module's CSS has since been restructured into an SDC, so this patch no longer applies to current core (see the -latest variant for the current fix).",
+      "before": {},
+      "after": {},
       "steps": [],
       "expected": "The original 2024 design: a stronger blue for the active item.",
       "actual": "TODO after running",
@@ -1126,6 +1344,8 @@
       "issue": "3426468",
       "label": "#3426468: Make the active menu item visually stand out more (lab-authored fix, LATEST core main)",
       "description": "The active top-level navigation item is distinguished only by a faint colour/background change (state-to-state delta ~1.95:1 text, ~1.09:1 background -- SC 1.4.1/1.4.11). Lab-authored fix per kentr's 2026-02 analysis (comment #28): darken --toolbar-button-current-color to match the existing submenu active colour, and add an always-on left bar (not colour alone), matching the bar the forced-colors media query already draws and the dot already used deeper in the menu.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Standard install; Navigation is the default admin navigation.",
@@ -1171,6 +1391,8 @@
       "issue": "3606655",
       "label": "#3606655: Allow user-configurable UI settings - starting with dark mode, pinned core",
       "description": "Before: user profile has no Color scheme setting and <html> has no data-color-scheme. After (MR !16432): profile form /user/1/edit has Color scheme radios Light/Dark/System and every page carries <html data-color-scheme>. Open /user/1/edit in both frames and compare the bottom of the form, then inspect the <html> attribute.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Standard install; Default Admin is the admin theme.",
@@ -1244,6 +1466,8 @@
       "issue": "3606655",
       "label": "#3606655: same steps against the LATEST core main",
       "description": "Before: user profile has no Color scheme setting and <html> has no data-color-scheme. After (MR !16432): profile form /user/1/edit has Color scheme radios Light/Dark/System and every page carries <html data-color-scheme>. Open /user/1/edit in both frames and compare the bottom of the form, then inspect the <html> attribute.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Standard install; Default Admin is the admin theme.",
@@ -1317,6 +1541,8 @@
       "issue": "3273054",
       "label": "#3273054: text-format permission checkboxes hold an invisible focus stop, pinned core",
       "description": "Tabbing through the Filter module section of /admin/people/permissions. Each text-format permission checkbox has a visually-hidden label built from the permission title; until core commit 12b38bdace the title held a link to the format, so the tab sequence stopped on an invisible link before each checkbox. Before: upstream main. After: main plus the patch authored in the lab (after.authoring; there is no issue fork and no merge request).",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Standard install: the Content editor role and the Basic HTML, Full HTML and Restricted HTML text formats exist.",
@@ -1382,6 +1608,8 @@
       "issue": "3273054",
       "label": "#3273054: same steps against the LATEST core main",
       "description": "Tabbing through the Filter module section of /admin/people/permissions. Each text-format permission checkbox has a visually-hidden label built from the permission title; until core commit 12b38bdace the title held a link to the format, so the tab sequence stopped on an invisible link before each checkbox. Before: upstream main. After: main plus the patch authored in the lab (after.authoring; there is no issue fork and no merge request).",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Standard install: the Content editor role and the Basic HTML, Full HTML and Restricted HTML text formats exist.",
@@ -1447,6 +1675,8 @@
       "issue": "3419891",
       "label": "#3419891: Increase size of alternative text field in Image dialog, pinned core",
       "description": "Test the CKEditor5 image dialog alternative text field. Before: single-line input ~35 chars visible, content scrolls horizontally. After: textarea that grows vertically (minRows=1, maxRows=6), all content visible.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Standard install: the Basic page content type exists with a body field using CKEditor5.",
@@ -1517,6 +1747,8 @@
       "issue": "3419891",
       "label": "#3419891: same steps against the LATEST core main",
       "description": "Test the CKEditor5 image dialog alternative text field. Before: single-line input ~35 chars visible, content scrolls horizontally. After: textarea that grows vertically (minRows=1, maxRows=6), all content visible.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Standard install: the Basic page content type exists with a body field using CKEditor5.",
@@ -1583,10 +1815,200 @@
       }
     },
     {
+      "slug": "2951317-pinned",
+      "issue": "2951317",
+      "label": "#2951317: Radios element missing required attribute, pinned core",
+      "description": "Compare static and dynamic required radio groups, including hidden None selection and native validation.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Open Required radio groups on both sides. The recipe installs the same test-only fixture.",
+          "how": "recipe",
+          "lookFor": "Required color, Required color with default, Optional color, and Dynamic color."
+        },
+        {
+          "text": "With Required color empty, activate Save. Then choose Red and repeat. Inspect required attributes and the legend indicator.",
+          "how": "each",
+          "lookFor": "After: required attributes on radio inputs, one legend indicator, none beside options. Native blocking applies only if HTML5 validation is enabled; record novalidate."
+        },
+        {
+          "text": "Reload. Toggle Require a dynamic color on and off with nothing selected.",
+          "how": "each",
+          "lookFor": "After: required inputs when on, no selection changes; None hides when on and returns when off."
+        },
+        {
+          "text": "Reload. Select None, then toggle Require a dynamic color on. Fill Required color and activate Save. Toggle off.",
+          "how": "each",
+          "lookFor": "After: hidden None stays checked and a visible color is invalid. With native validation disabled, this fixture permits POST; with it enabled, Save must be blocked. None returns checked when off."
+        },
+        {
+          "text": "Select Red in Dynamic color, toggle on/off/on, then switch to Blue with arrow keys.",
+          "how": "each",
+          "lookFor": "Real selection remains checked and valid; no stale custom validation error."
+        },
+        {
+          "text": "Repeat in Claro and Default Admin, forced colors, and with JavaScript disabled for static groups. Record actual theme and browser.",
+          "how": "each",
+          "lookFor": "Keyboard operation, visible focus, required legend, error recovery. Dynamic states require JavaScript."
+        }
+      ],
+      "expected": "After: required attributes are on radio inputs, not fieldsets; dynamic states preserve selection and reject hidden None while required.",
+      "actual": "Before: static required attributes are on fieldsets, dynamic inputs remain optional. Both sides disable native submission validation by default; the fixture does not enforce dynamic requirements server-side.",
+      "observe": [
+        {
+          "label": "Only the legend has a required marker, not each option label",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "When native HTML5 validation is enabled, Save blocks hidden None until a real color is chosen; otherwise record not applicable",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Toggling required off restores the existing None selection",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Shared fixture has all four groups",
+          "kind": "precondition",
+          "probe": "['static_required','static_default','optional','dynamic'].every(n => document.querySelectorAll('input[type=radio][name='+n+']').length >= 2)",
+          "expect": true
+        },
+        {
+          "label": "Static required inputs carry required",
+          "kind": "fix",
+          "probe": "[...document.querySelectorAll('input[name=static_required]')].length === 2 && [...document.querySelectorAll('input[name=static_required]')].every(e => e.required)",
+          "expect": true
+        },
+        {
+          "label": "No required attribute on static radios fieldset",
+          "kind": "fix",
+          "probe": "!!document.querySelector('input[name=static_required]') && !document.querySelector('input[name=static_required]').closest('fieldset').hasAttribute('required')",
+          "expect": true
+        },
+        {
+          "label": "Optional radios remain optional",
+          "kind": "regression",
+          "probe": "document.querySelectorAll('input[name=optional][required]').length",
+          "expect": 0
+        },
+        {
+          "label": "Default selection remains Blue",
+          "kind": "regression",
+          "probe": "document.querySelector('input[name=static_default]:checked')?.value",
+          "expect": "blue"
+        }
+      ],
+      "pages": [
+        "/admin/config/development/lab-radios-2951317"
+      ]
+    },
+    {
+      "slug": "2951317-latest",
+      "issue": "2951317",
+      "label": "#2951317: same steps against the LATEST core main",
+      "description": "Compare static and dynamic required radio groups, including hidden None selection and native validation.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Open Required radio groups on both sides. The recipe installs the same test-only fixture.",
+          "how": "recipe",
+          "lookFor": "Required color, Required color with default, Optional color, and Dynamic color."
+        },
+        {
+          "text": "With Required color empty, activate Save. Then choose Red and repeat. Inspect required attributes and the legend indicator.",
+          "how": "each",
+          "lookFor": "After: required attributes on radio inputs, one legend indicator, none beside options. Native blocking applies only if HTML5 validation is enabled; record novalidate."
+        },
+        {
+          "text": "Reload. Toggle Require a dynamic color on and off with nothing selected.",
+          "how": "each",
+          "lookFor": "After: required inputs when on, no selection changes; None hides when on and returns when off."
+        },
+        {
+          "text": "Reload. Select None, then toggle Require a dynamic color on. Fill Required color and activate Save. Toggle off.",
+          "how": "each",
+          "lookFor": "After: hidden None stays checked and a visible color is invalid. With native validation disabled, this fixture permits POST; with it enabled, Save must be blocked. None returns checked when off."
+        },
+        {
+          "text": "Select Red in Dynamic color, toggle on/off/on, then switch to Blue with arrow keys.",
+          "how": "each",
+          "lookFor": "Real selection remains checked and valid; no stale custom validation error."
+        },
+        {
+          "text": "Repeat in Claro and Default Admin, forced colors, and with JavaScript disabled for static groups. Record actual theme and browser.",
+          "how": "each",
+          "lookFor": "Keyboard operation, visible focus, required legend, error recovery. Dynamic states require JavaScript."
+        }
+      ],
+      "expected": "After: required attributes are on radio inputs, not fieldsets; dynamic states preserve selection and reject hidden None while required.",
+      "actual": "Before: static required attributes are on fieldsets, dynamic inputs remain optional. Both sides disable native submission validation by default; the fixture does not enforce dynamic requirements server-side.",
+      "observe": [
+        {
+          "label": "Only the legend has a required marker, not each option label",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "When native HTML5 validation is enabled, Save blocks hidden None until a real color is chosen; otherwise record not applicable",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Toggling required off restores the existing None selection",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Shared fixture has all four groups",
+          "kind": "precondition",
+          "probe": "['static_required','static_default','optional','dynamic'].every(n => document.querySelectorAll('input[type=radio][name='+n+']').length >= 2)",
+          "expect": true
+        },
+        {
+          "label": "Static required inputs carry required",
+          "kind": "fix",
+          "probe": "[...document.querySelectorAll('input[name=static_required]')].length === 2 && [...document.querySelectorAll('input[name=static_required]')].every(e => e.required)",
+          "expect": true
+        },
+        {
+          "label": "No required attribute on static radios fieldset",
+          "kind": "fix",
+          "probe": "!!document.querySelector('input[name=static_required]') && !document.querySelector('input[name=static_required]').closest('fieldset').hasAttribute('required')",
+          "expect": true
+        },
+        {
+          "label": "Optional radios remain optional",
+          "kind": "regression",
+          "probe": "document.querySelectorAll('input[name=optional][required]').length",
+          "expect": 0
+        },
+        {
+          "label": "Default selection remains Blue",
+          "kind": "regression",
+          "probe": "document.querySelector('input[name=static_default]:checked')?.value",
+          "expect": "blue"
+        }
+      ],
+      "pages": [
+        "/admin/config/development/lab-radios-2951317"
+      ]
+    },
+    {
       "slug": "3207233-pinned",
       "issue": "3207233",
       "label": "#3207233: Active workspace indication, pinned core",
       "description": "Compare the unchanged workspace listing with a local proposal adding active-state text and a caption. Use the same four sample workspaces on both sites.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Workspaces UI and four sample workspaces exist on both sites.",
@@ -1664,6 +2086,8 @@
       "issue": "3207233",
       "label": "#3207233: Active workspace indication on latest main",
       "description": "Compare the unchanged workspace listing with a local proposal adding active-state text and a caption. Use the same four sample workspaces on both sites.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Workspaces UI and four sample workspaces exist on both sites.",
@@ -1741,6 +2165,8 @@
       "issue": "3415961",
       "label": "#3415961: [drupalMedia] Using the Insert Media button causes the window to scroll to the bottom of the page, pinned core",
       "description": "Open the Insert Media dialog from a CKEditor 5 body field on a tall node form, add an image and press Insert selected, in both frames. Before: the window is reported to jump away from the editor. After (MR !12348): the window should stay where it was. Also try closing the dialog with the X button, which one commenter says the change does not fix.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Full HTML uses CKEditor 5 with an Insert Media button, and an Image media type exists.",
@@ -1816,6 +2242,8 @@
       "issue": "3415961",
       "label": "#3415961: same steps against the LATEST core main",
       "description": "Open the Insert Media dialog from a CKEditor 5 body field on a tall node form, add an image and press Insert selected, in both frames. Before: the window is reported to jump away from the editor. After (MR !12348): the window should stay where it was. Also try closing the dialog with the X button, which one commenter says the change does not fix.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Full HTML uses CKEditor 5 with an Insert Media button, and an Image media type exists.",
@@ -1887,10 +2315,427 @@
       }
     },
     {
+      "slug": "3593502-pinned",
+      "issue": "3593502",
+      "label": "#3593502: scalable Menu tree UI with review fixes, pinned core",
+      "description": "Compare unchanged Drupal core with MR !15975 plus the lab interdiff. The patched side adds the experimental Menu tree UI and the review fixes for CSRF readiness, search-result dismissal coverage, and forced-colours move affordances.",
+      "comparisonGroup": "3593502-patch-stacks",
+      "comparisonLabel": "Core → MR + interdiff",
+      "before": {
+        "label": "Drupal core"
+      },
+      "after": {
+        "label": "MR !15975 + review interdiff"
+      },
+      "steps": [
+        {
+          "text": "The recipe creates the same 15,000-link Main navigation menu on both sites. It enables Menu tree UI only where the MR has added it.",
+          "how": "recipe"
+        },
+        {
+          "text": "On /admin/structure/menu, open the Main navigation row's primary action: Edit menu on Before and Edit links on After.",
+          "how": "mirror",
+          "lookFor": "The changed operation label is intentional. Before opens the classic all-links form and may exhaust PHP's memory limit. After opens the experimental tree UI and initially renders only the top level."
+        },
+        {
+          "text": "In After, use the search field, press Escape, then repeat the search and click the page heading.",
+          "how": "each",
+          "lookFor": "The results close in both cases while the query remains in the search field."
+        },
+        {
+          "text": "Reload After and immediately toggle the first Enabled checkbox, then reload again after the request finishes.",
+          "how": "each",
+          "lookFor": "The checkbox waits for the CSRF token if necessary, sends no empty token, and the new value persists."
+        },
+        {
+          "text": "Use Space and the arrow keys to pick up and move a row, then cancel with Escape. Repeat with the pointer.",
+          "how": "each",
+          "lookFor": "Reordering is unavailable until initialization finishes. Afterwards, pickup, destination, cancellation, focus, and announcements remain coherent."
+        },
+        {
+          "text": "Open the forced-colours window and repeat the move interaction in forced light and forced dark.",
+          "how": "each",
+          "lookFor": "The move handle, grabbed or target outline, focus indicator, and drop position remain visible."
+        },
+        {
+          "text": "For a direct classic-form comparison, open /admin/structure/menu/manage/main on Before and /admin/structure/menu/manage/main/links on After.",
+          "how": "each",
+          "lookFor": "Both classic routes may exhaust the configured memory limit. The MR retains that form as a no-JavaScript fallback; the scalable replacement is the After side's /tree route."
+        }
+      ],
+      "expected": "After provides the experimental scalable menu tree and the interdiff prevents early CSRF failures, covers both search dismissal paths, and keeps move affordances visible in forced colours.",
+      "actual": "Before has only the classic all-links form. After is MR !15975 plus the proposed interdiff. Runtime verification is pending.",
+      "observe": [
+        {
+          "label": "The scalable Menu tree UI loads and remains responsive",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Escape and an outside click dismiss search results without clearing the query",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "An Enabled change made immediately after page load persists",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Move affordances and destinations remain visible in forced colours",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Every move can be completed and cancelled with the keyboard",
+          "expectBefore": false,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "The experimental treegrid is present",
+          "probe": "!!document.querySelector('drupal-treegrid table[role=\"treegrid\"]')",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "The menu search control is present",
+          "probe": "!!document.querySelector('#menu-tree-ui-search-input')",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "The initial tree is bounded to at most 200 rendered rows",
+          "probe": "((n) => n > 0 && n <= 200)(document.querySelectorAll('drupal-treegrid tbody tr[role=\"row\"]').length)",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Reordering reports ready after the CSRF token resolves",
+          "probe": "document.querySelector('drupal-treegrid')?.dataset.treegridReorderReady === 'true'",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "No JavaScript errors were recorded",
+          "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+          "expect": 0,
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/admin/structure/menu",
+        "/admin/structure/menu/manage/main/tree",
+        "/admin/structure/menu/manage/main",
+        "/admin/structure/menu/manage/main/links"
+      ],
+      "demo": {
+        "start": "/admin/structure/menu"
+      }
+    },
+    {
+      "slug": "3593502-mr-only",
+      "issue": "3593502",
+      "label": "#3593502: Drupal core compared with MR !15975",
+      "description": "Compare unchanged Drupal core with MR !15975 exactly as published. This isolates what the existing MR changes before applying the lab review interdiff.",
+      "comparisonGroup": "3593502-patch-stacks",
+      "comparisonLabel": "Core → MR",
+      "before": {
+        "label": "Drupal core"
+      },
+      "after": {
+        "label": "MR !15975"
+      },
+      "steps": [
+        {
+          "text": "The recipe creates the same 15,000-link Main navigation menu on both sites and enables Menu tree UI only on the MR side.",
+          "how": "recipe"
+        },
+        {
+          "text": "On /admin/structure/menu, open the Main navigation row's primary action: Edit menu on Drupal core and Edit links on MR !15975.",
+          "how": "each",
+          "lookFor": "Core opens the classic all-links form and may exhaust memory. The MR opens the scalable tree and initially renders only the top level."
+        },
+        {
+          "text": "On the MR side, expand several branches, search, toggle Enabled values, and exercise keyboard and pointer reordering.",
+          "how": "each",
+          "lookFor": "Record the MR behavior as published, including failures. Do not treat review-interdiff behavior as part of this comparison."
+        }
+      ],
+      "expected": "MR !15975 adds the scalable Menu tree UI. This comparison does not include the proposed review fixes.",
+      "actual": "The core and MR-only patch stacks are configured. Runtime verification is pending.",
+      "observe": [
+        {
+          "label": "The scalable Menu tree UI loads and remains responsive",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "The initial page builds all 15,000 links into one form",
+          "expectBefore": true,
+          "expectAfter": false
+        }
+      ],
+      "checks": [
+        {
+          "label": "The experimental treegrid is present",
+          "probe": "!!document.querySelector('drupal-treegrid table[role=\"treegrid\"]')",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "The initial tree is bounded to at most 200 rendered rows",
+          "probe": "((n) => n > 0 && n <= 200)(document.querySelectorAll('drupal-treegrid tbody tr[role=\"row\"]').length)",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "No JavaScript errors were recorded",
+          "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+          "expect": 0,
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/admin/structure/menu",
+        "/admin/structure/menu/manage/main/tree",
+        "/admin/structure/menu/manage/main",
+        "/admin/structure/menu/manage/main/links"
+      ],
+      "demo": {
+        "start": "/admin/structure/menu"
+      }
+    },
+    {
+      "slug": "3593502-interdiff",
+      "issue": "3593502",
+      "label": "#3593502: MR !15975 compared with the review interdiff",
+      "description": "Compare MR !15975 as published with the same MR plus the lab review interdiff. Both sides use the same pinned Drupal core commit and the same 15,000-link menu.",
+      "comparisonGroup": "3593502-patch-stacks",
+      "comparisonLabel": "MR → MR + interdiff",
+      "before": {
+        "label": "MR !15975"
+      },
+      "after": {
+        "label": "MR !15975 + review interdiff"
+      },
+      "steps": [
+        {
+          "text": "The recipe creates the same 15,000-link Main navigation menu and enables Menu tree UI on both patch stacks.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open the tree page in both frames and compare initial load, rendered row count, responsiveness, and PHP peak memory.",
+          "how": "mirror",
+          "lookFor": "Both sides load the scalable tree. Neither should build all 15,000 links into the initial response."
+        },
+        {
+          "text": "Reload both frames and immediately toggle the same Enabled checkbox before the CSRF token request finishes.",
+          "how": "each",
+          "lookFor": "MR-only may send an empty token and reject or revert the update. After waits for the token, disables the checkbox while waiting, persists the change, and can restore it."
+        },
+        {
+          "text": "Search for Lab seed 1.1. Dismiss the results with Escape, then repeat and dismiss them by clicking the page heading.",
+          "how": "each",
+          "lookFor": "The interaction should work on both sides. The interdiff adds browser-level regression coverage rather than intentionally changing the visible result."
+        },
+        {
+          "text": "Use keyboard and pointer reordering in forced-colours mode on both sides.",
+          "how": "each",
+          "lookFor": "After keeps the move handle, grabbed or target outline, and drop indicator visible with system colours."
+        }
+      ],
+      "expected": "Both stacks remain responsive with 15,000 links. The interdiff removes the early CSRF-token race and improves forced-colours move affordances without regressing search, expansion, or reordering.",
+      "actual": "The two patch stacks are configured. DDEV, performance, browser, and manual accessibility evidence is pending.",
+      "observe": [
+        {
+          "label": "The tree UI loads and remains responsive with 15,000 links",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "An immediate Enabled change waits for a CSRF token and persists",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Escape and outside click dismiss search results without clearing the query",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Move affordances remain visible in forced colours",
+          "expectBefore": false,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "The experimental treegrid is present",
+          "probe": "!!document.querySelector('drupal-treegrid table[role=\"treegrid\"]')",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "The menu search control is present",
+          "probe": "!!document.querySelector('#menu-tree-ui-search-input')",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "The initial tree is bounded to at most 200 rendered rows",
+          "probe": "((n) => n > 0 && n <= 200)(document.querySelectorAll('drupal-treegrid tbody tr[role=\"row\"]').length)",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Reordering reports ready after the CSRF token resolves",
+          "probe": "document.querySelector('drupal-treegrid')?.dataset.treegridReorderReady === 'true'",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "No JavaScript errors were recorded",
+          "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+          "expect": 0,
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/admin/structure/menu/manage/main/tree"
+      ],
+      "demo": {
+        "start": "/admin/structure/menu/manage/main/tree"
+      }
+    },
+    {
+      "slug": "3593502-latest",
+      "issue": "3593502",
+      "label": "#3593502: same MR and interdiff against the LATEST core main",
+      "description": "Compare unchanged Drupal core with MR !15975 plus the lab interdiff. The patched side adds the experimental Menu tree UI and the review fixes for CSRF readiness, search-result dismissal coverage, and forced-colours move affordances.",
+      "comparisonGroup": null,
+      "comparisonLabel": null,
+      "before": {
+        "label": "Drupal core"
+      },
+      "after": {
+        "label": "MR !15975 + review interdiff"
+      },
+      "steps": [
+        {
+          "text": "The recipe creates the same 15,000-link Main navigation menu on both sites. It enables Menu tree UI only where the MR has added it.",
+          "how": "recipe"
+        },
+        {
+          "text": "On /admin/structure/menu, open the Main navigation row's primary action: Edit menu on Before and Edit links on After.",
+          "how": "mirror",
+          "lookFor": "The changed operation label is intentional. Before opens the classic all-links form and may exhaust PHP's memory limit. After opens the experimental tree UI and initially renders only the top level."
+        },
+        {
+          "text": "In After, use the search field, press Escape, then repeat the search and click the page heading.",
+          "how": "each",
+          "lookFor": "The results close in both cases while the query remains in the search field."
+        },
+        {
+          "text": "Reload After and immediately toggle the first Enabled checkbox, then reload again after the request finishes.",
+          "how": "each",
+          "lookFor": "The checkbox waits for the CSRF token if necessary, sends no empty token, and the new value persists."
+        },
+        {
+          "text": "Use Space and the arrow keys to pick up and move a row, then cancel with Escape. Repeat with the pointer.",
+          "how": "each",
+          "lookFor": "Reordering is unavailable until initialization finishes. Afterwards, pickup, destination, cancellation, focus, and announcements remain coherent."
+        },
+        {
+          "text": "Open the forced-colours window and repeat the move interaction in forced light and forced dark.",
+          "how": "each",
+          "lookFor": "The move handle, grabbed or target outline, focus indicator, and drop position remain visible."
+        },
+        {
+          "text": "For a direct classic-form comparison, open /admin/structure/menu/manage/main on Before and /admin/structure/menu/manage/main/links on After.",
+          "how": "each",
+          "lookFor": "Both classic routes may exhaust the configured memory limit. The MR retains that form as a no-JavaScript fallback; the scalable replacement is the After side's /tree route."
+        }
+      ],
+      "expected": "After provides the experimental scalable menu tree and the interdiff prevents early CSRF failures, covers both search dismissal paths, and keeps move affordances visible in forced colours.",
+      "actual": "Before has only the classic all-links form. After is MR !15975 plus the proposed interdiff. Runtime verification is pending.",
+      "observe": [
+        {
+          "label": "The scalable Menu tree UI loads and remains responsive",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Escape and an outside click dismiss search results without clearing the query",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "An Enabled change made immediately after page load persists",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Move affordances and destinations remain visible in forced colours",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Every move can be completed and cancelled with the keyboard",
+          "expectBefore": false,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "The experimental treegrid is present",
+          "probe": "!!document.querySelector('drupal-treegrid table[role=\"treegrid\"]')",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "The menu search control is present",
+          "probe": "!!document.querySelector('#menu-tree-ui-search-input')",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "The initial tree is bounded to at most 200 rendered rows",
+          "probe": "((n) => n > 0 && n <= 200)(document.querySelectorAll('drupal-treegrid tbody tr[role=\"row\"]').length)",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Reordering reports ready after the CSRF token resolves",
+          "probe": "document.querySelector('drupal-treegrid')?.dataset.treegridReorderReady === 'true'",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "No JavaScript errors were recorded",
+          "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+          "expect": 0,
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/admin/structure/menu",
+        "/admin/structure/menu/manage/main/tree",
+        "/admin/structure/menu/manage/main",
+        "/admin/structure/menu/manage/main/links"
+      ],
+      "demo": {
+        "start": "/admin/structure/menu"
+      }
+    },
+    {
       "slug": "3615469-pinned",
       "issue": "3615469",
       "label": "#3615469: Maintenance form login link, pinned core",
       "description": "Compare pristine core with MR !16609 on the maintenance settings form. The login link gains page; the full sentence and destinations remain unchanged. Desktop evidence does not reproduce the reported iOS VoiceOver behavior.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "A Standard site is installed. The recipe makes no further site changes.",
@@ -1934,7 +2779,7 @@
         },
         {
           "label": "The login link includes page",
-          "probe": "(() => { const b = document.querySelector('input[name=maintenance_mode]'); return (b?.getAttribute('aria-describedby') || '').split(/\\s+/).some(id => [...(document.getElementById(id)?.querySelectorAll('a') || [])].some(a => a.textContent.trim() === 'user login page')); })()",
+          "probe": "(document.querySelector('input[name=maintenance_mode]')?.getAttribute('aria-describedby') || '').split(/\\s+/).some(id => [...(document.getElementById(id)?.querySelectorAll('a') || [])].some(a => a.textContent.trim() === 'user login page'))",
           "expect": true,
           "kind": "fix"
         },
@@ -1957,6 +2802,8 @@
       "issue": "3615469",
       "label": "#3615469: Same MR on latest core main",
       "description": "Compare pristine core with MR !16609 on the maintenance settings form. The login link gains page; the full sentence and destinations remain unchanged. Desktop evidence does not reproduce the reported iOS VoiceOver behavior.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "A Standard site is installed. The recipe makes no further site changes.",
@@ -2000,7 +2847,7 @@
         },
         {
           "label": "The login link includes page",
-          "probe": "(() => { const b = document.querySelector('input[name=maintenance_mode]'); return (b?.getAttribute('aria-describedby') || '').split(/\\s+/).some(id => [...(document.getElementById(id)?.querySelectorAll('a') || [])].some(a => a.textContent.trim() === 'user login page')); })()",
+          "probe": "(document.querySelector('input[name=maintenance_mode]')?.getAttribute('aria-describedby') || '').split(/\\s+/).some(id => [...(document.getElementById(id)?.querySelectorAll('a') || [])].some(a => a.textContent.trim() === 'user login page'))",
           "expect": true,
           "kind": "fix"
         },
@@ -2023,6 +2870,8 @@
       "issue": "3618230",
       "label": "#3618230: Adopt the ajax MessageCommand for file uploads, pinned core",
       "description": "Open /node/add/article in both frames. Upload a .txt file larger than 1 KB to trigger the server-side file size upload error. Before: messages are server-rendered inside the replaced widget prefix directly without using MessageCommand wrapper elements. After (MR !16777): messages are delivered via the AJAX MessageCommand targeting a dedicated container with class file-upload-messages.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Article content type with a 1 KB size limit file field exists.",
@@ -2094,6 +2943,8 @@
       "issue": "3618230",
       "label": "#3618230: same steps against the LATEST core main",
       "description": "Open /node/add/article in both frames. Upload a .txt file larger than 1 KB to trigger the server-side file size upload error. Before: messages are server-rendered inside the replaced widget prefix directly without using MessageCommand wrapper elements. After (MR !16777): messages are delivered via the AJAX MessageCommand targeting a dedicated container with class file-upload-messages.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Article content type with a 1 KB size limit file field exists.",
@@ -2165,6 +3016,8 @@
       "issue": "3618230",
       "label": "#3618230: the pilot pair of AI-usage Phase 4: the same core commit as the latest pair, its own environments (so the owner's pair is untouched)",
       "description": "Open /node/add/article in both frames. Upload a .txt file larger than 1 KB to trigger the server-side file size upload error. Before: messages are server-rendered inside the replaced widget prefix directly without using MessageCommand wrapper elements. After (MR !16777): messages are delivered via the AJAX MessageCommand targeting a dedicated container with class file-upload-messages.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "Article content type with a 1 KB size limit file field exists.",
@@ -2236,6 +3089,8 @@
       "issue": "3627936",
       "label": "#3627936: Active workspace has a broken styling in dark mode (no merge request: the fix is written in the lab)",
       "description": "On the Workspaces overview, the row of the active workspace has a hard-coded light background (#ebeae4) in workspaces_ui, so in dark mode it is a light bar with light text. Hovering shows the theme colour. No merge request exists (the one that was opened used the branch name main), so After holds the fix written here and captured with scripts/capture-patch.mjs.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "The Workspaces and Workspaces UI modules are installed and a workspace named Stage exists. Default Admin is the admin theme.",
@@ -2291,6 +3146,8 @@
       "issue": "3627936",
       "label": "#3627936: same steps against the LATEST core main",
       "description": "On the Workspaces overview, the row of the active workspace has a hard-coded light background (#ebeae4) in workspaces_ui, so in dark mode it is a light bar with light text. Hovering shows the theme colour. No merge request exists (the one that was opened used the branch name main), so After holds the fix written here and captured with scripts/capture-patch.mjs.",
+      "before": {},
+      "after": {},
       "steps": [
         {
           "text": "The Workspaces and Workspaces UI modules are installed and a workspace named Stage exists. Default Admin is the admin theme.",
@@ -2339,6 +3196,695 @@
       ],
       "demo": {
         "start": "/admin/config/workflow/workspaces"
+      }
+    },
+    {
+      "slug": "3630425-pinned",
+      "issue": "3630425",
+      "label": "#3630425: empty actions header, Default Admin on main",
+      "description": "Pinned current main with Default Admin, versus the MR !17421 implementation ported to main plus a local regression-test addition. The implementation is unchanged; the interdiff adds Stark/Default Admin coverage for initial and AJAX add/remove header states. Both sides use the same unlimited core text-field recipe. Expect no visual change; inspect header markup or Run checks.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Standard install with Default Admin. Apply repro_3630425 to both sides: unlimited plain-text field Lab multi-value text, with two sample defaults. No Paragraphs module required.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /node/add/article in both frames. Find Lab multi-value text, its rows and Remove buttons.",
+          "how": "mirror",
+          "lookFor": "The same field values and controls on both sides."
+        },
+        {
+          "text": "Run checks, then inspect the field table header in each frame using DevTools or its accessibility tree.",
+          "how": "each",
+          "lookFor": "Before: empty actions-column header. After: visually hidden Operations label. There are three header cells; the first spans two logical columns, so the affected header is the second th, not the third th."
+        },
+        {
+          "text": "Use Add another item in each frame and run checks again. Optionally remove the newly added row and verify that the header remains labelled only on After. Do not save the Article.",
+          "how": "each",
+          "lookFor": "Header state survives AJAX updates; add/remove behavior remains available on both sides."
+        }
+      ],
+      "expected": "After has a visually hidden Operations column header and no empty-table-header finding for the target table; the visible form and add/remove controls remain usable.",
+      "actual": "Before has an empty actions-column header, inherited by Default Admin from FieldPreprocess.",
+      "observe": [
+        {
+          "label": "Actions header has an accessible Operations label",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Visible field layout remains unchanged",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Add and Remove controls work with the keyboard",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Default Admin rendered this page",
+          "probe": "window.drupalSettings?.ajaxPageState?.theme === 'default_admin'",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The core multi-value field table exists",
+          "probe": "!!document.querySelector('table[id^=\"field-lab-multivalue-values\"]')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The table contains Remove controls",
+          "probe": "Array.from(document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.querySelectorAll('input[type=submit], button') || []).some(e => /Remove/.test(e.value || e.textContent))",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Actions-column header is labelled Operations",
+          "probe": "document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.tHead?.rows[0]?.cells[1]?.textContent.trim() === 'Operations'",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "No empty header in the target field table",
+          "probe": "Array.from(document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.querySelectorAll('thead th') || []).every(e => e.textContent.trim().length > 0)",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Same number of field rows on both sides",
+          "probe": "document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.tBodies[0]?.rows.length",
+          "expect": "same",
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/node/add/article"
+      ],
+      "demo": {
+        "start": "/node/add/article"
+      }
+    },
+    {
+      "slug": "3630425-latest",
+      "issue": "3630425",
+      "label": "#3630425: same MR on current core main",
+      "description": "Pinned current main with Default Admin, versus the MR !17421 implementation ported to main plus a local regression-test addition. The implementation is unchanged; the interdiff adds Stark/Default Admin coverage for initial and AJAX add/remove header states. Both sides use the same unlimited core text-field recipe. Expect no visual change; inspect header markup or Run checks.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Standard install with Default Admin. Apply repro_3630425 to both sides: unlimited plain-text field Lab multi-value text, with two sample defaults. No Paragraphs module required.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /node/add/article in both frames. Find Lab multi-value text, its rows and Remove buttons.",
+          "how": "mirror",
+          "lookFor": "The same field values and controls on both sides."
+        },
+        {
+          "text": "Run checks, then inspect the field table header in each frame using DevTools or its accessibility tree.",
+          "how": "each",
+          "lookFor": "Before: empty actions-column header. After: visually hidden Operations label. There are three header cells; the first spans two logical columns, so the affected header is the second th, not the third th."
+        },
+        {
+          "text": "Use Add another item in each frame and run checks again. Optionally remove the newly added row and verify that the header remains labelled only on After. Do not save the Article.",
+          "how": "each",
+          "lookFor": "Header state survives AJAX updates; add/remove behavior remains available on both sides."
+        }
+      ],
+      "expected": "After has a visually hidden Operations column header and no empty-table-header finding for the target table; the visible form and add/remove controls remain usable.",
+      "actual": "Before has an empty actions-column header, inherited by Default Admin from FieldPreprocess.",
+      "observe": [
+        {
+          "label": "Actions header has an accessible Operations label",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Visible field layout remains unchanged",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Add and Remove controls work with the keyboard",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Default Admin rendered this page",
+          "probe": "window.drupalSettings?.ajaxPageState?.theme === 'default_admin'",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The core multi-value field table exists",
+          "probe": "!!document.querySelector('table[id^=\"field-lab-multivalue-values\"]')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The table contains Remove controls",
+          "probe": "Array.from(document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.querySelectorAll('input[type=submit], button') || []).some(e => /Remove/.test(e.value || e.textContent))",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Actions-column header is labelled Operations",
+          "probe": "document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.tHead?.rows[0]?.cells[1]?.textContent.trim() === 'Operations'",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "No empty header in the target field table",
+          "probe": "Array.from(document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.querySelectorAll('thead th') || []).every(e => e.textContent.trim().length > 0)",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Same number of field rows on both sides",
+          "probe": "document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.tBodies[0]?.rows.length",
+          "expect": "same",
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/node/add/article"
+      ],
+      "demo": {
+        "start": "/node/add/article"
+      }
+    },
+    {
+      "slug": "3630425-mr-only",
+      "issue": "3630425",
+      "label": "#3630425: published MR implementation only on main",
+      "description": "Pinned current main with Default Admin, versus the MR !17421 implementation ported to main plus a local regression-test addition. The implementation is unchanged; the interdiff adds Stark/Default Admin coverage for initial and AJAX add/remove header states. Both sides use the same unlimited core text-field recipe. Expect no visual change; inspect header markup or Run checks.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Standard install with Default Admin. Apply repro_3630425 to both sides: unlimited plain-text field Lab multi-value text, with two sample defaults. No Paragraphs module required.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /node/add/article in both frames. Find Lab multi-value text, its rows and Remove buttons.",
+          "how": "mirror",
+          "lookFor": "The same field values and controls on both sides."
+        },
+        {
+          "text": "Run checks, then inspect the field table header in each frame using DevTools or its accessibility tree.",
+          "how": "each",
+          "lookFor": "Before: empty actions-column header. After: visually hidden Operations label. There are three header cells; the first spans two logical columns, so the affected header is the second th, not the third th."
+        },
+        {
+          "text": "Use Add another item in each frame and run checks again. Optionally remove the newly added row and verify that the header remains labelled only on After. Do not save the Article.",
+          "how": "each",
+          "lookFor": "Header state survives AJAX updates; add/remove behavior remains available on both sides."
+        }
+      ],
+      "expected": "After has a visually hidden Operations column header and no empty-table-header finding for the target table; the visible form and add/remove controls remain usable.",
+      "actual": "Before has an empty actions-column header, inherited by Default Admin from FieldPreprocess.",
+      "observe": [
+        {
+          "label": "Actions header has an accessible Operations label",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Visible field layout remains unchanged",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Add and Remove controls work with the keyboard",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Default Admin rendered this page",
+          "probe": "window.drupalSettings?.ajaxPageState?.theme === 'default_admin'",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The core multi-value field table exists",
+          "probe": "!!document.querySelector('table[id^=\"field-lab-multivalue-values\"]')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The table contains Remove controls",
+          "probe": "Array.from(document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.querySelectorAll('input[type=submit], button') || []).some(e => /Remove/.test(e.value || e.textContent))",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Actions-column header is labelled Operations",
+          "probe": "document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.tHead?.rows[0]?.cells[1]?.textContent.trim() === 'Operations'",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "No empty header in the target field table",
+          "probe": "Array.from(document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.querySelectorAll('thead th') || []).every(e => e.textContent.trim().length > 0)",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Same number of field rows on both sides",
+          "probe": "document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.tBodies[0]?.rows.length",
+          "expect": "same",
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/node/add/article"
+      ],
+      "demo": {
+        "start": "/node/add/article"
+      }
+    },
+    {
+      "slug": "3631321-pinned",
+      "issue": "3631321",
+      "label": "#3631321: Inactive vertical-tab borders (pinned parent MR)",
+      "description": "Local AI-assisted proposal. Parent !17078 at c8136d010105a3c92fc4b20b9956eb31c703fc62 on both sides. Tests only inactive-tab borders.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Standard install, Default Admin theme, form_test, and Article recipe on both sides. The pinned parent MR is present on both.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /admin/config/people/accounts at 1280px width. Enable forced colors, dark palette, and more contrast in the lab browser.",
+          "how": "each"
+        },
+        {
+          "text": "Select the first, a middle, and the last email tab. Inspect the first and last outer borders and both boundaries beside the selected tab in light and dark palettes.",
+          "how": "each",
+          "lookFor": "Inactive tabs have dotted borders; the selected tab keeps solid borders."
+        }
+      ],
+      "expected": "Inactive borders are dotted in forced colors; selected and neighboring boundaries are solid; outer borders are visible in normal mode.",
+      "actual": "Inactive and selected tabs use solid borders in forced colors; the first or last outer border can be missing.",
+      "observe": [
+        {
+          "label": "Selection is identifiable without relying on color",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Keyboard focus remains visible and separate from validation errors",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Icons, accessible error text, and narrow-screen details remain usable",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Default Admin rendered this page",
+          "probe": "window.drupalSettings?.ajaxPageState?.theme === 'default_admin'",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Vertical tabs exist at desktop width",
+          "probe": "document.querySelectorAll('.vertical-tabs__menu-item:not(.vertical-tab--hidden)').length >= 3",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Forced colors is active (enable it before running checks)",
+          "probe": "matchMedia('(forced-colors: active)').matches",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "An inactive tab has a dotted inline-start border",
+          "probe": "Array.from(document.querySelectorAll('.vertical-tabs__menu-item:not(.is-selected):not(.vertical-tab--hidden) > .vertical-tabs__menu-link')).some(e => getComputedStyle(e).borderInlineStartStyle === 'dotted')",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/admin/config/people/accounts",
+        "/form_test/details-contains-required-fields",
+        "/node/add/article"
+      ],
+      "demo": {
+        "start": "/admin/config/people/accounts"
+      }
+    },
+    {
+      "slug": "3631321-latest",
+      "issue": "3631321",
+      "label": "#3631321: same proposal on current main (may need reroll)",
+      "description": "Local AI-assisted proposal. Parent !17078 at c8136d010105a3c92fc4b20b9956eb31c703fc62 on both sides. Tests only inactive-tab borders.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Standard install, Default Admin theme, form_test, and Article recipe on both sides. The pinned parent MR is present on both.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /admin/config/people/accounts at 1280px width. Enable forced colors, dark palette, and more contrast in the lab browser.",
+          "how": "each"
+        },
+        {
+          "text": "Select the first, a middle, and the last email tab. Inspect the first and last outer borders and both boundaries beside the selected tab in light and dark palettes.",
+          "how": "each",
+          "lookFor": "Inactive tabs have dotted borders; the selected tab keeps solid borders."
+        }
+      ],
+      "expected": "Inactive borders are dotted in forced colors; selected and neighboring boundaries are solid; outer borders are visible in normal mode.",
+      "actual": "Inactive and selected tabs use solid borders in forced colors; the first or last outer border can be missing.",
+      "observe": [
+        {
+          "label": "Selection is identifiable without relying on color",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Keyboard focus remains visible and separate from validation errors",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Icons, accessible error text, and narrow-screen details remain usable",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Default Admin rendered this page",
+          "probe": "window.drupalSettings?.ajaxPageState?.theme === 'default_admin'",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Vertical tabs exist at desktop width",
+          "probe": "document.querySelectorAll('.vertical-tabs__menu-item:not(.vertical-tab--hidden)').length >= 3",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Forced colors is active (enable it before running checks)",
+          "probe": "matchMedia('(forced-colors: active)').matches",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "An inactive tab has a dotted inline-start border",
+          "probe": "Array.from(document.querySelectorAll('.vertical-tabs__menu-item:not(.is-selected):not(.vertical-tab--hidden) > .vertical-tabs__menu-link')).some(e => getComputedStyle(e).borderInlineStartStyle === 'dotted')",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/admin/config/people/accounts",
+        "/form_test/details-contains-required-fields",
+        "/node/add/article"
+      ],
+      "demo": {
+        "start": "/admin/config/people/accounts"
+      }
+    },
+    {
+      "slug": "3631337-pinned",
+      "issue": "3631337",
+      "label": "#3631337: Experimental error markers in forced colors (pinned parent MR)",
+      "description": "Local AI-assisted proposal. Parent !17078 at c8136d010105a3c92fc4b20b9956eb31c703fc62 on both sides. Sequential comparison: #3631321 on both sides, then the experimental error-shape patch on After. Warnings and global error semantics remain open.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Standard install, Default Admin theme, form_test, and Article recipe on both sides. The pinned parent MR is present on both.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /admin/config/people/accounts at 1280px width. Enable forced colors, dark palette, and more contrast in the lab browser.",
+          "how": "each"
+        },
+        {
+          "text": "Select the first, a middle, and the last email tab. Inspect the first and last outer borders and both boundaries beside the selected tab in light and dark palettes.",
+          "how": "each",
+          "lookFor": "Inactive tabs have dotted borders; the selected tab keeps solid borders."
+        },
+        {
+          "text": "Open several email tabs and clear their required Subject fields, leaving a middle tab valid. Save, then select the valid middle tab. Inspect erroneous inactive tabs, then select an erroneous tab. Also submit the empty form_test details page and an Article with URL alias no-slash.",
+          "how": "each",
+          "lookFor": "Double error bars across tabs, ordinary details, and sidebar accordion details. Icons and contains-error labels remain. This is a proposal for discussion, not a resolution of system-color semantics."
+        }
+      ],
+      "expected": "Forced-color error bars are double across grouping elements, including selected erroneous tabs; selection remains independently identifiable.",
+      "actual": "Error bars and selected-tab bars are both solid CanvasText; their principal border distinction is width.",
+      "observe": [
+        {
+          "label": "Selection is identifiable without relying on color",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Keyboard focus remains visible and separate from validation errors",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Icons, accessible error text, and narrow-screen details remain usable",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Default Admin rendered this page",
+          "probe": "window.drupalSettings?.ajaxPageState?.theme === 'default_admin'",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Vertical tabs exist at desktop width",
+          "probe": "document.querySelectorAll('.vertical-tabs__menu-item:not(.vertical-tab--hidden)').length >= 3",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Forced colors is active (enable it before running checks)",
+          "probe": "matchMedia('(forced-colors: active)').matches",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "At least one tab contains a real validation error",
+          "probe": "!!document.querySelector('.vertical-tabs__menu-item.error')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Error bar is double",
+          "probe": "Array.from(document.querySelectorAll('.vertical-tabs__menu-item.error .vertical-tabs__menu-link')).every(e => getComputedStyle(e, '::before').borderInlineStartStyle === 'double')",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/admin/config/people/accounts",
+        "/form_test/details-contains-required-fields",
+        "/node/add/article"
+      ],
+      "demo": {
+        "start": "/admin/config/people/accounts"
+      }
+    },
+    {
+      "slug": "3631337-latest",
+      "issue": "3631337",
+      "label": "#3631337: same proposal on current main (may need reroll)",
+      "description": "Local AI-assisted proposal. Parent !17078 at c8136d010105a3c92fc4b20b9956eb31c703fc62 on both sides. Sequential comparison: #3631321 on both sides, then the experimental error-shape patch on After. Warnings and global error semantics remain open.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Standard install, Default Admin theme, form_test, and Article recipe on both sides. The pinned parent MR is present on both.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /admin/config/people/accounts at 1280px width. Enable forced colors, dark palette, and more contrast in the lab browser.",
+          "how": "each"
+        },
+        {
+          "text": "Select the first, a middle, and the last email tab. Inspect the first and last outer borders and both boundaries beside the selected tab in light and dark palettes.",
+          "how": "each",
+          "lookFor": "Inactive tabs have dotted borders; the selected tab keeps solid borders."
+        },
+        {
+          "text": "Open several email tabs and clear their required Subject fields, leaving a middle tab valid. Save, then select the valid middle tab. Inspect erroneous inactive tabs, then select an erroneous tab. Also submit the empty form_test details page and an Article with URL alias no-slash.",
+          "how": "each",
+          "lookFor": "Double error bars across tabs, ordinary details, and sidebar accordion details. Icons and contains-error labels remain. This is a proposal for discussion, not a resolution of system-color semantics."
+        }
+      ],
+      "expected": "Forced-color error bars are double across grouping elements, including selected erroneous tabs; selection remains independently identifiable.",
+      "actual": "Error bars and selected-tab bars are both solid CanvasText; their principal border distinction is width.",
+      "observe": [
+        {
+          "label": "Selection is identifiable without relying on color",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Keyboard focus remains visible and separate from validation errors",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Icons, accessible error text, and narrow-screen details remain usable",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Default Admin rendered this page",
+          "probe": "window.drupalSettings?.ajaxPageState?.theme === 'default_admin'",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Vertical tabs exist at desktop width",
+          "probe": "document.querySelectorAll('.vertical-tabs__menu-item:not(.vertical-tab--hidden)').length >= 3",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Forced colors is active (enable it before running checks)",
+          "probe": "matchMedia('(forced-colors: active)').matches",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "At least one tab contains a real validation error",
+          "probe": "!!document.querySelector('.vertical-tabs__menu-item.error')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Error bar is double",
+          "probe": "Array.from(document.querySelectorAll('.vertical-tabs__menu-item.error .vertical-tabs__menu-link')).every(e => getComputedStyle(e, '::before').borderInlineStartStyle === 'double')",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/admin/config/people/accounts",
+        "/form_test/details-contains-required-fields",
+        "/node/add/article"
+      ],
+      "demo": {
+        "start": "/admin/config/people/accounts"
+      }
+    },
+    {
+      "slug": "3631337-independent",
+      "issue": "3631337",
+      "label": "#3631337: parent MR versus error markers only",
+      "description": "Local AI-assisted proposal. Parent !17078 at c8136d010105a3c92fc4b20b9956eb31c703fc62 on both sides. Sequential comparison: #3631321 on both sides, then the experimental error-shape patch on After. Warnings and global error semantics remain open.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Standard install, Default Admin theme, form_test, and Article recipe on both sides. The pinned parent MR is present on both.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /admin/config/people/accounts at 1280px width. Enable forced colors, dark palette, and more contrast in the lab browser.",
+          "how": "each"
+        },
+        {
+          "text": "Select the first, a middle, and the last email tab. Inspect the first and last outer borders and both boundaries beside the selected tab in light and dark palettes.",
+          "how": "each",
+          "lookFor": "Inactive tabs have dotted borders; the selected tab keeps solid borders."
+        },
+        {
+          "text": "Open several email tabs and clear their required Subject fields, leaving a middle tab valid. Save, then select the valid middle tab. Inspect erroneous inactive tabs, then select an erroneous tab. Also submit the empty form_test details page and an Article with URL alias no-slash.",
+          "how": "each",
+          "lookFor": "Double error bars across tabs, ordinary details, and sidebar accordion details. Icons and contains-error labels remain. This is a proposal for discussion, not a resolution of system-color semantics."
+        }
+      ],
+      "expected": "Forced-color error bars are double across grouping elements, including selected erroneous tabs; selection remains independently identifiable.",
+      "actual": "Error bars and selected-tab bars are both solid CanvasText; their principal border distinction is width.",
+      "observe": [
+        {
+          "label": "Selection is identifiable without relying on color",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Keyboard focus remains visible and separate from validation errors",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Icons, accessible error text, and narrow-screen details remain usable",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Default Admin rendered this page",
+          "probe": "window.drupalSettings?.ajaxPageState?.theme === 'default_admin'",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Vertical tabs exist at desktop width",
+          "probe": "document.querySelectorAll('.vertical-tabs__menu-item:not(.vertical-tab--hidden)').length >= 3",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Forced colors is active (enable it before running checks)",
+          "probe": "matchMedia('(forced-colors: active)').matches",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "At least one tab contains a real validation error",
+          "probe": "!!document.querySelector('.vertical-tabs__menu-item.error')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Error bar is double",
+          "probe": "Array.from(document.querySelectorAll('.vertical-tabs__menu-item.error .vertical-tabs__menu-link')).every(e => getComputedStyle(e, '::before').borderInlineStartStyle === 'double')",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/admin/config/people/accounts",
+        "/form_test/details-contains-required-fields",
+        "/node/add/article"
+      ],
+      "demo": {
+        "start": "/admin/config/people/accounts"
       }
     }
   ]

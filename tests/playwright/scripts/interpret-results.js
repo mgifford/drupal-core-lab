@@ -18,53 +18,15 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
-
-// ── Types ────────────────────────────────────────────────────────────────────
-
-interface Finding {
-  rule: string;
-  severity: 'critical' | 'serious' | 'moderate' | 'minor';
-  description: string;
-  position: number;
-  phrase: string;
-}
-
-interface TestResult {
-  name: string;
-  passed: boolean;
-  findings: Finding[];
-  spokenPhrases: string[];
-}
-
-interface AnalysisResult {
-  timestamp: string;
-  summary: {
-    totalTests: number;
-    passed: number;
-    failed: number;
-    totalFindings: number;
-    findingsBySeverity: Record<string, number>;
-    findingsByRule: Record<string, number>;
-  };
-  insights: Insight[];
-  recommendations: string[];
-  aiPrompts: string[];
-}
-
-interface Insight {
-  type: 'pattern' | 'regression' | 'improvement' | 'concern';
-  title: string;
-  description: string;
-  evidence: string[];
-  confidence: 'high' | 'medium' | 'low';
-}
+import { fileURLToPath } from 'node:url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ── Analysis Functions ───────────────────────────────────────────────────────
 
 /**
  * Analyze test results and generate insights.
  */
-function analyzeResults(results: TestResult[]): AnalysisResult {
+function analyzeResults(results) {
   const allFindings = results.flatMap(r => r.findings);
 
   // Calculate summary
@@ -98,8 +60,8 @@ function analyzeResults(results: TestResult[]): AnalysisResult {
 /**
  * Count findings by severity.
  */
-function countBySeverity(findings: Finding[]): Record<string, number> {
-  const counts: Record<string, number> = {};
+function countBySeverity(findings) {
+  const counts = {};
   for (const finding of findings) {
     counts[finding.severity] = (counts[finding.severity] ?? 0) + 1;
   }
@@ -109,8 +71,8 @@ function countBySeverity(findings: Finding[]): Record<string, number> {
 /**
  * Count findings by rule.
  */
-function countByRule(findings: Finding[]): Record<string, number> {
-  const counts: Record<string, number> = {};
+function countByRule(findings) {
+  const counts = {};
   for (const finding of findings) {
     counts[finding.rule] = (counts[finding.rule] ?? 0) + 1;
   }
@@ -120,8 +82,8 @@ function countByRule(findings: Finding[]): Record<string, number> {
 /**
  * Generate insights from results.
  */
-function generateInsights(results: TestResult[], findings: Finding[]): Insight[] {
-  const insights: Insight[] = [];
+function generateInsights(results , findings) {
+  const insights = [];
 
   // Check for critical issues
   const criticalFindings = findings.filter(f => f.severity === 'critical');
@@ -202,10 +164,10 @@ function generateInsights(results: TestResult[], findings: Finding[]): Insight[]
  * Generate recommendations based on analysis.
  */
 function generateRecommendations(
-  summary: AnalysisResult['summary'],
-  insights: Insight[]
-): string[] {
-  const recommendations: string[] = [];
+  summary ,
+  insights
+) {
+  const recommendations = [];
 
   if (summary.failed > 0) {
     recommendations.push('Review and fix the failing tests before merging.');
@@ -244,8 +206,8 @@ function generateRecommendations(
 /**
  * Generate AI prompts for further analysis.
  */
-function generateAIPrompts(results: TestResult[], insights: Insight[]): string[] {
-  const prompts: string[] = [];
+function generateAIPrompts(results , insights) {
+  const prompts = [];
 
   if (insights.some(i => i.type === 'concern')) {
     prompts.push(
@@ -277,7 +239,7 @@ function generateAIPrompts(results: TestResult[], insights: Insight[]): string[]
 /**
  * Print analysis to console.
  */
-function printAnalysis(analysis: AnalysisResult): void {
+function printAnalysis(analysis) {
   console.log('\n=== Accessibility Analysis ===\n');
   console.log(`Timestamp: ${analysis.timestamp}`);
   console.log(`Tests: ${analysis.summary.passed}/${analysis.summary.totalTests} passed`);
@@ -318,7 +280,7 @@ function printAnalysis(analysis: AnalysisResult): void {
 /**
  * Save analysis to files.
  */
-function saveAnalysis(analysis: AnalysisResult, outputDir: string): void {
+function saveAnalysis(analysis , outputDir) {
   fs.mkdirSync(outputDir, { recursive: true });
 
   // Save JSON
@@ -336,7 +298,7 @@ function saveAnalysis(analysis: AnalysisResult, outputDir: string): void {
 /**
  * Generate markdown report.
  */
-function generateMarkdown(analysis: AnalysisResult): string {
+function generateMarkdown(analysis) {
   const lines = [
     '# Accessibility Analysis Report',
     '',
@@ -417,7 +379,7 @@ function main() {
     const rawData = JSON.parse(fs.readFileSync(resultsFile, 'utf-8'));
 
     // Convert to our format
-    const results: TestResult[] = [];
+    const results = [];
 
     // Parse Playwright JSON results
     if (rawData.suites) {

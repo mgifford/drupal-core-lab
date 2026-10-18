@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "proposal-1",
+  "status": "not-enforced",
+  "authority": "lab-proposal-not-drupal-policy",
+  "purpose": "Review semantic roles, valid colour pairs and user-preference fallbacks before implementing checks.",
+  "roles": [
+    {"id": "text.primary", "part": "text", "intent": "reading", "candidatePaletteToken": "neutralContentStrong", "reviewed": false},
+    {"id": "surface.canvas", "part": "surface", "intent": "page-background", "candidatePaletteToken": "canvas", "reviewed": false},
+    {"id": "action.primary.background", "part": "surface", "intent": "primary-action", "candidatePaletteToken": "accentNonContentStrong", "reviewed": false},
+    {"id": "action.primary.foreground", "part": "text", "intent": "primary-action", "candidatePaletteToken": null, "reviewed": false},
+    {"id": "status.error.text", "part": "text", "intent": "error", "candidatePaletteToken": null, "reviewed": false}
+  ],
+  "pairings": [
+    {"id": "body-on-canvas", "foreground": "text.primary", "background": "surface.canvas", "modes": ["light", "dark"], "contrastCheck": "WCAG2-text-with-context", "accepted": false},
+    {"id": "primary-action-label", "foreground": "action.primary.foreground", "background": "action.primary.background", "modes": ["light", "dark"], "contrastCheck": "WCAG2-text-with-context", "accepted": false}
+  ],
+  "componentContracts": [
+    {
+      "id": "next-step-cue",
+      "intent": "Identify the current step and how to continue",
+      "normalCue": "Optional movement or emphasis",
+      "reducedMotionFallback": "Immediate presentation plus persistent heading, step number and instruction",
+      "printFallback": "Step number and instruction remain visible",
+      "scriptedScenario": null,
+      "outcomeReview": "required",
+      "status": "proposal"
+    }
+  ],
+  "unknowns": ["Actual Default Admin token mappings", "Theme-specific state combinations", "Maintainer approval", "Per-component source provenance"]
+}

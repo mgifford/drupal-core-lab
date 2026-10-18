@@ -33,7 +33,46 @@ export const variants = () => {
   };
   return all.map(resolve);
 };
+// A variant from what a person (or an agent) types: its slug, or an issue number (with or without #), which means <nid>-latest,
+// else <nid>-pinned, else the issue's only variant. Returns { v, note } or { error } naming what to type instead.
+export function resolveVariant(arg, all = variants()) {
+  if (!arg) return { error: `Name a variant or an issue number, for example ${all[0] ? all[0].issue : '3619154'}.` };
+  const exact = all.find((x) => x.slug === arg);
+  if (exact) return { v: exact };
+  const nid = String(arg).replace(/^#/, '');
+  if (/^\d+$/.test(nid)) {
+    const mine = all.filter((x) => String(x.issue) === nid);
+    const pick = mine.find((x) => x.slug === `${nid}-latest`) || mine.find((x) => x.slug === `${nid}-pinned`) || (mine.length === 1 ? mine[0] : null);
+    if (pick) return { v: pick, note: `Issue ${nid}: using variant ${pick.slug}${mine.length > 1 ? ` (others: ${mine.filter((x) => x !== pick).map((x) => x.slug).join(', ')})` : ''}.` };
+    return { error: mine.length ? `Issue ${nid} has several variants: ${mine.map((x) => x.slug).join(', ')}. Name one.` : `No variant is registered for issue ${nid}. Scaffold one first: node scripts/new-issue.mjs ${nid} --branch <fork-branch> (docs/NEW-ISSUE.md).` };
+  }
+  const near = all.filter((x) => x.slug.startsWith(arg) || String(x.issue) === arg.split('-')[0]).map((x) => x.slug);
+  return { error: `Unknown variant: ${arg}.${near.length ? ` Did you mean ${near.join(', ')}?` : ''} An issue number also works.` };
+}
 export const envDir = (env) => path.join(labRoot, 'envs', env);
+// The DDEV project name of an environment (tools/compare/setup.mjs gives it to `ddev config`).
+export const ddevName = (env) => `repro-${env}`.slice(0, 60);
+
+// DDEV's projects from `ddev list -j`, which prints one JSON object per line (warnings first when there are any); the list is the
+// line with `raw`.
+export const parseDdevList = (stdout) => String(stdout || '').split('\n').map((l) => { try { return JSON.parse(l); } catch { return null; } }).map((o) => o && o.raw).find(Array.isArray) || [];
+// The lab checkout a folder is in: the nearest folder upwards holding tools/compare/variants.json, or '' for none.
+export function labCheckoutOf(dir) {
+  for (let d = path.resolve(dir); ; d = path.dirname(d)) {
+    if (fs.existsSync(path.join(d, 'tools/compare/variants.json'))) return d;
+    if (path.dirname(d) === d) return '';
+  }
+}
+// The names in `wanted` ([{ name, dir }]) that DDEV has registered to another folder. DDEV allows a name once, so building in `dir`
+// would stop at `ddev config` with "project root is already set to …". `lab` is the checkout that folder is in. (A registered folder
+// that was deleted is not listed: `ddev list` drops it from DDEV's registry itself, DDEV v1.24.10.)
+export function ddevNameClashes(projects, wanted) {
+  return wanted.flatMap(({ name, dir }) => {
+    const p = projects.find((x) => x.name === name);
+    if (!p || !p.approot || path.resolve(p.approot) === path.resolve(dir)) return [];
+    return [{ name, dir, approot: p.approot, lab: labCheckoutOf(p.approot) }];
+  });
+}
 
 // DDEV hostname and router port for an environment (the router needs a Host header).
 export function envInfo(env) {

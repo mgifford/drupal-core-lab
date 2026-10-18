@@ -11,6 +11,22 @@ Part of the three-pillar governance baseline:
 | [AGENTS.md](./AGENTS.md) | AI coding agent operational instructions |
 | [STYLES.md](./STYLES.md) — this file | Design tokens, voice, and AI agent style rules |
 
+## Default Admin design-review companion
+
+For the Default Admin consistency review, begin with [DESIGN.md](./DESIGN.md).
+The focused [STYLE.md](./STYLE.md) is a navigation aid, not a second style policy.
+The [draft reference](./docs/design/default-admin-design-system.html) and
+[proposed contracts](./docs/design/contracts.json) distinguish published guidance,
+observations and proposals. They do not replace ACCESSIBILITY.md or AGENTS.md,
+and do not silently supersede this file's existing instructions.
+
+The Claro and Olivero examples below are theme-specific historical guidance;
+they do not establish Default Admin token values. Do not apply a Claro-only
+value to another theme merely because it appears here. Other conflicts and
+unverified generalisations are recorded in the
+[design guidance conflict register](./docs/design/CONFLICTS.md). Surface those
+conflicts for review rather than silently choosing one instruction.
+
 ---
 
 ## Scope

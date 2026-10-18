@@ -58,6 +58,7 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/issue-from-url.mjs <url> [--pack <file>] [--ai-recipe] [--mr <n>] [--no-import] [--dry-run]  # start from a Drupal.org issue URL (prepare→validate→import)
     node scripts/issue-pack.mjs validate <pack> | import <pack> [--recipe <dir>] [--depth 2000] [--dry-run]  # validate/import an issue pack; --ai-recipe at prepare time
     node tools/compare/setup.mjs <slug> --core-from=<path>  # seed core from a local checkout (filtered egress / existing worktree)
+    node scripts/test-mr.mjs <nid|slug> [--diff=<file|url>] [--mr=<n|url>] [--patch=<path>] [--no-update] [--no-start] [--dry-run] [--core-url=<url>]  # one command: update checkout, optional MR diff, stop other comparisons, build and start (Coder or local), print the viewer address
     node scripts/cloud-bootstrap.mjs <slug> [--install-autostart] [--rebuild] [--core-url=<url>] [--use-existing-core[=<path>]] [--check]  # DDEV Coder workspace bootstrap
     node scripts/build-cloud.mjs                         # regenerate cloud/ (the GitHub Pages site); commit the result. CI fails if it is stale
 

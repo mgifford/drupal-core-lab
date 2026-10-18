@@ -31,15 +31,23 @@
   /* top bar */
   .topbar { display: flex; flex-wrap: wrap; gap: .4rem .6rem; align-items: center; padding: .45rem .75rem; background: var(--surface); border-bottom: 1px solid var(--line); }
   .topbar h1 { font-size: .95rem; }
-  .browser-buttons { margin-left: auto; display: flex; gap: .25rem; }
-  .browser-buttons button { width: 2.25rem; height: 2.25rem; padding: .4rem; }
+  .browser-buttons { margin-left: auto; display: flex; align-items: center; gap: .35rem; }
+  .browser-buttons button { width: 2.5rem; height: 2.5rem; padding: .3rem; background: #fff; }
   .browser-buttons img { width: 100%; height: 100%; display: block; }
-  @media (prefers-color-scheme: dark) { .browser-buttons img { filter: invert(1); } }
+  .browser-buttons .browser-prompt { font-size: .8rem; white-space: nowrap; }
   @media (forced-colors: active) { .browser-buttons img { forced-color-adjust: none; } .browser-buttons button { background: white; } .browser-buttons img { filter: none; } }
   #variant { max-width: 16rem; min-width: 0; } .topbar label.v { max-width: 100%; display: inline-flex; flex-wrap: wrap; gap: .4rem; align-items: center; font-size: .85rem; color: var(--muted); }
   .topbar .goto { display: flex; gap: .4rem; flex: 1 1 16rem; min-width: 0; } .topbar .goto input { flex: 1; min-width: 6rem; }
   .topbar .state { flex-basis: 100%; display: flex; gap: .6rem; align-items: center; font-size: .85rem; color: var(--muted); }
   #status:not(:empty) { padding: 0 .6rem; border-radius: 999px; background: var(--surface2); color: var(--text); }
+  .comparison-peers { flex: 1 0 100%; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; padding-top: .4rem; border-top: 1px solid var(--line); }
+  .comparison-peers .lab { margin-right: .15rem; font-size: .8rem; font-weight: 600; color: var(--muted); }
+  .comparison-peers button { min-height: 1.8rem; padding: .2rem .55rem; font-size: .8rem; }
+  .comparison-peers button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  .comparison-peers button[data-available="false"] { border-style: dashed; }
+  .audit-detail { max-width: 52rem; } .audit-detail pre { max-height: 18rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .75rem; background: var(--surface2); padding: .5rem; }
+  .panel-heading { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .resource-command-block { margin: .65rem 0; } .resource-command-block pre { margin: .25rem 0; padding: .55rem; overflow: auto; background: var(--surface2); border: 1px solid var(--line); border-radius: 4px; }
 
   /* conditions toolbar: three always-visible choices, then popovers */
   .toolbar { display: flex; flex-wrap: wrap; gap: .5rem .9rem; align-items: end; padding: .45rem .75rem; background: var(--surface); border-bottom: 1px solid var(--line); }
@@ -65,6 +73,9 @@
   .pop > summary::after { content: "\25BE"; color: var(--muted); } .pop[open] > summary { background: var(--surface2); }
   .pop > summary .chip:empty { display: none; }
   .pop .panelp { position: absolute; z-index: 20; top: calc(100% + .35rem); left: 0; width: min(21rem, calc(100vw - 1.5rem)); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: .25rem .8rem; box-shadow: 0 8px 24px rgba(0, 0, 0, .28); }
+  details[data-sec="conditions"] .panelp { width: min(36rem, calc(100vw - 1.5rem)); max-height: 70vh; overflow: auto; }
+  #emulbox .seg { flex-wrap: wrap; }
+  #emulbox table { width: 100%; font-size: .8rem; overflow-wrap: anywhere; }
   .pop .panelp.end { left: auto; right: 0; }
   .panelp .row { padding: .5rem 0; border-top: 1px solid var(--line); } .panelp .row:first-child { border-top: 0; }
   .panelp .row .seg { margin: .25rem 0; }
@@ -77,12 +88,14 @@
   main { grid-row: 4; min-height: 0; display: flex; flex-direction: column; }
   #legend { margin: 0; padding: .3rem .75rem; font-size: .85rem; background: var(--surface2); }
   .panes { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr); gap: .5rem; padding: .5rem .75rem; min-height: 0; flex: 1 1 0; }
-  .pane { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); overflow-x: auto; overflow-y: hidden; }
-  .pane h2 { white-space: nowrap; margin: 0; padding: .3rem .6rem; border-bottom: 1px solid var(--line); font-size: .9rem; display: flex; align-items: baseline; gap: .5rem; min-width: 0; }
-  .pane h2 .path { flex: 1 1 auto; min-width: 0; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pane { display: grid; grid-template-rows: 2.5rem minmax(0, 1fr); min-width: 0; min-height: 0; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); overflow-x: auto; overflow-y: hidden; }
+  .pane h2 { white-space: nowrap; margin: 0; padding: .3rem .6rem; border-bottom: 1px solid var(--line); font-size: .9rem; display: flex; align-items: center; gap: .5rem; min-width: 0; }
+  .pane h2 > span:first-child { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .pane h2 > a:not(.openext) { flex: 0 0 auto; }
+  .pane h2 small { flex: 0 1 12rem; min-width: 0; max-width: 32%; font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pane h2 .path { flex: 1 1 0; min-width: 0; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .pane h2 .openext { flex: 0 0 auto; margin-left: .1rem; color: var(--muted); text-decoration: none; line-height: 1; padding: .1rem .3rem; border-radius: 4px; font-size: .95rem; }
   .pane h2 .openext:hover, .pane h2 .openext:focus-visible { color: var(--accent); background: var(--surface2); }
-  .pane:hover h2 .path, .pane:focus-within h2 .path, .pane:focus h2 .path { white-space: normal; overflow-wrap: anywhere; overflow: visible; }
   .pane iframe { width: 100%; height: 100%; border: 0; background: #fff; display: block; }
 .frame-error { margin: .5rem .75rem; padding: .5rem .75rem; background: var(--error-bg, #fee); border: 1px solid var(--error-border, #f88); border-radius: var(--r); color: var(--error-text, #800); font-size: .85rem; display: none; }
 .frame-error:not([hidden]) { display: block; }
@@ -101,7 +114,7 @@
   .tabs .tablist { display: flex; gap: 2px; align-items: end; }
   .tabs [role=tab] { border: 1px solid transparent; border-bottom: 0; background: none; border-radius: 6px 6px 0 0; padding: .3rem .75rem; display: flex; gap: .4rem; align-items: center; white-space: nowrap; margin-bottom: -1px; }
   .tabs [role=tab][aria-selected=true] { background: var(--surface); border-color: var(--line); font-weight: 700; }
-  .tabs .sp { margin-left: auto; display: flex; gap: .25rem; } .tabs .sp button { border-color: transparent; background: none; font-size: .8rem; margin-bottom: .25rem; min-height: 1.7rem; }
+  .tabs .sp { margin-left: auto; display: flex; align-items: center; gap: .35rem; } .tabs .sp button { border-color: transparent; background: none; font-size: .8rem; margin-bottom: .25rem; min-height: 1.7rem; }
   .panels { overflow: auto; padding: .6rem .9rem; min-height: 0; } .dock[data-collapsed="true"] .panels { display: none; }
   .panels h2 { display: flex; flex-wrap: wrap; gap: .4rem .6rem; align-items: center; font-size: .95rem; }
   details.help { margin: .3rem 0; font-size: .85rem; } details.help summary { cursor: pointer; color: var(--accent); width: max-content; } details.help .note { margin-top: .3rem; }
@@ -129,7 +142,7 @@
   <label class="v">Comparison <select id="variant" title="Switch between comparisons already built in this lab"></select></label>
   <div class="goto" data-needs="live"><label class="sr" for="goto">Page</label><input type="text" id="goto" size="26" value="/" placeholder="/node/add/article"><button type="button" id="go" class="primary">Go (both)</button></div>
   <span data-needs="live" style="display:contents">
-    <button type="button" id="login" title="Log in as administrator on both sites">Log in both</button>
+    <button type="button" id="login" title="Log in as administrator on both sites, clear their caches and reload the page">Log in both</button>
     <button type="button" id="cache" title="Clear Drupal caches on both sites and reload them">Clear cache</button>
     <details class="pop" data-sec="reload"><summary class="btn">Reload</summary><div class="panelp end"><div class="actions"><button type="button" id="rb">Before</button><button type="button" id="ra">After</button><button type="button" id="reloadboth">Both</button></div></div></details>
     <details class="pop" data-sec="tools"><summary class="btn">Tools</summary>
@@ -141,6 +154,7 @@
   </span>
   <div id="browsers" class="browser-buttons" data-needs="live" role="group" aria-label="Open this comparison in another browser" hidden></div>
   <div class="state" data-needs="live"><span id="status" role="status" aria-live="polite">Loading…</span><span id="axemini" role="status" aria-live="polite"></span></div>
+  <nav id="comparisonPeers" class="comparison-peers" aria-label="Related patch-stack comparisons" hidden></nav>
 </header>
 
 <div class="toolbar" data-needs="live" role="group" aria-label="Test conditions">
@@ -159,10 +173,32 @@
         <label><input type="radio" name="dir" value="auto" checked> Page default</label><label><input type="radio" name="dir" value="ltr"> LTR</label><label><input type="radio" name="dir" value="rtl"> RTL</label></div></fieldset>
       <div class="row" data-label="Simulate a dark-mode OS"><label class="sw"><span class="lab">Simulate a dark-mode OS</span><input type="checkbox" id="darkos" role="switch"></label></div>
       <div class="row" data-label="JavaScript off"><label class="sw"><span class="lab">JavaScript off</span><input type="checkbox" id="nojs" role="switch"></label><span class="hint">Turns the sites' JavaScript off and reloads both.</span></div>
-      <div class="row" id="emulrow"><span id="emulopenwrap"><button type="button" id="emulopen">Open forced-colours window</button><span class="hint">Forced colours can only be switched in the lab browser window.</span></span>
-        <fieldset id="emulbox" class="row" data-label="Forced colours" hidden><legend>Forced colours (both frames)</legend><div class="seg">
-          <label><input type="radio" name="emul" value="normal" checked> Off</label><label><input type="radio" name="emul" value="forced-light"> Light</label><label><input type="radio" name="emul" value="forced-dark"> Dark</label><label><input type="radio" name="emul" value="contrast"> More</label></div>
-          <span id="emulstatus" class="hint" role="status"></span></fieldset></div>
+      <div class="row" id="emulrow"><span id="emulopenwrap"><button type="button" id="emulopen">Open preference emulation window</button><span class="hint">User preferences can be emulated in the lab browser window.</span></span>
+        <fieldset id="emulbox" class="row" hidden><legend>User preferences</legend>
+          <fieldset class="row" data-label="Forced colours"><legend>Forced colours</legend><div class="seg">
+            <label><input type="radio" name="emul" value="normal" checked> Off</label><label><input type="radio" name="emul" value="forced-light"> Light</label><label><input type="radio" name="emul" value="forced-dark"> Dark</label></div></fieldset>
+          <fieldset id="media-row-contrast" class="row" data-label="Contrast" aria-describedby="media-support-contrast"><legend>Contrast</legend><div class="seg">
+            <label><input type="radio" name="media-contrast" data-media="contrast" value="" checked> Default</label>
+            <label><input type="radio" name="media-contrast" data-media="contrast" value="no-preference"> No preference</label>
+            <label><input type="radio" name="media-contrast" data-media="contrast" value="more"> More</label>
+            <label><input type="radio" name="media-contrast" data-media="contrast" value="less"> Less</label>
+            <label><input type="radio" name="media-contrast" data-media="contrast" value="custom"> Custom</label>
+          </div><span class="hint" id="media-support-contrast"></span></fieldset>
+          <fieldset id="media-row-reducedMotion" class="row" data-label="Motion" aria-describedby="media-support-reducedMotion"><legend>Motion</legend><div class="seg">
+            <label><input type="radio" name="media-reducedMotion" data-media="reducedMotion" value="" checked> Default</label>
+            <label><input type="radio" name="media-reducedMotion" data-media="reducedMotion" value="no-preference"> No preference</label>
+            <label><input type="radio" name="media-reducedMotion" data-media="reducedMotion" value="reduce"> Reduce</label>
+          </div><span class="hint" id="media-support-reducedMotion"></span></fieldset>
+          <fieldset id="media-row-reducedTransparency" class="row" data-label="Transparency" aria-describedby="media-support-reducedTransparency"><legend>Transparency</legend><div class="seg">
+            <label><input type="radio" name="media-reducedTransparency" data-media="reducedTransparency" value="" checked> Default</label>
+            <label><input type="radio" name="media-reducedTransparency" data-media="reducedTransparency" value="no-preference"> No preference</label>
+            <label><input type="radio" name="media-reducedTransparency" data-media="reducedTransparency" value="reduce"> Reduce</label>
+          </div><span class="hint" id="media-support-reducedTransparency"></span></fieldset>
+          <p class="hint">Preferences combine without reloading. Default follows the browser or OS; No preference explicitly tests that value. Custom contrast tests the query, not a custom palette.</p>
+          <button type="button" id="media-reset">Reset all media preferences</button>
+          <span id="emulstatus" class="hint" role="status" aria-live="polite"></span>
+          <details><summary>Actual media-query values</summary><table><caption>Actual media-query values in each frame</caption><thead><tr><th scope="col">Preference</th><th scope="col">Before</th><th scope="col">After</th></tr></thead><tbody id="media-observed"></tbody></table></details>
+        </fieldset></div>
     </div></details>
   <details class="pop" data-sec="input"><summary class="btn">Input <span class="chip"></span></summary>
     <div class="panelp">
@@ -196,8 +232,8 @@
   </section>
   <p data-needs="live" id="legend" role="status" hidden></p>
   <div class="panes" id="panes" data-needs="live">
-    <section class="pane" aria-labelledby="hb" tabindex="0"><h2 id="hb">Before patch <span class="path" id="pb"></span><a class="openext" id="pob" target="_blank" rel="noopener" href="#" title="Open the Before page in a new window" aria-label="Open the Before page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fb" title="Before patch" data-side="before"></iframe><div class="frame-error" id="fbe" hidden aria-live="polite"></div></section>
-    <section class="pane" aria-labelledby="ha" tabindex="0"><h2 id="ha">After patch <a id="haissue" target="_blank" rel="noopener" href="#" hidden></a><span class="path" id="pa"></span><a class="openext" id="poa" target="_blank" rel="noopener" href="#" title="Open the After page in a new window" aria-label="Open the After page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fa" title="After patch" data-side="after"></iframe><div class="frame-error" id="fae" hidden aria-live="polite"></div></section>
+    <section class="pane" aria-labelledby="hb" tabindex="0"><h2 id="hb"><span id="hblabel">Before patch</span> <span class="path" id="pb"></span><small id="theme-before">Theme: waiting</small><a class="openext" id="pob" target="_blank" rel="noopener" href="#" title="Open the Before page in a new window" aria-label="Open the Before page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fb" title="Before patch" data-side="before"></iframe><div class="frame-error" id="fbe" hidden aria-live="polite"></div></section>
+    <section class="pane" aria-labelledby="ha" tabindex="0"><h2 id="ha"><span id="halabel">After patch</span> <a id="haissue" target="_blank" rel="noopener" href="#" hidden></a><span class="path" id="pa"></span><small id="theme-after">Theme: waiting</small><a class="openext" id="poa" target="_blank" rel="noopener" href="#" title="Open the After page in a new window" aria-label="Open the After page in a new window"><span aria-hidden="true">&#8599;</span></a></h2><iframe id="fa" title="After patch" data-side="after"></iframe><div class="frame-error" id="fae" hidden aria-live="polite"></div></section>
   </div>
 </main>
 
@@ -217,6 +253,7 @@
       <button type="button" role="tab" id="tab-manual" aria-controls="p-manual" data-tab="manual" data-needs="live">Manual <span class="chip" id="bd-manual"></span></button>
       <button type="button" role="tab" id="tab-axe" aria-controls="p-axe" data-tab="axe" data-needs="live">Accessibility <span class="chip" id="bd-axe"></span></button>
       <button type="button" role="tab" id="tab-lh" aria-controls="p-lh" data-tab="lh" data-needs="live">Lighthouse <span class="chip" id="bd-lh"></span></button>
+      <button type="button" role="tab" id="tab-resources" aria-controls="p-resources" data-tab="resources" data-needs="live">Resources <span class="chip" id="bd-resources"></span></button>
       <button type="button" role="tab" id="tab-env" aria-controls="p-env" data-tab="env" data-needs="live">Environment <span class="chip" id="bd-env"></span></button>
     </div>
     <span class="sp"><button type="button" id="docksize" aria-pressed="false">Larger</button><button type="button" id="dockhide" aria-expanded="true">Hide panel</button></span>
@@ -230,13 +267,13 @@
       <h2>Checks <button type="button" id="runchecks" class="primary">Run checks</button> <span id="rcstat" class="path" role="status" aria-live="polite"></span></h2>
       <details class="help"><summary>How checks are judged</summary><p class="note">After the last step, press Run checks. Each check runs inside both frames and says Pass or Fail against what is expected. The rule: a <strong>fix</strong> check should <strong>fail on Before and pass on After</strong>; a <strong>regression</strong> check should pass on both; a <strong>precondition</strong> must pass on both or nothing else means anything.</p></details>
       <p id="verdict" class="verdict" role="status" hidden></p>
-      <table class="checks" id="checks"><thead><tr><th>Type</th><th>Check</th><th>Expected</th><th>Before</th><th>After</th><th>Verdict</th></tr></thead><tbody></tbody></table>
+      <table class="checks" id="checks"><thead><tr><th>Type</th><th>Check</th><th>Expected</th><th data-side-label="before">Before</th><th data-side-label="after">After</th><th>Verdict</th></tr></thead><tbody></tbody></table>
     </div>
     <div role="tabpanel" id="p-manual" aria-labelledby="tab-manual" tabindex="0" data-needs="live" hidden>
       <h2>Manual confirmation: what do you see?</h2>
       <details class="help"><summary>How this works</summary><p class="note">The two frames stay in step, so you can confirm the change by eye. Do the steps, click the "URL alias" link yourself in each frame (Mirror off), then answer for each side. Your answers are compared with what is expected and saved in the downloaded log. This does not replace testing with a keyboard and a screen reader.</p></details>
       <p id="obsverdict" class="verdict warn" role="status" aria-live="polite" hidden></p>
-      <table class="checks" id="obs"><thead><tr><th>Did you see this?</th><th>Expected Before / After</th><th>Before</th><th>After</th><th>Result</th></tr></thead><tbody></tbody></table>
+      <table class="checks" id="obs"><thead><tr><th>Did you see this?</th><th>Expected first / second</th><th data-side-label="before">Before</th><th data-side-label="after">After</th><th>Result</th></tr></thead><tbody></tbody></table>
       <p class="note"><label>Notes (kept in the downloaded log) <input type="text" id="obsnote" size="60"></label></p>
     </div>
     <div role="tabpanel" id="p-axe" aria-labelledby="tab-axe" tabindex="0" data-needs="live" hidden>
@@ -244,7 +281,7 @@
       <details class="help"><summary>What this shows</summary><p class="note">Turn it on under Audits. axe-core runs in both frames after every page load and after interactions. Because both frames are driven the same way, a difference means the change affects accessibility. "Violations" are elements axe flags as failing WCAG A/AA rules. Automated checks find only a subset of problems; they do not replace a keyboard and screen-reader test.</p></details>
       <p id="axeverdict" class="verdict warn" role="status" aria-live="polite">Waiting for both frames to finish loading…</p>
       <table class="checks" id="axecounts"><caption class="note" style="text-align:left">Violating elements by impact (rules in brackets)</caption><thead><tr><th>Side</th><th>Critical</th><th>Serious</th><th>Moderate</th><th>Minor</th><th>Total</th></tr></thead><tbody></tbody></table>
-      <table class="checks" id="axediff" hidden><caption class="note" style="text-align:left">Rules that differ, or that fail on both sides</caption><thead><tr><th>Rule</th><th>Impact</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody></tbody></table>
+      <table class="checks" id="axediff" hidden><caption class="note" style="text-align:left">Rules that differ, or that fail on both sides</caption><thead><tr><th>Rule</th><th>Impact</th><th data-side-label="before">Before</th><th data-side-label="after">After</th><th>Change</th></tr></thead><tbody></tbody></table>
       <details><summary>Log of changes as you navigate (<span id="axelogn">0</span>)</summary>
       <table class="checks" id="axelog"><thead><tr><th>Time</th><th>Page (reported by)</th><th>Before</th><th>After</th><th>Difference</th></tr></thead><tbody></tbody></table></details>
     </div>
@@ -252,10 +289,24 @@
       <h2>Lighthouse <button type="button" id="lhnow">Audit this page now</button></h2>
       <details class="help"><summary>What this shows</summary><p class="note">Turn on background audits under Audits. Lighthouse runs in its own headless Chrome and audits the page as it <strong>loads</strong>, logged in. It does not see states you reach by clicking (for example an error summary after Save) and takes about 10 seconds per site. Accessibility and best-practice audits are shown by default; use axe for live, interactive checking.</p></details>
       <p id="lhverdict" class="verdict warn" role="status" aria-live="polite" hidden></p>
-      <table class="checks" id="lhtable" hidden><thead><tr><th>Category</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody></tbody></table>
-      <table class="checks" id="lhdiff" hidden><caption class="note" style="text-align:left">Audits that fail on one side or both</caption><thead><tr><th>Audit</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody></tbody></table>
+      <table class="checks" id="lhtable" hidden><thead><tr><th>Category</th><th data-side-label="before">Before</th><th data-side-label="after">After</th><th>Change</th></tr></thead><tbody></tbody></table>
+      <table class="checks" id="lhdiff" hidden><caption class="note" style="text-align:left">Audits that fail on one side or both</caption><thead><tr><th>Audit</th><th data-side-label="before">Before</th><th data-side-label="after">After</th><th>Change</th></tr></thead><tbody></tbody></table>
+    </div>
+    <div role="tabpanel" id="p-resources" aria-labelledby="tab-resources" tabindex="0" data-needs="live" hidden>
+      <h2 class="panel-heading"><span>Recorded resource benchmark</span><button type="button" id="resourcesrefresh">Refresh results</button></h2>
+      <p class="note">This shows the newest saved serial benchmark for this comparison. It does not benchmark the two visible frames concurrently. After a run, memory appears in the PHP peak, Web peak, Web above idle, and DB peak columns. DB is not applicable for SQLite projects without a database container.</p>
+      <p id="resourcesstatus" class="verdict warn" role="status" aria-live="polite"></p>
+      <div id="resourcescommands"></div>
+      <table class="checks" id="resourcestable" hidden><thead><tr><th>Version</th><th>Median response</th><th>Slowest</th><th>PHP peak</th><th>Web peak</th><th>Web above idle</th><th>DB peak</th><th>Peak CPU web / DB</th><th>Failures</th></tr></thead><tbody></tbody></table>
+      <p id="resourcesmeta" class="note"></p>
     </div>
     <div role="tabpanel" id="p-env" aria-labelledby="tab-env" tabindex="0" data-needs="live" hidden>
+      <h2>Rendered themes</h2>
+      <p id="theme-comparison" role="status" aria-live="polite">Waiting for theme evidence from both pages.</p>
+      <p class="note">Browser-reported request themes, not the configured default/admin themes. Different themes may be intentional. Selection reasons are not inferred. Unknown means not determined. History records prefers-contrast, forced colours and root contrast-mode markers, reduced motion, transparency and data preferences separately; markers alone do not prove effective contrast support.</p>
+      <button type="button" id="theme-download">Download theme evidence</button>
+      <details><summary>Theme and page-context history</summary><ul id="theme-history"></ul></details>
+      <p class="note">Print observations: run <code>node tools/playwright/gather-design.mjs &lt;slug&gt;</code>. Screen/print evidence and printable reports are saved locally; see <code>docs/DESIGN-GATHERING.md</code>.</p>
       <h2>Where did you test? <span class="note">(saved with the downloaded log)</span></h2>
       <p id="envremind" class="verdict warn" role="status" aria-live="polite"></p>
       <div id="envbox" class="envgrid">
@@ -280,6 +331,7 @@
   </div>
 </section>
 <script type="module">
+import { FEATURES } from "./media-preferences.mjs";
 import { RADIOS, CHECKS, currentBrowser, cleanHandoff, handoffHash, readHandoff } from "./browser-handoff.mjs";
 const $ = (id) => document.getElementById(id);
 // Where is this page running? "local": served by tools/compare/serve.mjs (live sites, proxies, axe, Lighthouse).
@@ -288,7 +340,7 @@ let STATIC = /\.github\.io$/.test(location.hostname) || new URLSearchParams(loca
 const setRuntime = (s) => { STATIC = s; if (s) { const d = document.getElementById('loaddlg'); if (d && d.open) d.close(); } document.documentElement.dataset.runtime = s ? 'static' : 'local'; };
 setRuntime(STATIC);
 const F = { before: $('fb'), after: $('fa') }, P = { before: $('pb'), after: $('pa') };
-const last = { before: '', after: '' }; let origins, sites = {}; let variants = []; let v;
+const last = { before: '', after: '' }; let origins, sites = {}; let variants = []; let availability = {}; let v;
 const other = (s) => (s === 'before' ? 'after' : 'before');
 const status = (t) => { $('status').textContent = t; };
 const radio = (name) => document.querySelector(`input[name="${name}"]:checked`).value;
@@ -324,12 +376,40 @@ function renderSteps() { ticks = loadTicks(); const ol = $('steps'); ol.textCont
   $('exp').textContent = v.expected ? 'Expected: ' + v.expected : ''; $('act').textContent = v.actual ? 'Actual: ' + v.actual : ''; $('setup').textContent = v.setup ? 'Setup: ' + v.setup : ''; $('stepsbox').hidden = !(v.steps && v.steps.length); showProgress(); }
 $('tickrecipe').addEventListener('click', () => { (v.steps || []).forEach((st, i) => { if (st.how === 'recipe') ticks[i] = true; }); saveTicks(); renderSteps(); });
 $('clearticks').addEventListener('click', () => { ticks = []; saveTicks(); renderSteps(); });
-function setVariant(slug) { v = variants.find((x) => x.slug === slug); $('desc').textContent = v.description; renderSteps(); buildObs(); document.title = `Compare: ${v.slug}`;
+function setVariant(slug) { resetThemeEvidence(); v = variants.find((x) => x.slug === slug); $('desc').textContent = v.description; renderSteps(); buildObs(); document.title = `Compare: ${v.slug}`;
+  const beforeLabel = v.before?.label || 'Before patch', afterLabel = v.after?.label || 'After patch';
+  $('hblabel').textContent = beforeLabel; $('halabel').textContent = afterLabel;
+  $('ob').textContent = beforeLabel; $('oa').textContent = afterLabel;
+  document.querySelectorAll('[data-side-label="before"]').forEach((element) => { element.textContent = beforeLabel; });
+  document.querySelectorAll('[data-side-label="after"]').forEach((element) => { element.textContent = afterLabel; });
+  F.before.title = beforeLabel; F.after.title = afterLabel;
   const iss = $('haissue');
-  if (v.issue) { iss.hidden = false; iss.textContent = `(#${v.issue})`; iss.href = `https://www.drupal.org/project/drupal/issues/${v.issue}`; iss.title = `Open Drupal issue #${v.issue} in a new window`; iss.setAttribute('aria-label', `Open Drupal issue ${v.issue} in a new window`); $('fa').title = `After patch (#${v.issue})`; }
-  else { iss.hidden = true; iss.textContent = ''; iss.removeAttribute('href'); $('fa').title = 'After patch'; }
+  if (v.issue) { iss.hidden = false; iss.textContent = `(#${v.issue})`; iss.href = `https://www.drupal.org/project/drupal/issues/${v.issue}`; iss.title = `Open Drupal issue #${v.issue} in a new window`; iss.setAttribute('aria-label', `Open Drupal issue ${v.issue} in a new window`); F.after.title = `${afterLabel} (#${v.issue})`; }
+  else { iss.hidden = true; iss.textContent = ''; iss.removeAttribute('href'); }
   const start = (v.demo && v.demo.start) || v.pages[0] || '/'; $('goto').value = start;
-  document.querySelector('input[name="width"][value="half"]').checked = true; applyWidth(); }
+  document.querySelector('input[name="width"][value="half"]').checked = true; applyWidth(); renderComparisonPeers(); if (!STATIC) loadResources(); }
+async function chooseVariant(slug) {
+  if (slug === v.slug) return;
+  if (!STATIC && !availability[slug]) { status(`Not built. Run: node tools/compare/setup.mjs ${slug}`); return; }
+  $('variant').value = slug;
+  if (STATIC) { setVariant(slug); fillStaticPanel(); return; }
+  await post({ slug }); setVariant(slug); loadBoth($('goto').value);
+}
+function renderComparisonPeers() {
+  const nav = $('comparisonPeers'); nav.textContent = '';
+  const peers = v.comparisonGroup ? variants.filter((item) => item.comparisonGroup === v.comparisonGroup) : [];
+  if (peers.length < 2) { nav.hidden = true; return; }
+  const label = document.createElement('span'); label.className = 'lab'; label.textContent = 'Compare patch stacks:'; nav.append(label);
+  for (const item of peers) {
+    const available = STATIC || !!availability[item.slug];
+    const button = document.createElement('button'); button.type = 'button'; button.dataset.available = String(available);
+    button.textContent = (item.comparisonLabel || item.label) + (available ? '' : ' (build required)');
+    button.setAttribute('aria-pressed', String(item.slug === v.slug));
+    button.title = available ? item.description : `Run node tools/compare/setup.mjs ${item.slug} in the terminal`;
+    button.addEventListener('click', () => chooseVariant(item.slug)); nav.append(button);
+  }
+  nav.hidden = false;
+}
 function fillStaticPanel() {
   const root = (window.__repo || '').replace(/\/$/, '');
   $('spcmd').textContent = `node scripts/lab-env.mjs start ${v.slug}`;
@@ -341,11 +421,11 @@ function fillStaticPanel() {
 function fillComparisons(data) {
   $('variant').textContent = '';
   for (const item of variants) {
-    if (!STATIC && data.availability && !data.availability[item.slug] && item.slug !== data.state?.slug) continue;
     const option = document.createElement('option'); option.value = item.slug;
     const revision = /-latest$/.test(item.slug) ? 'latest' : /-pinned$/.test(item.slug) ? 'pinned' : item.slug;
     const title = item.label.replace(/^#\d+:\s*/, '').replace(/,?\s*pinned core.*$/i, '').slice(0, 65);
-    option.textContent = `#${item.issue || item.slug} · ${revision} · ${title}`; option.title = item.label;
+    const available = STATIC || !data.availability || data.availability[item.slug] || item.slug === data.state?.slug;
+    option.textContent = `#${item.issue || item.slug} · ${revision} · ${title}${available ? '' : ' · not built'}`; option.title = item.label; option.disabled = !available;
     $('variant').append(option);
   }
   if (!STATIC) {
@@ -359,7 +439,7 @@ function comparisonSnapshot() {
   const controls = Object.fromEntries(Object.keys(RADIOS).map(key => [key, radio(key)]));
   for (const key of CHECKS) controls[key] = $(key).checked;
   for (const key of ['opacity', 'amplify']) controls[key] = Number($(key).value);
-  return cleanHandoff({ version: 1, slug: v.slug, paths: { before: last.before || $('goto').value, after: last.after || $('goto').value }, scroll: positions, controls, dock, forcedColors: matchMedia('(forced-colors: active)').matches });
+  return cleanHandoff({ version: 1, slug: v.slug, paths: { before: last.before || $('goto').value, after: last.after || $('goto').value }, scroll: positions, controls, dock, forcedColors: comparisonMedia?.forced ?? matchMedia('(forced-colors: active)').matches });
 }
 async function renderBrowsers() {
   if (STATIC) return;
@@ -383,6 +463,9 @@ async function renderBrowsers() {
     container.append(button);
   }
   container.hidden = !container.children.length;
+  if (container.children.length) {
+    const prompt = document.createElement('span'); prompt.className = 'browser-prompt'; prompt.textContent = 'Test in'; container.prepend(prompt);
+  }
 }
 $('copycomparison').addEventListener('click', async () => {
   try {
@@ -399,7 +482,7 @@ async function init() {
     fillComparisons(d);
     const want = new URLSearchParams(location.search).get('variant'); const slug = variants.some((x) => x.slug === want) ? want : variants[0].slug;
     $('variant').value = slug; setVariant(slug); fillStaticPanel(); status('Read-only guide.'); return;
-  } origins = d.origins; sites = d.sites || {}; variants = d.variants;
+  } origins = d.origins; sites = d.sites || {}; variants = d.variants; availability = d.availability || {};
   fillComparisons(d);
   try { incoming = readHandoff(location.hash); }
   catch (error) { $('handoffnote').hidden = false; $('handoffnote').textContent = error.message; }
@@ -426,14 +509,14 @@ async function init() {
   sendState(); applyView(); refreshControls();
   renderBrowsers().catch(() => {});
 }
-$('variant').addEventListener('change', async () => { if (STATIC) { setVariant($('variant').value); fillStaticPanel(); return; } await post({ slug: $('variant').value }); setVariant($('variant').value); loadBoth($('goto').value); });
+$('variant').addEventListener('change', () => chooseVariant($('variant').value));
 document.querySelectorAll('input[name="width"]').forEach((r) => r.addEventListener('change', applyWidth));
 document.querySelectorAll('input[name="theme"]').forEach((r) => r.addEventListener('change', sendState));
 $('darkos').addEventListener('change', sendState);
 // ---- Conditions toolbar: popovers, the "not default" strip and per-setting reset. Defaults are the HTML defaults; your saved choices (this browser only) show as changed. ----
-const rowValue = (row) => { const cb = row.querySelector('input[type=checkbox]'); if (cb) return cb.checked ? 'on' : 'off'; const on = row.querySelector('input:checked'); return on ? (on.closest('label') ? on.closest('label').textContent : on.value).trim() : ''; };
-const rowChanged = (row) => [...row.querySelectorAll('input')].some((i) => !i.disabled && (i.type === 'range' ? i.value !== i.defaultValue : i.checked !== i.defaultChecked));
-function resetRow(row) { let fire = null; row.querySelectorAll('input').forEach((i) => { if (i.type === 'range') i.value = i.defaultValue; else { const was = i.checked; i.checked = i.defaultChecked; if (i.checked !== was && (i.type === 'checkbox' || i.checked)) fire = i; } }); if (fire) fire.dispatchEvent(new Event('change', { bubbles: true })); }
+const rowValue = (row) => { const select = row.querySelector('select'); if (select) return select.selectedOptions[0]?.textContent || '';  const cb = row.querySelector('input[type=checkbox]'); if (cb) return cb.checked ? 'on' : 'off'; const on = row.querySelector('input:checked'); return on ? (on.closest('label') ? on.closest('label').textContent : on.value).trim() : ''; };
+const rowChanged = (row) => [...row.querySelectorAll('select')].some(i => !i.disabled && i.value !== '') || [...row.querySelectorAll('input')].some((i) => !i.disabled && (i.type === 'range' ? i.value !== i.defaultValue : i.checked !== i.defaultChecked));
+function resetRow(row) { const select = row.querySelector('select'); if (select) { select.value = ''; select.dispatchEvent(new Event('change', { bubbles: true })); return; } let fire = null; row.querySelectorAll('input').forEach((i) => { if (i.type === 'range') i.value = i.defaultValue; else { const was = i.checked; i.checked = i.defaultChecked; if (i.checked !== was && (i.type === 'checkbox' || i.checked)) fire = i; } }); if (fire) fire.dispatchEvent(new Event('change', { bubbles: true })); }
 let controlsSig = null;
 function refreshControls() {
   const rows = [...document.querySelectorAll('.row[data-label]')].filter((r) => !r.closest('[hidden]'));
@@ -473,33 +556,90 @@ function refreshBadges() {
   chipSet('bd-manual', ...verdictBadge('obsverdict', '✓ as expected', '✗ differs', 'partly answered'));
   chipSet('bd-axe', ...($('axeon').checked ? verdictBadge('axeverdict', '✓ no new', '⚠ worse', '…') : ['', 'off']));
   chipSet('bd-lh', ...($('lhverdict').hidden ? ['', $('lhon').checked ? '…' : 'off'] : verdictBadge('lhverdict', '✓ no worse', '⚠ worse', '…')));
-  chipSet('bd-env', ...($('envremind').classList.contains('ok') ? ['ok', '✓'] : ['warn', 'to do']));
+  chipSet('bd-resources', ...verdictBadge('resourcesstatus', 'recorded', 'error', 'not run'));
+  chipSet('bd-env', ...($('envremind').classList.contains('ok') ? ['ok', '✓ recorded'] : ['warn', 'not recorded']));
 }
 new MutationObserver(() => requestAnimationFrame(refreshBadges)).observe($('panels'), { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['class', 'hidden'] });
 document.addEventListener('change', () => setTimeout(refreshBadges, 0));
 // ---- Forced colours and related browser settings: a page cannot set these itself, so the server drives a separate Chromium window ----
 const CONTROLLED = new URLSearchParams(location.search).get('controlled') === '1';
 const emulPost = async (body) => { const r = await fetch('api/emulation', { method: 'POST', body: JSON.stringify(body) }); const d = await r.json(); if (!r.ok) throw new Error(d.error || 'failed'); return d; };
+let mediaBusy = Promise.resolve();
+let comparisonMedia = null;
 function showEmul(s) {
-  const sel = document.querySelector(`input[name="emul"][value="${s.mode}"]`); if (sel) sel.checked = true;
+  comparisonMedia = s.frames?.[0] || null;
+  const forcedMode = s.preferences?.forcedColors === 'active' ? (s.preferences.colorScheme === 'dark' ? 'forced-dark' : 'forced-light') : 'normal';
+  document.querySelectorAll('input[name="emul"]').forEach(input => { input.checked = input.value === forcedMode; });
+  for (const key of ['contrast', 'reducedMotion', 'reducedTransparency']) {
+    const available = s.open && s.supported?.[key] === true;
+    $(`media-row-${key}`).hidden = !available;
+    document.querySelectorAll(`input[data-media="${key}"]`).forEach(input => {
+      input.checked = input.value === (s.preferences?.[key] || ''); input.disabled = !available;
+    });
+    $(`media-support-${key}`).textContent = '';
+  }
+  const body = $('media-observed'); body.textContent = '';
+  for (const [key, feature] of Object.entries(FEATURES)) {
+    if (!s.supported?.[key]) continue;
+    const tr = document.createElement('tr'), th = document.createElement('th'); th.scope = 'row'; th.textContent = feature.query; tr.append(th);
+    for (const frame of [s.frames[0], s.frames[1]]) {
+      const td = document.createElement('td'), value = frame?.media?.[key];
+      td.textContent = !frame ? 'Not answering' : value?.supported ? value.value : 'Not supported'; tr.append(td);
+    }
+    body.append(tr);
+  }
   const side = ['Before', 'After'];
-  $('emulstatus').textContent = (s.frames.length ? s.frames.map((f, i) => f ? `${side[i]}: forced colours ${f.forced ? 'on' : 'off'}, ${f.dark ? 'dark' : 'light'}${f.more ? ', more contrast' : ''}` : `${side[i]}: not answering`).join('; ') + '. ' : '') + 'This is emulation, not a real Windows contrast theme.'; refreshControls();
+  $('emulstatus').textContent = (s.frames.length ? s.frames.map((f, i) => f ? `${side[i]}: forced colours ${f.forced ? 'on' : 'off'}, ${f.dark ? 'dark' : 'light'}${f.more ? ', more contrast' : ''}` : `${side[i]}: not answering`).join('; ') + '. ' : '') + 'Browser emulation; not a native Windows contrast theme. Changes apply to both frames.';
+  if (s.error) $('emulstatus').textContent = s.error;
+  refreshControls();
 }
-if (CONTROLLED) { $('emulbox').hidden = false; $('emulopenwrap').hidden = true; const poll = (n) => fetch('api/emulation').then((r) => r.json()).then((s) => { showEmul(s); if (n > 0 && s.frames.length < 2) setTimeout(() => poll(n - 1), 2000); }).catch(() => {}); setTimeout(() => poll(4), 1500); }
-$('emulopen').addEventListener('click', async () => { try { await emulPost({ open: true }); status('A separate window opened. Switch colour modes there; it affects both frames.'); } catch (e) { status('Could not open the window: ' + e.message); } });
-document.querySelectorAll('input[name="emul"]').forEach((r) => r.addEventListener('change', async () => { try { await emulPost({ mode: radio('emul') }); await new Promise((x) => setTimeout(x, 700)); showEmul(await (await fetch('api/emulation')).json()); } catch (e) { $('emulstatus').textContent = 'Could not switch: ' + e.message; } }));
+async function refreshMedia() { const r = await fetch('api/emulation'); if (!r.ok) throw new Error('Could not read browser preferences'); const s = await r.json(); showEmul(s); return s; }
+function changeMedia(body, browserScheme = false) {
+  mediaBusy = mediaBusy.then(async () => {
+    if (browserScheme) {
+      document.querySelector('input[name="theme"][value="auto"]').checked = true;
+      $('darkos').checked = false;
+      await post({ theme: 'auto', darkos: false }); sendState(); savePrefs();
+    }
+    showEmul(await emulPost(body));
+  }).catch(async e => { await refreshMedia().catch(() => {}); $('emulstatus').textContent = 'Could not change media preferences: ' + e.message; });
+}
+if (CONTROLLED) {
+  $('emulbox').hidden = false; $('emulopenwrap').hidden = true;
+  const poll = async n => { try { const s = await refreshMedia(); if (n > 0 && s.frames.length < 2) setTimeout(() => poll(n - 1), 2000); } catch(e) { $('emulstatus').textContent = e.message; } };
+  setTimeout(() => poll(4), 1500);
+}
+$('emulopen').addEventListener('click', async () => { try { await emulPost({ open: true, mode: 'normal' }); status('Preference emulation window opened. Use Conditions there; changes affect both frames.'); } catch (e) { status('Could not open the window: ' + e.message); } });
+document.querySelectorAll('input[name="emul"]').forEach(input => input.addEventListener('change', () => { if (input.checked) changeMedia({ preferences: { forcedColors: input.value === 'normal' ? null : 'active', colorScheme: input.value === 'normal' ? null : input.value === 'forced-dark' ? 'dark' : 'light' } }, true); }));
+document.querySelectorAll('[data-media]').forEach(input => input.addEventListener('change', () => { if (input.checked) changeMedia({ preferences: { [input.dataset.media]: input.value || null } }); }));
+$('media-reset').addEventListener('click', () => changeMedia({ mode: 'normal' }, true));
 document.querySelectorAll('input[name="dir"]').forEach((r) => r.addEventListener('change', sendState));
 $('nojs').addEventListener('change', async () => { await post({ nojs: $('nojs').checked }); status($('nojs').checked ? 'JavaScript is OFF in both sites. Reloading…' : 'JavaScript is back on. Reloading…'); loadBoth($('goto').value); });
 $('go').addEventListener('click', () => loadBoth($('goto').value));
 $('goto').addEventListener('change', () => { $('goto').value = normPath($('goto').value); });
 $('goto').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('go').click(); });
 $('login').addEventListener('click', async () => {
-  status('Logging in…');
+  status('Logging in to both sites…');
   // Land on the page in the address box (the variant's start page), so the test can begin at once. Drupal follows ?destination= on the one-time login redirect; it accepts only a path on the same site.
   const dest = /^\/(?!\/)/.test($('goto').value) ? $('goto').value : '';
   const to = (u) => dest ? `${u}?destination=${encodeURIComponent(dest)}` : u;
-  try { const r = await (await fetch('api/login', { method: 'POST' })).json(); markStart('before'); markStart('after'); F.before.src = to(r.before); F.after.src = to(r.after); status(dest ? `Logged in; opening ${dest}.` : 'Logged in. Use Go to open a page.'); }
-  catch (e) { status('Login failed: ' + e); }
+  // Drupal keeps "You have used a one-time login link" for whichever page renders next, so one side often showed it and the other
+  // did not. The frames stay hidden while both log in, caches are cleared (as people did by hand after logging in) and the page is
+  // loaded again, so both sides start from the same clean state.
+  const sides = ['before', 'after'], show = () => { for (const s of sides) F[s].style.visibility = ''; };
+  $('login').disabled = true;
+  try {
+    const r = await (await fetch('api/login', { method: 'POST' })).json();
+    for (const s of sides) { F[s].style.visibility = 'hidden'; markStart(s); F[s].src = to(r[s]); }
+    await bothLoaded(30000);
+    status('Logged in. Clearing caches on both sites…');
+    const c = await (await fetch('api/cache', { method: 'POST' })).json();
+    const page = dest || '/';
+    for (const s of sides) load(s, page);
+    await bothLoaded(30000); show();
+    status(`Logged in on both sites; caches ${c.before === c.after ? c.before : `before ${c.before}, after ${c.after}`}; showing ${page}.`);
+  } catch (e) { show(); status('Login failed: ' + e); }
+  finally { $('login').disabled = false; }
 });
 // Talk only to our own frames, at their own origin: a frame that has navigated elsewhere neither receives typed text and probe code nor can send us commands.
 const toFrame = (side, msg) => { const w = F[side] && F[side].contentWindow; if (w && origins && origins[side]) w.postMessage(msg, origins[side]); };
@@ -507,6 +647,7 @@ addEventListener('message', (e) => {
   const from = e.source === F.before.contentWindow ? 'before' : e.source === F.after.contentWindow ? 'after' : null;
   if (!from || !origins || e.origin !== origins[from]) return;
   const m = e.data; if (!m || !m.compare) return; m.side = from;
+  if (m.type === 'theme-context') receiveThemeContext(m.side, m.context);
   if (m.type === 'scroll') positions[m.side] = { x: m.x, y: m.y };
   if (m.type === 'scroll' && !incoming && $('syncscroll').checked) { toFrame(other(m.side), { compare: 1, type: 'scroll', x: m.x, y: m.y }); }
   if (m.type === 'mirror' && (/^hover/.test(m.kind) ? $('mirrorhover').checked : $('mirror').checked)) { toFrame(other(m.side), Object.assign({}, m, { compare: 1 })); }
@@ -666,7 +807,7 @@ $('axeon').addEventListener('change', () => { sendState(); if (!$('axeon').check
 $('axebest').addEventListener('change', () => { AX.before = AX.after = null; sendState(); setTimeout(() => { for (const s of ['before', 'after']) toFrame(s, { compare: 1, type: 'axe-now' }); }, 300); });
 $('axenow').addEventListener('click', () => { for (const s of ['before', 'after']) toFrame(s, { compare: 1, type: 'axe-now' }); });
 $('axeclr').addEventListener('click', () => { axeLog.length = 0; $('axelog').querySelector('tbody').textContent = ''; $('axelogn').textContent = 0; lastKey = ''; });
-$('axedl').addEventListener('click', () => { const blob = new Blob([JSON.stringify({ variant: v && v.slug, exported: new Date().toISOString(), checklist: (v.steps || []).map((st, i) => ({ step: st.text, done: !!ticks[i] })), environmentTested: envTested(), lighthouse: lhLog, manualObservations: (v.observe || []).map((o, i) => ({ question: o.label, expected: { before: !!o.expectBefore, after: !!o.expectAfter }, answered: obsAns[i] || null })), notes: $('obsnote').value, entries: axeLog }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `axe-log-${v ? v.slug : 'compare'}.json`; a.click(); });
+$('axedl').addEventListener('click', () => { const blob = new Blob([JSON.stringify({ variant: v && v.slug, exported: new Date().toISOString(), checklist: (v.steps || []).map((st, i) => ({ step: st.text, done: !!ticks[i] })), environmentTested: envTested(), themeEvidence: themeEvidence(), lighthouse: lhLog, manualObservations: (v.observe || []).map((o, i) => ({ question: o.label, expected: { before: !!o.expectBefore, after: !!o.expectAfter }, answered: obsAns[i] || null })), notes: $('obsnote').value, entries: axeLog }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `axe-log-${v ? v.slug : 'compare'}.json`; a.click(); });
 
 // ---- Manual confirmation ----
 const obsAns = {};
@@ -694,7 +835,9 @@ function renderObs() {
 
 // ---- Frame load watchdog: a frame that has not finished loading is reported, with a health check ----
 const startedAt = { before: 0, after: 0 }, loadedAt = { before: 0, after: 0 }; let warnTimer;
-const markStart = (side) => { startedAt[side] = Date.now(); loadedAt[side] = 0; };
+const markStart = (side) => { pendingTheme(side); startedAt[side] = Date.now(); loadedAt[side] = 0; };
+// Resolves once both frames have reported a loaded page since markStart, or after `ms` (a frame that never reports does not block).
+const bothLoaded = (ms) => new Promise((resolve) => { const end = Date.now() + ms; (function tick() { if ((loadedAt.before && loadedAt.after) || Date.now() > end) resolve(); else setTimeout(tick, 200); })(); });
 let healthTimer, dismissedLoad = false, healed = false;
 const dlg = () => $('loaddlg');
 function showLoading(h, stuck) {
@@ -724,6 +867,57 @@ $('rb').addEventListener('click', () => reloadSide('before')); $('ra').addEventL
 $('reloadboth').addEventListener('click', () => { reloadSide('before'); reloadSide('after'); });
 watchFrames();
 
+// ---- Per-request theme evidence; retained across navigation, reset per comparison ----
+const themeCurrent = { before: null, after: null };
+const themePrevious = { before: null, after: null };
+const themeEvents = [];
+function themeEvidence() { return { source: 'browser-reported', current: themeCurrent, events: themeEvents, limit: 100 }; }
+function pendingTheme(side) { themeCurrent[side] = null; const el = $('theme-' + side); if (el) { el.textContent = 'Theme: waiting'; el.title = ''; } renderThemeComparison(); }
+function resetThemeEvidence() {
+  themeEvents.length = 0;
+  for (const side of ['before', 'after']) { themePrevious[side] = null; pendingTheme(side); }
+  if ($('theme-history')) $('theme-history').textContent = '';
+}
+function renderThemeComparison() {
+  const b = themeCurrent.before, a = themeCurrent.after, el = $('theme-comparison'); if (!el) return;
+  el.textContent = !b || !a ? 'Waiting for theme evidence from both pages.'
+    : !b.theme || !a.theme ? 'Actual theme not determined on one or both pages. Stylesheet candidates are supporting evidence only; visual profile comparison is limited.'
+    : b.path !== a.path || b.language !== a.language || b.direction !== a.direction ? 'Different page contexts: Before theme ' + b.theme + '; After theme ' + a.theme + '. Compare route, language and direction before judging consistency.'
+    : b.theme !== a.theme ? 'Different rendered themes: Before ' + b.theme + '; After ' + a.theme + '. Check whether this change is expected.'
+    : 'Both pages report ' + b.theme + '. This does not prove identical theme settings or styling.';
+}
+function receiveThemeContext(side, raw) {
+  if (!raw || typeof raw !== 'object') return;
+  const safe = (value) => typeof value === 'string' ? value.slice(0, 240) : null;
+  const context = Object.fromEntries(['theme', 'source', 'path', 'language', 'direction', 'prefersContrast', 'reducedMotion', 'reducedTransparency', 'reducedData'].map((key) => [key, safe(raw[key])]));
+  context.themeAssets = Array.isArray(raw.themeAssets) ? raw.themeAssets.slice(0, 20).filter(asset => asset && typeof asset.name === 'string').map(asset => ({ name: safe(asset.name), paths: Array.isArray(asset.paths) ? asset.paths.filter(value => typeof value === 'string' && value.startsWith('/')).slice(0, 5).map(value => value.split(/[?#]/)[0].slice(0, 240)) : [], source: 'stylesheet-path', confidence: 'supporting-only' })) : [];
+  context.forcedColors = raw.forcedColors === true; context.darkPreference = raw.darkPreference === true;
+  context.themeModeMarkers = Array.isArray(raw.themeModeMarkers) ? raw.themeModeMarkers.filter(x => typeof x === 'string').slice(0, 20).map(x => x.slice(0, 80)) : [];
+  // Never retain reset-token paths or URL queries from a frame.
+  context.path = /\/user\/reset(?:\/|$)/.test(context.path || '') ? '/[one-time-login]' : (context.path || '').split(/[?#]/)[0];
+  if (JSON.stringify(themeCurrent[side]) === JSON.stringify(context)) return;
+  const prior = themePrevious[side];
+  const changed = !!prior?.theme && !!context.theme && prior.theme !== context.theme;
+  const event = { when: new Date().toISOString(), side, ...context, previousTheme: prior?.theme || null, themeChanged: changed };
+  themeCurrent[side] = context; if (context.theme) themePrevious[side] = context;
+  themeEvents.push(event); if (themeEvents.length > 100) themeEvents.shift();
+  const themeLabel = $('theme-' + side);
+  const themeDetail = 'Theme: ' + (context.theme || 'unknown') + (!context.theme && context.themeAssets.length ? ' (styles: ' + context.themeAssets.map(asset => asset.name).join(', ') + '; supporting only)' : '') + (changed ? ' (changed from ' + prior.theme + ')' : '');
+  themeLabel.textContent = 'Theme: ' + (context.theme || 'unknown');
+  themeLabel.title = themeDetail;
+  const themeExtra = document.createElement('span');
+  themeExtra.className = 'sr';
+  themeExtra.textContent = themeDetail.slice(themeLabel.textContent.length);
+  themeLabel.append(themeExtra);
+  $('theme-history').textContent = '';
+  for (const item of [...themeEvents].reverse()) { const li = document.createElement('li'); li.textContent = item.side + ': ' + item.path + ' | ' + (item.theme || 'unknown') + ' | ' + (item.language || 'unknown language') + (item.themeChanged ? ' | THEME CHANGED from ' + item.previousTheme : '') + ' | source: ' + (item.source || 'unknown') + ' | stylesheet candidates: ' + item.themeAssets.map(asset => asset.name).join(', ') + ' (supporting only) | prefers-contrast: ' + (item.prefersContrast || 'unknown') + ' | reduced motion: ' + (item.reducedMotion || 'unknown') + ' | reduced transparency/data: ' + (item.reducedTransparency || 'unknown') + '/' + (item.reducedData || 'unknown') + ' | forced colours: ' + item.forcedColors + ' | theme mode markers: ' + item.themeModeMarkers.join(', ') + ' | ' + item.when; $('theme-history').append(li); }
+  renderThemeComparison();
+}
+$('theme-download').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify({ variant: v?.slug, ...themeEvidence() }, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = 'theme-evidence-' + (v?.slug || 'comparison') + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+
 // ---- Where did you test: environment capture and reminders ----
 const browserInfo = () => { const u = navigator.userAgent; let m;
   if ((m = u.match(/Edg\/(\d+)/))) return { family: 'Edge', version: m[1] };
@@ -731,7 +925,7 @@ const browserInfo = () => { const u = navigator.userAgent; let m;
   if ((m = u.match(/(?:Chrome|CriOS)\/(\d+)/))) return { family: 'Chrome', version: m[1] };
   if ((m = u.match(/Version\/(\d+).*Safari/))) return { family: 'Safari', version: m[1] };
   return { family: 'Other', version: '' }; };
-const currentMode = () => { const th = radio('theme'); const dark = th === 'dark' || $('darkos').checked || (th === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches); return matchMedia('(forced-colors: active)').matches ? 'forced-colors' : dark ? 'dark' : 'light'; };
+const currentMode = () => { const th = radio('theme'); const dark = th === 'dark' || $('darkos').checked || (th === 'auto' && (comparisonMedia?.dark ?? matchMedia('(prefers-color-scheme: dark)').matches)); return (comparisonMedia?.forced ?? matchMedia('(forced-colors: active)').matches) ? 'forced-colors' : dark ? 'dark' : 'light'; };
 const histKey = () => 'compare.tested.' + (v && v.slug);
 const loadHist = () => { try { return JSON.parse(localStorage.getItem(histKey()) || '[]'); } catch (e) { return []; } };
 function recordTested(why) { if (!v) return; const b = browserInfo(), e = { browser: b.family, mode: currentMode() }; const hist = loadHist();
@@ -750,6 +944,29 @@ function initEnv() { const b = browserInfo(); $('envbrowser').value = `${b.famil
 $('runchecks').addEventListener('click', () => recordTested('ran checks'));
 document.addEventListener('change', (e) => { if (e.target && e.target.name && /^obs-/.test(e.target.name)) recordTested('answered the manual panel'); });
 
+// ---- Saved serial resource benchmarks (recorded by scripts/measure-resources.mjs) ----
+const resourceMb = (bytes) => bytes == null ? 'not recorded' : `${(bytes / 1048576).toFixed(1)} MB`;
+const resourceValue = (value, suffix = '') => value == null ? 'not recorded' : `${value}${suffix}`;
+async function loadResources() {
+  if (STATIC || !v) return;
+  const S = $('resourcesstatus'), commands = $('resourcescommands'); commands.textContent = '';
+  try {
+    const response = await fetch('api/resources/latest'); const result = await response.json();
+    const addCommand = (lead, command) => { if (!command) return; const block = document.createElement('div'); block.className = 'resource-command-block'; const label = document.createElement('strong'); label.textContent = lead; const pre = document.createElement('pre'); const code = document.createElement('code'); code.textContent = command; pre.append(code); block.append(label, pre); commands.append(block); };
+    addCommand('Measure this selected pair (the default):', result.command);
+    addCommand('Optionally measure every unique environment in its comparison group:', result.groupCommand);
+    const table = $('resourcestable'), body = table.querySelector('tbody'); body.textContent = '';
+    if (!result.found) { table.hidden = true; $('resourcesmeta').textContent = ''; S.className = 'verdict warn'; S.textContent = 'No recorded benchmark for this pair yet. Run the command above in another terminal, then refresh results.'; return; }
+    for (const summary of result.data.summaries || []) {
+      const cells = [summary.label || summary.env, resourceValue(summary.medianResponseMs, ' ms'), resourceValue(summary.slowestResponseMs, ' ms'), resourceValue(summary.phpPeakMb, ' MB'), resourceMb(summary.containers?.web?.peakMemoryBytes), resourceMb(summary.containers?.web?.peakAboveIdleBytes), resourceMb(summary.containers?.db?.peakMemoryBytes), `${resourceValue(summary.containers?.web?.peakCpuPercent, '%')} / ${resourceValue(summary.containers?.db?.peakCpuPercent, '%')}`, summary.failures];
+      const tr = document.createElement('tr'); for (const value of cells) { const td = document.createElement('td'); td.textContent = value; tr.append(td); } body.append(tr);
+    }
+    table.hidden = false; S.className = 'verdict ok'; S.textContent = `Latest benchmark: ${result.data.summaries.length} environment${result.data.summaries.length === 1 ? '' : 's'}, measured sequentially.`;
+    $('resourcesmeta').textContent = `${result.data.measuredAt}; page ${result.data.page}; ${result.data.settings.runs} runs after ${result.data.settings.warmups} warm-up(s); ${result.data.settings.cold ? 'cold-cache' : 'warm-cache'}; ${result.file}. Container peaks are sampled and PHP peaks require the recipe logger.`;
+  } catch (error) { S.className = 'verdict bad'; S.textContent = 'Could not read resource results: ' + error.message; }
+}
+$('resourcesrefresh').addEventListener('click', loadResources);
+
 // ---- Lighthouse (optional background audits, run by the viewer server in its own Chrome) ----
 const lhLog = []; let lhPath = '', lhTimer, lhPoll;
 async function lhStatus() { try { const s = await (await fetch('api/lighthouse/status')).json(); if (!s.ok) { $('lhverdict').hidden = false; $('lhverdict').className = 'verdict warn'; $('lhverdict').textContent = 'Lighthouse is not installed: ' + s.missing.join('; '); return false; } return true; } catch (e) { return false; } }
@@ -763,21 +980,25 @@ async function lhRun() {
 }
 function showLighthouse(path, res) {
   const B = res.before, A = res.after, V = $('lhverdict'); if (B.runtimeError || A.runtimeError) { V.hidden = false; V.className = 'verdict bad'; V.textContent = `Lighthouse could not load the page: ${B.runtimeError || A.runtimeError}`; return; }
+  const beforeLabel = v.before?.label || 'Before patch', afterLabel = v.after?.label || 'After patch';
   const cats = Object.keys(B.scores); const tb = $('lhtable').querySelector('tbody'); tb.textContent = ''; let worse = 0, better = 0;
   for (const c of cats) { const b = B.scores[c], a = A.scores[c], d = a - b; if (d < 0) worse++; else if (d > 0) better++;
     const tr = document.createElement('tr'); for (const t of [c, b, a, d < 0 ? `↓ ${d} (worse)` : d > 0 ? `↑ +${d} (better)` : '= same']) { const td = document.createElement('td'); td.textContent = t; tr.append(td); } tr.lastChild.className = d < 0 ? 'bad v' : d > 0 ? 'ok v' : 'na v'; tb.append(tr); }
   $('lhtable').hidden = false;
   const ids = new Set([...B.failed.map((x) => x.id), ...A.failed.map((x) => x.id)]); const db = $('lhdiff').querySelector('tbody'); db.textContent = ''; let newFail = [];
   for (const id of ids) { const b = B.failed.find((x) => x.id === id), a = A.failed.find((x) => x.id === id), info = a || b;
-    const status = a && !b ? ['bad v', '↑ New in After'] : !a && b ? ['ok v', '↓ Fixed in After'] : ['na v', '= Fails on both'];
+    const status = a && !b ? ['bad v', `↑ New in ${afterLabel}`] : !a && b ? ['ok v', `↓ Fixed in ${afterLabel}`] : ['na v', '= Fails on both'];
     if (a && !b) newFail.push(id); const tr = document.createElement('tr');
-    for (const t of [`${id}: ${info.title}`, b ? `fails (${b.items})` : 'passes', a ? `fails (${a.items})` : 'passes', status[1]]) { const td = document.createElement('td'); td.textContent = t; tr.append(td); } tr.lastChild.className = status[0]; db.append(tr); }
+    const audit = document.createElement('td'); audit.textContent = `${id}: ${info.title}`;
+    if (b?.details || a?.details) { const details = document.createElement('details'); details.className = 'audit-detail'; const summary = document.createElement('summary'); summary.textContent = 'Diagnostic evidence'; const pre = document.createElement('pre'); pre.textContent = JSON.stringify({ [beforeLabel]: b?.details || null, [afterLabel]: a?.details || null }, null, 2); details.append(summary, pre); audit.append(details); }
+    tr.append(audit);
+    for (const t of [b ? `fails (${b.items})` : 'passes', a ? `fails (${a.items})` : 'passes', status[1]]) { const td = document.createElement('td'); td.textContent = t; tr.append(td); } tr.lastChild.className = status[0]; db.append(tr); }
   $('lhdiff').hidden = ids.size === 0;
   V.hidden = false; V.setAttribute('role', worse || newFail.length ? 'alert' : 'status');
   V.className = 'verdict ' + (worse || newFail.length ? 'bad' : better ? 'ok' : 'ok');
-  V.textContent = worse || newFail.length ? `⚠ Lighthouse (${path}): After is worse. ${worse ? worse + ' category score' + (worse > 1 ? 's' : '') + ' lower. ' : ''}${newFail.length ? 'New failing audits in After: ' + newFail.join(', ') + '.' : ''}`
-    : better ? `✓ Lighthouse (${path}): After is better on ${better} categor${better > 1 ? 'ies' : 'y'}.` : `= Lighthouse (${path}): same scores and the same failing audits on both sides (${cats.map((c) => c + ' ' + A.scores[c]).join(', ')}). Lighthouse ${A.lighthouseVersion}.`;
-  lhLog.push({ t: new Date().toISOString(), path, before: B.scores, after: A.scores, newFailingInAfter: newFail, lighthouseVersion: A.lighthouseVersion });
+  V.textContent = worse || newFail.length ? `⚠ Lighthouse (${path}): ${afterLabel} is worse than ${beforeLabel}. ${worse ? worse + ' category score' + (worse > 1 ? 's' : '') + ' lower. ' : ''}${newFail.length ? `New failing audits in ${afterLabel}: ` + newFail.join(', ') + '.' : ''}`
+    : better ? `✓ Lighthouse (${path}): ${afterLabel} is better than ${beforeLabel} on ${better} categor${better > 1 ? 'ies' : 'y'}.` : `= Lighthouse (${path}): same scores and the same failing audits for ${beforeLabel} and ${afterLabel} (${cats.map((c) => c + ' ' + A.scores[c]).join(', ')}). Lighthouse ${A.lighthouseVersion}.`;
+  lhLog.push({ t: new Date().toISOString(), path, beforeLabel, afterLabel, before: B, after: A, newFailingInAfter: newFail, lighthouseVersion: A.lighthouseVersion });
 }
 $('lhon').addEventListener('change', () => { if ($('lhon').checked) { lhRun.force = true; lhRun(); } });
 $('lhnow').addEventListener('click', () => { lhRun.force = true; lhRun(); });

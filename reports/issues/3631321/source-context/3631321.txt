@@ -1,0 +1,204 @@
+Improve the visual representation of none active vertical tabs in forced color mode [#3631321] | Drupal.org
+Skip to main content
+Skip to search
+Can we use first and third party cookies and web beacons to
+understand our audience, and to tailor promotions you see
+?
+Yes, please
+No, do not track me
+Drupal.org home
+Discover Drupal
+Drupal Core
+Drupal CMS
+Drupal AI
+Case Studies
+Drupal for Government
+Drupal for Higher Education
+Drupal for Nonprofit
+Drupal for eCommerce
+Drupal for FinTech
+Drupal for Healthcare
+Drupal for Enterprise
+Drupal for Retail
+Drupal for Travel & Tourism
+Build with Drupal
+Download Drupal
+Documentation
+Getting started
+Local Development Guide
+Developer Resources
+Drupal CMS User Guide
+Drupal User Guide
+API
+Modules
+Themes
+Recipes
+Site Templates
+Issue queues
+Security Advisories
+Partners & Services
+Find a Drupal Certified Partner
+Become a Drupal Certified Partner
+Find a Hosting Provider
+Find a Migration Partner
+Find Training
+Drupal Steward
+Community
+About the Community
+How to Contribute
+DrupalCon
+Events
+News & Blogs
+Forum
+Slack
+Newsletters
+Drupal Swag Shop
+Drupal Advocacy Program
+Support Drupal
+The Drupal Association
+Donate
+Become a Partner
+Become a Ripple Maker
+Become a Drupal Sustaining Member
+Drupal Swag Shop
+Get Started
+Try Drupal CMS
+Try Hosting
+Return to content
+Search form
+Search
+Log in
+Create account
+Drupal core
+Issues
+Improve the visual representation of none active vertical tabs in forced color mode
+Active
+Project:
+Drupal core
+Version:
+main
+Component:
+Admin theme
+Priority:
+Normal
+Category:
+Feature request
+Assigned:
+Unassigned
+Issue tags:
+Usability
+Accessibility
+about tags
+Usability
+Makes Drupal
+easier to use
+. Preferred over
+UX
+,
+D7UX
+, etc.
+Accessibility
+It affects the ability of
+people with disabilities or special needs
+(such as blindness or color-blindness) to use Drupal.
+Reporter:
+rkoller
+Created:
+16 Oct 2026 at 13:43 UTC
+Updated:
+16 Oct 2026 at 13:43 UTC
+Jump to comment:
+Most recent
+Problem/Motivation
+Followup for
+#3604037: Indicate that grouping elements have child element errors for UX and a11y
+In forced color it is cognitively challenging to distinguish the active vertical from none active vertical tabs, because the sole distinguishing element indicating the active state is the missing border on the right for LTR and the missing border on the left for RTL. Users have either to follow a vertical tab starting from the left in LTR and follow the tab to the right end and then see if there is a border or not and then move downward with their visual focus until a vertical tab with a none existing right border appears in LTR. Or they have to go with their visual focus row by row left to right in LTR until they identify the missing border identifying the active vertical tab. Depending on the abilities of the person interacting with vertical tabs in forced color mode that can turn into a daunting and challenging task each and every time they visit this page.
+In regular mode the other three borders of none active vertical tabs are in a lighter color making it easier to distinguish active from none active vertical tabs.
+it has to be noted that the top border of the vertical tab on top and the bottom border of the vertical tab on the bottom are missing a border in regular mode while in forced color mode only the border for the vertical tab at the bottom is missing in case the active vertical is neither the vertical tab on top nor the vertical tab at the bottom.
+Steps to reproduce
+go to
+admin/config/people/accounts
+in chrome or edge
+activate the forced color mode by opening the rendering tool tab in the devtools
+set the
+prefers-color-scheme
+to
+dark
+set
+forced-colors
+to
+active
+set
+prefers-contrast
+to
+more
+Proposed resolution
+To improve the visual representation of vertical tabs @kentr and myself came up with the following approach to also provide some additional visual cue to people relying on forced color mode:
+Set any border on top, bottom, left (LTR)/right (RTL) for any non active vertical tab that is not right next to the active vertical tab to dotted instead of solid.
+Make sure that the top border of the vertical tab on top and the bottom border of the vertical tab at the bottom show a solid light border in regular mode and a dotted border in forced color mode.
+Remaining tasks
+User interface changes
+Introduced terminology
+API changes
+Data model changes
+Release notes snippet
+Comments
+Comment
+#1
+16 October 2026 at 13:43
+rkoller
+created an issue.
+Log in
+or
+register
+to post comments
+Contribution record
+Add child issue
+,
+clone issue
+Related issues
+https://www.drupal.org/node/3604037
+Referenced by
+#3631337: Decide how to semantically label HTML elements for errors/warnings in forced color mode
+Infrastructure management for Drupal.org provided by
+News items
+News
+Planet Drupal
+Social media
+Sign up for Drupal news
+Security advisories
+Our community
+Community
+Services
+,
+Training
+&
+Hosting
+Contributor guide
+Groups & meetups
+DrupalCon
+Code of conduct
+Documentation
+Documentation
+Drupal Guide
+Drupal User Guide
+Developer docs
+API.Drupal.org
+Drupal code base
+Download & Extend
+Drupal core
+Modules
+Themes
+Distributions
+Governance of community
+About
+Web accessibility
+Drupal Association
+About Drupal.org
+Terms of service
+Privacy policy
+Drupal is a
+registered trademark
+of
+Dries Buytaert
+.

@@ -1,0 +1,171 @@
+[
+  {
+    "slug": "2951317-pinned",
+    "issue": "2951317",
+    "label": "#2951317: Radios element missing required attribute, pinned core",
+    "description": "Compare static and dynamic required radio groups, including hidden None selection and native validation.",
+    "status": "paused: corrected pinned summary has 11 applicable checks passed; native blocking not exercised",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "ad11ba71c0f09b856e45dfdb8db155b5a588712d"
+    },
+    "before": {
+      "env": "baseline-2951317",
+      "patches": [
+        "reports/issues/2951317/branches/2951317-shared-fixture.patch"
+      ]
+    },
+    "after": {
+      "env": "issue-2951317",
+      "patches": [
+        "reports/issues/2951317/branches/2951317-shared-fixture.patch",
+        "reports/issues/2951317/branches/2951317-radios-element-missing-required-attr.patch"
+      ]
+    },
+    "pages": [
+      "/admin/config/development/lab-radios-2951317"
+    ],
+    "login": true,
+    "recipe": "repro_2951317",
+    "steps": [
+      {
+        "text": "Open Required radio groups on both sides. The recipe installs the same test-only fixture.",
+        "how": "recipe",
+        "lookFor": "Required color, Required color with default, Optional color, and Dynamic color."
+      },
+      {
+        "text": "With Required color empty, activate Save. Then choose Red and repeat. Inspect required attributes and the legend indicator.",
+        "how": "each",
+        "lookFor": "After: required attributes on radio inputs, one legend indicator, none beside options. Native blocking applies only if HTML5 validation is enabled; record novalidate."
+      },
+      {
+        "text": "Reload. Toggle Require a dynamic color on and off with nothing selected.",
+        "how": "each",
+        "lookFor": "After: required inputs when on, no selection changes; None hides when on and returns when off."
+      },
+      {
+        "text": "Reload. Select None, then toggle Require a dynamic color on. Fill Required color and activate Save. Toggle off.",
+        "how": "each",
+        "lookFor": "After: hidden None stays checked and a visible color is invalid. With native validation disabled, this fixture permits POST; with it enabled, Save must be blocked. None returns checked when off."
+      },
+      {
+        "text": "Select Red in Dynamic color, toggle on/off/on, then switch to Blue with arrow keys.",
+        "how": "each",
+        "lookFor": "Real selection remains checked and valid; no stale custom validation error."
+      },
+      {
+        "text": "Repeat in Claro and Default Admin, forced colors, and with JavaScript disabled for static groups. Record actual theme and browser.",
+        "how": "each",
+        "lookFor": "Keyboard operation, visible focus, required legend, error recovery. Dynamic states require JavaScript."
+      }
+    ],
+    "expected": "After: required attributes are on radio inputs, not fieldsets; dynamic states preserve selection and reject hidden None while required.",
+    "actual": "Before: static required attributes are on fieldsets, dynamic inputs remain optional. Both sides disable native submission validation by default; the fixture does not enforce dynamic requirements server-side.",
+    "checks": [
+      {
+        "label": "Shared fixture has all four groups",
+        "kind": "precondition",
+        "probe": "['static_required','static_default','optional','dynamic'].every(n => document.querySelectorAll('input[type=radio][name='+n+']').length >= 2)",
+        "expect": true
+      },
+      {
+        "label": "Static required inputs carry required",
+        "kind": "fix",
+        "probe": "[...document.querySelectorAll('input[name=static_required]')].length === 2 && [...document.querySelectorAll('input[name=static_required]')].every(e => e.required)",
+        "expect": true
+      },
+      {
+        "label": "No required attribute on static radios fieldset",
+        "kind": "fix",
+        "probe": "!!document.querySelector('input[name=static_required]') && !document.querySelector('input[name=static_required]').closest('fieldset').hasAttribute('required')",
+        "expect": true
+      },
+      {
+        "label": "Optional radios remain optional",
+        "kind": "regression",
+        "probe": "document.querySelectorAll('input[name=optional][required]').length",
+        "expect": 0
+      },
+      {
+        "label": "Default selection remains Blue",
+        "kind": "regression",
+        "probe": "document.querySelector('input[name=static_default]:checked')?.value",
+        "expect": "blue"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Only the legend has a required marker, not each option label",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "When native HTML5 validation is enabled, Save blocks hidden None until a real color is chosen; otherwise record not applicable",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Toggling required off restores the existing None selection",
+        "expectBefore": true,
+        "expectAfter": true
+      }
+    ],
+    "coverage": {
+      "note": "The combinations that count as tested for this issue (scripts/coverage.mjs). Edit to fit the question the issue asks.",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 480
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ]
+    },
+    "testExtensions": true
+  },
+  {
+    "slug": "2951317-latest",
+    "extends": "2951317-pinned",
+    "label": "#2951317: same steps against the LATEST core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-2951317-latest"
+    },
+    "after": {
+      "env": "issue-2951317-latest"
+    }
+  }
+]

@@ -1,10 +1,10 @@
 # Browser logos
 
-The four monochrome SVG logos are from Simple Icons v11.15.0:
-https://github.com/simple-icons/simple-icons/tree/11.15.0/icons
+Full-colour SVG browser logos from [Browser Logos](https://github.com/alrra/browser-logos), retrieved 2026-10-16:
 
-Files: googlechrome.svg, microsoftedge.svg, firefoxbrowser.svg, safari.svg,
-renamed to match the lab's browser IDs. Simple Icons distributes these assets under CC0 1.0:
-https://github.com/simple-icons/simple-icons/blob/11.15.0/LICENSE.md
+- [Chrome](https://github.com/alrra/browser-logos/blob/main/src/chrome/chrome.svg)
+- [Edge](https://github.com/alrra/browser-logos/blob/main/src/edge/edge.svg)
+- [Firefox](https://github.com/alrra/browser-logos/blob/main/src/firefox/firefox.svg)
+- [Safari](https://github.com/alrra/browser-logos/blob/main/src/safari/safari.svg)
 
-Browser names and logos remain trademarks of their respective owners.
+All logos and trademarks are the property of their respective owners, as stated in the source project's Legal section. These assets identify the browsers available for testing. They replace the monochrome Simple Icons assets.

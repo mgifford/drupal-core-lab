@@ -38,11 +38,17 @@ paste in VS Code ([`reports/issues/3619127/CODER-PROMPT.md`](../reports/issues/3
 
    | UI Label | Terraform Name | Value |
    |---|---|---|
+   | **Workspace name** | (not a parameter) | `lab-<issue number>`, such as `lab-3619154`, instead of the generated name (such as `magenta-chinchilla-15`) |
    | **DDEV project names** | `project_names` | `drupal-compare,drupal-compare-before,drupal-compare-after` (add `repro-<env>` names only if you want a direct URL to each site) |
    | **Public Sharing** | `share_projects` | Unchecked / `false` — keep the workspace owner-only; the sites use `admin` / `admin` |
    | **Enable Claude Code remote control** | `enable_claude_code` | Unchecked / `false` |
    | **Claude Code: skip permission prompts** | `claude_code_skip_permissions` | Unchecked / `false` |
    | **VS Code Extensions** | `vscode_extensions` | Leave empty / `[]` |
+
+   The workspace name becomes part of every app address (`<project>--<workspace>--<owner>.coder.ddev.com`), so naming it after the
+   issue makes the viewer link recognisable later. Use lowercase letters, digits and single hyphens (`--` separates the parts of the address,
+   and browsers show it in lower case whatever the name);
+   for a second workspace on the same issue add a suffix, such as `lab-3619154-2`.
 
    The three `drupal-compare*` names are required: two give each frame its own hostname and the third is the viewer's own address.
    Set `project_names` at creation; changing it afterwards was unreliable in the 2026-10-02 trial.
@@ -50,16 +56,32 @@ paste in VS Code ([`reports/issues/3619127/CODER-PROMPT.md`](../reports/issues/3
 ## 2. In the workspace web terminal
 
 Wait until the workspace page says **Running** and its startup scripts have finished, then click **Terminal** on the workspace page
-(it opens a shell in the workspace in a new browser tab). Paste:
+(it opens a shell in the workspace in a new browser tab). Paste both lines as they are, from any folder:
 
-    git clone https://github.com/mgifford/drupal-core-lab.git && cd drupal-core-lab
-    node scripts/cloud-bootstrap.mjs 3619127-pinned --install-autostart --core-url=https://github.com/drupal/drupal.git
+    [ -d ~/drupal-core-lab ] || git clone https://github.com/mgifford/drupal-core-lab.git ~/drupal-core-lab
+    cd ~/drupal-core-lab && git pull --ff-only
+    node scripts/test-mr.mjs 3619127
 
-- Replace `3619127-pinned` with the variant you want (a `-latest` slug follows current core `main`).
-- `--core-url` points at the GitHub mirror: the workspace's egress filter blocks `git.drupalcode.org` and `drupal.org`.
-- If a `drupal-core` issue-picker checkout already exists in the workspace, use `--use-existing-core` instead of `--core-url` to seed
-  the same core revision with no clone at all.
-- `--install-autostart` writes `~/.coder-startup.sh`, so a workspace restart brings both sites and the viewer back by itself.
+- The first line clones only when `~/drupal-core-lab` is missing, so pasting them again (in a workspace that already has the lab)
+  never makes a second copy inside the first. DDEV allows each project name once; a second copy stops with `DDEV already has …`
+  and names the copy to use.
+- The second brings an existing copy up to date: one older than 2026-10-18 has no `test-mr.mjs` (`Cannot find module`). If
+  `git pull` refuses because of local changes, `test-mr.mjs` sets them aside itself; if it is the missing one, run `git stash -u`
+  (it keeps them), then the last two lines again.
+- Replace `3619127` with the issue you want; an issue number means its `-latest` variant (current core `main`), and a full slug
+  such as `3619127-pinned` also works. `--dry-run` first prints the plan and changes nothing.
+- It runs from any folder, brings the checkout up to date (local changes in the way go to `git stash`, never deleted), stops other
+  comparisons' sites, and runs `scripts/cloud-bootstrap.mjs <slug> --install-autostart --core-url=https://github.com/drupal/drupal.git`:
+  the GitHub mirror because the workspace's egress filter blocks `git.drupalcode.org` and `drupal.org`, autostart so a workspace
+  restart brings both sites and the viewer back by itself. It ends with the viewer address in a framed block.
+- Run it again whenever you like; that is also how a changed patch reaches the After site (bootstrap reapplies a patch file that
+  changed since the site was built).
+- To test a newer merge request revision: save its plain diff in a browser, upload it on GitHub into
+  `reports/issues/<nid>/incoming/`, then `node scripts/test-mr.mjs <nid> --diff=reports/issues/<nid>/incoming/<file>`.
+- If a `drupal-core` issue-picker checkout already exists in the workspace, `node scripts/cloud-bootstrap.mjs <slug>
+  --install-autostart --use-existing-core` seeds the same core revision with no clone at all.
+- Do not also run `tools/compare/cloud/start-viewer.sh` or `ddev stop --all` by hand: the first, without a variant, showed another
+  issue in the viewer; the second stops the proxy projects the frames need.
 - For core's Yarn 4, also `export COREPACK_NPM_REGISTRY=https://registry.npmjs.org` if you plan to lint.
 - `--check` only reports what is missing, if the bootstrap stops.
 
@@ -88,6 +110,16 @@ Mirror off and, in each frame, use the **URL alias** link in the error message w
 (Tab to it, press Enter). Before: nothing visibly happens. After: the sidebar opens and the URL alias field has focus. Then press
 **Run checks**. This is the first time the #3619127 steps are done in the cloud frames: note your browser and what you saw.
 
+### If the viewer or its frames do not load
+
+| You see | Why | Do this |
+|---|---|---|
+| The viewer stays at "Loading…", both frames are blank and each says "Theme: waiting" | The viewer was started with other addresses than the browser uses. Until 2026-10-18 a workspace name with capitals (`Compare`) caused this. | `cd ~/drupal-core-lab && git pull --ff-only`, then `node scripts/test-mr.mjs <nid>`: it restarts the viewer with the workspace's addresses. Reload the viewer tab. |
+| "Access denied" in both frames | Not logged in yet; the front page of these sites needs a login | Press **Log in both**. |
+| The viewer's "still loading" box names a site that does not answer | That site's DDEV project is not running | `ddev list` should show both `repro-…` projects running; `node scripts/test-mr.mjs <nid>` starts them. |
+
+Anything else: the "If something fails" table in `reports/issues/<nid>/CODER-PROMPT.md`.
+
 ## 4. Lifespan, restarts and coming back
 
 - To stop the workspace when you are done, press **Stop** on the workspace page (files are kept; **Delete** removes everything).
@@ -105,7 +137,7 @@ The pack flow (`docs/ISSUE-TO-LAB.md`) runs in the workspace terminal too:
     node scripts/issue-from-url.mjs https://www.drupal.org/project/drupal/issues/<nid> --ai-recipe
 
 It prepares the chat prompt, you save the assistant's reply as `issue-pack-<nid>.yml`, run it again to validate and import, then
-`cloud-bootstrap.mjs <nid>-latest`. Nothing here posts, pushes or signs in to anything on its own.
+`node scripts/test-mr.mjs <nid>`. Nothing here posts, pushes or signs in to anything on its own.
 
 ## What is not covered
 

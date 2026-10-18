@@ -1,0 +1,54 @@
+diff --git a/core/modules/field/tests/src/FunctionalJavascript/MultipleValueWidgetTest.php b/core/modules/field/tests/src/FunctionalJavascript/MultipleValueWidgetTest.php
+index 61913329692bd2b31f86719be8ac19ac7f93dcbd..1658c813ca760d539bb654d05eea8a4949f77cdb 100644
+--- a/core/modules/field/tests/src/FunctionalJavascript/MultipleValueWidgetTest.php
++++ b/core/modules/field/tests/src/FunctionalJavascript/MultipleValueWidgetTest.php
+@@ -9,6 +9,7 @@
+ use Drupal\field\Entity\FieldConfig;
+ use Drupal\field\Entity\FieldStorageConfig;
+ use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
++use PHPUnit\Framework\Attributes\DataProvider;
+ use PHPUnit\Framework\Attributes\Group;
+ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+ 
+@@ -65,6 +66,41 @@ protected function setUp(): void {
+     $entity_form_display->setComponent($field['field_name'])->save();
+   }
+ 
++  /**
++   * Tests the actions-column header before and after widget AJAX updates.
++   */
++  #[DataProvider('providerActionsColumnHeaderThemes')]
++  public function testActionsColumnHeader(string $theme): void {
++    $this->container->get('theme_installer')->install([$theme]);
++    $this->config('system.theme')->set('default', $theme)->save();
++    $this->drupalGet('entity_test/add');
++
++    $assert_session = $this->assertSession();
++    $page = $this->getSession()->getPage();
++    $header = '[data-drupal-selector="edit-field-unlimited-wrapper"] .field-multiple-table thead th:nth-child(2)';
++    $assert_session->elementTextEquals('css', $header, 'Operations');
++    $assert_session->elementExists('css', $header . ' .visually-hidden');
++
++    $page->findButton('field_unlimited_add_more')->click();
++    $this->assertNotEmpty($assert_session->waitForField('field_unlimited[1][value]'));
++    $assert_session->elementTextEquals('css', $header, 'Operations');
++
++    $page->findButton('field_unlimited_1_remove_button')->click();
++    $assert_session->assertWaitOnAjaxRequest();
++    $assert_session->elementTextEquals('css', $header, 'Operations');
++    $assert_session->elementExists('css', $header . ' .visually-hidden');
++  }
++
++  /**
++   * Provides themes for the multi-value actions-column header regression test.
++   */
++  public static function providerActionsColumnHeaderThemes(): array {
++    return [
++      'Stark' => ['stark'],
++      'Default Admin' => ['default_admin'],
++    ];
++  }
++
+   /**
+    * Tests the 'Add more' functionality.
+    */
