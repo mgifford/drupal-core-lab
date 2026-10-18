@@ -638,8 +638,8 @@
     "slug": "3619154-pinned",
     "issue": "3619154",
     "label": "#3619154: Sidebar toggle fixes, pinned core",
-    "description": "MR !16911 reworks the Default Admin node add/edit meta sidebar: sidebar.js is split into a sidebar-toggle SDC + edit-sidebar.js; the toggle and close controls become <button> elements with aria-expanded; open/closed state and width persist across reloads with no flash; below 1024px the overlay content is inert with a focus trap and Escape-to-close; the sidebar is positioned with CSS variables; resizing works after AJAX, with touch and in RTL. Test on a node edit form across widths.",
-    "status": "ready: before = <a role=button> toggle/close, flashes open, no inert/focus-trap; after = <button> controls, state + width persist, inert overlay below 1024px",
+    "description": "MR !16911 (reviewed at 6f7766cb on 2026-10-14; head 175e6f17 since 2026-10-17) reworks the Default Admin node add/edit meta sidebar: sidebar.js is split into a sidebar-toggle SDC + edit-sidebar.js; the toggle and close controls become <button> elements with aria-expanded; below 1024px the content under the overlay is inert, focus moves to the close button and Escape closes it; the sidebar sits below the top bar and does not flash on load; the resize handle works after AJAX, with touch and in RTL. Test on /node/1/edit across widths. Scripted: tools/playwright/evaluate-3619154.mjs (steps and checks in tools/playwright/sidebar-3619154.mjs).",
+    "status": "ready: pinned = the 2026-10-14 review of MR !16911 @ 6f7766cb on 6868135a. For a new MR revision use 3619154-latest after refreshing the patch (reports/issues/3619154/REPRODUCE.md, 'Evaluate a new merge request revision').",
     "core": {
       "url": "https://git.drupalcode.org/project/drupal.git",
       "commit": "6868135abe8e18373329d51bcb2d2bc81967d8c0"
@@ -679,7 +679,12 @@
       {
         "text": "Desktop (>=1024px): toggle the sidebar closed, then reload the frame.",
         "how": "each",
-        "lookFor": "After: it stays closed with no flash of the open sidebar. Before: it flashes open on load."
+        "lookFor": "Neither side should show the open sidebar while the page loads, and it stays closed. Measured 2026-10-17: no flash on either side at 1280px; Before's flash is on a first visit below 1024px (next step)."
+      },
+      {
+        "text": "Below 1024px, with no stored sidebar state (first visit, or clear Drupal.defaultAdmin.* in localStorage), load /node/1/edit.",
+        "how": "each",
+        "lookFor": "After: the sidebar never appears during the load. Before: it is painted on screen for a few frames, then hidden."
       },
       {
         "text": "Toggle the sidebar open, drag the resize handle, then reload.",
@@ -687,18 +692,33 @@
         "lookFor": "After: open state and the chosen width persist after reload."
       },
       {
-        "text": "Expand a details section in the form.",
+        "text": "At 1100px, with the sidebar open and Navigation expanded, open and close a details element in the main column (Image).",
         "how": "each",
-        "lookFor": "After: the Navigation sidebar does not collapse when content height changes."
+        "lookFor": "After: Navigation stays expanded. Below 1280px a click that opens one panel closes the other on both sides, so both are open only after a reload from stored state; on Before that reload collapses Navigation."
       },
       {
         "text": "Narrow the frame below 1024px and open the sidebar.",
         "how": "each",
-        "lookFor": "After: focus moves to the close button; Tab stays within the sidebar (content behind is inert); Escape closes it and returns focus to the toggle. The resize handle is hidden below 976px."
+        "lookFor": "After: focus moves to the close button; Tab stays within the sidebar, Navigation and the top bar (the page behind is inert); Escape closes it and returns focus to the toggle; the sidebar starts below the top bar. Before: the sidebar's top (and its close button) is under the top bar, focus stays on the toggle and Tab reaches the covered page. The resize handle is hidden below 976px."
+      },
+      {
+        "text": "Forced colours (local DDEV: the lab browser's switch; any lab: DevTools > Rendering > Emulate forced-colors, or a Windows contrast theme), below 976px: open the sidebar with Enter.",
+        "how": "each",
+        "lookFor": "After: the close button has focus and its × icon is visible inside the focus ring. With revision 6f7766cb only the ring showed (comment #23); 175e6f17 says it fixes that. Before: the close button is under the top bar."
+      },
+      {
+        "text": "Below 976px: close the sidebar once with the close button and once by clicking the overlay.",
+        "how": "each",
+        "lookFor": "The sidebar closes and the URL does not change."
+      },
+      {
+        "text": "Desktop: set dir=\"rtl\" on <html> (DevTools), then drag the resize handle outward (towards the middle of the page).",
+        "how": "each",
+        "lookFor": "After: the sidebar gets wider. Before: it gets narrower."
       }
     ],
-    "expected": "After: the toggle and close are <button> elements operable with Enter and Space; aria-expanded tracks the sidebar state; closed/open state and width persist across reloads with no flash; expanding a details element does not collapse Navigation; below 1024px the content under the overlay is inert, focus moves to the close button, and Escape closes the sidebar and returns focus to the toggle. Before: <a href=\"#\" role=\"button\"> controls, Space does not operate them, the sidebar flashes open, and there is no inert overlay or focus trap.",
-    "actual": "TODO after running",
+    "expected": "After: the toggle and close are <button> elements operable with Enter and Space; aria-expanded tracks the sidebar state; open/closed state and width persist across reloads; nothing is painted on load below 1024px; below 1024px the content under the overlay is inert, focus moves to the close button, Escape closes the sidebar and returns focus to the toggle, and the sidebar starts below the top bar. Before: <a href=\"#\" role=\"button\"> controls, Space does not operate them, no inert overlay or focus trap, and the sidebar starts under the top bar below 1024px.",
+    "actual": "Previous revision (MR !16911 @ 6f7766cb) on core main f2abd41, scratch run 2026-10-17 (not DDEV): normal colours reproduced-and-fixed (11 of 12 fix checks as expected, F11 not applicable on Before; 14 regression checks pass; 0 axe violations); forced colours mixed: R12, the close button's icon disappears when focused (comment #23). Not yet run on 175e6f17. reports/issues/3619154/validation/2026-10-17-scratch/SUMMARY.md",
     "checks": [
       {
         "label": "Setup reached: the sidebar toggle is on the page",
@@ -739,7 +759,10 @@
       "Expanding a details element does not collapse the Navigation sidebar.",
       "Below 1024px: content under the overlay is inert; focus moves to the close button on open; Escape closes the sidebar and returns focus to the toggle.",
       "Sidebar top aligns with the bottom of the top bar (976-1023px and >=1024px); no jump or top-bar overlap on load.",
-      "The resize handle is hidden below 976px."
+      "The resize handle is hidden below 976px.",
+      "Alt+S toggles the sidebar on Before; the previous MR revision removed that shortcut. Intended?",
+      "The toggle's name: Before swaps 'Hide sidebar panel' / 'Show sidebar panel'; After keeps 'Sidebar panel' and relies on aria-expanded.",
+      "1100px, returning user with both panels stored open: After shows the sidebar and an expanded Navigation together; Before collapses Navigation. Is the narrower main column acceptable?"
     ],
     "coverage": {
       "note": "The combinations that count as tested for this issue (scripts/coverage.mjs). Edit to fit the question the issue asks.",
@@ -786,7 +809,7 @@
   {
     "slug": "3619154-latest",
     "extends": "3619154-pinned",
-    "label": "#3619154: same steps against the LATEST core main",
+    "label": "#3619154: same steps against the LATEST core main (use this pair for a new MR revision)",
     "core": {
       "ref": "main",
       "commit": null
@@ -796,7 +819,8 @@
     },
     "after": {
       "env": "issue-3619154-latest"
-    }
+    },
+    "status": "needs a refreshed patch: MR !16911's head is 175e6f17 (2026-10-17), the lab has 6f7766cb, which no longer applies to main since aeca9d7 (umami performance-test YAML only). See reports/issues/3619154/REPRODUCE.md."
   },
   {
     "slug": "3273806-latest",
