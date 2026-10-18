@@ -80,7 +80,7 @@ See `prompts/README.md` for preview and freshness checks. Generation does not es
    (Or open the template list at https://coder.ddev.com/templates and pick **DDEV Freeform**.)
 
    **Web UI (recommended):** After selecting the template, name the workspace after the issue (`lab-<issue number>`, such as
-   `lab-3619154`, rather than the generated name; letters, digits and single hyphens, since the name becomes part of each app address
+   `lab-3619154`, rather than the generated name; lowercase letters, digits and single hyphens, since the name becomes part of each app address
    `<project>--<workspace>--<owner>.coder.ddev.com`), then fill the parameters (UI label → Terraform name):
 
    - **DDEV project names** → `project_names`: `drupal-compare,drupal-compare-before,drupal-compare-after` (add `repro-<env>` names only if you want a direct URL to each site; they match a variant's environments)
