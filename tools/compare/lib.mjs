@@ -33,6 +33,22 @@ export const variants = () => {
   };
   return all.map(resolve);
 };
+// A variant from what a person (or an agent) types: its slug, or an issue number (with or without #), which means <nid>-latest,
+// else <nid>-pinned, else the issue's only variant. Returns { v, note } or { error } naming what to type instead.
+export function resolveVariant(arg, all = variants()) {
+  if (!arg) return { error: `Name a variant or an issue number, for example ${all[0] ? all[0].issue : '3619154'}.` };
+  const exact = all.find((x) => x.slug === arg);
+  if (exact) return { v: exact };
+  const nid = String(arg).replace(/^#/, '');
+  if (/^\d+$/.test(nid)) {
+    const mine = all.filter((x) => String(x.issue) === nid);
+    const pick = mine.find((x) => x.slug === `${nid}-latest`) || mine.find((x) => x.slug === `${nid}-pinned`) || (mine.length === 1 ? mine[0] : null);
+    if (pick) return { v: pick, note: `Issue ${nid}: using variant ${pick.slug}${mine.length > 1 ? ` (others: ${mine.filter((x) => x !== pick).map((x) => x.slug).join(', ')})` : ''}.` };
+    return { error: mine.length ? `Issue ${nid} has several variants: ${mine.map((x) => x.slug).join(', ')}. Name one.` : `No variant is registered for issue ${nid}. Scaffold one first: node scripts/new-issue.mjs ${nid} --branch <fork-branch> (docs/NEW-ISSUE.md).` };
+  }
+  const near = all.filter((x) => x.slug.startsWith(arg) || String(x.issue) === arg.split('-')[0]).map((x) => x.slug);
+  return { error: `Unknown variant: ${arg}.${near.length ? ` Did you mean ${near.join(', ')}?` : ''} An issue number also works.` };
+}
 export const envDir = (env) => path.join(labRoot, 'envs', env);
 
 // DDEV hostname and router port for an environment (the router needs a Host header).

@@ -2,9 +2,14 @@
 # Start the compare viewer in a DDEV Coder workspace with Coder app URLs for the viewer and both frames.
 # Needs the workspace's DDEV project names to include drupal-compare, drupal-compare-before and drupal-compare-after,
 # and `ddev coder-setup` run once in tools/compare/site and tools/compare/cloud/{before,after}. See tools/compare/cloud/README.md.
-# Usage: tools/compare/cloud/start-viewer.sh [variant-slug]   (default: the first variant)
+# Usage: tools/compare/cloud/start-viewer.sh <variant-slug>   (scripts/cloud-bootstrap.mjs runs this; you rarely need to)
 set -euo pipefail
 cd "$(dirname "$0")/../../.."
+# The slug is required: started without one, the viewer showed the first variant, so a workspace showed another issue than its sites.
+if [ $# -lt 1 ] || [ -z "$1" ]; then
+  echo "Usage: tools/compare/cloud/start-viewer.sh <variant-slug>   (the variant the sites were started for, e.g. 3619154-latest)" >&2
+  exit 2
+fi
 : "${CODER_WORKSPACE_NAME:?run this inside a Coder workspace}" "${CODER_WORKSPACE_OWNER_NAME:?}" "${CODER_AGENT_URL:?}"
 DOMAIN=$(echo "$CODER_AGENT_URL" | sed -E 's#^https?://##; s#/.*$##')
 APP() { echo "https://$1--$CODER_WORKSPACE_NAME--$CODER_WORKSPACE_OWNER_NAME.$DOMAIN"; }

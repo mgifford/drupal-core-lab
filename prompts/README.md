@@ -2,8 +2,10 @@
 
 ## coder-prompt.md: shared DDEV Coder comparison handoff
 
-The common workspace parameters, bootstrap commands, viewer instructions and evidence requirements live in
-`prompts/coder-prompt.md`. Agents supply the issue scenario in the registered variant: `steps`, `expected`, `actual`,
+The common workspace parameters, the one start command (`scripts/test-mr.mjs`), the rules and error table for workspace agents,
+viewer instructions and evidence requirements live in `prompts/coder-prompt.md`. When an agent in a workspace fails in a new way,
+add the message and its fix to the template's "If something fails" table and regenerate the prompts; that table is the direction
+other agents get. Agents supply the issue scenario in the registered variant: `steps`, `expected`, `actual`,
 `checks` and `observe`. The generator resolves inherited variants, includes the recipe, and hashes each patch in application order.
 It refuses an unknown slug, a missing recipe/patch or an empty After patch stack. It does not fetch an MR or verify its provenance.
 

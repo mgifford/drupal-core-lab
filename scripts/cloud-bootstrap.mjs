@@ -1,8 +1,10 @@
 // Bring a DDEV Coder Freeform workspace to a working cloud comparison, safe to run again.
-//   node scripts/cloud-bootstrap.mjs <slug> [--check] [--rebuild] [--no-smoke-deps] [--install-autostart]
+// For people and agents, scripts/test-mr.mjs is the one command to start from: it updates the checkout, stops other comparisons and calls this.
+//   node scripts/cloud-bootstrap.mjs <slug | issue number> [--check] [--rebuild] [--no-smoke-deps] [--install-autostart]
 //                                          [--core-url=<url>] [--use-existing-core[=<path>]]
 //     --check           preflight only: report what is missing and change nothing
-//     --rebuild         run tools/compare/setup.mjs even when both sites already exist
+//     --rebuild         run tools/compare/setup.mjs even when both sites already exist (when they exist but a patch file changed since
+//                       they were built, setup.mjs --refresh-patches runs by itself: the After site never keeps serving an older patch)
 //     --no-smoke-deps   do not install Playwright and Chromium (the smoke check then reports its frame check as NOT RUN)
 //     --install-autostart  write ~/.coder-startup.sh so this script runs again at every workspace start (a workspace restart stops
 //                       all DDEV projects and the viewer). The template runs that file detached after Docker is ready; log: /tmp/lab-cloud-bootstrap.log
@@ -18,15 +20,18 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { labRoot, variants } from '../tools/compare/lib.mjs';
+import { labRoot, resolveVariant, envDir } from '../tools/compare/lib.mjs';
 import { PROXY_PROJECTS } from '../tools/compare/cloud/config.mjs';
+import { sideState } from '../tools/compare/contrib-state.mjs';
+import { runBlockReason } from '../tools/compare/patch-state.mjs';
 
 const args = process.argv.slice(2);
 const CHECK = args.includes('--check'), REBUILD = args.includes('--rebuild'), NO_DEPS = args.includes('--no-smoke-deps');
-const all = variants();
-const slug = args.find((a) => !a.startsWith('--')) || all[0].slug;
-const v = all.find((x) => x.slug === slug);
-if (!v) { console.error(`Unknown variant: ${slug}. Variants: ${all.map((x) => x.slug).join(', ')}`); process.exit(2); }
+// No default: building whichever variant happens to be first is how a workspace ended up showing another issue.
+const found = resolveVariant(args.find((a) => !a.startsWith('--')));
+if (found.error) { console.error(found.error); process.exit(2); }
+const v = found.v, slug = v.slug;
+if (found.note) console.log(found.note);
 
 // Filtered egress inside a workspace often cannot reach git.drupalcode.org; a mirror (--core-url/$LAB_CORE_URL) or a checkout
 // already in the workspace (--use-existing-core/$LAB_EXISTING_CORE, such as a drupal-core issue-picker clone) is the way round it.
@@ -82,13 +87,22 @@ const run = (cmd, argv, opts = {}) => {
 
 say('Build both sites');
 const built = (env) => have(`envs/${env}/vendor/autoload.php`) && have(`envs/${env}/sites/default/settings.php`);
-if (!REBUILD && built(v.before.env) && built(v.after.env)) console.log('Both sites already exist; skipping setup.mjs (use --rebuild to run it again).');
-else {
-  const setupArgs = [path.join(labRoot, 'tools/compare/setup.mjs'), slug];
-  if (coreUrl) setupArgs.push(`--core-url=${coreUrl}`);
-  if (existingCore) setupArgs.push(`--core-from=${existingCore}`);
-  run('node', setupArgs);
-}
+const setupArgs = [path.join(labRoot, 'tools/compare/setup.mjs'), slug];
+if (coreUrl) setupArgs.push(`--core-url=${coreUrl}`);
+if (existingCore) setupArgs.push(`--core-from=${existingCore}`);
+if (!REBUILD && built(v.before.env) && built(v.after.env)) {
+  // Skipping setup.mjs keeps a restart fast, but must not leave the After site on an older patch after the patch file changed
+  // (an MR push brought in by `git pull`): check both sides against their patch files first (read-only, no network).
+  let states;
+  try { states = Object.fromEntries(['before', 'after'].map((s) => [s, sideState(envDir(v[s].env), labRoot, v[s].patches || [], { modules: v.contrib || [], patches: v[s].contribPatches || [] })])); }
+  catch (e) { console.error(`\nCannot check the sites against their patches: ${e.message}`); process.exit(1); }
+  const blocked = runBlockReason(states, slug, { before: v.before.env, after: v.after.env });
+  if (!blocked) console.log('Both sites already exist and match their patch files; skipping setup.mjs (use --rebuild to run it again).');
+  else if (/does not match its patches/.test(blocked)) {
+    console.log(`A patch file changed since the sites were built (${blocked.replace(/^BLOCKED: /, '').replace(/ Nothing was run\..*$/, '')}).\nApplying the current patch files with setup.mjs --refresh-patches.`);
+    run('node', [...setupArgs, '--refresh-patches']);
+  } else { console.error(`\n${blocked}`); process.exit(4); }   // the Before site has undeclared edits: never change the baseline from here
+} else run('node', setupArgs);
 
 say('Register and start the proxy projects');
 for (const p of PROXY_PROJECTS) {

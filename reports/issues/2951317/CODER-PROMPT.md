@@ -21,10 +21,11 @@ They are defined in `tools/compare/cloud/config.mjs`; the Freeform template read
 
 ## Instructions for the workspace agent
 
-Read `AGENTS.md`, the first 20 lines of `AI-LEARNING.md`, `docs/CLOUD-QUICKSTART.md` and
-`tools/compare/cloud/README.md` before writing or running setup commands. Follow the current cloud status table.
+Everything below runs in the workspace's web terminal. Read `AGENTS.md` first (the rules: no posts, no pushes, no credentials,
+baseline code untouched). You do not need to read the rest of the documentation before starting: the command below checks its own
+prerequisites and says what is missing. `docs/CLOUD-QUICKSTART.md` and `tools/compare/cloud/README.md` explain it if you need more.
 
-Before implementation, report this checklist and resolve any missing input:
+Report this checklist to the person before you start:
 
 - Issue: https://www.drupal.org/project/drupal/issues/2951317
 - Execution environment: DDEV Coder Freeform. Confirm the workspace name and registered project names.
@@ -49,23 +50,60 @@ Before implementation, report this checklist and resolve any missing input:
 The stacks describe exactly what is being evaluated. Local follow-ups are not evidence that an MR alone passes.
 Check the issue report's provenance before attributing a patch to an MR. Record the resolved full core commit on both sides.
 
-## Build and open the comparison
-
-In the workspace web terminal, clone https://github.com/mgifford/drupal-core-lab.git if absent, enter that checkout,
-and use the revision containing this generated prompt. Inspect existing work before updating a checkout.
-Run from the repository root:
+## Build and open the comparison: one command
 
 ```bash
-node scripts/cloud-bootstrap.mjs 2951317-pinned --check --core-url=https://github.com/drupal/drupal.git
-node scripts/cloud-bootstrap.mjs 2951317-pinned --install-autostart --core-url=https://github.com/drupal/drupal.git
+cd ~ && { [ -d drupal-core-lab ] || git clone https://github.com/mgifford/drupal-core-lab.git; }
+cd ~/drupal-core-lab
+node scripts/test-mr.mjs 2951317-pinned --dry-run    # prints the plan, changes nothing
+node scripts/test-mr.mjs 2951317-pinned              # updates the checkout, builds or refreshes both sites, starts them and the viewer, smoke check
 ```
 
-The GitHub mirror option addresses the documented core-host egress restriction. It does not make every dependency reachable.
-Bootstrap builds both sites, applies their declared patches and recipe, registers the proxies and starts the viewer.
-If a prerequisite or patch fails, report the cause. Do not invent an independent-site setup or silently change the patch or core revision.
-For the existing-checkout alternative, read the cloud README's `--use-existing-core` procedure and limitations.
+`scripts/test-mr.mjs` brings the checkout up to date (local changes in the way are kept in `git stash`, never deleted), stops other
+comparisons' sites, runs `scripts/cloud-bootstrap.mjs` with the GitHub core mirror (Coder cannot reach git.drupalcode.org) and
+autostart, and ends with a framed block holding the **viewer address**. It is safe to run again; run it again after a workspace
+restart if the viewer does not answer. `node scripts/test-mr.mjs --help` lists its only options.
 
-Open the exact **Viewer** URL printed by bootstrap in a browser signed in to Coder. It has this form:
+To test a newer merge request revision than the patch listed above, the person saves the MR's "plain diff" in a browser
+(`https://git.drupalcode.org/project/drupal/-/merge_requests/<number>.diff`) and uploads it on GitHub into
+`reports/issues/2951317/incoming/`. Then: `node scripts/test-mr.mjs 2951317-pinned --diff=reports/issues/2951317/incoming/<file>`.
+`--mr=<number>` tries the download itself and, when the network refuses it, prints these steps.
+
+### Rules that come from failed attempts
+
+- Do not run `tools/compare/cloud/start-viewer.sh`, `scripts/cloud-smoke.mjs`, `pkill`, `ddev stop --all`, `git clean`,
+  `git reset --hard` or `git pull` around the command. It starts the viewer for the right variant; a viewer started without a
+  variant showed a different issue, `ddev stop --all` stops the proxy projects the frames need, and an untracked file may be
+  someone's work.
+- Do not invent flags. There is no `--force`; the script refuses options it does not know.
+- Do not edit patch files, core files or `tools/compare/variants.json` to make something pass. Report what failed.
+- Do not retry downloads from git.drupalcode.org or drupal.org in a loop: the workspace network usually blocks them. Ask the person.
+- In bash, `!` inside double quotes triggers history expansion (`"MR !16911"` fails). The script needs no quoted arguments.
+- Do not create, rename or share workspaces, change Public Sharing, push, or post anything.
+
+### If something fails
+
+Match the first line that starts with `STOPPED`, `BLOCKED`, `Preflight failed` or `Failed`:
+
+| The message says | It means | Do this |
+|---|---|---|
+| `Unknown option --…` | A flag that does not exist | `node scripts/test-mr.mjs --help`, then use only those options. |
+| `No variant is registered for issue` | The lab has no comparison for that issue yet | Stop and tell the person; registering one needs git.drupalcode.org (`docs/NEW-ISSUE.md`). |
+| `could not download …` | The workspace network blocks git.drupalcode.org | Ask the person for the plain diff (above), then use `--diff=`. |
+| `is not a diff` | A saved login or error page | Ask for the plain diff again; it starts with `diff --git`. |
+| `DDEV project names are not registered` | The workspace was created without the three project names | Follow the fix printed under it, or create a new Freeform workspace with `drupal-compare,drupal-compare-before,drupal-compare-after` set at creation. |
+| `does not apply to the base commit` | Core moved and the patch needs a reroll | Report it; do not edit the patch. |
+| `BLOCKED: the Before environment … has tracked changes` | The baseline was edited | Report `git -C envs/baseline-2951317 status`; do not change the baseline. |
+| `Another setup is already running` | An earlier run (or the autostart) is still building | Wait for it (`tail -f /tmp/lab-cloud-bootstrap.log` after a restart), then run the command again. |
+| `ddev-router failed to become ready` | A known DDEV start-up flake | Run the same command once more. A second failure is real: report it. |
+| `NOT RUN` in the smoke check, exit 3 | Chromium could not be installed in the workspace | The comparison is up. Confirm both frames load by eye. |
+| `Local changes were in the way` | Not an error: local edits were set aside | Tell the person; `git stash list` shows them. |
+
+Anything else: copy the last 30 lines of output to the person. Do not try a different setup.
+
+### Then
+
+Open the viewer address in a browser signed in to Coder (apps are owner-only). It has this form:
 
 ```text
 https://drupal-compare--<workspace>--<owner>.coder.ddev.com/
@@ -74,7 +112,11 @@ https://drupal-compare--<workspace>--<owner>.coder.ddev.com/
 Confirm that the viewer and BOTH Drupal frames load, then use **Log in both as admin**.
 Smoke success does not verify authenticated frames at the real Coder URLs. Record that browser check separately.
 Use the viewer's Steps, checks and manual observations below. Mirror may prepare both sides; switch it off for the action under test.
-Use real mouse or keyboard input in each frame for focus and activation checks.
+Use real mouse or keyboard input in each frame for focus and activation checks. For forced colours in a cloud lab, use the
+person's own browser (DevTools > Rendering > Emulate CSS media feature forced-colors) or a Windows contrast theme.
+
+Report back: the viewer address, the core commit of both sides and the patch SHA-256 (both printed during the build), the smoke
+check lines, and everything that was NOT RUN or not done.
 
 ## Issue-specific scenario (from the registered variant)
 
