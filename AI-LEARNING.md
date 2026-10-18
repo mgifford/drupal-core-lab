@@ -89,6 +89,15 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
   list the actions those evaluators repeat (for example: upload a file into a field, press Tab until X is focused, submit, wait for an AJAX
   response) and build the runner from that list only, not from a guess. Per-issue scripts stay for evidence a generic step cannot collect
   (#3618230 needed the raw `insert` markup and a keyboard check of one button). Reasoning: the 2026-10-14 session; ask the owner before starting.
+- **To do (owner, 2026-10-18): a split view with a slider in the viewer.** A fourth mode next to Side by side, Onion skin and Difference
+  (`tools/compare/index.html`, the "View" radios): Before and After stacked as in Onion skin, with a divider you drag so Before shows on one
+  side of it and After on the other. The owner keeps Onion skin and Difference and thinks some people would find the slider useful. The idea
+  came from https://github.com/onion2k/split-view. Neither the owner nor the assistant has evaluated that code or read its licence, so copy
+  nothing from it without checking first (`AGENTS.md` rule 11); the viewer's own overlay code is the starting point. **What it must keep:** the
+  divider is a native range input with a visible label, like the opacity slider, so arrow keys move it and it works in forced colours. It also keeps Mirror and
+  the scroll sync, and in its help text says which frame takes input. **First step:** read `docs/VIEWER-DEV.md` (the security rules), then try
+  `clip-path: inset(...)` on the top frame, driven by the slider. Clicks in the clipped part should then reach the Before frame underneath (not checked).
+  Ask the owner before starting.
 
 ## TODO for the week of 2026-10-09 (session scheduled; owner approves any push or posting)
 1. Check both MRs for new commits (`node tools/compare/setup.mjs <slug> --check-patches`, and the issue/MR if the owner pastes new text). If the CSS changed, re-run `node tools/playwright/evaluate-3604037.mjs 3604037-latest` and rebase the proposal patches if they no longer apply.
