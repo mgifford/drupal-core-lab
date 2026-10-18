@@ -18,7 +18,8 @@ Enter these values before creation; changing project names later has not been re
 | Claude Code: skip permission prompts | `claude_code_skip_permissions` | off / `false` |
 
 The workspace name becomes part of every app address (`<project>--<workspace>--<owner>.coder.ddev.com`), so a name that says the
-issue makes the viewer link recognisable later. Use letters, digits and single hyphens (`--` separates the parts of the address);
+issue makes the viewer link recognisable later. Use lowercase letters, digits and single hyphens (`--` separates the parts of the address,
+and browsers show it in lower case whatever the name);
 for a second workspace on the same issue add a suffix, such as `lab-2951317-2`.
 The project names are the viewer and two frame proxy names, shared by every issue. Do not replace them with issue-specific names.
 They are defined in `tools/compare/cloud/config.mjs`; the Freeform template reads its own `project_names` parameter, not that file.

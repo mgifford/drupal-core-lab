@@ -25,7 +25,7 @@ const add = (name, status, detail = '') => { results.push({ name, status, detail
 const ws = process.env.CODER_WORKSPACE_NAME, owner = process.env.CODER_WORKSPACE_OWNER_NAME, agent = process.env.CODER_AGENT_URL;
 if (!ws || !owner || !agent) { console.error('Not inside a Coder workspace (CODER_WORKSPACE_NAME, CODER_WORKSPACE_OWNER_NAME or CODER_AGENT_URL unset).'); process.exit(1); }
 const domain = agent.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
-const appHost = (project) => `${project}--${ws}--${owner}.${domain}`;
+const appHost = (project) => `${project}--${ws}--${owner}.${domain}`.toLowerCase();   // as the browser sends it; a workspace name may have capitals
 
 const get = (port, host, p = '/') => new Promise((resolve) => {
   const req = http.request({ host: '127.0.0.1', port, path: p, headers: { host }, timeout: 20000 }, (res) => {

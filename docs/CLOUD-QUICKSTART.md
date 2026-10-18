@@ -46,7 +46,8 @@ paste in VS Code ([`reports/issues/3619127/CODER-PROMPT.md`](../reports/issues/3
    | **VS Code Extensions** | `vscode_extensions` | Leave empty / `[]` |
 
    The workspace name becomes part of every app address (`<project>--<workspace>--<owner>.coder.ddev.com`), so naming it after the
-   issue makes the viewer link recognisable later. Use letters, digits and single hyphens (`--` separates the parts of the address);
+   issue makes the viewer link recognisable later. Use lowercase letters, digits and single hyphens (`--` separates the parts of the address,
+   and browsers show it in lower case whatever the name);
    for a second workspace on the same issue add a suffix, such as `lab-3619154-2`.
 
    The three `drupal-compare*` names are required: two give each frame its own hostname and the third is the viewer's own address.

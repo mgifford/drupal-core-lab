@@ -37,7 +37,9 @@ for (const [side, key] of [['before', 'LAB_BEFORE_ORIGIN'], ['after', 'LAB_AFTER
 // Origins allowed to use the viewer, to frame the proxied sites, and to send them commands. Everything else is refused.
 // Add more (for example a cloud workspace) with LAB_EXTRA_ORIGINS="https://host.example,https://other.example". An IP allowlist would not help here:
 // the requests that matter come from the owner's own browser (so from 127.0.0.1) via a web page they happen to visit; the Host, Origin and frame-ancestors checks are what stop those.
-const VIEWER_ORIGINS = [`http://localhost:${PAGE}`, `http://127.0.0.1:${PAGE}`, 'https://drupal-compare.ddev.site', ...(process.env.LAB_EXTRA_ORIGINS || '').split(',').map((x) => x.trim()).filter(Boolean)];
+// Each is normalised with new URL(…).origin, which lower-cases the host as browsers do in Origin and ancestorOrigins: a Coder workspace
+// named "Compare" is reached at …--compare--…, and a list kept as typed refused the viewer's own page and left it at "Loading…".
+const VIEWER_ORIGINS = [`http://localhost:${PAGE}`, `http://127.0.0.1:${PAGE}`, 'https://drupal-compare.ddev.site', ...(process.env.LAB_EXTRA_ORIGINS || '').split(',').map((x) => x.trim()).filter(Boolean)].map((o) => new URL(o).origin);
 const VIEWER_HOSTS = VIEWER_ORIGINS.map((o) => new URL(o).host);
 const list = variants();
 const state = { slug: process.argv.slice(2).find((x) => !x.startsWith('--')) || list[0].slug, theme: 'auto', darkos: false, axe: false, axeBest: false, dir: 'auto', nojs: false };

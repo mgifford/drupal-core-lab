@@ -203,7 +203,7 @@ if (DRY) { note('\nDry run finished; nothing was changed.'); process.exit(0); }
 // 6. Where to look. The smoke check exits 3 when a check could not run (often Chromium in a filtered network): the comparison is up.
 step('Open the comparison');
 const domain = (process.env.CODER_AGENT_URL || '').replace(/^https?:\/\//, '').replace(/\/.*$/, '');
-const viewer = inCoder ? `https://${PROXY_PROJECTS.find((p) => p.role === 'viewer').name}--${process.env.CODER_WORKSPACE_NAME}--${process.env.CODER_WORKSPACE_OWNER_NAME}.${domain}/` : 'the Viewer address printed above (https://drupal-compare.ddev.site or http://localhost:8100)';
+const viewer = inCoder ? `https://${PROXY_PROJECTS.find((p) => p.role === 'viewer').name}--${process.env.CODER_WORKSPACE_NAME}--${process.env.CODER_WORKSPACE_OWNER_NAME}.${domain}/`.toLowerCase() : 'the Viewer address printed above (https://drupal-compare.ddev.site or http://localhost:8100)';
 if (status !== 0 && status !== 3) fail(`${inCoder ? 'scripts/cloud-bootstrap.mjs' : 'scripts/lab-env.mjs start'} ended with exit ${status}.`, `read the lines above it; the "If something fails" table in reports/issues/${v.issue}/CODER-PROMPT.md maps known messages to fixes.`);
 const bar = '='.repeat(78);
 console.log(`\n${bar}\n Before/After for #${v.issue} (${slug}) is running.\n\n   ${viewer}\n\n` +

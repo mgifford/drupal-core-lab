@@ -12,7 +12,8 @@ if [ $# -lt 1 ] || [ -z "$1" ]; then
 fi
 : "${CODER_WORKSPACE_NAME:?run this inside a Coder workspace}" "${CODER_WORKSPACE_OWNER_NAME:?}" "${CODER_AGENT_URL:?}"
 DOMAIN=$(echo "$CODER_AGENT_URL" | sed -E 's#^https?://##; s#/.*$##')
-APP() { echo "https://$1--$CODER_WORKSPACE_NAME--$CODER_WORKSPACE_OWNER_NAME.$DOMAIN"; }
+# Lower case: the workspace name may have capitals ("Compare"), but browsers send the hostname in lower case.
+APP() { echo "https://$1--$CODER_WORKSPACE_NAME--$CODER_WORKSPACE_OWNER_NAME.$DOMAIN" | tr '[:upper:]' '[:lower:]'; }
 for p in $(ps -eo pid,args | awk '/node tools\/compare\/serve.mjs/ && !/awk/ {print $1}'); do kill "$p"; done
 PROJECT_NAMES=$(node tools/compare/cloud/config.mjs --project-names)
 IFS=, read -r VIEWER_PROJECT BEFORE_PROJECT AFTER_PROJECT <<< "$PROJECT_NAMES"
