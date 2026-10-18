@@ -5,7 +5,7 @@ with what the user does and what they should observe. The lab keeps it as `repor
 `scripts/bug-feature.mjs` drafts it from the lab's data, writes the prompt for a model, checks it and exports it. Nothing is posted anywhere.
 
 Worked example: [`reports/issues/3618230/BUG.feature`](../reports/issues/3618230/BUG.feature) (seven scenarios, written by an AI assistant
-from the issue's evidence, not yet reviewed by a person).
+from the issue's evidence, reviewed by the owner on 2026-10-18).
 
 ## Why
 
@@ -39,7 +39,7 @@ and `tools/playwright/evaluate-<nid>.mjs`. The draft maps those checks to Then s
    `reports/issues/<nid>/BUG.feature`. If the issue was fetched long ago, run `node scripts/issue-intake.mjs fetch <nid>` first (`AGENTS.md` rule 15).
 3. **Check.** See below. A clean check is necessary, not sufficient: it checks form, not truth.
 4. **Review.** A person reads each scenario against the evidence it cites. Once it is right they replace `@draft` with `@reviewed` and add a
-   `# Reviewed by <who> on <YYYY-MM-DD>` line. A model never writes `@reviewed`.
+   `# Reviewed by <who> on <YYYY-MM-DD>` line. A model never marks a file `@reviewed` on its own judgement; it may record a review only when the person says the file is right, in their name and with their words (as for #3618230 on 2026-10-18).
 5. **Export.** Prints the feature without comments and without `@draft`, `@reviewed` and `@issue-<nid>`. It warns while the file is still
    `@draft` and refuses a file with errors. Posting it is the owner's decision (`AGENTS.md` rule 4), with the AI-assisted disclosure (rule 10).
 

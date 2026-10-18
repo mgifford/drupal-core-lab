@@ -1,16 +1,18 @@
-# Bug summary for #3618230 in Gherkin (Given / When / Then). DRAFT. Rewritten by an AI assistant (Claude Code) on 2026-10-16,
+# Bug summary for #3618230 in Gherkin (Given / When / Then). Rewritten by an AI assistant (Claude Code) on 2026-10-16,
 # per behaviour, from `node scripts/bug-feature.mjs draft 3618230` and these inputs only:
 #   file:reports/issues/3618230/intake/BRIEF.md (the issue summary and comments, fetched 2026-10-15)
 #   file:reports/issues/3618230/SUMMARY.md
 #   file:reports/issues/3618230/EVIDENCE.md
 #   file:reports/issues/3618230/FEEDBACK.md
-# The issue page was not fetched again for this file. Not reviewed by a person. Check: node scripts/bug-feature.mjs check 3618230
+# The issue page was not fetched again for this file. Check: node scripts/bug-feature.mjs check 3618230
+# Reviewed by Mike Gifford on 2026-10-18 ("Bug.feature looks good", in the lab session; the assistant changed @draft to @reviewed on that word).
+# The question in the @unverified scenario (a dismissed error stays in the accessibility tree) is still open.
 # Core: main 3b94128e929 (2026-10-14) on both sides; After adds MR !16777 (file:reports/issues/3618230/branches/3618230-adopt-the-ajax.patch, sha256 912ccc95).
 # Lab runs (scripted, real input), newest first:
 #   file:reports/issues/3618230/playwright/2026-10-15T15-10-35-411Z-chromium-light-1280x900/ 3618230-pilot, chromium light 1280px, core 3b94128e: reproduced and fixed
 #   file:reports/issues/3618230/playwright/2026-10-14T09-27-29-357Z-chromium-light-1280x900/ 3618230-latest, chromium light 1280px, core 3b94128e92: reproduced and fixed
 # Not tested by anyone: Firefox, WebKit, dark mode, forced colours, zoom and reflow, the pinned core, a multi-value file field (SUMMARY.md, "Not verified").
-@issue-3618230 @draft
+@issue-3618230 @reviewed
 Feature: Adopt the ajax MessageCommand for file uploads
   https://www.drupal.org/project/drupal/issues/3618230
 
