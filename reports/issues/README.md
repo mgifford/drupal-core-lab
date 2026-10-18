@@ -11,17 +11,17 @@ one: `node scripts/new-issue.mjs <nid> --branch <fork-branch>` (see `docs/NEW-IS
 |---|---|---|---|---|---|---|
 | [2847425](2847425/) | `#states` not affecting visibility/requirement of `managed_file` | [yes](2847425/REPRODUCE.md) | 1 | 2026-10-14 |  |  |
 | [2848307](2848307/SUMMARY.md) | Tableselect inline errors | [yes](2848307/REPRODUCE.md) | 0 | 2026-10-14 |  |  |
-| [2951317](2951317/SUMMARY.md) | Reproduce #2951317 | [yes](2951317/REPRODUCE.md) | 2 |  |  | `2951317-pinned`, `2951317-latest` |
+| [2951317](2951317/SUMMARY.md) | Reproduce #2951317 | [yes](2951317/REPRODUCE.md) | 2 |  | 1 | `2951317-pinned`, `2951317-latest` |
 | [3046089](3046089/SUMMARY.md) | Main toolbar items and internal editing | [yes](3046089/REPRODUCE.md) | 0 | 2026-10-14 |  |  |
 | [3083103](3083103/SUMMARY.md) | programmatic error association | [yes](3083103/REPRODUCE.md) | 4 | 2026-10-14 |  |  |
 | [3087389](3087389/SUMMARY.md) | Media Library selection text | [yes](3087389/REPRODUCE.md) | 0 | 2026-10-14 |  |  |
 | [3093378](3093378/SUMMARY.md) | Use ARIA disclosure pattern for submenu buttons in vertical toolbar orientation | [yes](3093378/REPRODUCE.md) | 1 | 2026-10-13 | 12 | `3093378-latest`, `3093378-pinned` |
 | [3155130](3155130/SUMMARY.md) | "Edit summary" toggle | [yes](3155130/REPRODUCE.md) | 0 | 2026-10-14 |  |  |
-| [3207233](3207233/SUMMARY.md) | active workspace indication | [yes](3207233/REPRODUCE.md) | 3 | 2026-10-16 | 2 | `3207233-pinned`, `3207233-latest` |
+| [3207233](3207233/SUMMARY.md) | active workspace indication | [yes](3207233/REPRODUCE.md) | 2 | 2026-10-16 | 2 | `3207233-pinned`, `3207233-latest` |
 | [3243173](3243173/SUMMARY.md) | HTML5 validation setting / form focus management | [yes](3243173/REPRODUCE.md) | 2 | 2026-10-14 |  |  |
 | [3273054](3273054/SUMMARY.md) | text-format permission checkboxes have a hidden focus stop | [yes](3273054/REPRODUCE.md) | 0 | 2026-10-15 | 1 | `3273054-pinned`, `3273054-latest` |
 | [3273806](3273806/SUMMARY.md) | #3273806 — WCAG non-text contrast on the toolbar orientation (direction) icon | no | 1 |  | 1 | `3273806-latest` |
-| [3370946](3370946/SUMMARY.md) | contextual page title | [yes](3370946/REPRODUCE.md) | 3 | 2026-10-14 |  |  |
+| [3370946](3370946/SUMMARY.md) | contextual page title | [yes](3370946/REPRODUCE.md) | 2 | 2026-10-14 |  |  |
 | [3415961](3415961/SUMMARY.md) | [drupalMedia] Using the Insert Media button causes the window to scroll to the… | [yes](3415961/REPRODUCE.md) | 3 | 2026-10-14 |  | `3415961-pinned`, `3415961-latest` |
 | [3419891](3419891/SUMMARY.md) | Increase size of alternative text field in Image dialog | [yes](3419891/REPRODUCE.md) | 1 | 2026-10-15 | 1 | `3419891-pinned`, `3419891-latest` |
 | [3426468](3426468/) | Make the active menu item visually stand out more | [yes](3426468/REPRODUCE.md) | 2 | 2026-10-14 |  | `3426468-pinned`, `3426468-latest` |
@@ -36,7 +36,7 @@ one: `node scripts/new-issue.mjs <nid> --branch <fork-branch>` (see `docs/NEW-IS
 | [3618230](3618230/SUMMARY.md) | Adopt the ajax MessageCommand for file uploads | [yes](3618230/REPRODUCE.md) | 3 | 2026-10-14 | 5 | `3618230-pinned`, `3618230-latest`, `3618230-pilot` |
 | [3618405](3618405/) | Purpose of views exposed filters form is unclear when zoomed in | [yes](3618405/REPRODUCE.md) | 2 | 2026-10-14 | 2 | `3618405-pinned`, `3618405-latest` |
 | [3619127](3619127/SUMMARY.md) | forms sidebar does not open from Inline Form Errors links | [yes](3619127/REPRODUCE.md) | 4 | 2026-10-02 | 8 | `3619127-pinned`, `3619127-latest` |
-| [3619154](3619154/) | Sidebar toggle fixes (Default Admin meta sidebar) | [yes](3619154/REPRODUCE.md) | 1 | 2026-10-18 | 1 | `3619154-pinned`, `3619154-latest` |
+| [3619154](3619154/) | Sidebar toggle fixes (Default Admin meta sidebar) | [yes](3619154/REPRODUCE.md) | 3 | 2026-10-17 | 1 | `3619154-pinned`, `3619154-latest` |
 | [3619387](3619387/) | Sidebar toggle shows child errors (indicator and modal behavior) | [yes](3619387/REPRODUCE.md) | 4 | 2026-10-14 |  |  |
 | [3619933](3619933/) | Reproduce #3619933 (Default Admin theme) | [yes](3619933/REPRODUCE.md) | 6 | 2026-10-14 |  |  |
 | [3627936](3627936/) | Active workspace has a broken styling in dark mode | [yes](3627936/REPRODUCE.md) | 2 | 2026-10-15 | 3 | `3627936-pinned`, `3627936-latest` |

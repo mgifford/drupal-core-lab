@@ -17,3 +17,11 @@ To extract it the usual way: `node scripts/new-issue.mjs 3619154 --branch sideba
 
 Earlier: `6f7766cb` on base `6868135abe8e` (2026-10-11 task: #3613347 Re-use container in kernel tests), extracted 2026-10-14 with
 `git diff <merge-base> <branch tip>`; kept as `original-patches/sidebar-toggle-fixes.d4c7c754.patch`.
+
+## Lab-derived test (not from the issue fork)
+
+[`branches/3619154-proposed-test.patch`](branches/3619154-proposed-test.patch) (readable source in
+[`tests-proposal/SidebarToggleTest.php`](tests-proposal/SidebarToggleTest.php)) adds a FunctionalJavascript `SidebarToggleTest` for
+the behaviours MR !16911 leaves untested. Written on 2026-10-14 against `6f7766cb` and verified there with `ddev phpunit`: **5 tests
+fail on Before, pass on After (51 assertions)**. On 2026-10-18 it still applies on top of `175e6f17` on core `f2abd41` (it adds one
+new file); it has not been re-run on that revision. Not posted upstream.
