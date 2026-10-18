@@ -1,5 +1,6 @@
 # Dependabot for this lab repository (not the old mgifford/drupal-core fork).
-# Only the lab's own Node tooling is tracked: Playwright, axe, gifenc and pngjs live in tools/playwright (dev tooling, never shipped).
+# Tracked: the lab's own Node tooling (Playwright, axe, gifenc and pngjs live in tools/playwright; dev tooling, never shipped), and the
+# GitHub Actions the workflows use (two of them can write: the weekly issue check and the Pages deploy).
 version: 2
 updates:
   - package-ecosystem: "npm"
@@ -11,5 +12,16 @@ updates:
       - "dependencies"
     groups:
       playwright-tooling:
+        patterns:
+          - "*"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+    groups:
+      github-actions:
         patterns:
           - "*"

@@ -101,3 +101,9 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
     threads of every merge request, closed ones included. `node scripts/issue-intake.mjs fetch <nid>` gets all of them (since 2026-10-16);
     read the brief's related-issues table and unresolved threads before judging a change or drafting a comment, and fetch again before
     anyone posts an older draft. If drupal.org or git.drupalcode.org is unreachable, say that nothing was read; do not judge from a search summary.
+16. **A possible security vulnerability is never made public.** If something found in the lab might be a vulnerability in Drupal core or
+    a contributed project (cross-site scripting, access bypass, information disclosure, CSRF), do not write it into an issue, a comment
+    draft, a commit, a report, a pull request or a finding here. Stop, tell the person, and let them report it privately to the Drupal
+    Security Team ("Report a security issue", linked from https://www.drupal.org/security). Lab sites are private test sites: never
+    point lab tools at a site other people use. Issues already public (a security advisory, a hardening issue in the public queue) are
+    not covered.
