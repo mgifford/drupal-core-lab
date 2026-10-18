@@ -48,7 +48,7 @@ Check the issue report's provenance before attributing a patch to an MR. Record 
 
 ```bash
 [ -d ~/drupal-core-lab ] || git clone https://github.com/mgifford/drupal-core-lab.git ~/drupal-core-lab   # only when missing
-cd ~/drupal-core-lab
+cd ~/drupal-core-lab && git pull --ff-only     # an older copy may not have test-mr.mjs yet; after this it updates itself
 node scripts/test-mr.mjs {{SLUG}} --dry-run    # prints the plan, changes nothing
 node scripts/test-mr.mjs {{SLUG}}              # updates the checkout, builds or refreshes both sites, starts them and the viewer, smoke check
 ```
@@ -82,7 +82,7 @@ Match the first line that starts with `STOPPED`, `BLOCKED`, `Preflight failed` o
 | The message says | It means | Do this |
 |---|---|---|
 | `Unknown option --…` | A flag that does not exist | `node scripts/test-mr.mjs --help`, then use only those options. |
-| `Cannot find module '…/scripts/test-mr.mjs'` | Not in the lab folder (a `git clone` that failed skips the `cd` after it), or a checkout older than this script | `cd ~/drupal-core-lab && git pull --ff-only`, then run the command again. Do not clone again. |
+| `Cannot find module '…/scripts/test-mr.mjs'` | Not in the lab folder (a `git clone` that failed skips the `cd` after it), or a checkout older than this script whose `git pull` failed | `cd ~/drupal-core-lab && git pull --ff-only`, then run the command again. If git refuses because of local changes, tell the person, then `git stash -u` (it keeps them) and pull again. Do not clone again. |
 | `DDEV already has …` (or DDEV's `project root is already set to … refusing to change it`) | A second copy of the lab, usually a clone made inside `~/drupal-core-lab`; DDEV allows each project name once | Follow the `Next:` line: use the copy it names, and remove the second copy only after `git status` in it shows nothing of the person's. |
 | `No variant is registered for issue` | The lab has no comparison for that issue yet | Stop and tell the person; registering one needs git.drupalcode.org (`docs/NEW-ISSUE.md`). |
 | `could not download …` | The workspace network blocks git.drupalcode.org | Ask the person for the plain diff (above), then use `--diff=`. |
