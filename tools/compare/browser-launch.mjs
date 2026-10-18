@@ -6,8 +6,15 @@ import { spawn, spawnSync } from 'node:child_process';
 import { handoffHash } from './browser-handoff.mjs';
 
 const NAMES = { edge: 'Microsoft Edge', chrome: 'Google Chrome', firefox: 'Firefox', safari: 'Safari' };
+// Why no browser window can be opened from the machine that runs the lab, or '' when one can. A cloud workspace's windows would open
+// on the remote machine, not in front of the person; a Linux machine without a display has nowhere to show one.
+export function noWindowReason({ platform = process.platform, env = process.env } = {}) {
+  if (env.CODER_AGENT_URL || env.CODESPACES) return 'this lab runs in a cloud workspace, so a window it opened would be on that remote machine, not on your screen';
+  if (platform === 'linux' && !env.DISPLAY && !env.WAYLAND_DISPLAY) return 'the machine that runs the lab has no display';
+  return '';
+}
 export function installedBrowsers({ platform = process.platform, env = process.env, home = os.homedir(), exists = fs.existsSync, find = binary => { const r = spawnSync('which', [binary], { encoding: 'utf8' }); return r.status === 0 ? r.stdout.trim() : null; } } = {}) {
-  if (env.CODER_AGENT_URL || env.CODESPACES || (platform === 'linux' && !env.DISPLAY && !env.WAYLAND_DISPLAY)) return [];
+  if (noWindowReason({ platform, env })) return [];
   const found = [];
   for (const [id, label] of Object.entries(NAMES)) {
     let candidates = [];
