@@ -10,15 +10,39 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { chromium } from '@playwright/test';
 import { labRoot, resolveVariant, envInfo, loginPath } from '../compare/lib.mjs';
-import { launch, gitInfo } from './lib/lab-run.mjs';
-import { capturePage } from './lib/tree-capture.mjs';
-import { VIEWS, normaliseTree, pageFile, summaryMarkdown } from './lib/tree-format.mjs';
+import { VIEWS, normaliseTree, pageFile, summaryMarkdown, terminalReport } from './lib/tree-format.mjs';
+
+const USAGE = `Accessibility tree, ARIA after JavaScript and Guidepup speech of each page, Before vs After.
+
+  node tools/playwright/tree-diff.mjs <issue|slug> [--page=/path]... [--viewport=WxH]
+      The variant's two DDEV sites (local DDEV or DDEV Coder), which must be built and running:
+      node scripts/test-mr.mjs <issue> does both. Pages: the variant's, or each --page.
+      Writes reports/issues/<issue>/tree-diff/<slug>/ (<slug>-<WxH> for another viewport).
+  node tools/playwright/tree-diff.mjs --before=<url> --after=<url> --page=/path... --out=<dir> [--login-before=<path>] [--login-after=<path>]
+      Any two sites as they are.
+  --chromium=<path>  another Chromium binary.
+
+Install once (in the lab root):  cd tools/playwright && npm install && npx playwright install chromium
+How to read the result: docs/ACCESSIBILITY-TREE-DIFF.md`;
 
 const argv = process.argv.slice(2);
+if (argv.includes('--help') || argv.includes('-h')) { console.log(USAGE); process.exit(0); }
 const opt = (n) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); return a ? a.slice(n.length + 3) : ''; };
 const fail = (msg) => { console.error(msg); process.exit(2); };
+const INSTALL = `  cd ${path.relative(process.cwd(), path.join(labRoot, 'tools/playwright')) || '.'} && npm install && npx playwright install${process.env.CODER_AGENT_URL ? ' --with-deps' : ''} chromium`;
+
+// Playwright, jsdom and Guidepup come from tools/playwright's own npm install: say how to get them instead of a stack trace.
+let chromium, launch, gitInfo, capturePage;
+try {
+  ({ chromium } = await import('@playwright/test'));
+  ({ launch, gitInfo } = await import('./lib/lab-run.mjs'));
+  ({ capturePage } = await import('./lib/tree-capture.mjs'));
+} catch (e) {
+  if (e.code !== 'ERR_MODULE_NOT_FOUND') throw e;
+  fail(`tools/playwright is not installed yet (${String(e.message).match(/'([^']+)'/)?.[1] || 'a package'} is missing). Install it once:\n${INSTALL}\nthen run this again.`);
+}
+const browserProblem = (e) => (/Executable doesn't exist|browserType\.launch/.test(String(e.message)) ? `Chromium for Playwright is not installed (or cannot start here). Install it once:\n${INSTALL}\n${String(e.message).split('\n')[0]}` : '');
 const [vw, vh] = (opt('viewport') || '1280x900').split('x').map(Number);
 if (!(vw > 0 && vh > 0)) fail('--viewport must look like 1280x900');
 const viewport = { width: vw, height: vh };
@@ -32,7 +56,7 @@ if (opt('before') || opt('after')) {
   sides = { before: site('before'), after: site('after') };
   title = `${sides.before.label} vs ${sides.after.label}`; pages = pagesArg; out = path.resolve(opt('out'));
   login = Boolean(sides.before.login || sides.after.login);
-  browser = await chromium.launch(opt('chromium') ? { executablePath: opt('chromium') } : {});
+  browser = await chromium.launch(opt('chromium') ? { executablePath: opt('chromium') } : {}).catch((e) => fail(browserProblem(e) || String(e.message)));
   environment = { browser: 'chromium', browserVersion: browser.version(), viewport };
 } else {
   const r = resolveVariant(argv.find((a) => !a.startsWith('-')));
@@ -51,7 +75,8 @@ if (opt('before') || opt('after')) {
     let link = ''; try { link = login ? loginPath(env) : ''; } catch (e) { fail(`${side}: no one-time login link from \`ddev drupal login\` in envs/${env}: ${String(e.message).split('\n')[0]}`); }
     sides[side] = { base: `https://${host}${port}`, login: link, hosts: info.hosts, label: `\`${env}\` (${gitInfo(env)})` };
   }
-  ({ browser, environment } = await launch({ v, browser: 'chromium', executablePath: opt('chromium') }));   // refuses sides that are not what the variant says
+  try { ({ browser, environment } = await launch({ v, browser: 'chromium', executablePath: opt('chromium') })); }   // refuses sides that are not what the variant says
+  catch (e) { fail(browserProblem(e) || String(e.message)); }
   environment = { ...environment, viewport };
 }
 
@@ -66,7 +91,8 @@ try {
     const s = sides[side];
     const ctx = await browser.newContext({ viewport, ignoreHTTPSErrors: true });
     const page = await ctx.newPage();
-    if (s.login) await page.goto(s.base + s.login, { waitUntil: 'load' }).catch((e) => { throw new Error(`${side}: the login link did not open: ${String(e.message).split('\n')[0]}`); });
+    console.log(`${side === 'before' ? 'Before' : 'After'}: ${s.base}${s.login ? ' (logging in with a one-time link)' : ''}`);
+    if (s.login) await page.goto(s.base + s.login, { waitUntil: 'load' }).catch((e) => fail(`${side}: the login link did not open: ${String(e.message).split('\n')[0]}`));
     for (const p of run.pages) {
       try {
         const res = await page.goto(s.base + p.path, { waitUntil: 'load' });
@@ -77,8 +103,8 @@ try {
         p.sides[side] = { status: res ? res.status() : null, landed: u.pathname + u.search, spoken: got.spoken };
         for (const v of VIEWS) fs.writeFileSync(path.join(out, side, `${p.file}.${v.key}.txt`), normaliseTree(got[v.key], hosts));
         run.refs[side].push(...got.refs.map((r) => ({ ...r, page: p.path, element: normaliseTree(r.element, hosts), id: normaliseTree(r.id, hosts) })));
-        console.log(`${side} ${p.path}: ${got.axtree.split('\n').length - 1} tree lines, ${got.spoken} items spoken, ${got.refs.length} unresolved ID references`);
-      } catch (e) { p.sides[side] = { error: String(e.message || e).split('\n')[0] }; console.error(`${side} ${p.path}: ${p.sides[side].error}`); }
+        console.log(`  ${p.path}: ${got.axtree.split('\n').length - 1} tree lines, ${got.spoken} items spoken, ${got.refs.length} unresolved ID references`);
+      } catch (e) { p.sides[side] = { error: String(e.message || e).split('\n')[0] }; console.error(`  ${p.path}: ${p.sides[side].error}`); }
     }
     await ctx.close();
   }
@@ -95,6 +121,5 @@ for (const p of run.pages) for (const v of VIEWS) {
   p.views[v.key] = { diff: d.stdout, file };
 }
 fs.writeFileSync(path.join(out, 'SUMMARY.md'), summaryMarkdown(run));
-const differ = run.pages.reduce((n, p) => n + VIEWS.filter((v) => p.views[v.key]?.diff).length, 0);
-console.log(`${differ} of ${run.pages.length * VIEWS.length} views differ -> ${path.relative(labRoot, out) || out}/SUMMARY.md`);
+console.log(terminalReport(run, path.relative(process.cwd(), out) || '.'));
 if (run.pages.some((p) => p.sides.before.error || p.sides.after.error)) process.exit(1);

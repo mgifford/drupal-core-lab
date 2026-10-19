@@ -10,7 +10,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { axTreeText, normaliseTree, pageFile, refChanges, summaryMarkdown } from '../../tools/playwright/lib/tree-format.mjs';
+import { axTreeText, normaliseTree, pageFile, refChanges, summaryMarkdown, terminalReport } from '../../tools/playwright/lib/tree-format.mjs';
 
 const labRoot = fileURLToPath(new URL('../..', import.meta.url));
 
@@ -69,6 +69,27 @@ test('summaryMarkdown: a page that did not load as asked is listed first; same a
   assert.match(md, /\| `\/gone` \| not read \| not read \| not read \|/);
   assert.match(md, /\*\*new in After\*\* \| `\/node\/1\/edit` \| `input#a` \| aria-describedby \| no element has id `help`/);
   assert.match(md, /\*\*1 of 6 views differ\.\*\*/);
+});
+
+test('terminalReport: problems first, then each page\'s changed lines (cut after max), ID references and where the report is', () => {
+  const diff = ['--- before /p (Accessibility tree)', '+++ after /p (Accessibility tree)', '@@ -1,3 +1,3 @@', ' main', '-    button "Hide panel" expanded', '+    button "Panel" expanded', '-  a', '+  b', '+  c'].join('\n');
+  const run = {
+    login: true, environment: { browserVersion: '141', viewport: { width: 480, height: 900 } },
+    pages: [
+      { path: '/p', sides: { before: { status: 200, landed: '/p' }, after: { status: 200, landed: '/p' } }, views: { axtree: { diff, file: '01-p.axtree.diff' }, aria: { diff: '' }, speech: { diff: '' } } },
+      { path: '/q', sides: { before: { status: 200, landed: '/q' }, after: { status: 200, landed: '/q' } }, views: { axtree: { diff: '' }, aria: { diff: '' }, speech: { diff: '' } } },
+      { path: '/r', sides: { before: { error: 'refused' }, after: { status: 200, landed: '/user/login' } }, views: {} },
+    ],
+    refs: { before: [], after: [{ page: '/p', element: 'input#a', attr: 'aria-describedby', id: 'x', problem: 'missing' }] },
+  };
+  const t = terminalReport(run, 'reports/issues/1/tree-diff/1-latest', { max: 3 });
+  assert.match(t, /480x900, logged in: yes/);
+  assert.match(t, /CHECK FIRST:\n  before: \/r could not be read: refused\n  after: \/r ended at \/user\/login \(not logged in\?\)/);
+  assert.match(t, /\/p\n  Accessibility tree +\+3 -2\n    - button "Hide panel" expanded\n    \+ button "Panel" expanded\n    - a\n    \.\.\. 2 more in 01-p\.axtree\.diff\n  ARIA after JavaScript +same\n  Speech \(Guidepup\) +same/);
+  assert.match(t, /\/q\n  same in all three views/);
+  assert.match(t, /\/r\n  not compared: see CHECK FIRST/);
+  assert.match(t, /1 new in After, 0 gone in After, 0 on both sides/);
+  assert.match(t, /Report: reports\/issues\/1\/tree-diff\/1-latest\/SUMMARY\.md/);
 });
 
 // ---- The whole tool, on two local sites
