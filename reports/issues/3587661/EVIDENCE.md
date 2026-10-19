@@ -76,7 +76,9 @@ Admin, with a `.txt` file uploaded by hand in each frame.
 - An earlier run the same day, with the three-field recipe, also passed the single-value check on both sides ("All 3 checks
   behave as expected"). Which variant the viewer showed then was not recorded.
 - The owner compared the checkbox's `<input>` markup on both sides and found it identical. That is expected: the fix adds a
-  `<label>` next to the input and does not change the input itself.
+  `<label>` next to the input and does not change the input itself. Inspecting the wrapper `<div class="… form-item …">` then
+  showed the difference: on After, `<label for="edit-field-files-two-0-display" class="form-item__label visually-hidden">Include
+  file in display</label>` just before the input; on Before, the input alone.
 
 Not done in that run: a keyboard pass or a screen reader, and the MR's variant (`3587661-pinned`).
 

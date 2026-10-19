@@ -237,3 +237,7 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
   `setopt interactivecomments`, zsh also passes `#` and the words after it to the command. Keep command blocks to bare commands, with
   no `!`, no `<placeholder>` and no `a|b`, and explain them in a list under the block (`reports/_templates/REPRODUCE.md` now says so).
   On 2026-10-19 no other committed Markdown had `!` in a command line; many still have inline `#` comments.
+- **Point people at the right layer of the markup** (owner, 2026-10-19, #3587661). Comparing the checkbox's `<input>` on both sides
+  showed no difference; the fix was a `<label for>` just before it, in the same wrapper `<div class="form-item">`. A label check
+  should say which element to inspect (the wrapper) and what to search for (a `<label>` whose `for` is the input's id), not just the
+  text, which can also match an `aria-label`. An invisible label (`#title_display = 'invisible'`) comes before the input.
