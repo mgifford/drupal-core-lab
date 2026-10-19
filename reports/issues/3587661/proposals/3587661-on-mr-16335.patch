@@ -1,0 +1,71 @@
+diff --git a/core/modules/file/src/Hook/FileThemeHooks.php b/core/modules/file/src/Hook/FileThemeHooks.php
+index 7a16d1ec..92913430 100644
+--- a/core/modules/file/src/Hook/FileThemeHooks.php
++++ b/core/modules/file/src/Hook/FileThemeHooks.php
+@@ -282,7 +282,9 @@ public function preprocessFileWidgetMultiple(array &$variables): void {
+ 
+       // Arrange the row with the rest of the rendered columns.
+       if ($element['#display_field']) {
+-        unset($widget['display']['#title']);
++        // Keep the checkbox's label for assistive technology. The column
++        // header already shows "Display", so the label is only hidden visually.
++        $widget['display']['#title_display'] = 'invisible';
+         $row[] = [
+           'data' => $widget['display'],
+           'class' => ['checkbox'],
+diff --git a/core/modules/file/src/Plugin/Field/FieldWidget/FileWidget.php b/core/modules/file/src/Plugin/Field/FieldWidget/FileWidget.php
+index 6f5a7c06..bd409e43 100644
+--- a/core/modules/file/src/Plugin/Field/FieldWidget/FileWidget.php
++++ b/core/modules/file/src/Plugin/Field/FieldWidget/FileWidget.php
+@@ -400,10 +400,7 @@ public static function process($element, FormStateInterface $form_state, $form)
+       $element['display'] = [
+         '#type' => empty($item['fids']) ? 'hidden' : 'checkbox',
+         '#title' => new TranslatableMarkup('Include file in display'),
+-        '#attributes' => [
+-          'class' => ['file-display'],
+-          'aria-label' => new TranslatableMarkup('Include file in display'),
+-        ],
++        '#attributes' => ['class' => ['file-display']],
+       ];
+       if (isset($item['display'])) {
+         $element['display']['#value'] = $item['display'] ? '1' : '';
+diff --git a/core/modules/file/tests/src/Functional/FileFieldDisplayTest.php b/core/modules/file/tests/src/Functional/FileFieldDisplayTest.php
+index 1f541c6d..3edd6d7a 100644
+--- a/core/modules/file/tests/src/Functional/FileFieldDisplayTest.php
++++ b/core/modules/file/tests/src/Functional/FileFieldDisplayTest.php
+@@ -162,6 +162,35 @@ public function testDefaultFileFieldDisplay(): void {
+     $this->drupalGet('node/' . $nid . '/edit');
+     $this->assertSession()->fieldExists($field_name . '[0][display]');
+     $this->assertSession()->checkboxNotChecked($field_name . '[0][display]');
++    $this->assertDisplayCheckboxLabel($field_name);
++
++    // The label is kept when the form is shown again with an error, without
++    // and with the Inline Form Errors module.
++    $this->submitForm(['title[0][value]' => ''], 'Save');
++    $this->assertSession()->statusMessageContains('Title field is required.', 'error');
++    $this->assertDisplayCheckboxLabel($field_name);
++
++    $this->container->get('module_installer')->install(['inline_form_errors']);
++    $this->drupalGet('node/' . $nid . '/edit');
++    $this->submitForm(['title[0][value]' => ''], 'Save');
++    $this->assertSession()->statusMessageContains('1 error has been found', 'error');
++    $this->assertDisplayCheckboxLabel($field_name);
++  }
++
++  /**
++   * Asserts that the display checkbox of the first file has a hidden label.
++   *
++   * The checkbox sits in the "Display" column of the table of files. Its label
++   * is hidden visually, but it still gives the checkbox its name.
++   *
++   * @param string $field_name
++   *   The name of the file field.
++   */
++  protected function assertDisplayCheckboxLabel(string $field_name): void {
++    $checkbox = $this->assertSession()->fieldExists($field_name . '[0][display]');
++    $label = $this->assertSession()->elementExists('css', 'label[for="' . $checkbox->getAttribute('id') . '"]');
++    $this->assertSame('Include file in display', $label->getText());
++    $this->assertTrue($label->hasClass('visually-hidden'));
+   }
+ 
+   /**

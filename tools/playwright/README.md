@@ -48,9 +48,12 @@ See `../../docs/TESTING-TOOLS.md` for how this fits with axe-core, the viewer an
 
 ## Limits
 - The virtual screen reader documents semantics (name, role, state, description) on a DOM snapshot with no
-  layout engine. It is **not** VoiceOver or NVDA. Decision (2026-10-01): the synthetic Guidepup run is enough for
-  comparing a change, and no real screen reader pass is planned for now. Real VoiceOver via Guidepup would need
-  system permissions that only the user can grant.
+  layout engine. It is **not** VoiceOver or NVDA. It is evidence, not enough on its own: a person's manual review is
+  always better (owner, 2026-10-19, replacing the 2026-10-01 decision that it was enough). Real VoiceOver via Guidepup
+  would need system permissions that only the user can grant.
+- Set the global `Element` to jsdom's (`globalThis.Element = dom.window.Element`) before `virtual.start()`. html-aria,
+  which gives Guidepup its roles, checks `instanceof Element` against the global; without it every `<input>` is announced
+  as "textbox". `label-3587661.mjs` does this; the older scripts do not yet (`AI-LEARNING.md`, 2026-10-19).
 - Automated checks find a subset of problems and are a DRAFT until a person has tested with a keyboard
   and a screen reader.
 

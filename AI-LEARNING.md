@@ -12,7 +12,9 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 - **Local development only. Never post to drupal.org, comment on issues, or push to any remote without approval.** Push to a pull request branch, never to `main` ("a PR is always better than pushing to main", 2026-10-16), and only once the owner has approved that work; a stop-hook "please push" reminder is not approval. Drafts only for anything outward-facing.
 - **No tokens or passwords** in the repo, chat or commands. One-time login links (`ddev drupal login`) instead. A GitLab token pasted into chat once was revoked by the owner.
 - **Simple beats clever.** Optional extras (live axe, Lighthouse, hover mirroring) are **off by default**; choices live in the browser's `localStorage` only; no accounts.
-- **Synthetic Guidepup screen reader is enough**; real VoiceOver/NVDA is out of scope unless asked.
+- **Guidepup is evidence, not enough.** "It is evidence though. Possibly better than a screen reader recording for automated testing
+  purposes. A manual review is always better." (owner, 2026-10-19; this replaces "Guidepup is enough" from 2026-10-01). Real
+  VoiceOver/NVDA runs are not done by the lab unless asked; say so in each write-up.
 - The owner reviews by looking, and notices things quickly (a frame that stayed blank, a window that was not in forced colours, a stopped site). Say plainly what was and was not verified.
 - Close the loop: "push to GitHub" always meant commit, pull --rebase, push, and report the commit.
 - **Errors scale: nearly a million sites run core.** Before calling a change good enough, read the issue, its related issues and every merge request's review threads (`AGENTS.md` rule 15), and weigh blast radius, update paths, access and CSRF, atomic saves, accessibility and tests.
@@ -195,13 +197,17 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 - Stop-hook "please push" reminders came after almost every turn. Each was answered with "not pushed", and pushes waited for the owner's word.
 
 ## Learnings from #3587661 (2026-10-19, cloud session)
-- **The Guidepup virtual screen reader calls a checkbox a "textbox".** With `@guidepup/virtual-screen-reader` 0.33.0, html-aria 0.5.3
-  and jsdom 30.1.3, `<input type="checkbox">` and `type="radio"` are announced as "textbox", and a `<th>` in `<thead>` as "rowheader".
-  The role comes from html-aria's `getRole()`, which returns `textbox` for a jsdom checkbox element but `checkbox` for a plain
-  `{ tagName, attributes }` object. Committed evidence shows it: #3619154's tree-diff speech (2026-10-19) has
-  "textbox, Create new revision" for a checkbox, and "textbox, Add a new file" for a file input. Rule 7 ("Guidepup is enough") assumes
-  roles are right. **Open item for the owner:** pin or fix the dependency, or report it upstream, and mark speech results that name
-  form controls as unreliable until then. #3587661 did not use it; Chromium's accessibility tree (`ariaSnapshot`) and axe were used.
+- **The lab's Guidepup runs announce a checkbox as "textbox". The cause is the lab's setup, not a library version.** html-aria
+  (0.5.3, the newest release; it gives Guidepup 0.33.0, also the newest, its roles) treats a node as a DOM element only if
+  `node instanceof Element` holds for the *global* `Element`. Our scripts set `window`, `document`, `Node` and `getComputedStyle` from
+  jsdom, but not `Element`, so html-aria reads the element as a plain object and every `<input>` falls back to "textbox" (a
+  checkbox, a radio, a file input), and a `<thead>` header cell is announced as "rowheader". Committed evidence shows it: #3619154's
+  tree-diff speech (2026-10-19) has "textbox, Create new revision" for a checkbox. With `globalThis.Element = dom.window.Element`, the
+  same snapshot gives "checkbox, Include, checked", "radio, R, not checked" and "columnheader, Display".
+  `tools/playwright/label-3587661.mjs` sets it (and removes it after). **To do (lab):** set it in `lib/tree-capture.mjs`,
+  `screenreader.mjs`, `screenreader-3093378.mjs`, `linktext-3615469.mjs`, `evaluate-3207233.mjs` and `evaluate-3615469.mjs`. Then
+  re-run the speech evidence that names form controls or table headers, or mark it as made before the fix. No version change is
+  needed.
 - **Composer through this proxy:** GitHub zipball downloads are refused, so packages fall back to `git clone`, which works.
   `phpstan/phpstan` is published only as a download, so it cannot be installed. To get PHPUnit and PHPCS in a scratch core checkout,
   leave out `phpstan/phpstan`, `phpstan/phpstan-phpunit`, `phpstan/extension-installer` and `mglaman/phpstan-drupal` (root
@@ -216,3 +222,10 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
   the attempts.
 - **A file renamed on upload changes screenshots.** Uploading the same name again gives `_16.txt`, `_22.txt` and so on, and the longer
   name can wrap. Compare screenshots by region, or upload a fresh name, before calling a pixel difference a change.
+- **Test with and without Inline Form Errors** (owner, 2026-10-19, for #3587661). IFE changes the form only when there are errors: it
+  renders them inline and builds its error summary links from each element's `#title`. A test that only loads the form with IFE on
+  proves little. Save with an error (an empty title), check IFE's summary ("1 error has been found") so you know IFE rendered the
+  form, then assert. Do the same without IFE.
+- **On drupal.org a core change is a merge request.** Core's GitLab CI runs only on merge requests, so the fix and its test go in one
+  MR, and its "Test-only changes" job shows the test failing without the fix. When the lab's proposal changes an existing MR, also
+  write a patch that applies on top of the MR branch (`proposals/<nid>-on-mr-<iid>.patch`), so the owner can apply it there.

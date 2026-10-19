@@ -1,17 +1,37 @@
 diff --git a/core/modules/file/tests/src/Functional/FileFieldDisplayTest.php b/core/modules/file/tests/src/Functional/FileFieldDisplayTest.php
-index 1f541c6d..903a8436 100644
+index 1f541c6d..3edd6d7a 100644
 --- a/core/modules/file/tests/src/Functional/FileFieldDisplayTest.php
 +++ b/core/modules/file/tests/src/Functional/FileFieldDisplayTest.php
-@@ -160,8 +160,14 @@ public function testDefaultFileFieldDisplay(): void {
-     $nid = $this->uploadNodeFile($test_file, $field_name, $type_name);
- 
+@@ -162,6 +162,35 @@ public function testDefaultFileFieldDisplay(): void {
      $this->drupalGet('node/' . $nid . '/edit');
--    $this->assertSession()->fieldExists($field_name . '[0][display]');
-+    $checkbox = $this->assertSession()->fieldExists($field_name . '[0][display]');
+     $this->assertSession()->fieldExists($field_name . '[0][display]');
      $this->assertSession()->checkboxNotChecked($field_name . '[0][display]');
++    $this->assertDisplayCheckboxLabel($field_name);
 +
-+    // The checkbox sits in the "Display" column of the table of files. Its
-+    // label is hidden visually, but it still gives the checkbox its name.
++    // The label is kept when the form is shown again with an error, without
++    // and with the Inline Form Errors module.
++    $this->submitForm(['title[0][value]' => ''], 'Save');
++    $this->assertSession()->statusMessageContains('Title field is required.', 'error');
++    $this->assertDisplayCheckboxLabel($field_name);
++
++    $this->container->get('module_installer')->install(['inline_form_errors']);
++    $this->drupalGet('node/' . $nid . '/edit');
++    $this->submitForm(['title[0][value]' => ''], 'Save');
++    $this->assertSession()->statusMessageContains('1 error has been found', 'error');
++    $this->assertDisplayCheckboxLabel($field_name);
++  }
++
++  /**
++   * Asserts that the display checkbox of the first file has a hidden label.
++   *
++   * The checkbox sits in the "Display" column of the table of files. Its label
++   * is hidden visually, but it still gives the checkbox its name.
++   *
++   * @param string $field_name
++   *   The name of the file field.
++   */
++  protected function assertDisplayCheckboxLabel(string $field_name): void {
++    $checkbox = $this->assertSession()->fieldExists($field_name . '[0][display]');
 +    $label = $this->assertSession()->elementExists('css', 'label[for="' . $checkbox->getAttribute('id') . '"]');
 +    $this->assertSame('Include file in display', $label->getText());
 +    $this->assertTrue($label->hasClass('visually-hidden'));

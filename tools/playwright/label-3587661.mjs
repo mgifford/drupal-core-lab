@@ -2,8 +2,8 @@
 // On /node/add/article (recipes/repro_3587661: three file fields) it uploads a real .txt file into each field, then for each
 // field's display checkbox records its <label> elements (text and class), aria-label, aria-labelledby, the accessible name
 // Chromium computes (ariaSnapshot), axe-core's "label" result and all WCAG 2.0 to 2.2 A/AA violations, the theme that rendered
-// the form, and a screenshot of each field. One site per run; run it on Before and on each After.
-// No Guidepup virtual screen reader here: on 2026-10-19 (html-aria 0.5.3, jsdom 30) it announced a checkbox as "textbox".
+// the form, what the Guidepup virtual screen reader announces for the checkbox (synthetic, over a jsdom snapshot of its table row:
+// evidence, not a person with a real screen reader), and a screenshot of each field. One site per run; run it on Before and on each After.
 //   node tools/playwright/label-3587661.mjs --url <site> --side before|after-mr|after-proposal [--login <one-time link>] [--chromium <path>]
 // The one-time link comes from `core/scripts/dr user:login --uid=1 --url=<site>` (or `ddev drupal login`); it is used, not saved.
 // Writes reports/issues/3587661/playwright/<stamp>-<side>/ (results.json, SUMMARY.md, <field>.png).
@@ -12,11 +12,31 @@ import os from 'node:os';
 import path from 'node:path';
 import { chromium } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { JSDOM } from 'jsdom';
+import { virtual } from '@guidepup/virtual-screen-reader';
 import { labRoot } from '../compare/lib.mjs';
 
 const arg = (n) => { const i = process.argv.indexOf(`--${n}`); return i > 0 ? process.argv[i + 1] : undefined; };
 const base = (arg('url') || '').replace(/\/$/, ''), side = arg('side'), login = arg('login');
 if (!base || !['before', 'after-mr', 'after-proposal'].includes(side)) { console.error('usage: --url <site> --side before|after-mr|after-proposal [--login <one-time link>] [--chromium <path>]'); process.exit(2); }
+// Guidepup over a snapshot of the checkbox's table row (with the table's header row) or its form item, one pass.
+// html-aria, which gives Guidepup its roles, treats a node as a DOM element only if it is an instance of the global Element. Without
+// jsdom's Element as that global, a checkbox is announced as "textbox" (found 2026-10-19), so it is set here, and removed again after.
+async function announce(html) {
+  const dom = new JSDOM(`<!DOCTYPE html><html lang="en"><body>${html}</body></html>`, { pretendToBeVisual: true });
+  const body = dom.window.document.body;
+  Object.assign(globalThis, { window: dom.window, document: dom.window.document, Node: dom.window.Node, Element: dom.window.Element, getComputedStyle: dom.window.getComputedStyle.bind(dom.window) });
+  try {
+    await virtual.start({ container: body, window: dom.window, displayCursor: false });
+    const said = [await virtual.lastSpokenPhrase()];
+    for (let i = 0; i < 60; i++) { await virtual.next(); if (virtual.activeNode === body) break; said.push(await virtual.lastSpokenPhrase()); }
+    return said;
+  } finally {
+    await virtual.stop().catch(() => {});
+    for (const k of ['window', 'document', 'Node', 'Element', 'getComputedStyle']) delete globalThis[k];
+  }
+}
+
 const FIELDS = [
   { name: 'field_files_two', what: 'two values, not required' },
   { name: 'field_files_required', what: 'two values, required' },
@@ -63,11 +83,13 @@ for (const f of FIELDS) {
     inTable: !!el.closest('table'), columnHeader: (() => { const td = el.closest('td'); const table = el.closest('table'); if (!td || !table) return null; const i = [...td.parentElement.children].indexOf(td); const th = table.querySelectorAll('thead th')[i]; return th ? th.textContent.replace(/\s+/g, ' ').trim() : null; })(),
   }));
   const snap = await box.ariaSnapshot().catch(() => '');
+  const around = await box.evaluate((el) => (el.closest('tr') ? `<table>${el.closest('table').querySelector('thead').outerHTML}<tbody>${el.closest('tr').outerHTML}</tbody></table>` : el.closest('.form-item, .js-form-item').outerHTML));
+  const spoken = (await announce(around)).filter((p) => /checkbox/i.test(p));
   const name = ((snap.match(/checkbox "([^"]*)"/) || [])[1]) ?? '';
   const region = page.locator(`[data-drupal-selector="edit-${f.name.replace(/_/g, '-')}-wrapper"]`);
   const shot = `${f.name}.png`;
   if (await region.count()) await region.screenshot({ path: path.join(out, shot) }).catch(() => {});
-  results.push({ ...f, ...info, uploadAttempts: attempts[f.name], ariaSnapshot: snap.trim(), accessibleName: name, screenshot: fs.existsSync(path.join(out, shot)) ? shot : null });
+  results.push({ ...f, ...info, uploadAttempts: attempts[f.name], ariaSnapshot: snap.trim(), virtualReader: spoken, accessibleName: name, screenshot: fs.existsSync(path.join(out, shot)) ? shot : null });
 }
 const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
 const labelRule = axe.violations.find((v) => v.id === 'label');
@@ -80,8 +102,8 @@ fs.writeFileSync(path.join(out, 'results.json'), `${JSON.stringify(res, null, 2)
 const cell = (s) => String(s ?? '').replace(/\|/g, '\\|');
 const md = [`# #3587661 display checkbox label, ${side} (DRAFT)`, '',
   `${res.when}, ${res.url}, Chromium ${res.browser}, theme \`${theme}\`, axe-core ${res.axe.version}. A real .txt file was uploaded into each field first.`, '',
-  '| Field | In the multiple-value table | `<label>` (class) | aria-label | Accessible name (Chromium) | axe "label" |', '|---|---|---|---|---|---|',
-  ...results.map((r) => `| ${r.name} (${r.what}) | ${r.inTable ? `yes, column "${cell(r.columnHeader)}"` : 'no'} | ${r.labels.length ? r.labels.map((l) => `"${cell(l.text)}" (${cell(l.class) || 'no class'})`).join(', ') : '**none**'} | ${r.ariaLabel ? `"${cell(r.ariaLabel)}"` : 'none'} | ${r.accessibleName ? `"${cell(r.accessibleName)}"` : '**empty**'} | ${res.axe.labelTargets.some((t) => t.includes(r.id)) ? '**fails**' : 'passes'} |`),
+  '| Field | In the multiple-value table | `<label>` (class) | aria-label | Accessible name (Chromium) | Virtual screen reader (synthetic) | axe "label" |', '|---|---|---|---|---|---|---|',
+  ...results.map((r) => `| ${r.name} (${r.what}) | ${r.inTable ? `yes, column "${cell(r.columnHeader)}"` : 'no'} | ${r.labels.length ? r.labels.map((l) => `"${cell(l.text)}" (${cell(l.class) || 'no class'})`).join(', ') : '**none**'} | ${r.ariaLabel ? `"${cell(r.ariaLabel)}"` : 'none'} | ${r.accessibleName ? `"${cell(r.accessibleName)}"` : '**empty**'} | ${r.virtualReader.map((p) => `"${cell(p)}"`).join(', ') || 'nothing'} | ${res.axe.labelTargets.some((t) => t.includes(r.id)) ? '**fails**' : 'passes'} |`),
   '', `All axe violations (WCAG 2.0 to 2.2 A/AA): ${res.axe.violations.length ? res.axe.violations.map((v) => `${v.id} (${v.targets.length})`).join(', ') : 'none'}.`, '',
   'Screenshots: ' + results.filter((r) => r.screenshot).map((r) => `[${r.name}](${r.screenshot})`).join(', ') + '.', ''].join('\n');
 fs.writeFileSync(path.join(out, 'SUMMARY.md'), md);

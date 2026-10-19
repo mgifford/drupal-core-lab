@@ -1,7 +1,8 @@
 # #3587661: Missing labels in "Limited files with a single pre-existing value (required) field."
 
-**DRAFT.** Scripted browser runs (Default Admin and Claro), PHPUnit and PHPCS were run by the lab on 2026-10-19 on core `11.x`
-`21e0dcba`, whose three files involved are identical to `main` `a50836d`. No person has done the keyboard or screen reader pass.
+**DRAFT.** Scripted browser runs (Default Admin and Claro, with axe and the Guidepup virtual screen reader), PHPUnit (with and
+without Inline Form Errors) and PHPCS were run by the lab on 2026-10-19 on core `11.x` `21e0dcba`, whose three files involved are
+identical to `main` `a50836d`. No person has done the keyboard or screen reader pass.
 Last updated: 2026-10-19.
 
 **This is the entry point for this issue.** It links to the patches, the recipe, the evidence and the comment draft.
@@ -28,13 +29,24 @@ What the lab found:
   field, and "required" does not matter.
 - **MR !16335** (an `aria-label` in `FileWidget::process()`) gives the checkbox its name, and axe reports nothing, in Default Admin and
   Claro. It has no test. It also adds the `aria-label` to the single-value checkbox, which already has a visible label with the
-  same text.
+  same text: users notice no difference, but the text is then in two places and the `aria-label` wins.
 - **Proposal** (one line, [proposals/3587661-visually-hidden-label.patch](proposals/3587661-visually-hidden-label.patch)): hide the
   label visually (`#title_display = 'invisible'`) instead of removing it. Same result in both themes, with a real `<label>`, and the
   single-value field does not change. The table's weight select already uses this pattern.
-- **Test** ([proposals/3587661-test.patch](proposals/3587661-test.patch)): three assertions added to
-  `FileFieldDisplayTest::testDefaultFileFieldDisplay()`. It fails without the fix and passes with the proposal (whole class: 4
-  tests, 74 assertions). PHPCS is clean.
+- **Test** ([proposals/3587661-test.patch](proposals/3587661-test.patch)): in `FileFieldDisplayTest::testDefaultFileFieldDisplay()`,
+  the checkbox's hidden label is checked on the edit form, and after a save error without and with Inline Form Errors. It fails
+  without the fix and passes with the proposal (whole class: 4 tests, 87 assertions). PHPCS is clean.
+
+## On drupal.org: one merge request
+
+Core takes changes as merge requests; core's GitLab CI runs only on merge requests, not on patch files. So the fix and its test go
+into **one MR**, as commits on the issue fork's branch, and the pipeline's "test-only changes" job can show the test failing without
+the fix. The lab's patch files are only a way to carry the change:
+
+- [proposals/3587661-on-mr-16335.patch](proposals/3587661-on-mr-16335.patch) applies on top of MR !16335's branch: it takes the
+  `aria-label` out and adds the proposal and the test. Applying it to `3587661-missing-labels-in` updates the existing MR, which keeps
+  the issue's history in one place.
+- The two separate patches are for the lab's variants (`3587661-proposal`) and for anyone starting from core.
 
 ## Files and links
 
@@ -43,6 +55,7 @@ What the lab found:
 | How to reproduce (core only, and with the lab) | [REPRODUCE.md](REPRODUCE.md) |
 | The MR as tested | [branches/3587661-mr-16335.patch](branches/3587661-mr-16335.patch) · [BRANCHES.md](BRANCHES.md) |
 | The lab's proposal and test | [proposals/3587661-visually-hidden-label.patch](proposals/3587661-visually-hidden-label.patch) · [proposals/3587661-test.patch](proposals/3587661-test.patch) |
+| Both, on top of the MR (to update the MR branch) | [proposals/3587661-on-mr-16335.patch](proposals/3587661-on-mr-16335.patch) |
 | Recipe (three file fields on Article) | [`recipes/repro_3587661/`](../../../recipes/repro_3587661/recipe.yml) |
 | Variants (pinned, latest, proposal) | [variants.json](variants.json) |
 | Evidence: commits, runs, PHPUnit, PHPCS, what was not verified | [EVIDENCE.md](EVIDENCE.md) |
@@ -56,5 +69,5 @@ What the lab found:
   reachable from the session. Run `node scripts/issue-intake.mjs fetch 3587661` when they are. Read the related issue #3587214
   ("Checkbox missing label"), which the lab has not read.
 - Do a keyboard pass and listen with a screen reader on the node form, with a file uploaded to a two-value field.
-- Decide which approach to put forward: the MR's `aria-label` with a test for it, or the proposal with its test. Opening a new merge
-  request, or pushing to the issue fork, is the owner's step.
+- Decide which approach to put forward: the MR's `aria-label` with a test for it, or the proposal with its test. Pushing to the issue
+  fork (`git apply proposals/3587661-on-mr-16335.patch` in a checkout of `3587661-missing-labels-in`) is the owner's step.

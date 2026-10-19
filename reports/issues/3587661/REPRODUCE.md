@@ -72,6 +72,7 @@ packages that could not be installed):
 
 ```bash
 git apply <lab>/reports/issues/3587661/proposals/3587661-test.patch        # and, for After, the fix patch
+# The test covers the edit form, and a save error without and with Inline Form Errors (it installs the module itself).
 SIMPLETEST_BASE_URL=http://127.0.0.1:8891 SIMPLETEST_DB=sqlite://localhost/$PWD/test.sqlite \
   vendor/bin/phpunit -c core core/modules/file/tests/src/Functional/FileFieldDisplayTest.php
 ```
@@ -82,4 +83,6 @@ SIMPLETEST_BASE_URL=http://127.0.0.1:8891 SIMPLETEST_DB=sqlite://localhost/$PWD/
 - axe-core reports no `label` violation on the form.
 - The table looks the same as before (no visible label text in the Display column).
 - The single-value field's checkbox keeps its visible label.
+- The label is still there when the form comes back with an error, without and with the Inline Form Errors module (the PHPUnit test
+  checks both).
 - A person's keyboard pass and a real screen reader confirm the name. Not done yet.

@@ -4,7 +4,7 @@
     "issue": "3587661",
     "label": "#3587661: Missing labels in \"Limited files with a single pre-existing value (required) field.\", pinned core",
     "description": "A file field that allows more than one value, with \"Enable Display field\" on, shows each uploaded file in a table. The checkbox in its \"Display\" column has no label and no accessible name. After (MR !16335) adds an aria-label; the 3587661-proposal variant keeps a visually hidden label instead.",
-    "status": "draft: Before and both Afters were run by script on 11.x (21e0dcba) on 2026-10-19, in Default Admin and Claro, with PHPUnit and PHPCS (EVIDENCE.md); not yet built in DDEV, and no person has done the keyboard or screen reader pass",
+    "status": "draft: Before and both Afters were run by script on 11.x (21e0dcba) on 2026-10-19, in Default Admin and Claro, with PHPUnit (without and with Inline Form Errors) and PHPCS (EVIDENCE.md); not yet built in DDEV, and no person has done the keyboard or screen reader pass",
     "core": {
       "url": "https://git.drupalcode.org/project/drupal.git",
       "commit": "a50836dbcfe00d292a6c2960f5002ad482395d21"
@@ -107,7 +107,7 @@
     "slug": "3587661-proposal",
     "extends": "3587661-pinned",
     "label": "#3587661: the visually hidden label proposal (FileThemeHooks) with its test, pinned core",
-    "description": "Instead of the MR's aria-label: keep the checkbox's own label in the multiple-value table and hide it visually (#title_display = 'invisible' in FileThemeHooks::preprocessFileWidgetMultiple()), with a test assertion in FileFieldDisplayTest.",
+    "description": "Instead of the MR's aria-label: keep the checkbox's own label in the multiple-value table and hide it visually (#title_display = 'invisible' in FileThemeHooks::preprocessFileWidgetMultiple()), with a test in FileFieldDisplayTest that checks the label on the edit form and after a save error, without and with Inline Form Errors.",
     "after": {
       "env": "issue-3587661-proposal",
       "patches": [

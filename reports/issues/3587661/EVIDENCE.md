@@ -11,16 +11,19 @@ checked, and what the results were. Everything here was run on 2026-10-19. Evide
 | After, MR | the same, plus MR !16335: `aria-label` on the checkbox in `FileWidget::process()` | `branches/3587661-mr-16335.patch` (`77c4a8a5`) |
 | After, proposal | the same, plus `#title_display = 'invisible'` in place of `unset(#title)` in `FileThemeHooks::preprocessFileWidgetMultiple()` | `proposals/3587661-visually-hidden-label.patch` (`403fe6ce`) |
 
-The PHPUnit runs added `proposals/3587661-test.patch` (`218242a2`) on each side.
+The PHPUnit runs added `proposals/3587661-test.patch` (`f6a637a2`) on each side. `proposals/3587661-on-mr-16335.patch` is the
+proposal and the test as one change on top of the MR: it takes the MR's `aria-label` out again. It applies on top of the MR on both
+`11.x` and `main`.
 
 Why `11.x` and not `main`: this session had PHP 8.3 and no Docker, and `main` needs PHP 8.5. The three files involved
 (`FileWidget.php`, `FileThemeHooks.php`, `FileFieldDisplayTest.php`) have the same Git blob on `main` at
-`a50836dbcfe00d292a6c2960f5002ad482395d21` and on `11.x` at `21e0dcba`, and all three patches apply to `main` unchanged
+`a50836dbcfe00d292a6c2960f5002ad482395d21` and on `11.x` at `21e0dcba`, and all the patches apply to `main` unchanged
 (`git apply --check`). Nothing was run on `main`.
 
 Environment: Ubuntu 24.04.5, PHP 8.3.6 (built-in server, `php -S`), SQLite 3.45.1, Standard install plus
 [`recipes/repro_3587661`](../../../recipes/repro_3587661/recipe.yml), Chromium 141.0.7390.37 (Playwright 1.64.1), axe-core 4.14.0,
-Node 22.22.0, PHPUnit 11.5.55, PHP_CodeSniffer 4.0.4 with drupal/coder 9.0.1.
+`@guidepup/virtual-screen-reader` 0.33.0 (html-aria 0.5.3, jsdom 30.1.3), Node 22.22.0, PHPUnit 11.5.55, PHP_CodeSniffer 4.0.4 with
+drupal/coder 9.0.1.
 
 To install the development tools, the scratch checkout's `composer.json`, `composer.lock` and
 `composer/Metapackage/DevDependencies/composer.json` were edited to leave out the PHPStan packages, which could not be downloaded (see
@@ -31,19 +34,22 @@ after its run.
 
 ### Browser: the form after uploading a file (`tools/playwright/label-3587661.mjs`)
 
-A real `.txt` file was uploaded into each of the recipe's three fields on `/node/add/article`, at 1280 by 900, light scheme.
+A real `.txt` file was uploaded into each of the recipe's three fields on `/node/add/article`, at 1280 by 900, light scheme, without
+Inline Form Errors.
 
-| Theme | Side | Display checkbox, two-value fields (both) | Single-value field (control) | axe-core, WCAG 2.0 to 2.2 A/AA | Run |
-|---|---|---|---|---|---|
-| Default Admin | Before | no `<label>`, no `aria-label`; accessible name **empty**; axe `label` **fails** | visible label; name "Include file in display" | `label` (2 nodes) | [17-41-58 before](playwright/2026-10-19T17-41-58-706Z-before/SUMMARY.md) |
-| Default Admin | MR | `aria-label`; name "Include file in display"; passes | visible label **and** the same `aria-label` | none | [17-42-20 after-mr](playwright/2026-10-19T17-42-20-094Z-after-mr/SUMMARY.md) |
-| Default Admin | Proposal | `<label class="form-item__label visually-hidden">`; name "Include file in display"; passes | unchanged | none | [17-42-40 after-proposal](playwright/2026-10-19T17-42-40-883Z-after-proposal/SUMMARY.md) |
-| Claro | Before | as Default Admin: name **empty**, `label` **fails** | visible label | `label` (2 nodes) | [17-44-29 before](playwright/2026-10-19T17-44-29-213Z-before/SUMMARY.md) |
-| Claro | MR | `aria-label`; name present; passes | visible label and `aria-label` | none | [17-44-51 after-mr](playwright/2026-10-19T17-44-51-202Z-after-mr/SUMMARY.md) |
-| Claro | Proposal | visually hidden `<label>`; name present; passes | unchanged | none | [17-45-11 after-proposal](playwright/2026-10-19T17-45-11-527Z-after-proposal/SUMMARY.md) |
+| Theme | Side | Display checkbox, two-value fields (both) | Virtual screen reader (both) | Single-value field (control) | axe-core, WCAG 2.0 to 2.2 A/AA | Run |
+|---|---|---|---|---|---|---|
+| Default Admin | Before | no `<label>`, no `aria-label`; accessible name **empty** | "checkbox, checked" | visible label; name "Include file in display" | `label` (2 nodes) | [before](playwright/2026-10-19T20-51-53-150Z-before/SUMMARY.md) |
+| Default Admin | MR | `aria-label`; name "Include file in display" | "checkbox, Include file in display, checked" | visible label **and** the same `aria-label` | none | [after-mr](playwright/2026-10-19T20-52-27-191Z-after-mr/SUMMARY.md) |
+| Default Admin | Proposal | `<label class="form-item__label visually-hidden">`; name "Include file in display" | "checkbox, Include file in display, checked" | unchanged | none | [after-proposal](playwright/2026-10-19T20-52-50-752Z-after-proposal/SUMMARY.md) |
+| Claro | Before | as Default Admin: name **empty** | "checkbox, checked" | visible label | `label` (2 nodes) | [before](playwright/2026-10-19T20-53-15-217Z-before/SUMMARY.md) |
+| Claro | MR | `aria-label`; name present | "checkbox, Include file in display, checked" | visible label and `aria-label` | none | [after-mr](playwright/2026-10-19T20-53-38-312Z-after-mr/SUMMARY.md) |
+| Claro | Proposal | visually hidden `<label>`; name present | "checkbox, Include file in display, checked" | unchanged | none | [after-proposal](playwright/2026-10-19T20-54-01-929Z-after-proposal/SUMMARY.md) |
 
 "Accessible name" is what Chromium's accessibility tree reports (`ariaSnapshot`): Before `checkbox [checked]`; MR and proposal
-`checkbox "Include file in display" [checked]`. Each run folder has `results.json` with every value.
+`checkbox "Include file in display" [checked]`. The virtual screen reader is Guidepup over a jsdom snapshot of the checkbox's table
+row: evidence, not a person with a real screen reader. The script sets jsdom's `Element` as the global first, because without it
+html-aria announces every `<input>` as "textbox" (`AI-LEARNING.md`, 2026-10-19). Each run folder has `results.json` with every value.
 
 Visual: no label text appears in the Display column on any side. The screenshots of each field are in each run folder. They do not
 match pixel for pixel, because Drupal renames a file uploaded again under the same name (`lab-3587661_16.txt`, `_22.txt`), and the
@@ -55,45 +61,59 @@ every side, so it is not caused by either patch.
 
 ### PHPUnit: `core/modules/file/tests/src/Functional/FileFieldDisplayTest.php`
 
-`proposals/3587661-test.patch` adds three assertions to `testDefaultFileFieldDisplay()`, which already makes an unlimited file field
-with the Display field on. The assertions check that the display checkbox has a `<label for>`, that its text is "Include file in
-display", and that the label has the `visually-hidden` class. Run with `SIMPLETEST_DB=sqlite://…` against the built-in server.
+`proposals/3587661-test.patch` adds a helper, `assertDisplayCheckboxLabel()`, and calls it three times in
+`testDefaultFileFieldDisplay()`, which already makes an unlimited file field with the Display field on. The helper checks that the
+display checkbox has a `<label for>`, that its text is "Include file in display", and that the label has the `visually-hidden` class.
+The three calls:
+
+1. on the node edit form;
+2. after saving with an empty title, without Inline Form Errors (core's message "Title field is required." is checked);
+3. after installing Inline Form Errors and saving with an empty title again (its summary "1 error has been found" is checked, so
+   the form was rendered with IFE's inline errors).
+
+Run with `SIMPLETEST_DB=sqlite://…` against the built-in server.
 
 | Code | Result |
 |---|---|
-| Test only (Before) | **Fails** as intended: `Element matching css "label[for="edit-…-0-display"]" not found` (line 168). 1 test, 11 assertions, 1 failure. |
-| Proposal and test, whole class | **Passes**: 4 tests, 74 assertions. |
-| MR and test, whole class | **Fails** at the same assertion: 4 tests, 72 assertions, 1 failure. The test asks for a `<label>`, and the MR adds an `aria-label`. If the MR's approach is kept, its test would assert the `aria-label` instead. |
+| Test only (Before), `testDefaultFileFieldDisplay` | **Fails** as intended at the first call (line 165): `Element matching css "label[for="edit-…-0-display"]" not found`. 1 test, 12 assertions, 1 failure. |
+| Proposal and test, whole class | **Passes**: 4 tests, 87 assertions. |
+| MR and test, `testDefaultFileFieldDisplay` | **Fails** at the same place: 1 test, 12 assertions, 1 failure. The test asks for a `<label>`, and the MR adds an `aria-label`. |
+
+An earlier version of the test (three assertions, without the error and IFE cases) gave the same pattern: fails on Before and with
+the MR, and the whole class passes with the proposal (4 tests, 74 assertions).
 
 ### Coding standards
 
 `vendor/bin/phpcs --standard=core/phpcs.xml.dist`: no errors or warnings on `FileThemeHooks.php` and `FileFieldDisplayTest.php` with
-the proposal and test applied, and none on `FileWidget.php` with the MR applied.
+the proposal and the current test applied, and none on `FileWidget.php` with the MR applied.
 
 ## Reading of the two approaches (reasoning, not a test)
 
 - Both give the checkbox the accessible name "Include file in display", and axe reports nothing on either.
+- Both are small. The MR turns one line of `FileWidget::process()` into four. The proposal changes one line of
+  `FileThemeHooks.php` and adds a two-line comment.
 - The MR puts the `aria-label` on every display checkbox, including the single-value one, which already has a visible `<label>` with the
-  same text. The text is then defined in two places. If a site changes the `#title` (in a form alter, say), the `aria-label` still
-  says the old text and overrides the visible label (WCAG 2.5.3, Label in Name).
+  same text. Users notice no difference today. But the text is then defined in two places, and the `aria-label` wins: if a site
+  changes the `#title` (in a form alter, say), the name still says the old text (WCAG 2.5.3, Label in Name).
+- The MR leaves the `unset($widget['display']['#title'])` in place, so the element still has no title. Inline Form Errors builds its
+  error summary links from `#title`, so an error on that checkbox would get no link. No such error was produced in a test; the
+  display checkbox has no validation of its own.
 - The proposal keeps the element's own `#title` and only hides it visually in the table. It is the pattern the same table already uses
-  for the weight select (`'#title_display' => 'invisible'` in `FileWidget`). It changes one line where the label was removed, and the
-  one-value field does not change.
+  for the weight select (`'#title_display' => 'invisible'` in `FileWidget`), and a native `<label>` comes before ARIA.
 - With two or more files, every checkbox has the same name. The table's row gives the context, and the weight select does name the
   file ("Weight for @title"). A name that includes the file would need a new translatable string. It is not part of the proposal.
 
 ## Not run or not verified
 
-- **A person's keyboard pass and a real screen reader.** Not done. The names above come from Chromium's accessibility tree and axe.
-- **The Guidepup virtual screen reader.** Tried and dropped. With html-aria 0.5.3 under jsdom 30, it announced a checkbox (and a
-  radio) as "textbox", and a header cell in `<thead>` as "rowheader", so it could not confirm a checkbox's role or name. That
-  also affects other lab scripts that use it; it is noted in `AI-LEARNING.md`.
+- **A person's keyboard pass and a real screen reader.** Not done. The names above come from Chromium's accessibility tree, axe and
+  the Guidepup virtual screen reader, which are evidence, not a manual review.
+- **Inline Form Errors in the browser runs.** IFE was covered by the PHPUnit test only.
 - **PHPStan.** Not run: `phpstan/phpstan` is published only as a download from GitHub, which the session's proxy refused.
 - **cspell and the other CI jobs.** Not run.
 - **The JavaScript test `FileFieldWidgetAdminThemeTest`.** It ticks and unticks the display checkbox by field name, so the change
   should not affect it. Not run: the installed ChromeDriver (147) does not match the installed Chromium (141).
-- **Core `main` at runtime** (PHP 8.5), a DDEV build of the variants, Olivero or Stark, Firefox and WebKit, dark mode, forced colours,
-  zoom and narrow viewports.
+- **Core `main` at runtime** (PHP 8.5), a DDEV build of the variants, Olivero or Stark in the browser (the PHPUnit test uses Stark),
+  Firefox and WebKit, dark mode, forced colours, zoom and narrow viewports.
 - **The issue and the MR.** drupal.org and git.drupalcode.org were not reachable from the session, so the issue (with its comments) and
   the MR diff were read only from the owner's pasted copies on 2026-10-19. The MR head commit is not known. The related issue
   #3587214 ("Checkbox missing label") was not read.
