@@ -37,6 +37,8 @@ async function announce(html) {
   }
 }
 
+// The recipe now has only field_files_two (2026-10-19, simplified at the owner's request); the other two were on the form for the
+// first runs. A field that is not on the form is skipped and listed in the summary.
 const FIELDS = [
   { name: 'field_files_two', what: 'two values, not required' },
   { name: 'field_files_required', what: 'two values, required' },
@@ -63,7 +65,9 @@ const theme = await page.evaluate(() => (window.drupalSettings && drupalSettings
 // attempts are recorded.
 const ajaxIdle = () => page.waitForFunction(() => !document.querySelector('.ajax-progress') && !(window.jQuery && window.jQuery.active), null, { timeout: 30000 });
 const attempts = {};
+const absent = [];
 for (const f of FIELDS) {
+  if (!(await page.locator(`input[type=file][name^="files[${f.name}_0]"]`).count())) { absent.push(f.name); continue; }
   for (attempts[f.name] = 1; ; attempts[f.name]++) {
     await ajaxIdle();
     await page.locator(`input[type=file][name^="files[${f.name}_0]"]`).setInputFiles(upload);
@@ -74,7 +78,7 @@ for (const f of FIELDS) {
 await ajaxIdle();
 
 const results = [];
-for (const f of FIELDS) {
+for (const f of FIELDS.filter((x) => !absent.includes(x.name))) {
   const box = page.locator(`input[name="${f.name}[0][display]"]`);
   const info = await box.evaluate((el) => ({
     id: el.id, type: el.type, checked: el.checked,
@@ -93,7 +97,7 @@ for (const f of FIELDS) {
 }
 const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
 const labelRule = axe.violations.find((v) => v.id === 'label');
-const res = { issue: '3587661', side, url: `${base}/node/add/article`, when: new Date().toISOString(), browser: browser.version(), theme, fields: results,
+const res = { issue: '3587661', side, url: `${base}/node/add/article`, when: new Date().toISOString(), browser: browser.version(), theme, fields: results, notOnForm: absent,
   axe: { version: axe.testEngine.version, violations: axe.violations.map((v) => ({ id: v.id, impact: v.impact, targets: v.nodes.map((n) => n.target.join(' ')) })),
     labelTargets: labelRule ? labelRule.nodes.map((n) => n.target.join(' ')) : [] } };
 await browser.close();
@@ -104,6 +108,7 @@ const md = [`# #3587661 display checkbox label, ${side} (DRAFT)`, '',
   `${res.when}, ${res.url}, Chromium ${res.browser}, theme \`${theme}\`, axe-core ${res.axe.version}. A real .txt file was uploaded into each field first.`, '',
   '| Field | In the multiple-value table | `<label>` (class) | aria-label | Accessible name (Chromium) | Virtual screen reader (synthetic) | axe "label" |', '|---|---|---|---|---|---|---|',
   ...results.map((r) => `| ${r.name} (${r.what}) | ${r.inTable ? `yes, column "${cell(r.columnHeader)}"` : 'no'} | ${r.labels.length ? r.labels.map((l) => `"${cell(l.text)}" (${cell(l.class) || 'no class'})`).join(', ') : '**none**'} | ${r.ariaLabel ? `"${cell(r.ariaLabel)}"` : 'none'} | ${r.accessibleName ? `"${cell(r.accessibleName)}"` : '**empty**'} | ${r.virtualReader.map((p) => `"${cell(p)}"`).join(', ') || 'nothing'} | ${res.axe.labelTargets.some((t) => t.includes(r.id)) ? '**fails**' : 'passes'} |`),
+  ...(absent.length ? ['', `Not on this form (the recipe no longer adds them): ${absent.join(', ')}.`] : []),
   '', `All axe violations (WCAG 2.0 to 2.2 A/AA): ${res.axe.violations.length ? res.axe.violations.map((v) => `${v.id} (${v.targets.length})`).join(', ') : 'none'}.`, '',
   'Screenshots: ' + results.filter((r) => r.screenshot).map((r) => `[${r.name}](${r.screenshot})`).join(', ') + '.', ''].join('\n');
 fs.writeFileSync(path.join(out, 'SUMMARY.md'), md);

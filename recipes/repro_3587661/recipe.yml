@@ -1,5 +1,5 @@
 name: 'Repro: #3587661 Display checkbox in the multiple-value file widget has no label'
-description: 'Article with three file fields that have "Enable Display field" on: two values, two values and required, and one value (the control).'
+description: 'Article with one file field that allows two values and has "Enable Display field" on. The Image field is hidden on the form, so this is the only upload.'
 type: Testing
 recipes:
   - core/tests/fixtures/recipes/article_content_type
@@ -17,17 +17,4 @@ config:
             weight: 10
             settings:
               progress_indicator: throbber
-        -
-          name: field_files_required
-          options:
-            type: file_generic
-            weight: 11
-            settings:
-              progress_indicator: throbber
-        -
-          name: field_file_single
-          options:
-            type: file_generic
-            weight: 12
-            settings:
-              progress_indicator: throbber
+      hideComponent: field_image

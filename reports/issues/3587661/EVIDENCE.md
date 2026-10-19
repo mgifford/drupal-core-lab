@@ -51,6 +51,11 @@ Inline Form Errors.
 row: evidence, not a person with a real screen reader. The script sets jsdom's `Element` as the global first, because without it
 html-aria announces every `<input>` as "textbox" (`AI-LEARNING.md`, 2026-10-19). Each run folder has `results.json` with every value.
 
+**With the simplified recipe** (one file field, Image hidden; 2026-10-19, Default Admin, same core and patches): Before has no
+name and fails axe `label` (1 node); the MR and the proposal give "checkbox, Include file in display, checked" and no axe violations.
+Runs: [before](playwright/2026-10-19T22-35-20-254Z-before/SUMMARY.md), [after-mr](playwright/2026-10-19T22-35-42-592Z-after-mr/SUMMARY.md),
+[after-proposal](playwright/2026-10-19T22-35-48-568Z-after-proposal/SUMMARY.md). The table above was made with the earlier recipe's three fields.
+
 Visual: no label text appears in the Display column on any side. The screenshots of each field are in each run folder. They do not
 match pixel for pixel, because Drupal renames a file uploaded again under the same name (`lab-3587661_16.txt`, `_22.txt`), and the
 longer name wraps differently. The Display column and the checkbox look the same.

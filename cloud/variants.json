@@ -2323,7 +2323,7 @@
       "after": {},
       "steps": [
         {
-          "text": "The recipe adds three file fields to Article, all with \"Enable Display field\" on: two values, two values and required, and one value.",
+          "text": "The recipe adds one file field to Article, \"Files (two values)\", with \"Enable Display field\" on, and hides the Image field on the form.",
           "how": "recipe"
         },
         {
@@ -2339,14 +2339,10 @@
           "text": "In each frame, inspect that checkbox (or press Run checks), then Tab to it and listen with a screen reader if you have one.",
           "how": "each",
           "lookFor": "Before: no label and no accessible name. After: the name is \"Include file in display\"."
-        },
-        {
-          "text": "Upload a file to \"File (one value)\" too: that checkbox keeps its visible label on both sides.",
-          "how": "each"
         }
       ],
       "expected": "The \"Include file in display\" checkbox in the Display column of a multiple-value file field has an accessible name.",
-      "actual": "Before: the checkbox has no label and no accessible name, and axe reports \"label\". Single-value fields are not affected. Run 2026-10-19 on 11.x (21e0dcba), EVIDENCE.md.",
+      "actual": "Before: the checkbox has no label and no accessible name, and axe reports \"label\". Single-value fields are not affected (shown by the first runs, when the recipe also had a one-value field). Run 2026-10-19 on 11.x (21e0dcba), EVIDENCE.md.",
       "observe": [
         {
           "label": "A screen reader announces the Display checkbox with a name",
@@ -2371,12 +2367,6 @@
           "probe": "[...(document.querySelector('input[name=\"field_files_two[0][display]\"]')?.labels || [])].map((l) => l.textContent.trim()).join(' ') || (document.querySelector('input[name=\"field_files_two[0][display]\"]')?.getAttribute('aria-label') ?? '')",
           "expect": "Include file in display",
           "kind": "fix"
-        },
-        {
-          "label": "The single-value field's checkbox keeps its label \"Include file in display\"",
-          "probe": "[...(document.querySelector('input[name=\"field_file_single[0][display]\"]')?.labels || [])].map((l) => l.textContent.trim()).join(' ')",
-          "expect": "Include file in display",
-          "kind": "regression"
         },
         {
           "label": "JavaScript errors on the page (ignoring the harmless ResizeObserver loop notice)",
@@ -2398,7 +2388,7 @@
       "after": {},
       "steps": [
         {
-          "text": "The recipe adds three file fields to Article, all with \"Enable Display field\" on: two values, two values and required, and one value.",
+          "text": "The recipe adds one file field to Article, \"Files (two values)\", with \"Enable Display field\" on, and hides the Image field on the form.",
           "how": "recipe"
         },
         {
@@ -2414,14 +2404,10 @@
           "text": "In each frame, inspect that checkbox (or press Run checks), then Tab to it and listen with a screen reader if you have one.",
           "how": "each",
           "lookFor": "Before: no label and no accessible name. After: the name is \"Include file in display\"."
-        },
-        {
-          "text": "Upload a file to \"File (one value)\" too: that checkbox keeps its visible label on both sides.",
-          "how": "each"
         }
       ],
       "expected": "The \"Include file in display\" checkbox in the Display column of a multiple-value file field has an accessible name.",
-      "actual": "Before: the checkbox has no label and no accessible name, and axe reports \"label\". Single-value fields are not affected. Run 2026-10-19 on 11.x (21e0dcba), EVIDENCE.md.",
+      "actual": "Before: the checkbox has no label and no accessible name, and axe reports \"label\". Single-value fields are not affected (shown by the first runs, when the recipe also had a one-value field). Run 2026-10-19 on 11.x (21e0dcba), EVIDENCE.md.",
       "observe": [
         {
           "label": "A screen reader announces the Display checkbox with a name",
@@ -2446,12 +2432,6 @@
           "probe": "[...(document.querySelector('input[name=\"field_files_two[0][display]\"]')?.labels || [])].map((l) => l.textContent.trim()).join(' ') || (document.querySelector('input[name=\"field_files_two[0][display]\"]')?.getAttribute('aria-label') ?? '')",
           "expect": "Include file in display",
           "kind": "fix"
-        },
-        {
-          "label": "The single-value field's checkbox keeps its label \"Include file in display\"",
-          "probe": "[...(document.querySelector('input[name=\"field_file_single[0][display]\"]')?.labels || [])].map((l) => l.textContent.trim()).join(' ')",
-          "expect": "Include file in display",
-          "kind": "regression"
         },
         {
           "label": "JavaScript errors on the page (ignoring the harmless ResizeObserver loop notice)",
@@ -2473,7 +2453,7 @@
       "after": {},
       "steps": [
         {
-          "text": "The recipe adds three file fields to Article, all with \"Enable Display field\" on: two values, two values and required, and one value.",
+          "text": "The recipe adds one file field to Article, \"Files (two values)\", with \"Enable Display field\" on, and hides the Image field on the form.",
           "how": "recipe"
         },
         {
@@ -2489,14 +2469,10 @@
           "text": "In each frame, inspect that checkbox (or press Run checks), then Tab to it and listen with a screen reader if you have one.",
           "how": "each",
           "lookFor": "Before: no label and no accessible name. After: the name is \"Include file in display\"."
-        },
-        {
-          "text": "Upload a file to \"File (one value)\" too: that checkbox keeps its visible label on both sides.",
-          "how": "each"
         }
       ],
       "expected": "The \"Include file in display\" checkbox in the Display column of a multiple-value file field has an accessible name.",
-      "actual": "Before: the checkbox has no label and no accessible name, and axe reports \"label\". Single-value fields are not affected. Run 2026-10-19 on 11.x (21e0dcba), EVIDENCE.md.",
+      "actual": "Before: the checkbox has no label and no accessible name, and axe reports \"label\". Single-value fields are not affected (shown by the first runs, when the recipe also had a one-value field). Run 2026-10-19 on 11.x (21e0dcba), EVIDENCE.md.",
       "observe": [
         {
           "label": "A screen reader announces the Display checkbox with a name",
@@ -2521,12 +2497,6 @@
           "probe": "[...(document.querySelector('input[name=\"field_files_two[0][display]\"]')?.labels || [])].map((l) => l.textContent.trim()).join(' ') || (document.querySelector('input[name=\"field_files_two[0][display]\"]')?.getAttribute('aria-label') ?? '')",
           "expect": "Include file in display",
           "kind": "fix"
-        },
-        {
-          "label": "The single-value field's checkbox keeps its label \"Include file in display\"",
-          "probe": "[...(document.querySelector('input[name=\"field_file_single[0][display]\"]')?.labels || [])].map((l) => l.textContent.trim()).join(' ')",
-          "expect": "Include file in display",
-          "kind": "regression"
         },
         {
           "label": "JavaScript errors on the page (ignoring the harmless ResizeObserver loop notice)",
