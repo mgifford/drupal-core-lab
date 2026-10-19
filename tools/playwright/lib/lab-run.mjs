@@ -56,7 +56,7 @@ export async function launch(a) {
   if (idn.problems.length) throw new Error(blockMessage(idn));
   if (ps.after.outside && ps.after.outside.length) console.warn(`WARNING: tracked files changed outside the patches in ${a.v.after.env}: ${ps.after.outside.slice(0, 6).join(', ')}${ps.after.outside.length > 6 ? ', ...' : ''}. The run goes ahead and records them in results.json (patchState.after.outside).`);
   for (const side of ['before', 'after']) if (ps[side].state === 'unverified') console.warn(`WARNING: the ${side} environment's patches are recorded by name only, not by content; run \`node tools/compare/setup.mjs ${a.v.slug}\` once to verify and record them.`);
-  const b = await BROWSERS[a.browser].launch({ handleSIGINT: false, handleSIGTERM: false, handleSIGHUP: false });
+  const b = await BROWSERS[a.browser].launch({ handleSIGINT: false, handleSIGTERM: false, handleSIGHUP: false, ...(a.executablePath ? { executablePath: a.executablePath } : {}) });   // executablePath: tree-diff.mjs --chromium=
   const environment = { browser: a.browser, browserVersion: b.version(), colorScheme: a.scheme, forcedColors: a.forced, viewport: a.viewport, os: `${process.platform} ${process.arch}` };
   return { browser: b, environment };
 }

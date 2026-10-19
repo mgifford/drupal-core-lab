@@ -13,6 +13,7 @@ moments, record what assistive technology would be given, and write the result t
 ## Run (both DDEV sites must be running; see ../compare/README.md)
     node tools/playwright/walkthrough.mjs 3619127-pinned     # steps 6 to 10, mouse and keyboard-only, axe at each stage
     node tools/playwright/screenreader.mjs 3619127-pinned    # Guidepup virtual screen reader: what is announced
+    node tools/playwright/tree-diff.mjs 3619154              # any issue: accessibility tree, ARIA and speech of each page, Before vs After
 
 Login uses the one-time link from `ddev drupal login`, not a typed password.
 
@@ -20,7 +21,8 @@ Login uses the one-time link from `ddev drupal login`, not a typed password.
 |---|---|---|
 | `walkthrough.mjs` | `reports/issues/<nid>/playwright/<time>/SUMMARY.md`, `results.json`, screenshots | Old version fails the fix checks, new passes; regression checks unchanged; axe counts; the field's accessibility tree. Exit code 2 if anything is not as expected. |
 | `frameload.mjs` | prints load times | How long both viewer frames take to load over N reloads in a real browser. Run it when frames sometimes do not load (see `../../docs/FRAME-LOADING-2026-10-01.md`). |
-| `screenreader.mjs` | `reports/issues/<nid>/screenreader/<time>/SUMMARY.md` | Phrases from `@guidepup/virtual-screen-reader` over a jsdom snapshot, before vs after. |
+| `screenreader.mjs` | `reports/issues/<nid>/screenreader/<time>/SUMMARY.md` | Phrases from `@guidepup/virtual-screen-reader` over a jsdom snapshot, before vs after (the #3619127 URL alias field only). |
+| `tree-diff.mjs` | `reports/issues/<nid>/tree-diff/<slug>/SUMMARY.md` and a `.diff` per page and view | For any variant: Chromium's accessibility tree, ARIA after JavaScript (ID references looked up) and Guidepup's speech through the whole page, Before vs After, each page as it loads. `lib/tree-capture.mjs` reads them, `lib/tree-format.mjs` writes them. See `../../docs/ACCESSIBILITY-TREE-DIFF.md`. |
 
 `flow.mjs` holds the shared steps. The selectors are specific to #3619127; copy and adapt for another issue.
 

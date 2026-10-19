@@ -51,7 +51,7 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
 
     scripts/doctor.mjs [slug] [--network]  |  scripts/lab-env.mjs status|start|stop|reset|delete|trim|disk|retire <slug>
     tools/compare/setup.mjs <slug> [--check-patches | --refresh-patches | --checkout-only | --reinstall | --core-from=<path>]
-    tools/compare/serve.mjs <slug>  |  tools/compare/diff.mjs <slug>  |  tools/playwright/walkthrough.mjs <slug>
+    tools/compare/serve.mjs <slug>  |  tools/compare/diff.mjs <slug>  |  tools/playwright/walkthrough.mjs <slug>  |  tools/playwright/tree-diff.mjs <nid|slug>  (accessibility tree, ARIA, speech: docs/ACCESSIBILITY-TREE-DIFF.md)
     scripts/lint.mjs <slug> [--contrib]  |  scripts/coverage.mjs <nid>  |  scripts/check-draft.mjs <nid>  |  scripts/findings.mjs add|from-run|set|list  |  scripts/run-mark.mjs <run>
     scripts/code-map.mjs <env|folder> <symbol|file>    ONE call for locate + read: definition, body, what it calls, who uses it, its tests (or a file outline). Use it instead of a grep, sed, cat chain.
     scripts/try-tests.mjs <slug> <tests...> [--existing ...] [--patch-out f] [--mr-ref ref]    proposed PHPUnit tests, ONE call: both sides, remove, PHPCS+PHPStan, patch checked against the MR (sites running)
