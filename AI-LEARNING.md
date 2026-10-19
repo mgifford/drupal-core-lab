@@ -19,6 +19,9 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 - Close the loop: "push to GitHub" always meant commit, pull --rebase, push, and report the commit.
 - **Errors scale: nearly a million sites run core.** Before calling a change good enough, read the issue, its related issues and every merge request's review threads (`AGENTS.md` rule 15), and weigh blast radius, update paths, access and CSRF, atomic saves, accessibility and tests.
 - **The owner may have only a browser** (a desktop with DDEV Coder, no Claude app). Put what they will paste (recipe, agent prompt, commands) in the repository, in a PR, e.g. `reports/issues/<nid>/CODER-PROMPT.md`.
+- **Where the owner tests** (2026-10-19): mostly a Mac (zsh, BSD tools), some DDEV Cloud (Coder workspaces, Linux, bash), Linux later.
+  Commands written for the owner must work in macOS zsh first: no `!`, no inline `#` comments, no `<placeholder>`, and no GNU-only
+  tools or flags (`sha256sum`, `timeout`, `sed -i` without a suffix, `readlink -f`, `grep -P`, `date -d`). Use `node` scripts for anything non-trivial.
 
 ## Mistakes worth not repeating
 1. **I proposed `background: currentColor` for the forced-colours icon without testing it.** In forced colours it makes the icon vanish (1:1). Measuring found the real fix (`forced-color-adjust: preserve-parent-color`). *Test a CSS suggestion in the mode it is about before recommending it.*
