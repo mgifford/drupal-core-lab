@@ -26,7 +26,10 @@ Confirm preconditions on both sides before assessing the change. Do not include 
 
 ## Start locally
 
-Run from the Lab repository root with Docker and DDEV available:
+Run from the Lab repository root with Docker and DDEV available. Keep every command block safe to paste into zsh as well as bash:
+no `#` comments (zsh reads them as comments only with `setopt interactivecomments`), no `!` (zsh history expansion: `!16335` gives
+"no such event" and stops the whole paste), and no `<placeholder>` or `a|b` choices on a command line. Explain the commands in a list
+under the block, and give real environment names and URLs.
 
 ```bash
 node tools/compare/setup.mjs <NID>-pinned --check-patches

@@ -19,6 +19,9 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 - Close the loop: "push to GitHub" always meant commit, pull --rebase, push, and report the commit.
 - **Errors scale: nearly a million sites run core.** Before calling a change good enough, read the issue, its related issues and every merge request's review threads (`AGENTS.md` rule 15), and weigh blast radius, update paths, access and CSRF, atomic saves, accessibility and tests.
 - **The owner may have only a browser** (a desktop with DDEV Coder, no Claude app). Put what they will paste (recipe, agent prompt, commands) in the repository, in a PR, e.g. `reports/issues/<nid>/CODER-PROMPT.md`.
+- **Where the owner tests** (2026-10-19): mostly a Mac (zsh, BSD tools), some DDEV Cloud (Coder workspaces, Linux, bash), Linux later.
+  Commands written for the owner must work in macOS zsh first: no `!`, no inline `#` comments, no `<placeholder>`, and no GNU-only
+  tools or flags (`sha256sum`, `timeout`, `sed -i` without a suffix, `readlink -f`, `grep -P`, `date -d`). Use `node` scripts for anything non-trivial.
 
 ## Mistakes worth not repeating
 1. **I proposed `background: currentColor` for the forced-colours icon without testing it.** In forced colours it makes the icon vanish (1:1). Measuring found the real fix (`forced-color-adjust: preserve-parent-color`). *Test a CSS suggestion in the mode it is about before recommending it.*
@@ -229,3 +232,8 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 - **On drupal.org a core change is a merge request.** Core's GitLab CI runs only on merge requests, so the fix and its test go in one
   MR, and its "Test-only changes" job shows the test failing without the fix. When the lab's proposal changes an existing MR, also
   write a patch that applies on top of the MR branch (`proposals/<nid>-on-mr-<iid>.patch`), so the owner can apply it there.
+- **Commands in a write-up must paste into zsh.** The owner pasted REPRODUCE.md's block into zsh on 2026-10-19 and got
+  "zsh: no such event: 16335": the inline comment `# After = MR !16335` starts history expansion, which stops the whole paste. Without
+  `setopt interactivecomments`, zsh also passes `#` and the words after it to the command. Keep command blocks to bare commands, with
+  no `!`, no `<placeholder>` and no `a|b`, and explain them in a list under the block (`reports/_templates/REPRODUCE.md` now says so).
+  On 2026-10-19 no other committed Markdown had `!` in a command line; many still have inline `#` comments.
