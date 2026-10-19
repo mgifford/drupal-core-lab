@@ -1,0 +1,15 @@
+diff --git a/core/modules/file/src/Hook/FileThemeHooks.php b/core/modules/file/src/Hook/FileThemeHooks.php
+index 7a16d1ec..92913430 100644
+--- a/core/modules/file/src/Hook/FileThemeHooks.php
++++ b/core/modules/file/src/Hook/FileThemeHooks.php
+@@ -282,7 +282,9 @@ public function preprocessFileWidgetMultiple(array &$variables): void {
+ 
+       // Arrange the row with the rest of the rendered columns.
+       if ($element['#display_field']) {
+-        unset($widget['display']['#title']);
++        // Keep the checkbox's label for assistive technology. The column
++        // header already shows "Display", so the label is only hidden visually.
++        $widget['display']['#title_display'] = 'invisible';
+         $row[] = [
+           'data' => $widget['display'],
+           'class' => ['checkbox'],

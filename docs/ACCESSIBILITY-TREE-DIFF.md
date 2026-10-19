@@ -125,6 +125,7 @@ MR's own. The sidebar toggle changes from `<a role="button">` named "Hide sideba
 - Each page as it loads. States reached by clicking (an open dialog, an expanded menu, an error after Save) need the issue's
   evaluator or the viewer.
 - Chromium only. Firefox and Safari build their own trees, and NVDA, JAWS, VoiceOver and TalkBack each add their own behaviour.
-  Guidepup is a model of a screen reader, which is enough for comparing a change by decision (docs/TESTING-TOOLS.md).
+  Guidepup is a model of a screen reader: evidence, not enough on its own (docs/TESTING-TOOLS.md). Until `lib/tree-capture.mjs`
+  sets the global `Element`, its speech announces every `<input>` as "textbox" (AI-LEARNING.md, 2026-10-19).
 - No view reads inside iframes; the ARIA and speech views do not read shadow DOM either (the accessibility tree does).
 - About 30 KB of text per page and side; the ARIA view is the largest.

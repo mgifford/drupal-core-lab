@@ -85,8 +85,9 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
 5. **Never put tokens or passwords in this repository**, in chat, or in commands. Use an environment variable or a `chmod 600`
    file outside the repo. Log in with the one-time link from `ddev drupal login`, not by typing a password into a form.
 6. **Do not add Drush or other dependencies** to a core checkout's `composer.json`. Use `core/scripts/dr` or the add-on.
-7. **Testing tools and scope:** see `docs/TESTING-TOOLS.md`. A synthetic Guidepup virtual screen reader is the agreed standard for
-   comparing a change; real VoiceOver/NVDA passes are out of scope unless the user asks.
+7. **Testing tools and scope:** see `docs/TESTING-TOOLS.md`. The synthetic Guidepup virtual screen reader is evidence, not enough on
+   its own: a person's manual review is always better (owner, 2026-10-19). The lab does not run real VoiceOver/NVDA passes unless the
+   user asks, so say that one was not done.
 8. **Say what was not verified.** Automated results do not replace a person's keyboard pass; use real (trusted) input, not
    script-generated events, for anything about focus or activation. Evidence stays DRAFT until a person has reviewed it.
 9. **When a result looks wrong, find the cause before reporting it.** (Examples from this lab: a "fail" caused by a script click, a
