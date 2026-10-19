@@ -9,7 +9,8 @@
 //   node scripts/bug-feature.mjs check <nid | file.feature> [--strict]
 //        structure and the lab's rules (tools/compare/bug-feature.mjs). Exit 1 on an error (with --strict, also on a warning).
 //   node scripts/bug-feature.mjs export <nid | file.feature>
-//        without comments and the lab's tags, for a drupal.org issue summary once a person has reviewed it. Says so when it is still @draft.
+//        without comments and the lab's tags: a file to attach to a comment you wrote, or notes for issue text you write yourself
+//        (Drupal's AI contribution policy and core/AGENTS.md: docs/BUG-FEATURE.md, "Using it on drupal.org"). Says so when it is still @draft.
 import fs from 'node:fs';
 import path from 'node:path';
 import { labRoot, variants } from '../tools/compare/lib.mjs';
@@ -91,6 +92,7 @@ if (cmd === 'check') process.exit(report(featureFile, text) ? 1 : 0);
 if (cmd === 'export') {
   const { errors, draft: isDraft } = checkFeature(text, { labRoot });
   if (errors.length) { console.error(`${rel(featureFile)} has ${errors.length} error(s): node scripts/bug-feature.mjs check ${target}`); process.exit(1); }
-  if (isDraft) console.error('Still @draft: a person has not reviewed it. Review it before it goes anywhere; add the AI-assisted disclosure where you post it.');
+  if (isDraft) console.error('Still @draft: a person has not reviewed it. Review it before it goes anywhere.');
+  console.error('Not for pasting as it stands: write the issue text in your own words, or attach this file to a comment you wrote, with an AI disclosure. See docs/BUG-FEATURE.md, "Using it on drupal.org".');
   process.stdout.write(exportFeature(text));
 }

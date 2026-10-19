@@ -4,12 +4,15 @@ An issue's bug summary can be written as a Gherkin feature: plain-language scena
 with what the user does and what they should observe. The lab keeps it as `reports/issues/<nid>/BUG.feature`. A model or a person writes it;
 `scripts/bug-feature.mjs` drafts it from the lab's data, writes the prompt for a model, checks it and exports it. Nothing is posted anywhere.
 
+On drupal.org a `BUG.feature` is your notes and evidence, not a post. Drupal's [policy on the use of AI when contributing to Drupal](https://www.drupal.org/docs/develop/issues/issue-procedures-and-etiquette/policy-on-the-use-of-ai-when-contributing-to-drupal)
+and core's own rules for LLM tools (`core/AGENTS.md`) decide how it may be used there: see [Using it on drupal.org](#using-it-on-drupalorg).
+
 Worked example: [`reports/issues/3618230/BUG.feature`](../reports/issues/3618230/BUG.feature) (seven scenarios, written by an AI assistant
 from the issue's evidence, reviewed by the owner on 2026-10-18).
 
 ## Why
 
-- A reviewer on drupal.org can read it in a minute. Each scenario is one behaviour: the state, the action, what is observed.
+- A reviewer can read it in a minute. Each scenario is one behaviour: the state, the action, what is observed.
 - Writing "Then" forces a specific, observable outcome: the text shown, where focus goes, what a screen reader announces. "It works" is not a step.
 - Each scenario carries its Before and After result and the run or person that showed it, so a summary cannot claim more than the evidence.
 - Accessibility bugs depend on how the person uses the site. A scenario names it (keyboard only, a screen reader and which one, forced colours,
@@ -26,7 +29,7 @@ and `tools/playwright/evaluate-<nid>.mjs`. The draft maps those checks to Then s
     node scripts/bug-feature.mjs prompt <nid> --out p.txt # 2. the message for a model to rewrite it per behaviour (or, in a lab session, an agent reads prompts/bug-feature.md)
     node scripts/bug-feature.mjs check <nid>              # 3. structure and the lab's rules; exit 1 on an error (--strict: also on a warning)
                                                           # 4. a person reads every scenario against EVIDENCE.md and the runs it cites
-    node scripts/bug-feature.mjs export <nid>             # 5. without comments and lab tags, for a drupal.org issue summary ("Steps to reproduce")
+    node scripts/bug-feature.mjs export <nid>             # 5. without comments and lab tags: a file to attach, or notes for text you write yourself
 
 1. **Draft.** The draft is mechanical. It takes the pinned variant (`--variant <slug>` for another one) and makes the recipe steps the Background.
    The viewer's steps become When steps and the lab's checks become Then steps (precondition, fix, regression). The observations become a
@@ -41,7 +44,38 @@ and `tools/playwright/evaluate-<nid>.mjs`. The draft maps those checks to Then s
 4. **Review.** A person reads each scenario against the evidence it cites. Once it is right they replace `@draft` with `@reviewed` and add a
    `# Reviewed by <who> on <YYYY-MM-DD>` line. A model never marks a file `@reviewed` on its own judgement; it may record a review only when the person says the file is right, in their name and with their words (as for #3618230 on 2026-10-18).
 5. **Export.** Prints the feature without comments and without `@draft`, `@reviewed` and `@issue-<nid>`. It warns while the file is still
-   `@draft` and refuses a file with errors. Posting it is the owner's decision (`AGENTS.md` rule 4), with the AI-assisted disclosure (rule 10).
+   `@draft`, refuses a file with errors, and reminds you not to paste the output as it stands. Read [Using it on drupal.org](#using-it-on-drupalorg)
+   before anything goes to an issue. Posting is the owner's decision (`AGENTS.md` rule 4), with the AI-assisted disclosure (rule 10).
+
+## Using it on drupal.org
+
+Two sets of rules apply when AI helped write something that goes to drupal.org. Both were read on 2026-10-19; the policy from the
+owner's copy of the page, because drupal.org was not reachable from that session.
+
+- **Drupal's [policy on the use of AI when contributing to Drupal](https://www.drupal.org/docs/develop/issues/issue-procedures-and-etiquette/policy-on-the-use-of-ai-when-contributing-to-drupal)** (last updated 11 October 2026).
+  You are responsible for what you submit and must be able to explain it; "the AI wrote it" is grounds for closing the contribution.
+  Do not copy and paste AI output verbatim: use your own words and be concise, and attach the full output when it helps. Disclose a
+  significant use of AI in a clear, human-written statement, in the issue or merge request template's AI disclosure section when there is
+  one, otherwise at the end of the summary, comment or description. Among the patterns the policy says do not meet its standard: issue
+  summaries, comments or reviews "that lack independently verified technical insights", and posting AI output that was not reviewed.
+- **Core's rules for LLM tools, `core/AGENTS.md`** (read at core `main` `a50836d`). They discourage using an LLM for drupal.org prose:
+  comments, issue and merge request posts, change records, release notes, commit messages. Prose published anyway is rewritten in your own
+  words, stays within 180 words with sentences of at most 25, has no headers, and ends with the line `Generated with the help of an LLM.`,
+  with no model, vendor or tool name. `scripts/check-draft.mjs` checks a comment draft against these rules.
+
+What that means for a `BUG.feature`:
+
+1. **It is not a post.** Do not paste the file, or its export, into an issue summary or a comment as it stands.
+2. **Write the issue text yourself.** Use the reviewed feature as your notes for the issue's "Steps to reproduce" or your comment, in your own
+   words. Keep only what was verified: each scenario's `# Before:` and `# After:` lines name the run or the person behind the result.
+3. **Attach the whole feature when it helps reviewers.** Export it to a file (`node scripts/bug-feature.mjs export <nid> > bug-<nid>.feature`)
+   and attach it to a comment you wrote, as the policy allows for full output. Say in that comment that AI helped write the file.
+4. **Disclose.** The two rules differ: core's line is fixed and names no tool, while the policy asks for a human-written statement and its
+   example names the tool. The lab's comment drafts end with core's line, which `scripts/check-draft.mjs` requires. When an issue or merge
+   request template has an AI disclosure section, fill that in too. If the two rules change or are reconciled, update this section and
+   `scripts/check-draft.mjs` together.
+5. **Stay with the issue.** The policy expects you to answer reviewers and follow up; it says a drive-by contribution will likely lead to an
+   account ban. Post only what you can explain, and come back when someone asks.
 
 ## The format
 
@@ -99,4 +133,5 @@ Tests: `node --test tests/lab/bug-feature.test.mjs` (`selftest` runs them). They
 
 Proposed by the owner on 2026-10-16, with a link to a Gherkin and BDD guide (testquality.com) that could not be reached from that session.
 The conventions above follow the Gherkin reference (cucumber.io) and the lab's own rules (`AGENTS.md`: evidence stays a draft until a person
-reviews it, say what was not verified, record commits).
+reviews it, say what was not verified, record commits). On 2026-10-19, at the owner's request, the export guidance was aligned with Drupal's
+AI contribution policy and core's `core/AGENTS.md` ("Using it on drupal.org").
