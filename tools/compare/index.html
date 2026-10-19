@@ -242,6 +242,7 @@
   <p id="loadbody"></p>
   <ul id="loadlist"></ul>
   <p class="note">This closes by itself when both sites answer, and the frames then reload. A freshly started DDEV site can take a minute or two.</p>
+  <p class="note" id="loadhint"></p>
   <form method="dialog"><button type="submit">Hide this message</button></form>
 </dialog>
 
@@ -848,7 +849,9 @@ function showLoading(h, stuck) {
   if (both) { healed = true; if (D.open) D.close(); return; }
   $('loadbody').textContent = h ? 'Drupal is starting up or the DDEV router is not ready yet. Nothing is wrong with the issue or the patch.' : 'Waiting for the viewer server to answer the health check.';
   const ul = $('loadlist'); ul.textContent = '';
-  for (const s of ['before', 'after']) { const li = document.createElement('li'); const r = h && h[s]; li.className = r && r.ok ? 'ok' : 'wait'; li.textContent = `${s === 'before' ? 'Before' : 'After'}: ${r ? (r.ok ? 'ready' : 'not answering yet') : 'unknown'}`; ul.append(li); }
+  // The health check's reason (refused, timed out, a 502, DDEV could not describe the project) is shown with each side.
+  for (const s of ['before', 'after']) { const li = document.createElement('li'); const r = h && h[s]; li.className = r && r.ok ? 'ok' : 'wait'; li.textContent = `${s === 'before' ? 'Before' : 'After'}: ${r ? (r.ok ? 'ready' : `not answering yet (${r.text || 'no reason given'})`) : 'unknown'}`; ul.append(li); }
+  $('loadhint').textContent = v ? `If it stays open, run node scripts/lab-env.mjs start ${v.slug} again (it retries the DDEV router), or node scripts/doctor.mjs ${v.slug} to see what is wrong.` : '';
   if (!D.open && !dismissedLoad) D.showModal();
 }
 async function checkLoading() {
