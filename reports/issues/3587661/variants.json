@@ -1,0 +1,119 @@
+[
+  {
+    "slug": "3587661-pinned",
+    "issue": "3587661",
+    "label": "#3587661: Missing labels in \"Limited files with a single pre-existing value (required) field.\", pinned core",
+    "description": "A file field that allows more than one value, with \"Enable Display field\" on, shows each uploaded file in a table. The checkbox in its \"Display\" column has no label and no accessible name. After (MR !16335) adds an aria-label; the 3587661-proposal variant keeps a visually hidden label instead.",
+    "status": "draft: Before and both Afters were run by script on 11.x (21e0dcba) on 2026-10-19, in Default Admin and Claro, with PHPUnit and PHPCS (EVIDENCE.md); not yet built in DDEV, and no person has done the keyboard or screen reader pass",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "a50836dbcfe00d292a6c2960f5002ad482395d21"
+    },
+    "before": {
+      "env": "baseline-3587661"
+    },
+    "after": {
+      "env": "issue-3587661",
+      "patches": [
+        "reports/issues/3587661/branches/3587661-mr-16335.patch"
+      ]
+    },
+    "pages": [
+      "/node/add/article"
+    ],
+    "login": true,
+    "recipe": "repro_3587661",
+    "steps": [
+      {
+        "text": "The recipe adds three file fields to Article, all with \"Enable Display field\" on: two values, two values and required, and one value.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /node/add/article (loaded in both frames once you press Go).",
+        "how": "mirror"
+      },
+      {
+        "text": "In EACH frame, upload a small .txt file to \"Files (two values)\". A file chooser cannot be mirrored, so do this by hand in each frame.",
+        "how": "each",
+        "lookFor": "The file appears in a table with a \"Display\" column holding a checkbox."
+      },
+      {
+        "text": "In each frame, inspect that checkbox (or press Run checks), then Tab to it and listen with a screen reader if you have one.",
+        "how": "each",
+        "lookFor": "Before: no label and no accessible name. After: the name is \"Include file in display\"."
+      },
+      {
+        "text": "Upload a file to \"File (one value)\" too: that checkbox keeps its visible label on both sides.",
+        "how": "each"
+      }
+    ],
+    "expected": "The \"Include file in display\" checkbox in the Display column of a multiple-value file field has an accessible name.",
+    "actual": "Before: the checkbox has no label and no accessible name, and axe reports \"label\". Single-value fields are not affected. Run 2026-10-19 on 11.x (21e0dcba), EVIDENCE.md.",
+    "checks": [
+      {
+        "label": "The display checkbox of \"Files (two values)\" is on the page (upload a file in each frame first)",
+        "probe": "!!document.querySelector('input[name=\"field_files_two[0][display]\"]')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "That checkbox's label or aria-label is \"Include file in display\"",
+        "probe": "[...(document.querySelector('input[name=\"field_files_two[0][display]\"]')?.labels || [])].map((l) => l.textContent.trim()).join(' ') || (document.querySelector('input[name=\"field_files_two[0][display]\"]')?.getAttribute('aria-label') ?? '')",
+        "expect": "Include file in display",
+        "kind": "fix"
+      },
+      {
+        "label": "The single-value field's checkbox keeps its label \"Include file in display\"",
+        "probe": "[...(document.querySelector('input[name=\"field_file_single[0][display]\"]')?.labels || [])].map((l) => l.textContent.trim()).join(' ')",
+        "expect": "Include file in display",
+        "kind": "regression"
+      },
+      {
+        "label": "JavaScript errors on the page (ignoring the harmless ResizeObserver loop notice)",
+        "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+        "expect": 0,
+        "kind": "regression"
+      }
+    ],
+    "observe": [
+      {
+        "label": "A screen reader announces the Display checkbox with a name",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "The table looks the same as before (no visible label text added)",
+        "expectBefore": true,
+        "expectAfter": true
+      }
+    ]
+  },
+  {
+    "slug": "3587661-latest",
+    "extends": "3587661-pinned",
+    "label": "#3587661: same steps against the LATEST core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3587661-latest"
+    },
+    "after": {
+      "env": "issue-3587661-latest"
+    }
+  },
+  {
+    "slug": "3587661-proposal",
+    "extends": "3587661-pinned",
+    "label": "#3587661: the visually hidden label proposal (FileThemeHooks) with its test, pinned core",
+    "description": "Instead of the MR's aria-label: keep the checkbox's own label in the multiple-value table and hide it visually (#title_display = 'invisible' in FileThemeHooks::preprocessFileWidgetMultiple()), with a test assertion in FileFieldDisplayTest.",
+    "after": {
+      "env": "issue-3587661-proposal",
+      "patches": [
+        "reports/issues/3587661/proposals/3587661-visually-hidden-label.patch",
+        "reports/issues/3587661/proposals/3587661-test.patch"
+      ]
+    }
+  }
+]

@@ -1,0 +1,16 @@
+diff --git a/core/modules/file/src/Plugin/Field/FieldWidget/FileWidget.php b/core/modules/file/src/Plugin/Field/FieldWidget/FileWidget.php
+index bd409e434d3a772079f437bfdfa2df9c64770c3b..6f5a7c066928760741464fdfd7d638044a0df535 100644
+--- a/core/modules/file/src/Plugin/Field/FieldWidget/FileWidget.php
++++ b/core/modules/file/src/Plugin/Field/FieldWidget/FileWidget.php
+@@ -400,7 +400,10 @@ public static function process($element, FormStateInterface $form_state, $form)
+       $element['display'] = [
+         '#type' => empty($item['fids']) ? 'hidden' : 'checkbox',
+         '#title' => new TranslatableMarkup('Include file in display'),
+-        '#attributes' => ['class' => ['file-display']],
++        '#attributes' => [
++          'class' => ['file-display'],
++          'aria-label' => new TranslatableMarkup('Include file in display'),
++        ],
+       ];
+       if (isset($item['display'])) {
+         $element['display']['#value'] = $item['display'] ? '1' : '';

@@ -193,3 +193,26 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
   reproduced and fixed, and `EVIDENCE.md` claims `minRows=1, maxRows=6` where the run measured `N/A`. Find the cause before relying on
   either (rule 9).
 - Stop-hook "please push" reminders came after almost every turn. Each was answered with "not pushed", and pushes waited for the owner's word.
+
+## Learnings from #3587661 (2026-10-19, cloud session)
+- **The Guidepup virtual screen reader calls a checkbox a "textbox".** With `@guidepup/virtual-screen-reader` 0.33.0, html-aria 0.5.3
+  and jsdom 30.1.3, `<input type="checkbox">` and `type="radio"` are announced as "textbox", and a `<th>` in `<thead>` as "rowheader".
+  The role comes from html-aria's `getRole()`, which returns `textbox` for a jsdom checkbox element but `checkbox` for a plain
+  `{ tagName, attributes }` object. Committed evidence shows it: #3619154's tree-diff speech (2026-10-19) has
+  "textbox, Create new revision" for a checkbox, and "textbox, Add a new file" for a file input. Rule 7 ("Guidepup is enough") assumes
+  roles are right. **Open item for the owner:** pin or fix the dependency, or report it upstream, and mark speech results that name
+  form controls as unreliable until then. #3587661 did not use it; Chromium's accessibility tree (`ariaSnapshot`) and axe were used.
+- **Composer through this proxy:** GitHub zipball downloads are refused, so packages fall back to `git clone`, which works.
+  `phpstan/phpstan` is published only as a download, so it cannot be installed. To get PHPUnit and PHPCS in a scratch core checkout,
+  leave out `phpstan/phpstan`, `phpstan/phpstan-phpunit`, `phpstan/extension-installer` and `mglaman/phpstan-drupal` (root
+  `composer.json`, the DevDependencies metapackage and the lock). Keep `phpstan/phpdoc-parser`: the coding standard's slevomat
+  sniffs need it.
+- **Functional tests without DDEV:** `php -S 127.0.0.1:<port> .ht.router.php` from the core checkout, then
+  `SIMPLETEST_BASE_URL=http://127.0.0.1:<port> SIMPLETEST_DB=sqlite://localhost/<absolute path>/test.sqlite vendor/bin/phpunit -c core <test>`.
+  `curl` to it needs `--noproxy '*'`. Browser runs need `--chromium /opt/pw-browsers/chromium`. The JavaScript tests could not run:
+  the installed ChromeDriver (147) does not match Chromium (141).
+- **A file upload right after another can be lost.** On the node form, Drupal can drop a file input's change event right after the
+  previous upload's AJAX response. The script waits for AJAX to finish, then sets the file again (up to three times) and records
+  the attempts.
+- **A file renamed on upload changes screenshots.** Uploading the same name again gives `_16.txt`, `_22.txt` and so on, and the longer
+  name can wrap. Compare screenshots by region, or upload a fresh name, before calling a pixel difference a change.

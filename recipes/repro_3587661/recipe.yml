@@ -1,0 +1,33 @@
+name: 'Repro: #3587661 Display checkbox in the multiple-value file widget has no label'
+description: 'Article with three file fields that have "Enable Display field" on: two values, two values and required, and one value (the control).'
+type: Testing
+recipes:
+  - core/tests/fixtures/recipes/article_content_type
+install:
+  - file
+  - node
+config:
+  actions:
+    core.entity_form_display.node.article.default:
+      setComponents:
+        -
+          name: field_files_two
+          options:
+            type: file_generic
+            weight: 10
+            settings:
+              progress_indicator: throbber
+        -
+          name: field_files_required
+          options:
+            type: file_generic
+            weight: 11
+            settings:
+              progress_indicator: throbber
+        -
+          name: field_file_single
+          options:
+            type: file_generic
+            weight: 12
+            settings:
+              progress_indicator: throbber
