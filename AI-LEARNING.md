@@ -229,3 +229,8 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 - **On drupal.org a core change is a merge request.** Core's GitLab CI runs only on merge requests, so the fix and its test go in one
   MR, and its "Test-only changes" job shows the test failing without the fix. When the lab's proposal changes an existing MR, also
   write a patch that applies on top of the MR branch (`proposals/<nid>-on-mr-<iid>.patch`), so the owner can apply it there.
+- **Commands in a write-up must paste into zsh.** The owner pasted REPRODUCE.md's block into zsh on 2026-10-19 and got
+  "zsh: no such event: 16335": the inline comment `# After = MR !16335` starts history expansion, which stops the whole paste. Without
+  `setopt interactivecomments`, zsh also passes `#` and the words after it to the command. Keep command blocks to bare commands, with
+  no `!`, no `<placeholder>` and no `a|b`, and explain them in a list under the block (`reports/_templates/REPRODUCE.md` now says so).
+  On 2026-10-19 no other committed Markdown had `!` in a command line; many still have inline `#` comments.

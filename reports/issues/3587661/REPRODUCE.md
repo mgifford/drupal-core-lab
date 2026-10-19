@@ -37,44 +37,77 @@ and required; and one value, the control.
 
 ## Start locally (DDEV)
 
+The command blocks below have no comments and no `!`, so they paste as they are into zsh or bash. (In zsh, `!16335` in a comment
+starts history expansion, "no such event", and stops the whole paste; and zsh treats `#` as a comment only with
+`setopt interactivecomments`.)
+
+From the lab folder, run these one at a time. Each build takes 10 to 20 minutes the first time and can be re-run if it stops.
+
 ```bash
 node tools/compare/setup.mjs 3587661-pinned --check-patches
-node tools/compare/setup.mjs 3587661-pinned        # After = MR !16335 (aria-label)
-node tools/compare/setup.mjs 3587661-proposal      # After = visually hidden label + test assertion
+node tools/compare/setup.mjs 3587661-pinned
+node tools/compare/setup.mjs 3587661-proposal
 node scripts/lab-env.mjs start 3587661-pinned
 ```
 
+1. `--check-patches` only reports whether the patches apply to the pinned core. It fetches core the first time, but builds no site.
+2. `3587661-pinned` builds Before (core `main` at `a50836d`, `envs/baseline-3587661`) and After with MR !16335, the `aria-label`
+   (`envs/issue-3587661`).
+3. `3587661-proposal` reuses that Before and builds After with the visually hidden label and the test (`envs/issue-3587661-proposal`).
+4. `start` starts both sites of the MR comparison and the viewer. To compare the proposal instead:
+   `node scripts/lab-env.mjs start 3587661-proposal`.
+
 In the viewer, upload a file to "Files (two values)" in each frame (a file chooser cannot be mirrored), then press Run checks.
 
-Scripted evidence, for any running site:
+The PHPUnit test, in the proposal's site (it covers the edit form, and a save error without and with Inline Form Errors):
 
 ```bash
-node tools/playwright/label-3587661.mjs --url <site> --side before|after-mr|after-proposal --login <one-time link>
+cd envs/issue-3587661-proposal
+ddev phpunit core/modules/file/tests/src/Functional/FileFieldDisplayTest.php
+cd ../..
 ```
+
+Scripted evidence, one side at a time. Get a one-time login link inside that site's folder, then pass it to the script. For Before:
+
+```bash
+cd envs/baseline-3587661
+ddev drupal login
+cd ../..
+node tools/playwright/label-3587661.mjs --url https://repro-baseline-3587661.ddev.site --side before --login PASTE-THE-LINK-HERE
+```
+
+For the MR, use `envs/issue-3587661`, `https://repro-issue-3587661.ddev.site` and `--side after-mr`. For the proposal, use
+`envs/issue-3587661-proposal`, `https://repro-issue-3587661-proposal.ddev.site` and `--side after-proposal`. The link is used once
+and is not saved. `lab-env.mjs status` prints each site's URL if yours differ.
 
 ## Without DDEV (how the 2026-10-19 runs were made)
 
-The session had PHP 8.3 and no Docker, and `main` needs PHP 8.5, so the runs used `11.x`, whose three files match `main`:
+The session had PHP 8.3 and no Docker, and `main` needs PHP 8.5, so the runs used `11.x`, whose three files match `main`. Set `LAB`
+to the lab folder first. `composer dump-autoload` was needed because Composer plugins were off, so `autoload_runtime.php` was
+missing. The install sets a random password, which was never used.
 
 ```bash
-git clone --depth 1 --branch 11.x https://github.com/drupal/drupal.git core11 && cd core11
-composer install --no-dev && composer dump-autoload        # dump-autoload: plugins were off, so autoload_runtime.php was missing
-php core/scripts/dr install standard                       # random password, never used
-cp -R <lab>/recipes/repro_3587661 recipes/ && php core/scripts/drupal recipe recipes/repro_3587661
+LAB="$HOME/drupal-core-lab"
+git clone --depth 1 --branch 11.x https://github.com/drupal/drupal.git core11
+cd core11
+composer install --no-dev
+composer dump-autoload
+php core/scripts/dr install standard
+cp -R "$LAB/recipes/repro_3587661" recipes/
+php core/scripts/drupal recipe recipes/repro_3587661
 php -S 127.0.0.1:8891 .ht.router.php
 ```
 
 Log in with a one-time link (`user_pass_reset_url()` from a bootstrapped script, plus `/login`), run the script with `--side before`,
 then `git apply` a patch, `php core/scripts/dr cache:rebuild`, and run again with the matching `--side`.
 
-The PHPUnit test, against that server (`composer install` with the development packages first; see `AI-LEARNING.md` for the PHPStan
-packages that could not be installed):
+The PHPUnit test, against that server, in a second terminal. It needs `composer install` with the development packages first; see
+`AI-LEARNING.md` for the PHPStan packages that could not be installed. Apply the test, and for After also the fix:
 
 ```bash
-git apply <lab>/reports/issues/3587661/proposals/3587661-test.patch        # and, for After, the fix patch
-# The test covers the edit form, and a save error without and with Inline Form Errors (it installs the module itself).
-SIMPLETEST_BASE_URL=http://127.0.0.1:8891 SIMPLETEST_DB=sqlite://localhost/$PWD/test.sqlite \
-  vendor/bin/phpunit -c core core/modules/file/tests/src/Functional/FileFieldDisplayTest.php
+git apply "$LAB/reports/issues/3587661/proposals/3587661-test.patch"
+git apply "$LAB/reports/issues/3587661/proposals/3587661-visually-hidden-label.patch"
+SIMPLETEST_BASE_URL=http://127.0.0.1:8891 SIMPLETEST_DB="sqlite://localhost/$PWD/test.sqlite" vendor/bin/phpunit -c core core/modules/file/tests/src/Functional/FileFieldDisplayTest.php
 ```
 
 ## Acceptance
