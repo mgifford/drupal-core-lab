@@ -30,6 +30,7 @@ In your lab checkout, on `main`:
         node scripts/lab-env.mjs browser                                # optional: the viewer in the lab browser (forced-colours switch)
         node tools/playwright/evaluate-3619154.mjs 3619154-latest --forced-colors   # R12 is the comment #23 question
         node tools/playwright/evaluate-3619154.mjs 3619154-latest                   # normal colours; exit 0 = everything as expected
+        node tools/playwright/tree-diff.mjs 3619154                                 # accessibility tree, ARIA and speech, Before vs After
 
 If `git pull` refuses because of local changes, `git stash -u` sets them aside (kept; `git stash list` shows them), then pull again.
 `node scripts/doctor.mjs 3619154-latest` checks DDEV, Docker and the lab if something does not start.
@@ -64,6 +65,7 @@ frames at the real Coder URLs have not been recorded by anyone yet. An agent in 
    inside a workspace):
 
         node tools/playwright/evaluate-3619154.mjs 3619154-latest --forced-colors
+        node tools/playwright/tree-diff.mjs 3619154     # accessibility tree, ARIA and speech, Before vs After (docs/ACCESSIBILITY-TREE-DIFF.md)
 
 ### 2. When the MR moves again
 Bring the new head in, then rerun 1a or 1b and compare the table with the last validation; rows that change are what the revision changed.

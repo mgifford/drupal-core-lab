@@ -1,0 +1,66 @@
+RootWebArea "Edit Article Sidebar toggle repro article | Drupal core test site" focusable focused url=http://HOST/node/1/edit
+  link "Skip to main content" focusable url=http://HOST/node/1/edit#main-content
+  button "Expand sidebar" invalid=false focusable expanded=false
+  region "Administrative top bar"
+    navigation "Breadcrumb"
+      heading "Breadcrumb" level=2
+      list
+        listitem level=1
+          link "Back to site" description="Return to site content" focusable url=http://HOST/node/1
+        listitem level=1
+          text "Edit Article"
+    text "Sidebar toggle repro article"
+    text "Published"
+    button "Show sidebar panel" focusable expanded=false
+    button "More actions" invalid=false focusable expanded=false
+  banner
+    heading "Sidebar toggle repro article" level=1
+  main
+    generic focusable
+    LabelText
+      text "Title"
+      text "*"
+    textbox "Title *" value="Sidebar toggle repro article" invalid=false focusable multiline=false readonly=false required
+      text "Sidebar toggle repro article"
+    group
+      button "Image" focusable expanded
+      LabelText
+        text "Add a new file"
+      button "Add a new file" description="One file only. 100 MB limit. Allowed types: png gif jpg jpeg webp." value="No file chosen" invalid=false focusable
+      text "One file only."
+      text "100 MB limit."
+      text "Allowed types: png gif jpg jpeg webp."
+    LabelText
+      text "Body"
+    application "Rich Text Editor"
+      toolbar "Editor toolbar" focusable orientation=horizontal
+        button "Bold" invalid=false focusable pressed=false
+        button "Italic" invalid=false focusable pressed=false
+        button "Link" invalid=false focusable pressed=false
+        button "Bulleted List" invalid=false focusable pressed=false
+        button "Bulleted List" invalid=false focusable hasPopup=menu expanded=false
+        button "Numbered List" invalid=false focusable pressed=false
+        button "Numbered List" invalid=false focusable hasPopup=menu expanded=false
+        button "Block quote" invalid=false focusable pressed=false
+        button "Upload image from computer" invalid=false focusable
+        button "Show more items" invalid=false focusable hasPopup=menu expanded=false
+      textbox "Rich Text Editor. Editing area: main. Press Alt+0 for help." value="Edit this node to see the meta sidebar and its toggle." focusable multiline readonly=false required=false
+        paragraph
+          text "Edit this node to see the meta sidebar and its toggle."
+    LabelText
+      text "Text format"
+    combobox "Text format" value="Basic HTML" invalid=false focusable hasPopup=menu expanded=false
+      MenuListPopup
+        option "Basic HTML" focusable selected
+        option "Restricted HTML" focusable selected=false
+        option "Full HTML" focusable selected=false
+    button "Save" invalid=false focusable
+    button "Preview" invalid=false focusable
+    link "Delete" focusable url=http://HOST/node/1/delete
+  generic live=polite atomic=false relevant="additions text"
+  status live=assertive atomic relevant=additions
+  application
+    generic live=polite atomic=false relevant=additions
+      list
+    generic live=assertive atomic=false relevant=additions
+      list

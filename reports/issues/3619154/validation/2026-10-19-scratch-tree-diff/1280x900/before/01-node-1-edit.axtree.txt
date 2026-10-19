@@ -1,0 +1,150 @@
+RootWebArea "Edit Article Sidebar toggle repro article | Drupal core test site" focusable focused url=http://HOST/node/1/edit
+  link "Skip to main content" focusable url=http://HOST/node/1/edit#main-content
+  navigation "Administrative sidebar"
+    heading "Administrative sidebar" level=2
+    link "Home page" focusable url=http://HOST/
+    heading "Content" level=3
+    list
+      listitem level=1
+        button "Extend Create" invalid=false focusable expanded=false controls=#navigation-link--navigationcreate-RANDOM
+          text "Extend"
+          text "Create"
+      listitem level=1
+        link "Blocks" focusable url=http://HOST/admin/content/block
+      listitem level=1
+        link "Content" focusable url=http://HOST/admin/content
+      listitem level=1
+        link "Files" focusable url=http://HOST/admin/content/files
+    heading "Administration" level=3
+    list
+      listitem level=1
+        link "Welcome" description="Learn about Drupal Core and Drupal CMS." focusable url=http://HOST/admin/welcome
+      listitem level=1
+        button "Extend Structure" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-structure-RANDOM
+          text "Extend"
+          text "Structure"
+      listitem level=1
+        link "Appearance" description="Select and configure themes." focusable url=http://HOST/admin/appearance
+      listitem level=1
+        link "Extend" description="Add and install modules to extend site functionality." focusable url=http://HOST/admin/modules
+      listitem level=1
+        button "Extend Configuration" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-config-RANDOM
+          text "Extend"
+          text "Configuration"
+      listitem level=1
+        link "People" description="Manage user accounts, roles, and permissions." focusable url=http://HOST/admin/people
+      listitem level=1
+        button "Extend Reports" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-reports-RANDOM
+          text "Extend"
+          text "Reports"
+      listitem level=1
+        link "Announcements" description="Displays announcements from the Drupal community." focusable url=http://HOST/admin/announcements_feed
+    heading "Help" level=3
+    list
+      listitem level=1
+        link "Help" focusable url=http://HOST/admin/help
+    heading "User" level=3
+    list
+      listitem level=1
+        button "Extend admin" invalid=false focusable expanded=false controls=#navigation-link--navigationuser-linksuserwrapper-RANDOM
+          text "Extend"
+          text "admin"
+    button "Collapse sidebar" invalid=false focusable expanded
+  region "Administrative top bar"
+    navigation "Breadcrumb"
+      heading "Breadcrumb" level=2
+      list
+        listitem level=1
+          link "Back to site" description="Return to site content" focusable url=http://HOST/node/1
+        listitem level=1
+          text "Edit Article"
+    text "Sidebar toggle repro article"
+    text "Published"
+    button "Hide sidebar panel" focusable expanded controls=#default_admin_sidebar
+    button "More actions" invalid=false focusable expanded=false
+  banner
+    heading "Sidebar toggle repro article" level=1
+  main
+    generic focusable
+    LabelText
+      text "Title"
+      text "*"
+    textbox "Title *" value="Sidebar toggle repro article" invalid=false focusable multiline=false readonly=false required
+      text "Sidebar toggle repro article"
+    group
+      button "Image" focusable expanded
+      LabelText
+        text "Add a new file"
+      button "Add a new file" description="One file only. 100 MB limit. Allowed types: png gif jpg jpeg webp." value="No file chosen" invalid=false focusable
+      text "One file only."
+      text "100 MB limit."
+      text "Allowed types: png gif jpg jpeg webp."
+    LabelText
+      text "Body"
+    application "Rich Text Editor"
+      toolbar "Editor toolbar" focusable orientation=horizontal
+        button "Bold" invalid=false focusable pressed=false
+        button "Italic" invalid=false focusable pressed=false
+        button "Link" invalid=false focusable pressed=false
+        button "Bulleted List" invalid=false focusable pressed=false
+        button "Bulleted List" invalid=false focusable hasPopup=menu expanded=false
+        button "Numbered List" invalid=false focusable pressed=false
+        button "Numbered List" invalid=false focusable hasPopup=menu expanded=false
+        button "Block quote" invalid=false focusable pressed=false
+        button "Upload image from computer" invalid=false focusable
+        button "Paragraph, Heading" invalid=false focusable hasPopup=menu expanded=false
+          text "Paragraph"
+        button "Code" invalid=false focusable pressed=false
+        button "Show more items" invalid=false focusable hasPopup=menu expanded=false
+      textbox "Rich Text Editor. Editing area: main. Press Alt+0 for help." value="Edit this node to see the meta sidebar and its toggle." focusable multiline readonly=false required=false
+        paragraph
+          text "Edit this node to see the meta sidebar and its toggle."
+    LabelText
+      text "Text format"
+    combobox "Text format" value="Basic HTML" invalid=false focusable hasPopup=menu expanded=false
+      MenuListPopup
+        option "Basic HTML" focusable selected
+        option "Restricted HTML" focusable selected=false
+        option "Full HTML" focusable selected=false
+    generic focusable
+      text "Published"
+      LabelText
+        text "Last saved"
+        text ":"
+      text "17 Oct 2026 - 22:46"
+      LabelText
+        text "Author"
+        text ":"
+      text "Anonymous"
+      checkbox "Create new revision" invalid=false focusable checked
+      LabelText
+        text "Revision log message"
+      textbox "Revision log message" description="Briefly describe the changes you have made." invalid=false focusable multiline readonly=false required=false
+      text "Briefly describe the changes you have made."
+      checkbox "Published" invalid=false focusable checked
+      group
+        button "Menu settings Not in menu" focusable expanded=false controls=#edit-menu
+          text "Menu settings"
+          text "Not in menu"
+      group
+        button "URL alias No alias" focusable expanded=false controls=#edit-path-0
+          text "URL alias"
+          text "No alias"
+      group
+        button "Authoring information By Anonymous (0) on 2026-10-17" focusable expanded=false controls=#edit-author
+          text "Authoring information"
+          text "By Anonymous (0) on 2026-10-17"
+      group
+        button "Promotion options Promoted" focusable expanded=false controls=#edit-options
+          text "Promotion options"
+          text "Promoted"
+    button "Save" invalid=false focusable
+    button "Preview" invalid=false focusable
+    link "Delete" focusable url=http://HOST/node/1/delete
+  generic live=polite atomic=false relevant="additions text"
+  status live=assertive atomic relevant=additions
+  application
+    generic live=polite atomic=false relevant=additions
+      list
+    generic live=assertive atomic=false relevant=additions
+      list
