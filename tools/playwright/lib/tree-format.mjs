@@ -74,6 +74,45 @@ export function refChanges(before, after) {
   ];
 }
 
+// Problems to read before the views: a page that did not load as asked describes some other page.
+function warningsOf(run) {
+  const out = [];
+  for (const p of run.pages) for (const side of ['before', 'after']) {
+    const s = p.sides[side] || { error: 'not read' };
+    if (s.error) out.push(`${side}: \`${p.path}\` could not be read: ${s.error}`);
+    else if ((s.status && s.status >= 400) || (s.landed && s.landed.split('?')[0] !== p.path.split('?')[0])) out.push(`${side}: \`${p.path}\` ${s.status >= 400 ? `answered HTTP ${s.status}` : `ended at \`${s.landed}\``}${/\/user\/login/.test(s.landed || '') ? ' (not logged in?)' : ''}: the views show that page, not the one asked for.`);
+  }
+  return out;
+}
+
+// What the terminal shows at the end of a run: per page and view, the changed lines (at most `max` each), then where the rest is.
+export function terminalReport(run, where, { max = 6 } = {}) {
+  const env = run.environment || {};
+  const lines = [`\nWhat changed, Before -> After (each page as it loads; Chromium ${env.browserVersion || ''}, ${env.viewport ? `${env.viewport.width}x${env.viewport.height}` : ''}, logged in: ${run.login ? 'yes' : 'no'}):`];
+  const warnings = warningsOf(run);
+  if (warnings.length) lines.push('', 'CHECK FIRST:', ...warnings.map((w) => `  ${w.replace(/`/g, '')}`));
+  for (const p of run.pages) {
+    lines.push('', p.path);
+    const changed = VIEWS.filter((v) => p.views[v.key]?.diff);
+    if (!VIEWS.some((v) => p.views[v.key])) { lines.push('  not compared: see CHECK FIRST'); continue; }
+    if (!changed.length) { lines.push('  same in all three views'); continue; }
+    for (const v of VIEWS) {
+      const x = p.views[v.key]; if (!x) continue;
+      const c = changeCount(x.diff);
+      lines.push(`  ${v.title.padEnd(24)}${c ? `+${c.add} -${c.del}` : 'same'}`);
+      if (!c) continue;
+      const body = x.diff.split('\n').filter((l) => /^[-+]/.test(l) && !/^(---|\+\+\+) /.test(l)).map((l) => `    ${l[0]} ${l.slice(1).trim()}`.slice(0, 170));
+      lines.push(...body.slice(0, max));
+      if (body.length > max) lines.push(`    ... ${body.length - max} more in ${x.file}`);
+    }
+  }
+  const refs = refChanges(run.refs.before || [], run.refs.after || []);
+  const count = (c) => refs.filter((r) => r.change === c).length;
+  lines.push('', `ID references that do not resolve: ${refs.length ? `${count('new in After')} new in After, ${count('gone in After')} gone in After, ${count('on both sides')} on both sides` : 'none'}.`);
+  lines.push('', `Report: ${where}/SUMMARY.md`, `  each changed line in the .diff files next to it; every view in full in before/ and after/`, `  how to read it: docs/ACCESSIBILITY-TREE-DIFF.md`);
+  return lines.join('\n');
+}
+
 // SUMMARY.md. run: { title, when, sides: { before: { label, commit }, after }, environment, login, pages: [{ path, file,
 // sides: { before: { status, landed, spoken }, after }, views: { axtree: { diff, file } ... } }], refs: { before: [], after: [] } }
 export function summaryMarkdown(run) {
@@ -81,12 +120,7 @@ export function summaryMarkdown(run) {
   let md = `# Accessibility tree, ARIA and speech: ${run.title}\n\n`;
   md += `Generated ${run.when}. Before: ${run.sides.before.label}. After: ${run.sides.after.label}.\n`;
   md += `Chromium ${env.browserVersion || ''}, viewport ${env.viewport ? `${env.viewport.width}x${env.viewport.height}` : ''}, logged in: ${run.login ? 'yes' : 'no'}. State: each page as it loads (no clicks).\n\n`;
-  const warnings = [];
-  for (const p of run.pages) for (const side of ['before', 'after']) {
-    const s = p.sides[side];
-    if (s.error) warnings.push(`${side}: \`${p.path}\` could not be read: ${s.error}`);
-    else if ((s.status && s.status >= 400) || (s.landed && s.landed.split('?')[0] !== p.path.split('?')[0])) warnings.push(`${side}: \`${p.path}\` ${s.status >= 400 ? `answered HTTP ${s.status}` : `ended at \`${s.landed}\``}${/\/user\/login/.test(s.landed || '') ? ' (not logged in?)' : ''}: the views show that page, not the one asked for.`);
-  }
+  const warnings = warningsOf(run);
   if (warnings.length) md += `**Check first:**\n\n${warnings.map((w) => `- ${w}`).join('\n')}\n\n`;
   const differ = run.pages.reduce((n, p) => n + VIEWS.filter((v) => p.views[v.key]?.diff).length, 0);
   md += `**${differ} of ${run.pages.length * VIEWS.length} views differ.** Hostnames, tokens, random id suffixes and content dates are normalised away.\n\n`;

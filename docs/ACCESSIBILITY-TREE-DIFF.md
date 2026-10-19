@@ -15,22 +15,74 @@ tooling developers use it as shorthand, but it is not a standard term. Each brow
 
 ## Run it
 
-Install once: `cd tools/playwright && npm install && npx playwright install chromium` (`node scripts/doctor.mjs` checks it).
+### On your laptop (local DDEV), step by step
 
-**Local DDEV**, with the variant's two sites running (for example after `node scripts/test-mr.mjs 3619154`):
+From the lab checkout (`cd ~/drupal-core-lab`):
 
-    node tools/playwright/tree-diff.mjs 3619154                      # the issue's variant, its pages, 1280x900
-    node tools/playwright/tree-diff.mjs 3619154-latest --page=/node/add/article --viewport=480x900
+    git pull --ff-only                       # 1. the tool arrived on 2026-10-19; an older checkout says "Cannot find module ... tree-diff.mjs"
+    cd tools/playwright && npm install && npx playwright install chromium && cd ../..   # 2. once: Playwright, jsdom, Guidepup, Chromium (about 150 MB)
+    node scripts/test-mr.mjs 3619154         # 3. builds or refreshes Before and After and starts them (skip if they are already running)
+    node tools/playwright/tree-diff.mjs 3619154                     # 4. about 30 seconds a page
+    open reports/issues/3619154/tree-diff/3619154-latest/SUMMARY.md   # 5. macOS; or open it in your editor
 
-It logs in with one-time links when the variant has `"login": true`, refuses to run when a side is not what the variant says (the
-same check as the evaluators), and writes `reports/issues/<nid>/tree-diff/<slug>/` (`<slug>-<WxH>` for another viewport). Each run
-replaces the last one in that folder; git keeps the history.
+1. If `git pull` refuses because of local changes, `git stash -u` sets them aside (`git stash list` shows them), then pull again.
+2. Only needed once per checkout. `node scripts/doctor.mjs` reports whether it is there ("Playwright package", "Playwright
+   Chromium"). Without it the tool says what to run instead of failing.
+3. Any issue number or variant works: `node scripts/test-mr.mjs <nid>`, then `tree-diff.mjs <nid>`. The tool stops with the command
+   to run when a site is not built (`setup.mjs`) or is stopped (`lab-env.mjs start`).
+4. It reads the variant's pages (for #3619154, `/node/1/edit`) on Before, then on After, logged in as admin with one-time links,
+   and prints what changed. Other pages and widths:
 
-**DDEV Coder**: the same commands in the workspace's terminal. Chromium there may need its system libraries:
-`cd tools/playwright && npx playwright install --with-deps chromium`. Status: not yet run in a Coder workspace (2026-10-19); it uses
-the same headless Chromium and site addresses (`https://<project>.ddev.site`, at DDEV's router port) as the evaluators.
+       node tools/playwright/tree-diff.mjs 3619154 --page=/node/1/edit --page=/node/add/article
+       node tools/playwright/tree-diff.mjs 3619154 --viewport=480x900      # writes 3619154-latest-480x900/
 
-**Any two sites**, as they are (no DDEV, no variant):
+5. The terminal already shows the changed lines; `SUMMARY.md` has the same with links to each diff and the full views.
+
+What the terminal shows for #3619154 (MR !16911 at `175e6f17`; from the scratch run, so your hostnames and counts may differ):
+
+    Before: https://repro-baseline-3619154-latest.ddev.site (logging in with a one-time link)
+      /node/1/edit: 150 tree lines, 206 items spoken, 0 unresolved ID references
+    After: https://repro-issue-3619154-latest.ddev.site (logging in with a one-time link)
+      /node/1/edit: 150 tree lines, 206 items spoken, 0 unresolved ID references
+
+    What changed, Before -> After (each page as it loads; Chromium 141.0.7390.37, 1280x900, logged in: yes):
+
+    /node/1/edit
+      Accessibility tree      +1 -1
+        - button "Hide sidebar panel" focusable expanded controls=#default_admin_sidebar
+        + button "Sidebar panel" invalid=false focusable expanded controls=#default_admin_sidebar
+      ARIA after JavaScript   +2 -2
+        - a.meta-sidebar__trigger.trigger "Hide sidebar panel" role="button" aria-controls="default_admin_sidebar" aria-expanded="true"
+        + button.meta-sidebar__trigger.trigger "Sidebar panel" aria-controls="default_admin_sidebar" aria-expanded="true" type="button"
+        + button.meta-sidebar__close.trigger "Close sidebar panel" aria-controls="default_admin_sidebar" type="button" (not rendered)
+        - a.meta-sidebar__close.trigger "Close sidebar panel" role="button" (not rendered)
+      Speech (Guidepup)       +1 -1
+        - button, Hide sidebar panel, 1 control, expanded
+        + button, Sidebar panel, 1 control, expanded
+
+    ID references that do not resolve: none.
+
+    Report: reports/issues/3619154/tree-diff/3619154-latest/SUMMARY.md
+
+Read it as: the sidebar toggle was a link given `role="button"`, named "Hide sidebar panel"; it is now a native button named
+"Sidebar panel", and its open or closed state is only in `aria-expanded` (a screen reader says "expanded" or "collapsed"). The close
+button became a native button too, moved to the top of the sidebar, and now says which panel it controls. Nothing else changed in
+what assistive technology is given on this page. Whether that is right is your call; the tool only shows it.
+
+Then commit the folder if you want to keep it as evidence (`git add reports/issues/3619154/tree-diff`). Each run replaces the last
+one in that folder, so git holds the history. The run refuses to start when a side is not what the variant says (the same check as
+the evaluators).
+
+### In DDEV Coder
+
+The same steps in the workspace's terminal, from `~/drupal-core-lab`, with `--with-deps` in step 2 (Chromium needs system
+libraries there): `cd tools/playwright && npm install && npx playwright install --with-deps chromium && cd ../..`. Status: not yet
+run in a Coder workspace (2026-10-19). It uses the same headless Chromium and site addresses (`https://<project>.ddev.site`, at
+DDEV's router port) as the evaluators. Read `SUMMARY.md` in the workspace's file browser, or `cat` it.
+
+### Any two sites
+
+As they are (no DDEV, no variant):
 
     node tools/playwright/tree-diff.mjs --before=<url> --after=<url> --page=/path [--page=/other] --out=<dir> [--login-before=<path>] [--login-after=<path>]
 

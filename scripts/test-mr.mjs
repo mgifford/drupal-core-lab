@@ -210,4 +210,6 @@ const bar = '='.repeat(78);
 console.log(`\n${bar}\n Before/After for #${v.issue} (${slug}) is running.\n\n   ${viewer}\n\n` +
   `${inCoder ? ' Open it in a browser signed in to Coder. ' : ' '}Press "Log in both as admin", then follow the Steps tab.\n` +
   `${status === 3 ? ' The smoke check could not run every check (see NOT RUN above); confirm both frames load by eye.\n' : ''}` +
-  `${fs.existsSync(path.join(labRoot, evaluator)) ? ` Scripted Before/After: node ${evaluator} ${slug}   (add --forced-colors for forced colours)\n` : ''}${bar}`);
+  `${fs.existsSync(path.join(labRoot, evaluator)) ? ` Scripted Before/After: node ${evaluator} ${slug}   (add --forced-colors for forced colours)\n` : ''}` +
+  ` Accessibility tree, ARIA and screen reader speech, Before/After: node tools/playwright/tree-diff.mjs ${slug}\n` +
+  `${fs.existsSync(path.join(labRoot, 'tools/playwright/node_modules/@playwright/test')) ? '' : ' (both need, once: cd tools/playwright && npm install && npx playwright install' + (inCoder ? ' --with-deps' : '') + ' chromium)\n'}${bar}`);

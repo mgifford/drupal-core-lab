@@ -25,12 +25,17 @@ close button (comment #23, R12) is fixed and nothing else changed from `6f7766cb
 ### 1a. On your laptop (local DDEV)
 In your lab checkout, on `main`:
 
-        git pull --ff-only                                              # a checkout older than 2026-10-18 has no test-mr.mjs yet
+        git pull --ff-only                                              # older checkouts lack test-mr.mjs (2026-10-18) and tree-diff.mjs (2026-10-19)
         node scripts/test-mr.mjs 3619154                                # builds or refreshes both sites, starts them and the viewer
         node scripts/lab-env.mjs browser                                # optional: the viewer in the lab browser (forced-colours switch)
+        cd tools/playwright && npm install && npx playwright install chromium && cd ../..   # once, for the scripted checks below
         node tools/playwright/evaluate-3619154.mjs 3619154-latest --forced-colors   # R12 is the comment #23 question
         node tools/playwright/evaluate-3619154.mjs 3619154-latest                   # normal colours; exit 0 = everything as expected
         node tools/playwright/tree-diff.mjs 3619154                                 # accessibility tree, ARIA and speech, Before vs After
+
+The tree diff prints what changed and writes `tree-diff/3619154-latest/SUMMARY.md`; the expected result and how to read it are in
+[docs/ACCESSIBILITY-TREE-DIFF.md](../../../docs/ACCESSIBILITY-TREE-DIFF.md) (only the toggle and close button change, as in
+[validation/2026-10-19-scratch-tree-diff](validation/2026-10-19-scratch-tree-diff/README.md)).
 
 If `git pull` refuses because of local changes, `git stash -u` sets them aside (kept; `git stash list` shows them), then pull again.
 `node scripts/doctor.mjs 3619154-latest` checks DDEV, Docker and the lab if something does not start.
