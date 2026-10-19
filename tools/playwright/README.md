@@ -32,6 +32,8 @@ Build it on `lib/lab-run.mjs`; `evaluate-3618230.mjs` is the example. The librar
   into the container, read-only), and the theme that rendered every page loaded;
 - **AJAX**: every Drupal AJAX response, its commands summarised in the results, raw in `ajax-before.json` / `ajax-after.json`;
 - **speech**: every `Drupal.announce()` call and every text change inside a live region (`role` alert/status/log, `aria-live`);
+- **changes after input**: after each real click, key press or typing, the text that appeared or changed and how a screen reader
+  user learns of it; **silent** ones (nothing announces them) are listed Before vs After (`lib/recorder.mjs`, `../../docs/SILENT-CHANGES.md`);
 - `axeScan()` with the violations kept (so `scripts/findings.mjs from-run` can harvest them), JavaScript errors, and
   `writeRun()`, which refuses a `results.json` without verdict, context, AJAX or speech (`lib/run-schema.mjs`).
 The issue script supplies only its steps and its checks. `--out=<dir>` sends a trial run elsewhere (used by `scripts/selftest.mjs --live`).

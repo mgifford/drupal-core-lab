@@ -8,7 +8,9 @@
 //   ajax     every Drupal AJAX response: its commands, summarised (command, method, selector, message type and text, size).
 //            The raw commands go to ajax-<side>.json next to the summary.
 //   speech   every Drupal.announce() call (text, priority), and every change of text inside a live region
-//            ([role=alert|status|log], [aria-live]) with its role, politeness and whether the page was still loading.
+//            ([role=alert|status|log], [aria-live]) with its role, politeness and whether the page was still loading; and
+//            (speech.changes) after each real click, key press or typing, the text that appeared or changed and how a screen
+//            reader user learns of it, "silent" when nothing tells them (lib/recorder.mjs, docs/SILENT-CHANGES.md).
 //   jsErrors uncaught page errors (the ResizeObserver loop notice is left out).
 // Recorders observe; they do not change what the page does (Drupal.announce is wrapped and passes every call through).
 import fs from 'node:fs';
@@ -22,6 +24,8 @@ import { runBlockReason } from '../../compare/patch-state.mjs';
 import { sideState } from '../../compare/contrib-state.mjs';
 import { identity, blockMessage, identityRecord } from '../../compare/env-state.mjs';
 import { noChangeProblem } from '../../compare/change-under-test.mjs';
+import { RECORDER } from './recorder.mjs';
+import { silentMarkdown } from './silent-changes.mjs';
 export { VERDICTS } from './run-schema.mjs';
 
 export const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
@@ -69,41 +73,7 @@ export function siteContext(env) {
   try { return JSON.parse(line); } catch { return { error: `site context not read: ${(r.stderr || r.stdout || 'no output').trim().split('\n')[0]}` }; }
 }
 
-// Runs in every page before its own scripts.
-const RECORDER = () => {
-  const speech = { announce: [], live: [] };
-  Object.defineProperty(window, '__lab', { value: speech });
-  const hook = (d) => {
-    if (!d || typeof d !== 'object' || d.__labHooked) return;
-    let real;
-    Object.defineProperty(d, '__labHooked', { value: true });
-    Object.defineProperty(d, 'announce', {
-      configurable: true,
-      set(fn) { real = fn; },
-      get() { return real && function (text, priority) { speech.announce.push({ t: Math.round(performance.now()), text: String(text), priority: priority || 'polite' }); return real.apply(this, arguments); }; },
-    });
-  };
-  let D;
-  Object.defineProperty(window, 'Drupal', { configurable: true, get() { return D; }, set(d) { D = d; hook(d); } });
-  const SEL = '[role=alert],[role=status],[role=log],[aria-live]:not([aria-live=off])';
-  const pending = new Set(); let queued = false;
-  const flush = () => {
-    queued = false;
-    for (const r of pending) {
-      const text = (r.textContent || '').replace(/\s+/g, ' ').trim();
-      if (text && text !== r.__labLast) speech.live.push({ t: Math.round(performance.now()), role: r.getAttribute('role'), ariaLive: r.getAttribute('aria-live'), id: r.id || null, cls: (r.className && String(r.className).slice(0, 80)) || null, loading: document.readyState !== 'complete', text: text.slice(0, 400) });
-      r.__labLast = text;
-    }
-    pending.clear();
-  };
-  new MutationObserver((ms) => {
-    for (const m of ms) for (const n of [m.target, ...m.addedNodes]) {
-      const el = n.nodeType === 1 ? n : n.parentElement; if (!el || !el.closest) continue;
-      for (const r of [el.closest(SEL), ...(el.querySelectorAll ? el.querySelectorAll(SEL) : [])]) if (r && r.id !== 'drupal-live-announce') pending.add(r);
-    }
-    if (!queued && pending.size) { queued = true; queueMicrotask(flush); }
-  }).observe(document, { childList: true, subtree: true, characterData: true });
-};
+// Runs in every page before its own scripts: lib/recorder.mjs.
 
 const strip = (s) => String(s ?? '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 const summarise = (c) => ({
@@ -122,8 +92,10 @@ export async function openSide(run, side) {
   const base = `https://${host}`;
   const ctx = await run.browser.newContext({ viewport: run.viewport, colorScheme: run.scheme, forcedColors: run.forced ? 'active' : 'none', ignoreHTTPSErrors: true });
   await ctx.addInitScript(RECORDER);
+  const changes = [];   // changes after input arrive as each action's window ends, from every page of this side
+  await ctx.exposeBinding('__labReport', (source, record) => { changes.push(record); });
   const page = await ctx.newPage();
-  const rec = { side, env: spec.env, host, commit: gitInfo(spec.env), site: siteContext(spec.env), pages: [], ajax: [], speech: { announce: [], live: [] }, jsErrors: [] };
+  const rec = { side, env: spec.env, host, commit: gitInfo(spec.env), site: siteContext(spec.env), pages: [], ajax: [], speech: { announce: [], live: [], changes }, jsErrors: [] };
   const raw = []; const waits = [];
   page.on('pageerror', (e) => { const m = String(e.message); if (!/ResizeObserver loop/.test(m)) rec.jsErrors.push(m); });
   page.on('response', (r) => {
@@ -139,7 +111,7 @@ export async function openSide(run, side) {
   // Collect what the recorders saw so far (call before closing, and whenever a snapshot is wanted).
   rec.collect = async () => {
     await Promise.all(waits.splice(0));
-    try { const s = await page.evaluate(() => window.__lab); rec.speech.announce.push(...s.announce.splice(0)); rec.speech.live.push(...s.live.splice(0)); await page.evaluate(() => { window.__lab.announce.length = 0; window.__lab.live.length = 0; }); } catch { /* page gone */ }
+    try { await page.evaluate(() => window.__lab.flush()); const s = await page.evaluate(() => window.__lab); rec.speech.announce.push(...s.announce.splice(0)); rec.speech.live.push(...s.live.splice(0)); rec.speech.changes.push(...(s.changes || []).splice(0)); await page.evaluate(() => { window.__lab.announce.length = 0; window.__lab.live.length = 0; window.__lab.changes.length = 0; }); } catch { /* page gone */ }
     return rec;
   };
   rec.close = async (out) => { await rec.collect(); fs.writeFileSync(path.join(out, `ajax-${side}.json`), JSON.stringify(raw, null, 2)); await ctx.close(); delete rec.collect; delete rec.close; return rec; };
@@ -197,7 +169,7 @@ export function speechMarkdown(results) {
     for (const l of sp.live) { if (l.loading) continue; n++; md += `| ${s} | live region ${l.role ? `role=${l.role}` : ''}${l.ariaLive ? ` aria-live=${l.ariaLive}` : ''} | ${l.ariaLive || (l.role === 'alert' ? 'assertive (role)' : 'polite (role)')} | ${l.text.slice(0, 160)} |\n`; }
     if (!n) md += `| ${s} | none | | |\n`;
   }
-  return md + '\n';
+  return md + '\n' + silentMarkdown(results);
 }
 
 // results.json with the fields scripts/coverage.mjs and selftest.mjs rely on (checked by run-schema.mjs). Throws if one is missing.
