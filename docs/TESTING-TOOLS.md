@@ -33,6 +33,9 @@ A second in-page rule engine (IBM Equal Access `accessibility-checker`) would ru
 useful as a second opinion. Pa11y (HTML_CodeSniffer) and the Nu HTML Checker (markup validity) are other candidates. Each would add its
 own panel; none is installed.
 
+Whole-page visual comparison (screenshots of each page Before and After at several widths and accessibility states, pixel
+diffs, changed regions named): a to-do with the open-source tools to evaluate, in [TODO-VISUAL-DIFF.md](TODO-VISUAL-DIFF.md).
+
 ## What each kind of check can and cannot tell you
 - Live axe and Playwright axe: new or removed WCAG A/AA failures that axe can detect. Typically a minority of real
   barriers. A difference between Before and After points at the change; "same" does not prove it is accessible.
