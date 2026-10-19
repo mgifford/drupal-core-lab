@@ -56,7 +56,7 @@ the fix. The lab's patch files are only a way to carry the change:
 | The MR as tested | [branches/3587661-mr-16335.patch](branches/3587661-mr-16335.patch) · [BRANCHES.md](BRANCHES.md) |
 | The lab's proposal and test | [proposals/3587661-visually-hidden-label.patch](proposals/3587661-visually-hidden-label.patch) · [proposals/3587661-test.patch](proposals/3587661-test.patch) |
 | Both, on top of the MR (to update the MR branch) | [proposals/3587661-on-mr-16335.patch](proposals/3587661-on-mr-16335.patch) |
-| Recipe (three file fields on Article) | [`recipes/repro_3587661/`](../../../recipes/repro_3587661/recipe.yml) |
+| Recipe (one file field on Article, Image hidden) | [`recipes/repro_3587661/`](../../../recipes/repro_3587661/recipe.yml) |
 | Variants (pinned, latest, proposal) | [variants.json](variants.json) |
 | Evidence: commits, runs, PHPUnit, PHPCS, what was not verified | [EVIDENCE.md](EVIDENCE.md) |
 | Browser runs (one folder per theme and side) | [playwright/](playwright/) |

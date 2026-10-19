@@ -32,8 +32,10 @@ Cause: `FileThemeHooks::preprocessFileWidgetMultiple()` (`core/modules/file/src/
 It is the node edit form, not the front end. The report's "Limited files with a single pre-existing value (required)" field came from a
 test site built with the Theming Tools module; any multiple-value file field with the Display field on shows it.
 
-The recipe [`recipes/repro_3587661`](../../../recipes/repro_3587661/recipe.yml) sets this up with three fields: two values; two values
-and required; and one value, the control.
+The recipe [`recipes/repro_3587661`](../../../recipes/repro_3587661/recipe.yml) sets this up with one field, "Files (two values)", and
+hides Article's Image field on the form, so it is the only upload. Until 2026-10-19 it also had a required two-value field and a
+one-value field (the control); the first runs used those to show that "required" makes no difference and that a one-value field is
+not affected (EVIDENCE.md). They were removed at the owner's request to keep the form simple.
 
 ## Start locally (DDEV)
 
@@ -115,7 +117,7 @@ SIMPLETEST_BASE_URL=http://127.0.0.1:8891 SIMPLETEST_DB="sqlite://localhost/$PWD
 - The display checkbox of a multiple-value file field has the accessible name "Include file in display".
 - axe-core reports no `label` violation on the form.
 - The table looks the same as before (no visible label text in the Display column).
-- The single-value field's checkbox keeps its visible label.
+- A single-value file field's checkbox keeps its visible label (shown by the first runs; the recipe no longer has one).
 - The label is still there when the form comes back with an error, without and with the Inline Form Errors module (the PHPUnit test
   checks both).
 - A person's keyboard pass and a real screen reader confirm the name. Not done yet.
