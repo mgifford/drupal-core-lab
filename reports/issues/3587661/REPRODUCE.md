@@ -29,6 +29,11 @@ Cause: `FileThemeHooks::preprocessFileWidgetMultiple()` (`core/modules/file/src/
 5. The file appears in a table with a **Display** column. Inspect the checkbox in that column: there is no `<label for>`, no
    `aria-label` and no `aria-labelledby`. Run axe: rule `label` fails on `#edit-<field>-0-display`.
 
+What to look at: the checkbox's wrapper, `<div class="… form-item … form-item--no-label">`, not only the `<input>`, which is the same
+on both sides. With the fix, the wrapper holds `<label for="edit-<field>-0-display" class="form-item__label visually-hidden">Include
+file in display</label>` just before the `<input>`; without it, the wrapper holds the `<input>` alone. Search for that `<label>`, not
+for the text: the text alone would also match an `aria-label` or other text on the page. (Found by the owner, 2026-10-19.)
+
 It is the node edit form, not the front end. The report's "Limited files with a single pre-existing value (required)" field came from a
 test site built with the Theming Tools module; any multiple-value file field with the Display field on shows it.
 

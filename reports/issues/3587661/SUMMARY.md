@@ -2,7 +2,8 @@
 
 **DRAFT.** Scripted browser runs (Default Admin and Claro, with axe and the Guidepup virtual screen reader), PHPUnit (with and
 without Inline Form Errors) and PHPCS were run by the lab on 2026-10-19 on core `11.x` `21e0dcba`, whose three files involved are
-identical to `main` `a50836d`. No person has done the keyboard or screen reader pass.
+identical to `main` `a50836d`. The owner ran the proposal's variant in DDEV on `main` `a50836d` the same day, and its checks behaved
+as expected (EVIDENCE.md). No person has done the keyboard or screen reader pass.
 Last updated: 2026-10-19.
 
 **This is the entry point for this issue.** It links to the patches, the recipe, the evidence and the comment draft.

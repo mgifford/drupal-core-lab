@@ -64,6 +64,24 @@ Uploads: the second and third field each needed a second attempt in every run. R
 drop the next file input's change event; the script sets the file again and records the attempts (`uploadAttempts`). This happens on
 every side, so it is not caused by either patch.
 
+### The owner's run in DDEV, on core `main` (2026-10-19)
+
+The owner built `3587661-proposal` with `tools/compare/setup.mjs` on a Mac, in DDEV with PHP 8.5, on core `main` at `a50836d`.
+Before is unchanged core; After has the proposal and the test. The viewer was used in Chromium, Desktop width, light scheme, Default
+Admin, with a `.txt` file uploaded by hand in each frame.
+
+- With the simplified recipe, Run checks gave: precondition passes on both; the fix check fails on Before (empty) and passes on After
+  ("Include file in display"); no JavaScript errors on either side. The verdict was "All 2 checks behave as expected". The
+  live axe count in the header was Before 2, After 1, and the Accessibility tab showed no new violations on After.
+- An earlier run the same day, with the three-field recipe, also passed the single-value check on both sides ("All 3 checks
+  behave as expected"). Which variant the viewer showed then was not recorded.
+- The owner compared the checkbox's `<input>` markup on both sides and found it identical. That is expected: the fix adds a
+  `<label>` next to the input and does not change the input itself. Inspecting the wrapper `<div class="… form-item …">` then
+  showed the difference: on After, `<label for="edit-field-files-two-0-display" class="form-item__label visually-hidden">Include
+  file in display</label>` just before the input; on Before, the input alone.
+
+Not done in that run: a keyboard pass or a screen reader, and the MR's variant (`3587661-pinned`).
+
 ### PHPUnit: `core/modules/file/tests/src/Functional/FileFieldDisplayTest.php`
 
 `proposals/3587661-test.patch` adds a helper, `assertDisplayCheckboxLabel()`, and calls it three times in
@@ -117,8 +135,9 @@ the proposal and the current test applied, and none on `FileWidget.php` with the
 - **cspell and the other CI jobs.** Not run.
 - **The JavaScript test `FileFieldWidgetAdminThemeTest`.** It ticks and unticks the display checkbox by field name, so the change
   should not affect it. Not run: the installed ChromeDriver (147) does not match the installed Chromium (141).
-- **Core `main` at runtime** (PHP 8.5), a DDEV build of the variants, Olivero or Stark in the browser (the PHPUnit test uses Stark),
-  Firefox and WebKit, dark mode, forced colours, zoom and narrow viewports.
+- **The MR's variant (`3587661-pinned`) in DDEV**, and PHPUnit on core `main` (PHP 8.5). The proposal's variant was run in DDEV on
+  `main` by the owner (above). Also not run: Olivero or Stark in the browser (the PHPUnit test uses Stark), Firefox and WebKit, dark
+  mode, forced colours, zoom and narrow viewports.
 - **The issue and the MR.** drupal.org and git.drupalcode.org were not reachable from the session, so the issue (with its comments) and
   the MR diff were read only from the owner's pasted copies on 2026-10-19. The MR head commit is not known. The related issue
   #3587214 ("Checkbox missing label") was not read.
