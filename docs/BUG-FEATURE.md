@@ -10,6 +10,12 @@ and core's own rules for LLM tools (`core/AGENTS.md`) decide how it may be used 
 Worked example: [`reports/issues/3618230/BUG.feature`](../reports/issues/3618230/BUG.feature) (seven scenarios, written by an AI assistant
 from the issue's evidence, reviewed by the owner on 2026-10-18).
 
+**Time check.** A `BUG.feature` is only as current as the runs it cites. The example describes merge request !16777 at `2d600f40`, the
+version the lab tested; the weekly check on 2026-10-19 found it at `01e19a6f`, so it needs a new run before anyone relies on it. Before
+using any `BUG.feature`, find its issue in the lab's [list of issues](../reports/issues/README.md). A read-only check
+(`.github/workflows/issue-status.yml`, Mondays) updates that list from drupal.org and GitLab for the issues in this repository, not for
+every core issue, and flags any merge request that has moved past the commit the lab tested.
+
 ## Why
 
 - A reviewer can read it in a minute. Each scenario is one behaviour: the state, the action, what is observed.
