@@ -276,8 +276,8 @@ export function draftFeature({ nid, variant: v, runs = [], left = { stale: 0, su
   return L.join('\n') + '\n';
 }
 
-// The feature without what only makes sense in the lab: comments and the lab's own tags. For pasting into a drupal.org issue summary
-// ("Steps to reproduce"), once a person has reviewed it.
+// The feature without what only makes sense in the lab: comments and the lab's own tags. A file to attach to a comment a person wrote,
+// once reviewed, never pasted as it stands (Drupal's AI contribution policy, core/AGENTS.md: docs/BUG-FEATURE.md, "Using it on drupal.org").
 export function exportFeature(text) {
   return text.replace(/\r\n?/g, '\n').split('\n').filter((l) => !/^\s*#/.test(l))
     .map((l) => (/^\s*@/.test(l) ? l.replace(/@(draft|reviewed|issue-\d+)\b\s*/g, '').replace(/\s+$/, '') : l))
