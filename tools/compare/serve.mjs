@@ -204,6 +204,9 @@ addEventListener('message',(e)=>{if(e.source!==parent||!PARENTS.includes(e.origi
 function proxyFor(side) {
   const mine = SIDES[side].host, origin = SIDES[side].origin;
   return http.createServer((req, res) => {
+    // Only the hostname the viewer gives this side (nginx and the frames send exactly that). Any other Host is a DNS-rebinding attempt:
+    // a page that points its own name at this machine to reach the test site, whose login is admin / admin.
+    if (String(req.headers.host || '').toLowerCase() !== mine.toLowerCase()) { res.writeHead(403, { 'content-type': 'text/plain' }); res.end('Forbidden: this proxy answers only its own site\'s hostname.'); return; }
     if (req.url === '/__compare/axe.js') {
       try { res.writeHead(200, { 'content-type': 'text/javascript', 'cache-control': 'no-store' }); res.end(fs.readFileSync(AXE)); } catch (e) { res.writeHead(404); res.end('axe-core is not installed: run npm install --prefix tools/compare/.deps axe-core@4'); }
       return;

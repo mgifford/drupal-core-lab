@@ -1,6 +1,6 @@
 // Regression tests for the viewer's local-network protections and for navigation sync. Needs the viewer running on :8100 (node scripts/lab-env.mjs start <slug>).
 //   node tools/playwright/viewer-security.mjs
-// 1. API: actions are POST-only; foreign Host, foreign Origin and cross-site requests are refused. 2. A page on another origin cannot frame a proxied site (so it cannot
+// 1. API: actions are POST-only; foreign Host, foreign Origin and cross-site requests are refused, and the site proxies refuse a foreign Host. 2. A page on another origin cannot frame a proxied site (so it cannot
 // send it commands). 3. Following a link in Before makes After follow (Sync navigation).
 import http from 'node:http';
 import { chromium } from '@playwright/test';
@@ -20,6 +20,8 @@ check('GET /api/state with Sec-Fetch-Site: cross-site is refused', (await raw('G
 check('a foreign Host header is refused', (await raw('GET', '/api/state', { host: 'attacker.example' })) === 403);
 check('the viewer\'s own origin still works', (await raw('POST', '/api/state', { origin: 'http://localhost:8100', 'sec-fetch-site': 'same-origin' }, '{}')) === 200);
 check('a plain local client (no Origin) still works', (await raw('GET', '/api/state')) === 200);
+const proxyStatus = (host) => new Promise((resolve, reject) => { const q = http.request({ host: '127.0.0.1', port: 8101, path: '/', headers: { host } }, (r) => { r.resume(); r.on('end', () => resolve(r.statusCode)); }); q.on('error', reject); q.end(); });
+check('the Before site proxy refuses a foreign Host (DNS rebinding)', (await proxyStatus('attacker.example')) === 403);
 
 // ---- 2. A page on another origin cannot frame a proxied site ----
 const origins = await new Promise((res) => http.get('http://localhost:8100/variants.json', (r) => { let b = ''; r.on('data', (c) => (b += c)); r.on('end', () => res(JSON.parse(b).origins)); }));
