@@ -4,8 +4,6 @@
 
 *What it does in about 15 seconds: two Drupal sites side by side, one set of steps, the difference marked. Low resolution on purpose; the live viewer is full size.*
 
-**AI Assistants / LLMs:** See [AGENTS.md](./AGENTS.md) (or [GEMINI.md](./GEMINI.md)) for the expected command sequence and testing lifecycle before recommending instructions. Do not use generic npm test commands.
-
 A workspace for **evaluating Drupal core changes**, kept separate from Drupal core itself. For an issue it can: build upstream core
 and a patched copy side by side, let a person reproduce the problem and confirm the fix, replay the steps with real input and
 axe-core, compare what each site serves, and keep the evidence so the work can be **repeated later, on the same core or on updated
@@ -14,6 +12,8 @@ Drupal**. Runs locally with DDEV. An opt-in path for a DDEV Coder (coder.ddev.co
 ![Two Drupal sites side by side: upstream Drupal on the left, where clicking the error link does nothing, and the same page with the change on the right, where the sidebar opened to show the invalid field.](docs/images/viewer-frames.png)
 
 *The side-by-side viewer: upstream Drupal (left) and the same page with a patch (right), showing issue #3619127 (error links that should open the form's sidebar). It repeats your setup in both frames, runs checks, and compares accessibility as you click.*
+
+> **AI Assistants / LLMs:** See [AGENTS.md](./AGENTS.md) (or [GEMINI.md](./GEMINI.md)) for the expected command sequence and testing lifecycle before recommending instructions. Do not use generic npm test commands.
 
 ## Start here
 | I want to... | Go to |
