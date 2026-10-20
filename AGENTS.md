@@ -108,3 +108,7 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
     Security Team ("Report a security issue", linked from https://www.drupal.org/security). Lab sites are private test sites: never
     point lab tools at a site other people use. Issues already public (a security advisory, a hardening issue in the public queue) are
     not covered.
+
+### Shell Compatibility (macOS / zsh)
+- **Never include `#` comments inside executable shell blocks.** In interactive zsh (the macOS default), `#` is treated as an unknown command unless the user has `setopt INTERACTIVE_COMMENTS` set.
+- All explanations, notes, and numbering must be written in Markdown prose outside code blocks so blocks can be safely copied and pasted.
