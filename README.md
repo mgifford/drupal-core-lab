@@ -4,6 +4,8 @@
 
 *What it does in about 15 seconds: two Drupal sites side by side, one set of steps, the difference marked. Low resolution on purpose; the live viewer is full size.*
 
+**AI Assistants / LLMs:** See [AGENTS.md](./AGENTS.md) (or [GEMINI.md](./GEMINI.md)) for the expected command sequence and testing lifecycle before recommending instructions. Do not use generic npm test commands.
+
 A workspace for **evaluating Drupal core changes**, kept separate from Drupal core itself. For an issue it can: build upstream core
 and a patched copy side by side, let a person reproduce the problem and confirm the fix, replay the steps with real input and
 axe-core, compare what each site serves, and keep the evidence so the work can be **repeated later, on the same core or on updated
