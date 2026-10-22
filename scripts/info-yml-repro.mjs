@@ -263,7 +263,9 @@ const sinceNow = (w, maxwid) => ({ maxwid, logsize: fs.existsSync(w.log) ? fs.st
 function exceptionOf(...sources) {
   for (const s of sources) {
     if (!s) continue;
-    for (const r of s.dblog || []) if (r.class && r.severity <= 3) return { class: r.class, message: r.exception_message, from: 'dblog' };
+    // GuzzleHttp exceptions are this lab's blocked requests to drupal.org (security advisories, announcements); they are in
+    // the baselines too and never the cause of a result here.
+    for (const r of s.dblog || []) if (r.class && r.severity <= 3 && !r.class.startsWith('GuzzleHttp\\')) return { class: r.class, message: r.exception_message, from: 'dblog' };
     for (const l of s.php_log || []) {
       const m = l.match(/(?:PHP Fatal error:\s+)?(?:Uncaught )?([A-Z][\w\\]*(?:Exception|Error))(?::| thrown)? (.+?)(?: in \/| in [A-Z][\w\\]*->| in [a-z_]+\(\)|$)/);
       if (m) return { class: m[1], message: m[2].trim(), from: 'php error log' };
@@ -392,7 +394,9 @@ async function observe(w, sc, obs, baseline = false) {
 
 // Compare one observation with its baseline. "ok" means: no difference from the valid file in the same place.
 const errs = (r) => new Set([...(r.error_messages || []), ...(r.then?.error_messages || []), ...((r.logged?.dblog || []).filter((x) => x.severity <= 3).map((x) => `${x.class || x.type}: ${x.exception_message || x.text}`)), ...((r.logged?.php_log || []).filter((l) => /Fatal|Uncaught|Warning/.test(l)))]);
-const newErrs = (r, b) => { const be = errs(b || {}); return [...errs(r)].filter((e) => !be.has(e)); };
+// Numbers are masked before comparing ("after 0 ms" and "after 1 ms" are the same error).
+const norm = (set) => new Set([...set].map((e) => e.replace(/\d+/g, 'N')));
+const newErrs = (r, b) => { const be = norm(errs(b || {})); return [...norm(errs(r))].filter((e) => !be.has(e)); };
 function judgeHttp(r, b) {
   if (r.status === 0 || (r.status >= 500 && !(b?.status >= 500))) return 'error';
   if (b && r.status !== b.status) return `http ${r.status} (valid file: ${b.status})`;
@@ -534,7 +538,7 @@ async function runMatrix() {
   const save = () => {
     fs.mkdirSync(OUT, { recursive: true });
     const scenariosOut = [...byId.values()].sort((a, b) => a.id.localeCompare(b.id));
-    fs.writeFileSync(resultsFile, JSON.stringify({ generated: new Date().toISOString(), environment: environment(), observations: OBSERVATIONS, placements: PLACEMENT_NOTES, baselines, scenarios: scenariosOut }, null, 1) + '\n');
+    writeResults(resultsFile, { generated: new Date().toISOString(), environment: environment(), observations: OBSERVATIONS, placements: PLACEMENT_NOTES, baselines, scenarios: scenariosOut });
   };
   const pool = async (items, fn) => { const q = [...items]; await Promise.all(workers.map(async (w) => { while (q.length) await fn(w, q.shift()); })); };
 
@@ -566,6 +570,35 @@ async function runMatrix() {
   for (const w of workers) { await stopServer(w); cleanExtensions(w); resetSite(w); }
   save();
   writeReport();
+}
+
+// results.json is written compactly: one scenario or baseline per line (diffable), without timings, empty lists, or dblog
+// text that only repeats the exception class and message. It is still several megabytes: 752 scenarios of up to 11
+// observations each, plus 252 baselines.
+function lean(v) {
+  if (Array.isArray(v)) return v.map(lean);
+  if (!v || typeof v !== 'object') return v;
+  const out = {};
+  for (const [k, x] of Object.entries(v)) {
+    if (k === 'ms' || x === undefined || x === null || (Array.isArray(x) && !x.length)) continue;
+    if (k === 'logged') {
+      const dblog = (x.dblog || []).map((r) => { const { text, backtrace, ...rest } = r; return r.class ? rest : { ...rest, text: (text || '').slice(0, 400) }; });
+      const php_log = (x.php_log || []).map((l) => l.slice(0, 300));
+      if (dblog.length || php_log.length) out.logged = { ...(dblog.length ? { dblog } : {}), ...(php_log.length ? { php_log } : {}) };
+      continue;
+    }
+    out[k] = lean(x);
+  }
+  return out;
+}
+function writeResults(file, data) {
+  const { scenarios = [], baselines = {}, ...head } = data;
+  const lines = [JSON.stringify(head).slice(0, -1) + ',"baselines":{'];
+  lines.push(Object.entries(baselines).map(([k, b]) => `${JSON.stringify(k)}:${JSON.stringify(lean(b))}`).join(',\n'));
+  lines.push('},"scenarios":[');
+  lines.push(scenarios.map((x) => JSON.stringify(lean(x))).join(',\n'));
+  lines.push(']}');
+  fs.writeFileSync(file, lines.join('\n') + '\n');
 }
 
 // RESULTS.md: one table per kind and placement, one row per case, one column per observation (Symfony YAML runs), and the
@@ -608,11 +641,13 @@ function writeReport() {
     const bad = obs.filter(([k, x]) => k !== 'recovery' && (x.verdict !== 'ok' || (x.after_verdict && x.after_verdict !== 'ok')));
     if (!bad.length) return 'no effect';
     const cr = r.results.cr && r.results.cr.verdict === 'error' ? '; cr fails' : '';
-    const anon = r.results.anon && r.results.anon.verdict !== 'ok' ? '; anonymous fails' : '';
-    return `${bad.length} of ${obs.length - (r.results.recovery ? 1 : 0)} differ${cr}${anon}`;
+    const cold = r.results.anon_cold && r.results.anon_cold.verdict !== 'ok' ? '; cold: visitors 500' : '';
+    const anon = r.results.anon && r.results.anon.verdict !== 'ok' ? '; warm: visitors 500' : '';
+    const rec = r.results.recovery && r.results.recovery.verdict === 'does not recover' ? '; does not recover' : '';
+    return `${bad.length} of ${obs.length - (r.results.recovery ? 1 : 0)} differ${cr}${cold}${anon}${rec}`;
   };
   const cases = [...new Set(sc.map((s) => s.case))];
-  L.push('## Summary (Symfony YAML)', '', 'Per case and placement: how many observations (recovery not counted) differ from the valid file in the same place. Details per observation follow.', '');
+  L.push('## Summary (Symfony YAML)', '', 'Per case and placement: how many observations (recovery not counted) differ from the valid file in the same place. `cr fails`: core/scripts/dr cache:rebuild fails. `cold: visitors 500`: an anonymous visitor gets an error after the cache tables are emptied. `warm: visitors 500`: the same with warm caches. `does not recover`: the site still fails after the fixture is removed and caches are rebuilt. Details per observation follow.', '');
   L.push(`| case | ${groups.join(' | ')} |`, `|---|${groups.map(() => '---').join('|')}|`);
   for (const c of cases) L.push(`| ${c} | ${groups.map((g) => summaryCell(sc.find((s) => s.case === c && `${s.kind}/${s.placement}` === g && s.parser === 'symfony'))).join(' | ')} |`);
   L.push('');
@@ -636,7 +671,19 @@ function writeReport() {
     }
   }
   L.push('## Where PECL YAML differs from Symfony YAML', '');
-  if (diffs.length) L.push('| case | placement | observation | Symfony YAML | PECL YAML |', '|---|---|---|---|---|', ...diffs);
+  if (diffs.length) {
+    const byCase = new Map();
+    for (const row of diffs) {
+      const c = row.split(' | ')[0].slice(2), wording = row.includes('(message only)');
+      const e = byCase.get(c) || { outcome: 0, wording: 0 };
+      e[wording ? 'wording' : 'outcome']++;
+      byCase.set(c, e);
+    }
+    L.push('One row per case. "Outcome" counts observations whose verdict differs; "wording" counts /admin/modules results where both parsers fail but the exception message differs. The summary cells are for the module placements. Every differing cell is in results.json.', '');
+    L.push('| case | outcome | wording | module/uninstalled, Symfony | module/uninstalled, PECL | module/installed, Symfony | module/installed, PECL |', '|---|---|---|---|---|---|---|');
+    const pick = (c, pl, parser) => summaryCell(sc.find((s) => s.case === c && s.kind === 'module' && s.placement === pl && s.parser === parser));
+    for (const [c, n] of byCase) L.push(`| ${c} | ${n.outcome} | ${n.wording} | ${pick(c, 'uninstalled', 'symfony')} | ${pick(c, 'uninstalled', 'pecl')} | ${pick(c, 'installed', 'symfony')} | ${pick(c, 'installed', 'pecl')} |`);
+  }
   else L.push(sc.some((x) => x.parser === 'pecl') ? 'No differences.' : 'No PECL YAML runs recorded.');
   L.push('', '## Exceptions by case', '', 'The first exception logged in any observation of the case, per parser.', '', '| case | parser | exception class | message |', '|---|---|---|---|');
   const seen = new Set();
@@ -673,6 +720,35 @@ if (cmd === 'prepare') {
   if (r.output) console.log(scrub(`\n--- command output (start and end)\n${r.output}`));
   for (const row of JSON.parse(full.stdout || '[]')) if (row.backtrace) console.log(scrub(`\n--- dblog ${row.wid}: ${row.class}: ${row.exception_message}\n${row.backtrace}`));
   await stopServer(w); cleanExtensions(w); resetSite(w);
+} else if (cmd === 'profile-recovery') {
+  // Why the installed-profile cases do not recover once the file is back: step by step, reading the stored extension path
+  // names in state (ExtensionList::getPathNames() stores them under system.<type>.files; only reset() deletes them).
+  // Breaks the profile's info file by renaming it (the filename-hyphen case), restores it, then tries one repair.
+  const w = worker(Number(opt('only', '3')));
+  const db = () => path.join(sitesDefault(w), 'files/.sqlite');
+  const stateKeys = () => sqlite(db(), "SELECT value FROM key_value WHERE collection = 'state' AND name = 'system.profile.files'");
+  const profiles = () => { const v = stateKeys(); if (!v) return '(not stored)'; const m = [...v.matchAll(/s:\d+:"([a-z_]+)";s:\d+:"[^"]+\.info\.yml"/g)].map((x) => x[1]); return m.length ? m.join(', ') : v.slice(0, 120); };
+  const info = path.join(w.root, 'profiles/custom/infofix_profile/infofix_profile.info.yml');
+  const renamed = path.join(w.root, 'profiles/custom/infofix_profile/info-fix_profile.info.yml');
+  const steps = [];
+  const step = async (label, fn) => { const r = await fn(); const anon = await httpClean(w, '/user/login', ''); steps.push({ step: label, ...r, anon_status: anon.status, profiles_in_state: profiles() }); console.log(`${label}: ${JSON.stringify(r)}; GET /user/login ${anon.status}; system.profile.files lists: ${profiles()}`); };
+  await stopServer(w); cleanExtensions(w); restore(w, 'profile-installed'); placeValid(w, 'profile');
+  await startServer(w, 'symfony');
+  await step('1. snapshot, valid profile', async () => ({}));
+  fs.renameSync(info, renamed);
+  await step('2. info file renamed (not yet rebuilt)', async () => ({}));
+  await step('3. cache:rebuild with the file renamed', async () => ({ cache_rebuild_exit: drupal(w, 'symfony', 'cache:rebuild').exit }));
+  fs.renameSync(renamed, info);
+  await step('4. info file restored', async () => ({}));
+  await step('5. cache:rebuild with the file restored', async () => ({ cache_rebuild_exit: drupal(w, 'symfony', 'cache:rebuild').exit }));
+  await stopServer(w);
+  sqlite(db(), "DELETE FROM key_value WHERE collection = 'state' AND name = 'system.profile.files'");
+  await startServer(w, 'symfony');
+  await step('6. state system.profile.files deleted by hand', async () => ({}));
+  await step('7. cache:rebuild after that', async () => ({ cache_rebuild_exit: drupal(w, 'symfony', 'cache:rebuild').exit }));
+  await stopServer(w); cleanExtensions(w); resetSite(w);
+  fs.writeFileSync(path.join(OUT, 'profile-recovery.json'), JSON.stringify({ generated: new Date().toISOString(), environment: environment(), steps }, null, 1) + '\n');
+  console.log(`Wrote ${path.relative(labRoot, path.join(OUT, 'profile-recovery.json'))}`);
 } else if (cmd === 'sweep') {
   // Parser level only: every fixture info file through core's InfoParserDynamic, with each parser (tests/info-yml/lib/parse-sweep.php).
   const out = {};
@@ -729,6 +805,27 @@ if (cmd === 'prepare') {
   server.close();
   fs.writeFileSync(path.join(OUT, 'feed-control-3451701.json'), JSON.stringify(out, null, 1) + '\n');
   console.log(`Wrote ${path.relative(labRoot, path.join(OUT, 'feed-control-3451701.json'))}`);
+} else if (cmd === 'rejudge') {
+  // Recompute every verdict and exception label from the stored observations and baselines (after a change to judge() or
+  // exceptionOf()), without measuring again.
+  const file = path.join(OUT, 'results.json');
+  const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const keyOf = (sc, o) => `${sc.kind}/${sc.placement}/${sc.parser}/${o}`;
+  let changed = 0;
+  for (const sc of data.scenarios) {
+    for (const [o, r] of Object.entries(sc.results)) {
+      if (r.verdict === 'runner error') continue;
+      const before = JSON.stringify([r.verdict, r.after_verdict, r.exception, r.after?.exception]);
+      r.exception = exceptionOf({ ...(r.logged || {}), out: r.output }) || r.exception;
+      if (r.after) r.after.exception = exceptionOf(r.after.logged) || r.after.exception;
+      Object.assign(r, judge(o, r, data.baselines[keyOf(sc, o)]));
+      if (JSON.stringify([r.verdict, r.after_verdict, r.exception, r.after?.exception]) !== before) changed++;
+    }
+  }
+  data.rejudged = new Date().toISOString();
+  writeResults(file, data);
+  console.log(`Rejudged: ${changed} observation(s) changed.`);
+  writeReport();
 } else if (cmd === 'report') {
   writeReport();
 } else {
