@@ -1,0 +1,62 @@
+{
+ "scenario": {
+  "case": "yaml-empty-file",
+  "kind": "module",
+  "placement": "uninstalled-no-update",
+  "parser": "symfony"
+ },
+ "observation": "modules",
+ "status": 500,
+ "exception": {
+  "class": "TypeError",
+  "message": "array_keys(): Argument #1 ($array) must be of type array, null given",
+  "from": "dblog"
+ },
+ "php_log": [
+  "Uncaught PHP Exception TypeError: \"array_keys(): Argument #1 ($array) must be of type array, null given\" at core/lib/Drupal/Core/Extension/InfoParserDynamic.php line 66"
+ ]
+}
+
+--- dblog 44: TypeError: array_keys(): Argument #1 ($array) must be of type array, null given
+#0 core/lib/Drupal/Core/Extension/InfoParserDynamic.php(66): array_keys(NULL)
+#1 core/lib/Drupal/Core/Extension/InfoParser.php(47): Drupal\Core\Extension\InfoParserDynamic->parse('/home/user/drup...')
+#2 core/lib/Drupal/Core/Extension/ExtensionDiscovery.php(470): Drupal\Core\Extension\InfoParser->parse('/home/user/drup...')
+#3 core/lib/Drupal/Core/Extension/ExtensionDiscovery.php(207): Drupal\Core\Extension\ExtensionDiscovery->scanDirectory('', false)
+#4 core/lib/Drupal/Core/Extension/ModuleExtensionList.php(109): Drupal\Core\Extension\ExtensionDiscovery->scan('profile')
+#5 core/lib/Drupal/Core/Extension/ModuleExtensionList.php(92): Drupal\Core\Extension\ModuleExtensionList->getProfileDirectories(Object(Drupal\Core\Extension\ExtensionDiscovery))
+#6 core/lib/Drupal/Core/Extension/ExtensionList.php(306): Drupal\Core\Extension\ModuleExtensionList->getExtensionDiscovery()
+#7 core/lib/Drupal/Core/Extension/ModuleExtensionList.php(138): Drupal\Core\Extension\ExtensionList->doScanExtensions()
+#8 core/lib/Drupal/Core/Extension/ExtensionList.php(320): Drupal\Core\Extension\ModuleExtensionList->doScanExtensions()
+#9 core/lib/Drupal/Core/Extension/ModuleExtensionList.php(155): Drupal\Core\Extension\ExtensionList->doList()
+#10 core/lib/Drupal/Core/Extension/ExtensionList.php(290): Drupal\Core\Extension\ModuleExtensionList->doList()
+#11 core/modules/system/src/Form/ModulesListForm.php(174): Drupal\Core\Extension\ExtensionList->getList()
+#12 [internal function]: Drupal\system\Form\ModulesListForm->buildForm(Array, Object(Drupal\Core\Form\FormState))
+#13 core/lib/Drupal/Core/Form/FormBuilder.php(563): call_user_func_array(Array, Array)
+#14 core/lib/Drupal/Core/Form/FormBuilder.php(303): Drupal\Core\Form\FormBuilder->retrieveForm('system_modules', Object(Drupal\Core\Form\FormState))
+#15 core/lib/Drupal/Core/Controller/FormController.php(73): Drupal\Core\Form\FormBuilder->buildForm(Object(Drupal\system\Form\ModulesListForm), Object(Drupal\Core\Form\FormState))
+#16 [internal function]: Drupal\Core\Controller\FormController->getContentResult(Object(Symfony\Component\HttpFoundation\Request), Object(Drupal\Core\Routing\RouteMatch))
+#17 core/lib/Drupal/Core/EventSubscriber/EarlyRenderingControllerWrapperSubscriber.php(123): call_user_func_array(Array, Array)
+#18 core/lib/Drupal/Core/Render/Renderer.php(618): Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber->{closure:Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber::wrapControllerExecutionInRenderContext():121}()
+#19 [internal function]: Drupal\Core\Render\Renderer::{closure:Drupal\Core\Render\Renderer::executeInRenderContext():618}()
+#20 core/lib/Drupal/Core/Render/Renderer.php(619): Fiber->start()
+#21 core/lib/Drupal/Core/EventSubscriber/EarlyRenderingControllerWrapperSubscriber.php(121): Drupal\Core\Render\Renderer->executeInRenderContext(Object(Drupal\Core\Render\RenderContext), Object(Closure))
+#22 core/lib/Drupal/Core/EventSubscriber/EarlyRenderingControllerWrapperSubscriber.php(97): Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber->wrapControllerExecutionInRenderContext(Array, Array)
+#23 vendor/symfony/http-kernel/HttpKernel.php(188): Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber->{closure:Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber::onController():96}()
+#24 vendor/symfony/http-kernel/HttpKernel.php(79): Symfony\Component\HttpKernel\HttpKernel->handleRaw(Object(Symfony\Component\HttpFoundation\Request), 1, Object(Symfony\Component\HttpKernel\Event\ControllerArgumentsMetadata))
+#25 core/lib/Drupal/Core/StackMiddleware/Session.php(53): Symfony\Component\HttpKernel\HttpKernel->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#26 core/lib/Drupal/Core/StackMiddleware/KernelPreHandle.php(30): Drupal\Core\StackMiddleware\Session->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#27 core/lib/Drupal/Core/StackMiddleware/ContentLength.php(28): Drupal\Core\StackMiddleware\KernelPreHandle->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#28 core/modules/big_pipe/src/StackMiddleware/ContentLength.php(32): Drupal\Core\StackMiddleware\ContentLength->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#29 core/modules/page_cache/src/StackMiddleware/PageCache.php(114): Drupal\big_pipe\StackMiddleware\ContentLength->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#30 core/modules/page_cache/src/StackMiddleware/PageCache.php(88): Drupal\page_cache\StackMiddleware\PageCache->pass(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#31 core/lib/Drupal/Core/StackMiddleware/ReverseProxyMiddleware.php(48): Drupal\page_cache\StackMiddleware\PageCache->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#32 core/lib/Drupal/Core/StackMiddleware/NegotiationMiddleware.php(51): Drupal\Core\StackMiddleware\ReverseProxyMiddleware->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#33 core/lib/Drupal/Core/StackMiddleware/AjaxPageState.php(71): Drupal\Core\StackMiddleware\NegotiationMiddleware->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#34 core/lib/Drupal/Core/StackMiddleware/StackedHttpKernel.php(54): Drupal\Core\StackMiddleware\AjaxPageState->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#35 core/lib/Drupal/Core/DrupalKernel.php(750): Drupal\Core\StackMiddleware\StackedHttpKernel->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#36 vendor/symfony/runtime/Runner/Symfony/HttpKernelRunner.php(34): Drupal\Core\DrupalKernel->handle(Object(Symfony\Component\HttpFoundation\Request))
+#37 vendor/autoload_runtime.php(32): Symfony\Component\Runtime\Runner\Symfony\HttpKernelRunner->run()
+#38 autoload_runtime.php(20): require('/home/user/drup...')
+#39 index.php(13): require_once('/home/user/drup...')
+#40 .ht.router.php(71): require('/home/user/drup...')
+#41 {main}

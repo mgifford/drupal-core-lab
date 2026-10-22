@@ -1,0 +1,37 @@
+{
+ "scenario": {
+  "case": "yaml-unquoted-colon",
+  "kind": "module",
+  "placement": "uninstalled-no-update",
+  "parser": "symfony"
+ },
+ "observation": "updatephp",
+ "status": 500,
+ "exception": {
+  "class": "Drupal\\Core\\Extension\\InfoParserException",
+  "message": "Unable to parse modules/custom/infofix/infofix.info.yml A colon cannot be used in an unquoted mapping value at line 3 (near \"description: Lab fixture: parsing tests.\").",
+  "from": "php error log"
+ },
+ "php_log": [
+  "Drupal\\Core\\Extension\\InfoParserException: Unable to parse modules/custom/infofix/infofix.info.yml A colon cannot be used in an unquoted mapping value at line 3 (near \"description: Lab fixture: parsing tests.\"). in core/lib/Drupal/Core/Extension/InfoParserDynamic.php on line 64 #0 core/lib/Drupal/Core/Extension/InfoParser.php(47): Drupal\\Core\\Extension\\InfoParserDynamic->parse('/home/user/drup...')",
+  "#1 core/lib/Drupal/Core/Extension/ExtensionDiscovery.php(470): Drupal\\Core\\Extension\\InfoParser->parse('/home/user/drup...')",
+  "#2 core/lib/Drupal/Core/Extension/ExtensionDiscovery.php(207): Drupal\\Core\\Extension\\ExtensionDiscovery->scanDirectory('', false)",
+  "#3 core/lib/Drupal/Core/DrupalKernel.php(824): Drupal\\Core\\Extension\\ExtensionDiscovery->scan('profile')",
+  "#4 core/lib/Drupal/Core/DrupalKernel.php(809): Drupal\\Core\\DrupalKernel->setExtensionData()",
+  "#5 core/lib/Drupal/Core/DrupalKernel.php(1723): Drupal\\Core\\DrupalKernel->moduleData('announcements_f...')",
+  "#6 core/lib/Drupal/Core/DrupalKernel.php(673): Drupal\\Core\\DrupalKernel->getExtensionFileNames(Array, Array)",
+  "#7 core/lib/Drupal/Core/Update/UpdateKernel.php(30): Drupal\\Core\\DrupalKernel->discoverServiceProviders()",
+  "#8 core/lib/Drupal/Core/DrupalKernel.php(1601): Drupal\\Core\\Update\\UpdateKernel->discoverServiceProviders()",
+  "#9 core/lib/Drupal/Core/DrupalKernel.php(1484): Drupal\\Core\\DrupalKernel->initializeServiceProviders()",
+  "#10 core/lib/Drupal/Core/DrupalKernel.php(1032): Drupal\\Core\\DrupalKernel->compileContainer()",
+  "#11 core/lib/Drupal/Core/Update/UpdateKernel.php(42): Drupal\\Core\\DrupalKernel->initializeContainer()",
+  "#12 core/lib/Drupal/Core/DrupalKernel.php(524): Drupal\\Core\\Update\\UpdateKernel->initializeContainer()",
+  "#13 core/lib/Drupal/Core/Update/UpdateKernel.php(65): Drupal\\Core\\DrupalKernel->boot()",
+  "#14 vendor/symfony/runtime/Runner/Symfony/HttpKernelRunner.php(34): Drupal\\Core\\Update\\UpdateKernel->handle(Object(Symfony\\Component\\HttpFoundation\\Request))",
+  "#15 vendor/autoload_runtime.php(32): Symfony\\Component\\Runtime\\Runner\\Symfony\\HttpKernelRunner->run()",
+  "#16 autoload_runtime.php(20): require('/home/user/drup...')",
+  "#17 update.php(13): require_once('/home/user/drup...')",
+  "#18 .ht.router.php(71): require('/home/user/drup...')",
+  "#19 {main}"
+ ]
+}

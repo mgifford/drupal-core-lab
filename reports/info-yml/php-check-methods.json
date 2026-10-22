@@ -1,0 +1,60 @@
+{
+    "php": "8.5.12",
+    "opcache_enabled": true,
+    "results": [
+        {
+            "sample": "valid",
+            "php -l": "no error",
+            "token_get_all": "no error",
+            "opcache_compile_file": "no error"
+        },
+        {
+            "sample": "parse error (missing parameter)",
+            "php -l": "error: Parse error: syntax error, unexpected token \"{\", expecting variable in <file> on line 2",
+            "token_get_all": "error: ParseError line 2: syntax error, unexpected token \"{\", expecting variable",
+            "opcache_compile_file": "error: ParseError line 2: syntax error, unexpected token \"{\", expecting variable"
+        },
+        {
+            "sample": "parse error (unclosed brace)",
+            "php -l": "error: Parse error: Unclosed '{' on line 2 in <file> on line 4",
+            "token_get_all": "error: ParseError line 4: Unclosed '{' on line 2",
+            "opcache_compile_file": "error: ParseError line 4: Unclosed '{' on line 2"
+        },
+        {
+            "sample": "compile error: duplicate parameter",
+            "php -l": "error: Fatal error: Redefinition of parameter $a in <file> on line 2",
+            "token_get_all": "no error",
+            "opcache_compile_file": "error: Redefinition of parameter $a"
+        },
+        {
+            "sample": "compile error: redeclared method",
+            "php -l": "error: Fatal error: Cannot redeclare InfofixA::f() in <file> on line 4",
+            "token_get_all": "no error",
+            "opcache_compile_file": "error: Cannot redeclare InfofixA::f()"
+        },
+        {
+            "sample": "compile error: break outside a loop",
+            "php -l": "error: Fatal error: 'break' not in the 'loop' or 'switch' context in <file> on line 2",
+            "token_get_all": "no error",
+            "opcache_compile_file": "error: 'break' not in the 'loop' or 'switch' context"
+        },
+        {
+            "sample": "compile error: re-assign $this",
+            "php -l": "error: Fatal error: Cannot re-assign $this in <file> on line 2",
+            "token_get_all": "no error",
+            "opcache_compile_file": "error: Cannot re-assign $this"
+        },
+        {
+            "sample": "compile error: duplicate use alias",
+            "php -l": "error: Fatal error: Cannot use Baz\\Bar as Bar because the name is already in use in <file> on line 3",
+            "token_get_all": "no error",
+            "opcache_compile_file": "error: Cannot use Baz\\Bar as Bar because the name is already in use"
+        },
+        {
+            "sample": "runtime error only: undefined function",
+            "php -l": "no error",
+            "token_get_all": "no error",
+            "opcache_compile_file": "no error"
+        }
+    ]
+}

@@ -1,0 +1,114 @@
+{
+ "scenario": {
+  "case": "yaml-unquoted-colon",
+  "kind": "module",
+  "placement": "uninstalled-no-update",
+  "parser": "symfony"
+ },
+ "observation": "status",
+ "status": 500,
+ "exception": {
+  "class": "GuzzleHttp\\Exception\\NetworkException",
+  "message": "cURL error 56: CONNECT tunnel failed, response 403 (see https://curl.se/libcurl/c/libcurl-errors.html) for https://updates.drupal.org/psa.json",
+  "from": "dblog"
+ },
+ "php_log": [
+  "Uncaught PHP Exception Drupal\\Core\\Extension\\InfoParserException: \"Unable to parse modules/custom/infofix/infofix.info.yml A colon cannot be used in an unquoted mapping value at line 3 (near \"description: Lab fixture: parsing tests.\").\" at core/lib/Drupal/Core/Extension/InfoParserDynamic.php line 64"
+ ]
+}
+
+--- dblog 44: GuzzleHttp\Exception\NetworkException: cURL error 56: CONNECT tunnel failed, response 403 (see https://curl.se/libcurl/c/libcurl-errors.html) for https://updates.drupal.org/psa.json
+#0 vendor/guzzlehttp/guzzle/src/Handler/CurlFactory.php(1205): GuzzleHttp\Handler\CurlFactory::createRejection(Object(SensitiveParameterValue), Object(SensitiveParameterValue))
+#1 vendor/guzzlehttp/guzzle/src/Handler/CurlFactory.php(1049): GuzzleHttp\Handler\CurlFactory::finishError(Object(GuzzleHttp\Handler\CurlHandler), Object(SensitiveParameterValue), Object(GuzzleHttp\Handler\CurlFactory), NULL, NULL)
+#2 vendor/guzzlehttp/guzzle/src/Handler/CurlHandler.php(104): GuzzleHttp\Handler\CurlFactory::finish(Object(GuzzleHttp\Handler\CurlHandler), Object(SensitiveParameterValue), Object(GuzzleHttp\Handler\CurlFactory))
+#3 vendor/guzzlehttp/guzzle/src/Handler/Proxy.php(38): GuzzleHttp\Handler\CurlHandler->__invoke(Object(SensitiveParameterValue), Object(SensitiveParameterValue))
+#4 vendor/guzzlehttp/guzzle/src/Handler/Proxy.php(63): GuzzleHttp\Handler\Proxy::{closure:GuzzleHttp\Handler\Proxy::wrapSync():32}(Object(SensitiveParameterValue), Object(SensitiveParameterValue))
+#5 vendor/guzzlehttp/guzzle/src/PrepareBodyMiddleware.php(49): GuzzleHttp\Handler\Proxy::{closure:GuzzleHttp\Handler\Proxy::wrapStreaming():57}(Object(SensitiveParameterValue), Object(SensitiveParameterValue))
+#6 vendor/guzzlehttp/guzzle/src/Middleware.php(58): GuzzleHttp\PrepareBodyMiddleware->__invoke(Object(SensitiveParameterValue), Object(SensitiveParameterValue))
+#7 vendor/guzzlehttp/guzzle/src/AuthMiddleware.php(100): GuzzleHttp\Middleware::{closure:{closure:GuzzleHttp\Middleware::cookies():50}:51}(Object(SensitiveParameterValue), Object(SensitiveParameterValue))
+#8 vendor/guzzlehttp/guzzle/src/RedirectMiddleware.php(88): GuzzleHttp\AuthMiddleware->__invoke(Object(SensitiveParameterValue), Object(SensitiveParameterValue))
+#9 vendor/guzzlehttp/guzzle/src/Middleware.php(101): GuzzleHttp\RedirectMiddleware->__invoke(Object(SensitiveParameterValue), Object(SensitiveParameterValue))
+#10 vendor/guzzlehttp/guzzle/src/HandlerStack.php(89): GuzzleHttp\Middleware::{closure:{closure:GuzzleHttp\Middleware::httpErrors():90}:91}(Object(SensitiveParameterValue), Object(SensitiveParameterValue))
+#11 vendor/guzzlehttp/guzzle/src/Client.php(1514): GuzzleHttp\HandlerStack->__invoke(Object(SensitiveParameterValue), Object(SensitiveParameterValue))
+#12 vendor/guzzlehttp/guzzle/src/Client.php(561): GuzzleHttp\Client->transfer(Object(SensitiveParameterValue), Object(SensitiveParameterValue))
+#13 vendor/guzzlehttp/guzzle/src/Client.php(658): GuzzleHttp\Client->requestAsync('GET', Object(GuzzleHttp\Psr7\Uri), Object(SensitiveParameterValue))
+#14 vendor/guzzlehttp/guzzle/src/ClientTrait.php(202): GuzzleHttp\Client->request('GET', 'https://updates...', Object(SensitiveParameterValue))
+#15 core/modules/system/src/SecurityAdvisories/SecurityAdvisoriesFetcher.php(277): GuzzleHttp\Client->get('https://updates...', Object(SensitiveParameterValue))
+#16 core/modules/system/src/SecurityAdvisories/SecurityAdvisoriesFetcher.php(96): Drupal\system\SecurityAdvisories\SecurityAdvisoriesFetcher->doRequest(5)
+#17 core/modules/system/src/Install/Requirements/SystemRequirements.php(591): Drupal\system\SecurityAdvisories\SecurityAdvisoriesFetcher->getSecurityAdvisories(true, 5)
+#18 core/modules/system/src/Hook/SystemRequirementsHooks.php(201): Drupal\system\Install\Requirements\SystemRequirements::systemAdvisoriesRequirements(Array)
+#19 core/modules/system/src/Hook/SystemRequirementsHooks.php(48): Drupal\system\Hook\SystemRequirementsHooks->checkRequirements('runtime')
+#20 [internal function]: Drupal\system\Hook\SystemRequirementsHooks->runtimeRequirements()
+#21 core/lib/Drupal/Core/Extension/ModuleHandler.php(349): call_user_func_array(Array, Array)
+#22 core/lib/Drupal/Core/Extension/ModuleHandler.php(287): Drupal\Core\Extension\ModuleHandler->{closure:Drupal\Core\Extension\ModuleHandler::invokeAll():348}(Array, 'system')
+#23 core/lib/Drupal/Core/Extension/ModuleHandler.php(348): Drupal\Core\Extension\ModuleHandler->invokeAllWith('runtime_require...', Object(Closure))
+#24 core/modules/system/src/SystemManager.php(93): Drupal\Core\Extension\ModuleHandler->invokeAll('runtime_require...')
+#25 core/modules/system/src/Controller/SystemInfoController.php(61): Drupal\system\SystemManager->listRequirements()
+#26 [internal function]: Drupal\system\Controller\SystemInfoController->status()
+#27 core/lib/Drupal/Core/EventSubscriber/EarlyRenderingControllerWrapperSubscriber.php(123): call_user_func_array(Array, Array)
+#28 core/lib/Drupal/Core/Render/Renderer.php(618): Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber->{closure:Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber::wrapControllerExecutionInRenderContext():121}()
+#29 [internal function]: Drupal\Core\Render\Renderer::{closure:Drupal\Core\Render\Renderer::executeInRenderContext():618}()
+#30 core/lib/Drupal/Core/Render/Renderer.php(619): Fiber->start()
+#31 core/lib/Drupal/Core/EventSubscriber/EarlyRenderingControllerWrapperSubscriber.php(121): Drupal\Core\Render\Renderer->executeInRenderContext(Object(Drupal\Core\Render\RenderContext), Object(Closure))
+#32 core/lib/Drupal/Core/EventSubscriber/EarlyRenderingControllerWrapperSubscriber.php(97): Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber->wrapControllerExecutionInRenderContext(Array, Array)
+#33 vendor/symfony/http-kernel/HttpKernel.php(188): Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber->{closure:Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber::onController():96}()
+#34 vendor/symfony/http-kernel/HttpKernel.php(79): Symfony\Component\HttpKernel\HttpKernel->handleRaw(Object(Symfony\Component\HttpFoundation\Request), 1, Object(Symfony\Component\HttpKernel\Event\ControllerArgumentsMetadata))
+#35 core/lib/Drupal/Core/StackMiddleware/Session.php(53): Symfony\Component\HttpKernel\HttpKernel->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#36 core/lib/Drupal/Core/StackMiddleware/KernelPreHandle.php(30): Drupal\Core\StackMiddleware\Session->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#37 core/lib/Drupal/Core/StackMiddleware/ContentLength.php(28): Drupal\Core\StackMiddleware\KernelPreHandle->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#38 core/modules/big_pipe/src/StackMiddleware/ContentLength.php(32): Drupal\Core\StackMiddleware\ContentLength->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#39 core/modules/page_cache/src/StackMiddleware/PageCache.php(114): Drupal\big_pipe\StackMiddleware\ContentLength->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#40 core/modules/page_cache/src/StackMiddleware/PageCache.php(88): Drupal\page_cache\StackMiddleware\PageCache->pass(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#41 core/lib/Drupal/Core/StackMiddleware/ReverseProxyMiddleware.php(48): Drupal\page_cache\StackMiddleware\PageCache->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#42 core/lib/Drupal/Core/StackMiddleware/NegotiationMiddleware.php(51): Drupal\Core\StackMiddleware\ReverseProxyMiddleware->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#43 core/lib/Drupal/Core/StackMiddleware/AjaxPageState.php(71): Drupal\Core\StackMiddleware\NegotiationMiddleware->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#44 core/lib/Drupal/Core/StackMiddleware/StackedHttpKernel.php(54): Drupal\Core\StackMiddleware\AjaxPageState->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#45 core/lib/Drupal/Core/DrupalKernel.php(750): Drupal\Core\StackMiddleware\StackedHttpKernel->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#46 vendor/symfony/runtime/Runner/Symfony/HttpKernelRunner.php(34): Drupal\Core\DrupalKernel->handle(Object(Symfony\Component\HttpFoundation\Request))
+#47 vendor/autoload_runtime.php(32): Symfony\Component\Runtime\Runner\Symfony\HttpKernelRunner->run()
+#48 autoload_runtime.php(20): require('/home/user/drup...')
+#49 index.php(13): require_once('/home/user/drup...')
+#50 .ht.router.php(71): require('/home/user/drup...')
+#51 {main}
+
+--- dblog 45: Drupal\Core\Extension\InfoParserException: Unable to parse modules/custom/infofix/infofix.info.yml A colon cannot be used in an unquoted mapping value at line 3 (near "description: Lab fixture: parsing tests.").
+#0 core/lib/Drupal/Core/Extension/InfoParser.php(47): Drupal\Core\Extension\InfoParserDynamic->parse('/home/user/drup...')
+#1 core/lib/Drupal/Core/Extension/ExtensionDiscovery.php(470): Drupal\Core\Extension\InfoParser->parse('/home/user/drup...')
+#2 core/lib/Drupal/Core/Extension/ExtensionDiscovery.php(207): Drupal\Core\Extension\ExtensionDiscovery->scanDirectory('', false)
+#3 core/lib/Drupal/Core/Update/UpdateRegistry.php(245): Drupal\Core\Extension\ExtensionDiscovery->scan('module')
+#4 core/lib/Drupal/Core/Update/UpdateRegistry.php(267): Drupal\Core\Update\UpdateRegistry->discoverExtensions()
+#5 core/lib/Drupal/Core/Update/UpdateRegistry.php(120): Drupal\Core\Update\UpdateRegistry->scanExtensionsAndLoadUpdateFiles()
+#6 core/modules/system/src/Hook/SystemRequirementsHooks.php(855): Drupal\Core\Update\UpdateRegistry->getPendingUpdateFunctions()
+#7 core/modules/system/src/Hook/SystemRequirementsHooks.php(48): Drupal\system\Hook\SystemRequirementsHooks->checkRequirements('runtime')
+#8 [internal function]: Drupal\system\Hook\SystemRequirementsHooks->runtimeRequirements()
+#9 core/lib/Drupal/Core/Extension/ModuleHandler.php(349): call_user_func_array(Array, Array)
+#10 core/lib/Drupal/Core/Extension/ModuleHandler.php(287): Drupal\Core\Extension\ModuleHandler->{closure:Drupal\Core\Extension\ModuleHandler::invokeAll():348}(Array, 'system')
+#11 core/lib/Drupal/Core/Extension/ModuleHandler.php(348): Drupal\Core\Extension\ModuleHandler->invokeAllWith('runtime_require...', Object(Closure))
+#12 core/modules/system/src/SystemManager.php(93): Drupal\Core\Extension\ModuleHandler->invokeAll('runtime_require...')
+#13 core/modules/system/src/Controller/SystemInfoController.php(61): Drupal\system\SystemManager->listRequirements()
+#14 [internal function]: Drupal\system\Controller\SystemInfoController->status()
+#15 core/lib/Drupal/Core/EventSubscriber/EarlyRenderingControllerWrapperSubscriber.php(123): call_user_func_array(Array, Array)
+#16 core/lib/Drupal/Core/Render/Renderer.php(618): Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber->{closure:Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber::wrapControllerExecutionInRenderContext():121}()
+#17 [internal function]: Drupal\Core\Render\Renderer::{closure:Drupal\Core\Render\Renderer::executeInRenderContext():618}()
+#18 core/lib/Drupal/Core/Render/Renderer.php(619): Fiber->start()
+#19 core/lib/Drupal/Core/EventSubscriber/EarlyRenderingControllerWrapperSubscriber.php(121): Drupal\Core\Render\Renderer->executeInRenderContext(Object(Drupal\Core\Render\RenderContext), Object(Closure))
+#20 core/lib/Drupal/Core/EventSubscriber/EarlyRenderingControllerWrapperSubscriber.php(97): Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber->wrapControllerExecutionInRenderContext(Array, Array)
+#21 vendor/symfony/http-kernel/HttpKernel.php(188): Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber->{closure:Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber::onController():96}()
+#22 vendor/symfony/http-kernel/HttpKernel.php(79): Symfony\Component\HttpKernel\HttpKernel->handleRaw(Object(Symfony\Component\HttpFoundation\Request), 1, Object(Symfony\Component\HttpKernel\Event\ControllerArgumentsMetadata))
+#23 core/lib/Drupal/Core/StackMiddleware/Session.php(53): Symfony\Component\HttpKernel\HttpKernel->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#24 core/lib/Drupal/Core/StackMiddleware/KernelPreHandle.php(30): Drupal\Core\StackMiddleware\Session->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#25 core/lib/Drupal/Core/StackMiddleware/ContentLength.php(28): Drupal\Core\StackMiddleware\KernelPreHandle->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#26 core/modules/big_pipe/src/StackMiddleware/ContentLength.php(32): Drupal\Core\StackMiddleware\ContentLength->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#27 core/modules/page_cache/src/StackMiddleware/PageCache.php(114): Drupal\big_pipe\StackMiddleware\ContentLength->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#28 core/modules/page_cache/src/StackMiddleware/PageCache.php(88): Drupal\page_cache\StackMiddleware\PageCache->pass(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#29 core/lib/Drupal/Core/StackMiddleware/ReverseProxyMiddleware.php(48): Drupal\page_cache\StackMiddleware\PageCache->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#30 core/lib/Drupal/Core/StackMiddleware/NegotiationMiddleware.php(51): Drupal\Core\StackMiddleware\ReverseProxyMiddleware->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#31 core/lib/Drupal/Core/StackMiddleware/AjaxPageState.php(71): Drupal\Core\StackMiddleware\NegotiationMiddleware->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#32 core/lib/Drupal/Core/StackMiddleware/StackedHttpKernel.php(54): Drupal\Core\StackMiddleware\AjaxPageState->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#33 core/lib/Drupal/Core/DrupalKernel.php(750): Drupal\Core\StackMiddleware\StackedHttpKernel->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#34 vendor/symfony/runtime/Runner/Symfony/HttpKernelRunner.php(34): Drupal\Core\DrupalKernel->handle(Object(Symfony\Component\HttpFoundation\Request))
+#35 vendor/autoload_runtime.php(32): Symfony\Component\Runtime\Runner\Symfony\HttpKernelRunner->run()
+#36 autoload_runtime.php(20): require('/home/user/drup...')
+#37 index.php(13): require_once('/home/user/drup...')
+#38 .ht.router.php(71): require('/home/user/drup...')
+#39 {main}

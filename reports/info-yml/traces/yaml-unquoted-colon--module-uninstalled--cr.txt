@@ -1,0 +1,34 @@
+{
+ "scenario": {
+  "case": "yaml-unquoted-colon",
+  "kind": "module",
+  "placement": "uninstalled",
+  "parser": "symfony"
+ },
+ "observation": "cr",
+ "status": 1,
+ "exception": {
+  "class": "Drupal\\Core\\Extension\\InfoParserException",
+  "message": "Unable to parse modules/custom/infofix/infofix.info.yml A colon cannot be used in an unquoted mapping value at line 3 (near \"description: Lab fixture: parsing tests.\").",
+  "from": "command output"
+ },
+ "php_log": []
+}
+
+--- command output (start and end)
+In InfoParserDynamic.php line 64:
+                                                                                                                                                                                                                                     
+  [Drupal\Core\Extension\InfoParserException]                                                                                                                                                                                        
+  Unable to parse modules/custom/infofix/infofix.info.yml A colon cannot be used in an unquoted mapping value at line 3 (near "description: Lab fixture: parsing tests.").  
+                                                                                                                                                                                                                                     
+
+Exception trace:
+  at core/lib/Drupal/Core/Extension/InfoParserDynamic.php:64
+ Drupal\Core\Extension\InfoParserDynamic->parse() at 
+[...]
+onsoleApplicationRunner.php:49
+ Symfony\Component\Runtime\Runner\Symfony\ConsoleApplicationRunner->run() at vendor/autoload_runtime.php:32
+ require() at autoload_runtime.php:20
+ require_once() at core/scripts/dr:18
+
+cache:rebuild
