@@ -1,0 +1,54 @@
+{
+ "scenario": {
+  "case": "yaml-unquoted-colon",
+  "kind": "module",
+  "placement": "uninstalled-no-update",
+  "parser": "symfony"
+ },
+ "observation": "appearance",
+ "status": 500,
+ "exception": {
+  "class": "Drupal\\Core\\Extension\\InfoParserException",
+  "message": "Unable to parse modules/custom/infofix/infofix.info.yml A colon cannot be used in an unquoted mapping value at line 3 (near \"description: Lab fixture: parsing tests.\").",
+  "from": "dblog"
+ },
+ "php_log": [
+  "Uncaught PHP Exception Drupal\\Core\\Extension\\InfoParserException: \"Unable to parse modules/custom/infofix/infofix.info.yml A colon cannot be used in an unquoted mapping value at line 3 (near \"description: Lab fixture: parsing tests.\").\" at core/lib/Drupal/Core/Extension/InfoParserDynamic.php line 64"
+ ]
+}
+
+--- dblog 44: Drupal\Core\Extension\InfoParserException: Unable to parse modules/custom/infofix/infofix.info.yml A colon cannot be used in an unquoted mapping value at line 3 (near "description: Lab fixture: parsing tests.").
+#0 core/lib/Drupal/Core/Extension/InfoParser.php(47): Drupal\Core\Extension\InfoParserDynamic->parse('/home/user/drup...')
+#1 core/lib/Drupal/Core/Extension/ExtensionDiscovery.php(470): Drupal\Core\Extension\InfoParser->parse('/home/user/drup...')
+#2 core/lib/Drupal/Core/Extension/ExtensionDiscovery.php(207): Drupal\Core\Extension\ExtensionDiscovery->scanDirectory('', false)
+#3 core/lib/Drupal/Core/Extension/ExtensionList.php(306): Drupal\Core\Extension\ExtensionDiscovery->scan('theme')
+#4 core/lib/Drupal/Core/Extension/ExtensionList.php(320): Drupal\Core\Extension\ExtensionList->doScanExtensions()
+#5 core/lib/Drupal/Core/Extension/ThemeExtensionList.php(95): Drupal\Core\Extension\ExtensionList->doList()
+#6 core/lib/Drupal/Core/Extension/ExtensionList.php(280): Drupal\Core\Extension\ThemeExtensionList->doList()
+#7 core/modules/system/src/Controller/SystemController.php(223): Drupal\Core\Extension\ExtensionList->getList(true)
+#8 [internal function]: Drupal\system\Controller\SystemController->themesPage()
+#9 core/lib/Drupal/Core/EventSubscriber/EarlyRenderingControllerWrapperSubscriber.php(123): call_user_func_array(Array, Array)
+#10 core/lib/Drupal/Core/Render/Renderer.php(618): Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber->{closure:Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber::wrapControllerExecutionInRenderContext():121}()
+#11 [internal function]: Drupal\Core\Render\Renderer::{closure:Drupal\Core\Render\Renderer::executeInRenderContext():618}()
+#12 core/lib/Drupal/Core/Render/Renderer.php(619): Fiber->start()
+#13 core/lib/Drupal/Core/EventSubscriber/EarlyRenderingControllerWrapperSubscriber.php(121): Drupal\Core\Render\Renderer->executeInRenderContext(Object(Drupal\Core\Render\RenderContext), Object(Closure))
+#14 core/lib/Drupal/Core/EventSubscriber/EarlyRenderingControllerWrapperSubscriber.php(97): Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber->wrapControllerExecutionInRenderContext(Array, Array)
+#15 vendor/symfony/http-kernel/HttpKernel.php(188): Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber->{closure:Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber::onController():96}()
+#16 vendor/symfony/http-kernel/HttpKernel.php(79): Symfony\Component\HttpKernel\HttpKernel->handleRaw(Object(Symfony\Component\HttpFoundation\Request), 1, Object(Symfony\Component\HttpKernel\Event\ControllerArgumentsMetadata))
+#17 core/lib/Drupal/Core/StackMiddleware/Session.php(53): Symfony\Component\HttpKernel\HttpKernel->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#18 core/lib/Drupal/Core/StackMiddleware/KernelPreHandle.php(30): Drupal\Core\StackMiddleware\Session->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#19 core/lib/Drupal/Core/StackMiddleware/ContentLength.php(28): Drupal\Core\StackMiddleware\KernelPreHandle->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#20 core/modules/big_pipe/src/StackMiddleware/ContentLength.php(32): Drupal\Core\StackMiddleware\ContentLength->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#21 core/modules/page_cache/src/StackMiddleware/PageCache.php(114): Drupal\big_pipe\StackMiddleware\ContentLength->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#22 core/modules/page_cache/src/StackMiddleware/PageCache.php(88): Drupal\page_cache\StackMiddleware\PageCache->pass(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#23 core/lib/Drupal/Core/StackMiddleware/ReverseProxyMiddleware.php(48): Drupal\page_cache\StackMiddleware\PageCache->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#24 core/lib/Drupal/Core/StackMiddleware/NegotiationMiddleware.php(51): Drupal\Core\StackMiddleware\ReverseProxyMiddleware->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#25 core/lib/Drupal/Core/StackMiddleware/AjaxPageState.php(71): Drupal\Core\StackMiddleware\NegotiationMiddleware->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#26 core/lib/Drupal/Core/StackMiddleware/StackedHttpKernel.php(54): Drupal\Core\StackMiddleware\AjaxPageState->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#27 core/lib/Drupal/Core/DrupalKernel.php(750): Drupal\Core\StackMiddleware\StackedHttpKernel->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#28 vendor/symfony/runtime/Runner/Symfony/HttpKernelRunner.php(34): Drupal\Core\DrupalKernel->handle(Object(Symfony\Component\HttpFoundation\Request))
+#29 vendor/autoload_runtime.php(32): Symfony\Component\Runtime\Runner\Symfony\HttpKernelRunner->run()
+#30 autoload_runtime.php(20): require('/home/user/drup...')
+#31 index.php(13): require_once('/home/user/drup...')
+#32 .ht.router.php(71): require('/home/user/drup...')
+#33 {main}

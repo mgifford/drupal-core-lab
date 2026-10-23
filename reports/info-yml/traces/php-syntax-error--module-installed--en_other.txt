@@ -1,0 +1,33 @@
+{
+ "scenario": {
+  "case": "php-syntax-error",
+  "kind": "module",
+  "placement": "installed",
+  "parser": "symfony"
+ },
+ "observation": "en_other",
+ "status": 1,
+ "exception": {
+  "class": "Symfony\\Component\\Console\\Exception\\CommandNotFoundException",
+  "message": "Command \"recipe\" is not defined.",
+  "from": "command output"
+ },
+ "php_log": []
+}
+
+--- command output (start and end)
+In Application.php line 785:
+                                                                  
+  [Symfony\Component\Console\Exception\CommandNotFoundException]  
+  Command "recipe" is not defined.                                
+                                                                  
+
+Exception trace:
+  at vendor/symfony/console/Application.php:785
+ Symfony\Component\Console\Application->find() at core/lib/Drupal/Core/Command/DrupalApplication.php:71
+ Drupal\Core\Command\DrupalApplication->find() at vendor/symfony/console/Application.php:321
+ Symfony\Component\Console\Application->doRun() at vendor/symfony/console/Application.php:218
+ Symfony\Component\Console\Application->run() at vendor/symfony/runtime/Runner/Symfony/ConsoleApplicationRunner.php:49
+ Symfony\Component\Runtime\Runner\Symfony\ConsoleApplicationRunner->run() at vendor/autoload_runtime.php:32
+ require() at autoload_runtime.php:20
+ require_once() at core/scripts/dr:18

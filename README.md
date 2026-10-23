@@ -31,6 +31,7 @@ Drupal**. Runs locally with DDEV. An opt-in path for a DDEV Coder (coder.ddev.co
 | Know what each tool can and cannot tell me | [docs/TESTING-TOOLS.md](docs/TESTING-TOOLS.md) |
 | Work here as an agent (rules, environments, commands) | [AGENTS.md](AGENTS.md) (short; it points to [commands](docs/COMMANDS.md), [environments](docs/ENVIRONMENTS.md) and [pitfalls](docs/PITFALLS.md)), and [AI-LEARNING.md](AI-LEARNING.md) for what earlier sessions learned |
 | Give someone a self-contained copy of one reproduction | `node scripts/make-bundle.mjs <slug>`, then `bundles/` |
+| Reproduce what a broken `.info.yml` (or a PHP parse error) does to a Drupal 12 site, installed or not | [tests/info-yml/README.md](tests/info-yml/README.md); results in [reports/info-yml/](reports/info-yml/) |
 
 ## Quick start (needs Docker, DDEV 1.24+, git, Node 20+; ~10 GB free disk space; first run 10 to 20 minutes)
     node tools/compare/setup.mjs 3619127-pinned      # builds Before (upstream) and After (with the patches), applies the recipe
