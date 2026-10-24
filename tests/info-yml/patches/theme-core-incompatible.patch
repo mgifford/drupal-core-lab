@@ -1,0 +1,15 @@
+diff --git a/core/lib/Drupal/Core/Extension/ThemeInstaller.php b/core/lib/Drupal/Core/Extension/ThemeInstaller.php
+index 1db0e8ad..ec4b448d 100644
+--- a/core/lib/Drupal/Core/Extension/ThemeInstaller.php
++++ b/core/lib/Drupal/Core/Extension/ThemeInstaller.php
+@@ -74,6 +74,10 @@ public function getThemesToInstall(array $theme_list, bool $install_dependencies
+ 
+     $module_list = $this->moduleExtensionList->getList();
+     foreach ($theme_list as $theme => $value) {
++      // As for modules in ModuleInstaller::getModulesToInstall().
++      if (!empty($theme_data[$theme]->info['core_incompatible'])) {
++        throw new MissingDependencyException("Unable to install theme: '$theme' is incompatible with this version of Drupal core.");
++      }
+       $module_dependencies = $theme_data[$theme]->module_dependencies;
+       // $theme_data[$theme]->requires contains both theme and module
+       // dependencies keyed by the extension machine names.

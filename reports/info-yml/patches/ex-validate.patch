@@ -1,0 +1,1483 @@
+From ee6498b4b9ac9ca19887d78d21632a8f70ec6fae Mon Sep 17 00:00:00 2001
+From: Mike Gifford <mike.gifford@gmail.com>
+Date: Fri, 23 Oct 2026 20:28:04 +0000
+Subject: [PATCH] Add ExtensionFileValidator and the ex:validate command
+
+A malformed .info.yml file stops the container build once caches are
+cleared, even when the extension is not installed. The new validator
+checks info files with InfoParserDynamic and Symfony YAML, plus PECL
+YAML when it is loaded. It also checks value types, file names, base
+themes and PHP syntax. It needs no installed site.
+
+The ex:validate command runs it for continuous integration and before
+a deployment. Options: --changed, --include-tests, --php-lint, --strict and
+--format=json.
+---
+ core/core.services.yml                        |   4 +
+ .../Drupal/Core/Command/DrupalApplication.php |   2 +
+ .../Command/ExtensionValidateCommand.php      | 234 +++++++
+ .../RecursiveExtensionFilterCallback.php      |  10 +
+ .../Core/Extension/ExtensionFileValidator.php | 654 ++++++++++++++++++
+ .../Core/Extension/ExtensionFileViolation.php |  59 ++
+ .../Command/ExtensionValidateCommandTest.php  | 190 +++++
+ .../Extension/ExtensionFileValidatorTest.php  | 227 ++++++
+ 8 files changed, 1380 insertions(+)
+ create mode 100644 core/lib/Drupal/Core/Extension/Command/ExtensionValidateCommand.php
+ create mode 100644 core/lib/Drupal/Core/Extension/ExtensionFileValidator.php
+ create mode 100644 core/lib/Drupal/Core/Extension/ExtensionFileViolation.php
+ create mode 100644 core/tests/Drupal/Tests/Core/Extension/Command/ExtensionValidateCommandTest.php
+ create mode 100644 core/tests/Drupal/Tests/Core/Extension/ExtensionFileValidatorTest.php
+
+diff --git a/core/core.services.yml b/core/core.services.yml
+index 28afb5a6..df4198c0 100644
+--- a/core/core.services.yml
++++ b/core/core.services.yml
+@@ -1844,6 +1844,10 @@ services:
+     class: Drupal\Core\Extension\InfoParser
+     arguments: ['%app.root%']
+   Drupal\Core\Extension\InfoParserInterface: '@info_parser'
++  extension.file_validator:
++    class: Drupal\Core\Extension\ExtensionFileValidator
++    arguments: ['%app.root%']
++  Drupal\Core\Extension\ExtensionFileValidator: '@extension.file_validator'
+   twig:
+     class: Drupal\Core\Template\TwigEnvironment
+     arguments: ['%app.root%', '@cache.default', '%twig_extension_hash%', '@state', '@twig.loader', '%twig.config%']
+diff --git a/core/lib/Drupal/Core/Command/DrupalApplication.php b/core/lib/Drupal/Core/Command/DrupalApplication.php
+index 30819800..df99f16d 100644
+--- a/core/lib/Drupal/Core/Command/DrupalApplication.php
++++ b/core/lib/Drupal/Core/Command/DrupalApplication.php
+@@ -6,6 +6,7 @@
+ 
+ use Composer\Autoload\ClassLoader;
+ use Drupal\Core\DrupalKernel;
++use Drupal\Core\Extension\Command\ExtensionValidateCommand;
+ use Drupal\Core\Site\Settings;
+ use Symfony\Component\Console\Application;
+ use Symfony\Component\Console\Command\Command;
+@@ -59,6 +60,7 @@ protected function getDefaultCommands(): array {
+     $default_commands[] = new CacheRebuildCommand($this->classloader);
+     $default_commands[] = new ServerCommand($this->classloader);
+     $default_commands[] = new GenerateTheme();
++    $default_commands[] = new ExtensionValidateCommand();
+ 
+     return $default_commands;
+   }
+diff --git a/core/lib/Drupal/Core/Extension/Command/ExtensionValidateCommand.php b/core/lib/Drupal/Core/Extension/Command/ExtensionValidateCommand.php
+new file mode 100644
+index 00000000..aea8ab8b
+--- /dev/null
++++ b/core/lib/Drupal/Core/Extension/Command/ExtensionValidateCommand.php
+@@ -0,0 +1,234 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Core\Extension\Command;
++
++use Drupal\Core\Extension\ExtensionFileValidator;
++use Drupal\Core\Extension\ExtensionFileViolation;
++use Symfony\Component\Console\Command\Command;
++use Symfony\Component\Console\Input\InputArgument;
++use Symfony\Component\Console\Input\InputInterface;
++use Symfony\Component\Console\Input\InputOption;
++use Symfony\Component\Console\Output\OutputInterface;
++use Symfony\Component\Process\Process;
++
++/**
++ * Checks extension info files and PHP syntax without bootstrapping Drupal.
++ *
++ * A malformed .info.yml file breaks the whole site once caches are cleared,
++ * whether or not the extension is installed. Run this command before a
++ * deployment or in continuous integration to find such files first. It needs
++ * no installed site and no database.
++ *
++ * Exit codes: 0 when no errors are found (warnings are allowed, unless
++ * --strict is used), 1 when errors are found, 2 when the command cannot run (a
++ * path or git is missing).
++ *
++ * @see \Drupal\Core\Extension\ExtensionFileValidator
++ *
++ * @internal
++ */
++class ExtensionValidateCommand extends Command {
++
++  /**
++   * The root directory of the Drupal installation.
++   */
++  protected string $root;
++
++  /**
++   * Constructs an ExtensionValidateCommand object.
++   *
++   * @param string|null $root
++   *   (optional) The root directory of the Drupal installation.
++   */
++  public function __construct(?string $root = NULL) {
++    $this->root = $root ?? dirname(__DIR__, 6);
++    parent::__construct();
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  protected function configure(): void {
++    $this->setName('ex:validate')
++      ->setAliases(['extension:validate'])
++      ->setDescription('Checks extension .info.yml files and PHP syntax, without an installed site.')
++      ->addArgument('paths', InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Directories or files to check. Defaults to the modules, themes, profiles and sites directories of the Drupal root.')
++      ->addOption('format', NULL, InputOption::VALUE_REQUIRED, 'The output format: text or json.', 'text')
++      ->addOption('changed', NULL, InputOption::VALUE_OPTIONAL, 'Check only files that git reports as changed compared with this commit, plus untracked files.', FALSE)
++      ->addOption('include-tests', NULL, InputOption::VALUE_NONE, 'Also check .info.yml files below tests directories, as a site with $settings[\'extension_discovery_scan_tests\'] = TRUE reads them.')
++      ->addOption('strict', NULL, InputOption::VALUE_NONE, 'Fail on warnings too. Some warnings break a site when the extension is installed (a renamed info file, a missing base theme), which this command cannot know.')
++      ->addOption('php-lint', NULL, InputOption::VALUE_NONE, 'Also run "php -l" on each PHP file with the PHP binary running this command. This finds compile-time errors that the built-in check does not, and needs proc_open().')
++      ->setHelp(<<<'EOT'
++The checks use the same rules as extension discovery, so a file reported as an
++error here breaks a site. Warnings are files that discovery ignores or values
++that do not break the site by themselves.
++
++Examples:
++  php core/scripts/dr ex:validate
++  php core/scripts/dr ex:validate modules/custom themes/custom
++  php core/scripts/dr ex:validate --changed=origin/main --format=json
++EOT);
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  protected function execute(InputInterface $input, OutputInterface $output): int {
++    $format = $input->getOption('format');
++    if (!in_array($format, ['text', 'json'], TRUE)) {
++      $output->writeln(sprintf('<error>Unknown format "%s"; use text or json.</error>', $format));
++      return 2;
++    }
++    $include_tests = (bool) $input->getOption('include-tests');
++    $validator = new ExtensionFileValidator($this->root);
++    $notices = [];
++
++    $paths = $input->getArgument('paths');
++    if ($paths === []) {
++      $defaults = ['modules', 'themes', 'profiles', 'sites'];
++      $paths = array_values(array_filter(array_map(fn ($directory) => $this->root . '/' . $directory, $defaults), 'is_dir'));
++    }
++    $missing = array_filter($paths, fn ($path) => !file_exists($path));
++    if ($missing) {
++      $output->writeln(sprintf('<error>Not found: %s</error>', implode(', ', $missing)));
++      return 2;
++    }
++
++    $changed = $input->getOption('changed');
++    if ($changed !== FALSE) {
++      $files = $this->changedFiles($changed ?? 'HEAD', $paths);
++      if ($files === NULL) {
++        $output->writeln('<error>The --changed option needs git and a git working copy, and the commit to compare with must exist.</error>');
++        return 2;
++      }
++      $violations = $validator->validateFiles($files, $include_tests);
++      $php_files = array_filter($files, fn ($file) => in_array(pathinfo($file, PATHINFO_EXTENSION), ExtensionFileValidator::PHP_EXTENSIONS, TRUE));
++      $info_files = array_filter($files, fn ($file) => str_ends_with($file, '.info.yml'));
++      $checked = ['info' => count($info_files), 'php' => count($php_files)];
++    }
++    else {
++      $found = $validator->findFiles($paths, $include_tests);
++      $violations = $validator->validateFound($found);
++      $checked = ['info' => count($found['info']), 'php' => count($found['php'])];
++      $php_files = $found['php'];
++    }
++
++    if ($input->getOption('php-lint')) {
++      if (!function_exists('proc_open') || in_array('proc_open', array_map('trim', explode(',', (string) ini_get('disable_functions'))), TRUE)) {
++        $notices[] = 'The php -l check was skipped: proc_open() is not available.';
++      }
++      else {
++        $reported = array_flip(array_map(fn (ExtensionFileViolation $violation) => $violation->file, array_filter($violations, fn ($violation) => $violation->rule === 'php.syntax')));
++        foreach ($php_files as $file) {
++          if (!isset($reported[$validator->relative($file)])) {
++            array_push($violations, ...$this->phpLint($file, $validator));
++          }
++        }
++        $notices[] = sprintf('php -l was run with %s (PHP %s).', PHP_BINARY, PHP_VERSION);
++      }
++    }
++
++    $errors = count(array_filter($violations, fn ($violation) => $violation->severity === ExtensionFileViolation::ERROR));
++    $warnings = count($violations) - $errors;
++    if ($format === 'json') {
++      $output->writeln(json_encode([
++        'checked' => $checked,
++        'errors' => $errors,
++        'warnings' => $warnings,
++        'notices' => $notices,
++        'violations' => $violations,
++      ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
++    }
++    else {
++      foreach ($violations as $violation) {
++        $output->writeln(sprintf('%s%s: %s [%s] %s', $violation->file, $violation->line !== NULL ? ':' . $violation->line : '', $violation->severity, $violation->rule, $violation->message), OutputInterface::OUTPUT_RAW);
++      }
++      foreach ($notices as $notice) {
++        $output->writeln($notice);
++      }
++      $output->writeln(sprintf('Checked %d info file(s) and %d PHP file(s): %d error(s), %d warning(s).', $checked['info'], $checked['php'], $errors, $warnings));
++    }
++    return $errors || ($warnings && $input->getOption('strict')) ? 1 : 0;
++  }
++
++  /**
++   * Lists the files git reports as changed, below the given paths.
++   *
++   * @param string $commit
++   *   The commit to compare the working copy with.
++   * @param string[] $paths
++   *   The directories or files to limit the list to.
++   *
++   * @return string[]|null
++   *   Absolute file paths, or NULL if git cannot be used.
++   */
++  protected function changedFiles(string $commit, array $paths): ?array {
++    $git = function (array $arguments, string $directory): ?string {
++      $process = new Process(['git', ...$arguments], $directory);
++      $process->run();
++      return $process->isSuccessful() ? $process->getOutput() : NULL;
++    };
++    $top = $git(['rev-parse', '--show-toplevel'], $this->root);
++    if ($top === NULL) {
++      return NULL;
++    }
++    // Both lists are run from the top of the working copy, so both are
++    // relative to it. In a Composer project, the top is above the Drupal root.
++    // Added, copied, modified and renamed files; deleted files cannot break
++    // anything.
++    // cspell:ignore ACMR
++    $top = trim($top);
++    $diff = $git(['diff', '--name-only', '-z', '--diff-filter=ACMR', $commit, '--'], $top);
++    $untracked = $diff === NULL ? NULL : $git(['ls-files', '-z', '--others', '--exclude-standard'], $top);
++    if ($untracked === NULL) {
++      return NULL;
++    }
++    $prefixes = array_map(fn ($path) => rtrim(realpath($path) ?: $path, '/'), $paths);
++    $files = [];
++    foreach (array_filter(explode("\0", $diff . "\0" . $untracked)) as $relative) {
++      $file = $top . '/' . $relative;
++      foreach ($prefixes as $prefix) {
++        if (($file === $prefix || str_starts_with($file, $prefix . '/')) && is_file($file)) {
++          $files[] = $file;
++          break;
++        }
++      }
++    }
++    return array_values(array_unique($files));
++  }
++
++  /**
++   * Runs "php -l" on one file.
++   *
++   * @param string $file
++   *   The file path.
++   * @param \Drupal\Core\Extension\ExtensionFileValidator $validator
++   *   The validator, for the path to report.
++   *
++   * @return \Drupal\Core\Extension\ExtensionFileViolation[]
++   *   One violation if php -l reports an error, otherwise none.
++   */
++  protected function phpLint(string $file, ExtensionFileValidator $validator): array {
++    // The same output whatever php.ini says: only the displayed error, as
++    // text, on stderr.
++    $process = new Process([
++      PHP_BINARY,
++      '-d', 'display_errors=stderr',
++      '-d', 'log_errors=0',
++      '-d', 'html_errors=0',
++      '-l', $file,
++    ]);
++    $process->run();
++    if ($process->isSuccessful()) {
++      return [];
++    }
++    $text = trim($process->getErrorOutput() . "\n" . $process->getOutput());
++    $first = trim(strtok($text, "\n") ?: $text);
++    $line = preg_match('/on line (\d+)/', $first, $match) ? (int) $match[1] : NULL;
++    $message = trim(preg_replace(['/^PHP /', '/ in .+ on line \d+$/', '/\s+/'], ['', '', ' '], $first));
++    return [new ExtensionFileViolation($validator->relative($file), $line, 'php.lint', $message)];
++  }
++
++}
+diff --git a/core/lib/Drupal/Core/Extension/Discovery/RecursiveExtensionFilterCallback.php b/core/lib/Drupal/Core/Extension/Discovery/RecursiveExtensionFilterCallback.php
+index 0e325632..f247c255 100644
+--- a/core/lib/Drupal/Core/Extension/Discovery/RecursiveExtensionFilterCallback.php
++++ b/core/lib/Drupal/Core/Extension/Discovery/RecursiveExtensionFilterCallback.php
+@@ -93,6 +93,16 @@ public function __construct(array $skipped_folders = [], bool $accept_tests = FA
+     }
+   }
+ 
++  /**
++   * Returns the directory names that are skipped when recursing.
++   *
++   * @return string[]
++   *   The directory names, including "tests" when tests are not accepted.
++   */
++  public function getSkippedFolders(): array {
++    return $this->skippedFolders;
++  }
++
+   /**
+    * Checks whether a given filesystem directory is acceptable.
+    *
+diff --git a/core/lib/Drupal/Core/Extension/ExtensionFileValidator.php b/core/lib/Drupal/Core/Extension/ExtensionFileValidator.php
+new file mode 100644
+index 00000000..bd992b01
+--- /dev/null
++++ b/core/lib/Drupal/Core/Extension/ExtensionFileValidator.php
+@@ -0,0 +1,654 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Core\Extension;
++
++use Drupal\Core\Extension\Discovery\RecursiveExtensionFilterCallback;
++use Symfony\Component\Yaml\Exception\ParseException;
++use Symfony\Component\Yaml\Parser;
++use Symfony\Component\Yaml\Yaml as SymfonyYaml;
++
++/**
++ * Checks extension files for problems that break a site, without a site.
++ *
++ * Extension discovery parses every .info.yml file it finds while the container
++ * is built, whether or not the extension is installed. One file that cannot be
++ * parsed stops the container build, so every request fails once caches are
++ * cleared. This class finds those problems before the files are deployed. It
++ * does not bootstrap Drupal, so it can run in continuous integration, before a
++ * deployment, or inside Drupal.
++ *
++ * For each .info.yml file it checks:
++ * - The rules extension discovery applies, by calling InfoParserDynamic. That
++ *   class uses the PECL YAML extension when it is loaded.
++ * - YAML that only one of the two parsers accepts, so a file that works on one
++ *   host does not break another. The file is also parsed with Symfony YAML,
++ *   and with PECL YAML when that extension is loaded.
++ * - Problems InfoParserDynamic does not report but other code fails on: an
++ *   empty file, a top level that is not a mapping, value types, an unknown
++ *   extension type, a theme without a base theme, and a byte order mark.
++ * - File names that extension discovery ignores.
++ *
++ * PHP files are checked with token_get_all() in the current process, so no
++ * command is run and the PHP version is the one running this code. This finds
++ * parse errors only; compile-time errors such as a duplicate parameter name
++ * are not found.
++ *
++ * @see \Drupal\Core\Extension\InfoParserDynamic
++ * @see \Drupal\Core\Extension\ExtensionDiscovery
++ * @see \Drupal\Core\Extension\Command\ExtensionValidateCommand
++ */
++class ExtensionFileValidator {
++
++  /**
++   * The file name extensions that are checked as PHP.
++   */
++  public const array PHP_EXTENSIONS = ['php', 'module', 'inc', 'install', 'theme', 'profile', 'engine'];
++
++  /**
++   * The extension types that extension discovery loads.
++   */
++  public const array EXTENSION_TYPES = ['module', 'theme', 'profile', 'theme_engine'];
++
++  /**
++   * The directory names skipped by default, as in default.settings.php.
++   *
++   * @see $settings['file_scan_ignore_directories']
++   */
++  public const array IGNORE_DIRECTORIES = ['node_modules', 'bower_components'];
++
++  /**
++   * The longest extension name that can be installed.
++   *
++   * @see DRUPAL_EXTENSION_NAME_MAX_LENGTH
++   */
++  public const int MAX_NAME_LENGTH = 50;
++
++  /**
++   * Value types of keys that other code uses without checking them.
++   *
++   * Each entry is [expected type, severity, extension types it applies to].
++   * An empty list of extension types means all types. The types are "string",
++   * "string|null", "string|false", "bool", "list" (a list of strings),
++   * "list|null" (a list of strings, or empty) and "map" (a mapping of strings
++   * to strings). Empty lists are accepted where they work at runtime.
++   */
++  protected const array VALUE_TYPES = [
++    // ModulesListForm sorts by name with strcasecmp().
++    'name' => ['string', ExtensionFileViolation::ERROR, []],
++    'type' => ['string', ExtensionFileViolation::ERROR, []],
++    'description' => ['string|null', ExtensionFileViolation::WARNING, []],
++    'package' => ['string', ExtensionFileViolation::WARNING, []],
++    'configure' => ['string', ExtensionFileViolation::WARNING, []],
++    'hidden' => ['bool', ExtensionFileViolation::WARNING, []],
++    'dependencies' => ['list|null', ExtensionFileViolation::WARNING, []],
++    'test_dependencies' => ['list|null', ExtensionFileViolation::WARNING, []],
++    // The theme system passes regions to array functions.
++    'regions' => ['map', ExtensionFileViolation::ERROR, ['theme']],
++    'base theme' => ['string|false', ExtensionFileViolation::ERROR, ['theme']],
++    'libraries' => ['list|null', ExtensionFileViolation::WARNING, ['theme']],
++    'install' => ['list|null', ExtensionFileViolation::WARNING, ['profile']],
++    'themes' => ['list|null', ExtensionFileViolation::WARNING, ['profile']],
++  ];
++
++  /**
++   * The directory names extension discovery skips, keyed by $include_tests.
++   *
++   * @var array<int, string[]>
++   */
++  protected array $skippedFolders = [];
++
++  /**
++   * Parsed info files of the current check, keyed by path.
++   *
++   * @var array<string, array>
++   */
++  protected array $parsed = [];
++
++  /**
++   * Constructs an ExtensionFileValidator object.
++   *
++   * @param string $root
++   *   The root directory of the Drupal installation.
++   */
++  public function __construct(protected string $root) {
++    $this->root = rtrim($root, '/');
++  }
++
++  /**
++   * Finds the files to check below one or more paths.
++   *
++   * An .info.yml file is returned only where extension discovery would read
++   * it: not below a directory that discovery skips (such as src, vendor or a
++   * hidden directory), and not below a tests directory unless $include_tests
++   * is TRUE. That matches the extension_discovery_scan_tests setting. PHP files
++   * are returned from every directory except tests (unless $include_tests),
++   * vendor, hidden directories and $ignore_directories.
++   *
++   * @param string[] $paths
++   *   Directories or files to search.
++   * @param bool $include_tests
++   *   (optional) Whether to include tests directories. Defaults to FALSE.
++   * @param string[] $ignore_directories
++   *   (optional) Directory names to skip, for example the value of the
++   *   file_scan_ignore_directories setting. Defaults to node_modules and
++   *   bower_components.
++   *
++   * @return array
++   *   An array with three keys, each a list of file paths:
++   *   - info: .info.yml files to check.
++   *   - php: PHP files to check.
++   *   - ignored: .info.yaml and .info files where discovery would look for an
++   *     .info.yml file.
++   */
++  public function findFiles(array $paths, bool $include_tests = FALSE, array $ignore_directories = self::IGNORE_DIRECTORIES): array {
++    $found = ['info' => [], 'php' => [], 'ignored' => []];
++    $pruned = array_merge(['vendor'], $ignore_directories, $include_tests ? [] : ['tests']);
++    foreach ($paths as $path) {
++      $path = rtrim($path, '/');
++      if (is_file($path)) {
++        $this->classify($path, basename($path), $include_tests, $found);
++        continue;
++      }
++      if (!is_dir($path)) {
++        continue;
++      }
++      $flags = \FilesystemIterator::UNIX_PATHS | \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::FOLLOW_SYMLINKS;
++      $directories = new \RecursiveDirectoryIterator($path, $flags);
++      $filter = new \RecursiveCallbackFilterIterator($directories, function (\SplFileInfo $file) use ($pruned): bool {
++        $name = $file->getFilename();
++        return $name[0] !== '.' && !($file->isDir() && in_array($name, $pruned, TRUE));
++      });
++      $iterator = new \RecursiveIteratorIterator($filter, \RecursiveIteratorIterator::LEAVES_ONLY, \RecursiveIteratorIterator::CATCH_GET_CHILD);
++      foreach ($iterator as $file) {
++        $this->classify($file->getPathname(), substr($file->getPathname(), strlen($path) + 1), $include_tests, $found);
++      }
++    }
++    foreach ($found as &$list) {
++      sort($list);
++    }
++    return $found;
++  }
++
++  /**
++   * Checks files, choosing the checks by file name.
++   *
++   * @param string[] $files
++   *   The files to check. Other files are skipped.
++   * @param bool $include_tests
++   *   (optional) Whether to check .info.yml files below tests directories.
++   *   Defaults to FALSE.
++   * @param string|null $base
++   *   (optional) The directory the paths are relative to, used to decide where
++   *   extension discovery would read an .info.yml file. Defaults to the Drupal
++   *   root.
++   *
++   * @return \Drupal\Core\Extension\ExtensionFileViolation[]
++   *   The problems found.
++   */
++  public function validateFiles(array $files, bool $include_tests = FALSE, ?string $base = NULL): array {
++    $base = rtrim($base ?? $this->root, '/');
++    $found = ['info' => [], 'php' => [], 'ignored' => []];
++    foreach ($files as $pathname) {
++      $relative = str_starts_with($pathname, $base . '/') ? substr($pathname, strlen($base) + 1) : basename($pathname);
++      $this->classify($pathname, $relative, $include_tests, $found);
++    }
++    return $this->validateFound($found);
++  }
++
++  /**
++   * Checks the files that findFiles() returned.
++   *
++   * @param array $found
++   *   The return value of findFiles().
++   *
++   * @return \Drupal\Core\Extension\ExtensionFileViolation[]
++   *   The problems found.
++   */
++  public function validateFound(array $found): array {
++    $this->parsed = [];
++    $violations = [];
++    foreach ($found['ignored'] as $pathname) {
++      $violations[] = new ExtensionFileViolation($this->relative($pathname), NULL, 'file.name', sprintf('Extension discovery only reads files named <name>.info.yml, so this file is ignored. Rename it to %s.info.yml if it describes an extension.', preg_replace('/\.info(\.yaml)?$/', '', basename($pathname))), ExtensionFileViolation::WARNING);
++    }
++    foreach ($found['info'] as $pathname) {
++      array_push($violations, ...$this->validateInfoFile($pathname));
++    }
++    array_push($violations, ...$this->validateBaseThemes());
++    foreach ($found['php'] as $pathname) {
++      array_push($violations, ...$this->validatePhpFile($pathname));
++    }
++    return $violations;
++  }
++
++  /**
++   * Checks one .info.yml file.
++   *
++   * @param string $pathname
++   *   The path of the file.
++   *
++   * @return \Drupal\Core\Extension\ExtensionFileViolation[]
++   *   The problems found.
++   */
++  public function validateInfoFile(string $pathname): array {
++    $file = $this->relative($pathname);
++    $violation = fn (?int $line, string $rule, string $message, string $severity = ExtensionFileViolation::ERROR) => new ExtensionFileViolation($file, $line, $rule, $message, $severity);
++    $contents = @file_get_contents($pathname);
++    if ($contents === FALSE) {
++      return [$violation(NULL, 'info.read', 'The file cannot be read.')];
++    }
++
++    // Extension discovery only reads files whose name is a valid PHP function
++    // name. Names with a dot are other kinds of info files (for example
++    // *.libraries.info.yml), so they are not reported.
++    $name = basename($pathname, '.info.yml');
++    if (!preg_match(ExtensionDiscovery::PHP_FUNCTION_PATTERN, $name)) {
++      return str_contains($name, '.') ? [] : [$violation(NULL, 'file.name', sprintf('"%s" is not a valid extension machine name (letters, digits and underscores, not starting with a digit), so extension discovery ignores this file.', $name), ExtensionFileViolation::WARNING)];
++    }
++    $violations = [];
++    if (strtolower($name) !== $name) {
++      $violations[] = $violation(NULL, 'file.name', sprintf('Extension machine names are lower case; "%s" is discovered as a different extension from "%s".', $name, strtolower($name)), ExtensionFileViolation::WARNING);
++    }
++    if (strlen($name) > static::MAX_NAME_LENGTH) {
++      $violations[] = $violation(NULL, 'file.name', sprintf('The machine name is longer than %d characters, so the extension cannot be installed.', static::MAX_NAME_LENGTH), ExtensionFileViolation::WARNING);
++    }
++
++    if (str_starts_with($contents, "\xEF\xBB\xBF")) {
++      $violations[] = $violation(1, 'info.bom', 'The file starts with a UTF-8 byte order mark. Symfony YAML reads it as part of the first key, so a required key appears to be missing; PECL YAML ignores it. Save the file without a byte order mark.');
++      return $violations;
++    }
++    foreach (explode("\n", $contents) as $index => $text) {
++      if (preg_match('/^ *\t/', $text)) {
++        $violations[] = $violation($index + 1, 'info.tab', 'A tab is used for indentation. YAML allows only spaces.');
++      }
++    }
++
++    // Parse with Symfony YAML as Drupal does without the PECL extension, and
++    // with PECL YAML when it is loaded, so that a file only one of them
++    // accepts is reported.
++    $pecl = extension_loaded('yaml') ? $this->peclParse($contents) : NULL;
++    try {
++      $data = (new Parser())->parse($contents, SymfonyYaml::PARSE_EXCEPTION_ON_INVALID_TYPE | SymfonyYaml::PARSE_CUSTOM_TAGS);
++    }
++    catch (ParseException $e) {
++      // The tab lines are already reported, one by one.
++      if (str_contains($e->getMessage(), 'cannot contain tabs') && $violations) {
++        return $violations;
++      }
++      // The line is reported separately, so it is removed from the message.
++      $line = $e->getParsedLine() > 0 ? $e->getParsedLine() : NULL;
++      $message = preg_replace('/ at line -?\d+/', '', $e->getMessage()) . $this->hint($contents, $line);
++      if ($pecl !== NULL && $pecl['error'] === NULL) {
++        $message .= ' PECL YAML accepts this file, so it works only on hosts that have the PECL YAML extension.';
++      }
++      $violations[] = $violation($line, 'info.yaml', $message);
++      return $violations;
++    }
++    if ($pecl !== NULL && $pecl['error'] !== NULL) {
++      $violations[] = $violation($pecl['line'], 'info.yaml', $pecl['error'] . ' Symfony YAML accepts this file, but PECL YAML does not, so it breaks on hosts that have the PECL YAML extension.');
++      return $violations;
++    }
++
++    if (!is_array($data) || array_is_list($data)) {
++      $what = match (TRUE) {
++        $data === NULL, $data === [] => 'The file is empty.',
++        is_array($data) => 'The top level of the file is a list, not a mapping of keys to values.',
++        default => 'The file contains a single value, not a mapping of keys to values.',
++      };
++      $violations[] = $violation(NULL, 'info.mapping', $what . ' InfoParserDynamic fails on it with a TypeError, which the module list does not catch.');
++      return $violations;
++    }
++
++    // The same rules as extension discovery. Deprecations are reported too.
++    $deprecations = [];
++    set_error_handler(function (int $level, string $message) use (&$deprecations): bool {
++      $deprecations[] = $message;
++      return TRUE;
++    }, E_USER_DEPRECATED | E_DEPRECATED);
++    try {
++      $info = (new InfoParserDynamic($this->root))->parse($pathname);
++      if (!empty($info['core_incompatible'])) {
++        $violations[] = $violation($this->lineOf($contents, 'core_version_requirement'), 'info.core_incompatible', sprintf('The core_version_requirement (%s) does not include Drupal %s, so the extension cannot be installed on it.', $info['core_version_requirement'], \Drupal::VERSION), ExtensionFileViolation::WARNING);
++      }
++    }
++    catch (InfoParserException $e) {
++      $message = str_replace([' in ' . $pathname, $pathname], ['', 'this file'], $e->getMessage());
++      $key = preg_match("/'(core_version_requirement|version|lifecycle|lifecycle_link)'/", $e->getMessage(), $match) ? $match[1] : NULL;
++      $line = $key ? $this->lineOf($contents, $key) : NULL;
++      $violations[] = $violation($line, 'info.parser', $message . $this->hint($contents, $line));
++    }
++    finally {
++      restore_error_handler();
++    }
++    foreach ($deprecations as $message) {
++      $violations[] = $violation(NULL, 'info.deprecated', str_replace([' in ' . $pathname, $pathname], ['', 'this file'], $message), ExtensionFileViolation::WARNING);
++    }
++
++    $type = is_string($data['type'] ?? NULL) ? $data['type'] : NULL;
++    if ($type !== NULL && !in_array($type, static::EXTENSION_TYPES, TRUE)) {
++      $violations[] = $violation($this->lineOf($contents, 'type'), 'info.type', sprintf('"%s" is not an extension type (%s). Extension discovery files the extension under that type, so Drupal never loads it.', $type, implode(', ', static::EXTENSION_TYPES)));
++    }
++    if ($type === 'theme' && !array_key_exists('base theme', $data)) {
++      $violations[] = $violation(NULL, 'info.base_theme', 'A theme must have a "base theme" key (false for none); without it every rebuild of the theme list fails. See https://www.drupal.org/node/3066038');
++    }
++    foreach (static::VALUE_TYPES as $key => [$expected, $severity, $types]) {
++      if (array_key_exists($key, $data) && ($types === [] || in_array($type, $types, TRUE)) && !$this->hasType($data[$key], $expected)) {
++        $violations[] = $violation($this->lineOf($contents, $key), 'info.value', sprintf('The value of "%s" must be %s; found %s.', $key, $this->describeType($expected), get_debug_type($data[$key])), $severity);
++      }
++    }
++    // A dependency whose name is not a machine name can never be met, so the
++    // extension cannot be installed. A list item indented one space too far
++    // is folded into the item above it and produces such a name.
++    foreach (['dependencies', 'test_dependencies', 'install'] as $key) {
++      foreach (is_array($data[$key] ?? NULL) ? $data[$key] : [] as $item) {
++        if (is_string($item) && !preg_match(ExtensionDiscovery::PHP_FUNCTION_PATTERN, Dependency::createFromString($item)->getName())) {
++          // A folded item spans lines, so the line where it starts is used.
++          $violations[] = $violation($this->lineContaining($contents, strtok($item, ' ')), 'info.dependency', sprintf('"%s" in %s is not a valid dependency (project:machine_name, with an optional version constraint in parentheses), so the extension cannot be installed. If the next line is indented further than this one, YAML has joined the two lines into one value.', $item, $key), ExtensionFileViolation::WARNING);
++        }
++      }
++    }
++    $this->parsed[$pathname] = ['file' => $file, 'contents' => $contents, 'data' => $data, 'name' => $name];
++    return $violations;
++  }
++
++  /**
++   * Checks that the base theme of each checked theme exists.
++   *
++   * A theme whose base theme is not installed breaks the site once caches are
++   * cleared. Without a site, the base theme is looked for among the themes
++   * checked in the same run and the themes in core, so a theme found
++   * elsewhere (for example in themes/contrib, when only themes/custom is
++   * checked) is reported too; the violation is a warning for that reason.
++   *
++   * @return \Drupal\Core\Extension\ExtensionFileViolation[]
++   *   The problems found.
++   */
++  protected function validateBaseThemes(): array {
++    $themes = [];
++    foreach ($this->parsed as $info) {
++      if (($info['data']['type'] ?? NULL) === 'theme') {
++        $themes[$info['name']] = TRUE;
++      }
++    }
++    // scandir() is used because glob() does not support stream wrappers.
++    $directories = [$this->root . '/core/themes'];
++    foreach (is_dir($this->root . '/core/profiles') ? scandir($this->root . '/core/profiles') : [] as $profile) {
++      $directories[] = $this->root . '/core/profiles/' . $profile . '/themes';
++    }
++    foreach ($directories as $directory) {
++      foreach (is_dir($directory) ? scandir($directory) : [] as $theme) {
++        if ($theme[0] !== '.' && is_file("$directory/$theme/$theme.info.yml")) {
++          $themes[$theme] = TRUE;
++        }
++      }
++    }
++    $violations = [];
++    foreach ($this->parsed as $info) {
++      $base = $info['data']['base theme'] ?? NULL;
++      if (($info['data']['type'] ?? NULL) === 'theme' && is_string($base) && !isset($themes[$base])) {
++        $violations[] = new ExtensionFileViolation($info['file'], $this->lineOf($info['contents'], 'base theme'), 'info.base_theme', sprintf('The base theme "%s" is not among the checked themes or the themes in core. If it is not installed, every page fails once caches are cleared.', $base), ExtensionFileViolation::WARNING);
++      }
++    }
++    return $violations;
++  }
++
++  /**
++   * Checks the syntax of one PHP file.
++   *
++   * @param string $pathname
++   *   The path of the file.
++   *
++   * @return \Drupal\Core\Extension\ExtensionFileViolation[]
++   *   The problems found.
++   */
++  public function validatePhpFile(string $pathname): array {
++    $contents = @file_get_contents($pathname);
++    if ($contents === FALSE) {
++      return [new ExtensionFileViolation($this->relative($pathname), NULL, 'php.read', 'The file cannot be read.')];
++    }
++    // Compiling the file can also raise deprecations (for example for
++    // non-canonical casts in PHP 8.5). They are reported as warnings instead
++    // of being printed, because the next major PHP version may reject them.
++    $notices = [];
++    set_error_handler(function (int $level, string $message, string $file = '', int $line = 0) use (&$notices): bool {
++      $notices[] = [$level, $message, $line ?: NULL];
++      return TRUE;
++    });
++    try {
++      token_get_all($contents, TOKEN_PARSE);
++    }
++    catch (\CompileError $e) {
++      return [new ExtensionFileViolation($this->relative($pathname), $e->getLine(), 'php.syntax', $e->getMessage())];
++    }
++    finally {
++      restore_error_handler();
++    }
++    $violations = [];
++    foreach ($notices as [$level, $message, $line]) {
++      $rule = in_array($level, [E_DEPRECATED, E_USER_DEPRECATED], TRUE) ? 'php.deprecated' : 'php.notice';
++      $violations[] = new ExtensionFileViolation($this->relative($pathname), $line, $rule, $message, ExtensionFileViolation::WARNING);
++    }
++    return $violations;
++  }
++
++  /**
++   * Returns a path relative to the Drupal root when it is inside the root.
++   *
++   * @param string $pathname
++   *   A file path.
++   *
++   * @return string
++   *   The path to show in a report.
++   */
++  public function relative(string $pathname): string {
++    $real = realpath($pathname) ?: $pathname;
++    $root = realpath($this->root) ?: $this->root;
++    return str_starts_with($real, $root . '/') ? substr($real, strlen($root) + 1) : $pathname;
++  }
++
++  /**
++   * Adds a file to the lists in $found.
++   *
++   * @param string $pathname
++   *   The file path.
++   * @param string $relative
++   *   The path below the directory being searched.
++   * @param bool $include_tests
++   *   Whether tests directories are included.
++   * @param array $found
++   *   The lists of files, as returned by findFiles().
++   */
++  protected function classify(string $pathname, string $relative, bool $include_tests, array &$found): void {
++    $name = basename($pathname);
++    $extension = pathinfo($name, PATHINFO_EXTENSION);
++    $discoverable = $this->isDiscoverable($pathname, $relative, $include_tests);
++    if (str_ends_with($name, '.info.yml')) {
++      if ($discoverable) {
++        $found['info'][] = $pathname;
++      }
++    }
++    elseif ($discoverable && (str_ends_with($name, '.info.yaml') || ($extension === 'info' && substr_count($name, '.') === 1))) {
++      $found['ignored'][] = $pathname;
++    }
++    elseif (in_array($extension, static::PHP_EXTENSIONS, TRUE) && ($include_tests || !in_array('tests', explode('/', $relative), TRUE))) {
++      $found['php'][] = $pathname;
++    }
++  }
++
++  /**
++   * Whether extension discovery would read an info file at a relative path.
++   *
++   * @param string $pathname
++   *   The full path of the file.
++   * @param string $relative
++   *   A path below the directory being searched.
++   * @param bool $include_tests
++   *   Whether tests directories are included.
++   *
++   * @return bool
++   *   FALSE when a directory in the path is one that discovery skips.
++   *
++   * @see \Drupal\Core\Extension\Discovery\RecursiveExtensionFilterCallback::accept()
++   */
++  protected function isDiscoverable(string $pathname, string $relative, bool $include_tests): bool {
++    $skipped = $this->skippedFolders[(int) $include_tests] ??= (new RecursiveExtensionFilterCallback([], $include_tests))->getSkippedFolders();
++    $base = substr($pathname, 0, strlen($pathname) - strlen($relative));
++    $directories = array_slice(explode('/', $relative), 0, -1);
++    foreach ($directories as $index => $directory) {
++      if ($directory === '' || $directory[0] === '.' || in_array($directory, $skipped, TRUE)) {
++        return FALSE;
++      }
++      // Discovery skips config directories, except the config module itself.
++      if ($directory === 'config' && !str_ends_with($base . implode('/', array_slice($directories, 0, $index + 1)), 'modules/config')) {
++        return FALSE;
++      }
++    }
++    return TRUE;
++  }
++
++  /**
++   * Parses YAML with the PECL YAML extension.
++   *
++   * @param string $contents
++   *   The YAML.
++   *
++   * @return array
++   *   An array with an "error" key (NULL when the YAML parsed) and a "line"
++   *   key.
++   */
++  protected function peclParse(string $contents): array {
++    $error = NULL;
++    set_error_handler(function (int $level, string $message) use (&$error): bool {
++      $error = $message;
++      return TRUE;
++    });
++    try {
++      $result = yaml_parse($contents);
++    }
++    finally {
++      restore_error_handler();
++    }
++    if ($error === NULL && $result === FALSE) {
++      $error = 'PECL YAML could not parse the file.';
++    }
++    $line = $error !== NULL && preg_match('/\(line (\d+)/', $error, $match) ? (int) $match[1] : NULL;
++    return ['error' => $error, 'line' => $line];
++  }
++
++  /**
++   * Explains common spacing mistakes on a line that failed to parse.
++   *
++   * @param string $contents
++   *   The YAML.
++   * @param int|null $line
++   *   The line number, if known.
++   *
++   * @return string
++   *   A hint starting with a space, or an empty string.
++   */
++  protected function hint(string $contents, ?int $line): string {
++    if ($line === NULL) {
++      return '';
++    }
++    $lines = explode("\n", $contents);
++    $text = rtrim($lines[$line - 1] ?? '', "\r");
++    $previous = '';
++    for ($index = $line - 2; $index >= 0 && $previous === ''; $index--) {
++      $previous = trim($lines[$index]);
++    }
++    return match (TRUE) {
++      str_contains($text, "\u{A0}") => ' The line contains a no-break space (U+00A0); use an ordinary space.',
++      // List items such as "- drupal:node" are values, so they are excluded.
++      (bool) preg_match('/^\s*[A-Za-z_][\w ]*:[^\s:\/]/', $text) => ' Put a space after the colon: YAML reads "key:value" as one string.',
++      (bool) preg_match('/^\s+[A-Za-z_][\w ]*:/', $text) && $previous !== '' && !str_ends_with($previous, ':') => ' The line is indented but does not belong to the key above it; top-level keys start in the first column.',
++      (bool) preg_match('/:\s+[^\'"#]*\S#/', $text) => ' A # starts a comment only after a space; here it is part of the value.',
++      default => '',
++    };
++  }
++
++  /**
++   * Finds the first line that contains a string.
++   *
++   * @param string $contents
++   *   The YAML.
++   * @param string $needle
++   *   The string.
++   *
++   * @return int|null
++   *   The line number, or NULL if the string is not found.
++   */
++  protected function lineContaining(string $contents, string $needle): ?int {
++    foreach (explode("\n", $contents) as $index => $text) {
++      if (str_contains($text, $needle)) {
++        return $index + 1;
++      }
++    }
++    return NULL;
++  }
++
++  /**
++   * Finds the line where a top-level key is set.
++   *
++   * @param string $contents
++   *   The YAML.
++   * @param string $key
++   *   The key.
++   *
++   * @return int|null
++   *   The line number, or NULL if the key is not found at the start of a line.
++   */
++  protected function lineOf(string $contents, string $key): ?int {
++    foreach (explode("\n", $contents) as $index => $text) {
++      if (preg_match('/^[\'"]?' . preg_quote($key, '/') . '[\'"]?\s*:/', $text)) {
++        return $index + 1;
++      }
++    }
++    return NULL;
++  }
++
++  /**
++   * Whether a value has the expected type.
++   *
++   * @param mixed $value
++   *   The value.
++   * @param string $expected
++   *   One of the types used in static::VALUE_TYPES.
++   *
++   * @return bool
++   *   TRUE if the value has the type.
++   */
++  protected function hasType(mixed $value, string $expected): bool {
++    return match ($expected) {
++      'string' => is_string($value) && $value !== '',
++      'string|null' => is_string($value) || $value === NULL,
++      'string|false' => is_string($value) || $value === FALSE,
++      'bool' => is_bool($value),
++      'list' => is_array($value) && array_is_list($value) && count(array_filter($value, 'is_string')) === count($value),
++      'list|null' => $value === NULL || $this->hasType($value, 'list'),
++      'map' => is_array($value) && ($value === [] || !array_is_list($value)) && count(array_filter($value, 'is_string')) === count($value),
++    };
++  }
++
++  /**
++   * Describes an expected type in words.
++   *
++   * @param string $expected
++   *   One of the types used in static::VALUE_TYPES.
++   *
++   * @return string
++   *   The description.
++   */
++  protected function describeType(string $expected): string {
++    return match ($expected) {
++      'string' => 'a non-empty string',
++      'string|null' => 'a string or empty',
++      'string|false' => 'a string or false',
++      'bool' => 'true or false',
++      'list' => 'a list of strings',
++      'list|null' => 'a list of strings or empty',
++      'map' => 'a mapping of names to labels',
++    };
++  }
++
++}
+diff --git a/core/lib/Drupal/Core/Extension/ExtensionFileViolation.php b/core/lib/Drupal/Core/Extension/ExtensionFileViolation.php
+new file mode 100644
+index 00000000..eaa5a4ce
+--- /dev/null
++++ b/core/lib/Drupal/Core/Extension/ExtensionFileViolation.php
+@@ -0,0 +1,59 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Core\Extension;
++
++/**
++ * A problem found in an extension file.
++ *
++ * @see \Drupal\Core\Extension\ExtensionFileValidator
++ */
++final class ExtensionFileViolation implements \JsonSerializable {
++
++  /**
++   * A problem that breaks extension discovery, a page, or an install.
++   */
++  public const string ERROR = 'error';
++
++  /**
++   * A problem that does not break the site by itself.
++   */
++  public const string WARNING = 'warning';
++
++  /**
++   * Constructs an ExtensionFileViolation object.
++   *
++   * @param string $file
++   *   The path of the file, relative to the Drupal root when it is inside it.
++   * @param int|null $line
++   *   The line number, or NULL when the problem is not on one line.
++   * @param string $rule
++   *   A stable identifier of the check that failed, for example "info.yaml".
++   * @param string $message
++   *   A description of the problem.
++   * @param string $severity
++   *   Either self::ERROR or self::WARNING.
++   */
++  public function __construct(
++    public readonly string $file,
++    public readonly ?int $line,
++    public readonly string $rule,
++    public readonly string $message,
++    public readonly string $severity = self::ERROR,
++  ) {}
++
++  /**
++   * {@inheritdoc}
++   */
++  public function jsonSerialize(): array {
++    return [
++      'file' => $this->file,
++      'line' => $this->line,
++      'severity' => $this->severity,
++      'rule' => $this->rule,
++      'message' => $this->message,
++    ];
++  }
++
++}
+diff --git a/core/tests/Drupal/Tests/Core/Extension/Command/ExtensionValidateCommandTest.php b/core/tests/Drupal/Tests/Core/Extension/Command/ExtensionValidateCommandTest.php
+new file mode 100644
+index 00000000..64f6ff50
+--- /dev/null
++++ b/core/tests/Drupal/Tests/Core/Extension/Command/ExtensionValidateCommandTest.php
+@@ -0,0 +1,190 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\Core\Extension\Command;
++
++use Drupal\Core\Extension\Command\ExtensionValidateCommand;
++use Drupal\Tests\UnitTestCase;
++// cspell:ignore modul
++use PHPUnit\Framework\Attributes\CoversClass;
++use PHPUnit\Framework\Attributes\DataProvider;
++use PHPUnit\Framework\Attributes\Group;
++use Symfony\Component\Console\Tester\CommandTester;
++use Symfony\Component\Filesystem\Filesystem;
++use Symfony\Component\Process\ExecutableFinder;
++use Symfony\Component\Process\Process;
++
++/**
++ * Tests the ex:validate command.
++ */
++#[CoversClass(ExtensionValidateCommand::class)]
++#[Group('Command')]
++class ExtensionValidateCommandTest extends UnitTestCase {
++
++  /**
++   * A temporary project directory, which contains the Drupal root.
++   */
++  protected string $project;
++
++  /**
++   * The Drupal root, in the web directory of the project directory.
++   */
++  protected string $directory;
++
++  /**
++   * {@inheritdoc}
++   */
++  protected function setUp(): void {
++    parent::setUp();
++    $this->project = sys_get_temp_dir() . '/extension-validate-' . bin2hex(random_bytes(6));
++    $this->directory = $this->project . '/web';
++    $this->writeModule('valid_module', "name: Valid\ntype: module\ncore_version_requirement: '*'\n");
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  protected function tearDown(): void {
++    (new Filesystem())->remove($this->project);
++    parent::tearDown();
++  }
++
++  /**
++   * Writes a module below the temporary Drupal root.
++   *
++   * @param string $name
++   *   The machine name.
++   * @param string $info
++   *   The contents of the .info.yml file.
++   * @param string|null $module
++   *   (optional) The contents of the .module file.
++   */
++  protected function writeModule(string $name, string $info, ?string $module = NULL): void {
++    $filesystem = new Filesystem();
++    $filesystem->dumpFile("$this->directory/modules/custom/$name/$name.info.yml", $info);
++    if ($module !== NULL) {
++      $filesystem->dumpFile("$this->directory/modules/custom/$name/$name.module", $module);
++    }
++  }
++
++  /**
++   * Runs the command.
++   *
++   * @param array $input
++   *   The command input.
++   *
++   * @return \Symfony\Component\Console\Tester\CommandTester
++   *   The tester, after running the command.
++   */
++  protected function runCommand(array $input = []): CommandTester {
++    $tester = new CommandTester(new ExtensionValidateCommand($this->directory));
++    $tester->execute($input);
++    return $tester;
++  }
++
++  /**
++   * Tests text output and exit codes.
++   */
++  public function testText(): void {
++    $tester = $this->runCommand();
++    $this->assertSame(0, $tester->getStatusCode());
++    $this->assertStringContainsString('Checked 1 info file(s) and 0 PHP file(s): 0 error(s), 0 warning(s).', $tester->getDisplay());
++
++    $this->writeModule('broken_module', "name: Broken\ntype: module\ncore_version_requirement: '*'\ndescription: Broken: yes\n", "<?php\n\nfunction broken_module_help( {\n}\n");
++    $tester = $this->runCommand(['paths' => ["$this->directory/modules"]]);
++    $this->assertSame(1, $tester->getStatusCode());
++    $display = $tester->getDisplay();
++    $this->assertStringContainsString('modules/custom/broken_module/broken_module.info.yml:4: error [info.yaml] A colon cannot be used in an unquoted mapping value', $display);
++    $this->assertStringContainsString('modules/custom/broken_module/broken_module.module:3: error [php.syntax]', $display);
++    $this->assertStringContainsString('2 error(s), 0 warning(s)', $display);
++  }
++
++  /**
++   * Tests JSON output and usage errors.
++   */
++  public function testJsonAndUsage(): void {
++    $this->writeModule('Valid_Upper', "name: Upper\ntype: module\ncore_version_requirement: '*'\n");
++    $tester = $this->runCommand(['--format' => 'json']);
++    $this->assertSame(0, $tester->getStatusCode(), 'Warnings do not fail the command.');
++    $result = json_decode($tester->getDisplay(), TRUE);
++    $this->assertSame(['info' => 2, 'php' => 0], $result['checked']);
++    $this->assertSame(0, $result['errors']);
++    $this->assertSame(1, $result['warnings']);
++    $this->assertSame([
++      'file' => 'modules/custom/Valid_Upper/Valid_Upper.info.yml',
++      'line' => NULL,
++      'severity' => 'warning',
++      'rule' => 'file.name',
++    ], array_diff_key($result['violations'][0], ['message' => TRUE]));
++
++    $this->assertSame(1, $this->runCommand(['--strict' => TRUE])->getStatusCode(), 'With --strict, warnings fail the command.');
++    $this->assertSame(2, $this->runCommand(['--format' => 'xml'])->getStatusCode());
++    $this->assertSame(2, $this->runCommand(['paths' => ["$this->directory/does-not-exist"]])->getStatusCode());
++  }
++
++  /**
++   * Tests that --changed checks only the files git reports as changed.
++   *
++   * @param bool $above
++   *   Whether the git working copy is the project directory above the Drupal
++   *   root, as in a Composer project, instead of the Drupal root.
++   */
++  #[DataProvider('providerChanged')]
++  public function testChanged(bool $above): void {
++    if ((new ExecutableFinder())->find('git') === NULL) {
++      $this->markTestSkipped('git is not available.');
++    }
++    $this->writeModule('committed_broken', "name: Committed\ntype: modul\ncore_version_requirement: '*'\n");
++    $identity = ['-c', 'user.name=Test', '-c', 'user.email=test@example.com'];
++    $commands = [['init', '-q'], ['add', '.'], [...$identity, 'commit', '-q', '-m', 'Initial']];
++    foreach ($commands as $arguments) {
++      (new Process(['git', ...$arguments], $above ? $this->project : $this->directory))->mustRun();
++    }
++    $this->writeModule('new_broken', "name: New\ntype: module\n");
++
++    $tester = $this->runCommand(['--changed' => NULL, '--format' => 'json']);
++    $this->assertSame(1, $tester->getStatusCode());
++    $files = array_column(json_decode($tester->getDisplay(), TRUE)['violations'], 'file');
++    $this->assertSame(['modules/custom/new_broken/new_broken.info.yml'], $files);
++
++    $tester = $this->runCommand(['--format' => 'json']);
++    $files = array_column(json_decode($tester->getDisplay(), TRUE)['violations'], 'file');
++    $expected = [
++      'modules/custom/committed_broken/committed_broken.info.yml',
++      'modules/custom/new_broken/new_broken.info.yml',
++    ];
++    $this->assertSame($expected, $files);
++
++    $this->assertSame(2, $this->runCommand(['--changed' => 'not-a-commit'])->getStatusCode());
++  }
++
++  /**
++   * Data provider for testChanged().
++   *
++   * @return array
++   *   Test cases.
++   */
++  public static function providerChanged(): array {
++    return [
++      'git working copy is the Drupal root' => [FALSE],
++      'git working copy is above the Drupal root' => [TRUE],
++    ];
++  }
++
++  /**
++   * Tests that --php-lint finds compile-time errors.
++   */
++  public function testPhpLint(): void {
++    if (!function_exists('proc_open')) {
++      $this->markTestSkipped('proc_open() is not available.');
++    }
++    $this->writeModule('compile_error', "name: Compile\ntype: module\ncore_version_requirement: '*'\n", "<?php\n\nfunction compile_error_test(\$a, \$a) {\n}\n");
++    $this->assertSame(0, $this->runCommand()->getStatusCode(), 'The built-in check finds parse errors only.');
++
++    $tester = $this->runCommand(['--php-lint' => TRUE]);
++    $this->assertSame(1, $tester->getStatusCode());
++    $this->assertStringContainsString('modules/custom/compile_error/compile_error.module:3: error [php.lint] Fatal error: Redefinition of parameter $a', $tester->getDisplay());
++  }
++
++}
+diff --git a/core/tests/Drupal/Tests/Core/Extension/ExtensionFileValidatorTest.php b/core/tests/Drupal/Tests/Core/Extension/ExtensionFileValidatorTest.php
+new file mode 100644
+index 00000000..5a8f043e
+--- /dev/null
++++ b/core/tests/Drupal/Tests/Core/Extension/ExtensionFileValidatorTest.php
+@@ -0,0 +1,227 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\Core\Extension;
++
++use Drupal\Core\Extension\ExtensionFileValidator;
++use Drupal\Core\Extension\ExtensionFileViolation;
++use Drupal\Tests\UnitTestCase;
++use org\bovigo\vfs\vfsStream;
++// cspell:ignore FEFF modul
++use PHPUnit\Framework\Attributes\CoversClass;
++use PHPUnit\Framework\Attributes\DataProvider;
++use PHPUnit\Framework\Attributes\Group;
++
++/**
++ * Tests the extension file validator.
++ */
++#[CoversClass(ExtensionFileValidator::class)]
++#[CoversClass(ExtensionFileViolation::class)]
++#[Group('Extension')]
++class ExtensionFileValidatorTest extends UnitTestCase {
++
++  /**
++   * The validator, with a virtual Drupal root.
++   */
++  protected ExtensionFileValidator $validator;
++
++  /**
++   * {@inheritdoc}
++   */
++  protected function setUp(): void {
++    parent::setUp();
++    $this->validator = new ExtensionFileValidator('vfs://root');
++  }
++
++  /**
++   * Returns the rule, line and severity of each violation.
++   *
++   * @param \Drupal\Core\Extension\ExtensionFileViolation[] $violations
++   *   The violations.
++   *
++   * @return array
++   *   A list of [rule, line, severity].
++   */
++  protected function summarize(array $violations): array {
++    $summary = fn (ExtensionFileViolation $violation) => [$violation->rule, $violation->line, $violation->severity];
++    return array_map($summary, $violations);
++  }
++
++  /**
++   * Tests the checks of one info file.
++   *
++   * @param string $contents
++   *   The contents of example.info.yml.
++   * @param array $expected
++   *   The expected list of [rule, line, severity].
++   * @param string|null $message
++   *   (optional) Text expected in the first violation's message.
++   */
++  #[DataProvider('providerInfoFile')]
++  public function testInfoFile(string $contents, array $expected, ?string $message = NULL): void {
++    vfsStream::setup('root', NULL, ['modules' => ['example' => ['example.info.yml' => $contents]]]);
++    $violations = $this->validator->validateInfoFile('vfs://root/modules/example/example.info.yml');
++    $this->assertSame($expected, $this->summarize($violations));
++    if ($message !== NULL) {
++      $this->assertStringContainsString($message, $violations[0]->message);
++    }
++  }
++
++  /**
++   * Data provider for testInfoFile().
++   *
++   * @return array
++   *   Test cases.
++   */
++  public static function providerInfoFile(): array {
++    $warning = ExtensionFileViolation::WARNING;
++    $valid = "name: Example\ntype: module\ncore_version_requirement: '*'\n";
++    $theme = "name: Example\ntype: theme\nbase theme: false\ncore_version_requirement: '*'\n";
++    return [
++      'valid' => self::infoCase($valid),
++      'valid with dependencies' => self::infoCase($valid . "dependencies:\n  - drupal:node\n  - drupal:user (>=11)\n"),
++      'empty description' => self::infoCase($valid . "description:\n"),
++      'unquoted colon' => self::infoCase($valid . "description: Example: one\n", 'info.yaml', 4, message: 'A colon cannot be used'),
++      'reserved indicator' => self::infoCase($valid . "description: @todo\n", 'info.yaml', 4),
++      'tab indentation' => self::infoCase($valid . "dependencies:\n\t- drupal:node\n", 'info.tab', 5),
++      'byte order mark' => self::infoCase("\u{FEFF}" . $valid, 'info.bom', 1),
++      'duplicate key' => self::infoCase($valid . "name: Again\n", 'info.yaml', 4, message: 'Duplicate key "name"'),
++      'no space after colon' => self::infoCase("name: Example\ntype:module\n", 'info.yaml', 2, message: 'Put a space after the colon'),
++      'indented key' => self::infoCase("name: Example\n type: module\n", 'info.yaml', 2, message: 'top-level keys start in the first column'),
++      'empty file' => self::infoCase('', 'info.mapping', message: 'The file is empty.'),
++      'single value' => self::infoCase("Example\n", 'info.mapping', message: 'single value'),
++      'top-level list' => self::infoCase("- name: Example\n", 'info.mapping', message: 'list'),
++      'missing type' => self::infoCase("name: Example\ncore_version_requirement: '*'\n", 'info.parser', message: 'Missing required keys (type)'),
++      'missing core_version_requirement' => self::infoCase("name: Example\ntype: module\n", 'info.parser', message: "The 'core_version_requirement' key must be present"),
++      'invalid constraint' => self::infoCase("name: Example\ntype: module\ncore_version_requirement: ^12 ||| banana\n", 'info.parser', 3),
++      'comment without a space' => self::infoCase("name: Example\ntype: module\ncore_version_requirement: ^12# Added\n", 'info.parser', 3, message: 'A # starts a comment only after a space'),
++      'incompatible constraint' => self::infoCase("name: Example\ntype: module\ncore_version_requirement: ^7\n", 'info.core_incompatible', 3, $warning),
++      'numeric version' => self::infoCase($valid . "version: 1.0\n", 'info.deprecated', NULL, $warning),
++      'unknown type' => self::infoCase("name: Example\ntype: modul\ncore_version_requirement: '*'\n", 'info.type', 2),
++      'name is a list' => self::infoCase("name: [Example]\ntype: module\ncore_version_requirement: '*'\n", 'info.value', 1),
++      'dependencies is a string' => self::infoCase($valid . "dependencies: drupal:node\n", 'info.value', 4, $warning),
++      // Line 5 is "  - drupal:node", where the folded item starts.
++      'folded dependency' => self::infoCase($valid . "dependencies:\n  - drupal:node\n   - drupal:user\n", 'info.dependency', 5, $warning, 'joined the two lines'),
++      'theme without base theme' => self::infoCase("name: Example\ntype: theme\ncore_version_requirement: '*'\n", 'info.base_theme'),
++      'theme regions is a string' => self::infoCase($theme . "regions: Header\n", 'info.value', 5),
++      'theme with empty libraries' => self::infoCase($theme . "libraries:\n"),
++    ];
++  }
++
++  /**
++   * Builds one test case for testInfoFile().
++   *
++   * @param string $contents
++   *   The contents of the info file.
++   * @param string|null $rule
++   *   (optional) The rule of the one expected violation, or NULL for none.
++   * @param int|null $line
++   *   (optional) The line of the expected violation.
++   * @param string $severity
++   *   (optional) The severity of the expected violation.
++   * @param string|null $message
++   *   (optional) Text expected in the message.
++   *
++   * @return array
++   *   The arguments for testInfoFile().
++   */
++  protected static function infoCase(string $contents, ?string $rule = NULL, ?int $line = NULL, string $severity = ExtensionFileViolation::ERROR, ?string $message = NULL): array {
++    return [$contents, $rule === NULL ? [] : [[$rule, $line, $severity]], $message];
++  }
++
++  /**
++   * Tests which files are found, following extension discovery's rules.
++   */
++  public function testFindFiles(): void {
++    vfsStream::setup('root', NULL, [
++      'modules' => [
++        'example' => [
++          'example.info.yml' => '',
++          'example.module' => '',
++          'example.info.yaml' => '',
++          'src' => ['Example.php' => '', 'fixture.info.yml' => ''],
++          'config' => ['install' => ['inside_config.info.yml' => '']],
++          'tests' => ['modules' => ['example_test' => ['example_test.info.yml' => '', 'example_test.module' => '']]],
++          '.hidden' => ['hidden.info.yml' => ''],
++          'vendor' => ['package.php' => ''],
++          'node_modules' => ['tool.php' => ''],
++        ],
++        'config' => ['config.info.yml' => ''],
++      ],
++    ]);
++    $found = $this->validator->findFiles(['vfs://root/modules']);
++    $this->assertSame([
++      'vfs://root/modules/config/config.info.yml',
++      'vfs://root/modules/example/example.info.yml',
++    ], $found['info']);
++    $this->assertSame([
++      'vfs://root/modules/example/example.module',
++      'vfs://root/modules/example/src/Example.php',
++    ], $found['php']);
++    $this->assertSame(['vfs://root/modules/example/example.info.yaml'], $found['ignored']);
++
++    $found = $this->validator->findFiles(['vfs://root/modules'], TRUE);
++    $this->assertContains('vfs://root/modules/example/tests/modules/example_test/example_test.info.yml', $found['info']);
++    $this->assertContains('vfs://root/modules/example/tests/modules/example_test/example_test.module', $found['php']);
++  }
++
++  /**
++   * Tests file names that extension discovery ignores.
++   */
++  public function testFileNames(): void {
++    vfsStream::setup('root', NULL, [
++      'modules' => [
++        'a' => ['my-module.info.yml' => "name: A\n"],
++        'b' => ['Example.info.yml' => "name: B\ntype: module\ncore_version_requirement: '*'\n"],
++        'c' => ['example.libraries.info.yml' => "name: C\n"],
++        'd' => ['example.info' => "name = D\n"],
++      ],
++    ]);
++    $violations = $this->validator->validateFound($this->validator->findFiles(['vfs://root/modules']));
++    $this->assertSame([
++      ['file.name', NULL, ExtensionFileViolation::WARNING],
++      ['file.name', NULL, ExtensionFileViolation::WARNING],
++      ['file.name', NULL, ExtensionFileViolation::WARNING],
++    ], $this->summarize($violations));
++    $files = array_map(fn ($violation) => $violation->file, $violations);
++    // Paths inside the Drupal root are reported relative to it.
++    $this->assertSame(['modules/d/example.info', 'modules/a/my-module.info.yml', 'modules/b/Example.info.yml'], $files);
++  }
++
++  /**
++   * Tests the PHP syntax check.
++   */
++  public function testPhpFile(): void {
++    vfsStream::setup('root', NULL, [
++      'valid.module' => "<?php\n\nfunction example_help() {\n  return '';\n}\n",
++      'broken.module' => "<?php\n\nfunction example_help( {\n}\n",
++      'deprecated.module' => "<?php\n\n\$a = (integer) '1';\n",
++    ]);
++    $this->assertSame([], $this->validator->validatePhpFile('vfs://root/valid.module'));
++    $this->assertSame([['php.syntax', 3, ExtensionFileViolation::ERROR]], $this->summarize($this->validator->validatePhpFile('vfs://root/broken.module')));
++    // PHP 8.5 deprecates non-canonical casts when the file is compiled.
++    if (PHP_VERSION_ID >= 80500) {
++      $this->assertSame([['php.deprecated', 3, ExtensionFileViolation::WARNING]], $this->summarize($this->validator->validatePhpFile('vfs://root/deprecated.module')));
++    }
++  }
++
++  /**
++   * Tests that a base theme must be among the checked themes or core's.
++   */
++  public function testBaseThemes(): void {
++    $theme = fn (string $base) => "name: Example\ntype: theme\nbase theme: $base\ncore_version_requirement: '*'\n";
++    vfsStream::setup('root', NULL, [
++      'core' => ['themes' => ['stark' => ['stark.info.yml' => $theme('false')]]],
++      'themes' => [
++        'one' => ['one.info.yml' => $theme('stark')],
++        'two' => ['two.info.yml' => $theme('one')],
++        'three' => ['three.info.yml' => $theme('missing')],
++      ],
++    ]);
++    $violations = $this->validator->validateFound($this->validator->findFiles(['vfs://root/themes']));
++    $this->assertSame([['info.base_theme', 3, ExtensionFileViolation::WARNING]], $this->summarize($violations));
++    $this->assertSame('themes/three/three.info.yml', $violations[0]->file);
++  }
++
++}
+-- 
+2.43.0
+

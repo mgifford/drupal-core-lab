@@ -1,0 +1,309 @@
+{
+ "generated": "2026-10-24T01:22:38.418Z",
+ "core": "envs/info-yml-patch",
+ "commit": "ee6498b4b9ac9ca19887d78d21632a8f70ec6fae",
+ "plants": [
+  {
+   "file": "core/modules/node/node.info.yml",
+   "how": "an unquoted colon in the description",
+   "expected": {
+    "file": "core/modules/node/node.info.yml",
+    "rule": "info.yaml",
+    "line": 3,
+    "severity": "error"
+   }
+  },
+  {
+   "file": "core/themes/default_admin/default_admin.info.yml",
+   "how": "a tab instead of two spaces before a list item",
+   "expected": {
+    "file": "core/themes/default_admin/default_admin.info.yml",
+    "rule": "info.tab",
+    "line": 10,
+    "severity": "error"
+   }
+  },
+  {
+   "file": "core/modules/views/views.info.yml",
+   "how": "type: modul (a typo)",
+   "expected": {
+    "file": "core/modules/views/views.info.yml",
+    "rule": "info.type",
+    "line": 2,
+    "severity": "error"
+   }
+  },
+  {
+   "file": "core/profiles/standard/standard.info.yml",
+   "how": "the type line deleted",
+   "expected": {
+    "file": "core/profiles/standard/standard.info.yml",
+    "rule": "info.parser",
+    "line": null,
+    "severity": "error"
+   }
+  },
+  {
+   "file": "core/modules/field_ui/field_ui.info.yml",
+   "how": "a dependency indented one space too far, so YAML joins it to the item above",
+   "expected": {
+    "file": "core/modules/field_ui/field_ui.info.yml",
+    "rule": "info.dependency",
+    "line": 7,
+    "severity": "warning"
+   }
+  },
+  {
+   "file": "modules/custom/planted_new/planted_new.info.yml",
+   "how": "a new, untracked custom module without core_version_requirement",
+   "expected": {
+    "file": "modules/custom/planted_new/planted_new.info.yml",
+    "rule": "info.parser",
+    "line": null,
+    "severity": "error"
+   }
+  },
+  {
+   "file": "core/modules/user/user.module",
+   "how": "a function with a missing parenthesis, appended",
+   "expected": {
+    "file": "core/modules/user/user.module",
+    "rule": "php.syntax",
+    "line": 518,
+    "severity": "error"
+   }
+  },
+  {
+   "file": "core/modules/system/tests/modules/common_test/common_test.info.yml",
+   "how": "an unquoted colon, in a test module",
+   "only": "include-tests",
+   "expected": {
+    "file": "core/modules/system/tests/modules/common_test/common_test.info.yml",
+    "rule": "info.yaml",
+    "line": 3,
+    "severity": "error"
+   }
+  },
+  {
+   "file": "core/modules/text/text.module",
+   "how": "a parameter declared twice (a compile-time error, not a parse error)",
+   "only": "php-lint",
+   "expected": {
+    "file": "core/modules/text/text.module",
+    "rule": "php.lint",
+    "line": 45,
+    "severity": "error"
+   }
+  }
+ ],
+ "runs": [
+  {
+   "run": "full",
+   "parser": "symfony",
+   "before": {
+    "exit": 0,
+    "checked": {
+     "info": 76,
+     "php": 4900
+    },
+    "errors": 0,
+    "warnings": 0,
+    "findings": []
+   },
+   "exit": 1,
+   "checked": {
+    "info": 77,
+    "php": 4900
+   },
+   "errors": 6,
+   "warnings": 1,
+   "missed": [],
+   "unexpected": [],
+   "pass": true
+  },
+  {
+   "run": "full",
+   "parser": "pecl",
+   "before": {
+    "exit": 0,
+    "checked": {
+     "info": 76,
+     "php": 4900
+    },
+    "errors": 0,
+    "warnings": 0,
+    "findings": []
+   },
+   "exit": 1,
+   "checked": {
+    "info": 77,
+    "php": 4900
+   },
+   "errors": 6,
+   "warnings": 1,
+   "missed": [],
+   "unexpected": [],
+   "pass": true
+  },
+  {
+   "run": "full --include-tests",
+   "parser": "symfony",
+   "before": {
+    "exit": 1,
+    "checked": {
+     "info": 653,
+     "php": 10470
+    },
+    "errors": 1,
+    "warnings": 6,
+    "findings": [
+     "core/modules/system/tests/modules/invalid_module_name_over_the_maximum_allowed_character_length/invalid_module_name_over_the_maximum_allowed_character_length.info.yml: warning [file.name]",
+     "core/modules/system/tests/modules/system_core_incompatible_semver_test/system_core_incompatible_semver_test.info.yml:6 warning [info.core_incompatible]",
+     "core/modules/system/tests/modules/system_incompatible_module_version_dependencies_test/system_incompatible_module_version_dependencies_test.info.yml: warning [file.name]",
+     "core/modules/system/tests/themes/test_invalid_core_semver/test_invalid_core_semver.info.yml:6 warning [info.core_incompatible]",
+     "core/modules/system/tests/themes/test_invalid_region/test_invalid_region.info.yml:6 error [info.value]",
+     "core/modules/system/tests/themes/test_theme_having_veery_long_name_which_is_too_long/test_theme_having_veery_long_name_which_is_too_long.info.yml: warning [file.name]",
+     "core/modules/system/tests/themes/test_invalid_base_theme/test_invalid_base_theme.info.yml:5 warning [info.base_theme]"
+    ]
+   },
+   "exit": 1,
+   "checked": {
+    "info": 654,
+    "php": 10470
+   },
+   "errors": 8,
+   "warnings": 7,
+   "missed": [],
+   "unexpected": [],
+   "pass": true
+  },
+  {
+   "run": "full --include-tests",
+   "parser": "pecl",
+   "before": {
+    "exit": 1,
+    "checked": {
+     "info": 653,
+     "php": 10470
+    },
+    "errors": 1,
+    "warnings": 6,
+    "findings": [
+     "core/modules/system/tests/modules/invalid_module_name_over_the_maximum_allowed_character_length/invalid_module_name_over_the_maximum_allowed_character_length.info.yml: warning [file.name]",
+     "core/modules/system/tests/modules/system_core_incompatible_semver_test/system_core_incompatible_semver_test.info.yml:6 warning [info.core_incompatible]",
+     "core/modules/system/tests/modules/system_incompatible_module_version_dependencies_test/system_incompatible_module_version_dependencies_test.info.yml: warning [file.name]",
+     "core/modules/system/tests/themes/test_invalid_core_semver/test_invalid_core_semver.info.yml:6 warning [info.core_incompatible]",
+     "core/modules/system/tests/themes/test_invalid_region/test_invalid_region.info.yml:6 error [info.value]",
+     "core/modules/system/tests/themes/test_theme_having_veery_long_name_which_is_too_long/test_theme_having_veery_long_name_which_is_too_long.info.yml: warning [file.name]",
+     "core/modules/system/tests/themes/test_invalid_base_theme/test_invalid_base_theme.info.yml:5 warning [info.base_theme]"
+    ]
+   },
+   "exit": 1,
+   "checked": {
+    "info": 654,
+    "php": 10470
+   },
+   "errors": 8,
+   "warnings": 7,
+   "missed": [],
+   "unexpected": [],
+   "pass": true
+  },
+  {
+   "run": "full --php-lint",
+   "parser": "symfony",
+   "before": {
+    "exit": 0,
+    "checked": {
+     "info": 76,
+     "php": 4900
+    },
+    "errors": 0,
+    "warnings": 0,
+    "findings": []
+   },
+   "exit": 1,
+   "checked": {
+    "info": 77,
+    "php": 4900
+   },
+   "errors": 7,
+   "warnings": 1,
+   "missed": [],
+   "unexpected": [],
+   "pass": true
+  },
+  {
+   "run": "full --php-lint",
+   "parser": "pecl",
+   "before": {
+    "exit": 0,
+    "checked": {
+     "info": 76,
+     "php": 4900
+    },
+    "errors": 0,
+    "warnings": 0,
+    "findings": []
+   },
+   "exit": 1,
+   "checked": {
+    "info": 77,
+    "php": 4900
+   },
+   "errors": 7,
+   "warnings": 1,
+   "missed": [],
+   "unexpected": [],
+   "pass": true
+  },
+  {
+   "run": "--changed",
+   "parser": "symfony",
+   "before": {
+    "exit": 0,
+    "checked": {
+     "info": 0,
+     "php": 0
+    },
+    "errors": 0,
+    "warnings": 0,
+    "findings": []
+   },
+   "exit": 1,
+   "checked": {
+    "info": 7,
+    "php": 2
+   },
+   "errors": 6,
+   "warnings": 1,
+   "missed": [],
+   "unexpected": [],
+   "pass": true
+  },
+  {
+   "run": "--changed",
+   "parser": "pecl",
+   "before": {
+    "exit": 0,
+    "checked": {
+     "info": 0,
+     "php": 0
+    },
+    "errors": 0,
+    "warnings": 0,
+    "findings": []
+   },
+   "exit": 1,
+   "checked": {
+    "info": 7,
+    "php": 2
+   },
+   "errors": 6,
+   "warnings": 1,
+   "missed": [],
+   "unexpected": [],
+   "pass": true
+  }
+ ]
+}

@@ -1,0 +1,77 @@
+name: info.yml linter
+
+# The Phase 3 checks of the info.yml investigation (tests/info-yml/README.md), against core with
+# reports/info-yml/patches/ex-validate.patch applied: core's Extension unit tests with each YAML parser, then the linter
+# on every fixture (lint), on errors planted in core (planted) and in the deploy-gate examples (deploy-gate). Phase 1
+# needs built sites and is not run here; lint compares with the committed reports/info-yml/results.json.
+#
+# The official php:8.5-cli image compiles in what core and the linter need, as in the lab, so "php -n" works and
+# PECL yaml is loaded only where a run asks for it (-d extension=yaml). It runs only when these files change.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/info-yml.yml'
+      - 'reports/info-yml/patches/**'
+      - 'reports/info-yml/results.json'
+      - 'scripts/info-yml-repro.mjs'
+      - 'tests/info-yml/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/info-yml.yml'
+      - 'reports/info-yml/patches/**'
+      - 'reports/info-yml/results.json'
+      - 'scripts/info-yml-repro.mjs'
+      - 'tests/info-yml/**'
+
+permissions:
+  contents: read
+
+env:
+  # The core commit the patch was made on (reports/info-yml/RESULTS.md records the same one).
+  CORE_COMMIT: 89df3a065deb760a82a67ef8854f25d26bd05722
+  # The container runs as root; Composer refuses plugins and scripts as root without this.
+  COMPOSER_ALLOW_SUPERUSER: 1
+
+jobs:
+  linter:
+    runs-on: ubuntu-latest
+    container: php:8.5-cli
+    steps:
+      - name: System packages, PECL yaml and Composer
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq git unzip libyaml-dev > /dev/null
+          pecl install yaml > /dev/null
+          php -n -d extension=yaml -r 'exit(extension_loaded("yaml") ? 0 : 1);'   # PHP only warns when it cannot load it
+          curl -sS https://getcomposer.org/installer | php -- --quiet --install-dir=/usr/local/bin --filename=composer
+          git config --global --add safe.directory '*'
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/composer
+          key: composer-${{ env.CORE_COMMIT }}
+      - name: Core at that commit, with the patch
+        run: |
+          git init -q envs/info-yml-patch
+          cd envs/info-yml-patch
+          git fetch -q --depth 1 https://github.com/drupal/drupal "$CORE_COMMIT"
+          git checkout -q FETCH_HEAD
+          git -c user.name=CI -c user.email=ci@example.com am -q ../../reports/info-yml/patches/ex-validate.patch
+          composer install --no-progress --no-interaction --ignore-platform-req=ext-gd
+      - name: Extension unit tests, Symfony YAML
+        working-directory: envs/info-yml-patch
+        run: php -n -d memory_limit=1G vendor/bin/phpunit -c core core/tests/Drupal/Tests/Core/Extension/
+      - name: Extension unit tests, PECL YAML
+        working-directory: envs/info-yml-patch
+        run: php -n -d memory_limit=1G -d extension=yaml vendor/bin/phpunit -c core core/tests/Drupal/Tests/Core/Extension/
+      - name: The linter on every fixture, compared with Phase 1
+        run: node scripts/info-yml-repro.mjs lint --core=envs/info-yml-patch
+      - name: Errors planted in core
+        run: node scripts/info-yml-repro.mjs planted --core=envs/info-yml-patch
+      - run: npm install --no-save --prefix tools/compare/.deps js-yaml@4
+      - name: Deploy-gate examples in a scratch Composer site
+        run: node scripts/info-yml-repro.mjs deploy-gate --core=envs/info-yml-patch

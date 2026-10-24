@@ -4,8 +4,9 @@ Repeatable tests for one question: can a malformed `.info.yml` file, or a PHP pa
 site, including when the extension is not installed? Results are in [reports/info-yml/](../../reports/info-yml/); sources for
 every claim about core are in [reports/info-yml/sources/](../../reports/info-yml/sources/README.md).
 
-This is not a Before/After comparison of a core patch, so it does not use the Lab viewer or `tools/compare/variants.json`.
-Core is unpatched. Drush is not used: core's own commands stand in for it.
+This is not a Before/After comparison in the Lab viewer, so it does not use `tools/compare/variants.json`. Phase 1 runs on
+unpatched core. Phase 3 checks a core patch that adds a linter (`core/scripts/dr ex:validate`), and named variants measure any
+other proposed core patch with the same fixtures (see "Phase 3" below). Drush is not used: core's own commands stand in for it.
 
 ## What is here
 
@@ -20,7 +21,11 @@ Core is unpatched. Drush is not used: core's own commands stand in for it.
 | `lib/parse-sweep.php` | Every fixture info file through core's `InfoParserDynamic`, no site needed. |
 | `lib/php-check-methods.php` | `php -l`, `token_get_all(TOKEN_PARSE)` and `opcache_compile_file()` compared on broken PHP. |
 | `lib/watchdog.php`, `lib/login-path.php`, `lib/uninstall-module.php` | Helpers for the runner: read dblog from SQLite, one-time login path, uninstall a module. |
+| `deploy-gate/` | Examples for site repositories: a GitHub Actions workflow and Composer scripts that run `ex:validate` before a deployment. |
+| `patches/` | Proposed core patches to measure as variants. `theme-core-incompatible.patch` tests the variant tooling on one finding. |
+| `ci-local.sh` | Runs the steps of `.github/workflows/info-yml.yml` in the same `php:8.5-cli` image, on this machine. |
 | `../../scripts/info-yml-repro.mjs` | The runner. |
+| `../../reports/info-yml/patches/ex-validate.patch` | The core patch with the linter: `ExtensionFileValidator`, the `ex:validate` command and their tests. |
 
 ## Reproduce
 
@@ -76,9 +81,48 @@ Drush equivalents used:
 |---|---|
 | `drush cr` | `core/scripts/dr cache:rebuild` (`core/lib/Drupal/Core/Command/CacheRebuildCommand.php`, calls `drupal_rebuild()`) |
 | `drush en <the broken extension>` | the `/admin/modules` form, or the theme's Install link on `/admin/appearance`; the recipe command does not see an extension added since the last cache rebuild (`ExtensionAvailableConstraintValidator::extensionExists()` uses the cached list) |
-| `drush en <another module>` | `core/scripts/dr recipe tests/info-yml/recipes/install_syslog` |
+| `drush en <the broken extension>` | also `core/scripts/dr ex:install <name> -y` (observation `exin_self`): core's own install command, aliases `exin`, `pm:install`, `pm:enable`, `enable`, `en` (`core/lib/Drupal/Core/Extension/Command/ExtensionInstallCommand.php:33-36`); it resets both extension lists first (lines 77-78), so it sees a newly added extension. Correction: the first Phase 1 runs missed this command and used only the UI; `exin_self` and `exin_other` were added afterwards |
+| `drush en <another module>` | `core/scripts/dr recipe tests/info-yml/recipes/install_syslog`, and `core/scripts/dr ex:install syslog -y` (observation `exin_other`) |
 | `drush updb` | `GET /update.php/selection` (lists pending updates; nothing is run) |
 
 The Update Manager install and update forms are not tested: they were removed in Drupal 11.1.0
 (`core/modules/update/src/Form/UpdateManagerInstall.php` on 10.6.x: "deprecated in drupal:10.4.0 and is removed from
 drupal:11.1.0"), so libraries #3190825's path does not exist on Drupal 12.
+
+## Phase 3: the linter, and other proposed patches
+
+The linter is a core patch, [reports/info-yml/patches/ex-validate.patch](../../reports/info-yml/patches/ex-validate.patch), made on
+the core commit recorded in [RESULTS.md](../../reports/info-yml/RESULTS.md). Apply it to a second checkout:
+
+        git clone https://github.com/drupal/drupal envs/info-yml-patch && cd envs/info-yml-patch
+        git checkout <the core commit> && git am ../../reports/info-yml/patches/ex-validate.patch
+        composer install && cd ../..
+
+Then, with no site (each writes a Markdown report and its JSON next to it in `reports/info-yml/`):
+
+| Command | What it checks | Report |
+|---|---|---|
+| `lint` | Every fixture through `ex:validate`, with each parser, against what the fixture did to a site in Phase 1. | `LINT.md` |
+| `false-positives` | Core and six contributed projects from GitHub: working code should give no errors. | `FALSE-POSITIVES.md` |
+| `planted` | Errors planted in real core files, in a git worktree: each run must report exactly those, and nothing new. | `PLANTED.md` |
+| `deploy-gate` | The `deploy-gate/` examples, run as written in a scratch site with the Composer project layout. | `DEPLOY-GATE.md` |
+
+        LAB_PHP=/opt/php85/bin/php node scripts/info-yml-repro.mjs lint
+
+`.github/workflows/info-yml.yml` runs the unit tests, `lint`, `planted` and `deploy-gate` on GitHub when these files change.
+
+To measure another proposed core patch with the same fixtures (for example a drupal.org merge request, saved as a diff), make a
+named variant. It gets its own core checkout (the baseline checkout plus the patch, committed), worker sites and report folder,
+so the baseline results are never overwritten:
+
+        node scripts/info-yml-repro.mjs variant --variant=<name> --patch=<file>
+        LAB_PHP=/opt/php85/bin/php node scripts/info-yml-repro.mjs prepare --variant=<name> --workers=2
+        LAB_PHP=/opt/php85/bin/php node scripts/info-yml-repro.mjs run --variant=<name> --workers=2 [filters]
+        node scripts/info-yml-repro.mjs compare --variant=<name>
+
+`compare` lists every result that differs from the baseline for the same scenario and observation, in
+`reports/info-yml/variants/<name>/COMPARE.md`. Each verdict already compares the broken file with a valid file on the same core,
+so a difference is the patch's effect on how a broken file behaves. `lint`, `planted`, `false-positives` and `deploy-gate` also take
+`--variant=`, to check a variant that changes the linter itself (make it with `--base=envs/info-yml-patch`, so it starts from
+the linter patch); they still compare with the baseline's Phase 1 results.
+
