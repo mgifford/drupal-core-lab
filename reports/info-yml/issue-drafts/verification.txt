@@ -1,0 +1,44 @@
+Output of tests/info-yml/verify-issue-drafts.sh, 2026-10-24T20:38Z, core 89df3a065deb, PHP 8.5.12, Symfony YAML (PECL yaml not loaded).
+
+== draft 1, baseline core
+-- dr ex:install example -y
+exit 0 / [OK] Successfully installed 1 theme.
+recorded as installed
+
+== draft 2, baseline core
+-- dr ex:install example -y
+exit 255
+TypeError: array_map(): Argument #2 ($array) must be of type array
+recorded as installed
+-- dr cache:rebuild
+exit 255
+
+== draft 3, baseline core
+-- dr ex:install example -y
+exit 255
+PHP Parse error:  syntax error, unexpected token "{"
+recorded as installed
+-- dr cache:rebuild
+exit 255
+
+== draft 4, baseline core
+-- dr ex:install example -y (valid module)
+exit 0
+recorded as installed
+-- dr ex:install syslog -y (after the parse error)
+exit 1 / There are no commands defined in the "ex" namespace.
+-- dr cache:rebuild
+exit 255
+
+== draft 5, baseline core
+-- GET /admin/modules as the administrator
+500
+-- dr ex:install example -y
+exit 0 / * Array (example)
+Array to string conversion
+recorded as installed
+
+== draft 1, variant theme-incompatible (core plus tests/info-yml/patches/theme-core-incompatible.patch)
+-- dr ex:install example -y
+exit 1 / [ERROR] Unable to install theme: 'example' is incompatible with this version of Drupal core.
+not installed

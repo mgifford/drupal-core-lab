@@ -24,6 +24,7 @@ other proposed core patch with the same fixtures (see "Phase 3" below). Drush is
 | `deploy-gate/` | Examples for site repositories: a GitHub Actions workflow and Composer scripts that run `ex:validate` before a deployment. |
 | `patches/` | Proposed core patches to measure as variants. `theme-core-incompatible.patch` tests the variant tooling on one finding. |
 | `ci-local.sh` | Runs the steps of `.github/workflows/info-yml.yml` in the same `php:8.5-cli` image, on this machine. |
+| `verify-issue-drafts.sh` | Runs the reproduction steps of the drafts in `reports/info-yml/issue-drafts/`, as written, on a worker site. |
 | `../../scripts/info-yml-repro.mjs` | The runner. |
 | `../../reports/info-yml/patches/ex-validate.patch` | The core patch with the linter: `ExtensionFileValidator`, the `ex:validate` command and their tests. |
 

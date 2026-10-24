@@ -20,6 +20,7 @@ the fixtures and runner in [tests/info-yml/](../../tests/info-yml/README.md). **
 | [variants/](variants/) | Proposed core patches measured with the same fixtures; each folder has its patch, results and `COMPARE.md`. |
 | [PHASE4-PACKAGE-MANAGER.md](PHASE4-PACKAGE-MANAGER.md) | Phase 4, design only: the same checks before Package Manager applies a stage. |
 | [ISSUE-SUMMARY.md](ISSUE-SUMMARY.md) | A draft drupal.org issue summary, from the measured results. Not posted. |
+| [issue-drafts/](issue-drafts/) | Five more drafts, one per install-command problem below, each with its steps run as written ([verification.txt](issue-drafts/verification.txt)). Not posted. |
 | [UNVERIFIED.md](UNVERIFIED.md) | What this investigation could not verify. |
 | [sources/README.md](sources/README.md) | Every issue and commit relied on, and where each fact came from. |
 
@@ -44,5 +45,9 @@ They found these, on 12.x `main` (rows in [RESULTS.md](RESULTS.md)):
 - `name-not-string`: the command installs a module whose `name` is a list. It prints "Array (infofix)" and logs
   "Array to string conversion" (`ExtensionInstallCommand.php:153`, `225`).
 
-The linter reports a finding for each of these files ([LINT.md](LINT.md)).
+The linter reports a finding for each of these files ([LINT.md](LINT.md)). Each problem has a draft issue, with its
+reproduction steps run as written on the same core ([verification.txt](issue-drafts/verification.txt)):
+[1, incompatible theme](issue-drafts/1-theme-core-incompatible.md), [2, regions not a mapping](issue-drafts/2-theme-regions-not-mapping.md),
+[3, parse error in a .module file](issue-drafts/3-module-parse-error-install.md), [4, dr hides the boot error](issue-drafts/4-dr-hides-boot-error.md),
+[5, name not a string](issue-drafts/5-info-name-not-string.md).
 
