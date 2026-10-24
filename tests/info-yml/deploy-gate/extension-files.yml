@@ -1,0 +1,42 @@
+# Example: check extension files in a Drupal site repository before code reaches production.
+#
+# For a site built from drupal/recommended-project (composer.json at the top, the Drupal root in web/). Copy this file
+# to .github/workflows/extension-files.yml in the site repository. It needs a core that has the ex:validate command:
+# today that is core with reports/info-yml/patches/ex-validate.patch applied (for example with cweagans/composer-patches).
+#
+# Tested in this lab by `node scripts/info-yml-repro.mjs deploy-gate`, which runs the two ex:validate steps below as
+# written in a scratch site with this layout (see reports/info-yml/DEPLOY-GATE.md). The checkout, setup-php and
+# composer install steps were not run on GitHub.
+name: Extension files
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  ex-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # --changed compares with the base branch
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+      - run: composer install --no-interaction --no-progress
+      # Pull requests: only the files the pull request adds or changes. Exit 1 means at least one error.
+      - name: Check changed extension files
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.base_ref }}
+        run: php web/core/scripts/dr ex:validate --changed="origin/$BASE"
+      # Pushes to main, before a deployment: every extension below web/, contributed ones included. Composer installs
+      # contributed code without committing it, so --changed cannot see a broken contributed release.
+      - name: Check all extension files
+        if: github.event_name == 'push'
+        run: php web/core/scripts/dr ex:validate

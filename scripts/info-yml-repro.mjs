@@ -6,7 +6,15 @@
 //   node scripts/info-yml-repro.mjs run [filters] [--workers=N]  run the matrix (merges into reports/info-yml/results.json)
 //   node scripts/info-yml-repro.mjs report                       rewrite reports/info-yml/RESULTS.md from results.json
 // Filters (comma lists): --cases= --kinds=module,theme,profile,libraries --placements=uninstalled,installed,...
-//   --parsers=symfony,pecl --observations=anon,modules,...   --rebaseline measures the baselines again.
+//   --parsers=symfony,pecl --observations=anon,modules,...   --rebaseline measures the baselines again
+//   (--rebaseline=exin_self,... only those observations' baselines).
+// Phase 3 (needs a core with the ex:validate patch, default envs/info-yml-patch):
+//   lint | false-positives | planted | deploy-gate   the linter on the fixtures, on working code, on errors planted in core,
+//                                                    and in the deploy-gate examples (reports/info-yml/*.md)
+// Proposed patches, measured with the same fixtures, apart from the baseline:
+//   variant --variant=<name> --patch=<file>          envs/info-yml-<name>: the baseline core plus the patch
+//   prepare|run|report --variant=<name>              the Phase 1 matrix on it (reports/info-yml/variants/<name>/)
+//   compare --variant=<name>                         every result that differs from the baseline's
 // Options: --php=<php 8.5 binary> (default $LAB_PHP or php), --core=<core checkout> (default envs/info-yml-main),
 //   --yaml-ext=<extension to load for the PECL runs> (default yaml), --port=<first port> (default 8890).
 //
@@ -28,6 +36,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
+import { loadYaml } from '../tools/compare/pack-validate.mjs';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -38,13 +47,32 @@ const opt = (name, dflt) => { const a = args.find((x) => x.startsWith(`--${name}
 const list = (name) => { const v = opt(name); return v ? v.split(',').filter(Boolean) : null; };
 
 const PHP = opt('php', process.env.LAB_PHP || 'php');
-const CORE = path.resolve(labRoot, opt('core', 'envs/info-yml-main'));
-const WORK = path.join(labRoot, 'envs/info-yml-work');
+// --variant=<name>: a run on a patched core, kept apart from the baseline: its own core checkout (envs/info-yml-<name>, made
+// by the variant command), worker sites (envs/info-yml-work-<name>) and reports (reports/info-yml/variants/<name>/).
+const VARIANT = opt('variant', null);
+const RESERVED = ['main', 'patch', 'work', 'contrib', 'site', 'planted'];
+if (VARIANT !== null && (!/^[a-z0-9][a-z0-9-]*$/.test(VARIANT) || RESERVED.includes(VARIANT) || VARIANT.startsWith('work-'))) {
+  console.error(`--variant= takes lower-case letters, digits and hyphens, and not: ${RESERVED.join(', ')}, work-*.`);
+  process.exit(2);
+}
+const CORE = path.resolve(labRoot, opt('core', VARIANT ? `envs/info-yml-${VARIANT}` : 'envs/info-yml-main'));
+const WORK = path.join(labRoot, VARIANT ? `envs/info-yml-work-${VARIANT}` : 'envs/info-yml-work');
 const FIX = path.join(labRoot, 'tests/info-yml/fixtures');
 const RECIPES = path.join(labRoot, 'tests/info-yml/recipes');
 const LIB = path.join(labRoot, 'tests/info-yml/lib');
-const OUT = path.join(labRoot, 'reports/info-yml');
+// The baseline's reports; a variant writes to its own folder, and the linter checks always compare with the baseline's Phase 1.
+const BASE_OUT = path.join(labRoot, 'reports/info-yml');
+const OUT = VARIANT ? path.join(BASE_OUT, 'variants', VARIANT) : BASE_OUT;
+// The core with the linter, for lint, planted, false-positives and deploy-gate: --core=, else the variant's, else the patch's.
+// Links in a report, relative to the folder it is written to.
+const link = (rel) => path.relative(OUT, path.join(labRoot, rel));
+const LINTER_CORE = path.resolve(labRoot, opt('core', VARIANT ? `envs/info-yml-${VARIANT}` : 'envs/info-yml-patch'));
 const YAML_EXT = opt('yaml-ext', 'yaml');
+// A PECL run must really load the extension: PHP only warns when it cannot, and the run would silently use Symfony YAML.
+function requireYaml() {
+  const r = spawnSync(PHP, ['-n', '-d', `extension=${YAML_EXT}`, '-r', 'exit(extension_loaded("yaml") ? 0 : 1);'], { encoding: 'utf8' });
+  if (r.status !== 0) { console.error(`PECL YAML does not load with ${PHP} -n -d extension=${YAML_EXT}:\n${r.stderr || r.stdout}`); process.exit(3); }
+}
 const PORT0 = Number(opt('port', '8890'));
 const WORKERS = Math.max(1, Number(opt('workers', '1')));
 
@@ -82,7 +110,9 @@ const OBSERVATIONS = {
   updatephp: { label: 'GET /update.php/selection (stands in for drush updb: it lists pending updates; no update is run)' },
   cr: { label: 'core/scripts/dr cache:rebuild (stands in for drush cr), then GET /user/login' },
   en_self: { label: 'install the fixture extension itself from the UI: tick it on /admin/modules and submit, or follow the theme\'s Install link on /admin/appearance (stands in for drush en; the recipe command cannot see an extension added since the last cache rebuild)' },
-  en_other: { label: 'core/scripts/dr recipe tests/info-yml/recipes/install_syslog: install an unrelated core module (stands in for drush en)' },
+  en_other: { label: 'core/scripts/dr recipe tests/info-yml/recipes/install_syslog: install an unrelated core module with a recipe' },
+  exin_self: { label: 'core/scripts/dr ex:install <the fixture extension> -y: core\'s own install command (aliases exin, pm:install, pm:enable, enable, en; it resets the extension lists first), the closest equivalent of drush en; then one anonymous request to /user/login, then cache:rebuild and the request again' },
+  exin_other: { label: 'core/scripts/dr ex:install syslog -y: install an unrelated core module with core\'s install command; then one anonymous request to /user/login, then cache:rebuild and the request again' },
   recovery: { label: 'break the site (cache:rebuild), remove the fixture (delete it, or put the valid files back if it was installed), then GET /user/login without and with cache:rebuild' },
 };
 const SETTINGS = `
@@ -372,6 +402,24 @@ async function observe(w, sc, obs, baseline = false) {
     const log = logged(w, since);
     return { ...r, exception: exceptionOf(log), logged: log };
   }
+  if (obs === 'exin_self' || obs === 'exin_other') {
+    const name = obs === 'exin_other' ? 'syslog' : EXT[sc.kind];
+    const c = drupal(w, sc.parser, 'ex:install', name, '-y');
+    const log = logged(w, since);
+    // Then one anonymous page, then cache:rebuild and the page again: a failed install can leave the extension recorded as
+    // installed, which the next page may not show (the container was not rebuilt) but the next cache rebuild does.
+    const installed = installedNow(w, name);
+    const since2 = sinceNow(w, s.maxwid);
+    const f = await httpClean(w, '/user/login', '');
+    const log2 = logged(w, since2);
+    const since3 = sinceNow(w, s.maxwid);
+    const c3 = drupal(w, sc.parser, 'cache:rebuild');
+    const f3 = await httpClean(w, '/user/login', '');
+    const log3 = logged(w, since3);
+    return { command: `ex:install ${name} -y`, exit: c.exit, output: headTail(c.out), installed, exception: exceptionOf({ ...log, out: c.out }), logged: log,
+      after: { ...f, exception: exceptionOf(log2), logged: log2 },
+      after_rebuild: { cache_rebuild_exit: c3.exit, ...f3, exception: exceptionOf({ ...log3, out: c3.out }), logged: log3 } };
+  }
   if (obs === 'en_other') {
     const c = drupal(w, sc.parser, 'recipe', path.join(RECIPES, 'install_syslog'));
     const log = logged(w, since);
@@ -408,6 +456,16 @@ function judge(obs, r, b) {
     return { verdict: v, after_verdict: judgeHttp(r.after, b?.after) };
   }
   if (obs === 'en_other') return { verdict: r.exit !== 0 && b?.exit === 0 ? 'error' : newErrs(r, b).length ? 'degraded' : 'ok' };
+  if (obs === 'exin_self' || obs === 'exin_other') {
+    const after_verdict = r.after ? judgeHttp(r.after, b?.after) : undefined;
+    const rebuilt = r.after_rebuild;
+    if (rebuilt) rebuilt.verdict = rebuilt.cache_rebuild_exit !== 0 && b?.after_rebuild?.cache_rebuild_exit === 0 ? 'error' : judgeHttp(rebuilt, b?.after_rebuild);
+    // "refused": the command stopped with its own message (exit 1, no exception, nothing installed), as the UI does when it
+    // does not offer the extension. "error": an exception or a fatal error (exit 255) ended the command.
+    if (r.exit !== 0 && b?.exit === 0) return { verdict: r.exit === 1 && !r.exception && !r.installed ? 'refused' : 'error', after_verdict };
+    if (b?.installed && !r.installed) return { verdict: 'not installed', after_verdict };
+    return { verdict: newErrs(r, b).length ? 'degraded' : 'ok', after_verdict };
+  }
   if (obs === 'en_self') {
     if (r.status === 0 || r.status >= 500 || r.then?.status >= 500) return { verdict: 'error' };
     if (b?.installed && !r.offered) return { verdict: 'not offered' };
@@ -435,7 +493,7 @@ function scenarios() {
 }
 function observationsFor(sc) {
   const all = list('observations') || Object.keys(OBSERVATIONS);
-  return all.filter((o) => o !== 'en_self' || (['uninstalled', 'uninstalled-no-update', 'contrib', 'contrib-scan-tests'].includes(sc.placement) && sc.kind !== 'profile'));
+  return all.filter((o) => !['en_self', 'exin_self'].includes(o) || (['uninstalled', 'uninstalled-no-update', 'contrib', 'contrib-scan-tests'].includes(sc.placement) && sc.kind !== 'profile'));
 }
 
 async function prepare(w) {
@@ -531,7 +589,9 @@ async function runMatrix() {
   const resultsFile = path.join(OUT, 'results.json');
   const prior = fs.existsSync(resultsFile) ? JSON.parse(fs.readFileSync(resultsFile, 'utf8')) : {};
   const byId = new Map((prior.scenarios || []).map((s) => [s.id, s]));
-  const baselines = args.includes('--rebaseline') ? {} : (prior.baselines || {});
+  // --rebaseline measures every baseline again; --rebaseline=exin_self,exin_other only those observations' baselines.
+  const rebase = list('rebaseline');
+  const baselines = args.includes('--rebaseline') ? {} : Object.fromEntries(Object.entries(prior.baselines || {}).filter(([k]) => !rebase?.includes(k.split('/').pop())));
   const workers = Array.from({ length: WORKERS }, (_, i) => worker(i));
   for (const w of workers) if (!fs.existsSync(path.join(w.snaps, 'profile-installed/cookie.txt'))) { console.error(`Worker ${w.i} is not prepared. Run: node scripts/info-yml-repro.mjs prepare --workers=${WORKERS}`); process.exit(3); }
   const t0 = Date.now();
@@ -609,6 +669,13 @@ function cell(o, r) {
   if (r.verdict === 'runner error') return 'runner error';
   if (o === 'cr') return r.verdict === 'ok' && r.after_verdict === 'ok' ? 'ok' : `${r.verdict === 'ok' ? 'ok' : `${r.verdict} (exit ${r.exit})${short(r.exception)}`}; then ${r.after_verdict === 'ok' ? 'ok' : `${r.after.status}${short(r.after.exception)}`}`;
   if (o === 'recovery') return r.verdict;
+  if (o === 'exin_self' || o === 'exin_other') {
+    const first = r.verdict === 'ok' ? 'ok' : `${r.verdict} (exit ${r.exit})${short(r.exception)}`;
+    const then = !r.after_verdict || r.after_verdict === 'ok' ? '' : `; then ${r.after.status}${short(r.after.exception)}`;
+    const ar = r.after_rebuild;
+    const rebuilt = !ar || ar.verdict === 'ok' ? '' : `; after cr: ${ar.cache_rebuild_exit !== 0 ? `cr exit ${ar.cache_rebuild_exit}, ` : ''}${ar.status}${short(ar.exception)}`;
+    return first + then + rebuilt;
+  }
   if (o === 'en_other') return r.verdict === 'ok' ? 'ok' : `${r.verdict} (exit ${r.exit})${short(r.exception)}`;
   if (o === 'en_self') return r.verdict === 'ok' ? 'ok' : `${r.verdict}${short(r.exception)}`;
   return r.verdict === 'ok' ? 'ok' : r.verdict === 'error' ? `${r.status}${short(r.exception)}` : `${r.verdict}${short(r.exception)}`;
@@ -620,7 +687,7 @@ function writeReport() {
   const sc = data.scenarios;
   const L = [];
   L.push('# info.yml Phase 1 results: what a broken info file does to a Drupal 12 site', '');
-  L.push(`Generated ${data.generated} by \`node scripts/info-yml-repro.mjs\`. Machine-readable: [results.json](results.json). Fixtures: [tests/info-yml/fixtures/](../../tests/info-yml/fixtures/). **DRAFT until a person has reviewed it.**`, '');
+  L.push(`Generated ${data.generated} by \`node scripts/info-yml-repro.mjs\`. Machine-readable: [results.json](results.json). Fixtures: [tests/info-yml/fixtures/](${link('tests/info-yml/fixtures')}/). **DRAFT until a person has reviewed it.**`, '');
   L.push('| | |', '|---|---|');
   L.push(`| Drupal | ${env.drupal.version} at \`${env.drupal.commit.slice(0, 12)}\` (${env.drupal.commit_date}), "${env.drupal.subject}", from ${env.drupal.source} |`);
   L.push(`| PHP | ${env.php.version} (${env.php.binary}); PECL yaml ${env.php.pecl_yaml}; symfony/yaml ${env.php.symfony_yaml} |`);
@@ -702,6 +769,8 @@ function writeReport() {
   console.log(`Wrote ${path.relative(labRoot, path.join(OUT, 'RESULTS.md'))}`);
 }
 
+if (VARIANT && cmd !== 'variant' && !fs.existsSync(CORE)) { console.error(`${CORE} does not exist. Set the variant up first: node scripts/info-yml-repro.mjs variant --variant=${VARIANT} --patch=<file>`); process.exit(3); }
+if (VARIANT) fs.mkdirSync(OUT, { recursive: true });
 if (cmd === 'prepare') {
   if (!fs.existsSync(path.join(CORE, 'vendor/autoload.php'))) { console.error(`${CORE} has no vendor/. Run composer install there first.`); process.exit(3); }
   const only = opt('only');
@@ -749,6 +818,361 @@ if (cmd === 'prepare') {
   await stopServer(w); cleanExtensions(w); resetSite(w);
   fs.writeFileSync(path.join(OUT, 'profile-recovery.json'), JSON.stringify({ generated: new Date().toISOString(), environment: environment(), steps }, null, 1) + '\n');
   console.log(`Wrote ${path.relative(labRoot, path.join(OUT, 'profile-recovery.json'))}`);
+} else if (cmd === 'lint') {
+  requireYaml();
+  // Phase 3: every fixture through a patched core's ex:validate (reports/info-yml/patches/ex-validate.patch), with each
+  // parser, compared with what the fixture did to a site in Phase 1 (results.json). --core= is the patched checkout.
+  const core = LINTER_CORE;
+  if (!fs.existsSync(path.join(core, 'core/lib/Drupal/Core/Extension/Command/ExtensionValidateCommand.php'))) {
+    console.error(`${core} does not have the ex:validate command. Apply reports/info-yml/patches/ex-validate.patch to a core checkout and pass --core=.`);
+    process.exit(3);
+  }
+  const phase1 = JSON.parse(fs.readFileSync(path.join(BASE_OUT, 'results.json'), 'utf8')).scenarios;
+  // What a fixture did to a site, over every placement of its kind (Symfony YAML, which a host without PECL YAML uses).
+  // A file that breaks the site only where the extension is installed is reported as a warning: without a site the linter
+  // cannot know what is installed (--strict makes warnings fail).
+  const effectIn = (rs) => {
+    const bad = (k) => rs.some(([o, r]) => o === k && r.verdict !== 'ok' && r.verdict !== 'not broken');
+    if (bad('cr') || bad('anon_cold') || rs.some(([o, r]) => o === 'cr' && r.after_verdict && r.after_verdict !== 'ok')) return 'site breaks';
+    if (rs.some(([o, r]) => !['en_self', 'exin_self', 'recovery'].includes(o) && r.verdict !== 'ok')) return 'pages fail';
+    if (bad('en_self') || bad('exin_self')) return 'cannot be installed';
+    return 'no effect';
+  };
+  const effect = (c, kind) => {
+    const of = (installed) => effectIn(phase1.filter((s) => s.case === c && s.kind === kind && s.parser === 'symfony' && (s.placement === 'installed') === installed).flatMap((s) => Object.entries(s.results)));
+    const uninstalled = of(false), installed = of(true);
+    return uninstalled !== 'site breaks' && installed === 'site breaks' ? 'site breaks if installed' : uninstalled !== 'no effect' ? uninstalled : installed;
+  };
+  // Effects the linter cannot see without a site: whether a dependency exists.
+  const KNOWN_MISSES = { 'dependency-missing': 'whether a dependency exists needs the list of available extensions, which needs a site' };
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'info-yml-lint-'));
+  const validate = (dir, parser, extra = []) => {
+    const r = spawnSync(PHP, ['-n', '-d', 'memory_limit=1G', ...(parser === 'pecl' ? ['-d', `extension=${YAML_EXT}`] : []), 'core/scripts/dr', 'ex:validate', dir, '--format=json', ...extra], { cwd: core, encoding: 'utf8' });
+    try { return { exit: r.status, ...JSON.parse(r.stdout) }; } catch { return { exit: r.status, error: `${r.stdout}${r.stderr}`.slice(0, 500) }; }
+  };
+  const rows = [];
+  const cases = JSON.parse(fs.readFileSync(path.join(FIX, 'index.json'), 'utf8'));
+  for (const c of cases) {
+    const meta = JSON.parse(fs.readFileSync(path.join(FIX, c.id, 'case.json'), 'utf8'));
+    for (const kind of c.kinds) {
+      const dir = path.join(tmp, c.id, kind), parent = path.join(dir, PARENT[kind]);
+      fs.mkdirSync(parent, { recursive: true });
+      copyDir(path.join(FIX, '_valid', kind), parent);
+      for (const rel of meta.remove[kind] || []) rm(path.join(parent, rel));
+      copyDir(path.join(FIX, c.id, kind), parent);
+      const files = meta.files[kind].map((f) => `${PARENT[kind]}/${f}`);
+      const before = effect(c.id, kind);
+      for (const parser of ['symfony', 'pecl']) {
+        const r = validate(dir, parser);
+        const findings = (r.violations || []).map((v) => ({ ...v, file: path.relative(dir, v.file.startsWith('/') ? v.file : path.join(core, v.file)) }));
+        const onFile = findings.filter((v) => files.includes(v.file) || meta.remove[kind]?.length);
+        const errors = onFile.filter((v) => v.severity === 'error').length, warnings = onFile.length - errors;
+        let pass, why;
+        if (before === 'site breaks') { pass = errors > 0; why = 'needs an error on the fixture file'; }
+        else if (before === 'site breaks if installed') { pass = onFile.length > 0; why = 'needs a finding; an error only where the linter can know the extension is installed'; }
+        else if (before === 'no effect') { pass = findings.every((v) => v.severity !== 'error'); why = 'no errors allowed'; }
+        else { pass = onFile.length > 0 || Boolean(KNOWN_MISSES[c.id]); why = KNOWN_MISSES[c.id] ? `known limit: ${KNOWN_MISSES[c.id]}` : 'needs a finding on the fixture file'; }
+        rows.push({ case: c.id, kind, parser, before, exit: r.exit, errors, warnings, rules: [...new Set(findings.map((v) => `${v.rule}${v.line ? ':' + v.line : ''}`))], findings, pass, why, error: r.error });
+      }
+    }
+  }
+  // The Libraries-style project (#3190825): tests/ fixtures are skipped by default, as by extension discovery.
+  const libDir = path.join(tmp, 'libraries-tarball');
+  copyDir(path.join(FIX, 'libraries-tarball/v2'), path.join(libDir, 'modules/contrib'));
+  for (const [placement, extra] of [['contrib', []], ['contrib-scan-tests', ['--include-tests']]]) {
+    const before = phase1.filter((s) => s.case === 'libraries-tarball' && s.placement === placement && s.parser === 'symfony').flatMap((s) => Object.values(s.results)).some((r) => r.verdict === 'error') ? 'site breaks' : 'no effect';
+    for (const parser of ['symfony', 'pecl']) {
+      const r = validate(libDir, parser, extra);
+      const findings = (r.violations || []).map((v) => ({ ...v, file: path.relative(libDir, v.file) }));
+      const errors = findings.filter((v) => v.severity === 'error').length;
+      rows.push({ case: 'libraries-tarball', kind: placement, parser, before, exit: r.exit, errors, warnings: findings.length - errors, rules: [...new Set(findings.map((v) => `${v.rule} ${v.file.replace('modules/contrib/', '')}`))], findings, pass: before === 'site breaks' ? errors > 0 : errors === 0, why: extra.length ? 'with --include-tests, as a site with extension_discovery_scan_tests' : 'tests/ skipped, as by extension discovery' });
+    }
+  }
+  rm(tmp);
+  const git = (...a) => spawnSync('git', ['-C', core, ...a], { encoding: 'utf8' }).stdout.trim();
+  const out = { generated: new Date().toISOString(), core: { path: path.relative(labRoot, core), commit: git('rev-parse', 'HEAD'), base: git('rev-parse', 'HEAD~1'), subject: git('log', '-1', '--format=%s') }, php: spawnSync(PHP, ['-n', '-r', 'echo PHP_VERSION;'], { encoding: 'utf8' }).stdout, rows };
+  fs.writeFileSync(path.join(OUT, 'lint-results.json'), JSON.stringify(out, null, 1) + '\n');
+  const failed = rows.filter((r) => !r.pass);
+  const L = ['# Phase 3: the linter on every fixture, compared with Phase 1', ''];
+  L.push(`Generated ${out.generated} by \`node scripts/info-yml-repro.mjs lint\`, with \`core/scripts/dr ex:validate --format=json\` from ${out.core.path} at \`${out.core.commit.slice(0, 12)}\` ("${out.core.subject}", on \`${out.core.base.slice(0, 12)}\`), PHP ${out.php}. Machine-readable: [lint-results.json](lint-results.json). **DRAFT until a person has reviewed it.**`, '');
+  L.push('"Before" is what the fixture did to a Drupal 12 site in Phase 1 (Symfony YAML, every placement of the kind; see RESULTS.md): `site breaks` (cache rebuild or cold-cache visitors fail, installed or not), `site breaks if installed` (only where the extension was installed), `pages fail`, `cannot be installed`, or `no effect`. "After" is what the linter reports for the same files, with each parser.', '');
+  L.push('A row passes when a file that breaks the site has an error; a file that breaks the site only when installed, or has a narrower effect, has a finding; and a file with no effect has no error (warnings there are advisory). Without a site the linter cannot know what is installed, so a file that breaks only an installed extension (a renamed profile info file, a missing base theme) is a warning; `--strict` makes warnings fail the command.', '');
+  L.push(`Result: ${rows.length - failed.length} of ${rows.length} rows pass.${failed.length ? ` Failing: ${failed.map((r) => `${r.case}/${r.kind}/${r.parser}`).join(', ')}.` : ''}`, '');
+  L.push('| case | kind | before (site) | after: Symfony YAML host | after: PECL YAML host | pass |', '|---|---|---|---|---|---|');
+  const cellOf = (r) => (r.errors || r.warnings ? `${r.errors} error(s), ${r.warnings} warning(s): ${r.rules.join(', ')}` : 'clean') + (r.exit !== (r.errors ? 1 : 0) ? ` (exit ${r.exit})` : '');
+  for (const r of rows.filter((x) => x.parser === 'symfony')) {
+    const p = rows.find((x) => x.case === r.case && x.kind === r.kind && x.parser === 'pecl');
+    const known = r.pass && p.pass && !r.errors && !r.warnings && KNOWN_MISSES[r.case] && r.before !== 'no effect';
+    L.push(`| ${r.case} | ${r.kind} | ${r.before} | ${cellOf(r)} | ${cellOf(p)} | ${r.pass && p.pass ? (known ? `yes, as a known limit: ${KNOWN_MISSES[r.case]}` : 'yes') : `NO (${r.why})`} |`);
+  }
+  fs.writeFileSync(path.join(OUT, 'LINT.md'), L.join('\n') + '\n');
+  console.log(`${rows.length - failed.length} of ${rows.length} rows pass. Wrote ${path.relative(labRoot, path.join(OUT, 'LINT.md'))}`);
+  for (const r of failed) console.log(`  FAIL ${r.case}/${r.kind}/${r.parser}: before ${r.before}; ${cellOf(r)}; ${r.why}${r.error ? `; ${r.error}` : ''}`);
+  process.exitCode = failed.length ? 1 : 0;
+} else if (cmd === 'false-positives') {
+  requireYaml();
+  // Phase 3: the linter on code that works, which should give no errors: core itself, and contributed projects developed on
+  // GitHub (packages.drupal.org was unreachable from the lab container). --repos=owner/name,... (shallow clones in
+  // envs/info-yml-contrib/, not executed: the linter only reads and tokenizes files).
+  const core = LINTER_CORE;
+  const repos = list('repos') || ['farmOS/farmOS', 'goalgorilla/open_social', 'localgovdrupal/localgov', 'drupal-graphql/graphql', 'Gizra/og', 'thunder/thunder-distribution'];
+  const dir = path.join(labRoot, 'envs/info-yml-contrib');
+  fs.mkdirSync(dir, { recursive: true });
+  // Files in core/ that git does not track (a PHPStan cache in core/phpstan-tmp/ once added 493 PHP files to the count).
+  const untracked = spawnSync('git', ['-C', core, 'status', '--porcelain', '--ignored', '--', 'core'], { encoding: 'utf8' }).stdout.trim().split('\n').filter(Boolean);
+  if (untracked.length) console.warn(`Not tracked by git in ${core}/core, and checked too:\n${untracked.join('\n')}`);
+  const targets = [{ name: 'drupal core (the patched checkout)', path: path.join(core, 'core'), url: 'https://github.com/drupal/drupal', commit: spawnSync('git', ['-C', core, 'rev-parse', 'HEAD~1'], { encoding: 'utf8' }).stdout.trim(), untracked }];
+  for (const repo of repos) {
+    const target = path.join(dir, repo.replace('/', '__'));
+    if (!fs.existsSync(target)) spawnSync('git', ['clone', '-q', '--depth', '1', `https://github.com/${repo}`, target], { stdio: 'inherit', env: { ...process.env, GIT_LFS_SKIP_SMUDGE: '1' } });
+    const commit = spawnSync('git', ['-C', target, 'log', '-1', '--format=%H %cs'], { encoding: 'utf8' }).stdout.trim();
+    targets.push({ name: repo, path: target, url: `https://github.com/${repo}`, commit });
+  }
+  const rows = [];
+  for (const t of targets) {
+    for (const parser of ['symfony', 'pecl']) {
+      const r = spawnSync(PHP, ['-n', '-d', 'memory_limit=2G', ...(parser === 'pecl' ? ['-d', `extension=${YAML_EXT}`] : []), 'core/scripts/dr', 'ex:validate', t.path, '--format=json'], { cwd: core, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+      let data;
+      try { data = JSON.parse(r.stdout); } catch { data = { error: `${r.stdout}${r.stderr}`.slice(0, 500), violations: [] }; }
+      const violations = data.violations.map((v) => ({ ...v, file: v.file.replace(`${t.path}/`, '') }));
+      const byRule = {};
+      for (const v of violations) byRule[`${v.severity} ${v.rule}`] = (byRule[`${v.severity} ${v.rule}`] || 0) + 1;
+      rows.push({ target: t.name, url: t.url, commit: t.commit, untracked: t.untracked, parser, exit: r.status, checked: data.checked, errors: data.errors, warnings: data.warnings, by_rule: byRule, violations, error: data.error });
+    }
+  }
+  fs.writeFileSync(path.join(OUT, 'false-positives.json'), JSON.stringify({ generated: new Date().toISOString(), core: path.relative(labRoot, core), rows }, null, 1) + '\n');
+  const L = ['# Phase 3: false-positive check', '', `Generated ${new Date().toISOString()} by \`node scripts/info-yml-repro.mjs false-positives\`, with the patched core's \`core/scripts/dr ex:validate\` (default exclusions: tests/ skipped, as by extension discovery). Machine-readable: [false-positives.json](false-positives.json). **DRAFT until a person has reviewed it.**`, ''];
+  L.push('Contributed projects come from their GitHub repositories at the commit shown (development branches, not drupal.org release packages, which were unreachable). Every finding is listed, so each can be judged.', '');
+  L.push(untracked.length ? `Core's counts include files git does not track: ${untracked.map((u) => `\`${u}\``).join(', ')}.` : 'Core\'s counts are of tracked files only: `git status --ignored` listed nothing under core/ (the core commit shown is the parent of the patch commit).', '');
+  L.push('| project | commit | parser | info files | PHP files | errors | warnings | findings by rule |', '|---|---|---|---|---|---|---|---|');
+  for (const r of rows) L.push(`| [${r.target}](${r.url}) | ${r.commit.split(' ')[0].slice(0, 10)} | ${r.parser} | ${r.checked?.info ?? '?'} | ${r.checked?.php ?? '?'} | ${r.errors ?? '?'} | ${r.warnings ?? '?'} | ${Object.entries(r.by_rule).map(([k, n]) => `${k}: ${n}`).join(', ') || 'none'}${r.error ? ` (failed: ${r.error})` : ''} |`);
+  L.push('', '## Every finding (Symfony YAML)', '');
+  for (const r of rows.filter((x) => x.parser === 'symfony' && x.violations.length)) {
+    L.push(`### ${r.target}`, '');
+    for (const v of r.violations) L.push(`- \`${v.file}${v.line ? ':' + v.line : ''}\` ${v.severity} [${v.rule}] ${v.message.replace(/\|/g, '\\|')}`);
+    L.push('');
+  }
+  fs.writeFileSync(path.join(OUT, 'FALSE-POSITIVES.md'), L.join('\n') + '\n');
+  for (const r of rows) console.log(`${r.target} (${r.parser}): ${r.checked?.info} info, ${r.checked?.php} PHP; ${r.errors} error(s), ${r.warnings} warning(s) ${JSON.stringify(r.by_rule)}`);
+} else if (cmd === 'planted') {
+  requireYaml();
+  // Phase 3: errors planted in real core files, in a copy of the patched checkout (a git worktree of its HEAD, with vendor/
+  // hard-linked from it), then checked in full and with --changed. Each run should report what the same run reported before
+  // planting (nothing for core itself; core's deliberately invalid test fixtures with --include-tests), plus each planted
+  // problem, and nothing else. The copy is removed afterwards.
+  const core = LINTER_CORE;
+  const copy = path.join(labRoot, 'envs/info-yml-planted');
+  const git = (...a) => spawnSync('git', ['-C', core, ...a], { encoding: 'utf8' });
+  const removeCopy = () => { git('worktree', 'remove', '--force', copy); rm(copy); git('worktree', 'prune'); };
+  removeCopy();
+  if (git('worktree', 'add', '-q', '--detach', copy, 'HEAD').status !== 0) { console.error(`Could not add a worktree of ${core}.`); process.exit(3); }
+  spawnSync('cp', ['-al', path.join(core, 'vendor'), path.join(copy, 'vendor')]);
+  const lineOf = (text, re) => text.split('\n').findIndex((l) => re.test(l)) + 1;
+  // Each plant: the file, what is done to it, and the finding expected: [rule, line, severity], and in which runs.
+  const plants = [
+    { file: 'core/modules/node/node.info.yml', how: 'an unquoted colon in the description',
+      edit: (t) => t.replace(/^description: .*$/m, 'description: Manages content: the main site content.'), expect: (t) => ['info.yaml', lineOf(t, /^description:/), 'error'] },
+    { file: 'core/themes/default_admin/default_admin.info.yml', how: 'a tab instead of two spaces before a list item',
+      edit: (t) => t.replace(/^ {2}- /m, '\t- '), expect: (t) => ['info.tab', lineOf(t, /^\t/), 'error'] },
+    { file: 'core/modules/views/views.info.yml', how: 'type: modul (a typo)',
+      edit: (t) => t.replace(/^type: module$/m, 'type: modul'), expect: (t) => ['info.type', lineOf(t, /^type:/), 'error'] },
+    { file: 'core/profiles/standard/standard.info.yml', how: 'the type line deleted',
+      edit: (t) => t.replace(/^type: profile\n/m, ''), expect: () => ['info.parser', null, 'error'] },
+    { file: 'core/modules/field_ui/field_ui.info.yml', how: 'a dependency indented one space too far, so YAML joins it to the item above',
+      edit: (t) => t.replace(/^( {2}- drupal:field)$/m, '$1\n   - drupal:text'), expect: (t) => ['info.dependency', lineOf(t, /^ {2}- drupal:field$/), 'warning'] },
+    // Not below core/: InfoParserDynamic gives core's extensions a default core_version_requirement (InfoParserDynamic.php:70).
+    { file: 'modules/custom/planted_new/planted_new.info.yml', how: 'a new, untracked custom module without core_version_requirement', create: true,
+      edit: () => 'name: Planted\ntype: module\n', expect: () => ['info.parser', null, 'error'] },
+    { file: 'core/modules/user/user.module', how: 'a function with a missing parenthesis, appended',
+      edit: (t) => `${t}\nfunction user_planted( {\n}\n`, expect: (t) => ['php.syntax', lineOf(t, /^function user_planted\(/), 'error'] },
+    { file: 'core/modules/system/tests/modules/common_test/common_test.info.yml', how: 'an unquoted colon, in a test module', only: 'include-tests',
+      edit: (t) => t.replace(/^description: .*$/m, 'description: Support: common tests.'), expect: (t) => ['info.yaml', lineOf(t, /^description:/), 'error'] },
+    { file: 'core/modules/text/text.module', how: 'a parameter declared twice (a compile-time error, not a parse error)', only: 'php-lint',
+      edit: (t) => `${t}\nfunction text_planted($a, $a) {\n}\n`, expect: (t) => ['php.lint', lineOf(t, /^function text_planted\(/), 'error'] },
+  ];
+  const runs = [
+    { name: 'full', args: ['core', 'modules'] },
+    { name: 'full --include-tests', args: ['core', 'modules', '--include-tests'], with: 'include-tests' },
+    { name: 'full --php-lint', args: ['core', 'modules', '--php-lint'], with: 'php-lint' },
+    { name: '--changed', args: ['core', 'modules', '--changed'] },
+  ];
+  const validate = (parser, extra) => {
+    const r = spawnSync(PHP, ['-n', '-d', 'memory_limit=2G', ...(parser === 'pecl' ? ['-d', `extension=${YAML_EXT}`] : []), 'core/scripts/dr', 'ex:validate', ...extra, '--format=json'], { cwd: copy, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+    try { return { exit: r.status, ...JSON.parse(r.stdout) }; } catch { return { exit: r.status, error: `${r.stdout}${r.stderr}`.slice(0, 500), violations: [] }; }
+  };
+  const key = (v) => `${v.file}|${v.rule}|${v.line ?? ''}|${v.severity}`;
+  const out = { generated: new Date().toISOString(), core: path.relative(labRoot, core), commit: git('rev-parse', 'HEAD').stdout.trim(), plants: [], runs: [] };
+  const before = {};
+  try {
+    for (const run of runs) for (const parser of ['symfony', 'pecl']) before[`${run.name}/${parser}`] = validate(parser, run.args);
+    for (const p of plants) {
+      const file = path.join(copy, p.file);
+      const text = p.edit(p.create ? '' : fs.readFileSync(file, 'utf8'));
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, text);
+      const [rule, line, severity] = p.expect(text);
+      out.plants.push({ file: p.file, how: p.how, only: p.only, expected: { file: p.file, rule, line, severity } });
+    }
+    for (const run of runs) for (const parser of ['symfony', 'pecl']) {
+      const r = validate(parser, run.args);
+      const b = before[`${run.name}/${parser}`];
+      const expected = out.plants.filter((p) => !p.only || p.only === run.with).map((p) => p.expected);
+      const found = new Set(r.violations.map(key));
+      const want = new Set([...expected, ...b.violations].map(key));
+      out.runs.push({ run: run.name, parser, before: { exit: b.exit, checked: b.checked, errors: b.errors, warnings: b.warnings, findings: b.violations.map((v) => `${v.file}:${v.line ?? ''} ${v.severity} [${v.rule}]`), error: b.error },
+        exit: r.exit, checked: r.checked, errors: r.errors, warnings: r.warnings, error: r.error, missed: expected.filter((v) => !found.has(key(v))), unexpected: r.violations.filter((v) => !want.has(key(v))),
+        pass: !r.error && !b.error && r.exit === 1 && [...want].every((k) => found.has(k)) && r.violations.every((v) => want.has(key(v))) });
+    }
+  } finally { removeCopy(); }
+  fs.writeFileSync(path.join(OUT, 'planted.json'), JSON.stringify(out, null, 1) + '\n');
+  const L = ['# Phase 3: errors planted in core', '', `Generated ${out.generated} by \`node scripts/info-yml-repro.mjs planted\`, with the patched core's \`core/scripts/dr ex:validate\` at \`${out.commit.slice(0, 12)}\`. Machine-readable: [planted.json](planted.json). **DRAFT until a person has reviewed it.**`, ''];
+  L.push('Method: a git worktree of the patched checkout (a copy of the repository: tracked files only), each run once as is, then again after the changes below. A run passes when it exits 1 and reports exactly what it reported before, plus each planted problem at its file, rule, line and severity, and nothing else. The copy is deleted afterwards.', '');
+  L.push('| planted in | change | expected finding | expected in runs |', '|---|---|---|---|');
+  for (const p of out.plants) L.push(`| \`${p.file}\` | ${p.how} | ${p.expected.severity} [${p.expected.rule}]${p.expected.line ? ` line ${p.expected.line}` : ''} | ${p.only ? `only with --${p.only}` : 'all'} |`);
+  const counts = (x) => `exit ${x.exit}; ${x.checked?.info ?? '?'} info, ${x.checked?.php ?? '?'} PHP; ${x.errors ?? '?'} errors, ${x.warnings ?? '?'} warnings`;
+  L.push('', '| run | parser | before planting | after planting | missed | unexpected | result |', '|---|---|---|---|---|---|---|');
+  for (const r of out.runs) L.push(`| \`ex:validate ${runs.find((x) => x.name === r.run).args.join(' ')}\` | ${r.parser} | ${counts(r.before)} | ${counts(r)} | ${r.missed.map((v) => `${v.file} [${v.rule}]`).join(', ') || 'none'} | ${r.unexpected.map((v) => `${v.file}:${v.line ?? ''} [${v.rule}]`).join(', ') || 'none'} | ${r.pass ? 'pass' : `**fail**${r.error || r.before.error ? ` (${r.error || r.before.error})` : ''}`} |`);
+  const pre = out.runs.find((r) => r.run === 'full --include-tests' && r.parser === 'symfony')?.before.findings || [];
+  if (pre.length) L.push('', `Before planting, \`--include-tests\` reports core's test fixtures that are invalid on purpose (each is a true finding): ${pre.map((f) => `\`${f}\``).join(', ')}.`);
+  L.push('', 'Not covered by the default run, by design: test modules (extension discovery skips tests/ unless `extension_discovery_scan_tests` is set) and compile-time PHP errors (the built-in check tokenizes only; `--php-lint` runs `php -l`).', '');
+  fs.writeFileSync(path.join(OUT, 'PLANTED.md'), L.join('\n') + '\n');
+  for (const r of out.runs) console.log(`${r.run} (${r.parser}): exit ${r.exit}, ${r.errors} error(s), ${r.warnings} warning(s), missed ${r.missed.length}, unexpected ${r.unexpected.length}: ${r.pass ? 'pass' : 'FAIL'}`);
+  if (out.runs.some((r) => !r.pass)) process.exitCode = 1;
+} else if (cmd === 'deploy-gate') {
+  // Phase 3: the deploy-gate examples in tests/info-yml/deploy-gate/, run in a scratch site with the Composer project layout
+  // (git and composer.json at the top, the Drupal root in web/). web/ is an export of the patched checkout's tracked files,
+  // with its vendor/ hard-linked. Custom code is committed; contributed code is git-ignored, as Composer installs it. The
+  // example workflow's two ex:validate steps run as written; its checkout, setup-php and composer install steps do not.
+  const yaml = loadYaml();
+  if (!yaml) { console.error('js-yaml is not installed. Run: npm install --prefix tools/compare/.deps js-yaml@4'); process.exit(2); }
+  const core = LINTER_CORE;
+  const gate = path.join(labRoot, 'tests/info-yml/deploy-gate');
+  const site = path.join(labRoot, 'envs/info-yml-site');
+  const web = path.join(site, 'web');
+  const workflow = yaml.load(fs.readFileSync(path.join(gate, 'extension-files.yml'), 'utf8'));
+  const steps = workflow.jobs['ex-validate'].steps.filter((st) => st.run?.includes('ex:validate'));
+  const scripts = JSON.parse(fs.readFileSync(path.join(gate, 'composer-scripts.json'), 'utf8')).scripts;
+  // Commands run with this lab's PHP first in PATH, so "php" in the workflow and Composer's "@php" are PHP 8.5.
+  // As root (this lab's container), Composer refuses to run scripts unless COMPOSER_ALLOW_SUPERUSER=1; the site has no plugins.
+  const asRoot = process.getuid?.() === 0;
+  const env = { ...process.env, PATH: PHP.includes('/') ? `${path.dirname(path.resolve(PHP))}:${process.env.PATH}` : process.env.PATH, COMPOSER_NO_INTERACTION: '1', ...(asRoot ? { COMPOSER_ALLOW_SUPERUSER: '1' } : {}) };
+  const sh = (command, extra = {}) => spawnSync('bash', ['-e', '-c', command], { cwd: site, encoding: 'utf8', env: { ...env, ...extra }, maxBuffer: 64 * 1024 * 1024 });
+  const write = (rel, text) => { fs.mkdirSync(path.dirname(path.join(site, rel)), { recursive: true }); fs.writeFileSync(path.join(site, rel), text); };
+  const info = (name, type) => `name: ${name}\ntype: ${type}\ncore_version_requirement: ^12\n${type === 'theme' ? 'base theme: false\n' : ''}`;
+  const git = (...a) => spawnSync('git', ['-C', site, '-c', 'user.name=Lab', '-c', 'user.email=lab@example.com', ...a], { encoding: 'utf8' });
+  rm(site);
+  fs.mkdirSync(web, { recursive: true });
+  if (spawnSync('sh', ['-c', 'git -C "$0" archive HEAD | tar -x -C "$1"', core, web]).status !== 0) { console.error(`Could not export ${core}.`); process.exit(3); }
+  spawnSync('cp', ['-al', path.join(core, 'vendor'), path.join(web, 'vendor')]);
+  write('composer.json', JSON.stringify({ name: 'lab/info-yml-site', description: 'Scratch site for the deploy-gate examples', type: 'project', require: {}, scripts }, null, 2) + '\n');
+  write('.gitignore', '/vendor/\n/web/core/\n/web/vendor/\n/web/modules/contrib/\n/web/themes/contrib/\n');
+  write('web/modules/custom/site_custom/site_custom.info.yml', info('Site custom', 'module'));
+  write('web/modules/custom/site_custom/site_custom.module', '<?php\n\n/**\n * @file\n * Site custom.\n */\n');
+  write('web/themes/custom/site_theme/site_theme.info.yml', info('Site theme', 'theme'));
+  write('web/modules/contrib/site_contrib/site_contrib.info.yml', info('Site contrib', 'module'));
+  // A site commits composer.lock; without one, "composer install" runs as an update and fires post-update-cmd instead.
+  sh('composer update --no-scripts --no-progress');
+  git('init', '-q', '-b', 'main'); git('add', '.'); git('commit', '-q', '-m', 'Site');
+  git('update-ref', 'refs/remotes/origin/main', 'HEAD');
+  const stepCommand = (name) => steps.find((st) => st.name === name);
+  const runStep = (name) => { const st = stepCommand(name); const extra = Object.fromEntries(Object.entries(st.env || {}).map(([k, v]) => [k, String(v).replace('${{ github.base_ref }}', 'main')])); return { command: st.run, env: extra, ...sh(st.run, extra) }; };
+  const checks = [
+    { state: 'clean site', run: () => runStep('Check all extension files'), expect: 0 },
+    { state: 'clean site', run: () => runStep('Check changed extension files'), expect: 0 },
+    { state: 'clean site', run: () => ({ command: 'composer lint:extensions', ...sh('composer lint:extensions') }), expect: 0, files: [] },
+    { state: 'a branch adds a broken custom module and breaks a committed .module file', setup: () => {
+      write('web/modules/custom/site_broken/site_broken.info.yml', 'name: Site broken\ntype: module\ncore_version_requirement: ^12\ndescription: Broken: yes\n');
+      fs.appendFileSync(path.join(site, 'web/modules/custom/site_custom/site_custom.module'), '\nfunction site_custom_help( {\n}\n');
+    }, run: () => runStep('Check changed extension files'), expect: 1, files: ['modules/custom/site_broken/site_broken.info.yml', 'modules/custom/site_custom/site_custom.module'] },
+    { state: 'same', run: () => runStep('Check all extension files'), expect: 1, files: ['modules/custom/site_broken/site_broken.info.yml', 'modules/custom/site_custom/site_custom.module'] },
+    { state: 'same', run: () => ({ command: 'composer lint:extensions', ...sh('composer lint:extensions') }), expect: 1, files: ['modules/custom/site_broken/site_broken.info.yml', 'modules/custom/site_custom/site_custom.module'] },
+    { state: 'same', run: () => ({ command: 'composer run-script post-install-cmd', ...sh('composer run-script post-install-cmd') }), expect: 1, files: ['modules/custom/site_broken/site_broken.info.yml', 'modules/custom/site_custom/site_custom.module'] },
+    { state: 'same', run: () => ({ command: 'composer install --no-progress', ...sh('composer install --no-progress') }), expect: 1, files: ['modules/custom/site_broken/site_broken.info.yml', 'modules/custom/site_custom/site_custom.module'] },
+    { state: 'custom code restored; a contributed module (git-ignored) loses its type line, as from a broken release', setup: () => {
+      rm(path.join(site, 'web/modules/custom/site_broken')); git('checkout', '-q', '--', 'web/modules/custom/site_custom/site_custom.module');
+      write('web/modules/contrib/site_contrib/site_contrib.info.yml', 'name: Site contrib\ncore_version_requirement: ^12\n');
+    }, run: () => runStep('Check all extension files'), expect: 1, files: ['modules/contrib/site_contrib/site_contrib.info.yml'] },
+    { state: 'same', run: () => runStep('Check changed extension files'), expect: 0, note: 'expected: git does not track contributed code, so --changed cannot see it' },
+  ];
+  const rows = [];
+  try {
+    for (const c of checks) {
+      c.setup?.();
+      const r = c.run();
+      const files = [...new Set([...`${r.stdout}`.matchAll(/^(\S+?):(?:\d+:)? (?:error|warning) \[/gm)].map((m) => m[1]))].sort();
+      const pass = r.status === c.expect && (!c.files || JSON.stringify(files) === JSON.stringify([...c.files].sort()));
+      rows.push({ state: c.state, command: r.command, env: r.env, expect: c.expect, exit: r.status, files, expected_files: c.files, note: c.note, output: `${r.stdout}${r.stderr}`.trim().split('\n').slice(-8).join('\n'), pass });
+    }
+  } finally { rm(site); }
+  fs.writeFileSync(path.join(OUT, 'deploy-gate.json'), JSON.stringify({ generated: new Date().toISOString(), core: path.relative(labRoot, core), commit: spawnSync('git', ['-C', core, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout.trim(), rows }, null, 1) + '\n');
+  const L = ['# Phase 3: deploy-gate examples, tested', '', `Generated ${new Date().toISOString()} by \`node scripts/info-yml-repro.mjs deploy-gate\`, with the patched core at \`${path.relative(labRoot, core)}\`. Machine-readable: [deploy-gate.json](deploy-gate.json). **DRAFT until a person has reviewed it.**`, ''];
+  L.push('The examples are [tests/info-yml/deploy-gate/extension-files.yml](' + link('tests/info-yml/deploy-gate/extension-files.yml') + ') (GitHub Actions) and [composer-scripts.json](' + link('tests/info-yml/deploy-gate/composer-scripts.json') + ') (Composer scripts). They ran in a scratch site with the Composer project layout: git and composer.json at the top, the Drupal root in `web/`, custom code committed, contributed code git-ignored. The workflow\'s two `ex:validate` steps ran as written, with `BASE=main`; its checkout, setup-php and composer install steps did not run, and nothing ran on GitHub.' + (asRoot ? ' This lab runs as root, so Composer ran with `COMPOSER_ALLOW_SUPERUSER=1`; without it, Composer refuses to run scripts as root non-interactively.' : ''), '');
+  L.push('| site state | command | expected exit | exit | files reported | result |', '|---|---|---|---|---|---|');
+  for (const r of rows) L.push(`| ${r.state} | \`${r.command}\` | ${r.expect} | ${r.exit} | ${r.files.map((f) => `\`${f}\``).join(', ') || 'none'} | ${r.pass ? 'pass' : '**fail**'}${r.note ? ` (${r.note})` : ''} |`);
+  L.push('', 'What the rows show:', '');
+  L.push('- `--changed` reported a new, untracked module and a changed committed file. Git\'s top is above the Drupal root here, which is the layout the `--changed` fix in the patch covers.');
+  L.push('- With the `post-install-cmd` hook, `composer install` itself exits 1 when an extension file has an error, which stops a deployment script that checks exit codes. It does not undo the install: the files are already on disk. (The scratch site requires no packages and commits its composer.lock, so this install downloaded nothing and fired `post-install-cmd`.)');
+  L.push('- Only the full check sees a broken contributed release. Use it before every deployment; `--changed` is a fast check for pull requests.', '');
+  fs.writeFileSync(path.join(OUT, 'DEPLOY-GATE.md'), L.join('\n') + '\n');
+  for (const r of rows) console.log(`${r.pass ? 'pass' : 'FAIL'} exit ${r.exit} (expected ${r.expect}) ${r.command} [${r.files.join(', ')}]`);
+  if (rows.some((r) => !r.pass)) process.exitCode = 1;
+} else if (cmd === 'variant') {
+  // A variant: a git worktree of the baseline core checkout at its HEAD, with one proposed patch committed on top and
+  // vendor/ hard-linked, so the same fixtures can measure the patch. --patch=<file>: a git diff or git format-patch file
+  // (download a drupal.org patch or merge request diff first). Then: prepare, run, report and compare with --variant=.
+  if (!VARIANT) { console.error('usage: node scripts/info-yml-repro.mjs variant --variant=<name> --patch=<file> [--base=envs/info-yml-main]'); process.exit(2); }
+  const patch = opt('patch') && path.resolve(opt('patch'));
+  if (!patch || !fs.existsSync(patch)) { console.error('--patch=<file> is required and must exist.'); process.exit(2); }
+  const base = path.resolve(labRoot, opt('base', 'envs/info-yml-main'));
+  if (fs.existsSync(CORE)) { console.error(`${CORE} exists already. Remove it first: git -C ${base} worktree remove --force ${CORE}`); process.exit(3); }
+  const git = (dir, ...a) => spawnSync('git', ['-C', dir, '-c', 'user.name=Lab', '-c', 'user.email=lab@example.com', ...a], { encoding: 'utf8' });
+  const added = git(base, 'worktree', 'add', '-q', '--detach', CORE, 'HEAD');
+  if (added.status !== 0) { console.error(added.stderr); process.exit(3); }
+  const applied = git(CORE, 'apply', '--index', patch);
+  if (applied.status !== 0) { console.error(`The patch does not apply to ${base} at ${git(base, 'rev-parse', '--short', 'HEAD').stdout.trim()}:\n${applied.stderr}`); git(base, 'worktree', 'remove', '--force', CORE); process.exit(1); }
+  const touched = git(CORE, 'diff', '--cached', '--name-only').stdout.trim().split('\n');
+  git(CORE, 'commit', '-q', '-m', `Variant ${VARIANT}: ${path.basename(patch)}`);
+  spawnSync('cp', ['-al', path.join(base, 'vendor'), path.join(CORE, 'vendor')]);
+  fs.copyFileSync(patch, path.join(OUT, path.basename(patch)));
+  const record = { name: VARIANT, patch: path.basename(patch), sha256: crypto.createHash('sha256').update(fs.readFileSync(patch)).digest('hex'), base: path.relative(labRoot, base), base_commit: git(CORE, 'rev-parse', 'HEAD~1').stdout.trim(), commit: git(CORE, 'rev-parse', 'HEAD').stdout.trim(), files: touched, created: new Date().toISOString() };
+  fs.writeFileSync(path.join(OUT, 'variant.json'), JSON.stringify(record, null, 1) + '\n');
+  if (touched.some((f) => /(^|\/)composer\.(json|lock)$/.test(f))) console.warn('The patch changes composer.json or composer.lock: vendor/ is the baseline\'s. Run composer install in the variant if the change matters.');
+  console.log(`Variant ${VARIANT}: ${path.relative(labRoot, CORE)} at ${record.commit.slice(0, 12)} (${touched.length} file(s) changed). Next:`);
+  for (const step of [`prepare --variant=${VARIANT} --workers=N`, `run --variant=${VARIANT} --workers=N [filters]`, `compare --variant=${VARIANT}`]) console.log(`  node scripts/info-yml-repro.mjs ${step}`);
+} else if (cmd === 'compare') {
+  // Every result of a variant that differs from the baseline (reports/info-yml/results.json) for the same scenario and
+  // observation. Verdicts compare each with its own baseline (the valid file on the same core), so a change here is the
+  // patch's effect on how a broken file behaves.
+  if (!VARIANT) { console.error('usage: node scripts/info-yml-repro.mjs compare --variant=<name>'); process.exit(2); }
+  const before = JSON.parse(fs.readFileSync(path.join(BASE_OUT, 'results.json'), 'utf8'));
+  const after = JSON.parse(fs.readFileSync(path.join(OUT, 'results.json'), 'utf8'));
+  const record = fs.existsSync(path.join(OUT, 'variant.json')) ? JSON.parse(fs.readFileSync(path.join(OUT, 'variant.json'), 'utf8')) : {};
+  const byId = new Map(before.scenarios.map((x) => [x.id, x]));
+  const clean = (r) => !r || ((r.verdict === 'ok' || r.verdict === 'not broken') && (!r.after_verdict || r.after_verdict === 'ok') && (!r.after_rebuild || r.after_rebuild.verdict === 'ok'));
+  const rows = [];
+  let compared = 0;
+  for (const sc of after.scenarios) {
+    const b = byId.get(sc.id);
+    if (!b) continue;
+    for (const [o, r] of Object.entries(sc.results)) {
+      const p = b.results[o];
+      if (!p) continue;
+      compared++;
+      const was = cell(o, p), now = cell(o, r);
+      if (was !== now) rows.push({ id: sc.id, observation: o, before: was, after: now, change: clean(r) && !clean(p) ? 'now as with a valid file' : !clean(r) && clean(p) ? 'now differs from a valid file' : 'differs in another way' });
+    }
+  }
+  const count = (k) => rows.filter((r) => r.change === k).length;
+  fs.writeFileSync(path.join(OUT, 'compare.json'), JSON.stringify({ generated: new Date().toISOString(), variant: record, compared, rows }, null, 1) + '\n');
+  const L = [`# Variant ${VARIANT} compared with the baseline`, ''];
+  L.push(`Generated ${new Date().toISOString()} by \`node scripts/info-yml-repro.mjs compare --variant=${VARIANT}\`. Patch: [${record.patch}](${record.patch}) (sha256 \`${(record.sha256 || '').slice(0, 16)}\`), committed on \`${(record.base_commit || '').slice(0, 12)}\`. Variant results: [RESULTS.md](RESULTS.md); baseline: [RESULTS.md](${link('reports/info-yml/RESULTS.md')}). Machine-readable: [compare.json](compare.json). **DRAFT until a person has reviewed it.**`, '');
+  L.push(`${compared} results were measured on both; ${rows.length} ${rows.length === 1 ? 'differs' : 'differ'}: ${count('now as with a valid file')} now as with a valid file, ${count('now differs from a valid file')} now differ from a valid file, ${count('differs in another way')} differ in another way. Each verdict compares the broken file with a valid file on the same core, so a difference can be the intended effect (for example, refusing to install an incompatible extension).`, '');
+  if (rows.length) {
+    L.push('| scenario | observation | baseline | variant | change |', '|---|---|---|---|---|');
+    for (const r of rows) L.push(`| ${r.id} | ${r.observation} | ${r.before} | ${r.after} | ${r.change} |`);
+  }
+  fs.writeFileSync(path.join(OUT, 'COMPARE.md'), L.join('\n') + '\n');
+  console.log(`${compared} compared, ${rows.length} differ (${count('now as with a valid file')} now as with a valid file, ${count('now differs from a valid file')} now differ from one, ${count('differs in another way')} other). Wrote ${path.relative(labRoot, path.join(OUT, 'COMPARE.md'))}`);
 } else if (cmd === 'sweep') {
   // Parser level only: every fixture info file through core's InfoParserDynamic, with each parser (tests/info-yml/lib/parse-sweep.php).
   const out = {};
@@ -829,6 +1253,6 @@ if (cmd === 'prepare') {
 } else if (cmd === 'report') {
   writeReport();
 } else {
-  console.error('usage: node scripts/info-yml-repro.mjs prepare|run|report [--workers=N] [--cases=] [--kinds=] [--placements=] [--parsers=] [--observations=] [--rebaseline] [--php=] [--core=]');
+  console.error('usage: node scripts/info-yml-repro.mjs prepare|run|report|rejudge|trace|sweep|feed-control|profile-recovery|lint|false-positives|planted|deploy-gate|variant|compare [--variant=<name>] [--workers=N] [--cases=] [--kinds=] [--placements=] [--parsers=] [--observations=] [--rebaseline[=obs,...]] [--php=] [--core=]');
   process.exit(2);
 }
