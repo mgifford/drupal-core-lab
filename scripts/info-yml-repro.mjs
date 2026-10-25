@@ -578,7 +578,7 @@ function environment() {
     php: { version: v(['-n', '-r', 'echo PHP_VERSION;']), binary: PHP, pecl_yaml: v(['-n', '-d', `extension=${YAML_EXT}`, '-r', 'echo phpversion("yaml") ?: "not available";']),
       symfony_yaml: (JSON.parse(fs.readFileSync(path.join(CORE, 'vendor/composer/installed.json'), 'utf8')).packages.find((p) => p.name === 'symfony/yaml') || {}).version },
     drush: 'not used (owner: git checkout of core, no Drush); core/scripts/dr and the UI stand in, see observations',
-    server: 'PHP built-in web server (php -S) with core/.ht.router.php, SQLite database, one worker process',
+    server: 'PHP built-in web server (php -S) with .ht.router.php in the site root, SQLite database, one worker process',
     os: `${os.type()} ${os.release()} ${os.arch()}`, node: process.version,
     lab_commit: spawnSync('git', ['-C', labRoot, 'rev-parse', '--short', 'HEAD'], { encoding: 'utf8' }).stdout.trim(),
   };

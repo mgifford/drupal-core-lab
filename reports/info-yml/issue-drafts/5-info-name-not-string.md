@@ -2,7 +2,8 @@
 
 Not posted. drupal.org was unreachable from the lab, so it was not searched for an existing issue. Evidence: the steps below,
 run as written ([verification.txt](verification.txt), draft 5), and the `name-not-string` rows in [RESULTS.md](../RESULTS.md),
-which record the TypeError. Core `main` at `89df3a065deb`, PHP 8.5.12.
+which record the TypeError. Core `main` at `89df3a065deb`, PHP 8.5.12. The proposed fix, with a unit test, is the variant
+[name-not-string](../variants/name-not-string/README.md): of 4468 lab results, only this case's rows change.
 
 ---
 
@@ -19,6 +20,6 @@ which record the TypeError. Core `main` at `89df3a065deb`, PHP 8.5.12.
 
 ### Proposed resolution
 
-In `sortByName()` and the install command's labels, use the machine name when `name` is not a string. A parse-time exception would stop extension discovery for the whole site.
+In `ExtensionList::createExtensionInfo()`, use the machine name when `name` is not a scalar, and raise a warning that names the file. About a dozen places print `name`, so a fix in `sortByName()` alone moves the failure. A parse-time exception would stop extension discovery for the whole site. With this change, step 3 returns 200 and lists the module as "example".
 
 Generated with the help of an LLM.

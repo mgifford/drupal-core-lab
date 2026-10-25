@@ -7,7 +7,7 @@ Generated 2026-10-23T21:16:14.124Z by `node scripts/info-yml-repro.mjs`. Machine
 | Drupal | 12.0-dev at `89df3a065deb` (2026-10-21T16:54:31+01:00), "fix: #3631439 Fix plural strings with the same singular as another string", from https://github.com/drupal/drupal |
 | PHP | 8.5.12 (/opt/php85/bin/php); PECL yaml 2.3.0; symfony/yaml v8.1.6 |
 | Drush | not used (owner: git checkout of core, no Drush); core/scripts/dr and the UI stand in, see observations |
-| Server | PHP built-in web server (php -S) with core/.ht.router.php, SQLite database, one worker process |
+| Server | PHP built-in web server (php -S) with .ht.router.php in the site root, SQLite database, one worker process |
 | OS, Node | Linux 6.18.44-fc-v153 x64; Node v22.22.0 |
 | Lab commit | f1a7998 |
 

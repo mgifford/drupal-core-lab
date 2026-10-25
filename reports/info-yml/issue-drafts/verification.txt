@@ -1,4 +1,5 @@
-Output of tests/info-yml/verify-issue-drafts.sh, 2026-10-24T20:38Z, core 89df3a065deb, PHP 8.5.12, Symfony YAML (PECL yaml not loaded).
+Output of tests/info-yml/verify-issue-drafts.sh, 2026-10-25T15:50Z, core 89df3a065deb, PHP 8.5.12, Symfony YAML (PECL yaml not loaded).
+Pages are served by PHP's built-in server with .ht.router.php from the site root. Correction, 2026-10-25: an earlier version of this script started the server with core/.ht.router.php, which does not exist on this core, so the page result it recorded for draft 5 was the server failing, not the bug. The results below replace it, and add the steps of ISSUE-SUMMARY.md.
 
 == draft 1, baseline core
 -- dr ex:install example -y
@@ -33,12 +34,28 @@ exit 255
 == draft 5, baseline core
 -- GET /admin/modules as the administrator
 500
+TypeError: "strcasecmp(): Argument #1 ($string1) must be of type string, array given"
 -- dr ex:install example -y
 exit 0 / * Array (example)
 Array to string conversion
 recorded as installed
 
+== ISSUE-SUMMARY.md steps, baseline core
+-- dr cache:rebuild
+exit 1 / Unable to parse modules/custom/example/example.info.yml A colon cannot be used in an unquoted mapping value at line 4 (near "description: Examp
+-- empty the cache tables (all cache* tables except cachetags)
+14 tables emptied
+-- GET /user/login as an anonymous visitor
+500
+InfoParserException: Unable to parse modules/custom/example/example.info.yml A colon cannot be used in an unquoted mapping value at line 4
+
 == draft 1, variant theme-incompatible (core plus tests/info-yml/patches/theme-core-incompatible.patch)
 -- dr ex:install example -y
 exit 1 / [ERROR] Unable to install theme: 'example' is incompatible with this version of Drupal core.
 not installed
+
+== draft 5, variant name-not-string (core plus tests/info-yml/patches/info-name-not-string.patch)
+-- GET /admin/modules as the administrator
+200
+<label id="module-example" for="edit-modules-example-enable" class="module-list__module-name table-filter-text-source">example</label>
+dblog: User warning: The name in modules/custom/example/example.info.yml is not a string; the machine name "example" is used instead.
