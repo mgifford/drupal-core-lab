@@ -1500,5 +1500,63 @@
     "after": {
       "env": "issue-3419891-latest"
     }
+  },
+  {
+    "slug": "info-yml-theme-incompatible",
+    "label": "info.yml draft 1: core refuses to install a theme that is incompatible with it (proposed fix, no drupal.org issue yet)",
+    "description": "Before: core main at 89df3a065deb. After: the same core with tests/info-yml/patches/theme-core-incompatible.patch, which adds to ThemeInstaller the core_incompatible check that ModuleInstaller already has. The recipe writes a theme, example, whose core_version_requirement is ^10. In each site's folder run: ddev exec php core/scripts/dr ex:install example -y. Before: the theme is installed (exit 0). After: it is refused (exit 1). The change shows on the command line only: the Appearance page already offers no Install link for this theme, so both frames look the same.",
+    "reports": "reports/info-yml/variants/theme-incompatible",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "89df3a065deb760a82a67ef8854f25d26bd05722"
+    },
+    "before": {
+      "env": "baseline-info-yml"
+    },
+    "after": {
+      "env": "proposal-info-yml-theme-incompatible",
+      "patches": [
+        "tests/info-yml/patches/theme-core-incompatible.patch"
+      ]
+    },
+    "pages": [
+      "/admin/appearance"
+    ],
+    "login": true,
+    "demo": {
+      "start": "/admin/appearance"
+    },
+    "recipe": "info_yml_theme_incompatible",
+    "steps": [
+      {
+        "text": "The theme \"example\" is in themes/custom, uninstalled. Its core_version_requirement is ^10, which excludes Drupal 12 (the recipe's apply.sh writes it).",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /admin/appearance and find Example under the uninstalled themes.",
+        "how": "mirror",
+        "lookFor": "Both frames: Example has no Install link. The change does not alter this page."
+      },
+      {
+        "text": "In a terminal, from the lab folder, run in each site: cd envs/baseline-info-yml && ddev exec php core/scripts/dr ex:install example -y; then the same in envs/proposal-info-yml-theme-incompatible.",
+        "how": "each",
+        "lookFor": "Before: \"[OK] Successfully installed 1 theme.\" After: \"[ERROR] Unable to install theme: 'example' is incompatible with this version of Drupal core.\""
+      }
+    ],
+    "expected": "Core refuses to install a theme whose core_version_requirement excludes the running core, as it does for a module.",
+    "actual": "Before: core/scripts/dr ex:install installs the theme and exits 0. After: it exits 1 with an error, and nothing is installed.",
+    "setup": "scripts/lab-site.sh apply <env> info_yml_theme_incompatible writes the test theme again. To repeat the Before test, first run ddev exec php core/scripts/dr ex:uninstall example -y in envs/baseline-info-yml.",
+    "observe": [
+      {
+        "label": "dr ex:install example -y installed the theme",
+        "expectBefore": true,
+        "expectAfter": false
+      },
+      {
+        "label": "Anything else looks broken or different (layout, colours, errors)",
+        "expectBefore": false,
+        "expectAfter": false
+      }
+    ]
   }
 ]

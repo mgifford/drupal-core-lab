@@ -18,7 +18,7 @@ import path from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { chromium, firefox, webkit } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { labRoot, variants, envInfo, loginPath, envDir } from '../../compare/lib.mjs';
+import { labRoot, variants, envInfo, loginPath, envDir, reportsDir } from '../../compare/lib.mjs';
 import { runProblems, SCHEMA } from './run-schema.mjs';
 import { runBlockReason } from '../../compare/patch-state.mjs';
 import { sideState } from '../../compare/contrib-state.mjs';
@@ -44,7 +44,7 @@ export function runArgs({ slug: defaultSlug, viewport = '1280x900' } = {}) {
   if (!v) throw new Error(`variant ${slug} not found`);
   const envTag = `${browser}-${scheme}${forced ? '-forced' : ''}-${vw}x${vh}`;
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const out = path.resolve(opt('out', '') || path.join(labRoot, 'reports/issues', v.issue, 'playwright', `${stamp}-${envTag}`));
+  const out = path.resolve(opt('out', '') || path.join(labRoot, reportsDir(v), 'playwright', `${stamp}-${envTag}`));
   fs.mkdirSync(out, { recursive: true });
   return { v, slug, browser, scheme, forced, viewport: { width: vw, height: vh }, envTag, out };
 }

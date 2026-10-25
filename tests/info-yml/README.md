@@ -36,10 +36,12 @@ On the lab container PHP 8.5.12 was built from the `php-8.5.12` tag of https://g
 with PECL yaml 2.3.0 from https://github.com/php/pecl-file_formats-yaml as a loadable extension. In DDEV, `php_version: "8.5"`
 should work; that was not tried.
 
-1. Get core and its dependencies (no Drush, and `composer.lock` is not changed):
+1. Get core at the commit the committed results were measured on (`89df3a065deb`, recorded in RESULTS.md), and its
+   dependencies (no Drush, and `composer.lock` is not changed). A newer core can differ, and `compare` would then mix two cores:
 
-        git clone --depth 1 --branch main https://git.drupalcode.org/project/drupal.git envs/info-yml-main
-        cd envs/info-yml-main
+        git init -q envs/info-yml-main && cd envs/info-yml-main
+        git fetch -q --depth 1 https://git.drupalcode.org/project/drupal.git 89df3a065deb760a82a67ef8854f25d26bd05722
+        git checkout -q FETCH_HEAD
         composer install --no-dev
         cd ../..
 
@@ -126,4 +128,8 @@ so the baseline results are never overwritten:
 so a difference is the patch's effect on how a broken file behaves. `lint`, `planted`, `false-positives` and `deploy-gate` also take
 `--variant=`, to check a variant that changes the linter itself (make it with `--base=envs/info-yml-patch`, so it starts from
 the linter patch); they still compare with the baseline's Phase 1 results.
+
+A runner variant is not a comparison in the lab viewer. To test a proposed patch the way other issues are tested here (DDEV,
+Before and After sites, the viewer), register it in `tools/compare/variants.json` with a recipe. `info-yml-theme-incompatible`
+is the first: [reports/info-yml/variants/theme-incompatible/README.md](../../reports/info-yml/variants/theme-incompatible/README.md).
 

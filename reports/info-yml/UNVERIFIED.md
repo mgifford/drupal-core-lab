@@ -21,6 +21,7 @@ the commit in [RESULTS.md](RESULTS.md). The items below were not, and no report 
 | Drupal 11 | The target is 12.x `main`. The patch was not tried on 11.x. | Apply it to 11.x and run the same checks. |
 | Package Manager | Phase 4 is a design note only ([PHASE4-PACKAGE-MANAGER.md](PHASE4-PACKAGE-MANAGER.md)). | Implement it and add a kernel test. |
 | Existing drupal.org issues for the drafts | [ISSUE-SUMMARY.md](ISSUE-SUMMARY.md) and the five [issue-drafts/](issue-drafts/) were not checked against existing issues: drupal.org was unreachable. | Search drupal.org before filing each one. |
+| The `info-yml-theme-incompatible` variant with DDEV | The lab container has no DDEV. Only `setup.mjs --check-patches`, `setup.mjs --checkout-only`, and the recipe with its `apply.sh` on a Standard site of the same core were run ([variants/theme-incompatible/README.md](variants/theme-incompatible/README.md)). | Run `node tools/compare/setup.mjs info-yml-theme-incompatible` and the two commands in that README. |
 | Proposed patches other than the demo | The variant tooling was tested with one small patch on themes only ([variants/](variants/)). | Run each proposed patch as a variant. |
 | Review by a person | Every report is a draft. | Review. |
 

@@ -1,15 +1,15 @@
 // Diff what two environments serve for the same pages, including their CSS and JS.
 //   node tools/compare/diff.mjs [slug]
-// Writes reports/issues/<nid>/compare/<slug>/SUMMARY.md plus one .diff per changed file.
+// Writes reports/issues/<nid>/compare/<slug>/SUMMARY.md (or <reports>/compare/<slug>/ for a variant with a `reports` folder) plus one .diff per changed file.
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { execFileSync } from 'node:child_process';
-import { labRoot, variants, envInfo, loginPath, envFetch, normalise, assetsOf } from './lib.mjs';
+import { labRoot, variants, envInfo, loginPath, envFetch, normalise, assetsOf, reportsDir } from './lib.mjs';
 
 const v = variants().find((x) => x.slug === (process.argv[2] || variants()[0].slug));
 if (!v) { console.error('unknown variant'); process.exit(1); }
-const out = path.join(labRoot, 'reports/issues', v.issue, 'compare', v.slug);
+const out = path.join(labRoot, reportsDir(v), 'compare', v.slug);
 fs.mkdirSync(out, { recursive: true });
 for (const f of fs.readdirSync(out)) if (/\.(diff|md)$/.test(f)) fs.rmSync(path.join(out, f));
 

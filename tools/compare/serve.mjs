@@ -48,7 +48,7 @@ const list = variants();
 const state = { slug: process.argv.slice(2).find((x) => !x.startsWith('--')) || list[0].slug, theme: 'auto', darkos: false, axe: false, axeBest: false, dir: 'auto', nojs: false };
 const current = () => list.find((x) => x.slug === state.slug) || list[0];
 function latestResources() {
-  const v = current(); const dir = path.join(labRoot, 'reports/issues', String(v.issue || ''), 'resources');
+  const v = current(); const dir = path.join(labRoot, v.reports || path.join('reports/issues', String(v.issue || '')), 'resources');
   const command = `node scripts/measure-resources.mjs ${v.slug}`;
   if (!fs.existsSync(dir)) return { found: false, command, groupCommand: v.comparisonGroup ? command + ' --group' : null };
   const files = fs.readdirSync(dir).filter((name) => name.endsWith('.json'))
