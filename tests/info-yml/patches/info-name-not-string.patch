@@ -1,0 +1,56 @@
+diff --git a/core/lib/Drupal/Core/Extension/ExtensionList.php b/core/lib/Drupal/Core/Extension/ExtensionList.php
+index b85e7839..643635ad 100644
+--- a/core/lib/Drupal/Core/Extension/ExtensionList.php
++++ b/core/lib/Drupal/Core/Extension/ExtensionList.php
+@@ -579,6 +579,14 @@ public function getPath($extension_name) {
+   protected function createExtensionInfo(Extension $extension) {
+     $info = $this->infoParser->parse($extension->getPathname());
+ 
++    // A name that is a list, a mapping or NULL breaks every page that sorts or
++    // prints extension names, installed or not. Use the machine name instead,
++    // and say so.
++    if (!is_scalar($info['name'])) {
++      trigger_error(sprintf('The name in %s is not a string; the machine name "%s" is used instead.', $extension->getPathname(), $extension->getName()), E_USER_WARNING);
++      $info['name'] = $extension->getName();
++    }
++
+     // Add the info file modification time, so it becomes available for
+     // contributed extensions to use for ordering extension lists.
+     $info['mtime'] = $extension->getFileInfo()->getMTime();
+diff --git a/core/tests/Drupal/Tests/Core/Extension/ExtensionListTest.php b/core/tests/Drupal/Tests/Core/Extension/ExtensionListTest.php
+index 124f365e..4341316a 100644
+--- a/core/tests/Drupal/Tests/Core/Extension/ExtensionListTest.php
++++ b/core/tests/Drupal/Tests/Core/Extension/ExtensionListTest.php
+@@ -108,6 +108,32 @@ public function testGetExtensionInfo(): void {
+     ], $info);
+   }
+ 
++  /**
++   * Tests that a name that is not a string falls back to the machine name.
++   */
++  public function testNameNotString(): void {
++    $test_extension_list = $this->setupTestExtensionList();
++    file_put_contents('vfs://drupal_root/example/test_name/test_name.info.yml', Yaml::encode([
++      'name' => ['test', 'name'],
++      'type' => 'test_extension',
++      'core' => '8.x',
++    ]));
++    $warnings = [];
++    set_error_handler(function (int $level, string $message) use (&$warnings): bool {
++      $warnings[] = $message;
++      return TRUE;
++    }, E_USER_WARNING);
++    try {
++      $info = $test_extension_list->getAllAvailableInfo();
++    }
++    finally {
++      restore_error_handler();
++    }
++    $this->assertSame('test_name', $info['test_name']['name']);
++    $this->assertCount(1, $warnings);
++    $this->assertStringContainsString('example/test_name/test_name.info.yml is not a string', $warnings[0]);
++  }
++
+   /**
+    * Tests get all available info.
+    */
