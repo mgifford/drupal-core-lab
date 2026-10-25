@@ -10,7 +10,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { labRoot, resolveVariant, envInfo, loginPath } from '../compare/lib.mjs';
+import { labRoot, resolveVariant, envInfo, loginPath, reportsDir } from '../compare/lib.mjs';
 import { VIEWS, normaliseTree, pageFile, summaryMarkdown, terminalReport } from './lib/tree-format.mjs';
 
 const USAGE = `Accessibility tree, ARIA after JavaScript and Guidepup speech of each page, Before vs After.
@@ -64,7 +64,7 @@ if (opt('before') || opt('after')) {
   if (r.note) console.log(r.note);
   const v = r.v;
   title = v.slug; pages = pagesArg.length ? pagesArg : v.pages || ['/']; login = Boolean(v.login);
-  out = path.join(labRoot, 'reports/issues', String(v.issue), 'tree-diff', v.slug + (vw === 1280 && vh === 900 ? '' : `-${vw}x${vh}`));
+  out = path.join(labRoot, reportsDir(v), 'tree-diff', v.slug + (vw === 1280 && vh === 900 ? '' : `-${vw}x${vh}`));
   sides = {};
   for (const side of ['before', 'after']) {
     const env = v[side].env;

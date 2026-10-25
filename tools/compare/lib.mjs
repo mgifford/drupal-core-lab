@@ -36,6 +36,9 @@ export const resolveVariants = (all) => {
   return all.map(resolve);
 };
 export const variants = () => resolveVariants(rawVariants());
+// Where a variant's evidence goes (diff reports, walkthroughs, tree diffs), relative to the lab root: its `reports` folder when it has
+// one (a variant with no drupal.org issue yet, such as a fix proposed in this lab), else reports/issues/<issue>.
+export const reportsDir = (v) => v.reports || path.join('reports/issues', String(v.issue));
 // A variant from what a person (or an agent) types: its slug, or an issue number (with or without #), which means <nid>-latest,
 // else <nid>-pinned, else the issue's only variant; retired variants are passed over. Returns { v, note } or { error } naming what to
 // type instead. A slug is returned even when retired: the caller says so (setup.mjs refuses to build it).

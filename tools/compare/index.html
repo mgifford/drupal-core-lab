@@ -227,7 +227,7 @@
     <ol>
       <li>On your own computer (recommended): <code id="spcmd"></code></li>
       <li id="spcloud">In a DDEV Coder workspace, from a browser only (needs access that DDEV grants): follow the <a id="spcloudlink" href="https://github.com/mgifford/drupal-core-lab/blob/main/docs/CLOUD-QUICKSTART.md">cloud quickstart</a>. In short: create a workspace from the <strong>DDEV Freeform</strong> template (not the issue picker, which builds only one site) with the DDEV project names <code>drupal-compare,drupal-compare-before,drupal-compare-after</code>, then run this in the workspace terminal: <code id="spcloudcmd"></code></li>
-      <li>Evidence and notes for this issue: <a id="spreports" href="#">reports</a>, <a id="spissue" href="#">issue on drupal.org</a>. Guides: <a id="spdocs" href="#">documentation</a>.</li>
+      <li>Evidence and notes for this issue: <a id="spreports" href="#">reports</a><span id="spissuewrap">, <a id="spissue" href="#">issue on drupal.org</a></span>. Guides: <a id="spdocs" href="#">documentation</a>.</li>
     </ol>
   </section>
   <p data-needs="live" id="legend" role="status" hidden></p>
@@ -417,7 +417,9 @@ function fillStaticPanel() {
   const lab = root || 'https://github.com/mgifford/drupal-core-lab';
   $('spcloudcmd').textContent = `git clone ${lab}.git && cd ${lab.split('/').pop()} && node scripts/cloud-bootstrap.mjs ${v.slug} --install-autostart --core-url=https://github.com/drupal/drupal.git`;
   $('spcloudlink').href = `${lab}/blob/main/docs/CLOUD-QUICKSTART.md`;
-  $('spreports').href = `${root}/tree/main/reports/issues/${v.issue}`; $('spdocs').href = `${root}/blob/main/docs/USER-GUIDE.md`; $('spissue').href = `https://www.drupal.org/project/drupal/issues/${v.issue}`;
+  $('spreports').href = `${root}/tree/main/${v.reports || `reports/issues/${v.issue}`}`; $('spdocs').href = `${root}/blob/main/docs/USER-GUIDE.md`;
+  // A variant with no drupal.org issue yet (a fix proposed in the lab) has a `reports` folder and no issue link.
+  $('spissuewrap').hidden = !v.issue; if (v.issue) $('spissue').href = `https://www.drupal.org/project/drupal/issues/${v.issue}`;
 }
 function fillComparisons(data) {
   $('variant').textContent = '';
@@ -426,7 +428,8 @@ function fillComparisons(data) {
     const revision = /-latest$/.test(item.slug) ? 'latest' : /-pinned$/.test(item.slug) ? 'pinned' : item.slug;
     const title = item.label.replace(/^#\d+:\s*/, '').replace(/,?\s*pinned core.*$/i, '').slice(0, 65);
     const available = STATIC || !data.availability || data.availability[item.slug] || item.slug === data.state?.slug;
-    option.textContent = `#${item.issue || item.slug} · ${revision} · ${title}${available ? '' : ' · not built'}`; option.title = item.label; option.disabled = !available;
+    const name = item.issue ? `#${item.issue}` : item.slug;   // a variant with no drupal.org issue is named by its slug, once
+    option.textContent = `${[name, revision === name ? null : revision, title].filter(Boolean).join(' · ')}${available ? '' : ' · not built'}`; option.title = item.label; option.disabled = !available;
     $('variant').append(option);
   }
   if (!STATIC) {

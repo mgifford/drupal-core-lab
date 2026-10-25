@@ -50,6 +50,7 @@ export function main(args) {
   if (!slug || args.length > 2 || (mode && !['--write', '--check'].includes(mode))) throw new Error('Usage: node scripts/coder-prompt.mjs <slug> [--write|--check]');
   const v = variants().find((x) => x.slug === slug);
   if (!v) throw new Error(`Unknown variant: ${slug}. Register it before generating a Coder prompt.`);
+  if (!v.issue) throw new Error(`${slug} has no drupal.org issue; a Coder prompt is written to reports/issues/<nid>/.`);
   const content = renderPrompt(v);
   const output = path.join(labRoot, 'reports/issues', String(v.issue), 'CODER-PROMPT.md');
   if (mode === '--check') {

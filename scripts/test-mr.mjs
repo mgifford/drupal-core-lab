@@ -93,6 +93,7 @@ step('Pick the comparison');
 const found = resolveVariant(positional[0] || flags.issue);
 if (found.error) fail(found.error, `run \`node scripts/test-mr.mjs <issue number>\`; registered variants are listed in tools/compare/variants.json.`);
 const v = found.v, slug = v.slug;
+if (!v.issue) fail(`${slug} has no drupal.org issue, so there is no merge request to test.`, `build it with node tools/compare/setup.mjs ${slug}; its notes are in ${v.reports}.`);
 if (v.retired) fail(`${slug} is retired: ${v.retired}.`, `its issue is archived (reports/issues/${v.issue}/ARCHIVED.md). Use a variant that is not retired; node scripts/test-mr.mjs ${v.issue} picks one.`);
 note(found.note || `Variant ${slug}.`);
 note(`${v.label || ''}\nBefore: ${v.before.env}   After: ${v.after.env} with ${(v.after.patches || []).join(', ') || 'no patch'}`);

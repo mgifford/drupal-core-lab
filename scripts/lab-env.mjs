@@ -17,7 +17,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
 import { spawnSync, execFileSync, spawn } from 'node:child_process';
-import { labRoot, variants, envDir } from '../tools/compare/lib.mjs';
+import { labRoot, variants, envDir, reportsDir } from '../tools/compare/lib.mjs';
 import { identity, headOf } from '../tools/compare/env-state.mjs';
 import { sideState } from '../tools/compare/contrib-state.mjs';
 
@@ -134,7 +134,7 @@ switch (cmd) {
   case 'retire': {
     if (!target) { console.error('usage: retire <slug> --yes [--force]'); process.exit(2); }
     const v = vs.find((x) => x.slug === target); const list = present(envsOf(target));
-    const rel = `reports/issues/${v.issue}`; const git = (a) => spawnSync('git', ['-C', labRoot, ...a], { encoding: 'utf8' });
+    const rel = reportsDir(v); const git = (a) => spawnSync('git', ['-C', labRoot, ...a], { encoding: 'utf8' });
     const why = [];
     const dirty = git(['status', '--porcelain', '--', rel]).stdout.trimEnd();
     if (dirty) why.push(`${rel}/ has uncommitted changes:\n${dirty.split('\n').map((l) => '    ' + l).join('\n')}`);
@@ -146,7 +146,7 @@ switch (cmd) {
       if (t) why.push(`the baseline ${v.before.env} has tracked changes that the variant does not declare (rule 1); find out why before deleting it:\n${t.split('\n').map((l) => '    ' + l).join('\n')}`);
     }
     if (why.length && !process.argv.includes('--force')) { console.error(`Not retiring ${target}:\n- ${why.join('\n- ')}\nCommit and push the evidence (or use --force to delete anyway).`); process.exit(1); }
-    if (!yes) { console.error(`Evidence for #${v.issue} is safe${why.length ? ' (checks overridden with --force)' : ''}. This DELETES ${list.join(' and ') || 'nothing (not built)'}. Re-run with --yes.`); process.exit(2); }
+    if (!yes) { console.error(`Evidence for ${v.issue ? `#${v.issue}` : rel} is safe${why.length ? ' (checks overridden with --force)' : ''}. This DELETES ${list.join(' and ') || 'nothing (not built)'}. Re-run with --yes.`); process.exit(2); }
     for (const e of list) { ddev(envDir(e), ['delete', '--omit-snapshot', '--yes']); spawnSync('git', ['-C', path.join(envsDir, 'core.git'), 'worktree', 'remove', '--force', envDir(e)], { stdio: 'inherit' }); }
     console.log(`Retired ${target}. Evidence stays in ${rel}/; rebuild with node tools/compare/setup.mjs ${target}`);
     break; }

@@ -17,6 +17,7 @@ const all = rawVariants();
 const slug = args.find((x) => !x.startsWith('--')) || all[0].slug;
 const v = all.find((x) => x.slug === slug);
 if (!v) { console.error('unknown variant'); process.exit(1); }
+if (!v.issue) { console.error(`${v.slug} has no drupal.org issue (its evidence is in ${v.reports}); a bundle is built around reports/issues/<nid>/.`); process.exit(2); }
 const name = `drupal-repro-${v.issue}`;
 const date = new Date().toISOString().slice(0, 10);
 const bundles = path.join(labRoot, 'bundles');

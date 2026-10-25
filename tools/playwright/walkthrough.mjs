@@ -12,7 +12,7 @@ import path from 'node:path';
 import { chromium, firefox, webkit } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { execFileSync } from 'node:child_process';
-import { labRoot, variants, envInfo, loginPath, envDir } from '../compare/lib.mjs';
+import { labRoot, variants, envInfo, loginPath, envDir, reportsDir } from '../compare/lib.mjs';
 import { setup } from './flow.mjs';
 
 const argv = process.argv.slice(2);
@@ -24,7 +24,7 @@ const v = variants().find((x) => x.slug === (argv.find((a) => !a.startsWith('--'
 if (!v) { console.error('unknown variant'); process.exit(1); }
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
 const envTag = `${BROWSER}-${SCHEME}${FORCED ? '-forced' : ''}-${VW}x${VH}`;
-const out = path.join(labRoot, 'reports/issues', v.issue, 'playwright', `${stamp}-${envTag}`);
+const out = path.join(labRoot, reportsDir(v), 'playwright', `${stamp}-${envTag}`);
 fs.mkdirSync(out, { recursive: true });
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 const VIEWPORT = { width: VW, height: VH };
