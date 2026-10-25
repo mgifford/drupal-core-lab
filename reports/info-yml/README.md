@@ -51,3 +51,6 @@ reproduction steps run as written on the same core ([verification.txt](issue-dra
 [3, parse error in a .module file](issue-drafts/3-module-parse-error-install.md), [4, dr hides the boot error](issue-drafts/4-dr-hides-boot-error.md),
 [5, name not a string](issue-drafts/5-info-name-not-string.md).
 
+Drafts 1 and 5 have a proposed fix registered as a lab variant (Before and After sites with DDEV, and the viewer):
+[variants/theme-incompatible](variants/theme-incompatible/README.md) and [variants/name-not-string](variants/name-not-string/README.md).
+

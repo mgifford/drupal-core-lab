@@ -1860,6 +1860,77 @@
       }
     },
     {
+      "slug": "info-yml-name-not-string",
+      "reports": "reports/info-yml/variants/name-not-string",
+      "label": "info.yml draft 5: the Extend page survives an info file whose name is not a string (proposed fix, no drupal.org issue yet)",
+      "description": "Before: core main at 89df3a065deb. After: the same core with tests/info-yml/patches/info-name-not-string.patch: when an extension's name is a list, a mapping or NULL, ExtensionList::createExtensionInfo() uses the machine name and logs a warning. The recipe writes a module, example, with name: [Example, module], uninstalled. Open /admin/modules. Before: \"The website encountered an unexpected error.\" (TypeError in ExtensionList::sortByName()). After: the Extend page, with the module listed as example.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "The module \"example\" is in modules/custom, uninstalled. Its name is a YAML list, [Example, module] (the recipe's apply.sh writes it).",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /admin/modules (both frames start there).",
+          "how": "mirror",
+          "lookFor": "Before: \"The website encountered an unexpected error. Try again later.\" After: the Extend page, with the test module listed as \"example\"."
+        },
+        {
+          "text": "Open /admin/reports/dblog (Recent log messages).",
+          "how": "mirror",
+          "lookFor": "Before: a php error, TypeError: strcasecmp(): Argument #1 ($string1) must be of type string, array given. After: a user warning: The name in modules/custom/example/example.info.yml is not a string; the machine name \"example\" is used instead."
+        }
+      ],
+      "expected": "The Extend page works when an info file has a name that is not a string, and the mistake is logged.",
+      "actual": "Before: /admin/modules fails for every visitor with a TypeError, installed or not. After: the page lists the module under its machine name, and the log names the file.",
+      "setup": "scripts/lab-site.sh apply <env> info_yml_name_not_string writes the test module again. Nothing is installed, so no reset is needed between visits.",
+      "observe": [
+        {
+          "label": "The Extend page lists the modules",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "The test module is listed as \"example\"",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Anything else looks broken or different (layout, colours, errors)",
+          "expectBefore": false,
+          "expectAfter": false
+        }
+      ],
+      "checks": [
+        {
+          "label": "Setup reached: the frame shows the Extend page or Drupal's error page (not a login or access-denied page)",
+          "probe": "!!document.getElementById('system-modules') || document.body.textContent.includes('The website encountered an unexpected error')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The Extend page loads: the module list form is on the page",
+          "probe": "!!document.getElementById('system-modules')",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "The test module is listed under its machine name, example",
+          "probe": "(document.getElementById('module-example') || {}).textContent === 'example'",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/admin/modules",
+        "/admin/reports/dblog"
+      ],
+      "demo": {
+        "start": "/admin/modules"
+      }
+    },
+    {
       "slug": "2951317-pinned",
       "issue": "2951317",
       "label": "#2951317: Radios element missing required attribute, pinned core",

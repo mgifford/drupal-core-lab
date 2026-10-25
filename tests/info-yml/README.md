@@ -130,6 +130,10 @@ so a difference is the patch's effect on how a broken file behaves. `lint`, `pla
 the linter patch); they still compare with the baseline's Phase 1 results.
 
 A runner variant is not a comparison in the lab viewer. To test a proposed patch the way other issues are tested here (DDEV,
-Before and After sites, the viewer), register it in `tools/compare/variants.json` with a recipe. `info-yml-theme-incompatible`
-is the first: [reports/info-yml/variants/theme-incompatible/README.md](../../reports/info-yml/variants/theme-incompatible/README.md).
+Before and After sites, the viewer), register it in `tools/compare/variants.json` with a recipe. Two are registered:
+`info-yml-theme-incompatible` ([README](../../reports/info-yml/variants/theme-incompatible/README.md)) and
+`info-yml-name-not-string` ([README](../../reports/info-yml/variants/name-not-string/README.md)).
+
+`verify-issue-drafts.sh` runs the reproduction steps of the drafts, and of `reports/info-yml/ISSUE-SUMMARY.md`, as written on a
+worker site; pages are served with `.ht.router.php` from the site root, as the runner serves them.
 

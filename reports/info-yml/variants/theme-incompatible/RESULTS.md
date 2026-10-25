@@ -7,7 +7,7 @@ Generated 2026-10-24T01:31:24.833Z by `node scripts/info-yml-repro.mjs`. Machine
 | Drupal | 12.0-dev at `8a3be6c3a399` (2026-10-24T01:24:58+00:00), "Variant theme-incompatible: theme-core-incompatible.patch", from https://github.com/drupal/drupal |
 | PHP | 8.5.12 (/opt/php85/bin/php); PECL yaml 2.3.0; symfony/yaml v8.1.6 |
 | Drush | not used (owner: git checkout of core, no Drush); core/scripts/dr and the UI stand in, see observations |
-| Server | PHP built-in web server (php -S) with core/.ht.router.php, SQLite database, one worker process |
+| Server | PHP built-in web server (php -S) with .ht.router.php in the site root, SQLite database, one worker process |
 | OS, Node | Linux 6.18.44-fc-v153 x64; Node v22.22.0 |
 | Lab commit | f58b174 |
 
