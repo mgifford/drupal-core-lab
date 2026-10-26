@@ -6,7 +6,7 @@ something changed. "Lab tested" is the merge request commit in the issue's `BRAN
 an issue is archived: [docs/ISSUE-LIFECYCLE.md](../../docs/ISSUE-LIFECYCLE.md). To start a new issue:
 `node scripts/new-issue.mjs <nid> --branch <fork-branch>` ([docs/NEW-ISSUE.md](../../docs/NEW-ISSUE.md)).
 
-## Needs attention (13)
+## Needs attention (15)
 
 Something changed upstream that the lab should act on.
 
@@ -18,15 +18,17 @@ Something changed upstream that the lab should act on.
 | [3207233](3207233/SUMMARY.md) | Improve the visual indication of the active workspace in the Workspaces listing… | Needs review, updated 2026-10-16 | !17464 opened at `278ea9ee` | no MR commit recorded ([how](3207233/REPRODUCE.md)) | Test MR !17464 (at 278ea9ee): BRANCHES.md records no MR commit the lab tested |
 | [3273806](3273806/SUMMARY.md) | WCAG color constrast fails on toolbar direction icon | Closed (duplicate), updated 2026-10-15 | none found | no MR commit recorded | Closed (duplicate): archive (node scripts/issue-archive.mjs 3273806) |
 | [3370946](3370946/SUMMARY.md) | Page title should contextualize the local navigation | Needs work, updated 2026-08-24 | !4479 opened at `1ff37e70` | no MR commit recorded ([how](3370946/REPRODUCE.md)) | Test MR !4479 (at 1ff37e70): BRANCHES.md records no MR commit the lab tested |
+| [3587661](3587661/SUMMARY.md) | Missing labels in "Limited files with a single pre-existing value (required)… | Reviewed & tested by the community, updated 2026-10-19 | !16335 opened at `3ec7eefd` | no MR commit recorded ([how](3587661/REPRODUCE.md)) | Test MR !16335 (at 3ec7eefd): BRANCHES.md records no MR commit the lab tested |
+| [3593502](3593502/SUMMARY.md) | Introduce a new Menu UI to resolve memory issues and improve user experience | Needs work, updated 2026-10-18 | !15975 opened at `ff76ee10` | `6d566c31` ([how](3593502/REPRODUCE.md)) | Re-test: MR !15975 is at ff76ee10; the lab tested 6d566c31 |
 | [3604037](3604037/SUMMARY.md) | Indicate that grouping elements have child element errors for UX and a11y | Reviewed & tested by the community, updated 2026-10-16 | !17078 opened at `c8136d01` | `e8b2e166` ([how](3604037/REPRODUCE.md)) | Re-test: MR !17078 is at c8136d01; the lab tested e8b2e166 |
-| [3615469](3615469/SUMMARY.md) | Maintenance mode form: "user login" link text excludes "page", read as "user… | Reviewed & tested by the community, updated 2026-10-16 | !16609 opened at `21bbeeb1` | `21bbeeb1` ([how](3615469/REPRODUCE.md)) | RTBC: one final run on current core main |
+| [3615469](3615469/SUMMARY.md) | Change link text on Maintenance mode form to 'user login page' | Reviewed & tested by the community, updated 2026-10-26 | !16609 opened at `21bbeeb1` | `21bbeeb1` ([how](3615469/REPRODUCE.md)) | RTBC: one final run on current core main |
 | [3617875](3617875/SUMMARY.md) | Better Dark Mode Support for Disabled Elements | Closed (fixed), updated 2026-09-29 | !16905 closed at `71cd2aca` | `e87837c4` ([how](3617875/REPRODUCE.md)) | Closed (fixed) upstream: confirm on core main, then archive (node scripts/issue-archive.mjs 3617875) |
 | [3618230](3618230/SUMMARY.md) | Adopt the ajax MessageCommand for file uploads | Active, updated 2026-10-14 | !16777 opened at `01e19a6f` | `2d600f40` ([how](3618230/REPRODUCE.md)) | Re-test: MR !16777 is at 01e19a6f; the lab tested 2d600f40 |
 | [3619154](3619154/) | Accessibility fixes for Admin theme's node add/edit sidebar toggle control | Reviewed & tested by the community, updated 2026-10-18 | !16911 opened at `175e6f17` | `175e6f17` ([how](3619154/REPRODUCE.md)) | RTBC: one final run on current core main |
 | [3619387](3619387/) | Indicate on forms sidebar toggle button that sidebar has child element errors | Reviewed & tested by the community, updated 2026-10-07 | !17013 opened at `cb915a48` | `cb915a48` ([how](3619387/REPRODUCE.md)) | RTBC: one final run on current core main |
 | [3627936](3627936/) | Active workspace has a broken styling in dark mode | Needs review, updated 2026-10-16 | !17471 opened at `d888b0ce` | no MR commit recorded ([how](3627936/REPRODUCE.md)) | Test MR !17471 (at d888b0ce): BRANCHES.md records no MR commit the lab tested |
 
-## Waiting (21)
+## Waiting (20)
 
 Nothing for the lab to do until the issue moves.
 
@@ -37,13 +39,12 @@ Nothing for the lab to do until the issue moves.
 | [3046089](3046089/SUMMARY.md) | Accessibility of Main toolbar items and internal editing | Active, updated 2026-10-14 | none found | no BRANCHES.md ([how](3046089/REPRODUCE.md)) | Active; no MR found |
 | [3083103](3083103/SUMMARY.md) | Programmatically associate error messages with inputs | Needs work, updated 2026-08-06 | !15692 opened at `ed60e948` | `ed60e948` ([how](3083103/REPRODUCE.md)) | Needs work: waiting on the MR |
 | [3155130](3155130/SUMMARY.md) | "Edit summary" toggle on text fields has many accessibility issues | Needs work, updated 2026-03-10 | none found | no BRANCHES.md ([how](3155130/REPRODUCE.md)) | Needs work: waiting on the MR |
-| [3243173](3243173/SUMMARY.md) | Form focus / screen reader issues related to server side form validation | Active, updated 2026-08-08 | none found | no MR commit recorded ([how](3243173/REPRODUCE.md)) | Active; no MR found |
+| [3243173](3243173/SUMMARY.md) | Form focus / screen reader issues related to server side form validation | Active, updated 2026-10-23 | none found | no MR commit recorded ([how](3243173/REPRODUCE.md)) | Active; no MR found |
 | [3273054](3273054/SUMMARY.md) | Checkboxes of text formats in the filter section on the permissions page have… | Active, updated 2023-05-26 | none found | no MR commit recorded ([how](3273054/REPRODUCE.md)) | Active; no MR found |
 | [3415961](3415961/SUMMARY.md) | [drupalMedia] Using the Insert Media button causes the window to scroll to the… | Needs work, updated 2026-10-14 | !12348 opened at `2dfd37b4` | `2dfd37b4` ([how](3415961/REPRODUCE.md)) | Needs work: waiting on the MR |
 | [3419891](3419891/SUMMARY.md) | Increase size of alternative text field in Image dialog | Needs work, updated 2026-10-16 | !16984 opened at `1931822c` | `1931822c` ([how](3419891/REPRODUCE.md)) | Needs work: waiting on the MR |
 | [3426468](3426468/) | Make the active menu item visually stand out more | Needs work, updated 2026-09-06 | !8446 opened at `da537706` | `da537706` ([how](3426468/REPRODUCE.md)) | Needs work: waiting on the MR |
 | [3587680](3587680/SUMMARY.md) | empty-heading: Ensure headings have discernible text | Active, updated 2026-08-07 | none found | no MR commit recorded ([how](3587680/REPRODUCE.md)) | Active; no MR found |
-| [3593502](3593502/SUMMARY.md) | Introduce a new Menu UI to resolve memory issues and improve user experience | Needs work, updated 2026-10-18 | !15975 opened at `6d566c31` | `6d566c31` ([how](3593502/REPRODUCE.md)) | Needs work: waiting on the MR |
 | [3593539](3593539/SUMMARY.md) | [PP-1] Replace compact mode link with a switch to improve accessibility | Postponed, updated 2026-08-20 | none found | no MR commit recorded ([how](3593539/REPRODUCE.md)) | Postponed; no MR found |
 | [3606655](3606655/) | Allow user-configurable UI settings - starting with dark mode | Needs review, updated 2026-10-16 | !16432 opened at `08a4cb4c` | `08a4cb4c` ([how](3606655/REPRODUCE.md)) | Needs review: the lab has tested the current MR head |
 | [3614293](3614293/SUMMARY.md) | Automated Form Validation Accessibility Testing | Active, updated 2026-08-06 | none found | no MR commit recorded ([how](3614293/REPRODUCE.md)) | Active; no MR found |
@@ -54,13 +55,11 @@ Nothing for the lab to do until the issue moves.
 | [3631321](3631321/SUMMARY.md) | Improve the visual representation of none active vertical tabs in forced color… | Active, updated 2026-10-16 | none found | no MR commit recorded ([how](3631321/REPRODUCE.md)) | Active; no MR found |
 | [3631337](3631337/SUMMARY.md) | Decide how to semantically label HTML elements for errors/warnings in forced… | Active, updated 2026-10-16 | none found | no MR commit recorded ([how](3631337/REPRODUCE.md)) | Active; no MR found |
 
-## Not checked yet (1)
+## Not checked yet (0)
 
 No `status.json` yet: the next weekly check fills these in, or `node scripts/issue-status.mjs <nid> --write` for one.
 
-| Issue | What | Lab tested |
-|---|---|---|
-| [3587661](3587661/SUMMARY.md) | Missing labels in "Limited files with a single pre-existing value (required)… | no MR commit recorded ([how](3587661/REPRODUCE.md)) |
+None.
 
 ## Archived (0)
 
