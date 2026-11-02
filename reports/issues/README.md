@@ -14,7 +14,7 @@ Something changed upstream that the lab should act on.
 |---|---|---|---|---|---|
 | [2847425](2847425/) | #states not affecting visibility/requirement of managed_file | Needs review, updated 2026-09-16 | !7305 opened at `6e43afa2` | `71b1ad1d` ([how](2847425/REPRODUCE.md)) | Re-test: MR !7305 is at 6e43afa2; the lab tested 71b1ad1d |
 | [3087389](3087389/SUMMARY.md) | When selecting media to add through the media library modal, the # of #… | Closed (duplicate), updated 2026-03-04 | none found | no BRANCHES.md ([how](3087389/REPRODUCE.md)) | Closed (duplicate): archive (node scripts/issue-archive.mjs 3087389) |
-| [3093378](3093378/SUMMARY.md) | Use ARIA disclosure pattern for submenu buttons in vertical toolbar orientation | Fixed, updated 2026-10-13 | !6821 opened at `f2fd22d9` | `d1e97b5` ([how](3093378/REPRODUCE.md)) | Fixed upstream: confirm on core main, then archive (node scripts/issue-archive.mjs 3093378) |
+| [3093378](3093378/SUMMARY.md) | Use ARIA disclosure pattern for submenu buttons in vertical toolbar orientation | Closed (fixed), updated 2026-10-27 | !6821 opened at `f2fd22d9` | `d1e97b5` ([how](3093378/REPRODUCE.md)) | Closed (fixed) upstream: confirm on core main, then archive (node scripts/issue-archive.mjs 3093378) |
 | [3207233](3207233/SUMMARY.md) | Improve the visual indication of the active workspace in the Workspaces listing… | Needs review, updated 2026-10-16 | !17464 opened at `278ea9ee` | no MR commit recorded ([how](3207233/REPRODUCE.md)) | Test MR !17464 (at 278ea9ee): BRANCHES.md records no MR commit the lab tested |
 | [3273806](3273806/SUMMARY.md) | WCAG color constrast fails on toolbar direction icon | Closed (duplicate), updated 2026-10-15 | none found | no MR commit recorded | Closed (duplicate): archive (node scripts/issue-archive.mjs 3273806) |
 | [3370946](3370946/SUMMARY.md) | Page title should contextualize the local navigation | Needs work, updated 2026-08-24 | !4479 opened at `1ff37e70` | no MR commit recorded ([how](3370946/REPRODUCE.md)) | Test MR !4479 (at 1ff37e70): BRANCHES.md records no MR commit the lab tested |
@@ -26,7 +26,7 @@ Something changed upstream that the lab should act on.
 | [3618230](3618230/SUMMARY.md) | Adopt the ajax MessageCommand for file uploads | Active, updated 2026-10-14 | !16777 opened at `01e19a6f` | `2d600f40` ([how](3618230/REPRODUCE.md)) | Re-test: MR !16777 is at 01e19a6f; the lab tested 2d600f40 |
 | [3619154](3619154/) | Accessibility fixes for Admin theme's node add/edit sidebar toggle control | Reviewed & tested by the community, updated 2026-10-18 | !16911 opened at `175e6f17` | `175e6f17` ([how](3619154/REPRODUCE.md)) | RTBC: one final run on current core main |
 | [3619387](3619387/) | Indicate on forms sidebar toggle button that sidebar has child element errors | Reviewed & tested by the community, updated 2026-10-07 | !17013 opened at `cb915a48` | `cb915a48` ([how](3619387/REPRODUCE.md)) | RTBC: one final run on current core main |
-| [3627936](3627936/) | Active workspace has a broken styling in dark mode | Needs review, updated 2026-10-16 | !17471 opened at `d888b0ce` | no MR commit recorded ([how](3627936/REPRODUCE.md)) | Test MR !17471 (at d888b0ce): BRANCHES.md records no MR commit the lab tested |
+| [3627936](3627936/) | Active workspace has a broken styling in dark mode | Needs review, updated 2026-11-02 | !17471 opened at `b0bf91b9` | no MR commit recorded ([how](3627936/REPRODUCE.md)) | Test MR !17471 (at b0bf91b9): BRANCHES.md records no MR commit the lab tested |
 
 ## Waiting (20)
 
@@ -51,7 +51,7 @@ Nothing for the lab to do until the issue moves.
 | [3618405](3618405/) | Purpose of views exposed filters form is unclear when zoomed in | Needs work, updated 2026-10-14 | !17043 opened at `c95dbac4` | `c95dbac4` ([how](3618405/REPRODUCE.md)) | Needs work: waiting on the MR |
 | [3619127](3619127/SUMMARY.md) | Forms sidebar doesn't open with error links from Inline Form Errors module | Needs review, updated 2026-10-01 | !16895 opened at `cdff6661` | `cdff6661` ([how](3619127/REPRODUCE.md)) | Needs review: the lab has tested the current MR head |
 | [3619933](3619933/) | Drupal Admin Theme Colors | Active, updated 2026-10-16 | !16922 opened at `63ea50be` | `63ea50be` ([how](3619933/REPRODUCE.md)) | Active |
-| [3630425](3630425/SUMMARY.md) | Multi-value field widget table renders an empty <th> for the actions (Remove)… | Needs work, updated 2026-10-18 | !17421 opened at `f1f524f9` | `f1f524f9` ([how](3630425/REPRODUCE.md)) | Needs work: waiting on the MR |
+| [3630425](3630425/SUMMARY.md) | Multi-value field widget table renders an empty <th> for the actions (Remove)… | Needs work, updated 2026-10-29 | !17421 opened at `f1f524f9` | `f1f524f9` ([how](3630425/REPRODUCE.md)) | Needs work: waiting on the MR |
 | [3631321](3631321/SUMMARY.md) | Improve the visual representation of none active vertical tabs in forced color… | Active, updated 2026-10-16 | none found | no MR commit recorded ([how](3631321/REPRODUCE.md)) | Active; no MR found |
 | [3631337](3631337/SUMMARY.md) | Decide how to semantically label HTML elements for errors/warnings in forced… | Active, updated 2026-10-16 | none found | no MR commit recorded ([how](3631337/REPRODUCE.md)) | Active; no MR found |
 
