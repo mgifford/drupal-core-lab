@@ -1,12 +1,12 @@
 # #3155130: "Edit summary" toggle accessibility issues
 
-**DRAFT.** Scoping material only — nothing has been built or run in this lab. This folder was converted to the standard shape
+**DRAFT.** One automated before/after run on core f48d0a58b3ec (see [EVIDENCE.md](EVIDENCE.md)); no person has reviewed it. This folder was converted to the standard shape
 on 2026-10-14; the original note is unchanged.
 
 **This is the entry point for this issue.** Start with **Files and links** below.
 
 Issue: https://www.drupal.org/project/drupal/issues/3155130
-Patch: none in this folder (the note refers to a patch that is not present — see Notes)
+Patch: the 2020 patch (does not apply to current core) and a lab port, see [BRANCHES.md](BRANCHES.md)
 Status snapshot: [STATUS.md](STATUS.md)
 
 ## Summary
@@ -32,8 +32,8 @@ yet focusable (WCAG 2.4.7 Focus Visible), and all summary fields share one name.
 
 ## Not verified
 
-- No lab run; no pinned Before/After pair, no environment, no commit record, no human review.
-- No patch file is present in this folder.
+- One automated Chromium run; no human review, screen reader, other browser, dark mode or forced colours. See EVIDENCE.md.
+- The original patch does not apply to current core: only a lab port of it was run.
 
 ## Notes
 

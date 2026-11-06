@@ -1,0 +1,95 @@
+[
+  {
+    "slug": "3155130-pinned",
+    "issue": "3155130",
+    "label": "#3155130: \"Edit summary\" toggle on long text with summary, 2020 patch ported to core f48d0a58 (pinned)",
+    "description": "Compare the Edit summary / Hide summary toggle (Before) with the 2020 patch wrapping the summary field in a details element (After). The patch is a port of core-summary-a11y-3155130-6.patch to the last core commit that still has the widget. Not an MR: lab-written port.",
+    "status": "draft: ported 2020 patch, nothing run yet",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "f48d0a58b3ec0395f486f1987a28811ab6ee5936"
+    },
+    "before": {
+      "env": "baseline-3155130",
+      "patches": []
+    },
+    "after": {
+      "env": "issue-3155130",
+      "patches": [
+        "reports/issues/3155130/branches/3155130-ported-f48d0a58.patch"
+      ]
+    },
+    "pages": [
+      "/node/add/page"
+    ],
+    "login": true,
+    "recipe": "repro_3155130",
+    "steps": [
+      {
+        "text": "Open Add Basic page on both sides. The recipe adds Body (one value) and Notes (three values), both Text (formatted, long, with summary).",
+        "how": "recipe",
+        "lookFor": "A Body field and three Notes fields, each with a way to reach a Summary field."
+      },
+      {
+        "text": "Look at the Body field. Before: an Edit summary / Hide summary button beside the label. After: a Summary details disclosure.",
+        "how": "each",
+        "lookFor": "Before: button inside a label, Summary textarea appears above the control that reveals it. After: details element, summary inside it."
+      },
+      {
+        "text": "Tab to the control, activate it with Enter or Space, and listen for or inspect the accessible name of the Body and Summary textareas before and after.",
+        "how": "each",
+        "lookFor": "Before: Body name changes between \"Body (Edit summary)\" and \"Body\". After: name stays \"Body\"; the disclosure reports expanded or collapsed."
+      },
+      {
+        "text": "Repeat for the three Notes fields. Tab through them with the keyboard.",
+        "how": "each",
+        "lookFor": "Every control is visible when focused; each summary is distinguishable by name."
+      },
+      {
+        "text": "Type text in Body and in its Summary, fill Title, Save, then open Edit.",
+        "how": "each",
+        "lookFor": "The summary you typed is still there. The 2020 patch changes the summary field name attribute; this step shows whether it still saves."
+      }
+    ],
+    "expected": "After: the summary is reached by a details disclosure, not a button inside a label; names stay stable; the summary still saves.",
+    "actual": "Before: the toggle is a button inside the label, it is replaced by another button when used, the summary appears before its control, and the textarea name changes when toggled.",
+    "checks": [
+      {
+        "label": "Page has the Body and Notes summary fields",
+        "kind": "precondition",
+        "probe": "document.querySelectorAll('textarea[name^=\"field_body\"][name*=\"summary\"], textarea[name^=\"field_notes\"][name*=\"summary\"]').length",
+        "expect": 4
+      },
+      {
+        "label": "No button inside a label",
+        "kind": "fix",
+        "probe": "document.querySelectorAll('label button').length === 0",
+        "expect": true
+      },
+      {
+        "label": "Summary textareas sit inside a details element",
+        "kind": "fix",
+        "probe": "document.querySelectorAll('details textarea[name*=\"summary\"]').length",
+        "expect": 4
+      },
+      {
+        "label": "Summary field keeps its name field_body[0][summary]",
+        "kind": "regression",
+        "probe": "!!document.querySelector('textarea[name=\"field_body[0][summary]\"]')",
+        "expect": true
+      }
+    ],
+    "observe": [
+      {
+        "question": "Is the Summary reached through a disclosure that stays in the same place and keeps the field name the same?",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "question": "After Save and Edit, is the summary text you typed still there?",
+        "expectBefore": true,
+        "expectAfter": true
+      }
+    ]
+  }
+]

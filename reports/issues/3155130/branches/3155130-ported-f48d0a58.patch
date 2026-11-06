@@ -1,0 +1,118 @@
+diff --git a/core/modules/text/js/text.js b/core/modules/text/js/text.js
+deleted file mode 100644
+index 34721de..0000000
+--- a/core/modules/text/js/text.js
++++ /dev/null
+@@ -1,76 +0,0 @@
+-/**
+- * @file
+- * Text behaviors.
+- */
+-
+-(function ($, Drupal) {
+-  /**
+-   * Auto-hide summary textarea if empty and show hide and unhide links.
+-   *
+-   * @type {Drupal~behavior}
+-   *
+-   * @prop {Drupal~behaviorAttach} attach
+-   *   Attaches auto-hide behavior on `text-summary` events.
+-   */
+-  Drupal.behaviors.textSummary = {
+-    attach(context, settings) {
+-      once('text-summary', '.js-text-summary', context).forEach((summary) => {
+-        const $widget = $(summary).closest('.js-text-format-wrapper');
+-
+-        const $summary = $widget.find('.js-text-summary-wrapper');
+-        const $summaryLabel = $summary.find('label').eq(0);
+-        const $full = $widget.children('.js-form-type-textarea');
+-        let $fullLabel = $full.find('label').eq(0);
+-
+-        // Create a placeholder label when the field cardinality is greater
+-        // than 1.
+-        if ($fullLabel.length === 0) {
+-          $fullLabel = $('<label></label>').prependTo($full);
+-        }
+-
+-        // To ensure the summary toggle is shown in case the label is hidden
+-        // (in multivalue fields in particular), show the label but hide
+-        // the original text of the label.
+-        if ($fullLabel.hasClass('visually-hidden')) {
+-          $fullLabel.html(
+-            (index, oldHtml) =>
+-              `<span class="visually-hidden">${oldHtml}</span>`,
+-          );
+-          $fullLabel.removeClass('visually-hidden');
+-        }
+-
+-        // Set up the edit/hide summary link.
+-        const $link = $(
+-          Drupal.theme('textEditSummaryButton', Drupal.t('Hide summary')),
+-        );
+-        const $button = $link.find('button');
+-        let toggleClick = true;
+-        $link
+-          .on('click', (e) => {
+-            if (toggleClick) {
+-              $summary.hide();
+-              $button.html(Drupal.t('Edit summary'));
+-              $link.appendTo($fullLabel);
+-            } else {
+-              $summary.show();
+-              $button.html(Drupal.t('Hide summary'));
+-              $link.appendTo($summaryLabel);
+-            }
+-            e.preventDefault();
+-            toggleClick = !toggleClick;
+-          })
+-          .appendTo($summaryLabel);
+-
+-        // If no summary is set, hide the summary field.
+-        if (summary.value === '') {
+-          $link.trigger('click');
+-        }
+-      });
+-    },
+-  };
+-  $.extend(Drupal.theme, {
+-    textEditSummaryButton(title) {
+-      return `<span class="field-edit-link"> (<button type="button" class="link link-edit-summary">${title}</button>)</span>`;
+-    },
+-  });
+-})(jQuery, Drupal);
+diff --git a/core/modules/text/src/Plugin/Field/FieldWidget/TextareaWithSummaryWidget.php b/core/modules/text/src/Plugin/Field/FieldWidget/TextareaWithSummaryWidget.php
+index 4eab151..d4de65b 100644
+--- a/core/modules/text/src/Plugin/Field/FieldWidget/TextareaWithSummaryWidget.php
++++ b/core/modules/text/src/Plugin/Field/FieldWidget/TextareaWithSummaryWidget.php
+@@ -74,24 +74,21 @@ class TextareaWithSummaryWidget extends TextareaWidget {
+     $display_summary = $items[$delta]->summary || $this->getFieldSetting('display_summary');
+     $required = empty($form['#type']) && $this->getFieldSetting('required_summary');
+ 
+-    $element['summary'] = [
++    $element['container'] = [
++      '#type' => 'details',
++      '#title' => $this->t('Summary'),
++      '#weight' => -10,
++      '#open' => $required || $this->getSetting('show_summary') || $items[$delta]->summary !== '',
++    ];
++    $element['container']['summary'] = [
+       '#type' => $display_summary ? 'textarea' : 'value',
+       '#default_value' => $items[$delta]->summary,
+       '#title' => $this->t('Summary'),
+       '#rows' => $this->getSetting('summary_rows'),
+       '#description' => !$required ? $this->t('Leave blank to use trimmed value of full text as the summary.') : '',
+-      '#attributes' => ['class' => ['text-summary']],
+-      '#prefix' => '<div class="js-text-summary-wrapper text-summary-wrapper">',
+-      '#suffix' => '</div>',
+-      '#weight' => -10,
+       '#required' => $required,
+     ];
+ 
+-    if (!$this->getSetting('show_summary') && !$required) {
+-      $element['summary']['#attributes']['class'][] = 'js-text-summary';
+-      $element['summary']['#attached']['library'][] = 'text/drupal.text';
+-    }
+-
+     return $element;
+   }
+ 
