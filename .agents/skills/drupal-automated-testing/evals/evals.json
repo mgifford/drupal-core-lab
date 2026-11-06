@@ -1,0 +1,130 @@
+{
+  "skill": "drupal-automated-testing",
+  "version": 1,
+  "trigger": {
+    "should": [
+      "I fixed a bug in my contrib module's form handler. Do I need to add a test, and what kind?",
+      "My Kernel test throws 'table does not exist' for the node table. What's wrong?",
+      "How do I write a FunctionalJavascript test that clicks an AJAX button and checks the result?",
+      "How do I run PHPUnit tests for my custom module in DDEV?"
+    ],
+    "should_not": [
+      "Review this Twig template for accessibility problems.",
+      "How do I configure Search API boosting for a number field?",
+      "Explain how to set up OAuth2 scopes with simple_oauth for a mobile app.",
+      "Write a README and change record for my new contrib module.",
+      "I want to reproduce Drupal core issue 3155130 in the lab and compare before and after."
+    ]
+  },
+  "cases": [
+    {
+      "id": "functional-first-not-unit",
+      "prompt": "I wrote a new Drupal service that loads entities and fires hooks. Which kind of automated test should I start with? I'm thinking a Unit test with mocks.",
+      "expected": [
+        "recommends Functional or Kernel tests first, not Unit tests",
+        "explains Drupal code is mostly integration through the container, so unit tests need heavy mocking that breaks on refactor",
+        "says Unit tests are for pure functions with no container dependencies"
+      ],
+      "must_not": ["recommends starting with a Unit test"],
+      "grounded_in": ["Reach for Functional or Kernel first.", "Do not reach for Unit tests first."]
+    },
+    {
+      "id": "kernel-table-does-not-exist",
+      "prompt": "My Kernel test fails with 'table node_field_data does not exist' and config for my module is missing. Why?",
+      "expected": [
+        "explains Kernel tests provide a minimal environment: no config installed and no entity tables created",
+        "calls $this->installEntitySchema('node'), installConfig(['my_module']) and installSchema() explicitly in setUp",
+        "mentions module dependencies are not resolved automatically"
+      ],
+      "grounded_in": ["Do not assume Kernel tests install config or create database tables.", "If your Kernel test throws \"table does not exist\" errors, this is almost certainly"]
+    },
+    {
+      "id": "assert-waitforelement",
+      "prompt": "In my FunctionalJavascript test I wrote $this->assertSession()->waitForElement('css', '#page-title'); and it passes even when the page is broken. Why?",
+      "expected": [
+        "explains waitForElement returns NULL when the element is not found, so a bare call never fails",
+        "shows wrapping it as $this->assertNotEmpty($this->assertSession()->waitForElement('css', '#page-title'))",
+        "advises to wait for the expected element after pressing an AJAX-triggering button, then assert"
+      ],
+      "must_not": ["keeps the bare waitForElement call"],
+      "grounded_in": ["Always explicitly assert the result of `waitForElement` and similar methods.", "Do not skip `waitForElement` assertions in FunctionalJavascript tests."]
+    },
+    {
+      "id": "run-in-separate-processes",
+      "prompt": "Write the class header for a new Kernel test in my module on Drupal 11.3.",
+      "expected": [
+        "includes the #[RunTestsInSeparateProcesses] attribute with its use PHPUnit\\Framework\\Attributes\\RunTestsInSeparateProcesses import",
+        "states it is a hard requirement from Drupal 11.3 and strongly recommended on 10.x",
+        "extends KernelTestBase in namespace Drupal\\Tests\\<module>\\Kernel"
+      ],
+      "grounded_in": ["This became a hard requirement in Drupal 11.3 and is strongly recommended on 10.x.", "Unit tests run in-process and do not need this attribute."]
+    },
+    {
+      "id": "test-namespaces",
+      "prompt": "My FunctionalJavascript test lives in Drupal\\Tests\\my_module\\Functionaljavascript and the runner doesn't pick it up. What's wrong?",
+      "expected": [
+        "says the namespace must be exactly Drupal\\Tests\\<module>\\FunctionalJavascript",
+        "points out the capitalisation of FunctionalJavascript is important",
+        "lists Unit, Kernel and Functional namespaces follow the same Drupal\\Tests\\<module>\\<Type> pattern"
+      ],
+      "grounded_in": ["The `FunctionalJavascript` capitalisation is important.", "Tests must be in the correct namespace or the test runner will not discover them:"]
+    },
+    {
+      "id": "dual-container-trap",
+      "prompt": "In my Functional test I register a service override in the test method but the page request doesn't see it. Why, and what do I do?",
+      "expected": [
+        "explains Functional tests run two Drupal instances (PHPUnit and the web server) sharing a database but with separate PHP memory",
+        "says state set in the test process is not visible to the web server process and vice versa",
+        "suggests targeted cache clears or container rebuilds and says to add a comment explaining why"
+      ],
+      "grounded_in": ["Do not assume state set in your Functional test code is visible to the web", "targeted cache clears or container rebuilds may help, but always add a comment explaining why"]
+    },
+    {
+      "id": "simpletest-env-vars",
+      "prompt": "PHPUnit just skips all my Drupal functional tests in DDEV without an error. What should I check?",
+      "expected": [
+        "says to use DDEV and set SIMPLETEST_BASE_URL (local HTTP address of the site) and SIMPLETEST_DB (database connection string)",
+        "explains PHPUnit will either fail or silently skip tests without them"
+      ],
+      "grounded_in": ["Do not submit tests without `SIMPLETEST_BASE_URL` and `SIMPLETEST_DB` set.", "`SIMPLETEST_DB`: the database connection string"]
+    },
+    {
+      "id": "bug-fix-needs-test",
+      "prompt": "I fixed a bug in an existing feature of my module and also changed a config default. Which of these need tests, and where do I put the test?",
+      "expected": [
+        "says bug fixes almost always need a test so the bug cannot silently return",
+        "says configuration-only changes usually do not need a test",
+        "says to find the existing test for the feature first and update it"
+      ],
+      "grounded_in": ["Bug fixes almost always need a test.", "If you are modifying an existing feature, find the existing test first and update it."]
+    },
+    {
+      "id": "no-nightwatch",
+      "prompt": "Should I add a new Nightwatch test for my module's modal dialog behaviour?",
+      "expected": [
+        "says not to write Nightwatch tests because they are JavaScript-based, prone to flakiness, and the community is moving to Playwright",
+        "may suggest a FunctionalJavascript test if the PHP-side UI interaction needs it"
+      ],
+      "must_not": ["writes a Nightwatch test"],
+      "grounded_in": ["Do not write Nightwatch tests.", "the Drupal community is moving toward Playwright as a replacement."]
+    },
+    {
+      "id": "reduce-repetition",
+      "prompt": "I have five Kernel test methods that differ only in the input string. How do I stop repeating myself?",
+      "expected": [
+        "recommends setUp(), data providers, or the #[TestWith] attribute instead of duplicating code across methods",
+        "does not copy-paste five near-identical test methods"
+      ],
+      "grounded_in": ["`#[TestWith]` attribute rather than duplicating code across test methods."]
+    },
+    {
+      "id": "functional-default-choice",
+      "prompt": "I need to test a form submission that touches several modules with a complicated dependency tree. Kernel or Functional?",
+      "expected": [
+        "recommends a Functional test (BrowserTestBase) as the best default, since it boots a real site and installs modules with config and schema",
+        "notes Functional is right for HTTP requests, forms and pages or when setup by hand would be harder than letting Drupal do it"
+      ],
+      "grounded_in": ["are the best default choice. They boot a real Drupal site", "Use them when the feature involves HTTP requests, forms, pages"]
+    }
+  ]
+}

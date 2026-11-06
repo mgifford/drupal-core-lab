@@ -1,0 +1,106 @@
+{
+  "skill": "drupal-at-your-fingertips",
+  "version": 1,
+  "trigger": {
+    "should": [
+      "How do I inject a service into my custom Drupal controller instead of calling \\Drupal::service()?",
+      "How do I subscribe to a kernel event in a Drupal 10 module?",
+      "What's the right way to implement a Drupal hook in my custom module?",
+      "How do I write a Drupal Test Traits test against my existing site?"
+    ],
+    "should_not": [
+      "Review this Twig template for accessibility problems before I open a merge request.",
+      "How do I configure Search API boosting for a number field?",
+      "Explain how to set up OAuth2 scopes with simple_oauth for a mobile app.",
+      "I want to reproduce Drupal core issue 3155130 in the lab and compare before and after.",
+      "How do I export configuration and split it per environment?"
+    ]
+  },
+  "cases": [
+    {
+      "id": "route-services",
+      "prompt": "I need to use the logger and the entity type manager in my custom Drupal controller. How should I get them?",
+      "expected": [
+        "points to the services topic for dependency injection and the service container",
+        "may also point to the logging topic",
+        "refers to the online chapter at drupalatyourfingertips.com rather than claiming local content"
+      ],
+      "grounded_in": ["- @references/services.md - Dependency injection and service container", "- @references/logging.md - Logging and monitoring"]
+    },
+    {
+      "id": "route-hooks",
+      "prompt": "How do I implement a hook in my custom Drupal module, and how do hooks differ from events?",
+      "expected": [
+        "points to the hooks topic for the hook system and implementations",
+        "points to the events topic for event subscribers and dispatchers"
+      ],
+      "grounded_in": ["- @references/hooks.md - Hook system and implementations", "- @references/events.md - Event subscribers and dispatchers"]
+    },
+    {
+      "id": "route-forms",
+      "prompt": "I'm building a custom config form with validation in Drupal. Where can I find the patterns for the Form API?",
+      "expected": [
+        "points to the forms topic for Form API and validation",
+        "mentions the full chapter is hosted on drupalatyourfingertips.com"
+      ],
+      "grounded_in": ["- @references/forms.md - Form API and validation", "Each reference links to the full chapter on drupalatyourfingertips.com with:"]
+    },
+    {
+      "id": "route-plugins-entities",
+      "prompt": "I want to add a custom plugin type and a custom content entity. Which topics should I read?",
+      "expected": [
+        "points to the plugins topic (Plugin API and annotations)",
+        "points to the entities topic (Entity API and custom entities)"
+      ],
+      "grounded_in": ["- @references/plugins.md - Plugin API and annotations", "- @references/entities.md - Entity API and custom entities"]
+    },
+    {
+      "id": "route-dtt",
+      "prompt": "I'd like to test my existing Drupal site's behaviour using Drupal Test Traits. Where do I start?",
+      "expected": [
+        "points to the dtt topic for Drupal Test Traits",
+        "refers the user to the online chapter for detail"
+      ],
+      "grounded_in": ["- @references/dtt.md - Drupal Test Traits", "**View online**: https://drupalatyourfingertips.com/services"]
+    },
+    {
+      "id": "route-long-running",
+      "prompt": "I have to update 50,000 nodes and cron keeps timing out. What Drupal tools should I look at?",
+      "expected": [
+        "points to Batch API for long operations and Queue API for background tasks",
+        "mentions cron jobs and scheduling as a related topic"
+      ],
+      "grounded_in": ["- @references/batch.md - Batch API for long operations", "- @references/queue.md - Queue API for background tasks"]
+    },
+    {
+      "id": "references-are-pointers",
+      "prompt": "Quote me what the skill's caching reference says about cache tags and max-age.",
+      "expected": [
+        "says the local caching reference is a pointer to the online chapter and does not itself contain cache tags or max-age content",
+        "gives the https://drupalatyourfingertips.com/caching link",
+        "does not invent or quote chapter content"
+      ],
+      "must_not": ["fabricates quoted text from the book"],
+      "grounded_in": ["**View online**: https://drupalatyourfingertips.com/caching", "This chapter covers:"]
+    },
+    {
+      "id": "attribution",
+      "prompt": "I want to reuse patterns from this skill in a team wiki page. Who wrote them and how should I credit it?",
+      "expected": [
+        "credits Selwyn Polit and the Drupal at Your Fingertips book at drupalatyourfingertips.com",
+        "notes the source is documented as open access documentation"
+      ],
+      "grounded_in": ["**Author**: Selwyn Polit", "**License**: Open access documentation"]
+    },
+    {
+      "id": "refresh-references",
+      "prompt": "The references look out of date. When were they last checked and how do I refresh them?",
+      "expected": [
+        "says the references show last verified 2025-10-31",
+        "says to run the sync-d9book.sh script to update",
+        "suggests checking the online chapter for current content in the meantime"
+      ],
+      "grounded_in": ["**To update**: Run `.Codex/scripts/sync-d9book.sh`", "**Last verified**: 2025-10-31"]
+    }
+  ]
+}

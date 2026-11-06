@@ -1,0 +1,201 @@
+{
+  "skill": "drupal-accessibility",
+  "version": 1,
+  "trigger": {
+    "should": [
+      "Review this Drupal Twig template for accessibility problems before I open a merge request.",
+      "My custom config form has a group of radio buttons and a screen reader user says it is confusing. How should I fix it?",
+      "I'm writing a Drupal behavior that adds an item to the cart. How do I tell screen reader users it happened?",
+      "Draft a drupal.org issue for an accessibility problem I found on the node edit form."
+    ],
+    "should_not": [
+      "Write a PHPUnit kernel test for my contrib module's service.",
+      "How do I configure Search API boosting for a number field?",
+      "Explain how to set up OAuth2 scopes with simple_oauth for a mobile app.",
+      "I want to reproduce Drupal core issue 3155130 and see before and after side by side in the lab.",
+      "How do I export configuration and split it per environment with drush?"
+    ]
+  },
+  "cases": [
+    {
+      "id": "title-not-aria-label",
+      "prompt": "In my Drupal form class I have a search textfield next to a Search button. I want to hide the label visually, so I'm planning to drop #title and use #attributes['aria-label'] => 'Search'. Good idea?",
+      "expected": [
+        "says no: keep #title and hide it with #title_display => 'invisible'",
+        "explains the label stays in the accessibility tree while being hidden visually",
+        "does not recommend hand-written aria-label as the replacement for #title"
+      ],
+      "must_not": ["approves replacing #title with aria-label"],
+      "grounded_in": ["Do not replace `#title` with `aria-label`.", "still set `#title` and use `#title_display => 'invisible'`"]
+    },
+    {
+      "id": "radios-need-fieldset",
+      "prompt": "I added a standalone 'radios' element for shipping speed to my form, each option has its own label. Do I need anything else for accessibility?",
+      "expected": [
+        "says a standalone radios or checkboxes element without an enclosing fieldset or details is a violation",
+        "recommends wrapping in #type => 'fieldset' (or 'details' if collapsible) with a #title that becomes the legend",
+        "does not suggest grouping with a div and a heading"
+      ],
+      "must_not": ["says individual labels are enough to group the options"],
+      "grounded_in": ["A standalone `'checkboxes'` or `'radios'` element without an enclosing `fieldset` or `details` is a violation", "Do not group radios or checkboxes with a `<div>` and a heading."]
+    },
+    {
+      "id": "no-interactive-markup",
+      "prompt": "In my controller I return ['#markup' => '<a href=\"/cart\" class=\"button\">Go to cart</a>']. It works. Is that okay?",
+      "expected": [
+        "says interactive elements such as a link must not be put inside #markup",
+        "shows a render array with #type => 'link', #title and #url instead",
+        "notes the same applies to #prefix and #suffix"
+      ],
+      "grounded_in": ["Do not put a `<button>`, `<a>`, or any focusable element inside `#markup`,", "The same rule applies to `#prefix` and `#suffix`: they are for inert"]
+    },
+    {
+      "id": "image-alt-contract",
+      "prompt": "I'm building a render array for a decorative swirl image and a hero image of volunteers planting trees. What do I put for #alt on each?",
+      "expected": [
+        "declares #alt on both images; there is no implicit default",
+        "uses #alt => '' for the purely decorative image",
+        "gives meaningful translated alt text via $this->t() for the hero image",
+        "does not use the filename or NULL as alt"
+      ],
+      "grounded_in": ["Every image render element must declare `#alt`.", "set `#alt => ''` so assistive tech skips them."]
+    },
+    {
+      "id": "no-redundant-aria",
+      "prompt": "Add ARIA to this Twig so it is accessible: <nav><ul><li><button>Open menu</button></li></ul></nav>. I was thinking role=\"navigation\", role=\"list\" and role=\"button\".",
+      "expected": [
+        "refuses to add role=\"navigation\", role=\"list\" and role=\"button\" because the native elements already carry those semantics",
+        "may suggest aria-label on the nav only if more than one nav landmark exists",
+        "says ARIA fills gaps in HTML, not repeats it"
+      ],
+      "must_not": ["adds redundant role attributes to nav, ul or button"],
+      "grounded_in": ["Do not add `role=\"navigation\"`, `role=\"main\"`, `role=\"button\"`,", "ARIA exists to fill gaps\nin HTML, not to repeat it."]
+    },
+    {
+      "id": "hiding-content-aria-hidden",
+      "prompt": "I want to hide a promo banner from screen reader users but keep it visible, and I plan to put aria-hidden=\"true\" on the wrapper which contains a 'Subscribe' link. Fine?",
+      "expected": [
+        "warns never to put aria-hidden=\"true\" on a focusable element, which creates ghost focus",
+        "says aria-hidden is almost always the wrong choice and only fits decorative duplication such as an icon next to a text label",
+        "points to .visually-hidden, .hidden or [hidden] depending on whether sighted users, assistive tech or everyone should perceive the content"
+      ],
+      "must_not": ["approves aria-hidden on a wrapper containing a focusable link"],
+      "grounded_in": ["Never put `aria-hidden=\"true\"` on a focusable element", "`aria-hidden=\"true\"` — visible to sighted users, hidden from assistive"]
+    },
+    {
+      "id": "target-size-24px",
+      "prompt": "My toolbar has a 16x16 icon-only button. Is that OK for WCAG 2.2, and if not what do I change in the CSS?",
+      "expected": [
+        "cites WCAG 2.2 SC 2.5.8 Target Size (Minimum) requiring at least 24x24 CSS pixels of hit area",
+        "keeps the 16x16 icon but expands the hit area to 24x24 with padding, min-width and min-height",
+        "does not reason from the 44x44 criterion as a substitute"
+      ],
+      "grounded_in": ["Do not make a 16×16 icon button.", "Do not regress to the WCAG 2.1 SC 2.5.5"]
+    },
+    {
+      "id": "js-show-js-hide",
+      "prompt": "I want a 'Show filters' button that only appears when JavaScript runs. I was going to add a js-enabled class to the html element from Drupal.behaviors and toggle with that. Is there a better way?",
+      "expected": [
+        "recommends the .js-show / .js-hide classes driven by @media (scripting: enabled)",
+        "says not to add a .js-enabled class to <html> from Drupal.behaviors",
+        "notes the media query avoids a flash of incorrect content"
+      ],
+      "grounded_in": ["Do not toggle these classes from `Drupal.behaviors` by adding a", "it without a flash of incorrect content."]
+    },
+    {
+      "id": "announce-not-aria-live",
+      "prompt": "When a filter is applied via AJAX I add <div aria-live=\"polite\" id=\"results-status\"> to my template and update its text. Is that the right approach in Drupal?",
+      "expected": [
+        "says a hand-rolled aria-live region is a violation in Drupal",
+        "recommends Drupal.announce() with Drupal.t(), polite by default",
+        "mentions 'assertive' as the second argument only for time-critical information"
+      ],
+      "must_not": ["keeps or recommends the custom aria-live div"],
+      "grounded_in": ["Do not insert your own `<div aria-live=\"polite|assertive\">`.", "Drupal core ships a single shared, polite live region with the"]
+    },
+    {
+      "id": "ajax-focus-return",
+      "prompt": "My Load more button is replaced by the loaded content via an AJAX response, and keyboard users lose their place. How should I handle focus?",
+      "expected": [
+        "explains focus falls to <body> when the trigger disappears",
+        "uses an AJAX focus command such as FocusFirstCommand rather than element.focus() in a success callback",
+        "puts focus on the new equivalent of the trigger, or the heading or landmark containing the new content"
+      ],
+      "must_not": ["calls element.focus() inside an AJAX success callback"],
+      "grounded_in": ["Do not rely on `element.focus()` inside an AJAX success callback.", "A \"Load more\" button that disappears with no focus return strands"]
+    },
+    {
+      "id": "modal-use-drupal-dialog",
+      "prompt": "I need a modal dialog in my module. Plan is a div with role=dialog and my own keydown handler for Tab trapping. Thoughts?",
+      "expected": [
+        "recommends Drupal.dialog / Drupal.dialog.ajax instead of building from primitives",
+        "says if hand-building is unavoidable, the issue must document why and replicate focus trap, focus return, aria-modal=\"true\" and Escape closing"
+      ],
+      "grounded_in": ["Do not build a modal from primitives. Use `Drupal.dialog`.", "**Modals trap focus.** Use `Drupal.dialog` / `Drupal.dialog.ajax`"]
+    },
+    {
+      "id": "playwright-not-nightwatch",
+      "prompt": "I need to add a browser-level accessibility test for the cart page in core. There's an existing Nightwatch suite, should I add to it?",
+      "expected": [
+        "says not to extend Nightwatch, which is being removed, and to write new tests in Playwright with @axe-core/playwright",
+        "tags the Axe scan with wcag22aa so SC 2.5.8 and 2.4.13 are exercised",
+        "pairs the scan with at least one keyboard-flow assertion",
+        "mentions converting existing Nightwatch tests when touched"
+      ],
+      "must_not": ["extends the Nightwatch suite"],
+      "grounded_in": ["Do not extend Nightwatch coverage.", "Tag `wcag22aa` so SC 2.5.8 (target size) and SC 2.4.13 (focus"]
+    },
+    {
+      "id": "axe-zero-not-enough",
+      "prompt": "Axe reports zero violations on my patch. Can I mark the issue RTBC?",
+      "expected": [
+        "says no: Axe catches roughly a third of WCAG issues",
+        "requires manual keyboard-only, screen-reader and zoom checks (and forced-colours if visual) before RTBC"
+      ],
+      "must_not": ["treats a clean Axe scan as sufficient to resolve the issue"],
+      "grounded_in": ["Do not assume a passing automated scan means the issue is resolved.", "Do not assume an accessibility win because Axe reports zero violations."]
+    },
+    {
+      "id": "one-issue-one-criterion",
+      "prompt": "My patch fixes target size, missing focus outline and a missing alt on two components. I'll file it as one accessibility issue. OK?",
+      "expected": [
+        "says one issue per WCAG success criterion; split into separate issues and link them as related",
+        "explains reviewers triage and release notes group by SC",
+        "includes the structured field block (Bug ID, URL, XPath, WCAG SC, Rule, Severity, Frequency, Screen type, Colour mode) in each"
+      ],
+      "must_not": ["files a single bundled issue"],
+      "grounded_in": ["Do not bundle multiple SCs in a single issue.", "A pull request that fixes three SCs across two components is three"]
+    },
+    {
+      "id": "ai-disclosure-block",
+      "prompt": "I had Claude Code draft the patch and the issue text for an accessibility fix. What do I need to add before posting?",
+      "expected": [
+        "adds the AI disclosure block naming tool, what it was used for, and reviewer's drupal.org username",
+        "lists skills loaded (drupal-accessibility and the sub-skills used)",
+        "says the reviewed-by line is required and AI text must not be posted without human review"
+      ],
+      "grounded_in": ["The reviewed-by line is required", "Do not generate the issue text with AI and post it without review."]
+    },
+    {
+      "id": "bug-id-hash-inputs",
+      "prompt": "How do I build the Bug ID for an axe color-contrast violation on /node/1/edit at desktop width so pipelines can deduplicate it?",
+      "expected": [
+        "uses the format [PREFIX]-[8-char hex] with DRP- for Drupal core",
+        "hashes the first 8 characters of a SHA-256 of the inputs joined with |",
+        "uses the CSS selector from axe-core node.target, not the XPath, as the hash input",
+        "distinguishes instance_id (page path + selector + rule ID + screen type) from pattern_id (no page path)"
+      ],
+      "grounded_in": ["Hash inputs use the **CSS selector** from", "Format: `[PREFIX]-[8-char hex]`."]
+    },
+    {
+      "id": "dark-mode-axe-scans",
+      "prompt": "Our theme supports dark mode. How should I structure the Axe scans in Playwright so contrast is covered?",
+      "expected": [
+        "scans in both light and dark colour schemes using page.emulateMedia({ colorScheme }) in a loop",
+        "adds a forced-colours pass when the visual change is in scope",
+        "does not write separate test files per mode"
+      ],
+      "grounded_in": ["Use Playwright's `emulateMedia` to switch modes inside the test; do not", "Run scans in both colour modes"]
+    }
+  ]
+}

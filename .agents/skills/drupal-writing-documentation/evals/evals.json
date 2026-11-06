@@ -1,0 +1,122 @@
+{
+  "skill": "drupal-writing-documentation",
+  "version": 1,
+  "trigger": {
+    "should": [
+      "Help me write a README for my new Drupal contrib module.",
+      "The drupal.org page on setting up a local dev environment is out of date. How should I rewrite it?",
+      "I found a typo on api.drupal.org for a core method. How do I get it fixed?",
+      "Draft a change record for the new service I added to my Drupal module."
+    ],
+    "should_not": [
+      "Write a Drupal module that exposes a REST resource for articles.",
+      "How do I configure Search API boosting for a number field?",
+      "Fix the OAuth scope mismatch causing 403 errors in my Drupal JSON:API.",
+      "Write PHPUnit kernel tests for my module's service.",
+      "Write a blog post announcing our company's new product."
+    ]
+  },
+  "cases": [
+    {
+      "id": "api-docs-live-in-source",
+      "prompt": "The api.drupal.org page for a core function has a wrong description. Where do I edit it?",
+      "expected": [
+        "says api.drupal.org is generated from Drupal core source, so the fix goes in the docblocks or inline comments in the source code",
+        "notes that the change shows up after the next generation run, not by editing the website"
+      ],
+      "must_not": ["tells the user to edit the page on api.drupal.org directly"],
+      "grounded_in": ["something is wrong or missing on api.drupal.org, the fix goes in the source code", "**api.drupal.org** is generated directly from Drupal core's source code."]
+    },
+    {
+      "id": "user-guide-source-files",
+      "prompt": "I want to fix a mistake in the Drupal User Guide and the Drupal CMS User Guide. Where do I make the change?",
+      "expected": [
+        "says the Drupal User Guide is AsciiDoc files in a drupal.org project and cannot be edited with an Edit button",
+        "says the Drupal CMS User Guide follows the same pattern but uses Markdown files in a separate git repository",
+        "tells the user to propose changes by working with the source files in the relevant project"
+      ],
+      "grounded_in": ["You cannot edit it by clicking an Edit button on drupal.org.", "**The Drupal CMS User Guide** follows the same pattern but uses Markdown files"]
+    },
+    {
+      "id": "good-api-docs-content",
+      "prompt": "Review this docblock: '/** Saves the thing. @param $x The x. @return bool */'. How should the documentation for this function be improved?",
+      "expected": [
+        "says parameters and return values are not enough",
+        "adds when and why to use the function, and when not to",
+        "explains how it relates to the surrounding API subsystem (e.g. the Entity API)"
+      ],
+      "grounded_in": ["**When and why to use this function.**", "**Relationship to the broader ecosystem.**"]
+    },
+    {
+      "id": "document-drupal-link-elsewhere",
+      "prompt": "I'm writing a Drupal install guide. Should I include steps for installing Docker, configuring Apache virtual hosts and setting up PHP?",
+      "expected": [
+        "says no: document Drupal and link out to the authoritative docs for third-party tools",
+        "explains such instructions go stale quickly and are better maintained elsewhere",
+        "keeps the Drupal-specific steps in the page"
+      ],
+      "must_not": ["includes full Docker or Apache setup instructions"],
+      "grounded_in": ["Drupal's documentation should document Drupal, and link out to documentation for", "**Do not document things that aren't Drupal-specific.**"]
+    },
+    {
+      "id": "be-opinionated",
+      "prompt": "My local environment page lists DDEV, Lando, Docksal, MAMP, XAMPP and five IDEs, each with full instructions. Is that good?",
+      "expected": [
+        "says to be opinionated and give beginners one recommended path",
+        "names the community-preferred option (DDEV) first and links to alternatives instead of documenting each fully",
+        "warns against documenting every possible option; completeness is not usefulness"
+      ],
+      "grounded_in": ["Avoid content sprawl driven by trying to cover every possible option.", "Completeness is not the same as usefulness."]
+    },
+    {
+      "id": "tldr-first",
+      "prompt": "My setup guide explains background concepts for six paragraphs before the first command. How should I restructure it?",
+      "expected": [
+        "puts the short path to success first as a TL;DR or quick-start block",
+        "follows with explanation for readers who want to understand what and why",
+        "keeps the page short and scannable with clear headings, or splits it into shorter pages"
+      ],
+      "grounded_in": ["**Do not bury the key steps.**", "Multiple shorter pages over one very long page, as long as the hierarchy is"]
+    },
+    {
+      "id": "know-the-audience",
+      "prompt": "I'm documenting a hook for experienced Drupal developers. Should I explain what dependency injection and PHP namespaces are?",
+      "expected": [
+        "says Drupal developers are generally experienced engineers and non-Drupal-specific concepts should not be over-explained",
+        "says to cover the parts that are genuinely Drupal-specific and surprising"
+      ],
+      "grounded_in": ["generally experienced engineers — do not over-explain things that are not Drupal-", "Do cover the parts that are genuinely Drupal-specific and surprising."]
+    },
+    {
+      "id": "style-guide-terms",
+      "prompt": "Proofread this sentence for Drupal style: 'drupal sites often use Javascript and java script libraries in a node's block region.'",
+      "expected": [
+        "capitalises Drupal",
+        "writes JavaScript as one word with capital J and capital S",
+        "keeps Drupal terms such as node, block and region used precisely",
+        "refers to the Drupal Content Style Guide"
+      ],
+      "grounded_in": ["*Drupal* is always capitalised.", "*JavaScript* is always one word, capital J, capital S."]
+    },
+    {
+      "id": "wiki-page-history",
+      "prompt": "I want to substantially rewrite a drupal.org wiki page. How do I find who maintains it and who has been active on it?",
+      "expected": [
+        "says many guides list named maintainers in the sidebar but they are often inactive",
+        "says to use the Discussion tab in the top-right navigation widget to see revision history and contributors",
+        "says most edits are minor fixes by drive-by contributors, not the original author"
+      ],
+      "grounded_in": ["Assume that most edits are minor fixes by drive-by", "Contrib module documentation** on drupal.org is technically open to anyone"]
+    },
+    {
+      "id": "where-to-get-help",
+      "prompt": "I need a drupal.org docs page unpublished, and I also need help understanding how a specific module feature works so I can document it. Where do I ask?",
+      "expected": [
+        "points general documentation guidance and access issues (such as unpublishing or deleting a page) to the #documentation Slack channel",
+        "points feature-specific questions to the Slack channel or issue queue for that feature, where the subject matter experts are",
+        "notes the documentation team can help write well but cannot substitute for the people who built the feature"
+      ],
+      "grounded_in": ["post in the `#documentation` Slack channel.", "they cannot\nsubstitute for the people who built the thing."]
+    }
+  ]
+}

@@ -73,6 +73,7 @@ for (const [name, list, needsYaml] of [['unit tests: lab tools', glob('tests/lab
 for (const [name, a] of [['documentation links (check-docs.mjs)', ['scripts/check-docs.mjs']], ['cloud/ up to date (build-cloud.mjs --check)', ['scripts/build-cloud.mjs', '--check']]]) {
   const r = run('node', a); record(name, r.status === 0 ? 'ok' : 'FAIL', first(r));
 }
+{ const r = run('node', ['scripts/skill-evals.mjs', 'validate']); record('skill evals valid and grounded (skill-evals.mjs validate)', r.status === 0 ? 'ok' : 'FAIL', r.status === 0 ? first(r) : (r.stdout || '').split('\n').filter((l) => /^FAIL|^ {6}/.test(l)).slice(0, 6).join(' | ')); }
 for (const t of ['REPRODUCE.md', 'EVIDENCE.md', 'ISSUE-COMMENT-DRAFT.md']) if (!fs.existsSync(path.join(labRoot, 'reports/_templates', t))) record(`template ${t}`, 'FAIL', 'missing');
 
 // 5. live: tools against a built pair
