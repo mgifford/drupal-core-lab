@@ -1,0 +1,91 @@
+{
+  "skill": "drupal-canvas",
+  "version": 1,
+  "trigger": {
+    "should": [
+      "I want to start a new Drupal Canvas project with example components. What command do I run?",
+      "How should I structure a Canvas Code Component so it ships with its metadata and styles?",
+      "What is the Nebula starter template and when should I use it for a Canvas site?",
+      "How do I get my Canvas components to show up in the Acquia Source Site Builder?"
+    ],
+    "should_not": [
+      "Write a Drupal Twig template override for the node teaser view mode.",
+      "How do I export and import Drupal configuration with drush cex and cim between environments?",
+      "Update the drupal/pathauto module with Composer and apply a patch from the issue queue.",
+      "My DDEV project will not start after Docker crashed. How do I fix it?"
+    ]
+  },
+  "cases": [
+    {
+      "id": "scaffold-new-project",
+      "prompt": "I want to begin building Canvas Code Components in a fresh Drupal site. What is the quickest way to scaffold a project?",
+      "expected": [
+        "gives the npx @drupal-canvas/create command with a project name",
+        "says the scaffold includes Drupal core with the Canvas module, example components and development tooling",
+        "mentions the Nebula starter template is part of what is created"
+      ],
+      "must_not": ["tells the user to assemble Canvas by hand from a plain drupal/recommended-project install"],
+      "grounded_in": ["npx @drupal-canvas/create my-project", "Drupal core with Canvas module"]
+    },
+    {
+      "id": "detailed-guidance-skills",
+      "prompt": "I need deeper guidance on defining components, metadata and uploading them to Drupal than a quick overview. Where do I get it?",
+      "expected": [
+        "points to installing the Canvas skills collection with npx skills add drupal-canvas/skills",
+        "says the collection covers 7 topics such as definition, metadata, composability, styling, utilities, data fetching and upload"
+      ],
+      "grounded_in": ["npx skills add drupal-canvas/skills", "Covers 7 topics:"]
+    },
+    {
+      "id": "component-file-layout",
+      "prompt": "What files make up a Canvas Code Component and what does each one do?",
+      "expected": [
+        "lists the .component.tsx file as the component logic",
+        "lists the .metadata.json file as the Drupal integration metadata",
+        "lists the .styles.css file as scoped styles",
+        "describes the .utils.ts file as optional"
+      ],
+      "grounded_in": ["my-component.metadata.json   # Drupal integration metadata", "my-component.utils.ts        # Optional utilities"]
+    },
+    {
+      "id": "ssr-not-client-only",
+      "prompt": "Is a Canvas Code Component just a client-side React widget, or does Drupal render it on the server?",
+      "expected": [
+        "says components are server-side rendered with hydration",
+        "says they are not client-only",
+        "mentions they can access Drupal entities, fields, views and APIs"
+      ],
+      "must_not": ["describes Canvas Code Components as purely client-side rendered"],
+      "grounded_in": ["**Server-side rendered** — Full SSR with hydration, not client-only", "**Drupal-integrated** — Access entities, fields, views, and Drupal APIs"]
+    },
+    {
+      "id": "example-component-props",
+      "prompt": "Show me a minimal Canvas component that takes a title and a list of items and renders them.",
+      "expected": [
+        "imports ComponentProps from @drupal-canvas/sdk",
+        "exports a default function component that destructures title and items from its props",
+        "renders the title in a heading and maps items to list elements with a key"
+      ],
+      "grounded_in": ["import { type ComponentProps } from '@drupal-canvas/sdk';", "export default function MyComponent({ title, items }: ComponentProps) {"]
+    },
+    {
+      "id": "nebula-starter",
+      "prompt": "Which starting point should I pick for a new Canvas project, and what comes with it?",
+      "expected": [
+        "recommends the Nebula starter template as the starting point for new Canvas projects",
+        "says it includes example components, DDEV local development setup and deployment configuration"
+      ],
+      "grounded_in": ["The recommended starting point for new Canvas projects. Includes:", "DDEV local development setup"]
+    },
+    {
+      "id": "source-site-builder",
+      "prompt": "What does integrating Canvas components with Acquia Source Site Builder give content editors?",
+      "expected": [
+        "mentions visual component placement and configuration",
+        "mentions content editor-friendly component management",
+        "mentions design system integration and multi-site component sharing"
+      ],
+      "grounded_in": ["Canvas components integrate with Acquia's Source Site Builder for:", "Visual component placement and configuration"]
+    }
+  ]
+}

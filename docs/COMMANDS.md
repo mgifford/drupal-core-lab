@@ -58,6 +58,7 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/run-mark.mjs <run> --superseded --reason "<why>" [--by <run>]   # keep a run as history; coverage stops counting it (coverage also marks a run stale by itself when its recorded patch hashes, recipe or pin no longer match)
     node scripts/lab-env.mjs retire <slug> --yes         # delete a pair only once reports/issues/<nid>/ is committed and pushed
     node scripts/selftest.mjs [--live <slug>] [--network]   # does the lab itself work: syntax, unit tests, variants, docs; --live runs lint and the evaluator
+    node scripts/skill-evals.mjs list | validate [skill] | run <skill> [--model M] [--judge-model M] [--endpoint URL] [--only <case>] [--baseline] [--dry-run]   # evals for .agents/skills (docs/SKILL-EVALS.md): validate is deterministic and part of selftest; run needs an Ollama-compatible model (LAB_EVAL_MODEL, OLLAMA_HOST)
     node scripts/issue-from-url.mjs <url> [--pack <file>] [--ai-recipe] [--mr <n>] [--no-import] [--dry-run]  # start from a Drupal.org issue URL (prepare→validate→import)
     node scripts/issue-pack.mjs validate <pack> | import <pack> [--recipe <dir>] [--depth 2000] [--dry-run]  # validate/import an issue pack; --ai-recipe at prepare time
     node tools/compare/setup.mjs <slug> --core-from=<path>  # seed core from a local checkout (filtered egress / existing worktree)

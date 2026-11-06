@@ -1,0 +1,186 @@
+{
+  "skill": "ivangrynenko-cursorrules-drupal",
+  "version": 1,
+  "trigger": {
+    "should": [
+      "Review my custom Drupal module for security problems like SQL injection and XSS.",
+      "What file permissions should settings.php and sites/default/files have on a production Drupal server?",
+      "My Drupal controller fetches a URL supplied by the user with Guzzle. Is that safe?",
+      "How should I harden a Drupal site against brute force logins and weak passwords?"
+    ],
+    "should_not": [
+      "How do I boost featured content in a Search API Solr index?",
+      "Write a README for my Drupal contrib module.",
+      "Explain how to configure simple_oauth scopes for a mobile app.",
+      "Write a Drupal Kernel test for my service.",
+      "How do I create a Drupal custom block with a configuration form?"
+    ]
+  },
+  "cases": [
+    {
+      "id": "password-verification",
+      "prompt": "In my custom login code I compare the submitted password with strcmp against the stored value. Is that OK?",
+      "expected": [
+        "says to avoid direct password comparison",
+        "says to use Drupal's built-in password verification services",
+        "prefers Drupal's core authentication mechanisms over a custom solution"
+      ],
+      "must_not": ["suggests md5 or sha1 for password storage"],
+      "grounded_in": ["Avoid direct password comparison. Use Drupal's built-in password verification services.", "Use Drupal's core authentication mechanisms rather than custom solutions"]
+    },
+    {
+      "id": "brute-force-flood",
+      "prompt": "What should I configure to stop brute force attacks against Drupal login?",
+      "expected": [
+        "recommends account lockout after failed login attempts",
+        "recommends IP-based and username-based flood control",
+        "suggests multi-factor authentication (e.g. TFA) for privileged accounts and logging authentication events"
+      ],
+      "grounded_in": ["Implement proper account lockout after failed login attempts", "Implement IP-based and username-based flood control"]
+    },
+    {
+      "id": "route-and-entity-access",
+      "prompt": "Review my controller: it loads a node and calls $node->delete() with no checks, and the route has no requirements. What should change?",
+      "expected": [
+        "says routes must define access requirements such as _permission, _role, _entity_access or a custom access checker",
+        "says to check entity access with $entity->access('delete') before operating on it",
+        "mentions using AccessResult with proper cache metadata"
+      ],
+      "grounded_in": ["Always define access requirements in route definitions", "Always check entity access: $entity->access('view'|'update'|'delete')"]
+    },
+    {
+      "id": "no-uid-1-checks",
+      "prompt": "I gate an admin feature with if ($user->id() === 1). Is that fine?",
+      "expected": [
+        "says to avoid hardcoded checks against user ID 1",
+        "recommends role-based permissions or proper access control services",
+        "suggests injecting the current_user service (AccountProxyInterface) instead of calling \\Drupal::currentUser() directly"
+      ],
+      "grounded_in": ["Avoid hardcoded checks against user ID 1. Use role-based permissions or proper access control services.", "Inject AccountProxyInterface rather than calling currentUser() directly"]
+    },
+    {
+      "id": "sql-injection",
+      "prompt": "Here is my code: $db->query(\"SELECT * FROM {users} WHERE name = '$name'\"). Fix it.",
+      "expected": [
+        "says direct variables in SQL are vulnerable to SQL injection",
+        "uses a parameterized query with placeholders or the Database API condition methods",
+        "mentions escaping table names with {} or using EntityQuery for entity operations"
+      ],
+      "must_not": ["suggests escaping the value with addslashes or str_replace"],
+      "grounded_in": ["Always use parameterized queries with placeholders", "Use the Database API's condition methods: ->condition(), ->where()"]
+    },
+    {
+      "id": "xss-markup",
+      "prompt": "I render user-submitted text with '#markup' => $input in a render array. How should it be output safely?",
+      "expected": [
+        "says never to use unfiltered variables in #markup",
+        "recommends #plain_text for user input, or Html::escape() or Xss::filter()",
+        "mentions Twig automatic escaping in templates"
+      ],
+      "grounded_in": ["Use #plain_text instead of #markup when displaying user input", "Utilize Twig's automatic escaping in templates"]
+    },
+    {
+      "id": "command-and-ad-hoc-sanitization",
+      "prompt": "I use shell_exec to run an image tool with a filename from the request and strip_tags to clean input. Thoughts?",
+      "expected": [
+        "says to avoid command execution functions entirely, or use Symfony Process with escaped arguments and whitelisted input",
+        "says to avoid ad hoc sanitization (strip_tags, preg_replace) in favour of Drupal's built-in tools like Xss::filter()"
+      ],
+      "grounded_in": ["Avoid command execution functions entirely", "Avoid ad hoc sanitization. Use Drupal's built-in sanitization tools: t(), Xss::filter(), etc."]
+    },
+    {
+      "id": "crypto-primitives",
+      "prompt": "I generate API tokens with md5(rand()) and keep the API key in a PHP variable. What should I use instead?",
+      "expected": [
+        "says md5 and sha1 are weak: password_hash() for passwords, SHA-256/SHA-512 for other data",
+        "says to use random_bytes() or random_int() instead of rand/mt_rand for cryptographic purposes",
+        "moves secrets out of code into the Key module, State API or environment variables",
+        "adds expiration or rotation to API tokens"
+      ],
+      "grounded_in": ["Insecure random number generation. Use random_bytes() or random_int() for cryptographic purposes.", "Use Drupal's Key module for storing encryption keys", "API tokens should include expiration time or rotation mechanism."]
+    },
+    {
+      "id": "production-settings",
+      "prompt": "Give me a security checklist for settings.php before going live.",
+      "expected": [
+        "configures trusted_host_patterns to prevent HTTP Host header attacks",
+        "sets $config['system.logging']['error_level'] = 'hide' for production",
+        "ensures update_free_access and rebuild_access are not enabled",
+        "configures file_private_path and secure session cookie settings",
+        "removes development modules such as devel and webprofiler from production"
+      ],
+      "grounded_in": ["Configure trusted_host_patterns to prevent HTTP Host header attacks", "Disable verbose error reporting in production with $config['system.logging']['error_level'] = 'hide'", "Never enable development settings in production: update_free_access, rebuild_access, etc."]
+    },
+    {
+      "id": "file-permissions",
+      "prompt": "Which permissions and ownership should sites/default, settings.php and the files directory have in my Dockerfile?",
+      "expected": [
+        "sets sites/default to 755 and settings.php and services.yml to 444",
+        "sets sites/default/files to 755, owned by the web server user (www-data:www-data), with files 644 and directories 755 inside",
+        "says never to use 777 permissions on any Drupal files or directories"
+      ],
+      "must_not": ["suggests chmod 777 or 666 to fix permission problems"],
+      "grounded_in": ["- **settings.php**: 444 (r--r--r--)", "Never set 777 permissions on any Drupal files or directories", "sites/default/files should be owned by the web server user (www-data:www-data)"]
+    },
+    {
+      "id": "ssrf-url-validation",
+      "prompt": "My controller takes a ?url= parameter and fetches it with \\Drupal::httpClient()->get(). How do I make this safe?",
+      "expected": [
+        "validates the URL with UrlHelper::isValid() before making the request",
+        "uses allowlists rather than blocklists for domains and IPs",
+        "disables or limits HTTP redirects, sets timeouts, and avoids passing raw user input to the HTTP client"
+      ],
+      "grounded_in": ["Always validate URLs with UrlHelper::isValid() before making HTTP requests with Drupal's HTTP client.", "Implement allowlists rather than blocklists for domains/IPs", "Disable HTTP redirects or limit redirect chains"]
+    },
+    {
+      "id": "dependency-management",
+      "prompt": "How should I manage Drupal core and contrib dependencies to stay secure?",
+      "expected": [
+        "uses Composer and version constraints that allow security updates",
+        "adds drupal/core-security-advisories as a dev dependency",
+        "implements Subresource Integrity for external scripts and stylesheets",
+        "replaces deprecated functions with modern APIs"
+      ],
+      "grounded_in": ["Add drupal/core-security-advisories as a dev dependency", "Specify version constraints that allow security updates", "Implement Subresource Integrity (SRI) for external resources"]
+    },
+    {
+      "id": "unserialize-untrusted",
+      "prompt": "I store user-provided data with serialize() and read it back with unserialize($data). Is there a problem?",
+      "expected": [
+        "says to avoid PHP unserialize() with untrusted data entirely",
+        "recommends JSON or other structured formats for data interchange, or allowlists and validation when deserialization is unavoidable"
+      ],
+      "grounded_in": ["Avoid PHP's unserialize() with untrusted data entirely", "Use JSON or other structured formats for data interchange"]
+    },
+    {
+      "id": "security-logging",
+      "prompt": "What should my custom module log for security monitoring, and how?",
+      "expected": [
+        "uses Drupal's logger service with proper log levels and context in messages",
+        "logs authentication events, access control decisions (especially denials), administrative actions, and configuration changes",
+        "does not include stack traces in production and does not suppress errors"
+      ],
+      "grounded_in": ["Access control decisions (particularly denials)", "Include stack traces in development but not production", "Avoid suppressing errors that might indicate security issues"]
+    },
+    {
+      "id": "secure-design-access-grant",
+      "prompt": "My hook_entity_access always returns AccessResult::allowed() so editors aren't blocked. Okay?",
+      "expected": [
+        "says to avoid unconditional access grants",
+        "implements conditional checks based on roles, permissions or entity ownership",
+        "follows least privilege and designs granular verb+object permissions"
+      ],
+      "grounded_in": ["Avoid unconditional access grants. Implement proper conditional checks based on roles, permissions, or entity ownership.", "Design granular permissions following the verb+object pattern"]
+    },
+    {
+      "id": "database-standards",
+      "prompt": "I'm adding a new table in a hook_update_N and using db_query for reads. What are the database standards?",
+      "expected": [
+        "uses the Schema API for table definitions and update hooks for schema changes",
+        "uses the Database API rather than db_query",
+        "implements proper error handling and indexing"
+      ],
+      "grounded_in": ["Use Schema API for table definitions", "Use update hooks for schema changes"]
+    }
+  ]
+}

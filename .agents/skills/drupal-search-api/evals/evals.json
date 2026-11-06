@@ -1,0 +1,126 @@
+{
+  "skill": "drupal-search-api",
+  "version": 1,
+  "trigger": {
+    "should": [
+      "Featured nodes should rank higher in our Search API Solr index. How do I boost them?",
+      "I changed the boost factor on the bookmark count field but search results look the same. What do I check?",
+      "My config export changed a Search API index so that its server is now null. How do I fix and prevent that?",
+      "How do I write a custom Search API processor that multiplies an item's boost at index time?"
+    ],
+    "should_not": [
+      "Write a Views display that lists the latest ten articles with a pager.",
+      "How do I set up OAuth2 scopes with simple_oauth for a mobile app?",
+      "Explain how to write a README for my Drupal contrib module.",
+      "How do I import and export Drupal configuration between environments with config split?",
+      "Create a Drupal custom block plugin that shows the current user's name."
+    ]
+  },
+  "cases": [
+    {
+      "id": "boolean-field-type",
+      "prompt": "I want to boost nodes where field_featured is checked, but the field is indexed as an integer. How should the index field be set up?",
+      "expected": [
+        "says the field should be indexed as type boolean, not integer",
+        "gives a field_settings YAML snippet or a drush config:set command for field_settings.field_featured.type boolean",
+        "mentions that a reindex is needed after changing the field type"
+      ],
+      "must_not": ["recommends keeping the field as an integer for the boost"],
+      "grounded_in": ["Always configure boolean fields as `type: boolean` in index settings", "Integer fields can cause issues with boolean-based boost logic"]
+    },
+    {
+      "id": "custom-boost-multiplicative",
+      "prompt": "Write the core of a Search API processor that doubles the boost of featured content at index time.",
+      "expected": [
+        "uses the preprocess_index stage (preprocessIndexItems)",
+        "reads the existing boost with getBoost() and multiplies it rather than overwriting it",
+        "sets the result with setBoost()",
+        "skips or tolerates items whose entity cannot be loaded"
+      ],
+      "must_not": ["calls setBoost(2.0) with a fixed value that discards the existing boost"],
+      "grounded_in": ["Use multiplicative boost: `$item->setBoost($old_boost * boost_factor)`", "Always get old boost first to preserve other boosts"]
+    },
+    {
+      "id": "number-field-boost-formula",
+      "prompt": "How does the number_field_boost processor turn a bookmark count into a boost, and what factor should I start with for counts between 10 and 1000?",
+      "expected": [
+        "explains the formula adds field_value times boost_factor to the boost",
+        "suggests a factor in the 0.01 - 0.05 range for bookmark counts of that size",
+        "gives a worked example such as 138 bookmarks x 0.01 = +1.38"
+      ],
+      "grounded_in": ["Formula: `boost += (field_value * boost_factor)`", "Bookmark count: `0.01 - 0.05` (for counts in 10-1000 range)", "Example: 138 bookmarks x 0.01 = +1.38 boost"]
+    },
+    {
+      "id": "processor-conflicts",
+      "prompt": "I configured field_featured in number_field_boost and also wrote a custom featured boost processor. Results are unpredictable. Why?",
+      "expected": [
+        "identifies that two processors targeting the same field conflict (one overrides the other, boosts do not combine)",
+        "says to remove field_featured from number_field_boost and keep the custom processor",
+        "states the rule: custom processor for boolean or complex logic, number_field_boost for simple numeric boosts"
+      ],
+      "grounded_in": ["Don't configure same field in multiple processors", "Use custom processor for boolean/complex logic"]
+    },
+    {
+      "id": "never-text-for-ngram-fields",
+      "prompt": "After exporting config, field_display_name and title in my index show type: text instead of the solr ngram type. Autocomplete for partial names is broken. What do I do?",
+      "expected": [
+        "explains that a changed Solr server config can make export downgrade custom field types to generic text",
+        "restores solr_text_custom:ngramstring on the affected fields (field_display_name, label, name, title) via PHP and re-exports",
+        "says these fields must never be changed to type: text because it breaks partial name matching"
+      ],
+      "must_not": ["suggests leaving the fields as type text"],
+      "grounded_in": ["Never change these to `type: text`** - it breaks partial name matching", "Revert any unintended changes (e.g., ngram fields changed to plain text)"]
+    },
+    {
+      "id": "server-null-after-export",
+      "prompt": "git diff shows my search_api.index config now has server: null and the server dependency removed after I tweaked Solr settings locally. How do I recover and avoid it?",
+      "expected": [
+        "recovers by reverting the index files, e.g. git checkout HEAD -- config/default/search_api.index.*.yml",
+        "advises not modifying search_api.server.<name>.yml for local development",
+        "suggests using DDEV's built-in Solr service or config splits for environment-specific settings",
+        "says to review git diff config/default/ before committing"
+      ],
+      "grounded_in": ["Don't modify `search_api.server.{server_name}.yml` for local development", "git checkout HEAD -- config/default/search_api.index.*.yml", "Always review `git diff config/default/` before committing"]
+    },
+    {
+      "id": "php-config-instead-of-config-set",
+      "prompt": "drush config:set on my Search API index keeps setting server to null and I need to remove a key from number_field_boost.boosts. What is the better approach?",
+      "expected": [
+        "recommends updating active config via drush php:eval with getEditable and save()",
+        "uses unset on the array key rather than setting it to null",
+        "after the change, verifies with config:get and runs config:export, then reviews the diff for unintended changes"
+      ],
+      "grounded_in": ["When removing array keys (unset pattern works better than `null`)", "When config:set creates unwanted side effects (e.g., changing `server: {server_name}` to `server: null`)"]
+    },
+    {
+      "id": "reindex-workflow",
+      "prompt": "I just lowered a boost factor and added a processor. What do I need to run so the new boosts take effect?",
+      "expected": [
+        "says a full reindex is required after changing boost factors or processors",
+        "lists the sequence: drush cr, search-api:clear <index>, search-api:index <index>",
+        "mentions checking progress with search-api:status"
+      ],
+      "grounded_in": ["**Always reindex after:**", "ddev drush search-api:clear {index_name}"]
+    },
+    {
+      "id": "index-time-boosting",
+      "prompt": "Should I apply my engagement boosts at query time or index time for a high-traffic search page?",
+      "expected": [
+        "recommends index-time boosting during the preprocess_index stage",
+        "gives the reasons: computed once, scales with query volume",
+        "acknowledges the tradeoff that boost changes require a reindex"
+      ],
+      "grounded_in": ["**Recommended Pattern: Index-Time Boosting**", "All boosts applied during `preprocess_index` stage"]
+    },
+    {
+      "id": "boost-too-weak-testing",
+      "prompt": "My boost seems to have no visible effect on ranking. How should I tune it?",
+      "expected": [
+        "starts with the checklist: processor enabled, field type correct, full reindex done, no conflicting processors, cache cleared",
+        "suggests testing with extreme values to confirm the boost works, then dialing back",
+        "adjusts factors gradually and re-tests with known queries"
+      ],
+      "grounded_in": ["Test with extreme values to confirm working, then dial back", "Start with conservative boost (1.5x or 0.01)"]
+    }
+  ]
+}

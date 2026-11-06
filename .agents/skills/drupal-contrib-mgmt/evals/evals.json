@@ -1,0 +1,137 @@
+{
+  "skill": "drupal-contrib-mgmt",
+  "version": 1,
+  "trigger": {
+    "should": [
+      "How do I update the drupal/pathauto module to the next major version with Composer?",
+      "A patch for drupal/webform no longer applies after I upgraded. What should I do?",
+      "How can I tell whether a contrib module is compatible with Drupal 11?",
+      "I fixed a bug in a contrib module and want to contribute it back through an issue fork on drupal.org."
+    ],
+    "should_not": [
+      "How do I set up Xdebug in DDEV with VS Code?",
+      "How do I export a single config object with drush config:get and commit it?",
+      "Write a custom Drupal block plugin that shows the latest articles.",
+      "Set up a local config split so devel is only enabled on my machine."
+    ]
+  },
+  "cases": [
+    {
+      "id": "update-then-updb-cr",
+      "prompt": "Walk me through updating drupal/token to the latest release and what I must run afterwards.",
+      "expected": [
+        "uses composer require drupal/token with --with-all-dependencies",
+        "says to run drush updb -y and drush cr after the update"
+      ],
+      "grounded_in": ["composer require drupal/module_name --with-all-dependencies", "# After any update, ALWAYS run database updates and clear cache"]
+    },
+    {
+      "id": "d11-check-info-yml",
+      "prompt": "What is the fastest way to check if a contributed module supports Drupal 11, and how do I scan the whole site?",
+      "expected": [
+        "suggests checking core_version_requirement in the module's .info.yml",
+        "says ^9 || ^10 || ^11 means compatible and ^9 || ^10 means not yet",
+        "suggests drush upgrade_status:analyze --all for a full scan"
+      ],
+      "grounded_in": ["**Fastest method — check `.info.yml`:**", "drush upgrade_status:analyze --all"]
+    },
+    {
+      "id": "lenient-plugin-for-old-constraint",
+      "prompt": "Composer refuses to install drupal/some_module because it requires drupal/core ^9 but I am on Drupal 11. What can I do?",
+      "expected": [
+        "suggests the mglaman/composer-drupal-lenient plugin",
+        "says to add the module to the drupal-lenient allowed-list under extra and allow the plugin in config"
+      ],
+      "grounded_in": ["Allows installing modules that haven't updated their version requirements:", "Add to drupal-lenient allowed-list"]
+    },
+    {
+      "id": "patches-v2-plugin",
+      "prompt": "Which composer patches plugin and version should I use to apply a drupal.org patch to a contrib module?",
+      "expected": [
+        "recommends cweagans/composer-patches version 2.x",
+        "says v2 uses git apply and is more reliable than v1",
+        "shows patches defined under extra.patches keyed by drupal/module_name"
+      ],
+      "grounded_in": ["**Use `cweagans/composer-patches` v2.x** (uses `git apply`, more reliable than v1):"]
+    },
+    {
+      "id": "search-existing-patch-first",
+      "prompt": "I hit a deprecation error in a contrib module and want to patch it myself. How should I start?",
+      "expected": [
+        "says to search for an existing patch in the issue queue before creating your own",
+        "starts by extracting the exact error string and searching drupal.org issues with it",
+        "applies the official patch if one exists"
+      ],
+      "must_not": ["starts by writing a custom patch without searching the issue queue"],
+      "grounded_in": ["**ALWAYS search for existing patches before creating your own:**", "Extract exact error string"]
+    },
+    {
+      "id": "never-remove-patch-without-checking",
+      "prompt": "After upgrading a module two of my patches fail to apply. I will just delete them from composer.json so the update goes through.",
+      "expected": [
+        "pushes back and says a failed patch must not be removed without checking",
+        "says to verify the patch was merged upstream, or a new patch exists, or that it can be re-rolled",
+        "describes re-rolling the patch for the new version when none of those apply"
+      ],
+      "must_not": ["agrees to simply remove the patches", "assumes a failed patch means it is no longer needed"],
+      "grounded_in": ["**Never remove a patch without checking!** If none of the above are true, you've just lost your customizations.", "**The Rule**: BEFORE removing any patch, you MUST verify one of three things:"]
+    },
+    {
+      "id": "combined-patch-for-conflicts",
+      "prompt": "I have three patches on the same module and the third overlaps lines changed by the first two. Stacking them fails. What is the recommended approach?",
+      "expected": [
+        "recommends a single combined patch that replaces the conflicting patches",
+        "describes generating it from the installed module directory after composer install applied the existing patches",
+        "says not to manually adjust line numbers in patch files"
+      ],
+      "grounded_in": ["**Best practice**: Create a **combined patch** that replaces the conflicting patches", "Manually adjusting line numbers in patch files"]
+    },
+    {
+      "id": "patches-lock-and-repatch-warning",
+      "prompt": "I added a new patch to composer.json but it does not get applied. How do I apply it and what should I commit?",
+      "expected": [
+        "says to run composer patches-relock to regenerate patches.lock.json",
+        "warns that composer patches-repatch deletes and reinstalls dependency directories, so commit or stash first",
+        "says patches.lock.json must be committed along with composer.json and composer.lock"
+      ],
+      "grounded_in": ["**WARNING**: This deletes dependency directories - commit changes first!", "**Key Insight**: Once `patches.lock.json` exists, it's the source of truth for patch application, not `composer.json` directly."]
+    },
+    {
+      "id": "production-deploy-flags",
+      "prompt": "What composer command should I use to install dependencies on the production server?",
+      "expected": [
+        "gives composer install --no-dev -o",
+        "explains --no-dev excludes testing tools and -o optimizes the autoloader"
+      ],
+      "grounded_in": ["Always use `--no-dev` (excludes testing tools) and `-o` (optimizes autoloader)."]
+    },
+    {
+      "id": "issue-fork-commit-format",
+      "prompt": "I am about to commit my fix for issue 3456789 in a module's issue fork. What should the commit message look like?",
+      "expected": [
+        "uses the format Issue #3456789: Short description",
+        "keeps the short description to about 50 characters"
+      ],
+      "grounded_in": ["Commit message format: `Issue #XXXXXXX: Short description (50 chars max)`"]
+    },
+    {
+      "id": "request-time-replacement",
+      "prompt": "My module still calls REQUEST_TIME in a class and upgrade_status flags it for Drupal 11. How do I fix it properly?",
+      "expected": [
+        "says to inject the datetime.time service",
+        "replaces REQUEST_TIME with $this->time->getRequestTime()"
+      ],
+      "must_not": ["suggests calling \\Drupal::time() inside the class as the preferred fix for a service-injectable class"],
+      "grounded_in": ["$timestamp = $this->time->getRequestTime();", "return new static($container->get('datetime.time'));"]
+    },
+    {
+      "id": "patch-already-applied",
+      "prompt": "Composer says a patch is already applied after I updated a module. What does that mean and what should I do?",
+      "expected": [
+        "explains the maintainer merged the fix upstream",
+        "says to remove the patch from composer.json"
+      ],
+      "grounded_in": ["Maintainer merged it; remove from composer.json"]
+    }
+  ]
+}

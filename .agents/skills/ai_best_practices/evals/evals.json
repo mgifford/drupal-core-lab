@@ -1,0 +1,143 @@
+{
+  "skill": "ai_best_practices",
+  "version": 1,
+  "trigger": {
+    "should": [
+      "Evaluate this accessibility patch for Drupal core with before and after axe scans and tell me whether it introduces regressions.",
+      "Which Drupal core modules should I test first to find accessibility regressions when they are enabled?",
+      "How do I give a recurring axe violation a stable ID so I can deduplicate it across pages and track it between test runs?",
+      "Which of the 100 Drupal accessibility user stories are already automated in Playwright, and which should I automate next?"
+    ],
+    "should_not": [
+      "Write a PHPUnit kernel test for my contrib module's service.",
+      "How do I announce an AJAX update to screen reader users in a Drupal behavior?",
+      "How do I configure Search API boosting for a number field?",
+      "Explain how to set up OAuth2 scopes with simple_oauth for a mobile app.",
+      "I want to reproduce Drupal core issue 3155130 in the lab and compare before and after side by side."
+    ]
+  },
+  "cases": [
+    {
+      "id": "instance-vs-pattern-id",
+      "prompt": "The same button.submit has a button-name violation on /user/login, /contact and /user/register at desktop width. How do I compute the stable IDs, and how many of each do I get?",
+      "expected": [
+        "computes instance_id as SHA-256 of page path, selector, rule ID and screen type, giving three distinct instance IDs",
+        "computes pattern_id as SHA-256 of selector, rule ID and screen type (independent of page path), giving one pattern ID",
+        "reports it as 1 pattern with 3 instances"
+      ],
+      "grounded_in": ["SHA-256(page_path | selector | rule_id | screen_type)", "SHA-256(selector | rule_id | screen_type)", "// Stable: same selector + rule + screen type = same pattern"]
+    },
+    {
+      "id": "patch-status-mixed",
+      "prompt": "A patch fixed 3 violations in the patched scan but also introduced 2 new ones elsewhere. What status should the evaluation report and what is the next step?",
+      "expected": [
+        "reports status MIXED (fixes some, introduces others)",
+        "says a trade-off analysis is needed rather than calling it a clean PASS",
+        "lists the new violations explicitly with their instance and pattern IDs"
+      ],
+      "must_not": ["declares the patch PASS or ready to merge"],
+      "grounded_in": ["status = \"MIXED\" (fixes some, introduces others)", "**Status:** MIXED (trade-off analysis needed)"]
+    },
+    {
+      "id": "patch-eval-workflow-order",
+      "prompt": "Walk me through evaluating an accessibility patch end to end so the before and after comparison is fair.",
+      "expected": [
+        "starts with a baseline scan on unpatched Drupal fetched from git, recording violations_baseline",
+        "applies the patch, clears caches and verifies it applied with no rejections",
+        "runs the same axe-core scan on the same pages for the patched scan",
+        "computes fixed, added and unchanged violations and writes Markdown, JSON and HTML reports"
+      ],
+      "grounded_in": ["1. Fetch Drupal from git (unpatched)", "3. Verify patch applied cleanly (no rejections)", "1. Run same axe-core scan on same pages"]
+    },
+    {
+      "id": "screen-type-threshold",
+      "prompt": "I scanned at 768px wide. Is that mobile or desktop for the violation ID?",
+      "expected": [
+        "says desktop, because mobile is under 768px and desktop is 768px or wider",
+        "notes screen type is part of the hash inputs for the IDs"
+      ],
+      "grounded_in": ["- `mobile` — <768px viewport", "- `desktop` — ≥768px viewport"]
+    },
+    {
+      "id": "bug-report-required-fields",
+      "prompt": "Draft the required fields for an accessibility bug report on a login button with no accessible name.",
+      "expected": [
+        "includes violation IDs (instance_id and pattern_id), URL, XPath (simplified and full) and HTML snippet",
+        "includes the WCAG success criterion and rule ID, severity (critical/high/medium/low) and frequency (single_page/pattern/systematic)",
+        "includes context: screen_type, color_mode and theme, plus steps to reproduce"
+      ],
+      "grounded_in": ["Every bug report **must** include:", "single_page / pattern / systematic"]
+    },
+    {
+      "id": "module-impact-severity",
+      "prompt": "I enabled views_ui and my 18 Tier 1 workflows now show 12 added violations compared with baseline. How serious is that and what do I record?",
+      "expected": [
+        "rates the impact High because 10-20 added violations means significant regressions needing fixes before release",
+        "records impact as fixed minus added",
+        "disables the module and restores baseline state after the test"
+      ],
+      "grounded_in": ["| **High** | 10–20 | Significant regressions; needs fixes before release |", "4. Record impact score: `impact = fixed - added`"]
+    },
+    {
+      "id": "module-test-order",
+      "prompt": "I only have time to test a few core modules for accessibility. Which categories should I prioritise, and which should I skip?",
+      "expected": [
+        "puts experimental modules (e.g. layout_builder, workspaces, big_pipe) first as high risk needing full workflow testing",
+        "gives optional modules (search, comment, taxonomy, media) medium priority with targeted feature testing",
+        "spot-checks core modules only",
+        "skips test_only modules, which are never enabled in real sites"
+      ],
+      "grounded_in": ["Modules in active development; likely to introduce regressions.", "Modules used only for testing; never enable in actual Drupal sites."]
+    },
+    {
+      "id": "module-baseline",
+      "prompt": "How do I establish the baseline before measuring a single module's accessibility impact?",
+      "expected": [
+        "starts from a fresh Drupal install with experimental and optional modules disabled",
+        "runs the 18 Tier 1 workflows as an accessibility scan and records the baseline violation count",
+        "notes core modules are always enabled"
+      ],
+      "grounded_in": ["2. Disable all experimental/optional modules", "4. Record baseline violation count"]
+    },
+    {
+      "id": "check-existing-issues",
+      "prompt": "My scan found a focus-visible violation on all buttons. Should I file it on drupal.org right away?",
+      "expected": [
+        "says to search for existing issues first by exact XPath, pattern ID, rule ID and WCAG criterion",
+        "files as a pattern-level issue (systematic frequency) rather than many per-page issues",
+        "references the user story ID, e.g. 3.9 Form Field Focus - Focus Indicator Visible"
+      ],
+      "grounded_in": ["Before filing, search for:", "- Story ID: 3.9"]
+    },
+    {
+      "id": "reference-story-id-in-tests",
+      "prompt": "I'm adding a Playwright test for the password reset flow (story 1.3). How should I name it and tie it back to the story?",
+      "expected": [
+        "puts the story ID at the front of the test name, such as '1.3: Password Reset Flow'",
+        "links the test to the story definition in USER-STORIES.md and updates the coverage matrix",
+        "runs it by story ID prefix with npx playwright test --grep"
+      ],
+      "grounded_in": ["Reference story ID in test name:", "# Run by story ID prefix"]
+    },
+    {
+      "id": "themes-modes-viewports",
+      "prompt": "What themes, colour modes and viewports should the accessibility workflow tests cover?",
+      "expected": [
+        "lists themes Olivero, Claro and default_admin",
+        "covers light mode and dark mode via prefers-color-scheme",
+        "covers desktop 1280×1024, tablet 768×1024 and mobile 375×812"
+      ],
+      "grounded_in": ["- **Desktop:** 1280×1024 (primary workflow)", "- **Light Mode** — `prefers-color-scheme: light`"]
+    },
+    {
+      "id": "tier-definitions",
+      "prompt": "Explain how the 100 accessibility user stories are tiered and where I should invest automation first.",
+      "expected": [
+        "describes 30 Tier 1 critical, 30 Tier 2 important and 40 Tier 3 extended stories across 10 functional areas",
+        "says Tier 1 workflows (authentication, content creation, forms, navigation) must work for all users and are the automation priority",
+        "states Tier 1 automation goal is 100%"
+      ],
+      "grounded_in": ["Essential user journeys that **must work** for all users.", "**Tier Distribution:** 30 Tier 1 (critical), 30 Tier 2 (important), 40 Tier 3 (extended)"]
+    }
+  ]
+}

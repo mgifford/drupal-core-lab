@@ -1,0 +1,123 @@
+{
+  "skill": "drupal-simple-oauth",
+  "version": 1,
+  "trigger": {
+    "should": [
+      "My mobile app gets a valid OAuth token from Drupal but JSON:API returns 403 on a field that requires a permission. Why?",
+      "How do I create an OAuth2 client and scope for a React Native app talking to Drupal?",
+      "We get CSRF 403 errors on requests that have a valid Bearer token and also a session cookie. How do we fix this?",
+      "A user with the administrator role requests a token with a custom scope and loses all admin permissions. What is going on?"
+    ],
+    "should_not": [
+      "How do I boost featured content in a Search API Solr index?",
+      "Write a README for my Drupal contrib module.",
+      "How do I configure Drupal to log in users with SAML single sign-on?",
+      "Set up Drupal config split for production and staging.",
+      "How do I create a custom Drupal route with a permission requirement?"
+    ]
+  },
+  "cases": [
+    {
+      "id": "and-permission-logic",
+      "prompt": "A request authenticated with an OAuth token hits an endpoint. The user's role has the permission but the request is denied. How does simple_oauth decide permissions?",
+      "expected": [
+        "explains the user is wrapped in TokenAuthUser",
+        "states that BOTH the token and the underlying user must have the permission (AND condition)",
+        "notes that user 1 is the exception and has all permissions"
+      ],
+      "grounded_in": ["**Critical Rule:** BOTH the token AND the user must have the permission (AND condition).", "When a request is authenticated with an OAuth token, Drupal wraps the user in a `TokenAuthUser` decorator"]
+    },
+    {
+      "id": "scope-role-mismatch",
+      "prompt": "My user has the administrator role but the app requests scope=api_consumer, and admin permissions are denied. Explain and fix.",
+      "expected": [
+        "explains roles are the intersection of token roles (from scopes) and user roles (array_intersect)",
+        "shows that only the authenticated role survives in this case",
+        "fixes it by requesting a scope that matches a role the user actually has, e.g. scope administrator"
+      ],
+      "grounded_in": ["**Critical Rule:** Only roles that exist in BOTH the token AND the user are granted (`array_intersect`).", "The token request MUST include a scope matching that role"]
+    },
+    {
+      "id": "nonexistent-scope-entity",
+      "prompt": "The app requests scope=subscriber and gets a token, but the token has no permissions at all. There is no subscriber scope defined. What happens and what should I do?",
+      "expected": [
+        "says that a scope with no matching OAuth2 scope entity yields a token with no scopes, no roles and no permissions",
+        "says to create the OAuth2 scope entity for the role or use an existing scope name",
+        "shows how to list existing scopes (e.g. drush sqlq on consumer_scopes or config:get)"
+      ],
+      "grounded_in": ["An OAuth2 scope entity MUST exist with that name", "// Result: Token has NO scopes, NO roles, NO permissions"]
+    },
+    {
+      "id": "test-with-non-admin",
+      "prompt": "I tested my API with the uid 1 account and everything works, so the permissions must be right. Can I ship it?",
+      "expected": [
+        "says uid 1 bypasses all permission checks, so the test proves nothing about scopes and roles",
+        "advises testing with a regular, non-admin user"
+      ],
+      "must_not": ["confirms the API is verified by the admin test"],
+      "grounded_in": ["Admin users (uid=1) bypass all permission checks:", "Always test OAuth with regular users."]
+    },
+    {
+      "id": "debug-order",
+      "prompt": "Walk me through debugging why a token does not grant the view field_premium_content permission.",
+      "expected": [
+        "checks that the scope entity exists",
+        "checks the user's roles with drush user:role:list",
+        "checks the role has the permission with drush role:perm:list",
+        "checks the token request actually includes the scope matching the user's role, calling it the most common cause"
+      ],
+      "grounded_in": ["- [ ] Is the scope in the token request matching the user's role?", "This is the most common issue!"]
+    },
+    {
+      "id": "mobile-token-request",
+      "prompt": "Show me how the mobile client should request a token with the password grant, and how it should pick the scope.",
+      "expected": [
+        "builds a form body with client_id, client_secret, scope, grant_type=password, username, password",
+        "chooses the scope based on the user's role rather than hardcoding one",
+        "stores client_id and client_secret securely (environment variables or secure config), not in source"
+      ],
+      "must_not": ["hardcodes scope = 'subscriber' for all users"],
+      "grounded_in": ["formData.append('scope', scope); // MUST match user's role!", "Store `client_id` and `client_secret` securely in your app configuration"]
+    },
+    {
+      "id": "multiple-scopes",
+      "prompt": "A user has both the premium_user and api_consumer roles. Can the app request both scopes at once?",
+      "expected": [
+        "says OAuth2 supports space-separated scopes",
+        "says the token will include the scopes that match the user's roles"
+      ],
+      "grounded_in": ["OAuth2 supports space-separated scopes:", "The token will include all scopes that match the user's roles."]
+    },
+    {
+      "id": "bearer-csrf-bypass",
+      "prompt": "React Native requests with a valid Bearer token fail with 403 CSRF errors when a session cookie is also sent. How do I resolve it?",
+      "expected": [
+        "explains the cause: the session_configuration service detects a session from cookies alone and ignores the Bearer token",
+        "proposes a custom module that decorates session_configuration so hasSession() returns FALSE for a valid Bearer token",
+        "requires validating the token via Simple OAuth's ResourceServer before bypassing CSRF so invalid tokens do not skip the check",
+        "references Drupal core issue 3055260"
+      ],
+      "must_not": ["suggests disabling CSRF protection globally or bypassing it for any request that merely has an Authorization header"],
+      "grounded_in": ["Drupal's `session_configuration` service detects a session based on cookies alone", "**Security:** The module validates the Bearer token using Simple OAuth's ResourceServer before bypassing CSRF, ensuring invalid tokens don't bypass security."]
+    },
+    {
+      "id": "field-permissions-jsonapi",
+      "prompt": "Do I need special configuration for field_permissions or JSON:API to respect my OAuth scopes?",
+      "expected": [
+        "says no special configuration is needed when scopes match roles",
+        "explains JSON:API runs entity field access, which calls hasPermission on the TokenAuthUser, so both token and user must have the permission or the field is excluded"
+      ],
+      "grounded_in": ["**No special configuration needed** - it works automatically when scopes are correct.", "If either fails, field is excluded from JSON:API response"]
+    },
+    {
+      "id": "granular-permissions",
+      "prompt": "For a premium field exposed over the API, should I grant 'administer nodes' to the API role to make it work?",
+      "expected": [
+        "recommends field-specific permissions such as view field_premium_content and edit field_premium_content",
+        "describes 'administer nodes' as too broad"
+      ],
+      "must_not": ["recommends granting administer nodes"],
+      "grounded_in": ["Instead of broad permissions, use field-specific permissions:", "// Less secure: Too broad"]
+    }
+  ]
+}

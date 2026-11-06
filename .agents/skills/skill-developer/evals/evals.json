@@ -1,0 +1,110 @@
+{
+  "skill": "skill-developer",
+  "version": 1,
+  "trigger": {
+    "should": [
+      "I want to create a new agent skill for our team. What files and frontmatter does it need?",
+      "My skill never activates when I type prompts that I expected it to match. How do I debug that?",
+      "My SKILL.md has grown to 800 lines. How should I restructure it?",
+      "What's the difference between a guardrail skill and a domain skill, and which enforcement level should each use?"
+    ],
+    "should_not": [
+      "Write a Drupal custom module that adds a block showing the five latest articles.",
+      "How do I configure Search API boosting for a number field?",
+      "Explain how to set up simple_oauth scopes for a mobile app.",
+      "Write a README for my Drupal contrib module.",
+      "How do I write a VS Code extension that adds a status bar item?"
+    ]
+  },
+  "cases": [
+    {
+      "id": "frontmatter-name-rule",
+      "prompt": "I'm creating a skill in skills/Drupal_Search/SKILL.md with name: Drupal Search Helper in the frontmatter. Anything wrong?",
+      "expected": [
+        "says name must be 1-64 chars, lowercase alphanumeric plus hyphens",
+        "says the name must match the parent directory name",
+        "proposes a corrected pair such as drupal-search for both the folder and the name field"
+      ],
+      "grounded_in": ["**Name**: 1-64 chars, lowercase alphanumeric + hyphens, must match directory name", "File must be named `SKILL.md` (uppercase)"]
+    },
+    {
+      "id": "description-keywords",
+      "prompt": "What should I put in the description field so my skill actually triggers, and how long can it be?",
+      "expected": [
+        "says description is 1-1024 chars",
+        "says to include all trigger keywords and phrases (topics, file types, use cases) explicitly",
+        "notes that default activation is based on the description in frontmatter"
+      ],
+      "grounded_in": ["**Description**: 1-1024 chars, include ALL trigger keywords/phrases", "Activates skills when user prompts match description keywords"]
+    },
+    {
+      "id": "five-hundred-line-rule",
+      "prompt": "My SKILL.md is 800 lines of detailed patterns. How should I restructure it?",
+      "expected": [
+        "says to keep SKILL.md under 500 lines",
+        "moves detail into a references/ directory (progressive disclosure)",
+        "adds a table of contents to reference files longer than 100 lines",
+        "keeps references one level deep rather than nesting them"
+      ],
+      "grounded_in": ["- **500-line rule**: Keep SKILL.md under 500 lines", "- **Table of contents**: Add to reference files > 100 lines", "- **One level deep**: Don't nest references deeply"]
+    },
+    {
+      "id": "progressive-disclosure-layers",
+      "prompt": "Explain how progressive disclosure loads a skill's content, and how big each layer should be.",
+      "expected": [
+        "describes three layers: metadata loaded at startup (about 100 tokens), full instructions on activation, supporting files loaded as needed",
+        "gives under 5000 tokens as the recommendation for full instructions"
+      ],
+      "grounded_in": ["1. **Metadata** (~100 tokens) - loads at startup", "2. **Full instructions** (<5000 tokens recommended) - loads on activation"]
+    },
+    {
+      "id": "skill-types-and-enforcement",
+      "prompt": "I'm writing a skill that must stop the agent from editing files with the wrong database column names, and another that is a Search API how-to. What type and enforcement level for each?",
+      "expected": [
+        "classifies the column-name verification skill as a guardrail with enforcement block",
+        "classifies the Search API how-to as a domain skill with enforcement suggest",
+        "explains block physically prevents Edit/Write execution while suggest is advisory"
+      ],
+      "grounded_in": ["- Physically prevents Edit/Write tool execution", "**Purpose:** Enforce critical best practices that prevent errors", "- Advisory, not mandatory"]
+    },
+    {
+      "id": "test-activation",
+      "prompt": "I've written a new skill. How do I know whether the description is good enough?",
+      "expected": [
+        "says to try prompts that should trigger it and prompts that should NOT trigger it",
+        "checks for false positives and false negatives",
+        "refines description keywords based on results",
+        "recommends testing with 3+ real scenarios"
+      ],
+      "grounded_in": ["Try prompts that should NOT trigger it", "Test with 3+ real scenarios before documenting"]
+    },
+    {
+      "id": "skip-conditions",
+      "prompt": "Our blocking guardrail hook nags on every edit and we have a file that has been manually verified. What skip options exist?",
+      "expected": [
+        "describes session tracking: first edit blocks and updates state, later edits in the same session are allowed",
+        "describes the // @skip-validation file marker and says to use it sparingly",
+        "describes the SKIP_SKILL_GUARDRAILS environment variable as an emergency disable"
+      ],
+      "grounded_in": ["- First edit: Hook blocks, updates session state", "**NOTE:** Use sparingly - defeats the purpose if overused", "export SKIP_SKILL_GUARDRAILS=true"]
+    },
+    {
+      "id": "hook-performance",
+      "prompt": "I'm building a UserPromptSubmit hook that scans prompts for skill keywords. Any constraints?",
+      "expected": [
+        "says to keep hook execution under 200ms",
+        "mentions the hook is for advanced hook-based activation and that default activation relies on descriptions"
+      ],
+      "grounded_in": ["**Performance**: Keep hook execution under 200ms", "Description-Based Activation (Default)"]
+    },
+    {
+      "id": "build-evals-first",
+      "prompt": "I'm about to write 2000 words of documentation for a new skill. What should I do before that?",
+      "expected": [
+        "says to build 3+ evaluations before extensive documentation",
+        "says to iterate based on actual usage"
+      ],
+      "grounded_in": ["- **Test first**: Build 3+ evaluations before extensive documentation", "Iterate based on actual usage"]
+    }
+  ]
+}

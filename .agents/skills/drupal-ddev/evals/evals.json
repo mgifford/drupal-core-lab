@@ -1,0 +1,148 @@
+{
+  "skill": "drupal-ddev",
+  "version": 1,
+  "trigger": {
+    "should": [
+      "ddev start hangs at Starting Mutagen sync process after Docker crashed. How do I recover?",
+      "How do I set up Xdebug with VS Code for my DDEV Drupal project?",
+      "What should I put in .ddev/config.yaml for a Drupal 11 project with Solr?",
+      "How do I import a production database dump into my local DDEV site and run updates?"
+    ],
+    "should_not": [
+      "How do I use composer-patches to apply a drupal.org patch to a contrib module?",
+      "Explain the difference between complete and partial config splits.",
+      "Write a Drupal Canvas code component with a metadata.json file.",
+      "How do I write a PHPUnit kernel test for my custom module?"
+    ]
+  },
+  "cases": [
+    {
+      "id": "import-existing-project",
+      "prompt": "I just cloned a Drupal repo that already has a .ddev folder and I have a database dump. Give me the steps to get it running locally.",
+      "expected": [
+        "runs ddev start, then ddev composer install",
+        "imports the database with ddev import-db --file=...",
+        "runs ddev drush updb -y and ddev drush cr afterwards",
+        "uses ddev composer rather than a host composer"
+      ],
+      "grounded_in": ["# Start DDEV (reads .ddev/config.yaml)", "ddev import-db --file=path/to/backup.sql.gz"]
+    },
+    {
+      "id": "snapshot-before-risky",
+      "prompt": "I am about to test a destructive update path on my local DDEV site. How do I make sure I can get back to where I was?",
+      "expected": [
+        "creates a named snapshot with ddev snapshot --name=...",
+        "restores it with ddev snapshot restore --name=..."
+      ],
+      "grounded_in": ["ddev snapshot --name=before-testing", "ddev snapshot restore --name=before-testing", "4. **Create snapshots before risky operations**"]
+    },
+    {
+      "id": "do-not-commit-snapshots",
+      "prompt": "Should I commit my DDEV database snapshots and .ddev/config.yaml so the team can share them?",
+      "expected": [
+        "says to commit .ddev/config.yaml to share config with the team",
+        "says not to commit database snapshots because they are too large"
+      ],
+      "must_not": ["recommends committing database snapshots to git"],
+      "grounded_in": ["1. **Commit .ddev/config.yaml** - Share config with team", "3. **Don't commit database snapshots** - Too large"]
+    },
+    {
+      "id": "use-ddev-composer",
+      "prompt": "I want to require drupal/admin_toolbar in my DDEV project. Which composer should I run?",
+      "expected": [
+        "uses ddev composer require drupal/admin_toolbar",
+        "explains to use ddev composer instead of local composer"
+      ],
+      "grounded_in": ["2. **Use ddev composer** instead of local composer", "ddev composer require drupal/module_name"]
+    },
+    {
+      "id": "macos-slow-mutagen",
+      "prompt": "My Drupal site on DDEV on my MacBook is very slow, especially page loads and file operations. What should I change?",
+      "expected": [
+        "recommends performance_mode: mutagen (or ddev config --performance-mode=mutagen)",
+        "says to run ddev restart after the config change",
+        "mentions NFS mount as an alternative"
+      ],
+      "grounded_in": ["6. **Use mutagen on macOS** - Much faster file sync", "ddev config --performance-mode=mutagen"]
+    },
+    {
+      "id": "xdebug-on-off",
+      "prompt": "How should I handle Xdebug in DDEV day to day so my site stays fast?",
+      "expected": [
+        "enables Xdebug on demand with ddev xdebug on",
+        "disables it with ddev xdebug off when done because it has a performance impact",
+        "mentions the IDE listens on port 9003 with a path mapping of /var/www/html"
+      ],
+      "must_not": ["recommends setting xdebug_enabled: true permanently in config.yaml"],
+      "grounded_in": ["5. **Disable Xdebug when not debugging** - Performance impact", "**Better approach**: Enable on demand"]
+    },
+    {
+      "id": "docker-overlay2-force-quit",
+      "prompt": "Docker Desktop is throwing overlay2 input/output errors when DDEV starts. I restarted Docker Desktop normally and it is still broken.",
+      "expected": [
+        "says a normal quit and restart is not sufficient",
+        "says to force quit all Docker processes (Activity Monitor or killall -9 Docker) and relaunch Docker Desktop"
+      ],
+      "grounded_in": ["A normal quit and restart of Docker Desktop is **not sufficient**.", "You must **force quit ALL Docker processes**"]
+    },
+    {
+      "id": "mutagen-hang-recovery-order",
+      "prompt": "After Docker crashed, ddev start hangs at Starting Mutagen sync process and ddev mutagen reset fails. What do I run, in what order?",
+      "expected": [
+        "first tries ddev poweroff followed by ddev start",
+        "if that fails, runs ddev stop, stops and starts the Mutagen daemon, runs ddev mutagen reset, then ddev start",
+        "mentions ddev mutagen status -l for monitoring"
+      ],
+      "grounded_in": ["# 1. Full power off to clean up all containers and networks", "# 3. Reset Mutagen sync (removes Docker volume, forces full resync)"]
+    },
+    {
+      "id": "drush-deprecation-warnings",
+      "prompt": "Drush under PHP 8.4 in DDEV prints a wall of deprecation warnings. How do I silence them without hiding real errors in the log?",
+      "expected": [
+        "creates a custom ini file under .ddev/php/ such as drush.ini",
+        "sets error_reporting = 22527 (E_ALL & ~E_DEPRECATED) and display_errors = Off",
+        "keeps log_errors = On with an error_log file",
+        "runs ddev restart afterwards"
+      ],
+      "grounded_in": ["`error_reporting = 22527` equals `E_ALL & ~E_DEPRECATED`", "**`.ddev/php/drush.ini`**:"]
+    },
+    {
+      "id": "port-conflict",
+      "prompt": "ddev start fails because ports 80 and 443 are already in use on my machine. What do I do?",
+      "expected": [
+        "stops all DDEV projects with ddev poweroff and checks what else holds the ports",
+        "changes the router ports with ddev config --router-http-port=8080 --router-https-port=8443"
+      ],
+      "grounded_in": ["ddev config --router-http-port=8080 --router-https-port=8443", "# Check for port conflicts"]
+    },
+    {
+      "id": "post-import-hooks",
+      "prompt": "I always run updb, cr and sanitize after importing a database into DDEV. Can I automate that?",
+      "expected": [
+        "uses a post-import-db hook in .ddev/config.yaml",
+        "lists exec commands such as drush updb -y and drush cr",
+        "notes exec runs in the web container while exec-host runs on the host"
+      ],
+      "grounded_in": ["- `exec-host` - Run on host machine", "post-import-db:"]
+    },
+    {
+      "id": "custom-command",
+      "prompt": "I want a project-specific command, ddev fresh-install, that reinstalls Drupal from scratch. Where does it go and what do I need to do for it to run?",
+      "expected": [
+        "places the script in .ddev/commands/web/",
+        "adds the Description, Usage and Example comment headers",
+        "makes the file executable with chmod +x before running ddev fresh-install"
+      ],
+      "grounded_in": ["Create project-specific commands in `.ddev/commands/web/`:", "chmod +x .ddev/commands/web/fresh-install"]
+    },
+    {
+      "id": "override-config",
+      "prompt": "Our CI manages .ddev/config.yaml and I do not want ddev config to rewrite it. Is there a setting for that?",
+      "expected": [
+        "suggests override_config: true",
+        "explains it prevents ddev config from modifying config.yaml"
+      ],
+      "grounded_in": ["Prevent `ddev config` from modifying config.yaml."]
+    }
+  ]
+}

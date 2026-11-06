@@ -1,0 +1,121 @@
+{
+  "skill": "drupal-config-mgmt",
+  "version": 1,
+  "trigger": {
+    "should": [
+      "I want to see how the config on our live server differs from my repo without importing anything. How do I do that with drush?",
+      "How do I set up a local config split so devel and kint are only enabled on my machine?",
+      "After I pulled the prod database and ran drush cex, git shows my new field config as deleted. What happened?",
+      "What is the difference between a complete split and a partial split in Drupal config_split?"
+    ],
+    "should_not": [
+      "Update the drupal/webform module with Composer and apply a patch from the issue queue.",
+      "My DDEV containers are unhealthy and Mutagen sync hangs on start. What do I do?",
+      "Write a Drupal Canvas code component that renders a list of items.",
+      "How do I write a hook_form_alter to add a field to the user registration form?"
+    ]
+  },
+  "cases": [
+    {
+      "id": "remote-diff-needs-no-flag",
+      "prompt": "I want to preview the config differences on our remote server over SSH before I import. Give me the exact command.",
+      "expected": [
+        "uses drush cim with --no and --diff (or config:import --no --diff)",
+        "explains that remote drush may default to --yes and auto-import without the --no flag",
+        "offers read-only alternatives such as config:get or config:status"
+      ],
+      "must_not": ["gives a remote drush cim --diff command without --no", "suggests running a remote drush cim to see what would change"],
+      "grounded_in": ["**CRITICAL**: Always use `--no` flag with remote drush! Without it, commands may auto-confirm.", "Use `config:get` and `config:status` for read-only inspection, or use `--no` flag with `cim`/`cex` to prevent auto-confirmation."]
+    },
+    {
+      "id": "prod-merge-commit-first",
+      "prompt": "I have uncommitted work on a new field and I need to bring production config into my local repo. What order should I do things in?",
+      "expected": [
+        "says to commit local changes first",
+        "then pull the production database (for example ddev pull --environment=live) and run drush config:export",
+        "then review the git diff on the config directory before committing the prod changes"
+      ],
+      "must_not": ["suggests exporting config before committing local feature work"],
+      "grounded_in": ["**Step 1: Commit local changes first**", "**Purpose**: Safely merge production config changes while preserving local feature work."]
+    },
+    {
+      "id": "restore-deleted-feature-files",
+      "prompt": "After exporting config from the prod database, git status shows my new field.storage and field.field files as deleted, plus some modified UUIDs and a changed views file. What do I keep and what do I revert?",
+      "expected": [
+        "says the deleted files are the new local feature and should be restored with git checkout HEAD -- <file>",
+        "says UUID-only modifications from prod should be kept",
+        "says changed prod config such as views should be kept after review"
+      ],
+      "must_not": ["tells the user to commit the deletions"],
+      "grounded_in": ["git checkout HEAD -- config/default/field.storage.node.your_new_field.yml", "Your new feature files deleted by prod export"]
+    },
+    {
+      "id": "complete-vs-partial-search-server",
+      "prompt": "I want a different Search API server connector (local Solr) in my local environment while production keeps its own. Should this be a complete or partial config split?",
+      "expected": [
+        "recommends a partial split because the config exists everywhere with different values",
+        "explains a partial split keeps base config in config/default and stores overrides in the split directory",
+        "contrasts it with a complete split, which removes config entirely when the split is inactive"
+      ],
+      "must_not": ["recommends a complete split for a config object that must also exist in production"],
+      "grounded_in": ["Config exists everywhere but with different VALUES", "**Complete split** = Config is REMOVED from `config/default/` and moved to split directory entirely"]
+    },
+    {
+      "id": "config-vanishes-on-export",
+      "prompt": "Every time I run drush cex, config/default/search_api.server.main.yml disappears. Why, and how do I fix it?",
+      "expected": [
+        "identifies the most likely cause as the config being in complete_list instead of partial_list",
+        "says to move the config from complete_list to partial_list in the split definition and re-export",
+        "says to check that config/default still has the file and config/local has the config_split.patch file"
+      ],
+      "grounded_in": ["**Root cause (99% of cases)**: Config is in `complete_list` instead of `partial_list`!", "**Solution**: Move from `complete_list` to `partial_list`"]
+    },
+    {
+      "id": "active-vs-exported-split-definition",
+      "prompt": "I edited config/default/config_split.config_split.local.yml to add a partial_list entry but nothing changed on export. Why?",
+      "expected": [
+        "explains that split definition changes must be in active configuration (the database), not just the exported files",
+        "suggests importing the change (for example config:import --partial) or setting it via drush php:eval, then exporting"
+      ],
+      "grounded_in": ["**⚠️ IMPORTANT**: When updating config split definitions, changes must be in **ACTIVE configuration** (database), not just exported files!", "**Import to make active**: `ddev drush config:import --partial` OR use PHP (see below)"]
+    },
+    {
+      "id": "single-config-object-import",
+      "prompt": "I only want to bring one config object, views.view.content, from my YAML files into the active config on my local DDEV site. How?",
+      "expected": [
+        "suggests config:import --partial with --source=config/default, or config:set for specific values",
+        "does not run a full unreviewed config import of everything"
+      ],
+      "grounded_in": ["ddev drush config:import --partial --source=config/default", "ddev drush config:set config.name key.subkey value"]
+    },
+    {
+      "id": "config-wont-import",
+      "prompt": "drush cim fails because of a UUID mismatch and system.site is complaining. What are my options?",
+      "expected": [
+        "suggests the --partial flag for the UUID mismatch",
+        "notes some config such as system.site has immutable values or is locked",
+        "mentions --skip-config=system.site to skip specific config during import"
+      ],
+      "grounded_in": ["**UUID mismatch**: Use `--partial` flag", "ddev drush config:import --skip-config=system.site"]
+    },
+    {
+      "id": "split-not-activating",
+      "prompt": "My local config split does not seem to activate. How do I check and fix it?",
+      "expected": [
+        "checks the split status with config-split:status",
+        "activates it with config-split:activate and the split name",
+        "runs drush cex afterwards to save the activation state"
+      ],
+      "grounded_in": ["ddev drush cex  # Export to save activation state", "ddev drush config-split:activate {split-name}"]
+    },
+    {
+      "id": "manual-edit-and-commit-hygiene",
+      "prompt": "I synced a few config values from dev by hand. How should I commit them?",
+      "expected": [
+        "recommends editing the config files directly and reviewing git diff",
+        "recommends one config type per commit with a message naming the source environment"
+      ],
+      "grounded_in": ["**One config type per commit** - Separate concerns for clean history", "**Preferred**: Edit config files directly, then commit:"]
+    }
+  ]
+}
