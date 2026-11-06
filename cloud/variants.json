@@ -2149,6 +2149,90 @@
       ]
     },
     {
+      "slug": "2951317-native-validation",
+      "issue": "2951317",
+      "label": "#2951317: Radios element missing required attribute, pinned core, native validation on",
+      "description": "Same pinned core and patch stacks as 2951317-pinned, with enable_html5_validation on for both sides (recipe repro_2951317_native), so the browser itself blocks Save with a hidden None choice. Registered, not yet built or run.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Open Required radio groups on both sides. The recipe installs the same test-only fixture and turns on enable_html5_validation.",
+          "how": "recipe",
+          "lookFor": "Required color, Required color with default, Optional color, and Dynamic color. The form has no novalidate attribute."
+        },
+        {
+          "text": "Select None, then toggle Require a dynamic color on. Fill Required color and activate Save.",
+          "how": "each",
+          "lookFor": "After: the browser blocks Save, focus moves to the invalid Dynamic color group, and no POST is sent. Before: record what happens; the group is not required."
+        },
+        {
+          "text": "Choose a real color in Dynamic color and activate Save again.",
+          "how": "each",
+          "lookFor": "The error clears and Save succeeds (Test form accepted)."
+        },
+        {
+          "text": "Check visible focus and the browser's error message with the keyboard only.",
+          "how": "each",
+          "lookFor": "Focus indicator is visible and the message names the group."
+        }
+      ],
+      "expected": "After: with native validation on, Save is blocked while a hidden None choice is selected and the group is required; it succeeds after a real choice.",
+      "actual": "Before: static required attributes are on fieldsets, dynamic inputs remain optional. Both sides have enable_html5_validation on, so forms render without novalidate; to be confirmed by the first run.",
+      "observe": [
+        {
+          "label": "Only the legend has a required marker, not each option label",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "When native HTML5 validation is enabled, Save blocks hidden None until a real color is chosen; otherwise record not applicable",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Toggling required off restores the existing None selection",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Shared fixture has all four groups",
+          "kind": "precondition",
+          "probe": "['static_required','static_default','optional','dynamic'].every(n => document.querySelectorAll('input[type=radio][name='+n+']').length >= 2)",
+          "expect": true
+        },
+        {
+          "label": "Static required inputs carry required",
+          "kind": "fix",
+          "probe": "[...document.querySelectorAll('input[name=static_required]')].length === 2 && [...document.querySelectorAll('input[name=static_required]')].every(e => e.required)",
+          "expect": true
+        },
+        {
+          "label": "No required attribute on static radios fieldset",
+          "kind": "fix",
+          "probe": "!!document.querySelector('input[name=static_required]') && !document.querySelector('input[name=static_required]').closest('fieldset').hasAttribute('required')",
+          "expect": true
+        },
+        {
+          "label": "Optional radios remain optional",
+          "kind": "regression",
+          "probe": "document.querySelectorAll('input[name=optional][required]').length",
+          "expect": 0
+        },
+        {
+          "label": "Default selection remains Blue",
+          "kind": "regression",
+          "probe": "document.querySelector('input[name=static_default]:checked')?.value",
+          "expect": "blue"
+        }
+      ],
+      "pages": [
+        "/admin/config/development/lab-radios-2951317"
+      ]
+    },
+    {
       "slug": "2951317-latest",
       "issue": "2951317",
       "label": "#2951317: same steps against the LATEST core main",
