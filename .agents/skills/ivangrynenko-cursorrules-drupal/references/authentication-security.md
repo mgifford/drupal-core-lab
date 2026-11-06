@@ -106,7 +106,7 @@ This rule enforces security best practices to prevent identification and authent
 
 ## Validation Checks
 - Conditions:
-  - pattern `password_verify\\(|UserPassword|\\\\Drupal::service\\(['\"]password['\"]\\)` – Using Drupal's password services correctly.
+  - pattern `UserPassword|\\\\Drupal::service\\(['\"]password['\"]\\)` – Using Drupal's password services correctly.
     - Check 1: Proper password handling
   - pattern `\\$form\\[['\"]#token['\"]\\]\\s*=\\s*['\"][^'\"]+['\"]` – Form includes CSRF protection token.
     - Check 2: CSRF token implementation

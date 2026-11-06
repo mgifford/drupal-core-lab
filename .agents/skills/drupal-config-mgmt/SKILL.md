@@ -302,8 +302,6 @@ When local split is **inactive**: Uses production search server
 ddev drush php:eval "\$config = \Drupal::configFactory()->getEditable('config_split.config_split.local'); \$config->set('partial_list', ['config.name']); \$config->save();"
 ```
 
-See [examples.md](references/examples.md#updating-config-split-definitions) for detailed workflow.
-
 ### Export Config with Splits
 
 **Export ALL config including active splits**:
@@ -339,10 +337,7 @@ ddev drush config-split:import {split-name}
 ddev drush csim {split-name}
 ```
 
-**Import only base config (ignore splits)**:
-```bash
-ddev drush config:import --skip-modules=config_split
-```
+**Import without a split's config**: `drush config:import` has no option to skip modules or splits. Deactivate the split first (below), then run `ddev drush config:import`.
 
 ### Activate/Deactivate Splits
 
@@ -444,7 +439,6 @@ ddev drush cex
 git diff config/ && git add config/ && git commit -m "Config from {env}"
 ```
 
-See [examples.md](references/examples.md) for detailed workflows.
 
 **Best practices**: Review diffs, commit separately, test locally, document source, avoid syncing environment-specific config.
 
@@ -453,8 +447,8 @@ See [examples.md](references/examples.md) for detailed workflows.
 ## Deep Dive References
 
 For comprehensive technical documentation, see:
-- **[config-split-deep-dive.md](references/config-split-deep-dive.md)** - Complete technical reference on Config Split 2.0, patch files, export/import process, and dependency handling
-- [examples.md](references/examples.md) - Practical examples and workflows
+- [full-guide.md](references/full-guide.md) - Full command and workflow guide
+- [troubleshooting.md](references/troubleshooting.md) - Import and split problems
 
 ## Config Status Check
 

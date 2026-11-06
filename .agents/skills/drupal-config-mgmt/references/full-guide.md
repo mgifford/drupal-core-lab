@@ -234,4 +234,4 @@ diff -u /tmp/test.yml /tmp/prod.yml
 - `config:export` - Export active config to files (writes files)
 - `config:import` - Import config from files (DESTRUCTIVE - modifies database)
 - `cex` - Alias for config:export
-- `cim` - Alias for config:import (AVOID - use manual Edit instead)
+- `cim` - Alias for config:import (DESTRUCTIVE - always preview with `--no --diff` first)

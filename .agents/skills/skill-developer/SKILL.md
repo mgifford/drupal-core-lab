@@ -316,12 +316,7 @@ For teams building sophisticated activation systems, consider:
 - **Performance**: Keep hook execution under 200ms
 - **Pattern libraries**: Reusable regex and glob patterns
 
-These topics are documented in optional reference files:
-- `TRIGGER_TYPES.md` - Complete trigger type guide
-- `SKILL_RULES_REFERENCE.md` - Rules schema documentation
-- `HOOK_MECHANISMS.md` - Hook internals deep dive
-- `TROUBLESHOOTING.md` - Debugging activation issues
-- `PATTERNS_LIBRARY.md` - Ready-to-use pattern collection
+There are no separate reference files for these topics; the sections above are the whole guide.
 
 ---
 

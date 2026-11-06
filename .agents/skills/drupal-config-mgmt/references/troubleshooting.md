@@ -53,7 +53,6 @@ ddev drush cex  # Re-export
 # Check that config/local/config_split.patch.search_api.server.main.yml exists
 ```
 
-See [config-split-deep-dive.md](config-split-deep-dive.md) for complete technical explanation.
 
 ## Config won't import
 
@@ -62,7 +61,4 @@ Common issues:
 - **UUID mismatch**: Use `--partial` flag
 - **Locked config**: Some config (like system.site) has immutable values
 
-```bash
-# Skip specific config during import
-ddev drush config:import --skip-config=system.site
-```
+Drush has no option to skip a config object during import. To leave one object alone, use `--partial` with a source directory that omits it, or the Config Ignore module.
