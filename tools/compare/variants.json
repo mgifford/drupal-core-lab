@@ -1427,7 +1427,10 @@
       {
         "label": "After: textarea has minRows=1 and maxRows=6 attributes",
         "probe": "((t) => (t ? { minRows: t.minRows, maxRows: t.maxRows } : null))(document.querySelector('.ck-text-alternative-form .ck-labeled-field-view__input-wrapper textarea'))",
-        "expect": { "minRows": 1, "maxRows": 6 },
+        "expect": {
+          "minRows": 1,
+          "maxRows": 6
+        },
         "kind": "fix"
       },
       {
@@ -1642,5 +1645,137 @@
         "expectAfter": false
       }
     ]
+  },
+  {
+    "slug": "2574721-pinned",
+    "issue": "2574721",
+    "label": "#2574721: Provide access to action links in the modules page on small screens (pinned core)",
+    "description": "Verify that module action links (Configure, Permissions, Help) are rendered as an operations dropbutton and remain accessible on narrow viewports.",
+    "status": "ready",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "9e8373659f265e141b254eeccab68b8897e78ec5"
+    },
+    "before": {
+      "env": "baseline-2574721"
+    },
+    "after": {
+      "env": "issue-2574721",
+      "patches": [
+        "reports/issues/2574721/branches/drupal-2574721.patch"
+      ]
+    },
+    "pages": [
+      "/admin/modules"
+    ],
+    "login": true,
+    "recipe": "repro_2574721",
+    "steps": [
+      {
+        "text": "Navigate to the Extend page (/admin/modules)",
+        "how": "each",
+        "lookFor": "Modules listing table"
+      },
+      {
+        "text": "View table on a narrow viewport (< 960px / 480px)",
+        "how": "each",
+        "lookFor": "Operations column and dropbutton reflow"
+      },
+      {
+        "text": "Open an operations dropbutton (e.g., for Action or Ban module)",
+        "how": "each",
+        "lookFor": "Dropdown visibility and keyboard focus order"
+      }
+    ],
+    "expected": "Action links are placed inside an operations dropbutton column that remains visible and interactive on narrow viewports.",
+    "actual": "Action links are either hidden, missing, or pushed out of layout on small screens.",
+    "checks": [
+      {
+        "label": "Modules table rendered",
+        "probe": "document.querySelector('table.responsive-enabled') !== null",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "Operations column header exists",
+        "probe": "document.querySelector('th.operations') !== null",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "Dropbutton element present in row",
+        "probe": "document.querySelector('.dropbutton-wrapper') !== null",
+        "expect": true,
+        "kind": "fix"
+      }
+    ],
+    "observe": [
+      {
+        "question": "Are action links accessible on narrow viewports via a dropbutton?",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "question": "Does the operations dropbutton overflow or clip outside the viewport at 480px?",
+        "expectBefore": false,
+        "expectAfter": false
+      }
+    ],
+    "coverage": {
+      "note": "The combinations that count as tested for this issue (scripts/coverage.mjs).",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 480
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ]
+    }
+  },
+  {
+    "slug": "2574721-latest",
+    "extends": "2574721-pinned",
+    "label": "#2574721: same steps against the LATEST core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-2574721-latest"
+    },
+    "after": {
+      "env": "issue-2574721-latest"
+    }
   }
 ]

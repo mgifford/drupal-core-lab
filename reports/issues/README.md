@@ -28,12 +28,13 @@ Something changed upstream that the lab should act on.
 | [3619387](3619387/) | Indicate on forms sidebar toggle button that sidebar has child element errors | Reviewed & tested by the community, updated 2026-10-07 | !17013 opened at `cb915a48` | `cb915a48` ([how](3619387/REPRODUCE.md)) | RTBC: one final run on current core main |
 | [3627936](3627936/) | Active workspace has a broken styling in dark mode | Needs review, updated 2026-11-02 | !17471 opened at `b0bf91b9` | no MR commit recorded ([how](3627936/REPRODUCE.md)) | Test MR !17471 (at b0bf91b9): BRANCHES.md records no MR commit the lab tested |
 
-## Waiting (20)
+## Waiting (21)
 
 Nothing for the lab to do until the issue moves.
 
 | Issue | What | drupal.org | Merge request | Lab tested | Next step |
 |---|---|---|---|---|---|
+| [2574721](2574721/SUMMARY.md) | Provide access to action links in the modules page on small screens | Needs work, updated 2026-09-15 | !17049 opened at `ed3917f4` | `ed3917f4` ([how](2574721/REPRODUCE.md)) | Needs work: waiting on the MR |
 | [2848307](2848307/SUMMARY.md) | Inline errors not working on form table elements | Needs work, updated 2026-08-05 | !16355 opened at `46e9b7e7` | no BRANCHES.md ([how](2848307/REPRODUCE.md)) | Needs work: waiting on the MR |
 | [2951317](2951317/SUMMARY.md) | Radios element missing "required" attribute | Needs review, updated 2026-10-16 | !15536 opened at `ab7ab046` | `ab7ab046` ([how](2951317/REPRODUCE.md)) | Needs review: the lab has tested the current MR head |
 | [3046089](3046089/SUMMARY.md) | Accessibility of Main toolbar items and internal editing | Active, updated 2026-10-14 | none found | no BRANCHES.md ([how](3046089/REPRODUCE.md)) | Active; no MR found |
