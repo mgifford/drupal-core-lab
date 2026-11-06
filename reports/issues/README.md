@@ -56,11 +56,13 @@ Nothing for the lab to do until the issue moves.
 | [3631321](3631321/SUMMARY.md) | Improve the visual representation of none active vertical tabs in forced color… | Active, updated 2026-10-16 | none found | no MR commit recorded ([how](3631321/REPRODUCE.md)) | Active; no MR found |
 | [3631337](3631337/SUMMARY.md) | Decide how to semantically label HTML elements for errors/warnings in forced… | Active, updated 2026-10-16 | none found | no MR commit recorded ([how](3631337/REPRODUCE.md)) | Active; no MR found |
 
-## Not checked yet (0)
+## Not checked yet (1)
 
 No `status.json` yet: the next weekly check fills these in, or `node scripts/issue-status.mjs <nid> --write` for one.
 
-None.
+| Issue | What | Lab tested |
+|---|---|---|
+| [867830](867830/SUMMARY.md) | "Unpublished" style of rendered entities is not accessible | `0fcbb553` ([how](867830/REPRODUCE.md)) |
 
 ## Archived (0)
 

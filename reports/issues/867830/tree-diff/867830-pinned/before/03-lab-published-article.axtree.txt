@@ -1,0 +1,157 @@
+RootWebArea "Live article (control) | Drupal core test site" focusable focused url=https://HOST/lab/published-article
+  link "Skip to main content ➔" focusable url=https://HOST/lab/published-article#main-content
+    text "Skip to main content"
+    text "➔"
+  group "Site administration toolbar"
+    navigation "Toolbar items"
+      heading "Toolbar items" level=2
+      button "Manage" description="Admin menu" focusable pressed
+      navigation "Administration menu"
+        heading "Administration menu" level=3
+        list
+          listitem level=1
+            link "Content" description="Find and manage content." focusable url=https://HOST/admin/content
+          listitem level=1
+            link "Structure" description="Administer blocks, content types, menus, etc." focusable url=https://HOST/admin/structure
+          listitem level=1
+            link "Appearance" description="Select and configure themes." focusable url=https://HOST/admin/appearance
+          listitem level=1
+            link "Extend" description="Add and install modules to extend site functionality." focusable url=https://HOST/admin/modules
+          listitem level=1
+            link "Configuration" description="Administer settings." focusable url=https://HOST/admin/config
+          listitem level=1
+            link "People" description="Manage user accounts, roles, and permissions." focusable url=https://HOST/admin/people
+          listitem level=1
+            link "Reports" description="View reports, updates, and errors." focusable url=https://HOST/admin/reports
+          listitem level=1
+            link "Help" description="Reference for usage, configuration, and modules." focusable url=https://HOST/admin/help
+        button "Vertical orientation" invalid=false focusable
+      button "Shortcuts" focusable pressed=false
+      button "Edit" invalid=false focusable pressed=false
+      navigation
+      button "admin" description="My account" focusable pressed=false
+      link "Announcements" focusable url=https://HOST/admin/announcements_feed
+      navigation
+  banner
+    switch "Sticky header" invalid=false focusable checked=false controls=#site-header__inner
+    button "Open configuration options" invalid=false focusable pressed=false
+    link "Drupal core test site" description="Home" focusable url=https://HOST/
+    navigation "Main navigation"
+      heading "Main navigation" level=2
+      button "Open Main navigation configuration options" invalid=false focusable pressed=false
+      list
+        listitem level=1
+          link "Home" focusable url=https://HOST/
+    search
+      button "Open configuration options" invalid=false focusable pressed=false
+      button "Search Form" invalid=false focusable expanded=false
+        image
+    navigation "User account menu"
+      button "Open configuration options" invalid=false focusable pressed=false
+      list
+        listitem level=1
+          link "My account" focusable url=https://HOST/user
+        listitem level=1
+          link "Log out" focusable url="https://HOST/user/logout?token=TOKEN"
+  generic focusable
+  button "Open Primary tabs configuration options" invalid=false focusable pressed=false
+  heading "Primary tabs" level=2
+  navigation "Primary tabs"
+    list
+      listitem level=1
+        link "View" focusable url=https://HOST/lab/published-article
+      listitem level=1
+        link "Edit" focusable url=https://HOST/node/1/edit
+      listitem level=1
+        link "Delete" focusable url=https://HOST/node/1/delete
+      listitem level=1
+        link "Revisions" focusable url=https://HOST/node/1/revisions
+  button "Open Breadcrumb configuration options" invalid=false focusable pressed=false
+  navigation "Breadcrumb"
+    heading "Breadcrumb" level=2
+    list
+      listitem level=1
+        link "Home" focusable url=https://HOST/
+  main
+    heading "Live article (control)" level=1
+    link "Add to Default shortcuts" focusable url="https://HOST/admin/config/user-interface/shortcut/manage/default/add-link-inline?link=node/1&name=Live%20article%20%28control%29&destination=/lab/published-article&token=TOKEN"
+      text "Add to"
+      emphasis
+        text "Default"
+      text "shortcuts"
+    button "Open configuration options" invalid=false focusable pressed=false
+    article
+      sectionheader
+        button "Open Comments1 configuration options" invalid=false focusable pressed=false
+        text "By"
+        link "admin" description="View user profile." focusable url=https://HOST/user/1
+        text ", 6 November 2026"
+      paragraph
+        text "A published article for comparison. Its comment below is live."
+      list
+        listitem level=1
+          link "Add new comment" description="Share your thoughts and opinions." focusable url=https://HOST/lab/published-article#comment-form
+      heading "Comments 1" level=2
+        text "Comments"
+        text "1"
+      form
+        LabelText
+          text "Subject"
+        textbox "Subject" invalid=false focusable multiline=false readonly=false required=false
+        LabelText
+          text "Comment"
+        application "Rich Text Editor"
+          toolbar "Editor toolbar" focusable orientation=horizontal
+            button "Bold" invalid=false focusable pressed=false
+            button "Italic" invalid=false focusable pressed=false
+            button "Link" invalid=false focusable pressed=false
+            button "Bulleted List" invalid=false focusable pressed=false
+            button "Bulleted List" invalid=false focusable hasPopup=menu expanded=false
+            button "Numbered List" invalid=false focusable pressed=false
+            button "Numbered List" invalid=false focusable hasPopup=menu expanded=false
+            button "Block quote" invalid=false focusable pressed=false
+            button "Upload image from computer" invalid=false focusable
+            button "Paragraph, Heading" invalid=false focusable hasPopup=menu expanded=false
+              text "Paragraph"
+            button "Code" invalid=false focusable pressed=false
+            button "Source" invalid=false focusable pressed=false
+          textbox "Rich Text Editor. Editing area: main. Press ⌥0 for help." focusable multiline readonly=false required=false
+            paragraph
+        link "About text formats" focusable url=https://HOST/filter/tips
+        LabelText
+          text "Text format"
+        combobox "Text format" value="Basic HTML" invalid=false focusable hasPopup=menu expanded=false
+          MenuListPopup
+            option "Basic HTML" focusable selected
+            option "Restricted HTML" focusable selected=false
+            option "Full HTML" focusable selected=false
+        button "Save" invalid=false focusable
+        button "Preview" invalid=false focusable
+      article
+        sectionfooter
+          link "admin" description="View user profile." focusable url=https://HOST/user/1
+          text "2 hours 7 min ago"
+        heading "A live comment" level=3
+          link "A live comment" focusable url=https://HOST/comment/1#comment-1
+        paragraph
+          text "This comment is approved and visible to everyone."
+        list
+          listitem level=1
+            link "Delete" focusable url=https://HOST/comment/1/delete
+          listitem level=1
+            link "Edit" focusable url=https://HOST/comment/1/edit
+          listitem level=1
+            link "Reply" focusable url=https://HOST/comment/reply/node/1/comment/1
+  contentinfo
+    button "Open configuration options" invalid=false focusable pressed=false
+    text "Powered by"
+    link "Drupal" focusable url=https://www.drupal.org/
+    image "Drupal Logo"
+      image
+  generic live=polite atomic=false relevant="additions text"
+    text "Tray \"Administration menu\" opened."
+  application
+    generic live=polite atomic=false relevant=additions
+      list
+    generic live=assertive atomic=false relevant=additions
+      list

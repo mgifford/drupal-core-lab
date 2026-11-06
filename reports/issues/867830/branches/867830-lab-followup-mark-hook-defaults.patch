@@ -1,0 +1,23 @@
+Lab follow-up for #867830, not part of the issue's patch (drupal-core-lab, 2026-11-06).
+
+The #306 re-roll (867830-unpublished-style-of, 0fcbb553) removes the MARK_READ, MARK_NEW and MARK_UPDATED constants from
+core/includes/theme.inc but leaves the 'mark' theme hook definition in ThemeCommonElements.php defaulting 'status' to MARK_NEW.
+On core 422099995ecf every page then fails with: Error: Undefined constant "Drupal\Core\Theme\MARK_NEW" in
+core/lib/Drupal/Core/Theme/ThemeCommonElements.php line 136 (the theme registry is rebuilt on the first request after a cache clear).
+This patch only lets the rest of the change be evaluated: 'status' defaults to NULL and the 'type' variable the patched templates
+print is declared. It is applied after the issue's patch on the After side only, and is named in BRANCHES.md and EVIDENCE.md.
+
+diff --git a/core/lib/Drupal/Core/Theme/ThemeCommonElements.php b/core/lib/Drupal/Core/Theme/ThemeCommonElements.php
+index 50755c3..c41f829 100644
+--- a/core/lib/Drupal/Core/Theme/ThemeCommonElements.php
++++ b/core/lib/Drupal/Core/Theme/ThemeCommonElements.php
+@@ -133,7 +133,8 @@ class ThemeCommonElements {
+       ],
+       'mark' => [
+         'variables' => [
+-          'status' => MARK_NEW,
++          'status' => NULL,
++          'type' => NULL,
+         ],
+       ],
+       'item_list' => [
