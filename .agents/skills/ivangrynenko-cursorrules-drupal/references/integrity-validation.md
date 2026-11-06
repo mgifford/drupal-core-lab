@@ -56,7 +56,7 @@ This rule enforces security best practices to prevent software and data integrit
     - Pattern 5: Unsafe configuration imports
   - pattern `drupal_http_request\\(|\\\\Drupal::httpClient\\(\\)->get\\(|curl_exec\\(` – Always validate data from remote sources before processing or storing it. Implement integrity checks for remote content.
     - Pattern 6: Unchecked remote data
-  - pattern `composer\\.json` – Verify you're using secure Composer practices: validate package signatures, pin dependencies, and use composer.lock.
+  - pattern `composer\\.json` – Verify you're using secure Composer practices: validate package signatures and commit composer.lock so installed versions are exact, while keeping composer.json constraints that allow security updates.
     - Pattern 7: Insecure Composer usage
   - pattern `INSERT\\s+INTO|UPDATE\\s+[a-zA-Z0-9_]+\\s+SET|db_update\\(|->update\\(|->insert\\(` – Direct database modifications should implement validation to preserve data integrity. Prefer using entity API.
     - Pattern 8: Direct database modifications

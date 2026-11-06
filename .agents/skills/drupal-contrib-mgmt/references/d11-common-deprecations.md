@@ -16,7 +16,7 @@ $time_ago = REQUEST_TIME - $node->getCreatedTime();
 **NEW**:
 ```php
 // Inject TimeInterface service
-use Drupal\Core\Datetime\TimeInterface;
+use Drupal\Component\Datetime\TimeInterface;
 
 class MyClass {
   protected $time;
@@ -282,7 +282,7 @@ git diff my_module.info.yml > ../../../patches/my_module-d11-info.patch
 
 | Old Function/Constant | Service Name | Interface |
 |----------------------|--------------|-----------|
-| REQUEST_TIME | `datetime.time` | `Drupal\Core\Datetime\TimeInterface` |
+| REQUEST_TIME | `datetime.time` | `Drupal\Component\Datetime\TimeInterface` |
 | user_roles() | N/A | `Drupal\user\Entity\Role::loadMultiple()` |
 | file_validate_extensions() | `file.validator` | `Drupal\file\Validation\FileValidatorInterface` |
 | system_retrieve_file() | `file_system` + `http_client` | `FileSystemInterface` + `ClientInterface` |

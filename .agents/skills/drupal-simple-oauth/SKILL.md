@@ -102,7 +102,7 @@ formData.append('scope', 'administrator');
 ```bash
 ddev drush config:get simple_oauth.settings
 # Or query scope entities
-ddev drush sqlq "SELECT id FROM consumer_scopes"
+ddev drush config:list --prefix=simple_oauth.oauth2_scope
 ```
 
 ### Pitfall 3: Authenticated Role Permissions
@@ -125,7 +125,7 @@ This was fixed in issue #3451692 (included in 6.0.x).
 
 ```bash
 # List all OAuth2 scopes
-ddev drush sqlq "SELECT id, description FROM consumer_scopes"
+ddev drush config:list --prefix=simple_oauth.oauth2_scope
 
 # Example scopes you might have:
 # - authenticated
@@ -286,16 +286,17 @@ ddev drush simple-oauth:create-client \
 ### Creating Scope Entities
 
 ```yaml
-# Via config: config/install/consumer.oauth2_scope.subscriber.yml
-uuid: YOUR-UUID
+# Via config: config/install/simple_oauth.oauth2_scope.subscriber.yml
 langcode: en
 status: true
 id: subscriber
+name: subscriber
 description: 'Subscriber role access'
-grant_user_permissions: true
 umbrella: false
-granularity: role
 parent: null
+granularity_id: role
+granularity_configuration:
+  role: subscriber
 ```
 
 ### Dynamic Scope Provider Configuration
@@ -310,10 +311,10 @@ With dynamic scope provider, scopes map directly to roles.
 ### Listing Scopes
 
 ```bash
-# Via SQL
-ddev drush sqlq "SELECT id, description FROM consumer_scopes ORDER BY id"
+# List scope config entities
+ddev drush config:list --prefix=simple_oauth.oauth2_scope
 
-# Via config
+# Inspect one
 ddev drush config:get simple_oauth.oauth2_scope.subscriber
 ```
 
@@ -378,7 +379,7 @@ Always test OAuth with regular users.
 When OAuth permissions fail:
 
 - [ ] Does the OAuth2 scope entity exist?
-  - `ddev drush sqlq "SELECT id FROM consumer_scopes WHERE id='SCOPE_NAME'"`
+  - `ddev drush config:get simple_oauth.oauth2_scope.SCOPE_NAME`
 - [ ] Does the user have the required role?
   - `ddev drush user:role:list username@example.com`
 - [ ] Does the role have the required permission?
@@ -402,7 +403,7 @@ When OAuth permissions fail:
 ddev drush sqlq "SELECT label, uuid FROM consumer"
 
 # List OAuth scopes
-ddev drush sqlq "SELECT id, description FROM consumer_scopes"
+ddev drush config:list --prefix=simple_oauth.oauth2_scope
 
 # Check user roles
 ddev drush user:role:list username@example.com

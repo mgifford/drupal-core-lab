@@ -44,7 +44,7 @@ This rule enforces security best practices to prevent cryptographic failures in 
 
 ## Enforcement Checks
 - Conditions:
-  - pattern `(md5|sha1)\\([^)]*\\)` – Weak hash algorithm detected. Use password_hash() for passwords or hash('sha256'/'sha512') for other data.
+  - pattern `(md5|sha1)\\([^)]*\\)` – Weak hash algorithm detected. Use Drupal's password service for passwords or hash('sha256'/'sha512') for other data.
     - Pattern 1: Use of weak hash algorithms
   - pattern `(password|key|token|secret|credentials|pwd)\\s*=\\s*['\"][^'\"]+['\"]` – Hardcoded credentials or sensitive keys detected. Use Drupal's State API, key module, or environment variables.
     - Pattern 2: Hardcoded credentials or keys
@@ -101,7 +101,7 @@ This rule enforces security best practices to prevent cryptographic failures in 
 
 ## Validation Checks
 - Conditions:
-  - pattern `UserInterface::PASSWORD_|password_hash\\(` – Using Drupal's password system correctly.
+  - pattern `UserInterface::PASSWORD_|\\\\Drupal::service\\(['\"]password['\"]\\)` – Using Drupal's password system correctly.
     - Check 1: Proper password handling
   - pattern `random_bytes|random_int|\\\\Drupal::service\\('random'\\)` – Using secure random generation methods.
     - Check 2: Proper random generation

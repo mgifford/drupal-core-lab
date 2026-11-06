@@ -22,27 +22,9 @@ Activates when working with DDEV local development including:
 
 ## Available Topics
 
-### Core Setup
-- @references/installation.md - Installing and configuring DDEV
 - @references/config-yaml.md - .ddev/config.yaml reference
-- @references/commands.md - Essential DDEV commands
 
-### Database Operations
-- @references/database.md - Import, export, and snapshot workflows
-- @references/drush.md - Using Drush with DDEV
-
-### Development Tools
-- @references/xdebug.md - Debugging with Xdebug
-- @references/mailhog.md - Email testing with MailHog
-- @references/solr.md - Local Solr search setup
-
-### Advanced
-- @references/custom-commands.md - Creating project-specific commands
-- @references/hooks.md - Pre/post hooks automation
-- @references/performance.md - Optimizing DDEV performance
-- @references/multisite.md - Multi-site configuration
-
-See `/references/` directory for complete documentation.
+Commands, database workflows, Xdebug, performance and custom commands are covered in the sections below. For anything else (installation, MailHog, Solr, hooks, multi-site) see the DDEV documentation at https://docs.ddev.com.
 
 ---
 
