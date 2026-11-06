@@ -2,6 +2,9 @@
 //   node --test tests/lab/ddev-build-failure.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { labRoot } from '../../tools/compare/lib.mjs';
 import { isStaleAptCache, ADDON_VERSION } from '../../tools/compare/ddev-build-failure.mjs';
 import { parseChromiumDockerfile, latestTag } from '../../tools/compare/pins.mjs';
 
@@ -52,4 +55,10 @@ test('a source or package that is not plain data is dropped, and a Dockerfile wi
 test('the newest release tag is found by number, not by text', () => {
   assert.equal(latestTag(['v1.2.5', 'v1.10.0', 'v1.2.40', 'nightly']), 'v1.10.0');
   assert.equal(latestTag([]), null);
+});
+
+test('check-pins reports "could not run" (exit 2), not a crash or a pin failure, when ddev, git and docker are missing', () => {
+  const r = spawnSync(process.execPath, [path.join(labRoot, 'scripts/check-pins.mjs')], { encoding: 'utf8', env: { PATH: '' }, timeout: 30000 });
+  assert.equal(r.status, 2, `${r.stdout}${r.stderr}`);
+  assert.match(r.stdout, /could not run/);
 });

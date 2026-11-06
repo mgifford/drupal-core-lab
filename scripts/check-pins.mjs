@@ -24,7 +24,7 @@ const say = (level, what, detail = '') => console.log(`${level.padEnd(5)} ${what
 const end = (code) => process.exit(code);
 
 const ddev = sh('ddev', ['--version']);
-const ddevVer = (ddev.stdout.match(/v?(\d+\.\d+\.\d+)/) || [])[1];
+const ddevVer = ((ddev.stdout || '').match(/v?(\d+\.\d+\.\d+)/) || [])[1];
 const image = flag('image') || `ddev/ddev-webserver:v${ddevVer || DDEV_TESTED.replace(/^v/, '')}`;
 const cacheFile = path.join(labRoot, '.lab-cache/pins-ok.json');
 if (args.includes('--cached') && fs.existsSync(cacheFile)) {
@@ -33,7 +33,7 @@ if (args.includes('--cached') && fs.existsSync(cacheFile)) {
 
 // 1. The add-on release.
 const tags = sh('git', ['ls-remote', '--tags', '--refs', `https://github.com/${ADDON}.git`]);
-if (tags.status !== 0) { say('WARN', 'add-on tags', 'github.com not reachable; the check could not run'); end(2); }
+if (tags.status !== 0) { say('WARN', 'add-on tags', 'git could not list the add-on tags (github.com not reachable, or git is not installed); the check could not run'); end(2); }
 const names = tags.stdout.split('\n').map((l) => l.split('refs/tags/')[1]).filter(Boolean);
 if (!names.includes(ADDON_VERSION)) { say('FAIL', 'add-on release', `${ADDON} ${ADDON_VERSION} no longer exists. Pick one of: ${names.slice(-5).join(', ')} in tools/compare/ddev-build-failure.mjs`); end(1); }
 say('PASS', 'add-on release', `${ADDON} ${ADDON_VERSION} exists`);
