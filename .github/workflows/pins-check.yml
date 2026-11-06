@@ -1,0 +1,26 @@
+name: Build pins check
+
+# Do the pinned chromium and add-on release still install? Runs scripts/check-pins.mjs (read-only: a throwaway container, nothing is
+# installed or posted). Mondays, and on demand (Actions > Build pins check > Run workflow). A failed run means the pins need adjusting
+# (see the NOTE and FAIL lines in the log, and docs/PITFALLS.md); GitHub emails the failure to the person who last edited this file.
+on:
+  schedule:
+    - cron: '43 6 * * 1'   # Mondays 06:43 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pins:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Pull the DDEV web image the pins are tested against
+        run: docker pull "ddev/ddev-webserver:$(node -e "import('./tools/compare/ddev-build-failure.mjs').then(m=>console.log(m.DDEV_TESTED))")"
+      - name: Check the pins
+        run: node scripts/check-pins.mjs

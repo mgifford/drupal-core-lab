@@ -34,7 +34,7 @@ and a headless Chrome, with no Drush and SQLite instead of MariaDB. Roughly:
     git worktree add (from envs/core.git at the pinned commit or latest main), then git apply each patch (After only)
     ddev config --project-type=drupal12 --omit-containers=db --disable-settings-management
     ddev start && ddev composer install --no-interaction
-    ddev add-on get justafish/ddev-drupal-core-dev && ddev restart
+    ddev add-on get justafish/ddev-drupal-core-dev --version v1.2.5 && ddev restart   # version pinned in tools/compare/ddev-build-failure.mjs
     cp .ddev/core-dev/.env core/.env                  # `ddev phpunit` sources it; without it every run errors before its first assertion
     ddev drupal install standard --password=admin
     scripts/lab-site.sh apply <env>                   # the variant's recipe, aggregation off, one site name for both sites

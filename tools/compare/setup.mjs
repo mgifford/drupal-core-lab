@@ -8,6 +8,7 @@
 //   node tools/compare/setup.mjs [slug] --reinstall        reset both sites (database and files) and reapply recipe and languages; keeps the checkout, vendor and patches
 //   (a variant with "testExtensions": true gets `ddev drupal test:extensions-enable` before its recipe, so it can install test modules)
 //   node tools/compare/setup.mjs [slug] --with-lighthouse   also install Lighthouse (optional background audits in the viewer; Node 22.19+)
+//   node tools/compare/setup.mjs [slug] --skip-pin-check    do not run scripts/check-pins.mjs first (exit 5 when a pinned chromium or add-on release no longer resolves)
 //   node tools/compare/setup.mjs [slug] --checkout-only     only the git worktrees with their patches: no DDEV, no site (enough for scripts/lint.mjs --host);
 //                                                           a later run without the flag carries on from there
 //   node tools/compare/setup.mjs [slug] --core-url=<url>    fetch core from another remote (e.g. https://github.com/drupal/drupal.git when
@@ -29,6 +30,7 @@ import { ensurePatches } from './patch-state.mjs';
 import { identity, blockMessage, headOf, recipeStatus } from './env-state.mjs';
 import { ensureContrib } from './contrib-state.mjs';
 import { noChangeProblem } from './change-under-test.mjs';
+import { isStaleAptCache, ADDON, ADDON_VERSION } from './ddev-build-failure.mjs';
 
 const args = process.argv.slice(2);
 const dry = args.includes('--dry-run');
@@ -57,11 +59,21 @@ function run(cmd, argv, opts = {}) {
 }
 // DDEV's shared router sometimes misses its 60 second health check when it restarts to add a
 // project. It recovers on its own, so retry start/restart a couple of times.
+// A build that fails at the add-on's chromium install because Docker cached an empty `apt-get update` (see ddev-build-failure.mjs)
+// never recovers by retrying: rebuild that project's image once with no cache instead.
 function runRetry(cmd, argv, opts) {
+  let rebuilt = false;
   for (let i = 1; i <= 3; i++) {
     console.log(`$ ${[cmd, ...argv].join(' ')}${opts.cwd ? `   (in ${path.relative(labRoot, opts.cwd) || '.'})` : ''}${i > 1 ? `   [retry ${i - 1}]` : ''}`);
     if (dry) return;
-    if (spawnSync(cmd, argv, { stdio: 'inherit', ...opts }).status === 0) return;
+    const r = spawnSync(cmd, argv, { stdio: ['inherit', 'inherit', 'pipe'], encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, ...opts });
+    process.stderr.write(r.stderr || '');
+    if (r.status === 0) return;
+    if (cmd === 'ddev' && !rebuilt && isStaleAptCache(r.stderr)) {
+      rebuilt = true;
+      console.log('Docker reused an empty cached apt-get update layer (snapshot.debian.org dropped a fetch earlier). Rebuilding this project\'s image with no cache: ddev debug rebuild');
+      if (spawnSync('ddev', ['debug', 'rebuild'], { stdio: 'inherit', cwd: opts.cwd }).status === 0) return;
+    }
     console.log('Failed. If the DDEV router timed out, it usually recovers; waiting 20 seconds and retrying.');
     spawnSync('sleep', ['20']);
   }
@@ -75,6 +87,12 @@ const step = (t) => console.log(`\n== ${t}`);
 
 for (const tool of CHECK || CHECKOUT_ONLY ? ['git'] : ['git', 'ddev', 'docker']) {
   if (spawnSync(tool, ['--version'], { stdio: 'ignore' }).status !== 0) { console.error(`Missing prerequisite: ${tool}`); if (!dry) process.exit(1); }
+}
+// Before ten minutes of building: do the pinned chromium and add-on still resolve? (24 hour cache; exit 2 = could not check, carry on.)
+if (!CHECK && !CHECKOUT_ONLY && !dry && !args.includes('--skip-pin-check')) {
+  step('build pins (scripts/check-pins.mjs)');
+  const pins = spawnSync('node', [path.join(labRoot, 'scripts/check-pins.mjs'), '--cached'], { stdio: 'inherit' });
+  if (pins.status === 1 || pins.status === 3) { console.error(`\nStopping: ${pins.status === 3 ? 'snapshot.debian.org is returning errors, and an image build now would cache an empty apt layer that fails every later build' : 'a build pin no longer resolves, so the image build would fail'}. ${pins.status === 3 ? 'Try again later' : 'Fix it as printed above'}, or bypass with --skip-pin-check.`); process.exit(5); }
 }
 
 // One setup at a time. Two runs against the same envs/ start the same DDEV project twice (container name conflict)
@@ -194,8 +212,8 @@ for (const [side, spec] of sides) {
   if (!have(path.join(dir, 'vendor/autoload.php'))) run('ddev', ['composer', 'install', '--no-interaction'], { cwd: dir });
   if (!have(path.join(dir, '.ddev/commands/web/drupal'))) {
     // The add-on's own post-install restart can hit the router flake; the files are in place by then.
-    console.log('$ ddev add-on get justafish/ddev-drupal-core-dev');
-    if (!dry) spawnSync('ddev', ['add-on', 'get', 'justafish/ddev-drupal-core-dev'], { stdio: 'inherit', cwd: dir });
+    console.log(`$ ddev add-on get ${ADDON} --version ${ADDON_VERSION}`);
+    if (!dry) spawnSync('ddev', ['add-on', 'get', ADDON, '--version', ADDON_VERSION], { stdio: 'inherit', cwd: dir });
     if (!dry && !have(path.join(dir, '.ddev/commands/web/drupal'))) { console.error('The add-on was not installed (see output above).'); process.exit(1); }
     runRetry('ddev', ['restart'], { cwd: dir });
   }
