@@ -2055,6 +2055,370 @@
       ]
     },
     {
+      "slug": "867830-pinned",
+      "issue": "867830",
+      "label": "#867830: Unpublished style of rendered entities is not accessible, pinned core",
+      "description": "An unpublished node is marked only by a pale pink background (#fff4f4 in Olivero, Claro and Umami) and an unpublished comment only by a CSS class: nothing in text, nothing for a screen reader, nothing in forced colours. The change under test is the #306 re-roll (fork branch 867830-unpublished-style-of, July 2025, no merge request): it adds a 'markers' variable to nodes and comments that core's mark.html.twig renders as the word 'unpublished', removes the MARK_* constants, and prints the marker in Claro's templates and core's comment template. Olivero, the default front-end theme on this core, is not changed by it. As submitted it also breaks every page (Undefined constant MARK_NEW in ThemeCommonElements.php, which it does not update), so After also carries a two-line lab follow-up that only declares the mark hook defaults; without it there is nothing to compare. Look at the same pages in Olivero, then Claro, then Stark (steps 4 and 5 switch the default theme in both sites). Run checks on each page in each theme.",
+      "before": {
+        "label": "pristine core 42209999 (11.x, 2025-07-11)"
+      },
+      "after": {
+        "label": "#306 re-roll (fork branch 0fcbb553) + lab follow-up so the site renders"
+      },
+      "steps": [
+        {
+          "text": "Standard install: Olivero is the front-end theme, Claro the admin theme; Stark is installed as well.",
+          "how": "recipe"
+        },
+        {
+          "text": "Three nodes exist with fixed aliases: /lab/published-article (live, one live comment), /lab/unpublished-article (not published; one live comment and one comment held for review) and /lab/unpublished-page (a basic page, not published).",
+          "how": "recipe"
+        },
+        {
+          "text": "Log in both as admin. Type /lab/unpublished-article in Page and press Go (both).",
+          "how": "mirror",
+          "lookFor": "Olivero. Before: the whole article has a very pale pink background and nothing else says it is not published; the held comment looks like the live one. After: the same, because the change does not touch Olivero. Press Run checks."
+        },
+        {
+          "text": "Open /lab/unpublished-page and /lab/published-article in turn and press Run checks on each.",
+          "how": "mirror",
+          "lookFor": "The draft page is pink in Before and After; the live article is white on both and has no marker on either side."
+        },
+        {
+          "text": "Switch the front-end theme to Claro: open /admin/appearance and, under Claro, press \"Set as default\". Then open /lab/unpublished-article again.",
+          "how": "mirror",
+          "lookFor": "Before: pink background, no text. After: the word \"unpublished\" after the \"Submitted by\" line of the article and inside the held comment; the pink background is gone. Run checks here and on /lab/unpublished-page."
+        },
+        {
+          "text": "Switch the front-end theme to Stark the same way and open /lab/unpublished-article.",
+          "how": "mirror",
+          "lookFor": "Before: no cue at all (Stark has no CSS). After: the bare word \"unpublished\" inside the held comment only; the article itself still has no text marker, because core's node.html.twig does not print the new variable. Run checks."
+        },
+        {
+          "text": "Forced colours: press Open forced-colours window, log in both, choose Forced colours light, and repeat step 3 (Olivero) and step 5 (Claro).",
+          "how": "each",
+          "lookFor": "The pink background disappears in forced colours, so Before has no cue left in any theme. After keeps its text marker where it prints one (Claro, Stark comments)."
+        },
+        {
+          "text": "Zoom and narrow width: set Device width to Mobile and look at /lab/unpublished-article in Claro.",
+          "how": "each",
+          "lookFor": "Where the marker is printed it stays readable and does not overlap the submitted line or the comment heading."
+        },
+        {
+          "text": "Screen reader text: with VoiceOver or NVDA (or the lab's synthetic reader), read through the article heading and footer, then the held comment.",
+          "how": "each",
+          "lookFor": "Before: nothing says the content is not published. After, in Claro: the bare word \"unpublished\" is read with no context (\"This node is\" or \"This comment is\" is not there). The issue summary asks for visually hidden context."
+        },
+        {
+          "text": "Restore Olivero as the default theme on both sites (/admin/appearance, \"Set as default\" under Olivero) so the next run starts where this one did.",
+          "how": "mirror"
+        }
+      ],
+      "expected": "A node or comment that is not published carries a visible text marker, with hidden context for screen readers (\"This node is unpublished\"), in every front-end theme, with enough contrast and with no dependence on a background colour.",
+      "actual": "Only a pale pink background (#fff4f4 on white, about 1.05:1) marks an unpublished node in Olivero, Claro and Umami; an unpublished comment gets a CSS class and no styling; nothing is in the text or the accessibility tree, and the cue vanishes in forced colours.",
+      "observe": [
+        {
+          "label": "In the current theme, can you tell without relying on colour that the draft article is not published?",
+          "expectBefore": "no",
+          "expectAfter": "yes"
+        },
+        {
+          "label": "Can you tell the held comment from the live comment without relying on colour?",
+          "expectBefore": "no",
+          "expectAfter": "yes"
+        },
+        {
+          "label": "In forced colours, is there still any indication that the article is not published?",
+          "expectBefore": "no",
+          "expectAfter": "yes"
+        },
+        {
+          "label": "Does the marker say what it applies to (for example \"This node is unpublished\") rather than a bare \"unpublished\"?",
+          "expectBefore": "no",
+          "expectAfter": "yes"
+        },
+        {
+          "label": "Is the layout intact around the marker (no overlap with the submitted line, the comment heading or the user picture)?",
+          "expectBefore": "yes",
+          "expectAfter": "yes"
+        }
+      ],
+      "checks": [
+        {
+          "label": "Setup reached: the page is one of the lab nodes",
+          "probe": "!!document.querySelector('h1') && /Live article|Draft article|Draft page/.test(document.querySelector('h1').textContent)",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "No PHP or Twig error on the page",
+          "probe": "!/The website encountered an unexpected error|Twig\\\\Error|TypeError|Undefined constant/.test(document.body.innerText)",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Setup reached: both comments of the draft article are shown (admin sees held comments)",
+          "probe": "document.body.innerText.includes('A comment awaiting approval') && document.body.innerText.includes('A live comment')",
+          "expect": true,
+          "kind": "precondition",
+          "onlyOn": "/lab/unpublished-article"
+        },
+        {
+          "label": "The draft node has a text marker saying it is unpublished (not only a class or a colour)",
+          "probe": "Array.from(document.querySelectorAll('article:not(.js-comment) .marker, article:not(.js-comment) mark:not(.hidden), article:not(.js-comment) .node__status')).filter(e => !e.closest('.js-comment')).some(e => /unpublished/i.test(e.textContent))",
+          "expect": true,
+          "kind": "fix",
+          "onlyOn": "/lab/unpublished-article"
+        },
+        {
+          "label": "The draft page has a text marker saying it is unpublished",
+          "probe": "Array.from(document.querySelectorAll('article:not(.js-comment) .marker, article:not(.js-comment) mark:not(.hidden), article:not(.js-comment) .node__status')).filter(e => !e.closest('.js-comment')).some(e => /unpublished/i.test(e.textContent))",
+          "expect": true,
+          "kind": "fix",
+          "onlyOn": "/lab/unpublished-page"
+        },
+        {
+          "label": "The held comment has a text marker saying it is unpublished",
+          "probe": "Array.from(document.querySelectorAll('article.js-comment')).some(c => Array.from(c.childNodes).some(n => n.nodeType === 3 && /unpublished/i.test(n.textContent)) || Array.from(c.querySelectorAll('.marker, mark:not(.hidden)')).some(e => /unpublished/i.test(e.textContent)))",
+          "expect": true,
+          "kind": "fix",
+          "onlyOn": "/lab/unpublished-article"
+        },
+        {
+          "label": "The live article has no unpublished marker (no false positive)",
+          "probe": "Array.from(document.querySelectorAll('article:not(.js-comment) .marker, article:not(.js-comment) mark:not(.hidden), article:not(.js-comment) .node__status')).filter(e => !e.closest('.js-comment')).some(e => /unpublished/i.test(e.textContent))",
+          "expect": false,
+          "kind": "regression",
+          "onlyOn": "/lab/published-article"
+        },
+        {
+          "label": "The live comments have no unpublished marker",
+          "probe": "Array.from(document.querySelectorAll('article.js-comment')).some(c => Array.from(c.childNodes).some(n => n.nodeType === 3 && /unpublished/i.test(n.textContent)) || Array.from(c.querySelectorAll('.marker, mark:not(.hidden)')).some(e => /unpublished/i.test(e.textContent)))",
+          "expect": false,
+          "kind": "regression",
+          "onlyOn": "/lab/published-article"
+        },
+        {
+          "label": "Same number of comments rendered on both sides",
+          "probe": "document.querySelectorAll('article.js-comment').length",
+          "expect": "same",
+          "kind": "regression",
+          "onlyOn": "/lab/unpublished-article"
+        },
+        {
+          "label": "The node--unpublished class is still on the draft node (themes and modules style it; the change removes it from Claro)",
+          "probe": "!!document.querySelector('article.node--unpublished')",
+          "expect": true,
+          "kind": "regression",
+          "onlyOn": "/lab/unpublished-article"
+        },
+        {
+          "label": "Node background colour (information: in Before this is the only cue; rgb(255, 244, 244) is #fff4f4)",
+          "probe": "document.querySelector('article:not(.js-comment)') ? getComputedStyle(document.querySelector('article:not(.js-comment)')).backgroundColor : 'no article'",
+          "expect": "same",
+          "kind": "regression",
+          "onlyOn": "/lab/unpublished-article"
+        },
+        {
+          "label": "Marker has screen-reader context (visually hidden \"This node is\" / \"This comment is\")",
+          "probe": "Array.from(document.querySelectorAll('.marker .visually-hidden, .marker--warning .visually-hidden')).some(e => /this (node|comment|content) is/i.test(e.textContent))",
+          "expect": true,
+          "kind": "fix",
+          "onlyOn": "/lab/unpublished-article"
+        }
+      ],
+      "pages": [
+        "/lab/unpublished-article",
+        "/lab/unpublished-page",
+        "/lab/published-article"
+      ],
+      "demo": {
+        "start": "/lab/unpublished-article"
+      }
+    },
+    {
+      "slug": "867830-latest",
+      "issue": "867830",
+      "label": "#867830: same steps against the LATEST core main",
+      "description": "Not buildable as of 2026-11-06: see status. Kept so the issue tooling has a -latest slug to report on.",
+      "before": {
+        "label": "pristine core 42209999 (11.x, 2025-07-11)"
+      },
+      "after": {
+        "label": "#306 re-roll (fork branch 0fcbb553) + lab follow-up so the site renders"
+      },
+      "steps": [
+        {
+          "text": "Standard install: Olivero is the front-end theme, Claro the admin theme; Stark is installed as well.",
+          "how": "recipe"
+        },
+        {
+          "text": "Three nodes exist with fixed aliases: /lab/published-article (live, one live comment), /lab/unpublished-article (not published; one live comment and one comment held for review) and /lab/unpublished-page (a basic page, not published).",
+          "how": "recipe"
+        },
+        {
+          "text": "Log in both as admin. Type /lab/unpublished-article in Page and press Go (both).",
+          "how": "mirror",
+          "lookFor": "Olivero. Before: the whole article has a very pale pink background and nothing else says it is not published; the held comment looks like the live one. After: the same, because the change does not touch Olivero. Press Run checks."
+        },
+        {
+          "text": "Open /lab/unpublished-page and /lab/published-article in turn and press Run checks on each.",
+          "how": "mirror",
+          "lookFor": "The draft page is pink in Before and After; the live article is white on both and has no marker on either side."
+        },
+        {
+          "text": "Switch the front-end theme to Claro: open /admin/appearance and, under Claro, press \"Set as default\". Then open /lab/unpublished-article again.",
+          "how": "mirror",
+          "lookFor": "Before: pink background, no text. After: the word \"unpublished\" after the \"Submitted by\" line of the article and inside the held comment; the pink background is gone. Run checks here and on /lab/unpublished-page."
+        },
+        {
+          "text": "Switch the front-end theme to Stark the same way and open /lab/unpublished-article.",
+          "how": "mirror",
+          "lookFor": "Before: no cue at all (Stark has no CSS). After: the bare word \"unpublished\" inside the held comment only; the article itself still has no text marker, because core's node.html.twig does not print the new variable. Run checks."
+        },
+        {
+          "text": "Forced colours: press Open forced-colours window, log in both, choose Forced colours light, and repeat step 3 (Olivero) and step 5 (Claro).",
+          "how": "each",
+          "lookFor": "The pink background disappears in forced colours, so Before has no cue left in any theme. After keeps its text marker where it prints one (Claro, Stark comments)."
+        },
+        {
+          "text": "Zoom and narrow width: set Device width to Mobile and look at /lab/unpublished-article in Claro.",
+          "how": "each",
+          "lookFor": "Where the marker is printed it stays readable and does not overlap the submitted line or the comment heading."
+        },
+        {
+          "text": "Screen reader text: with VoiceOver or NVDA (or the lab's synthetic reader), read through the article heading and footer, then the held comment.",
+          "how": "each",
+          "lookFor": "Before: nothing says the content is not published. After, in Claro: the bare word \"unpublished\" is read with no context (\"This node is\" or \"This comment is\" is not there). The issue summary asks for visually hidden context."
+        },
+        {
+          "text": "Restore Olivero as the default theme on both sites (/admin/appearance, \"Set as default\" under Olivero) so the next run starts where this one did.",
+          "how": "mirror"
+        }
+      ],
+      "expected": "A node or comment that is not published carries a visible text marker, with hidden context for screen readers (\"This node is unpublished\"), in every front-end theme, with enough contrast and with no dependence on a background colour.",
+      "actual": "Only a pale pink background (#fff4f4 on white, about 1.05:1) marks an unpublished node in Olivero, Claro and Umami; an unpublished comment gets a CSS class and no styling; nothing is in the text or the accessibility tree, and the cue vanishes in forced colours.",
+      "observe": [
+        {
+          "label": "In the current theme, can you tell without relying on colour that the draft article is not published?",
+          "expectBefore": "no",
+          "expectAfter": "yes"
+        },
+        {
+          "label": "Can you tell the held comment from the live comment without relying on colour?",
+          "expectBefore": "no",
+          "expectAfter": "yes"
+        },
+        {
+          "label": "In forced colours, is there still any indication that the article is not published?",
+          "expectBefore": "no",
+          "expectAfter": "yes"
+        },
+        {
+          "label": "Does the marker say what it applies to (for example \"This node is unpublished\") rather than a bare \"unpublished\"?",
+          "expectBefore": "no",
+          "expectAfter": "yes"
+        },
+        {
+          "label": "Is the layout intact around the marker (no overlap with the submitted line, the comment heading or the user picture)?",
+          "expectBefore": "yes",
+          "expectAfter": "yes"
+        }
+      ],
+      "checks": [
+        {
+          "label": "Setup reached: the page is one of the lab nodes",
+          "probe": "!!document.querySelector('h1') && /Live article|Draft article|Draft page/.test(document.querySelector('h1').textContent)",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "No PHP or Twig error on the page",
+          "probe": "!/The website encountered an unexpected error|Twig\\\\Error|TypeError|Undefined constant/.test(document.body.innerText)",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Setup reached: both comments of the draft article are shown (admin sees held comments)",
+          "probe": "document.body.innerText.includes('A comment awaiting approval') && document.body.innerText.includes('A live comment')",
+          "expect": true,
+          "kind": "precondition",
+          "onlyOn": "/lab/unpublished-article"
+        },
+        {
+          "label": "The draft node has a text marker saying it is unpublished (not only a class or a colour)",
+          "probe": "Array.from(document.querySelectorAll('article:not(.js-comment) .marker, article:not(.js-comment) mark:not(.hidden), article:not(.js-comment) .node__status')).filter(e => !e.closest('.js-comment')).some(e => /unpublished/i.test(e.textContent))",
+          "expect": true,
+          "kind": "fix",
+          "onlyOn": "/lab/unpublished-article"
+        },
+        {
+          "label": "The draft page has a text marker saying it is unpublished",
+          "probe": "Array.from(document.querySelectorAll('article:not(.js-comment) .marker, article:not(.js-comment) mark:not(.hidden), article:not(.js-comment) .node__status')).filter(e => !e.closest('.js-comment')).some(e => /unpublished/i.test(e.textContent))",
+          "expect": true,
+          "kind": "fix",
+          "onlyOn": "/lab/unpublished-page"
+        },
+        {
+          "label": "The held comment has a text marker saying it is unpublished",
+          "probe": "Array.from(document.querySelectorAll('article.js-comment')).some(c => Array.from(c.childNodes).some(n => n.nodeType === 3 && /unpublished/i.test(n.textContent)) || Array.from(c.querySelectorAll('.marker, mark:not(.hidden)')).some(e => /unpublished/i.test(e.textContent)))",
+          "expect": true,
+          "kind": "fix",
+          "onlyOn": "/lab/unpublished-article"
+        },
+        {
+          "label": "The live article has no unpublished marker (no false positive)",
+          "probe": "Array.from(document.querySelectorAll('article:not(.js-comment) .marker, article:not(.js-comment) mark:not(.hidden), article:not(.js-comment) .node__status')).filter(e => !e.closest('.js-comment')).some(e => /unpublished/i.test(e.textContent))",
+          "expect": false,
+          "kind": "regression",
+          "onlyOn": "/lab/published-article"
+        },
+        {
+          "label": "The live comments have no unpublished marker",
+          "probe": "Array.from(document.querySelectorAll('article.js-comment')).some(c => Array.from(c.childNodes).some(n => n.nodeType === 3 && /unpublished/i.test(n.textContent)) || Array.from(c.querySelectorAll('.marker, mark:not(.hidden)')).some(e => /unpublished/i.test(e.textContent)))",
+          "expect": false,
+          "kind": "regression",
+          "onlyOn": "/lab/published-article"
+        },
+        {
+          "label": "Same number of comments rendered on both sides",
+          "probe": "document.querySelectorAll('article.js-comment').length",
+          "expect": "same",
+          "kind": "regression",
+          "onlyOn": "/lab/unpublished-article"
+        },
+        {
+          "label": "The node--unpublished class is still on the draft node (themes and modules style it; the change removes it from Claro)",
+          "probe": "!!document.querySelector('article.node--unpublished')",
+          "expect": true,
+          "kind": "regression",
+          "onlyOn": "/lab/unpublished-article"
+        },
+        {
+          "label": "Node background colour (information: in Before this is the only cue; rgb(255, 244, 244) is #fff4f4)",
+          "probe": "document.querySelector('article:not(.js-comment)') ? getComputedStyle(document.querySelector('article:not(.js-comment)')).backgroundColor : 'no article'",
+          "expect": "same",
+          "kind": "regression",
+          "onlyOn": "/lab/unpublished-article"
+        },
+        {
+          "label": "Marker has screen-reader context (visually hidden \"This node is\" / \"This comment is\")",
+          "probe": "Array.from(document.querySelectorAll('.marker .visually-hidden, .marker--warning .visually-hidden')).some(e => /this (node|comment|content) is/i.test(e.textContent))",
+          "expect": true,
+          "kind": "fix",
+          "onlyOn": "/lab/unpublished-article"
+        }
+      ],
+      "pages": [
+        "/lab/unpublished-article",
+        "/lab/unpublished-page",
+        "/lab/published-article"
+      ],
+      "demo": {
+        "start": "/lab/unpublished-article"
+      }
+    },
+    {
       "slug": "2951317-pinned",
       "issue": "2951317",
       "label": "#2951317: Radios element missing required attribute, pinned core",

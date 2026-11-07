@@ -1,0 +1,427 @@
+diff --git a/core/includes/theme.inc b/core/includes/theme.inc
+index 587f9e70c200b00a277d2ed546768301ed5bbcce..e539d1096fa7b3ac0663454adff07fbd427f5788 100644
+--- a/core/includes/theme.inc
++++ b/core/includes/theme.inc
+@@ -29,21 +29,6 @@ use Drupal\Core\Theme\ThemeSettings;
+  * @see mark.html.twig
+  */
+ 
+-/**
+- * Mark content as read.
+- */
+-const MARK_READ = 0;
+-
+-/**
+- * Mark content as being new.
+- */
+-const MARK_NEW = 1;
+-
+-/**
+- * Mark content as being updated.
+- */
+-const MARK_UPDATED = 2;
+-
+ /**
+  * A responsive table class; hide table cell on narrow devices.
+  *
+diff --git a/core/modules/comment/comment.module b/core/modules/comment/comment.module
+index 139513c1c37c34d27a33c72b8cc7a689e13c1c23..5638029c8a9daf22f591649d7031d7fb998539f1 100644
+--- a/core/modules/comment/comment.module
++++ b/core/modules/comment/comment.module
+@@ -247,8 +247,18 @@ function template_preprocess_comment(&$variables): void {
+   if (isset($comment->in_preview)) {
+     $variables['status'] = 'preview';
+   }
+-  else {
+-    $variables['status'] = $comment->isPublished() ? 'published' : 'unpublished';
++  elseif (!$comment->isPublished()) {
++    $variables['status'] = 'unpublished';
++  }
++
++  // Create markers to display the status.
++  $variables['markers'] = [];
++  if (isset($variables['status'])) {
++    $variables['markers'][] = [
++      '#theme' => 'mark',
++      '#status' => $variables['status'],
++      '#type' => 'warning',
++    ];
+   }
+ 
+   // Add comment author user ID. Necessary for the comment-by-viewer library.
+diff --git a/core/modules/comment/templates/comment.html.twig b/core/modules/comment/templates/comment.html.twig
+index d4707dc1e4e924a7e3ad5b08013c1655b45d2561..17a4c6037970646ae1249fed3a48b51be0fa7821 100644
+--- a/core/modules/comment/templates/comment.html.twig
++++ b/core/modules/comment/templates/comment.html.twig
+@@ -76,6 +76,7 @@
+     indicator here would break the render cache.
+   #}
+   <mark class="hidden" data-comment-timestamp="{{ new_indicator_timestamp }}"></mark>
++  {{ markers }}
+ 
+   {% if submitted %}
+     <footer>
+diff --git a/core/modules/comment/tests/src/Functional/CommentAnonymousTest.php b/core/modules/comment/tests/src/Functional/CommentAnonymousTest.php
+index a6a00eb7589333977267e926d0e80536afa32e7a..b3a7829e475d54ea08d819d8bd18701ead81b10c 100644
+--- a/core/modules/comment/tests/src/Functional/CommentAnonymousTest.php
++++ b/core/modules/comment/tests/src/Functional/CommentAnonymousTest.php
+@@ -53,7 +53,7 @@ class CommentAnonymousTest extends CommentTestBase {
+     $this->drupalGet($this->node->toUrl());
+     $this->submitForm($edit, 'Preview');
+     // Cannot use assertRaw here since both title and body are in the form.
+-    $preview = (string) $this->cssSelect('[data-drupal-selector="edit-comment-preview"]')[0]->getHtml();
++    $preview = (string) $this->cssSelect('.comment.by-anonymous')[0]->getHTML();
+     $this->assertStringContainsString($title, $preview, 'Anonymous user can preview comment title.');
+     $this->assertStringContainsString($body, $preview, 'Anonymous user can preview comment body.');
+ 
+@@ -67,7 +67,7 @@ class CommentAnonymousTest extends CommentTestBase {
+     $this->drupalGet($this->node->toUrl());
+     $this->submitForm($edit, 'Preview');
+     // Cannot use assertRaw here since both title and body are in the form.
+-    $preview = (string) $this->cssSelect('[data-drupal-selector="edit-comment-preview"]')[0]->getHtml();
++    $preview = (string) $this->cssSelect('.comment.by-anonymous')[0]->getHTML();
+     $this->assertStringContainsString($title, $preview, 'Anonymous user can preview comment title.');
+     $this->assertStringContainsString($body, $preview, 'Anonymous user can preview comment body.');
+     user_role_grant_permissions(RoleInterface::ANONYMOUS_ID, ['skip comment approval']);
+diff --git a/core/modules/comment/tests/src/Functional/CommentCSSTest.php b/core/modules/comment/tests/src/Functional/CommentCSSTest.php
+index 6894ffef589df8e2a32161e0d7bd56b24c53ca56..bba0593fe903474223a4e1634d64b6d25faf262a 100644
+--- a/core/modules/comment/tests/src/Functional/CommentCSSTest.php
++++ b/core/modules/comment/tests/src/Functional/CommentCSSTest.php
+@@ -126,7 +126,7 @@ class CommentCSSTest extends CommentTestBase {
+       }
+ 
+       // Verify the unpublished class.
+-      $comments = '//*[contains(@class, "comment") and contains(@class, "unpublished")]';
++      $comments = '//*[contains(@class, "comment")]//span[.="unpublished"]';
+       if ($case['comment_status'] == CommentInterface::NOT_PUBLISHED && $case['user'] == 'admin') {
+         $this->assertSession()->elementsCount('xpath', $comments, 1);
+       }
+diff --git a/core/modules/comment/tests/src/Functional/CommentPreviewTest.php b/core/modules/comment/tests/src/Functional/CommentPreviewTest.php
+index e116ea29db715e43cc53b4ef7858e802b4b14503..f5ebea7e0bf1e522c67a01d4b636d0be7799ca95 100644
+--- a/core/modules/comment/tests/src/Functional/CommentPreviewTest.php
++++ b/core/modules/comment/tests/src/Functional/CommentPreviewTest.php
+@@ -81,7 +81,7 @@ class CommentPreviewTest extends CommentTestBase {
+     $this->assertSession()->fieldValueEquals('comment_body[0][value]', $edit['comment_body[0][value]']);
+ 
+     // Check that the user picture is displayed.
+-    $this->assertSession()->elementExists('xpath', "//article[contains(@class, 'preview')]//div[contains(@class, 'user-picture')]//img");
++    $this->assertSession()->elementExists('xpath', '//article[contains(@class, "comment")]//div[contains(@class, "field--name-user-picture")]//img');
+ 
+     // Ensure that preview node is displayed after the submit buttons of the
+     // form.
+diff --git a/core/modules/history/src/Plugin/views/field/HistoryUserTimestamp.php b/core/modules/history/src/Plugin/views/field/HistoryUserTimestamp.php
+index d83b5a76fae4df02df292b80d8f8aa8bd3e42baa..7686abaec07fee1561af4a8a7fe6b23a639515c7 100644
+--- a/core/modules/history/src/Plugin/views/field/HistoryUserTimestamp.php
++++ b/core/modules/history/src/Plugin/views/field/HistoryUserTimestamp.php
+@@ -83,7 +83,7 @@ class HistoryUserTimestamp extends Node {
+    */
+   public function render(ResultRow $values) {
+     // Let's default to 'read' state.
+-    $mark = MARK_READ;
++    $mark = $this->t('read', [], ['context' => 'Status of entity']);
+     if (\Drupal::currentUser()->isAuthenticated()) {
+       $last_read = $this->getValue($values);
+       $changed = $this->getValue($values, 'changed');
+@@ -91,13 +91,13 @@ class HistoryUserTimestamp extends Node {
+       $last_comment = \Drupal::moduleHandler()->moduleExists('comment') && !empty($this->options['comments']) ? $this->getValue($values, 'last_comment') : 0;
+ 
+       if (!$last_read && $changed > HISTORY_READ_LIMIT) {
+-        $mark = MARK_NEW;
++        $mark = $this->t('new', [], ['context' => 'Status of entity']);
+       }
+       elseif ($changed > $last_read && $changed > HISTORY_READ_LIMIT) {
+-        $mark = MARK_UPDATED;
++        $mark = $this->t('updated', [], ['context' => 'Status of entity']);
+       }
+       elseif ($last_comment > $last_read && $last_comment > HISTORY_READ_LIMIT) {
+-        $mark = MARK_UPDATED;
++        $mark = $this->t('updated', [], ['context' => 'Status of entity']);
+       }
+       $build = [
+         '#theme' => 'mark',
+diff --git a/core/modules/history/tests/src/Kernel/Views/HistoryTimestampTest.php b/core/modules/history/tests/src/Kernel/Views/HistoryTimestampTest.php
+index e6b6f374804fd2a0931b3822bf058871eeb26599..6a71628b61386331372eb7c1ec82eff7fa66c8ec 100644
+--- a/core/modules/history/tests/src/Kernel/Views/HistoryTimestampTest.php
++++ b/core/modules/history/tests/src/Kernel/Views/HistoryTimestampTest.php
+@@ -95,7 +95,7 @@ class HistoryTimestampTest extends ViewsKernelTestBase {
+     $this->assertCount(2, $view->result);
+     $output = $view->preview();
+     $this->setRawContent(\Drupal::service('renderer')->renderRoot($output));
+-    $result = $this->xpath('//span[@class=:class]', [':class' => 'marker']);
++    $result = $this->xpath('//*[contains(@class, "views-row")]//span[.="read"]');
+     $this->assertCount(1, $result, 'Just one node is marked as new');
+ 
+     // Test the history filter.
+diff --git a/core/modules/node/node.module b/core/modules/node/node.module
+index c99569a1c67babb6f2d14f4d505419689fd1ae58..fb3fdf2c96ca93e5af2036673318ad158fdfceb3 100644
+--- a/core/modules/node/node.module
++++ b/core/modules/node/node.module
+@@ -74,16 +74,16 @@ function node_title_list(StatementInterface $result, $title = NULL) {
+ function node_mark($nid, $timestamp) {
+   @trigger_error(__FUNCTION__ . '() is deprecated in drupal:11.2.0 and is removed from drupal:12.0.0. There is no replacement. See https://www.drupal.org/node/3514189', E_USER_DEPRECATED);
+   if (\Drupal::currentUser()->isAnonymous() || !\Drupal::moduleHandler()->moduleExists('history')) {
+-    return MARK_READ;
++    return t('read');
+   }
+   $read_timestamp = history_read($nid);
+   if ($read_timestamp === 0 && $timestamp > HISTORY_READ_LIMIT) {
+-    return MARK_NEW;
++    return t('new');
+   }
+   elseif ($timestamp > $read_timestamp && $timestamp > HISTORY_READ_LIMIT) {
+-    return MARK_UPDATED;
++    return t('updated');
+   }
+-  return MARK_READ;
++  return t('read');
+ }
+ 
+ /**
+@@ -383,6 +383,16 @@ function template_preprocess_node(&$variables): void {
+     }
+   }
+ 
++  $variables['markers'] = [];
++  // Add a marker if the node is unpublished.
++  if (!$variables['node']->isPublished()) {
++    $variables['markers'][] = [
++      '#theme' => 'mark',
++      '#status' => 'unpublished',
++      '#type' => 'warning',
++    ];
++  }
++
+ }
+ 
+ /**
+diff --git a/core/modules/system/templates/mark.html.twig b/core/modules/system/templates/mark.html.twig
+index 58adae1073eed21d2257a4125ae763ead2b5d581..ca95f47d65b2e2f1f67e33fbf8e8280969b49cfd 100644
+--- a/core/modules/system/templates/mark.html.twig
++++ b/core/modules/system/templates/mark.html.twig
+@@ -4,19 +4,12 @@
+  * Default theme implementation for a marker for new or updated content.
+  *
+  * Available variables:
+- * - status: Number representing the marker status to display. Use the constants
+- *   below for comparison:
+- *   - MARK_NEW
+- *   - MARK_UPDATED
+- *   - MARK_READ
++ * - status: The status message to display.
++ * - type: The type of message.
+  *
+  * @ingroup themeable
+  */
+ #}
+ {% if logged_in %}
+-  {% if status is constant('MARK_NEW') %}
+-    {{ 'New'|t }}
+-  {% elseif status is constant('MARK_UPDATED') %}
+-    {{ 'Updated'|t }}
+-  {% endif %}
++  {{ status }}
+ {% endif %}
+diff --git a/core/profiles/demo_umami/themes/umami/css/classy/components/node.css b/core/profiles/demo_umami/themes/umami/css/classy/components/node.css
+index 6b7cd5257d6d167426d11e2b6adb5eda3fecbfdf..59825e0b7b2d41e248ff933e6f16e62adbebc188 100644
+--- a/core/profiles/demo_umami/themes/umami/css/classy/components/node.css
++++ b/core/profiles/demo_umami/themes/umami/css/classy/components/node.css
+@@ -3,6 +3,9 @@
+  * Visual styles for nodes.
+  */
+ 
+-.node--unpublished {
+-  background-color: #fff4f4;
++ .node__status {
++  float: right; /* LTR */
++}
++[dir="rtl"] .node__status {
++  float: left;
+ }
+diff --git a/core/profiles/demo_umami/themes/umami/templates/classy/content/comment.html.twig b/core/profiles/demo_umami/themes/umami/templates/classy/content/comment.html.twig
+index b8bd1f8e205a271a48a2d8132c98576af6996237..2d0a7f2d37aa4b9a736e2edf1e39f4a6a19eac70 100644
+--- a/core/profiles/demo_umami/themes/umami/templates/classy/content/comment.html.twig
++++ b/core/profiles/demo_umami/themes/umami/templates/classy/content/comment.html.twig
+@@ -73,7 +73,6 @@
+   set classes = [
+     'comment',
+     'js-comment',
+-    status != 'published' ? status,
+     comment.owner.anonymous ? 'by-anonymous',
+     author_id and author_id == commented_entity.getOwnerId() ? 'by-' ~ commented_entity.getEntityTypeId() ~ '-author',
+   ]
+@@ -88,6 +87,7 @@
+ 
+   {% if submitted %}
+     <footer class="comment__meta">
++      {{ markers }}
+       {{ user_picture }}
+       <p class="comment__submitted">{{ submitted }}</p>
+ 
+diff --git a/core/profiles/demo_umami/themes/umami/templates/classy/content/mark.html.twig b/core/profiles/demo_umami/themes/umami/templates/classy/content/mark.html.twig
+index 9219915ce5d567258169d4b58cdf44a32263e0b4..367129179cacb4c9a78e92b3ad041736b4f52843 100644
+--- a/core/profiles/demo_umami/themes/umami/templates/classy/content/mark.html.twig
++++ b/core/profiles/demo_umami/themes/umami/templates/classy/content/mark.html.twig
+@@ -4,17 +4,9 @@
+  * Theme override for a marker for new or updated content.
+  *
+  * Available variables:
+- * - status: Number representing the marker status to display. Use the constants
+- *   below for comparison:
+- *   - MARK_NEW
+- *   - MARK_UPDATED
+- *   - MARK_READ
++ * - status: The status message to display.
++ * - type: The type of message.
+  */
+ #}
+-{% if logged_in %}
+-  {% if status is constant('MARK_NEW') %}
+-    <span class="marker">{{ 'New'|t }}</span>
+-  {% elseif status is constant('MARK_UPDATED') %}
+-    <span class="marker">{{ 'Updated'|t }}</span>
+-  {% endif %}
+-{% endif %}
++{{ attach_library('classy/marker') }}
++<span class="marker marker--{{ type }}">{{ status }}</span>
+diff --git a/core/themes/claro/css/classy/components/node.css b/core/themes/claro/css/classy/components/node.css
+index 6b7cd5257d6d167426d11e2b6adb5eda3fecbfdf..ee948e115b301400a34a92f5f13f082a17fcfb8c 100644
+--- a/core/themes/claro/css/classy/components/node.css
++++ b/core/themes/claro/css/classy/components/node.css
+@@ -3,6 +3,9 @@
+  * Visual styles for nodes.
+  */
+ 
+-.node--unpublished {
+-  background-color: #fff4f4;
++.node__status {
++  float: right; /* LTR */
++}
++[dir="rtl"] .node__status {
++  float: left;
+ }
+diff --git a/core/themes/claro/templates/classy/content/comment.html.twig b/core/themes/claro/templates/classy/content/comment.html.twig
+index 689a57db504e6ba29828a2b28b861d4af9dc906a..8de654e9a42560eb2c1688a32bd6a9130cb74e2e 100644
+--- a/core/themes/claro/templates/classy/content/comment.html.twig
++++ b/core/themes/claro/templates/classy/content/comment.html.twig
+@@ -73,7 +73,6 @@
+   set classes = [
+     'comment',
+     'js-comment',
+-    status != 'published' ? status,
+     comment.owner.anonymous ? 'by-anonymous',
+     author_id and author_id == commented_entity.getOwnerId() ? 'by-' ~ commented_entity.getEntityTypeId() ~ '-author',
+   ]
+@@ -88,6 +87,7 @@
+ 
+   {% if submitted %}
+     <footer class="comment__meta">
++      {{ markers }}
+       {{ user_picture }}
+       <p class="comment__submitted">{{ submitted }}</p>
+ 
+diff --git a/core/themes/claro/templates/classy/content/mark.html.twig b/core/themes/claro/templates/classy/content/mark.html.twig
+index 9219915ce5d567258169d4b58cdf44a32263e0b4..367129179cacb4c9a78e92b3ad041736b4f52843 100644
+--- a/core/themes/claro/templates/classy/content/mark.html.twig
++++ b/core/themes/claro/templates/classy/content/mark.html.twig
+@@ -4,17 +4,9 @@
+  * Theme override for a marker for new or updated content.
+  *
+  * Available variables:
+- * - status: Number representing the marker status to display. Use the constants
+- *   below for comparison:
+- *   - MARK_NEW
+- *   - MARK_UPDATED
+- *   - MARK_READ
++ * - status: The status message to display.
++ * - type: The type of message.
+  */
+ #}
+-{% if logged_in %}
+-  {% if status is constant('MARK_NEW') %}
+-    <span class="marker">{{ 'New'|t }}</span>
+-  {% elseif status is constant('MARK_UPDATED') %}
+-    <span class="marker">{{ 'Updated'|t }}</span>
+-  {% endif %}
+-{% endif %}
++{{ attach_library('classy/marker') }}
++<span class="marker marker--{{ type }}">{{ status }}</span>
+diff --git a/core/themes/claro/templates/classy/content/node.html.twig b/core/themes/claro/templates/classy/content/node.html.twig
+index 710c62ec968d0542250a8d061b15472dd73ede6c..c616701d3970ee6bad811f5b137831a25221e7f8 100644
+--- a/core/themes/claro/templates/classy/content/node.html.twig
++++ b/core/themes/claro/templates/classy/content/node.html.twig
+@@ -40,7 +40,6 @@
+  *   - node--promoted: Appears on nodes promoted to the front page.
+  *   - node--sticky: Appears on nodes ordered above other non-sticky nodes in
+  *     teaser listings.
+- *   - node--unpublished: Appears on unpublished nodes visible only to site
+  *     admins.
+  * - title_attributes: Same as attributes, except applied to the main title
+  *   tag that appears in the template.
+@@ -66,7 +65,6 @@
+     'node--type-' ~ node.bundle|clean_class,
+     node.isPromoted() ? 'node--promoted',
+     node.isSticky() ? 'node--sticky',
+-    not node.isPublished() ? 'node--unpublished',
+     view_mode ? 'node--view-mode-' ~ view_mode|clean_class,
+   ]
+ %}
+@@ -87,6 +85,7 @@
+       <div{{ author_attributes.addClass('node__submitted') }}>
+         {% trans %}Submitted by {{ author_name }} on {{ date }}{% endtrans %}
+         {{ metadata }}
++        {{ markers }}
+       </div>
+     </footer>
+   {% endif %}
+diff --git a/core/themes/stable9/templates/content/mark.html.twig b/core/themes/stable9/templates/content/mark.html.twig
+index bc70b5c78c0a93d00b7734e71389842d8f5563a7..367129179cacb4c9a78e92b3ad041736b4f52843 100644
+--- a/core/themes/stable9/templates/content/mark.html.twig
++++ b/core/themes/stable9/templates/content/mark.html.twig
+@@ -4,17 +4,9 @@
+  * Theme override for a marker for new or updated content.
+  *
+  * Available variables:
+- * - status: Number representing the marker status to display. Use the constants
+- *   below for comparison:
+- *   - MARK_NEW
+- *   - MARK_UPDATED
+- *   - MARK_READ
++ * - status: The status message to display.
++ * - type: The type of message.
+  */
+ #}
+-{% if logged_in %}
+-  {% if status is constant('MARK_NEW') %}
+-    {{ 'New'|t }}
+-  {% elseif status is constant('MARK_UPDATED') %}
+-    {{ 'Updated'|t }}
+-  {% endif %}
+-{% endif %}
++{{ attach_library('classy/marker') }}
++<span class="marker marker--{{ type }}">{{ status }}</span>
+diff --git a/core/themes/starterkit_theme/templates/content/mark.html.twig b/core/themes/starterkit_theme/templates/content/mark.html.twig
+index 9219915ce5d567258169d4b58cdf44a32263e0b4..367129179cacb4c9a78e92b3ad041736b4f52843 100644
+--- a/core/themes/starterkit_theme/templates/content/mark.html.twig
++++ b/core/themes/starterkit_theme/templates/content/mark.html.twig
+@@ -4,17 +4,9 @@
+  * Theme override for a marker for new or updated content.
+  *
+  * Available variables:
+- * - status: Number representing the marker status to display. Use the constants
+- *   below for comparison:
+- *   - MARK_NEW
+- *   - MARK_UPDATED
+- *   - MARK_READ
++ * - status: The status message to display.
++ * - type: The type of message.
+  */
+ #}
+-{% if logged_in %}
+-  {% if status is constant('MARK_NEW') %}
+-    <span class="marker">{{ 'New'|t }}</span>
+-  {% elseif status is constant('MARK_UPDATED') %}
+-    <span class="marker">{{ 'Updated'|t }}</span>
+-  {% endif %}
+-{% endif %}
++{{ attach_library('classy/marker') }}
++<span class="marker marker--{{ type }}">{{ status }}</span>
