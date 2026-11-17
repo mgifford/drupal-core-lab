@@ -1,5 +1,6 @@
 // Evidence for #867830: "Unpublished" style of rendered entities is not accessible (fork branch 867830-unpublished-style-of, the #306 re-roll; no MR).
 //   node tools/playwright/evaluate-867830.mjs [slug] [--browser=chromium|firefox|webkit] [--scheme=light|dark] [--forced-colors] [--viewport=WxH] [--themes=olivero,claro,stark] [--out=<dir>]
+// Add --screenreader for Guidepup assertions on live status snapshots (synthetic, not real AT).
 // Defaults: slug 867830-pinned, chromium, light, 1280x900, all three themes.
 // For each front-end theme (set as the default theme on both sites, identically, then put back to Olivero), and for each side, it opens the
 // three lab nodes (/lab/unpublished-article with a live and a held comment, /lab/unpublished-page, /lab/published-article as control) and
@@ -15,13 +16,17 @@ import { runArgs, launch, openSide, axeScan, baseResults, writeRun, contextMarkd
 
 const run = runArgs({ slug: '867830-pinned' });
 const { v, out } = run;
+const currentProposal = v.recipe === 'repro_867830_current';
+const screenreader = process.argv.includes('--screenreader');
+const speechChecks = screenreader ? await import('./lib/unpublished-speech.mjs') : null;
 const themesArg = process.argv.slice(2).find((a) => a.startsWith('--themes='));
-const THEMES = (themesArg ? themesArg.slice(9) : 'olivero,claro,stark').split(',').map((s) => s.trim()).filter(Boolean);
+const THEMES = (themesArg ? themesArg.slice(9) : currentProposal ? 'olivero,claro,default_admin' : 'olivero,claro,stark').split(',').map((s) => s.trim()).filter(Boolean);
 const PAGES = [
   { path: '/lab/unpublished-article', key: 'draftArticle', unpublished: true, comments: { live: 'A live comment', held: 'A comment awaiting approval' } },
   { path: '/lab/unpublished-page', key: 'draftPage', unpublished: true },
   { path: '/lab/published-article', key: 'liveArticle', unpublished: false, comments: { live: 'A live comment' } },
 ];
+const snapshotText = (text) => text.replace(/([?&]token=)[^&\s"'<>]+/g, '$1[redacted]');
 
 // The same config change on both sites, so only the code under test differs. Restored to Olivero at the end.
 function setDefaultTheme(env, theme) {
@@ -59,7 +64,8 @@ const probe = (page, spec) => page.evaluate((spec) => {
     const found = [];
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     for (let t = walker.nextNode(); t; t = walker.nextNode()) {
-      if (!/unpublished/i.test(t.textContent)) continue;
+      const contextText = /^\s*this (node|comment|content) is\s*$/i.test(t.textContent) && t.parentElement?.classList.contains('visually-hidden');
+      if (!/unpublished/i.test(t.textContent) && !contextText) continue;
       const el = t.parentElement; if (!el || (excludeSel && el.closest(excludeSel) && el.closest(excludeSel) !== root)) continue;
       const hidden = !!el.closest('.visually-hidden, [hidden], .hidden'); const cs = getComputedStyle(el);
       const fg = rgb(cs.color), bg = bgBehind(el);
@@ -96,9 +102,10 @@ async function runSide(side, theme) {
     await page.goto(base + spec.path, { waitUntil: 'load' });
     await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
     const p = await probe(page, spec);
+    if (speechChecks) p.screenreader = await speechChecks.checkPageSpeech(page, spec, side);
     const nodeEl = page.locator('article:not(.js-comment)').first();
-    p.nodeAria = await nodeEl.locator('footer').first().ariaSnapshot().catch(() => '');
-    if (spec.comments && spec.comments.held) p.heldCommentAria = await page.locator('article.js-comment', { hasText: spec.comments.held }).first().ariaSnapshot().catch(() => '');
+    p.nodeAria = snapshotText(await nodeEl.locator('footer').first().ariaSnapshot().catch(() => ''));
+    if (spec.comments && spec.comments.held) p.heldCommentAria = snapshotText(await page.locator('article.js-comment', { hasText: spec.comments.held }).first().ariaSnapshot().catch(() => ''));
     p.axe = await axeScan(page);
     await page.screenshot({ path: path.join(out, `${theme}-${side}-${spec.key}.png`), fullPage: true }).catch(() => {});
     pages[spec.key] = p;
@@ -134,7 +141,8 @@ const mk = (ms) => (ms && ms.length ? ms.map((m) => `"${m.text}" in \`${m.elemen
 const contrastOf = (ms) => (ms && ms.length ? ms.filter((m) => !m.visuallyHidden).map((m) => `${m.contrast}:1 (${m.color} on ${m.background}, ${m.fontSizePx}px)`).join('; ') || 'hidden only' : '-');
 let unexpected = 0;
 let md = `# Playwright evidence: #${v.issue} (${v.slug})\n\nRun ${results.when}. Core Before \`${results.commits.before}\`, After \`${results.commits.after}\` plus \`${(results.patches[0] || 'none').split('/').pop()}\`. ${environment.browser} ${environment.browserVersion}, ${environment.colorScheme}${environment.forcedColors ? ', forced colours' : ''}, ${run.viewport.width}x${run.viewport.height}, ${environment.os}. Themes: ${THEMES.join(', ')} (each set as the default theme on both sites, then Olivero restored). axe-core WCAG 2.0 to 2.2 A/AA on every page. Recorders: tools/playwright/lib/lab-run.mjs.\n\n`;
-md += `The change under test is the #306 re-roll as it is on the fork branch, not a merge request. Rule: **fix** rows should differ as the issue asks (Before no, After yes); **regression** rows should match on both sides; **observe** and **context** rows are recorded, not judged. A fix row that stays "no" on After is the finding, not a run error.\n\n`;
+md += `${currentProposal ? 'The change under test is the local current-Core proposal with separate contrib Olivero and Claro patches, not an upstream MR.' : 'The change under test is the #306 re-roll as it is on the fork branch, not a merge request.'} Rule: **fix** rows should differ as the issue asks (Before no, After yes); **regression** rows should match on both sides; **observe** and **context** rows are recorded, not judged. A fix row that stays "no" on After is the finding, not a run error.\n\n`;
+if (screenreader) md += 'Guidepup virtual screen reader reads status markup captured from each live page. Synthetic evidence only: no real VoiceOver/NVDA or human keyboard pass. Exact markup and spoken phrase logs are in each page’s `screenreader` array in results.json.\n\n';
 const judged = [];
 for (const theme of THEMES) {
   const B = results.themes[theme].before.pagesByKey, A = results.themes[theme].after.pagesByKey;
@@ -162,6 +170,10 @@ for (const theme of THEMES) {
     ['regression', 'axe violations (elements): draft article / draft page / live article', `${dB.axe.total} / ${pB.axe.total} / ${lB.axe.total}`, `${dA.axe.total} / ${pA.axe.total} / ${lA.axe.total}`, dB.axe.total === dA.axe.total && pB.axe.total === pA.axe.total && lB.axe.total === lA.axe.total],
     ['regression', 'JavaScript errors', results.themes[theme].before.jsErrors.length, results.themes[theme].after.jsErrors.length, results.themes[theme].before.jsErrors.length === 0 && results.themes[theme].after.jsErrors.length === 0],
   ];
+  if (screenreader) for (const key of Object.keys(B)) {
+    const good = ['before', 'after'].every((side) => results.themes[theme][side].pagesByKey[key].screenreader.every((c) => c.good));
+    rows.push(['regression', `Guidepup: ${key}, status count, visible label and contextual speech`, yn(B[key].screenreader.every((c) => c.good)), yn(A[key].screenreader.every((c) => c.good)), good]);
+  }
   md += `## Theme: ${theme}\n\n| Type | Check | Before | After | Verdict |\n|---|---|---|---|---|\n`;
   for (const [t, label, b, a, good] of rows) {
     const isJudged = t === 'fix' || t === 'regression';
@@ -179,7 +191,7 @@ md += contextMarkdown(results) + ajaxMarkdown(results) + speechMarkdown(results)
 const fixRows = judged.filter((j) => j.type === 'fix'), fixedCount = fixRows.filter((j) => j.good).length;
 const regBad = judged.filter((j) => j.type === 'regression' && !j.good).length;
 md += `## Reading\n\n${fixedCount} of ${fixRows.length} fix rows differ as the issue asks across ${THEMES.length} theme(s); ${regBad} regression row(s) differ. `;
-md += `Before shows the problem wherever a fix row says "none" or "no" on the Before side. The After side says, per theme, where the #306 re-roll prints a marker and where it does not.\n\n`;
+md += `Before shows the problem wherever a fix row says "none" or "no" on the Before side. The After side records, per theme, where ${currentProposal ? 'the local proposal' : 'the #306 re-roll'} prints a marker and where it does not.\n\n`;
 md += `---\nAutomated evidence is a DRAFT: DOM, colour and axe checks do not replace a keyboard and screen-reader pass by a person. No real VoiceOver or NVDA pass was made by this script.\n`;
 results.verdict = fixedCount === 0 ? 'reproduced-not-fixed' : (fixedCount === fixRows.length && regBad === 0 ? 'reproduced-and-fixed' : 'mixed');
 results.unexpected = unexpected;

@@ -3,18 +3,21 @@
      sentences of at most 25 words; plain facts; no headers; no tool or model names; end with the disclosure line.
      Check it with: node scripts/check-draft.mjs 867830. Every sentence matches a row in EVIDENCE.md. Delete this block when you post. -->
 
-Tested the #306 branch (867830-unpublished-style-of, 0fcbb553) on its base commit 422099995ecf, with Olivero, Claro and Stark.
+The lab now has a separate current-Core proposal, not a re-test of the historical #306 branch.
 
-As pushed, every page fails: `Undefined constant "Drupal\Core\Theme\MARK_NEW"` in ThemeCommonElements.php line 136. The branch removes the MARK_* constants but not that default.
+It adds visible Unpublished text with hidden node/comment context, independently of author metadata.
+Separate patches cover Core, Claro and Olivero. Core includes Default Admin and Starterkit templates; existing generated themes need their own updates.
 
-With that default set to NULL locally, Olivero output is unchanged. The unpublished node has only the #fff4f4 background, measured 1.01:1 against the page. Published comments gain an empty `comment--` class.
+The shared fixture has three nodes and published/held comments, with fixed aliases and published-content controls.
+November 17 Default Admin checks passed in light, dark and forced colours on Core 3fb1c69d3692.
+November 9 checks also covered Claro and Olivero.
 
-In Claro, articles and comments get an unstyled "unpublished" span after the submitted line. Basic pages get nothing, because the marker sits inside `display_submitted`. The `node--unpublished` class and pink background are removed. The `classy/marker` library does not exist.
+This does not settle the Navigation Top Bar chip's styling, contrast or duplicate-status questions.
+No person-led keyboard, visual or real screen-reader review has been completed.
 
-In Stark, only comments get the word, as a bare text node. No output has the hidden "This node is" context from the summary.
+Before RTBC, we still need a targeted summary update, agreement on scope, and independently reviewed implementation and accessibility evidence.
 
-The branch no longer applies to main: Claro, Olivero, Stable 9 and History have left core.
-
-Not tested: a real screen reader, the branch's PHPUnit changes.
+The [lab report](https://github.com/mgifford/drupal-core-lab/tree/main/reports/issues/867830) contains the reproduction recipe, patch identities, evidence and proposed Claro follow-up.
+Please review this draft and the linked proposals before posting.
 
 Generated with the help of an LLM.

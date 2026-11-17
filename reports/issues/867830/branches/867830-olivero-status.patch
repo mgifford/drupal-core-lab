@@ -1,0 +1,50 @@
+diff --git a/templates/content/comment.html.twig b/templates/content/comment.html.twig
+index f9ef1733569..2cc1b22db72 100644
+--- a/templates/content/comment.html.twig
++++ b/templates/content/comment.html.twig
+@@ -93,6 +93,9 @@
+     </div>
+   {% endif %}
+   <div class="comment__text-wrapper">
++    {% if status == 'unpublished' %}
++      <p class="unpublished-status"><strong>{% trans %}<span class="visually-hidden">This comment is </span>Unpublished{% endtrans %}</strong></p>
++    {% endif %}
+     {% if submitted %}
+       <footer class="comment__meta">
+         <p class="comment__author">{{ author }}</p>
+diff --git a/templates/content/node--teaser.html.twig b/templates/content/node--teaser.html.twig
+index fb5005e641c..0d8c89c2c26 100644
+--- a/templates/content/node--teaser.html.twig
++++ b/templates/content/node--teaser.html.twig
+@@ -71,6 +71,7 @@
+ 
+ {% embed 'olivero:teaser' with {
+   attributes: attributes.addClass(classes),
++  node,
+   author_attributes,
+   author_name,
+   content,
+@@ -85,6 +86,9 @@
+   url,
+   } only %}
+   {% block prefix %}
++    {% if not node.isPublished() %}
++      <p class="unpublished-status"><strong>{% trans %}<span class="visually-hidden">This node is </span>Unpublished{% endtrans %}</strong></p>
++    {% endif %}
+     {{ title_prefix }}
+     {{ title_suffix }}
+   {% endblock %}
+diff --git a/templates/content/node.html.twig b/templates/content/node.html.twig
+index a0d942a1912..036e7671e46 100644
+--- a/templates/content/node.html.twig
++++ b/templates/content/node.html.twig
+@@ -73,6 +73,9 @@
+ %}
+ <article{{ attributes.addClass(classes) }}>
+   <header class="{{ layout }}">
++    {% if not node.isPublished() %}
++      <p class="unpublished-status"><strong>{% trans %}<span class="visually-hidden">This node is </span>Unpublished{% endtrans %}</strong></p>
++    {% endif %}
+     {{ title_prefix }}
+       {% if label and view_mode != 'full' %}
+       <h2{{ title_attributes.addClass('node__title') }}>

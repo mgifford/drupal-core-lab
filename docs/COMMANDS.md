@@ -14,10 +14,10 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/lab-env.mjs status | start <slug> | stop <slug|all> | delete <slug> --yes   # manage environments (two at a time); start also launches the viewer; status also shows each checkout's core commit and lists pairs that are not in the state their variant asks for
     node tools/compare/setup.mjs <slug>                  # build Before and After from scratch (resumable, idempotent)
     node tools/compare/setup.mjs <slug> --check-patches  # only: do the patches still apply to that core?
-    node tools/compare/setup.mjs <slug> --refresh-patches  # patched files (or contrib modules) no longer match the patch files (setup said BLOCKED, exit 4): restore them, apply the current patches; a contrib module is extracted again, the old folder kept as a backup
+    node tools/compare/setup.mjs <slug> --refresh-patches  # patched files (or contrib module/theme) no longer match the patch files (setup said BLOCKED, exit 4): restore them, apply the current patches; a contrib project is extracted again, the old folder kept as a backup
     node tools/compare/serve.mjs <slug> [--ddev]         # side-by-side viewer (http://localhost:8100 or https://drupal-compare.ddev.site)
     node tools/compare/diff.mjs <slug>                   # which served files and pages differ
-    node scripts/lint.mjs <slug> --contrib               # the contrib patches: PHPCS (Drupal, DrupalPractice) on their PHP files; other types are listed as NOT checked; "NOTHING CHECKED" is not a pass
+    node scripts/lint.mjs <slug> --contrib               # contrib module/theme patches: PHPCS (Drupal, DrupalPractice) on PHP files; other types are listed as NOT checked; "NOTHING CHECKED" is not a pass
     node scripts/lint.mjs <slug> [--host]                # core's commit-code-check.sh on only the patched files (CSpell, PHPCS, PHPStan, ESLint, Stylelint, .pcss.css)
     node scripts/code-map.mjs <env|folder> <symbol|file>   # ONE call for locate + read: definition, body, what it calls, who uses it, its tests (or a file outline); use it instead of a grep, sed, cat chain
     node scripts/try-tests.mjs <slug> <tests...> [--existing <core test path...>] [--patch-out <f>] [--mr-ref <ref>] [--report <f>]   # proposed PHPUnit tests, one call: copy into Before and After, `ddev phpunit` both, remove, PHPCS+PHPStan, patch checked against the MR; sites must be running
@@ -25,6 +25,7 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/feedback.mjs resolve <nid> <id> --run <run> --outcome <met|not-met|needs-person> --observed "<what the run showed>" [--revised-patch <f>...] [--supersede <older run> --reason "<why>"]   # the answering run; list <nid> prints the table
     node tools/compare/setup.mjs <slug> --checkout-only  # worktrees and patches only, no DDEV (enough for lint --host); --core-url=<mirror> if drupalcode is unreachable
     node tools/playwright/walkthrough.mjs <slug>         # scripted replay with real input; writes evidence and an interpretation
+    node tools/playwright/evaluate-867830.mjs 867830-current-authoring --screenreader [--forced-colors]   # Olivero, Claro, Default Admin: live DOM/axe/contrast and synthetic Guidepup assertions, both sides
     node tools/playwright/tree-diff.mjs <nid|slug> [--page=/path]... [--viewport=WxH]   # accessibility tree, ARIA after JavaScript and Guidepup speech of each page, Before vs After: reports/issues/<nid>/tree-diff/<slug>/ (docs/ACCESSIBILITY-TREE-DIFF.md)
     node tools/playwright/tree-diff.mjs --before=<url> --after=<url> --page=/path --out=<dir> [--login-before=<path>] [--login-after=<path>]   # the same for any two sites
     node scripts/issue-intake.mjs fetch <nid> [--mr <n>]   # fetch an issue with its related, parent, child and mentioned issues and the review threads of every merge request: complete snapshot in .lab-cache/ (git-ignored), manifest + comment index + BRIEF.md in reports/issues/<nid>/intake/; says what changed since the last fetch and which handoffs that makes stale

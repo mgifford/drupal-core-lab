@@ -15,6 +15,18 @@ Local development only. Automated results are a DRAFT until a person has reviewe
 | **Accessibility tree diff** | Did the change alter what assistive technology is given? Per page, Before vs After: Chromium's accessibility tree, the ARIA attributes after JavaScript (broken ID references flagged) and Guidepup's speech through the whole page. Each page as it loads. [docs/ACCESSIBILITY-TREE-DIFF.md](ACCESSIBILITY-TREE-DIFF.md) | `tools/playwright/tree-diff.mjs` |
 | **Accessibility Insights for Web** (Microsoft, a person runs it) | Checking the **viewer itself**, and as an optional manual aid (below). It is not run by any script here. | see below |
 
+## Static self-test dependencies
+
+Install the locked JavaScript packages before running the lab self-test:
+
+    PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci --prefix tools/playwright
+    npm install --no-save --prefix tools/compare/.deps js-yaml@4
+    node scripts/selftest.mjs
+
+The shared unpublished-status tests use jsdom and Guidepup without a browser.
+CI installs these dependencies rather than skipping the tests. Browser binaries
+and live Drupal comparisons remain separate setup steps.
+
 ## Accessibility Insights for Web
 Not used by any automation in this lab: the scripts call axe-core directly. It has been used by hand for two things.
 
