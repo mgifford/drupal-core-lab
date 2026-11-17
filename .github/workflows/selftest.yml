@@ -20,4 +20,7 @@ jobs:
         with:
           node-version: 22
       - run: npm install --no-save --prefix tools/compare/.deps js-yaml@4
+      - run: npm ci --prefix tools/playwright
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
       - run: node scripts/selftest.mjs
