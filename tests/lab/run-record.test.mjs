@@ -54,6 +54,33 @@ test('a changed contrib patch, a changed contrib pin, a changed recipe and a cha
   const oldContrib = f.results({ contrib: [{ name: 'zmod', url: 'u', commit: 'd'.repeat(40) }] }); assert.match(f.st(oldContrib, f.variant()).reasons.join('\n'), /contrib module zmod is pinned at cccccccc now, the run used dddddddd/);
 });
 
+test('a contrib theme patch and pin are compared with the theme type and project name', () => {
+  const f = lab(); w(path.join(f.L, 'p/theme.patch'), 'theme v1\n');
+  const theme = { name: 'olivero', type: 'theme', url: 'u', commit: 'c'.repeat(40) };
+  const variant = f.variant({ contrib: [theme], after: { env: 'a', patches: ['p/core.patch'], contribPatches: [{ project: 'olivero', patch: 'p/theme.patch' }] } });
+  const results = f.results({
+    contrib: [{ ...theme, commit: 'd'.repeat(40) }],
+    patchState: { before: { current: [], contrib: {} }, after: { current: [{ path: 'p/core.patch', sha256: sha256(fs.readFileSync(path.join(f.L, 'p/core.patch'))) }], contrib: { olivero: { patches: [{ path: 'p/theme.patch', sha256: sha256(fs.readFileSync(path.join(f.L, 'p/theme.patch'))) }] } } } },
+  });
+  const stale = f.st(results, variant);
+  assert.equal(stale.status, 'stale');
+  assert.match(stale.reasons.join('\n'), /contrib theme olivero is pinned at cccccccc now, the run used dddddddd/);
+  results.contrib[0].commit = theme.commit;
+  assert.equal(f.st(results, variant).status, 'current');
+  w(path.join(f.L, 'p/theme.patch'), 'theme v2\n');
+  assert.match(f.st(results, variant).reasons.join('\n'), /after contrib patch \(olivero\) p\/theme\.patch changed since the run/);
+});
+
+test('a contrib type change alone makes a run stale, including legacy untyped module records', () => {
+  const f = lab(), project = f.variant().contrib[0], results = f.results({ contrib: [project] });
+  assert.equal(f.st(results, f.variant()).status, 'current');
+  const themeVariant = f.variant({ contrib: [{ ...project, type: 'theme' }] });
+  assert.match(f.st(results, themeVariant).reasons.join('\n'), /contrib theme zmod.*module in the run/);
+  results.contrib[0] = { ...project, type: 'theme' };
+  assert.equal(f.st(results, themeVariant).status, 'current');
+  assert.match(f.st(results, f.variant()).reasons.join('\n'), /contrib module zmod.*theme in the run/);
+});
+
 test('an older run that recorded no hashes is unrecorded: never current, never stale; a hint says when git shows a patch file changed after it', () => {
   const f = lab(), old = { variant: 'zz-latest', when: '2026-10-01T10:00:00Z', patches: ['p/core.patch'], commits: { after: 'abc 2026-10-01' } };
   let s = f.st(old, f.variant()); assert.equal(s.status, 'unrecorded'); assert.deepEqual(s.reasons, []); assert.deepEqual(s.hints, []); assert.match(s.notes.join(), /recipe not recorded/);

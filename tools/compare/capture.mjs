@@ -9,13 +9,16 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { MARKER } from './patch-state.mjs';
+import { contribProjectPath } from './contrib-state.mjs';
 
 const git = (dir, args, o = {}) => spawnSync('git', args, { cwd: dir, encoding: o.buffer ? 'buffer' : 'utf8', maxBuffer: 1 << 28, env: o.env || process.env, input: o.input });
 const firstLine = (r) => `${r.stderr || r.stdout || ''}`.trim().split('\n')[0].slice(0, 220);
 
-// Files the lab itself puts in a checkout: never part of a change under test. The contrib modules it extracts into modules/contrib are its
-// own too (they have their own patches, `contribPatches`; writing a patch for one is not what this does).
-export const labFiles = (recipe, contribNames = []) => [MARKER, '.lab-contrib-patches-applied', ...(recipe ? [`recipes/${recipe}`] : []), ...contribNames.flatMap((n) => [`.lab-contrib-${n}`, `modules/contrib/${n}`])];
+// Files the lab itself puts in a checkout: never part of a change under test. Contrib project folders have their own patches.
+export const labFiles = (recipe, contribProjects = []) => [MARKER, '.lab-contrib-patches-applied', ...(recipe ? [`recipes/${recipe}`] : []), ...contribProjects.flatMap((project) => {
+  const p = typeof project === 'string' ? { name: project } : project;
+  return [`.lab-contrib-${p.name}`, contribProjectPath(p)];
+})];
 
 // patchBufs: the declared patches, in order (Buffers). exclude: extra paths to leave out. Returns
 //   { ok: true, patch: Buffer, files: [{ status, path }], expectedTree, actualTree }   (patch is empty when there is nothing to capture)

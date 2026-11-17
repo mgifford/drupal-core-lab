@@ -65,9 +65,9 @@ if (process.argv.includes('--network')) {
   else {
     const coreUrl = (process.argv.find((a) => a.startsWith('--core-url=')) || '').slice('--core-url='.length) || process.env.LAB_CORE_URL || '';
     for (const h of await checkHosts(hostsFor(v, { coreUrl }))) {
-      const contrib = h.why.some((w) => w.startsWith('contrib module'));
+      const contrib = h.why.some((w) => w.startsWith('contrib module') || w.startsWith('contrib theme') || w.startsWith('contrib project'));
       add(h.ok ? 'PASS' : 'FAIL', `Network: ${h.host}`, `${h.ok ? 'reachable' : 'NOT reachable'} (${h.detail}); needed for ${h.why.join('; ')}`,
-        contrib ? 'a contrib module is cloned from its own URL; seed it from a machine that can reach it, or build where it is reachable' : /Drupal core/.test(h.why.join()) ? `use a mirror (--core-url=<url>) or seed from a checkout (--core-from=<path>, --use-existing-core); see tools/compare/cloud/README.md` : 'this host is needed by the build; no lab option replaces it');
+        contrib ? 'a contrib project is cloned from its own URL; seed it from a machine that can reach it, or build where it is reachable' : /Drupal core/.test(h.why.join()) ? `use a mirror (--core-url=<url>) or seed from a checkout (--core-from=<path>, --use-existing-core); see tools/compare/cloud/README.md` : 'this host is needed for the build; no lab option replaces it');
     }
   }
 }

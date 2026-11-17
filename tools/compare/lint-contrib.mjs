@@ -1,24 +1,26 @@
 // What `scripts/lint.mjs --contrib` checks in the contrib patches of a variant (AI-usage Phase 5).
 // Core's commit-code-check.sh and its configuration are for core files, so contrib files get the Drupal coding standard (PHPCS with
 // Drupal and DrupalPractice, from the coder package core already installs). Other file types (CSS, JavaScript, YAML, Twig) are listed as
-// NOT checked: they need the module's own ESLint and Stylelint configuration, which the lab does not run. Nothing here says a file is clean
+// NOT checked: they need the contrib project's own lint configuration, which the lab does not run. Nothing here says a file is clean
 // unless a tool ran on it.
 import fs from 'node:fs';
 import path from 'node:path';
+import { contribPatchProject, contribProjectPath } from './contrib-state.mjs';
 
 export const PHPCS_EXT = ['php', 'module', 'inc', 'install', 'theme', 'profile', 'test', 'engine'];
-const SUB = 'modules/contrib';
 const q = (s) => `'${s.replace(/'/g, `'\\''`)}'`;
 
 // The files the contrib patches add or change, as paths in the checkout. Deleted files have nothing to check.
-// contribPatches: [{ module, patch }]. Returns [{ module, file, ext, exists }] (file is relative to the checkout).
-export function contribFileList(contribPatches, labRoot, dir) {
+// contribPatches use `module` for existing module entries or `project` for a module or theme.
+export function contribFileList(contribPatches, labRoot, dir, projects = []) {
   const seen = new Set(), out = [];
-  for (const { module, patch } of contribPatches) {
-    const text = fs.readFileSync(path.join(labRoot, patch), 'utf8');
+  for (const patchEntry of contribPatches) {
+    const projectName = contribPatchProject(patchEntry);
+    const project = projects.find((item) => item.name === projectName) || { name: projectName };
+    const text = fs.readFileSync(path.join(labRoot, patchEntry.patch), 'utf8');
     for (const m of text.matchAll(/^\+\+\+ b\/(.+?)\t?$/gm)) {
-      const rel = m[1].trim(), file = `${SUB}/${module}/${rel}`; if (seen.has(file)) continue; seen.add(file);
-      out.push({ module, file, ext: (path.extname(rel).slice(1) || '(none)').toLowerCase(), exists: fs.existsSync(path.join(dir, file)) });
+      const rel = m[1].trim(), file = `${contribProjectPath(project)}/${rel}`; if (seen.has(file)) continue; seen.add(file);
+      out.push({ project: projectName, file, ext: (path.extname(rel).slice(1) || '(none)').toLowerCase(), exists: fs.existsSync(path.join(dir, file)) });
     }
   }
   return out;
