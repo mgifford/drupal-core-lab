@@ -75,9 +75,111 @@ overlap: they share the two sites and switch their default theme.
 Use real input for anything about focus; these pages need none. A person's visual and screen reader pass is still needed: the scripted
 rows are DOM and colour measurements.
 
-## Try current core
+## Historical branch on current Core
 
 Not possible with this branch: on `main` (`3fb1c69d`, 2026-11-06) the files it changes under Claro, Stable 9 and History no longer exist, and
 Olivero is no longer in core. A current-core comparison needs a new patch against `core/modules/node/templates/node.html.twig`,
 `core/modules/comment/templates/comment.html.twig`, `core/modules/system/templates/mark.html.twig` and the themes that remain
 (`default_admin`, `starterkit_theme`, Umami), with Olivero and Claro added from contrib if they are to be covered. Do not re-pin until that exists.
+
+## New current-Core proposal (2026-11-09)
+
+**Separate AI-assisted local draft**, not the old branch re-rolled. Historical evidence above
+does not validate this proposal. Its generic `mark` hook is intentionally unchanged.
+
+- Variant: `867830-current-authoring`, Core `3fb1c69d36927265f30e4dbc418828f5b884b73f`.
+- Before: `baseline-867830-current-authoring`, pristine Core and pristine pinned contrib themes.
+- After: `issue-867830-current-authoring`, the same base with
+  `branches/867830-current-core-status.patch`, plus project-relative
+  `branches/867830-olivero-status.patch` and `branches/867830-claro-status.patch`.
+  Full contrib pins and patch scopes are in [BRANCHES.md](BRANCHES.md).
+- Recipe: `recipes/repro_867830_current/recipe.yml`, then `apply.sh` and `create-content.php`.
+  Standard install precondition. The fixture script creates the missing Article and Basic page
+  bundles, text fields and comment type/field/display on current Core. Article displays submission
+  metadata; Basic page does not. The aliases and comment subjects match the historical scenario.
+- Current-main compatibility variant: `867830-current-latest`. It follows main with its own
+  environments; check patch application before building, and collect new evidence after any update.
+
+```bash
+node scripts/doctor.mjs 867830-current-authoring
+node tools/compare/setup.mjs 867830-current-authoring
+node scripts/lab-env.mjs start 867830-current-authoring --browser
+node tools/playwright/evaluate-867830.mjs 867830-current-authoring --screenreader
+node tools/playwright/evaluate-867830.mjs 867830-current-authoring --screenreader --forced-colors
+node scripts/lint.mjs 867830-current-authoring
+node tools/compare/setup.mjs 867830-current-latest --check-patches
+```
+
+### Shared walkthrough (2026-11-17)
+
+Use the same content and expected behaviour across Default Admin, Claro, Olivero
+and themes newly generated from Starterkit. Core owns the generic templates,
+Default Admin and Starterkit; the separate contrib patches cover Claro and Olivero.
+See [BRANCHES.md](BRANCHES.md) for the existing three-patch proposal.
+Starterkit is a generator, not a base theme: already-generated custom themes need
+their copied templates updated separately.
+
+1. [ ] Start with Standard and Default Admin. Log in on both sides with permission
+   to see unpublished nodes and held comments. For the Core pass, set Default Admin
+   as the default theme on both sides, so it renders these non-admin paths.
+2. [ ] Create the three fixtures below on both sides. The recipe and its post-script
+   create the required content types, comment configuration, aliases and content.
+3. [ ] Open `/lab/unpublished-article` and `/lab/unpublished-page` in Default Admin.
+   Compare Before and After: After should have one visible **Unpublished** label with
+   screen-reader context for each unpublished node and held comment. The published
+   comment must have none. Check the Basic page without author metadata.
+4. [ ] Repeat in Claro, then Olivero, using the same theme on both sides. For a
+   Starterkit pass, generate a theme from each side's templates and repeat. Record
+   which themes were actually checked; do not infer coverage from intended support.
+5. [ ] Open `/lab/published-article` in each theme being checked. Neither the published
+   node nor its published comment should have an unpublished label on either side.
+6. [ ] Repeat with light mode, supported dark mode and forced colours. After's text
+   must remain readable without relying on background colour. A dark preference
+   alone does not establish that the theme has a native dark palette.
+
+| Alias | Node state | Comments |
+|---|---|---|
+| `/lab/published-article` | Published Article | One published |
+| `/lab/unpublished-article` | Unpublished Article | One published, one held |
+| `/lab/unpublished-page` | Unpublished Basic page, author metadata hidden | None |
+
+The Navigation Top Bar's existing chip is a separate review item: compare contexts
+with and without it, and assess duplicate or conflicting status information.
+Do not treat low background contrast alone as a WCAG failure where equivalent
+status text already communicates the information.
+
+### Focused verification, not four separate suites
+
+The shared status checks cover missing/duplicate markers, hidden context and
+published controls. Use Default Admin as the representative browser pass:
+
+```bash
+node tools/playwright/evaluate-867830.mjs 867830-current-authoring --themes=default_admin --screenreader
+node tools/playwright/evaluate-867830.mjs 867830-current-authoring --themes=default_admin --screenreader --scheme=dark
+node tools/playwright/evaluate-867830.mjs 867830-current-authoring --themes=default_admin --screenreader --forced-colors
+```
+
+These are sequential runs: they change the default theme on both sites.
+Support for all four remains the solution's scope; this does not require adding
+a separate automated suite for each theme. Retain the existing Claro/Olivero
+evidence, and label any untested theme, layout or rendering mode explicitly.
+
+The evaluator defaults to Olivero, Claro and Default Admin for the new recipe, and
+restores Olivero afterwards. Do not run two evaluations simultaneously: they switch
+the default theme. `--screenreader` asserts exact marker count, visible Unpublished text,
+hidden context, and contextual Guidepup speech for each draft node and held comment,
+with published nodes/comments as negative controls. Spoken phrases and live markup
+snapshots are retained in each page's `screenreader` record in `results.json`.
+
+Fast synthetic test controls (no sites needed):
+
+```bash
+node --test tests/lab/unpublished-speech.test.mjs
+```
+
+These controls reject missing/duplicate markers, invisible labels, missing context and
+false positives on published content. They do not prove theme rendering by themselves.
+Guidepup uses JSDOM snapshots; no real VoiceOver/NVDA, human keyboard pass, or
+participant usability testing is implied. Starterkit-generated output and Umami
+have not had live-site verification; do not claim that they passed from source
+coverage alone.

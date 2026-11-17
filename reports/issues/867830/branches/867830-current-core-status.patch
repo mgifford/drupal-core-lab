@@ -1,0 +1,206 @@
+diff --git a/core/modules/comment/templates/comment.html.twig b/core/modules/comment/templates/comment.html.twig
+index bf2ca2272a0e5cc76af78473049f2e0eba5928d2..08184c187e449b4617b2f9a920a73f9de0292c07 100644
+--- a/core/modules/comment/templates/comment.html.twig
++++ b/core/modules/comment/templates/comment.html.twig
+@@ -70,6 +70,9 @@
+ #}
+ 
+ <article{{ attributes.addClass('js-comment') }}>
++  {% if status == 'unpublished' %}
++    <p class="unpublished-status"><strong>{% trans %}<span class="visually-hidden">This comment is </span>Unpublished{% endtrans %}</strong></p>
++  {% endif %}
+   {#
+     Hide the "new" indicator by default, let a piece of JavaScript ask the
+     server which comments are new for the user. Rendering the final "new"
+diff --git a/core/modules/node/templates/node.html.twig b/core/modules/node/templates/node.html.twig
+index d1dc975a9ecdf965bb2c8c46c167a68819e49999..1e4f546968cf70d2afac1f80b379f3239a018290 100644
+--- a/core/modules/node/templates/node.html.twig
++++ b/core/modules/node/templates/node.html.twig
+@@ -60,6 +60,9 @@
+  */
+ #}
+ <article{{ attributes }}>
++  {% if not node.isPublished() %}
++    <p class="unpublished-status"><strong>{% trans %}<span class="visually-hidden">This node is </span>Unpublished{% endtrans %}</strong></p>
++  {% endif %}
+ 
+   {{ title_prefix }}
+   {% if label and view_mode != 'full' %}
+diff --git a/core/profiles/demo_umami/themes/umami/templates/classy/content/comment.html.twig b/core/profiles/demo_umami/themes/umami/templates/classy/content/comment.html.twig
+index 480a139a0aee0328ce38b775a81fef3b2a5d587c..31273cfda92f8605931ab0a7080e0f16c760e35e 100644
+--- a/core/profiles/demo_umami/themes/umami/templates/classy/content/comment.html.twig
++++ b/core/profiles/demo_umami/themes/umami/templates/classy/content/comment.html.twig
+@@ -79,6 +79,9 @@
+   ]
+ %}
+ <article{{ attributes.addClass(classes) }}>
++  {% if status == 'unpublished' %}
++    <p class="unpublished-status"><strong>{% trans %}<span class="visually-hidden">This comment is </span>Unpublished{% endtrans %}</strong></p>
++  {% endif %}
+   {#
+     Hide the "new" indicator by default, let a piece of JavaScript ask the
+     server which comments are new for the user. Rendering the final "new"
+diff --git a/core/profiles/demo_umami/themes/umami/templates/content/node--article--full.html.twig b/core/profiles/demo_umami/themes/umami/templates/content/node--article--full.html.twig
+index ff5d3ea4faa9ceb479e430858771bc729d08ec38..c606c279af91e97c642cee60afb315bc93b12793 100644
+--- a/core/profiles/demo_umami/themes/umami/templates/content/node--article--full.html.twig
++++ b/core/profiles/demo_umami/themes/umami/templates/content/node--article--full.html.twig
+@@ -71,6 +71,9 @@
+ {% set created_date = node.getCreatedTime|format_date('umami_dates') %}
+ {{ attach_library('umami/classy.node') }}
+ <article{{ attributes.addClass(classes) }}>
++  {% if not node.isPublished() %}
++    <p class="unpublished-status"><strong>{% trans %}<span class="visually-hidden">This node is </span>Unpublished{% endtrans %}</strong></p>
++  {% endif %}
+ 
+   {{ title_prefix }}
+   {% if label %}
+diff --git a/core/profiles/demo_umami/themes/umami/templates/content/node--card-common-alt.html.twig b/core/profiles/demo_umami/themes/umami/templates/content/node--card-common-alt.html.twig
+index ae098998c290cee2d906597951077e97d583f7cc..c7da8b3c063cb0f50c2b872da6a7c6e323e5bb96 100644
+--- a/core/profiles/demo_umami/themes/umami/templates/content/node--card-common-alt.html.twig
++++ b/core/profiles/demo_umami/themes/umami/templates/content/node--card-common-alt.html.twig
+@@ -77,6 +77,7 @@
+ 
+ {% embed 'umami:card' with {
+   attributes: attributes.addClass(classes),
++  node,
+   content,
+   content_attributes,
+   label,
+@@ -87,6 +88,9 @@
+   url,
+   } only %}
+   {% block content %}
++    {% if not node.isPublished() %}
++      <p class="unpublished-status"><strong>{% trans %}<span class="visually-hidden">This node is </span>Unpublished{% endtrans %}</strong></p>
++    {% endif %}
+     <div{{ content_attributes.addClass('umami-card__content') }}>
+       {{ content }}
+     </div>
+diff --git a/core/profiles/demo_umami/themes/umami/templates/content/node--card-common.html.twig b/core/profiles/demo_umami/themes/umami/templates/content/node--card-common.html.twig
+index 51f50536245e3fd6a51f1d09c2da95712fd967b7..1c7cbf8831d1ff545b4ca4267d405467691166e4 100644
+--- a/core/profiles/demo_umami/themes/umami/templates/content/node--card-common.html.twig
++++ b/core/profiles/demo_umami/themes/umami/templates/content/node--card-common.html.twig
+@@ -76,6 +76,7 @@
+ 
+ {% embed 'umami:card' with {
+   attributes: attributes.addClass(classes),
++  node,
+   content,
+   content_attributes,
+   label,
+@@ -86,6 +87,9 @@
+   url,
+   } only %}
+   {% block content %}
++    {% if not node.isPublished() %}
++      <p class="unpublished-status"><strong>{% trans %}<span class="visually-hidden">This node is </span>Unpublished{% endtrans %}</strong></p>
++    {% endif %}
+     {% embed 'umami:title' with {
+       attributes: title_attributes.addClass('umami-card__title'),
+       label: label ? label : content.field_title,
+diff --git a/core/profiles/demo_umami/themes/umami/templates/content/node--card.html.twig b/core/profiles/demo_umami/themes/umami/templates/content/node--card.html.twig
+index a881fed54b2d6788e66873408ee944ea6ddb5556..0df26ae8623b12ced7c7f440e68cbc120c705f41 100644
+--- a/core/profiles/demo_umami/themes/umami/templates/content/node--card.html.twig
++++ b/core/profiles/demo_umami/themes/umami/templates/content/node--card.html.twig
+@@ -76,6 +76,7 @@
+ 
+ {% embed 'umami:card' with {
+   attributes: attributes.addClass(classes),
++  node,
+   content,
+   content_attributes,
+   label,
+@@ -86,6 +87,9 @@
+   url,
+   } only %}
+   {% block content %}
++    {% if not node.isPublished() %}
++      <p class="unpublished-status"><strong>{% trans %}<span class="visually-hidden">This node is </span>Unpublished{% endtrans %}</strong></p>
++    {% endif %}
+     {% embed 'umami:title' with {
+       attributes: title_attributes.addClass('umami-card__title'),
+       label: label ? label : content.field_title,
+diff --git a/core/profiles/demo_umami/themes/umami/templates/content/node--recipe--full.html.twig b/core/profiles/demo_umami/themes/umami/templates/content/node--recipe--full.html.twig
+index f1a2fb5eba2dac81d15714debfda1261b1b3342a..361682dd5fc4964936611d6a81026374d1ba18b7 100644
+--- a/core/profiles/demo_umami/themes/umami/templates/content/node--recipe--full.html.twig
++++ b/core/profiles/demo_umami/themes/umami/templates/content/node--recipe--full.html.twig
+@@ -68,6 +68,9 @@
+ {% set created_date = node.getCreatedTime|format_date('umami_dates') %}
+ {{ attach_library('umami/classy.node') }}
+ <article{{ attributes.addClass(classes) }}>
++  {% if not node.isPublished() %}
++    <p class="unpublished-status"><strong>{% trans %}<span class="visually-hidden">This node is </span>Unpublished{% endtrans %}</strong></p>
++  {% endif %}
+ 
+   {{ title_prefix }}
+   {% if label %}
+diff --git a/core/profiles/demo_umami/themes/umami/templates/content/node.html.twig b/core/profiles/demo_umami/themes/umami/templates/content/node.html.twig
+index a8daee4c010f88eb0e6237212700841993b51801..8f91ffc42e366b8c49c915daff55ad7d3de91ba0 100644
+--- a/core/profiles/demo_umami/themes/umami/templates/content/node.html.twig
++++ b/core/profiles/demo_umami/themes/umami/templates/content/node.html.twig
+@@ -72,6 +72,9 @@
+ {{ attach_library('umami/classy.node') }}
+ 
+ <article{{ attributes.addClass(classes) }}>
++  {% if not node.isPublished() %}
++    <p class="unpublished-status"><strong>{% trans %}<span class="visually-hidden">This node is </span>Unpublished{% endtrans %}</strong></p>
++  {% endif %}
+ 
+   {{ title_prefix }}
+   {% if label %}
+diff --git a/core/themes/default_admin/templates/content/comment.html.twig b/core/themes/default_admin/templates/content/comment.html.twig
+index 2429a81b92d49fe917349bd4f098bc17e9ef2660..1540a029011f1e091e4299dbda0bd30b0aed56ff 100644
+--- a/core/themes/default_admin/templates/content/comment.html.twig
++++ b/core/themes/default_admin/templates/content/comment.html.twig
+@@ -76,6 +76,9 @@
+   ]
+ %}
+ <article{{ attributes.addClass(classes) }}>
++  {% if status == 'unpublished' %}
++    <p class="unpublished-status"><strong>{% trans %}<span class="visually-hidden">This comment is </span>Unpublished{% endtrans %}</strong></p>
++  {% endif %}
+   {#
+     Hide the "new" indicator by default, let a piece of JavaScript ask the
+     server which comments are new for the user. Rendering the final "new"
+diff --git a/core/themes/default_admin/templates/content/node.html.twig b/core/themes/default_admin/templates/content/node.html.twig
+index d3957b39fa50916187c8957e5d56e63b34c0a8f8..3e8c3bbf13b9f9cc75c3e951ae3ea7d83d075030 100644
+--- a/core/themes/default_admin/templates/content/node.html.twig
++++ b/core/themes/default_admin/templates/content/node.html.twig
+@@ -69,6 +69,9 @@
+   ]
+ %}
+ <article{{ attributes.addClass(classes) }}>
++  {% if not node.isPublished() %}
++    <p class="unpublished-status"><strong>{% trans %}<span class="visually-hidden">This node is </span>Unpublished{% endtrans %}</strong></p>
++  {% endif %}
+ 
+   {{ title_prefix }}
+   {% if label and view_mode != 'full' %}
+diff --git a/core/themes/starterkit_theme/templates/content/comment.html.twig b/core/themes/starterkit_theme/templates/content/comment.html.twig
+index 40d3b1b379e67e1db5633abab0d4b597d93b4f17..7beff2ff3f1380f6397528b2d361f0f393d30c98 100644
+--- a/core/themes/starterkit_theme/templates/content/comment.html.twig
++++ b/core/themes/starterkit_theme/templates/content/comment.html.twig
+@@ -79,6 +79,9 @@
+   ]
+ %}
+ <article{{ attributes.addClass(classes) }}>
++  {% if status == 'unpublished' %}
++    <p class="unpublished-status"><strong>{% trans %}<span class="visually-hidden">This comment is </span>Unpublished{% endtrans %}</strong></p>
++  {% endif %}
+   {#
+     Hide the "new" indicator by default, let a piece of JavaScript ask the
+     server which comments are new for the user. Rendering the final "new"
+diff --git a/core/themes/starterkit_theme/templates/content/node.html.twig b/core/themes/starterkit_theme/templates/content/node.html.twig
+index 8dfd13a8ef94eccaf5dbf666a4f85a140eebb47f..1726adc8754a53e7a3dd49f6d3a37d8cec567f48 100644
+--- a/core/themes/starterkit_theme/templates/content/node.html.twig
++++ b/core/themes/starterkit_theme/templates/content/node.html.twig
+@@ -70,6 +70,9 @@
+ %}
+ {{ attach_library('starterkit_theme/node') }}
+ <article{{ attributes.addClass(classes) }}>
++  {% if not node.isPublished() %}
++    <p class="unpublished-status"><strong>{% trans %}<span class="visually-hidden">This node is </span>Unpublished{% endtrans %}</strong></p>
++  {% endif %}
+ 
+   {{ title_prefix }}
+   {% if label and view_mode != 'full' %}

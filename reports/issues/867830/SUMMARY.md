@@ -1,11 +1,62 @@
 # #867830: "Unpublished" style of rendered entities is not accessible
 
-**DRAFT.** Scripted evidence from 2026-11-06; no person has reviewed it, no real screen reader was run. Nothing has been posted.
+**DRAFT.** Historical evidence from 2026-11-06; current-Core proposal tested on
+2026-11-09, with a focused Default Admin replay on 2026-11-17.
+No person has reviewed it, no real screen reader was run. Nothing has been posted.
 
-Issue: https://www.drupal.org/project/drupal/issues/867830 (Active, Major, opened 2010; 315 comments; tagged WCAG 1.4.11 on 2026-11-04).
-Pinned core: `422099995ecf` (11.x, 2025-07-11). Fork branch: `867830-unpublished-style-of`, commit `0fcbb553` (the #306 re-roll). **No merge request.**
+November 17 follow-up drafts: [targeted core summary amendment](ISSUE-SUMMARY-UPDATE-DRAFT.md)
+and [separate Claro issue/MR proposal](CLARO-FOLLOWUP-DRAFT.md).
+The refreshed [community brief](intake/BRIEF.md) includes comments 316 and 317.
+These drafts do not validate the status chip or change the recorded test results.
+The solution's scope is Default Admin, Claro, Olivero and newly generated
+Starterkit themes, using one status convention with separate project patches.
+The [shared walkthrough](REPRODUCE.md) uses the same three-node fixture throughout;
+separate automated suites for all four themes are not required. Existing
+Starterkit-generated themes need their copied templates updated separately.
+The [November 17 replay](EVIDENCE.md#focused-default-admin-replay-2026-11-17)
+passes the scripted status checks in Default Admin light, dark preference and
+forced colours. This does not resolve the existing status-chip review or provide
+live Starterkit coverage.
 
-## Barrier, task and expected outcome
+Issue: [#867830 on Drupal.org](https://www.drupal.org/project/drupal/issues/867830)
+(Active, Major, opened 2010; 317 comments as of 2026-11-17; tagged WCAG 1.4.11 on 2026-11-04).
+See the [current upstream status](STATUS-2026-11-17.md) and
+[evidence directory on GitHub](https://github.com/mgifford/drupal-core-lab/tree/main/reports/issues/867830).
+The historical comparison pins Core `422099995ecf` (11.x, 2025-07-11) and fork branch
+`867830-unpublished-style-of`, commit `0fcbb553` (the #306 re-roll). **No upstream merge request.**
+
+## New current-Core proposal (2026-11-09)
+
+**AI-assisted local draft, separate from the historical patch below.** Three new patches
+are registered in `867830-current-authoring`: [Core](branches/867830-current-core-status.patch),
+[Olivero](branches/867830-olivero-status.patch), and [Claro](branches/867830-claro-status.patch).
+The Core pin is `3fb1c69d3692`; the Core patch also applies cleanly to main
+`f6102ad483c5390eb46baeff2ad1374783500491` (2026-11-09).
+`867830-current-latest` follows main for future compatibility checks.
+
+The proposal adds a bold visible **Unpublished** label, with hidden "This node is"
+or "This comment is" context, independently of author metadata. It preserves status
+classes, existing background cues and the generic mark hook. Published content is unmarked.
+Core covers the generic templates, Default Admin, Starterkit and Umami; contrib Olivero
+also covers its separate teaser template.
+
+Live Chromium light and forced-colour checks passed in **Olivero, Claro and Default Admin**:
+all 12 fix rows pass, no regression rows fail, and Guidepup reads each draft node and
+held comment's contextual label exactly once. Published nodes/comments remain unmarked.
+The probe reported minimum label-text contrast of 11.64:1 in light mode and 21:1 in forced
+colours. It does not composite translucent backgrounds or support every CSS colour syntax;
+these observations do not settle the community's status-chip contrast questions.
+Core lint and all five contrib Twig files pass; the Lab self-test passes all nine checks.
+See [current proposal evidence](EVIDENCE.md#current-core-proposal-2026-11-09) and
+[reproduction commands](REPRODUCE.md#new-current-core-proposal-2026-11-09).
+
+Not verified: a person's keyboard/visual pass, real VoiceOver/NVDA, participant usability,
+live Starterkit/Umami rendering, current-proposal Firefox/WebKit or narrow viewport;
+dark mode outside the November 17 Default Admin replay.
+Guidepup is synthetic evidence, not human acceptance. The patches remain proposals;
+no Drupal.org comment or Claro merge request has been submitted by the lab.
+
+## Historical baseline: barrier, task and expected outcome
 
 Someone who may see unpublished content opens a node or comment that is not published. The only cue is a pale pink background on the node
 (`#fff4f4`: measured 1.01:1 in Olivero, 1.08:1 in Claro) and an unstyled CSS class on the comment. There is no text, nothing in the
@@ -41,17 +92,27 @@ participant testing was collected here.
 
 ## Reproduction and comparison
 
+For the current proposal, use `867830-current-authoring` and the
+[shared three-node walkthrough](REPRODUCE.md#shared-walkthrough-2026-11-17).
+Start its registered comparison with `node scripts/lab-env.mjs start 867830-current-authoring --browser`.
+Before is pristine; After applies the Core proposal and the separately pinned Claro/Olivero patches.
+Use the [patch provenance](BRANCHES.md) for exact revisions and hashes.
+
+The following describes the historical comparison, not the current proposal:
+
 REPRODUCE.md: variant `867830-pinned`, recipe `repro_867830` (three nodes with `/lab/...` aliases, Stark installed), Before pristine, After =
 branch patch then lab follow-up. Scripted: `tools/playwright/evaluate-867830.mjs` (three themes, both sides, three pages). Viewer steps switch
 the theme by hand, mirrored.
 
 ## Not verified and next actions
 
-- Not run: real VoiceOver or NVDA; a person's visual and keyboard pass; the branch's PHPUnit changes; Umami, Starterkit, Stable 9 output; current core.
-- Next: a person opens the viewer (`node scripts/lab-env.mjs start 867830-pinned --browser`), looks at `/lab/unpublished-article` in Olivero and
-  Claro on both sides, and fills in the manual rows in EVIDENCE.md. Then review ISSUE-COMMENT-DRAFT.md. Owner: @mgifford. Date: open.
-- Decision for the issue: whether to re-roll the #306 approach against current core (core templates and `default_admin`) or to start from the
-  summary's "status_marker" variable idea (#306) with hidden context text and a non-colour cue.
+- Not run: real VoiceOver or NVDA; a person's visual and keyboard pass; the historical branch's PHPUnit changes;
+  live Starterkit/Umami rendering; a fresh build of `867830-current-latest`.
+- Next: @mgifford opens `867830-current-authoring` in the viewer, follows the shared checklist and captures light/dark Before/After.
+  Record manual results in [EVIDENCE.md](EVIDENCE.md), then review the targeted summary amendment and Claro follow-up.
+- Agree the rendering scope and accessible status text, including interaction with the existing Navigation Top Bar chip.
+  Do not treat the scripted label checks as resolution of that chip's styling or duplication questions.
+- Complete independent code and accessibility review before requesting RTBC. The current issue status is Active, not RTBC.
 
 ## Acceptance and verification
 
@@ -63,7 +124,8 @@ that exist: `evaluate-867830.mjs` fix and regression rows, `tree-diff.mjs`, `lin
 
 ## Sources
 
-- drupal.org issue snapshot 2026-11-06 (`intake/BRIEF.md`): summary, #13, #306, #313 to #315; related #3173855, #3323028, #1311372, #2290101.
+- [Community snapshot](intake/BRIEF.md), refreshed 2026-11-17: 317 comments and 18 related issues; no merge request found.
+  Historical evaluation used the November 6 snapshot. The API provides no body for comment 317, so its field/attachment changes are not inferred.
 - git.drupalcode.org: fork `issue/drupal-867830`, branch `867830-unpublished-style-of`; MR search by source branch: none.
 - GitHub drupal/drupal commit history for the removed files (BRANCHES.md).
 

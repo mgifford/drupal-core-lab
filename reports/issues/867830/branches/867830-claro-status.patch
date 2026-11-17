@@ -1,0 +1,28 @@
+diff --git a/templates/classy/content/comment.html.twig b/templates/classy/content/comment.html.twig
+index ee624ba051d..6dfc8c44f94 100644
+--- a/templates/classy/content/comment.html.twig
++++ b/templates/classy/content/comment.html.twig
+@@ -79,6 +79,9 @@
+   ]
+ %}
+ <article{{ attributes.addClass(classes) }}>
++  {% if status == 'unpublished' %}
++    <p class="unpublished-status"><strong>{% trans %}<span class="visually-hidden">This comment is </span>Unpublished{% endtrans %}</strong></p>
++  {% endif %}
+   {#
+     Hide the "new" indicator by default, let a piece of JavaScript ask the
+     server which comments are new for the user. Rendering the final "new"
+diff --git a/templates/classy/content/node.html.twig b/templates/classy/content/node.html.twig
+index db6568c8c34..2b4a3010940 100644
+--- a/templates/classy/content/node.html.twig
++++ b/templates/classy/content/node.html.twig
+@@ -70,6 +70,9 @@
+ %}
+ {{ attach_library('claro/classy.node') }}
+ <article{{ attributes.addClass(classes) }}>
++  {% if not node.isPublished() %}
++    <p class="unpublished-status"><strong>{% trans %}<span class="visually-hidden">This node is </span>Unpublished{% endtrans %}</strong></p>
++  {% endif %}
+ 
+   {{ title_prefix }}
+   {% if label and view_mode != 'full' %}

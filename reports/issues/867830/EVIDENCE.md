@@ -3,7 +3,7 @@
 Status: DRAFT until a person has reviewed it. No real VoiceOver or NVDA pass was made; no person has done a keyboard pass.
 Date: 2026-11-06   Author/agent: Drupal Core Lab, AI-assisted (Copilot), for @mgifford.
 
-## Environments (exact commits)
+## Historical environments (exact commits)
 | Env | Directory | Commit | Notes |
 |-----|-----------|--------|-------|
 | Before | `envs/baseline-867830` | `422099995ecfe78f1e29248374fc05cd4a556c1d` (11.x, 2025-07-11) | pristine core; `git status` clean apart from the untracked `recipes/` copy |
@@ -84,3 +84,155 @@ Not done by a person yet. The viewer is ready: `node scripts/lab-env.mjs start 8
 - Umami, Starterkit and Stable 9 templates changed by the branch were not viewed.
 - Current core `main`: not built; the branch does not apply and the themes it changes are no longer in core.
 - PHPUnit: the branch's test changes were not run.
+
+## Current-Core proposal (2026-11-09)
+
+Separate AI-assisted local draft; none of the historical #306 patch or lab MARK follow-up
+is applied to this comparison. Variant `867830-current-authoring`, Standard install,
+recipe `repro_867830_current` with its fixture script.
+
+| Component | Exact revision |
+|---|---|
+| Before and After Core | `3fb1c69d36927265f30e4dbc418828f5b884b73f` |
+| Contrib Olivero, both sides | `bcd108499147b5a8f6d0820758302345be6b24ca` |
+| Contrib Claro, both sides | `474f080c47f5ce21961bf90515fb7bdea1d7dcd4` |
+| Latest main, patch application only | `f6102ad483c5390eb46baeff2ad1374783500491` |
+
+Before is `baseline-867830-current-authoring`, no patches, no tracked source changes.
+After is `issue-867830-current-authoring`. Its ordered Core stack is the single
+`branches/867830-current-core-status.patch`; contrib patch stacks are one patch each,
+`branches/867830-olivero-status.patch` and `branches/867830-claro-status.patch`.
+
+| Patch | SHA-256 |
+|---|---|
+| Core | `11784dea36b5106058b3990c3de0bd527e1242299c2cb20dc29b8a88ba714983` |
+| Olivero | `7f01639398128f5919f1ce6e130d4593c23fde1fbe9d2ab7032b44d6d67ae305` |
+| Claro | `0a5b33d7dbe1e11f66a12162fa167d648576148ae10576a5f69df81878771968` |
+
+Both sites built successfully. No historical site database was reset or deleted.
+The historical pair was stopped. The new fixture uses `text_long`: current Core
+no longer provides `text_with_summary`. An interrupted initial fixture application
+was resumed without resetting its database. DDEV's router dropped TLS connections
+after the build; restarting only `ddev-router` restored connectivity.
+
+### Live three-theme checks
+
+Command: `node tools/playwright/evaluate-867830.mjs 867830-current-authoring --screenreader`.
+Chromium `156.0.8078.4`, macOS arm64, 1280x900, light.
+Each run covers three themes, two sides and three pages (18 page visits).
+Exact identities, site context, screenshots, axe and synthetic spoken phrase logs
+are recorded together in the run folder.
+Snapshot URL token values are redacted in the retained JSON and Markdown; this
+privacy-only sanitization does not change marker markup, speech or test outcomes.
+The evaluator now applies the same redaction before writing new snapshots.
+
+| Run | Result | Evidence |
+|---|---|---|
+| Chromium light | reproduced-and-fixed; 12/12 fix rows, no regression failures | [summary](playwright/2026-11-09T15-56-30-853Z-chromium-light-1280x900/SUMMARY.md), [results](playwright/2026-11-09T15-56-30-853Z-chromium-light-1280x900/results.json) |
+| Chromium forced colours (`--forced-colors`) | reproduced-and-fixed; 12/12 fix rows, no regression failures | [summary](playwright/2026-11-09T16-00-35-400Z-chromium-light-forced-1280x900/SUMMARY.md), [results](playwright/2026-11-09T16-00-35-400Z-chromium-light-forced-1280x900/results.json) |
+
+In every requested theme, draft Article and Basic page each have one visible label,
+even when submission metadata is disabled; the held comment has one; published nodes
+and comments have none. Guidepup's actual phrase logs include "This node is" followed
+by "Unpublished", or "This comment is" followed by "Unpublished", exactly once per marker.
+No new PHP/Twig/JavaScript errors were observed and existing status classes remain.
+
+All three visible labels per theme were checked against the 4.5:1 normal-text threshold:
+minimum 11.64:1 in Olivero, 14.38:1 in Claro, 15.54:1 in Default Admin.
+In forced colours every visible status label measures 21:1 in all three themes.
+Existing axe counts were unchanged, not zero everywhere: this is not a clean-site
+or WCAG-conformance claim.
+
+An earlier completed run, [15:49 light](playwright/2026-11-09T15-49-50-978Z-chromium-light-1280x900/SUMMARY.md),
+is retained as **superseded collector evidence**, not a patch failure: its expanded
+context detector wrongly counted ordinary comment body text ("This comment is approved").
+All live Guidepup checks already passed in that run. The detector was narrowed to the
+exact hidden context span, and the fresh 15:56 run passed without changing any patch.
+
+### Code and tooling verification
+
+- All three patches apply cleanly to their pins; the Core patch additionally applies to
+  today's main. This is application evidence only, not a browser run on that newer commit.
+- [Core lint](lint/2026-11-09-867830-current-authoring-after.md): CSpell, PHPStan and
+  Twig CS Fixer pass on the 13 changed Core files.
+- The contrib lint wrapper reports [NOTHING CHECKED](lint/2026-11-09-867830-current-authoring-after-contrib.md)
+  because it only handles PHP. Direct Core Twig CS Fixer on all five changed contrib
+  Twig files passes with zero notices, warnings or errors.
+  Command from the After checkout:
+  `ddev exec vendor/bin/twig-cs-fixer lint -c core/.twig-cs-fixer.php themes/contrib/olivero/templates/content/node.html.twig themes/contrib/olivero/templates/content/node--teaser.html.twig themes/contrib/olivero/templates/content/comment.html.twig themes/contrib/claro/templates/classy/content/node.html.twig themes/contrib/claro/templates/classy/content/comment.html.twig`.
+- `node --test tests/lab/unpublished-speech.test.mjs`: 3/3 pass. Negative controls
+  reject missing, duplicate, invisible and context-free markers and published false positives.
+- Focused theme-support suite: 29 passed, one setup test initially skipped while a real
+  setup held the lock; rerunning that setup test separately passed (no remaining skip).
+- `node scripts/selftest.mjs`: 9/9 checks pass, including syntax, 223 Lab tests,
+  157 issue-pack tests, 36 design-observation tests, variant checks, documentation
+  links, generated guide freshness and skill evaluations. The first run exposed a
+  non-read-only viewer probe and stale generated guide; both were corrected.
+
+### Remaining acceptance and handoff
+
+Everything remains DRAFT. No real VoiceOver/NVDA, person-led keyboard/visual pass,
+participant usability session, current-proposal Firefox/WebKit/dark/narrow run,
+live Starterkit/Umami rendering or Core PHPUnit feature test was performed.
+Guidepup reads live markup snapshots but is synthetic, not a human screen-reader test.
+
+What worked: author against the exact pins, capture separate project patches, then
+verify the registered pair. What failed: assuming older Standard fixtures and field
+plugins still existed, and letting a broad text detector match fixture prose.
+Repeat the small fixture and detector checks before expensive browser matrices.
+
+Next owner: @mgifford reviews the comparison and performs the human acceptance pass.
+Use `node scripts/lab-env.mjs start 867830-current-authoring --browser`, follow
+[REPRODUCE.md](REPRODUCE.md), and record the manual results before approving an
+upstream contribution. No commit, push or drupal.org posting was made.
+
+## Focused Default Admin replay (2026-11-17)
+
+**DRAFT.** The shared walkthrough now uses the same three-node fixture for
+Default Admin, Claro, Olivero and newly generated Starterkit themes.
+This changes scenario instructions, not the three proposal patches.
+The [walkthrough](REPRODUCE.md) distinguishes Before observations from After
+expectations and records untested themes rather than requiring four test suites.
+
+The representative browser runs below cover **Default Admin only**:
+`node tools/playwright/evaluate-867830.mjs 867830-current-authoring --themes=default_admin --screenreader`
+with the additional flags shown. Both sides use Core
+`3fb1c69d36927265f30e4dbc418828f5b884b73f`, Standard and `repro_867830_current`.
+The Core and contrib patch hashes are unchanged from the November 9 table.
+Run identity checks report matching recipe content, verified patch states and
+no source changes outside the registered patches. This is not a fresh-main run.
+
+| Mode | Additional flags | Result and evidence |
+|---|---|---|
+| Light | none | Four fix rows as expected, zero regression failures: [run](playwright/2026-11-17T17-05-15-147Z-chromium-light-1280x900/SUMMARY.md) |
+| Dark preference | `--scheme=dark` | Four fix rows as expected, zero regression failures: [run](playwright/2026-11-17T17-13-23-064Z-chromium-dark-1280x900/SUMMARY.md) |
+| Forced colours | `--forced-colors` | Four fix rows as expected, zero regression failures: [run](playwright/2026-11-17T17-15-05-416Z-chromium-light-forced-1280x900/SUMMARY.md) |
+
+Chromium 156.0.8078.4, macOS arm64, 1280x900. Each run visits three pages on each
+side. Screenshots, axe results, markup and synthetic spoken phrases are retained
+in the linked run folders. Published nodes/comments remain unmarked; unpublished
+Article, Basic page and held comment gain contextual status text.
+
+Other checks: shared synthetic status controls 3/3 pass; Coder handoff tests
+4/4 pass; generated Coder prompt and cloud guide are current; documentation links
+pass with zero missing references. Core's applied patch passes reverse application
+checking without changing the checkout.
+
+### Boundaries and next review
+
+- No new browser tests were added for Claro, Olivero or Starterkit. Earlier
+  Claro/Olivero evidence remains separate; generated Starterkit output is not
+  live-tested. Existing generated themes do not automatically receive the change.
+- These checks do not evaluate the Navigation Top Bar chip or its interaction
+  with entity status text. They do not establish WCAG conformance.
+- Do not use the generated background/contrast observations to decide the
+  community's transparent-colour questions: the collector does not composite
+  translucent backgrounds or parse every modern CSS colour syntax.
+- Real VoiceOver/NVDA, person-led keyboard/visual/zoom review, narrow layouts and
+  independent code/accessibility review remain open.
+
+What worked: reuse one fixture and the existing evaluator with a theme selector;
+no separate theme suites or new dependencies were needed.
+Next owner: @mgifford reviews the screenshots and six-step walkthrough, then
+confirms scope and the status-chip requirements before any upstream submission.
+No commit, push, issue posting or MR creation was performed.

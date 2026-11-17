@@ -55,7 +55,7 @@ Nothing for the lab to do until the issue moves.
 | [3630425](3630425/SUMMARY.md) | Multi-value field widget table renders an empty <th> for the actions (Remove)… | Needs work, updated 2026-10-29 | !17421 opened at `f1f524f9` | `f1f524f9` ([how](3630425/REPRODUCE.md)) | Needs work: waiting on the MR |
 | [3631321](3631321/SUMMARY.md) | Improve the visual representation of none active vertical tabs in forced color… | Active, updated 2026-10-16 | none found | no MR commit recorded ([how](3631321/REPRODUCE.md)) | Active; no MR found |
 | [3631337](3631337/SUMMARY.md) | Decide how to semantically label HTML elements for errors/warnings in forced… | Active, updated 2026-10-16 | none found | no MR commit recorded ([how](3631337/REPRODUCE.md)) | Active; no MR found |
-| [867830](867830/SUMMARY.md) | "Unpublished" style of rendered entities is not accessible (and looks bad) | Active, updated 2026-11-05 | none found | `0fcbb553` ([how](867830/REPRODUCE.md)) | Active; no MR found |
+| [867830](867830/SUMMARY.md) | "Unpublished" style of rendered entities is not accessible (and looks bad) | Active, updated 2026-11-17 | none found | `0fcbb553` ([how](867830/REPRODUCE.md)) | Active; no MR found |
 
 ## Not checked yet (0)
 

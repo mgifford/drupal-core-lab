@@ -2030,5 +2030,138 @@
     },
     "status": "blocked: the patch does not apply to core main (Claro, Olivero, Stable 9 and the History module have been removed from core since the branch was written); a current-core pair needs the contrib themes and a re-rolled patch. Do not build.",
     "description": "Not buildable as of 2026-11-06: see status. Kept so the issue tooling has a -latest slug to report on."
+  },
+  {
+    "slug": "867830-current-authoring",
+    "issue": "867830",
+    "label": "#867830: current-Core unpublished status proposal",
+    "description": "Local proposal against current Core, with Olivero and Claro installed from pinned contrib releases. The After side is an authoring environment for visible and screen-reader status labels on unpublished nodes and comments.",
+    "status": "local proposal; verification in progress",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "3fb1c69d36927265f30e4dbc418828f5b884b73f"
+    },
+    "contrib": [
+      {
+        "name": "olivero",
+        "type": "theme",
+        "url": "https://git.drupalcode.org/project/olivero.git",
+        "commit": "bcd108499147b5a8f6d0820758302345be6b24ca"
+      },
+      {
+        "name": "claro",
+        "type": "theme",
+        "url": "https://git.drupalcode.org/project/claro.git",
+        "commit": "474f080c47f5ce21961bf90515fb7bdea1d7dcd4"
+      }
+    ],
+    "before": {
+      "env": "baseline-867830-current-authoring",
+      "label": "pristine current Core, with pinned Olivero and Claro"
+    },
+    "after": {
+      "env": "issue-867830-current-authoring",
+      "label": "local Core proposal plus separate Olivero and Claro patches",
+      "patches": [
+        "reports/issues/867830/branches/867830-current-core-status.patch"
+      ],
+      "contribPatches": [
+        {
+          "project": "olivero",
+          "patch": "reports/issues/867830/branches/867830-olivero-status.patch"
+        },
+        {
+          "project": "claro",
+          "patch": "reports/issues/867830/branches/867830-claro-status.patch"
+        }
+      ]
+    },
+    "pages": [
+      "/lab/unpublished-article",
+      "/lab/unpublished-page",
+      "/lab/published-article"
+    ],
+    "login": true,
+    "recipe": "repro_867830_current",
+    "steps": [
+      {
+        "text": "Start with a Standard install and Default Admin. Log in to both sites as a user who can view unpublished nodes and held comments. For the Core pass, set Default Admin as the default theme on both sites so it renders the lab pages.",
+        "how": "recipe"
+      },
+      {
+        "text": "Create three nodes with fixed aliases: /lab/published-article (published, one published comment), /lab/unpublished-article (unpublished, one published and one held comment), and /lab/unpublished-page (unpublished Basic page, author metadata hidden). The lab recipe creates the content types, comment configuration and content on both sides.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /lab/unpublished-article and /lab/unpublished-page in Default Admin on both sides.",
+        "how": "mirror",
+        "lookFor": "Compare Before with After. On After, each unpublished node and the held comment has one visible Unpublished label with screen-reader context, including the Basic page without author metadata. The published comment has no unpublished label."
+      },
+      {
+        "text": "For the contributed-theme passes, set Claro as the default theme on both sites and repeat both unpublished pages, then do the same for Olivero. For Starterkit, repeat with a theme generated from each side's Starterkit templates; existing generated themes do not update automatically.",
+        "how": "mirror",
+        "lookFor": "The same After labels are present regardless of the theme. Record which themes were actually checked; separate automated suites for every theme are not required."
+      },
+      {
+        "text": "Open /lab/published-article in each theme being checked, on both sides.",
+        "how": "mirror",
+        "lookFor": "The published node and its comment have no Unpublished label or screen-reader status."
+      },
+      {
+        "text": "Repeat the checks in light mode, dark mode where supported, and forced colours. Compare the same theme and display preference on both sides.",
+        "how": "observe",
+        "lookFor": "On After, the status remains identifiable from readable text and does not depend on background colour. A dark preference alone does not prove a native dark palette. Assess the existing Navigation Top Bar chip separately, including whether it duplicates or supplements entity status text."
+      }
+    ],
+    "expected": "Every unpublished node and held comment has a visible Unpublished label and hidden entity context in Default Admin, Claro, Olivero and newly generated Starterkit themes, even without submission metadata or the Navigation Top Bar. Published entities have no unpublished label.",
+    "actual": "Before has no explicit unpublished text marker inside the rendered entities in the recorded fixture. After is the local three-patch proposal, not the upstream branch. Use evaluate-867830.mjs with --screenreader for synthetic status checks; the Navigation Top Bar chip and human accessibility acceptance remain separate review items.",
+    "checks": [
+      {
+        "label": "A rendered node exists",
+        "probe": "!!document.querySelector('article.node')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "Unpublished node has exactly one status label; published node has none",
+        "probe": "!!document.querySelector('article.node') && [...document.querySelector('article.node').querySelectorAll('.unpublished-status')].filter(s => !s.closest('.js-comment')).length === (document.querySelector('article.node').classList.contains('node--unpublished') ? 1 : 0)",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "Only held comments have status labels",
+        "probe": "[...document.querySelectorAll('article.js-comment')].every(c => c.querySelectorAll('.unpublished-status').length === (c.matches('.unpublished, .comment--unpublished') ? 1 : 0))",
+        "expect": true,
+        "kind": "fix"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Unpublished content has a readable text label, including in forced colours",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Published content has no unpublished label",
+        "expectBefore": true,
+        "expectAfter": true
+      }
+    ]
+  },
+  {
+    "slug": "867830-current-latest",
+    "extends": "867830-current-authoring",
+    "label": "#867830: new unpublished status proposal against latest Core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-867830-current-latest"
+    },
+    "after": {
+      "env": "issue-867830-current-latest"
+    },
+    "pinnedNote": "Follows main for the new proposal, not the historical #306 re-roll. Contrib Olivero and Claro remain pinned; check and update their patches separately."
   }
 ]

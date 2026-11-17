@@ -9,9 +9,9 @@ None in the standard automated matrix.
 ## Automated matrix
 | Environment | Pinned core | Latest core | Browser version | Evidence |
 |---|---|---|---|---|
-| chromium · light · 1280px wide | ⚠ mixed result (theme claro, stark, olivero) (record: current) | _not run_ | 156.0.8078.4 | [2026-11-06](playwright/2026-11-06T20-16-14-118Z-chromium-light-1280x900/SUMMARY.md) |
-| chromium · dark · 1280px wide | ⚠ mixed result (theme claro, stark, olivero) (record: current) | _not run_ | 156.0.8078.4 | [2026-11-06](playwright/2026-11-06T20-20-18-367Z-chromium-dark-1280x900/SUMMARY.md) |
-| chromium · light · forced colours · 1280px wide | ⚠ mixed result (theme claro, stark, olivero) (record: current) | _not run_ | 156.0.8078.4 | [2026-11-06](playwright/2026-11-06T20-24-13-440Z-chromium-light-forced-1280x900/SUMMARY.md) |
+| chromium · light · 1280px wide | ✓ reproduced and fixed (theme default_admin) (record: current) | _not run_ | 156.0.8078.4 | [2026-11-17](playwright/2026-11-17T17-05-15-147Z-chromium-light-1280x900/SUMMARY.md) |
+| chromium · dark · 1280px wide | ✓ reproduced and fixed (theme default_admin) (record: current) | _not run_ | 156.0.8078.4 | [2026-11-17](playwright/2026-11-17T17-13-23-064Z-chromium-dark-1280x900/SUMMARY.md) |
+| chromium · light · forced colours · 1280px wide | ✓ reproduced and fixed (theme default_admin) (record: current) | _not run_ | 156.0.8078.4 | [2026-11-17](playwright/2026-11-17T17-15-05-416Z-chromium-light-forced-1280x900/SUMMARY.md) |
 | chromium · light · 480px wide | ⚠ mixed result (theme claro, stark, olivero) (record: current) | _not run_ | 156.0.8078.4 | [2026-11-06](playwright/2026-11-06T20-28-07-923Z-chromium-light-480x900/SUMMARY.md) |
 | firefox · light · 1280px wide | ⚠ mixed result (theme claro, stark, olivero) (record: current) | _not run_ | 157.0 | [2026-11-06](playwright/2026-11-06T20-32-03-786Z-firefox-light-1280x900/SUMMARY.md) |
 | webkit · light · 1280px wide | ⚠ mixed result (theme claro, stark, olivero) (record: current) | _not run_ | 27.2 | [2026-11-06](playwright/2026-11-06T20-36-12-136Z-webkit-light-1280x900/SUMMARY.md) |
