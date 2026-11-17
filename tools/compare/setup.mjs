@@ -83,7 +83,7 @@ const have = (p) => fs.existsSync(p);
 const out = (cmd, argv, cwd) => execFileSync(cmd, argv, { cwd, encoding: 'utf8' }).trim();
 const step = (t) => console.log(`\n== ${t}`);
 
-// Contrib modules (a variant's `contrib`, and `contribPatches` on a side) are handled by tools/compare/contrib-state.mjs.
+// Contrib modules and themes (a variant's `contrib`, and `contribPatches` on a side) are handled by tools/compare/contrib-state.mjs.
 
 for (const tool of CHECK || CHECKOUT_ONLY ? ['git'] : ['git', 'ddev', 'docker']) {
   if (spawnSync(tool, ['--version'], { stdio: 'ignore' }).status !== 0) { console.error(`Missing prerequisite: ${tool}`); if (!dry) process.exit(1); }
@@ -217,12 +217,12 @@ for (const [side, spec] of sides) {
     if (!dry && !have(path.join(dir, '.ddev/commands/web/drupal'))) { console.error('The add-on was not installed (see output above).'); process.exit(1); }
     runRetry('ddev', ['restart'], { cwd: dir });
   }
-  // Contrib modules (same on both sides), then the patches inside them (tools/compare/contrib-state.mjs): extracted at the pinned commit,
+  // Contrib projects (modules and themes; same on both sides), then their patches (tools/compare/contrib-state.mjs): extracted at the pinned commit,
   // recorded by content, verified on a re-run, BLOCKED (exit 4) on a mismatch; --refresh-patches extracts them again (the old folder is kept as a backup).
   if ((v.contrib || []).length) {
-    if (dry) for (const m of v.contrib) console.log(`$ (plan) contrib ${m.name} @ ${m.commit.slice(0, 12)} from ${m.url}${(spec.contribPatches || []).filter((cp) => cp.module === m.name).map((cp) => `, patch ${cp.patch}`).join('')}`);
+    if (dry) for (const m of v.contrib) console.log(`$ (plan) contrib ${m.type === 'theme' ? 'theme ' : ''}${m.name} @ ${m.commit.slice(0, 12)} from ${m.url}${(spec.contribPatches || []).filter((cp) => (cp.project || cp.module) === m.name).map((cp) => `, patch ${cp.patch}`).join('')}`);
     else {
-      step(`${side}: contrib ${v.contrib.map((m) => `${m.name} @ ${m.commit.slice(0, 12)}`).join(', ')}`);
+      step(`${side}: contrib ${v.contrib.map((m) => `${m.type === 'theme' ? 'theme ' : ''}${m.name} @ ${m.commit.slice(0, 12)}`).join(', ')}`);
       const r = ensureContrib({ dir, labRoot, modules: v.contrib, patches: spec.contribPatches || [], refresh: REFRESH_PATCHES, slug: v.slug, env: spec.env, side, sharedRoot: path.join(labRoot, 'envs/.contrib'), log: (l) => console.log(l) });
       for (const l of r.lines) (r.status === 'blocked' || r.status === 'failed' ? console.error : console.log)(l);
       if (r.status === 'blocked') process.exit(4);

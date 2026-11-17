@@ -103,9 +103,10 @@ say "no difference". Build the pair, edit files in the After environment (`envs/
     node scripts/capture-patch.mjs <slug>                     # lists what would be captured; writes nothing
     node scripts/capture-patch.mjs <slug> --name <short-name> # writes branches/<nid>-<name>.patch, lists it in the variant, adds a BRANCHES.md row
 
-It captures every change in After beyond the declared patches (modified, deleted and new files that git does not ignore; the lab's own marker files, the recipe copy and
-extracted contrib modules are left out, `--exclude <path>` adds more), checks that the declared patches plus the new one give exactly the files on disk, and records the
-environment against the new patch list. A second capture adds a second patch on top. Capturing changes to a contrib module is not supported. To share the work, open a merge request on drupal.org.
+It captures every change in After beyond the declared core patches (modified, deleted and new files that git does not ignore; the lab's own marker files, the recipe copy and
+extracted contrib projects are left out, `--exclude <path>` adds more), checks that the declared patches plus the new one give exactly the files on disk, and records the
+environment against the new patch list. A second capture adds a second core patch on top. Contrib module and theme patches are listed separately in `after.contribPatches`.
+To share the work, open a merge request on drupal.org.
 
 ## 4e. The merge request got a new push
     node scripts/issue-status.mjs <nid>                                  # the MR head against the patch the lab tested

@@ -24,7 +24,7 @@ const v = variants().find((x) => x.slug === slug); if (!v) fail(`No variant ${sl
 const nid = v.issue || ((v.after.patches || [])[0] || '').match(/reports\/issues\/(\d+)\//)?.[1]; if (!nid) fail(`${slug} has no issue number (set "issue" in the variant).`);
 const dir = envDir(v.after.env); if (!fs.existsSync(dir)) fail(`The After environment ${v.after.env} does not exist. Build it first: node tools/compare/setup.mjs ${slug}`);
 const declared = v.after.patches || [], bufs = declared.map((p) => fs.readFileSync(path.join(labRoot, p)));
-const cap = captureEdits(dir, bufs, { exclude: [...labFiles(v.recipe, (v.contrib || []).map((m) => m.name)), ...vals('exclude')] });
+const cap = captureEdits(dir, bufs, { exclude: [...labFiles(v.recipe, v.contrib || []), ...vals('exclude')] });
 if (!cap.ok) fail(`Nothing captured: ${cap.error}`);
 const name = val('name');
 console.log(`${v.after.env}: ${cap.files.length ? `${cap.files.length} file(s) changed beyond the ${declared.length} declared patch(es):` : `nothing changed beyond the ${declared.length} declared patch(es); nothing to capture.`}`);

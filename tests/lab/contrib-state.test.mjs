@@ -118,6 +118,20 @@ test('the quick state a run uses needs no shared clone and no network; a module 
   assert.match(blocked, /^BLOCKED: the after environment does not match its patches \(the folder modules\/contrib\/zmod is missing\)/);
 });
 
+test('a legacy module record cannot verify a theme at the same commit, even with identical files', () => {
+  const f = setup(); assert.equal(f.ens().status, 'applied');
+  const recordFile = path.join(f.gitd(), 'lab-patches/contrib.json'), record = JSON.parse(fs.readFileSync(recordFile, 'utf8'));
+  delete record.modules.zmod.type;
+  fs.writeFileSync(recordFile, JSON.stringify(record));
+  assert.equal(f.ens().status, 'verified', 'legacy records still verify unchanged modules');
+  const themeDir = path.join(f.dir, 'themes/contrib/zmod');
+  fs.mkdirSync(path.dirname(themeDir), { recursive: true });
+  fs.renameSync(path.join(f.dir, 'modules/contrib/zmod'), themeDir);
+  const r = f.ens({ modules: f.mod().map((m) => ({ ...m, type: 'theme' })) });
+  assert.equal(r.status, 'blocked');
+  assert.match(r.lines.join('\n'), /recorded as a contrib module but the variant lists it as a contrib theme/);
+});
+
 test('treeMapOf: content, executable bit, links; a missing folder is empty', () => {
   const d = path.join(root, 'tm'); w(path.join(d, 'a/b.txt'), 'x'); w(path.join(d, 'run.sh'), '#!/bin/sh\n', 0o755); fs.symlinkSync('a/b.txt', path.join(d, 'ln'));
   const m = treeMapOf(d); assert.deepEqual(Object.keys(m).sort(), ['a/b.txt', 'ln', 'run.sh']); assert.match(m['run.sh'], /:x$/); assert.equal(m.ln, 'link:a/b.txt'); assert.deepEqual(treeMapOf(path.join(root, 'nope')), {});

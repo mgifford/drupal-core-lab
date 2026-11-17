@@ -20,6 +20,13 @@ test('the files a contrib patch changes become checkout paths under modules/cont
   assert.deepEqual(l.map((x) => x.ext), ['php', 'css', 'module']); assert.ok(l.every((x) => x.exists));
 });
 
+test('theme patch files resolve under themes/contrib/<theme>', () => {
+  put(path.join(lab, 'p/theme.patch'), diffFor('templates/node.html.twig'));
+  put(path.join(dir, 'themes/contrib/olivero/templates/node.html.twig'), 'x');
+  const files = contribFileList([{ project: 'olivero', patch: 'p/theme.patch' }], lab, dir, [{ name: 'olivero', type: 'theme' }]);
+  assert.deepEqual(files, [{ project: 'olivero', file: 'themes/contrib/olivero/templates/node.html.twig', ext: 'twig', exists: true }]);
+});
+
 test('PHP-family files go to PHPCS; every other type is listed as not checked; a file the checkout lacks is reported, not skipped', () => {
   put(path.join(lab, 'p/m.patch'), diffFor('src/A.php', 'm.install', 'js/x.js', 'config/c.yml', 'templates/t.html.twig', 'README.md', 'gone.php'));
   for (const f of ['src/A.php', 'm.install', 'js/x.js', 'config/c.yml', 'templates/t.html.twig', 'README.md']) put(path.join(dir, 'modules/contrib/m', f), 'x');

@@ -1,6 +1,6 @@
 // Is a recorded run still about what the variant says now? (AI-usage slice F)
 // A run's results.json records what it used: the patch hashes of each side (patchState, since slice A), the pinned commit and the recipe
-// hash (identity, since slice D), the contrib patch hashes (since slice E); older runs record patch file NAMES, and some a contrib pin.
+// hash (identity, since slice D), the contrib patch hashes (since slice E); older runs record patch file NAMES, and some a contrib project pin.
 // This compares what a run recorded with the variant, its patch files and its recipe as they are now. Three answers, never blurred:
 //   stale       something the run recorded differs now (the reasons say what): the run is evidence about an older state
 //   current     the run recorded the patch hashes and every recorded value still equals what is there now
@@ -34,8 +34,8 @@ export function runStaleness(results, variant, { labRoot, lastChange = lastCommi
       diffLists(`${side} patch`, rec.current, now); checked.push(`${side} patches`);
       const cps = (variant[side] && variant[side].contribPatches) || [];
       if (rec.contrib) {
-        for (const m of new Set([...Object.keys(rec.contrib), ...cps.map((c) => c.module)])) {
-          const nowC = cps.filter((c) => c.module === m).map((c) => ({ path: c.patch, sha256: fileHash(labRoot, c.patch) }));
+        for (const m of new Set([...Object.keys(rec.contrib), ...cps.map((c) => c.project || c.module)])) {
+          const nowC = cps.filter((c) => (c.project || c.module) === m).map((c) => ({ path: c.patch, sha256: fileHash(labRoot, c.patch) }));
           if (nowC.some((x) => !x.sha256)) { notes.push(`a ${side} contrib patch file is missing now`); continue; }
           diffLists(`${side} contrib patch (${m})`, rec.contrib[m] ? rec.contrib[m].patches : [], nowC);
         }
@@ -53,7 +53,7 @@ export function runStaleness(results, variant, { labRoot, lastChange = lastCommi
     // the older evaluators recorded the core pin and the contrib pins directly
     if (results.core && results.core.commit && variant.core && variant.core.commit && !(String(results.core.commit).startsWith(String(variant.core.commit)) || String(variant.core.commit).startsWith(String(results.core.commit)))) reasons.push(`the variant pins ${h8(variant.core.commit)} now, the run was on ${h8(results.core.commit)}`);
   }
-  for (const rc of results.contrib || []) { const nowM = (variant.contrib || []).find((m) => m.name === rc.name); if (!nowM) reasons.push(`contrib module ${rc.name} was used by the run and the variant no longer lists it`); else if (nowM.commit !== rc.commit) reasons.push(`contrib module ${rc.name} is pinned at ${h8(nowM.commit)} now, the run used ${h8(rc.commit)}`); else checked.push(`contrib ${rc.name} pin`); }
+  for (const rc of results.contrib || []) { const nowM = (variant.contrib || []).find((m) => m.name === rc.name); if (!nowM) reasons.push(`contrib project ${rc.name} was used by the run and the variant no longer lists it`); else if ((rc.type || 'module') !== (nowM.type || 'module') || nowM.commit !== rc.commit) { const currentType = nowM.type || 'module', runType = rc.type || 'module'; reasons.push(`contrib ${currentType} ${rc.name} is pinned at ${h8(nowM.commit)} now, the run used ${h8(rc.commit)}${currentType !== runType ? ` (${runType} in the run)` : ''}`); } else checked.push(`contrib ${rc.name} pin`); }
   const status = reasons.length ? 'stale' : ps ? 'current' : 'unrecorded';
   if (status === 'unrecorded') {
     const names = [...new Set([...(variant.before && variant.before.patches || []), ...(variant.after && variant.after.patches || []), ...((variant.after && variant.after.contribPatches) || []).map((c) => c.patch)])];
