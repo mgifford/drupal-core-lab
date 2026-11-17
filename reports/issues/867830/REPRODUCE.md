@@ -6,6 +6,15 @@ Issue: https://www.drupal.org/project/drupal/issues/867830
 Pinned core: `422099995ecfe78f1e29248374fc05cd4a556c1d` (11.x, 2025-07-11, the base of the fork branch).
 Prepared: 2026-11-06. Last verified by script: 2026-11-06 (EVIDENCE.md). Last verified by a person: never.
 
+## Separate ribbon alternative (2026-11-17)
+
+To try the new design without replacing the earlier proposals, use
+`867830-ribbon-pinned`. Start and evaluate it with the commands in the
+[ribbon report](RIBBON-PROPOSAL.md#reproduce), then follow the
+[shared three-node walkthrough](#shared-walkthrough-2026-11-17).
+Its Core pin, patches, environments and evidence differ from the historical
+instructions below. All results remain DRAFT pending human review.
+
 ## Task and barrier
 
 An editor or reviewer with permission to see unpublished content opens a node or a comment that is not published. They need to know, before

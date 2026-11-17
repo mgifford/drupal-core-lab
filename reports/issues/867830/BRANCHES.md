@@ -33,3 +33,21 @@ All three apply cleanly to the named pins. Core and contrib patches are register
 in `867830-current-authoring`. `867830-current-latest` inherits that proposal and follows
 Core main; it does not inherit the obsolete historical branch patch. Run patch checks before
 building on newer Core. See [REPRODUCE.md](REPRODUCE.md) for the test commands and evidence gaps.
+
+## Separate rail-and-ribbon alternative (2026-11-17)
+
+AI-assisted local draft, **not** an upstream patch or a replacement for the
+earlier status-label proposal. Registered as `867830-ribbon-pinned` with separate
+Before/After environments. None of the earlier patches is in its stack.
+
+| Patch | Project and base | Scope |
+|---|---|---|
+| [Core ribbon patch](branches/867830-ribbon-core.patch) | Core `29b0a0b2256eb5ed27df6ec5e4e4e33142a717e8` | Generic text, Default Admin, Starterkit, rendering and translation tests |
+| [Claro ribbon patch](branches/867830-ribbon-claro.patch) | Claro `474f080c47f5ce21961bf90515fb7bdea1d7dcd4` | Node/comment templates and component styles |
+| [Olivero ribbon patch](branches/867830-ribbon-olivero.patch) | Olivero `bcd108499147b5a8f6d0820758302345be6b24ca` | Node/teaser/comment templates and component styles |
+
+Before has no patches. After has the Core patch, then one project-relative
+patch per contrib theme. The [ribbon report](RIBBON-PROPOSAL.md) records the exact
+patch hashes, final evidence, implementation decisions and manual review gaps.
+The Top Bar and Umami are unchanged; existing Starterkit-generated themes are
+not automatically updated.

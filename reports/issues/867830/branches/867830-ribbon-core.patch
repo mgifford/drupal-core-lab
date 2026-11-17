@@ -1,0 +1,1063 @@
+diff --git a/core/modules/comment/templates/comment.html.twig b/core/modules/comment/templates/comment.html.twig
+index bf2ca2272a0e5cc76af78473049f2e0eba5928d2..0729ff52591fca11d609a79dce9a643b1de7015d 100644
+--- a/core/modules/comment/templates/comment.html.twig
++++ b/core/modules/comment/templates/comment.html.twig
+@@ -69,7 +69,12 @@
+  */
+ #}
+ 
+-<article{{ attributes.addClass('js-comment') }}>
++<article{{ attributes.addClass('js-comment', status == 'unpublished' ? 'comment--unpublished') }}>
++  {% if status == 'unpublished' %}
++    <div class="unpublished-status-row">
++      <span class="unpublished-status">{% trans %}<span class="visually-hidden">This comment is </span>Unpublished{% endtrans %}</span>
++    </div>
++  {% endif %}
+   {#
+     Hide the "new" indicator by default, let a piece of JavaScript ask the
+     server which comments are new for the user. Rendering the final "new"
+diff --git a/core/modules/node/templates/node.html.twig b/core/modules/node/templates/node.html.twig
+index d1dc975a9ecdf965bb2c8c46c167a68819e49999..b42dfa5593fc2fe72dc3d3fb5011263555f6243f 100644
+--- a/core/modules/node/templates/node.html.twig
++++ b/core/modules/node/templates/node.html.twig
+@@ -60,6 +60,11 @@
+  */
+ #}
+ <article{{ attributes }}>
++  {% if not node.isPublished() %}
++    <div class="unpublished-status-row">
++      <span class="unpublished-status">{% trans %}<span class="visually-hidden">This node is </span>Unpublished{% endtrans %}</span>
++    </div>
++  {% endif %}
+ 
+   {{ title_prefix }}
+   {% if label and view_mode != 'full' %}
+diff --git a/core/modules/node/tests/src/Kernel/UnpublishedStatusTest.php b/core/modules/node/tests/src/Kernel/UnpublishedStatusTest.php
+new file mode 100644
+index 0000000000000000000000000000000000000000..d7557182dd1b3fd1574d1bdb35f6462914d67381
+--- /dev/null
++++ b/core/modules/node/tests/src/Kernel/UnpublishedStatusTest.php
+@@ -0,0 +1,187 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\node\Kernel;
++
++use Drupal\comment\Entity\Comment;
++use Drupal\comment\Tests\CommentTestTrait;
++use Drupal\Component\Utility\Html;
++use Drupal\Core\StringTranslation\Translator\StaticTranslation;
++use Drupal\KernelTests\Core\Entity\EntityKernelTestBase;
++use Drupal\node\Entity\Node;
++use Drupal\node\Entity\NodeType;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++use PHPUnit\Framework\Attributes\TestWith;
++
++// cspell:ignore العقدة منشورة التعليق منشور
++/**
++ * Tests local publication markers without Navigation or a Top Bar.
++ */
++#[Group('node')]
++#[Group('comment')]
++#[RunTestsInSeparateProcesses]
++class UnpublishedStatusTest extends EntityKernelTestBase {
++
++  use CommentTestTrait;
++
++  /**
++   * {@inheritdoc}
++   */
++  protected static $modules = ['node', 'comment'];
++
++  /**
++   * {@inheritdoc}
++   */
++  protected function setUp(): void {
++    parent::setUp();
++    $this->installSchema('node', ['node_access']);
++    $this->installSchema('comment', ['comment_entity_statistics']);
++    $this->installConfig(['system', 'user', 'node', 'comment']);
++    $this->setUpCurrentUser([], [
++      'access content',
++      'access comments',
++      'administer comments',
++      'bypass node access',
++    ]);
++  }
++
++  /**
++   * Tests generic and theme templates with both publication states.
++   */
++  #[TestWith(['stark'])]
++  #[TestWith(['default_admin'])]
++  #[TestWith(['starterkit_theme'])]
++  public function testPublicationMarkers(string $theme): void {
++    $this->activateTheme($theme);
++    // Both bundles use the same local publication pattern, including when
++    // submission metadata is hidden. Full and teaser renders must agree.
++    foreach (['page', 'article'] as $bundle) {
++      $type = NodeType::create(['type' => $bundle, 'name' => $bundle]);
++      $type->save();
++      $this->addDefaultCommentField('node', $bundle);
++      foreach ([TRUE, FALSE] as $submitted) {
++        $type->setDisplaySubmitted($submitted);
++        $type->save();
++        foreach ([TRUE, FALSE] as $published) {
++          $node = Node::create([
++            'type' => $bundle,
++            'title' => 'Publication status test',
++            'uid' => $this->container->get('current_user')->id(),
++            'status' => $published,
++          ]);
++          $node->save();
++          $comments = [];
++          foreach ([TRUE, FALSE] as $comment_published) {
++            $comment = Comment::create([
++              'comment_type' => 'comment',
++              'entity_type' => 'node',
++              'entity_id' => $node->id(),
++              'field_name' => 'comment',
++              'subject' => 'Comment publication status test',
++              'uid' => $this->container->get('current_user')->id(),
++              'status' => $comment_published,
++            ]);
++            $comment->save();
++            $comments[] = $comment;
++
++            // A comment's marker depends only on its own publication state,
++            // even when rendered separately from its parent node.
++            $xpath = $this->renderEntity($comment);
++            $this->assertMarker($xpath, '//article', !$comment_published, 'This comment is Unpublished');
++          }
++          foreach (['full', 'teaser'] as $view_mode) {
++            $xpath = $this->renderEntity($node, $view_mode);
++            $this->assertMarker($xpath, '//article[not(ancestor::article)]', !$published, 'This node is Unpublished');
++            // The default full display includes comments. Check each local
++            // marker independently of the node's state and metadata setting.
++            if ($view_mode === 'full') {
++              foreach ($comments as $comment) {
++                $selector = '//article[@id="comment-' . $comment->id() . '"]';
++                $this->assertSame(1, $xpath->query($selector)->length);
++                $this->assertMarker($xpath, $selector, !$comment->isPublished(), 'This comment is Unpublished');
++              }
++            }
++          }
++        }
++      }
++    }
++  }
++
++  /**
++   * Tests translation of the entire sentence, including hidden context.
++   */
++  #[TestWith(['stark'])]
++  #[TestWith(['default_admin'])]
++  #[TestWith(['starterkit_theme'])]
++  public function testTranslatedMarkers(string $theme): void {
++    $this->activateTheme($theme);
++    $translation = $this->container->get('string_translation');
++    $translation->addTranslator(new StaticTranslation([
++      'ar' => [
++        '' => [
++          '<span class="visually-hidden">This node is </span>Unpublished' => '<span class="visually-hidden">هذه العقدة </span>غير منشورة',
++          '<span class="visually-hidden">This comment is </span>Unpublished' => '<span class="visually-hidden">هذا التعليق </span>غير منشور',
++        ],
++      ],
++    ]), 100);
++    $translation->setDefaultLangcode('ar');
++
++    NodeType::create(['type' => 'page', 'name' => 'Page', 'display_submitted' => FALSE])->save();
++    $this->addDefaultCommentField('node', 'page');
++    $node = Node::create([
++      'type' => 'page',
++      'title' => 'Translated status',
++      'uid' => $this->container->get('current_user')->id(),
++      'status' => FALSE,
++    ]);
++    $node->save();
++    $comment = Comment::create([
++      'comment_type' => 'comment',
++      'entity_type' => 'node',
++      'entity_id' => $node->id(),
++      'field_name' => 'comment',
++      'subject' => 'Translated comment status',
++      'uid' => $this->container->get('current_user')->id(),
++      'status' => FALSE,
++    ]);
++    $comment->save();
++    $xpath = $this->renderEntity($node);
++    $this->assertMarker($xpath, '//article[not(ancestor::article)]', TRUE, 'هذه العقدة غير منشورة');
++    $this->assertMarker($xpath, '//article[@id="comment-' . $comment->id() . '"]', TRUE, 'هذا التعليق غير منشور');
++  }
++
++  /**
++   * Selects the templates under test.
++   */
++  private function activateTheme(string $theme): void {
++    $this->container->get('theme_installer')->install([$theme]);
++    $this->container->get('theme.manager')->setActiveTheme(
++      $this->container->get('theme.initialization')->getActiveThemeByName($theme)
++    );
++  }
++
++  /**
++   * Renders an entity, exercising its real view builder and Twig translation.
++   */
++  private function renderEntity(Node|Comment $entity, string $view_mode = 'full'): \DOMXPath {
++    $build = $this->entityTypeManager->getViewBuilder($entity->getEntityTypeId())->view($entity, $view_mode);
++    $html = (string) $this->container->get('renderer')->renderInIsolation($build);
++    return new \DOMXPath(Html::load($html));
++  }
++
++  /**
++   * Asserts exactly one local marker and hidden context, or neither.
++   */
++  private function assertMarker(\DOMXPath $xpath, string $entity_selector, bool $unpublished, string $sentence): void {
++    $markers = $xpath->query($entity_selector . '/div[@class="unpublished-status-row"]/span[@class="unpublished-status"]');
++    $this->assertSame((int) $unpublished, $markers->length);
++    if ($unpublished) {
++      $this->assertSame($sentence, $markers->item(0)->textContent);
++      $this->assertSame(1, $xpath->query('span[@class="visually-hidden"]', $markers->item(0))->length);
++    }
++    $this->assertSame((int) $unpublished, $xpath->query($entity_selector . '/div[@class="unpublished-status-row"]')->length);
++  }
++
++}
+diff --git a/core/themes/default_admin/css/components/node.css b/core/themes/default_admin/css/components/node.css
+index 150c3d26d1062184a7a2423f1dc0b1ba74546800..3b8565e9161fe1faefa3f3bbd5decc7f7acf6221 100644
+--- a/core/themes/default_admin/css/components/node.css
++++ b/core/themes/default_admin/css/components/node.css
+@@ -4,11 +4,6 @@
+  * https://www.drupal.org/node/3084859
+  * @preserve
+  */
+-
+ .node__submitted {
+   margin: 1em 0;
+ }
+-
+-.node--unpublished {
+-  background-color: var(--admin-color-bg-warning);
+-}
+diff --git a/core/themes/default_admin/css/components/node.pcss.css b/core/themes/default_admin/css/components/node.pcss.css
+index 5a7124f1dfff1c29c378d3b4123ec819f5440127..037d0e06263f65385c6a6964405eacaf66a375b9 100644
+--- a/core/themes/default_admin/css/components/node.pcss.css
++++ b/core/themes/default_admin/css/components/node.pcss.css
+@@ -1,7 +1,3 @@
+ .node__submitted {
+   margin: 1em 0;
+ }
+-
+-.node--unpublished {
+-  background-color: var(--admin-color-bg-warning);
+-}
+diff --git a/core/themes/default_admin/css/components/unpublished-status.css b/core/themes/default_admin/css/components/unpublished-status.css
+new file mode 100644
+index 0000000000000000000000000000000000000000..b77cff87bb9993a37b22997bed7bf7f998788fa1
+--- /dev/null
++++ b/core/themes/default_admin/css/components/unpublished-status.css
+@@ -0,0 +1,140 @@
++/*
++ * DO NOT EDIT THIS FILE.
++ * See the following change record for more information,
++ * https://www.drupal.org/node/3084859
++ * @preserve
++ */
++
++/**
++ * @file
++ * Local publication status, independent of the Navigation Top Bar.
++ */
++
++/* Reset defaults on each entity so a comment never inherits its parent's state.
++ * Themes can override these semantic properties on individual entities. */
++:where(.node, .comment) {
++  --unpublished-accent: var(--admin-color-text-loud);
++  --unpublished-on-accent: var(--admin-color-bg-surface);
++  --unpublished-paper: var(--admin-color-bg-surface);
++  --unpublished-node-surface: color-mix(in sRGB, var(--unpublished-accent) 2%, var(--unpublished-paper));
++  --unpublished-comment-surface: color-mix(in sRGB, var(--unpublished-accent) 4%, var(--unpublished-paper));
++  --unpublished-gutter: 1rem;
++}
++
++.node.node--unpublished,
++.comment.comment--unpublished {
++  position: relative;
++  /* The border-width shorthand retains pixels in the theme's PCSS build. */
++  border-width: 0 4px;
++  border-inline-end-style: solid;
++  border-inline-end-color: var(--unpublished-accent);
++  border-inline-start-width: 0;
++  background-color: var(--unpublished-node-surface);
++  min-inline-size: 0;
++  padding-block: 0 1.5rem;
++  padding-inline: var(--unpublished-gutter);
++}
++
++/* Published comments have their own normal surface even within a draft node. */
++.comment:not(.comment--unpublished) {
++  background-color: var(--unpublished-paper);
++}
++
++.comment.comment--unpublished {
++  border-width: 0 3px;
++  border-inline-start-width: 0;
++  background-color: var(--unpublished-comment-surface);
++}
++
++.node--unpublished > .unpublished-status-row,
++.comment--unpublished > .unpublished-status-row {
++  display: flex;
++  grid-column: 1 / -1;
++  justify-content: flex-end;
++  min-inline-size: 0;
++  margin-inline-end: calc(-1 * var(--unpublished-gutter));
++  /* Reserve the triangle's space AFTER the label, however many lines it has. */
++  padding-block-end: 1rem;
++}
++
++.node--unpublished > .unpublished-status-row > .unpublished-status,
++.comment--unpublished > .unpublished-status-row > .unpublished-status {
++  position: relative;
++  align-self: flex-start;
++  box-sizing: border-box;
++  text-align: center;
++  color: var(--unpublished-on-accent);
++  background-color: var(--unpublished-accent);
++  font-size: 0.875rem;
++  font-weight: bold;
++  line-height: 1.35;
++  max-inline-size: 100%;
++  padding-block: 0.45rem;
++  padding-inline: 0.9rem;
++  overflow-wrap: anywhere;
++  border-end-start-radius: 0.2rem;
++}
++
++.comment--unpublished > .unpublished-status-row > .unpublished-status {
++  padding-block: 0.35rem;
++  padding-inline: 0.65rem;
++  font-size: 0.8rem;
++}
++
++/* Logical border triangles mirror automatically in RTL. Real borders also
++ * survive forced colors, unlike background-only clipped shapes. */
++.node--unpublished > .unpublished-status-row > .unpublished-status::after,
++.comment--unpublished > .unpublished-status-row > .unpublished-status::after {
++  position: absolute;
++  inset-block-start: 100%;
++  inset-inline-end: 0;
++  inline-size: 0;
++  block-size: 0;
++  content: "";
++  pointer-events: none;
++  border-block-start: 0.85rem solid var(--unpublished-accent);
++  border-inline-start: 0.85rem solid transparent;
++}
++
++.comment--unpublished::after {
++  position: absolute;
++  inset-block-end: 0;
++  inset-inline-end: 0;
++  inline-size: 0;
++  block-size: 0;
++  content: "";
++  pointer-events: none;
++  border-block-end: 1rem solid var(--unpublished-accent);
++  border-inline-start: 1rem solid transparent;
++}
++
++@media (forced-colors: active) {
++  .node.node--unpublished,
++  .comment.comment--unpublished {
++    color: CanvasText;
++    border-inline-end-color: CanvasText;
++    background-color: Canvas;
++  }
++
++  .comment:not(.comment--unpublished) {
++    background-color: Canvas;
++  }
++
++  .node--unpublished > .unpublished-status-row > .unpublished-status,
++  .comment--unpublished > .unpublished-status-row > .unpublished-status {
++    color: CanvasText;
++    border: 1px solid CanvasText;
++    background-color: Canvas;
++  }
++
++  .node--unpublished > .unpublished-status-row > .unpublished-status::after,
++  .comment--unpublished > .unpublished-status-row > .unpublished-status::after {
++    border-block-start-color: CanvasText;
++    border-inline-start-color: Canvas;
++  }
++
++  .comment--unpublished::after {
++    border-block-end-color: CanvasText;
++    border-inline-start-color: Canvas;
++  }
++}
+diff --git a/core/themes/default_admin/css/components/unpublished-status.pcss.css b/core/themes/default_admin/css/components/unpublished-status.pcss.css
+new file mode 100644
+index 0000000000000000000000000000000000000000..2228b95e99984cf6be61fdf6c44a2d7d0175b15a
+--- /dev/null
++++ b/core/themes/default_admin/css/components/unpublished-status.pcss.css
+@@ -0,0 +1,133 @@
++/**
++ * @file
++ * Local publication status, independent of the Navigation Top Bar.
++ */
++
++/* Reset defaults on each entity so a comment never inherits its parent's state.
++ * Themes can override these semantic properties on individual entities. */
++:where(.node, .comment) {
++  --unpublished-accent: var(--admin-color-text-loud);
++  --unpublished-on-accent: var(--admin-color-bg-surface);
++  --unpublished-paper: var(--admin-color-bg-surface);
++  --unpublished-node-surface: color-mix(in sRGB, var(--unpublished-accent) 2%, var(--unpublished-paper));
++  --unpublished-comment-surface: color-mix(in sRGB, var(--unpublished-accent) 4%, var(--unpublished-paper));
++  --unpublished-gutter: 1rem;
++}
++
++.node.node--unpublished,
++.comment.comment--unpublished {
++  position: relative;
++  /* The border-width shorthand retains pixels in the theme's PCSS build. */
++  border-width: 0 4px;
++  border-inline-end-style: solid;
++  border-inline-end-color: var(--unpublished-accent);
++  border-inline-start-width: 0;
++  background-color: var(--unpublished-node-surface);
++  min-inline-size: 0;
++  padding-block: 0 1.5rem;
++  padding-inline: var(--unpublished-gutter);
++}
++
++/* Published comments have their own normal surface even within a draft node. */
++.comment:not(.comment--unpublished) {
++  background-color: var(--unpublished-paper);
++}
++
++.comment.comment--unpublished {
++  border-width: 0 3px;
++  border-inline-start-width: 0;
++  background-color: var(--unpublished-comment-surface);
++}
++
++.node--unpublished > .unpublished-status-row,
++.comment--unpublished > .unpublished-status-row {
++  display: flex;
++  grid-column: 1 / -1;
++  justify-content: flex-end;
++  min-inline-size: 0;
++  margin-inline-end: calc(-1 * var(--unpublished-gutter));
++  /* Reserve the triangle's space AFTER the label, however many lines it has. */
++  padding-block-end: 1rem;
++}
++
++.node--unpublished > .unpublished-status-row > .unpublished-status,
++.comment--unpublished > .unpublished-status-row > .unpublished-status {
++  position: relative;
++  align-self: flex-start;
++  box-sizing: border-box;
++  text-align: center;
++  color: var(--unpublished-on-accent);
++  background-color: var(--unpublished-accent);
++  font-size: 0.875rem;
++  font-weight: bold;
++  line-height: 1.35;
++  max-inline-size: 100%;
++  padding-block: 0.45rem;
++  padding-inline: 0.9rem;
++  overflow-wrap: anywhere;
++  border-end-start-radius: 0.2rem;
++}
++
++.comment--unpublished > .unpublished-status-row > .unpublished-status {
++  padding-block: 0.35rem;
++  padding-inline: 0.65rem;
++  font-size: 0.8rem;
++}
++
++/* Logical border triangles mirror automatically in RTL. Real borders also
++ * survive forced colors, unlike background-only clipped shapes. */
++.node--unpublished > .unpublished-status-row > .unpublished-status::after,
++.comment--unpublished > .unpublished-status-row > .unpublished-status::after {
++  position: absolute;
++  inset-block-start: 100%;
++  inset-inline-end: 0;
++  inline-size: 0;
++  block-size: 0;
++  content: "";
++  pointer-events: none;
++  border-block-start: 0.85rem solid var(--unpublished-accent);
++  border-inline-start: 0.85rem solid transparent;
++}
++
++.comment--unpublished::after {
++  position: absolute;
++  inset-block-end: 0;
++  inset-inline-end: 0;
++  inline-size: 0;
++  block-size: 0;
++  content: "";
++  pointer-events: none;
++  border-block-end: 1rem solid var(--unpublished-accent);
++  border-inline-start: 1rem solid transparent;
++}
++
++@media (forced-colors: active) {
++  .node.node--unpublished,
++  .comment.comment--unpublished {
++    color: CanvasText;
++    border-inline-end-color: CanvasText;
++    background-color: Canvas;
++  }
++
++  .comment:not(.comment--unpublished) {
++    background-color: Canvas;
++  }
++
++  .node--unpublished > .unpublished-status-row > .unpublished-status,
++  .comment--unpublished > .unpublished-status-row > .unpublished-status {
++    color: CanvasText;
++    border: 1px solid CanvasText;
++    background-color: Canvas;
++  }
++
++  .node--unpublished > .unpublished-status-row > .unpublished-status::after,
++  .comment--unpublished > .unpublished-status-row > .unpublished-status::after {
++    border-block-start-color: CanvasText;
++    border-inline-start-color: Canvas;
++  }
++
++  .comment--unpublished::after {
++    border-block-end-color: CanvasText;
++    border-inline-start-color: Canvas;
++  }
++}
+diff --git a/core/themes/default_admin/default_admin.libraries.yml b/core/themes/default_admin/default_admin.libraries.yml
+index 535b2cbd84462c31ef24bfe473c8e69e1fb214e1..f2319106748adda5d71c1feb16e75046a863abe2 100644
+--- a/core/themes/default_admin/default_admin.libraries.yml
++++ b/core/themes/default_admin/default_admin.libraries.yml
+@@ -47,6 +47,7 @@ global-styling:
+       css/components/menus-and-lists.css: {}
+       css/components/modules-page.css: {}
+       css/components/node.css: {}
++      css/components/unpublished-status.css: {}
+       css/components/page-title.css: {}
+       css/components/pager.css: {}
+       css/components/performance.css: {}
+diff --git a/core/themes/default_admin/templates/content/comment.html.twig b/core/themes/default_admin/templates/content/comment.html.twig
+index 2429a81b92d49fe917349bd4f098bc17e9ef2660..db1ee27af8479fe7f3eae06149e9b4aab0ea9701 100644
+--- a/core/themes/default_admin/templates/content/comment.html.twig
++++ b/core/themes/default_admin/templates/content/comment.html.twig
+@@ -70,12 +70,18 @@
+   set classes = [
+     'comment',
+     'js-comment',
++    status == 'unpublished' ? 'comment--unpublished',
+     status != 'published' ? status,
+     comment.owner.anonymous ? 'by-anonymous',
+     author_id and author_id == commented_entity.getOwnerId() ? 'by-' ~ commented_entity.getEntityTypeId() ~ '-author',
+   ]
+ %}
+ <article{{ attributes.addClass(classes) }}>
++  {% if status == 'unpublished' %}
++    <div class="unpublished-status-row">
++      <span class="unpublished-status">{% trans %}<span class="visually-hidden">This comment is </span>Unpublished{% endtrans %}</span>
++    </div>
++  {% endif %}
+   {#
+     Hide the "new" indicator by default, let a piece of JavaScript ask the
+     server which comments are new for the user. Rendering the final "new"
+diff --git a/core/themes/default_admin/templates/content/node.html.twig b/core/themes/default_admin/templates/content/node.html.twig
+index d3957b39fa50916187c8957e5d56e63b34c0a8f8..5ae3fc80d79a9c27f18001a93d20c61e6687ab4a 100644
+--- a/core/themes/default_admin/templates/content/node.html.twig
++++ b/core/themes/default_admin/templates/content/node.html.twig
+@@ -69,6 +69,11 @@
+   ]
+ %}
+ <article{{ attributes.addClass(classes) }}>
++  {% if not node.isPublished() %}
++    <div class="unpublished-status-row">
++      <span class="unpublished-status">{% trans %}<span class="visually-hidden">This node is </span>Unpublished{% endtrans %}</span>
++    </div>
++  {% endif %}
+ 
+   {{ title_prefix }}
+   {% if label and view_mode != 'full' %}
+diff --git a/core/themes/starterkit_theme/css/components/node.css b/core/themes/starterkit_theme/css/components/node.css
+index 6b7cd5257d6d167426d11e2b6adb5eda3fecbfdf..6d4b0a755ec5bedb02059040555dffd0a84db06c 100644
+--- a/core/themes/starterkit_theme/css/components/node.css
++++ b/core/themes/starterkit_theme/css/components/node.css
+@@ -1,8 +1,130 @@
+-/**
++/*
++ * DO NOT EDIT THIS FILE.
++ * See the following change record for more information,
++ * https://www.drupal.org/node/3084859
++ * @preserve
++ */ /**
+  * @file
+- * Visual styles for nodes.
++ * Visual styles for nodes and their independent comment status.
+  */
+ 
+-.node--unpublished {
+-  background-color: #fff4f4;
++:where(.node, .comment) {
++  --unpublished-accent: CanvasText;
++  --unpublished-on-accent: Canvas;
++  --unpublished-paper: Canvas;
++  --unpublished-node-surface: color-mix(in sRGB, var(--unpublished-accent) 4%, var(--unpublished-paper));
++  --unpublished-comment-surface: color-mix(in sRGB, var(--unpublished-accent) 8%, var(--unpublished-paper));
++  --unpublished-gutter: 1rem;
++}
++
++.node.node--unpublished,
++.comment.comment--unpublished {
++  position: relative;
++  border-width: 0 4px;
++  border-inline-end-style: solid;
++  border-inline-end-color: var(--unpublished-accent);
++  border-inline-start-width: 0;
++  background-color: var(--unpublished-node-surface);
++  min-inline-size: 0;
++  padding-block: 0 1.5rem;
++  padding-inline: var(--unpublished-gutter);
++}
++
++.comment:not(.comment--unpublished) {
++  background-color: var(--unpublished-paper);
++}
++
++.comment.comment--unpublished {
++  border-width: 0 3px;
++  border-inline-start-width: 0;
++  background-color: var(--unpublished-comment-surface);
++}
++
++.node--unpublished > .unpublished-status-row,
++.comment--unpublished > .unpublished-status-row {
++  display: flex;
++  grid-column: 1 / -1;
++  justify-content: flex-end;
++  min-inline-size: 0;
++  margin-inline-end: calc(-1 * var(--unpublished-gutter));
++  padding-block-end: 1rem;
++}
++
++.node--unpublished > .unpublished-status-row > .unpublished-status,
++.comment--unpublished > .unpublished-status-row > .unpublished-status {
++  position: relative;
++  align-self: flex-start;
++  box-sizing: border-box;
++  text-align: center;
++  color: var(--unpublished-on-accent);
++  background-color: var(--unpublished-accent);
++  font-size: 0.875rem;
++  font-weight: bold;
++  line-height: 1.35;
++  max-inline-size: 100%;
++  padding-block: 0.45rem;
++  padding-inline: 0.9rem;
++  overflow-wrap: anywhere;
++  border-end-start-radius: 0.2rem;
++}
++
++.comment--unpublished > .unpublished-status-row > .unpublished-status {
++  padding-block: 0.35rem;
++  padding-inline: 0.65rem;
++  font-size: 0.8rem;
++}
++.node--unpublished > .unpublished-status-row > .unpublished-status::after,
++.comment--unpublished > .unpublished-status-row > .unpublished-status::after {
++  position: absolute;
++  inset-block-start: 100%;
++  inset-inline-end: 0;
++  inline-size: 0;
++  block-size: 0;
++  content: "";
++  pointer-events: none;
++  border-block-start: 0.85rem solid var(--unpublished-accent);
++  border-inline-start: 0.85rem solid transparent;
++}
++
++.comment--unpublished::after {
++  position: absolute;
++  inset-block-end: 0;
++  inset-inline-end: 0;
++  inline-size: 0;
++  block-size: 0;
++  content: "";
++  pointer-events: none;
++  border-block-end: 1rem solid var(--unpublished-accent);
++  border-inline-start: 1rem solid transparent;
++}
++
++@media (forced-colors: active) {
++  .node.node--unpublished,
++  .comment.comment--unpublished {
++    color: CanvasText;
++    border-inline-end-color: CanvasText;
++    background-color: Canvas;
++  }
++
++  .comment:not(.comment--unpublished) {
++    background-color: Canvas;
++  }
++
++  .node--unpublished > .unpublished-status-row > .unpublished-status,
++  .comment--unpublished > .unpublished-status-row > .unpublished-status {
++    color: CanvasText;
++    border: 1px solid CanvasText;
++    background-color: Canvas;
++  }
++
++  .node--unpublished > .unpublished-status-row > .unpublished-status::after,
++  .comment--unpublished > .unpublished-status-row > .unpublished-status::after {
++    border-block-start-color: CanvasText;
++    border-inline-start-color: Canvas;
++  }
++
++  .comment--unpublished::after {
++    border-block-end-color: CanvasText;
++    border-inline-start-color: Canvas;
++  }
+ }
+diff --git a/core/themes/starterkit_theme/css/components/node.pcss.css b/core/themes/starterkit_theme/css/components/node.pcss.css
+new file mode 100644
+index 0000000000000000000000000000000000000000..c42b8f561e3f0ac73e0b3d7125c584a5c118cffb
+--- /dev/null
++++ b/core/themes/starterkit_theme/css/components/node.pcss.css
+@@ -0,0 +1,6 @@
++/**
++ * @file
++ * Visual styles for nodes and their independent comment status.
++ */
++
++@import "unpublished-status.pcss.css";
+diff --git a/core/themes/starterkit_theme/css/components/unpublished-status.css b/core/themes/starterkit_theme/css/components/unpublished-status.css
+new file mode 100644
+index 0000000000000000000000000000000000000000..4eca39f12147ce9531952c21e5d9bb462366561a
+--- /dev/null
++++ b/core/themes/starterkit_theme/css/components/unpublished-status.css
+@@ -0,0 +1,138 @@
++/*
++ * DO NOT EDIT THIS FILE.
++ * See the following change record for more information,
++ * https://www.drupal.org/node/3084859
++ * @preserve
++ */
++
++/**
++ * @file
++ * Theme-customizable local publication status.
++ */
++
++/* Neutral defaults for generated themes; never impose a palette on modules.
++ * Reset properties on each entity, independent of its parent's status. */
++:where(.node, .comment) {
++  --unpublished-accent: CanvasText;
++  --unpublished-on-accent: Canvas;
++  --unpublished-paper: Canvas;
++  --unpublished-node-surface: color-mix(in sRGB, var(--unpublished-accent) 4%, var(--unpublished-paper));
++  --unpublished-comment-surface: color-mix(in sRGB, var(--unpublished-accent) 8%, var(--unpublished-paper));
++  --unpublished-gutter: 1rem;
++}
++
++.node.node--unpublished,
++.comment.comment--unpublished {
++  position: relative;
++  /* The border-width shorthand retains pixels in the theme's PCSS build. */
++  border-width: 0 4px;
++  border-inline-end-style: solid;
++  border-inline-end-color: var(--unpublished-accent);
++  border-inline-start-width: 0;
++  background-color: var(--unpublished-node-surface);
++  min-inline-size: 0;
++  padding-block: 0 1.5rem;
++  padding-inline: var(--unpublished-gutter);
++}
++
++.comment:not(.comment--unpublished) {
++  background-color: var(--unpublished-paper);
++}
++
++.comment.comment--unpublished {
++  border-width: 0 3px;
++  border-inline-start-width: 0;
++  background-color: var(--unpublished-comment-surface);
++}
++
++.node--unpublished > .unpublished-status-row,
++.comment--unpublished > .unpublished-status-row {
++  display: flex;
++  grid-column: 1 / -1;
++  justify-content: flex-end;
++  min-inline-size: 0;
++  margin-inline-end: calc(-1 * var(--unpublished-gutter));
++  /* Reserve triangle space after wrapped labels, not a fixed-height overlay. */
++  padding-block-end: 1rem;
++}
++
++.node--unpublished > .unpublished-status-row > .unpublished-status,
++.comment--unpublished > .unpublished-status-row > .unpublished-status {
++  position: relative;
++  align-self: flex-start;
++  box-sizing: border-box;
++  text-align: center;
++  color: var(--unpublished-on-accent);
++  background-color: var(--unpublished-accent);
++  font-size: 0.875rem;
++  font-weight: bold;
++  line-height: 1.35;
++  max-inline-size: 100%;
++  padding-block: 0.45rem;
++  padding-inline: 0.9rem;
++  overflow-wrap: anywhere;
++  border-end-start-radius: 0.2rem;
++}
++
++.comment--unpublished > .unpublished-status-row > .unpublished-status {
++  padding-block: 0.35rem;
++  padding-inline: 0.65rem;
++  font-size: 0.8rem;
++}
++
++/* Real logical borders mirror in RTL and survive forced colors. */
++.node--unpublished > .unpublished-status-row > .unpublished-status::after,
++.comment--unpublished > .unpublished-status-row > .unpublished-status::after {
++  position: absolute;
++  inset-block-start: 100%;
++  inset-inline-end: 0;
++  inline-size: 0;
++  block-size: 0;
++  content: "";
++  pointer-events: none;
++  border-block-start: 0.85rem solid var(--unpublished-accent);
++  border-inline-start: 0.85rem solid transparent;
++}
++
++.comment--unpublished::after {
++  position: absolute;
++  inset-block-end: 0;
++  inset-inline-end: 0;
++  inline-size: 0;
++  block-size: 0;
++  content: "";
++  pointer-events: none;
++  border-block-end: 1rem solid var(--unpublished-accent);
++  border-inline-start: 1rem solid transparent;
++}
++
++@media (forced-colors: active) {
++  .node.node--unpublished,
++  .comment.comment--unpublished {
++    color: CanvasText;
++    border-inline-end-color: CanvasText;
++    background-color: Canvas;
++  }
++
++  .comment:not(.comment--unpublished) {
++    background-color: Canvas;
++  }
++
++  .node--unpublished > .unpublished-status-row > .unpublished-status,
++  .comment--unpublished > .unpublished-status-row > .unpublished-status {
++    color: CanvasText;
++    border: 1px solid CanvasText;
++    background-color: Canvas;
++  }
++
++  .node--unpublished > .unpublished-status-row > .unpublished-status::after,
++  .comment--unpublished > .unpublished-status-row > .unpublished-status::after {
++    border-block-start-color: CanvasText;
++    border-inline-start-color: Canvas;
++  }
++
++  .comment--unpublished::after {
++    border-block-end-color: CanvasText;
++    border-inline-start-color: Canvas;
++  }
++}
+diff --git a/core/themes/starterkit_theme/css/components/unpublished-status.pcss.css b/core/themes/starterkit_theme/css/components/unpublished-status.pcss.css
+new file mode 100644
+index 0000000000000000000000000000000000000000..70951b5a84b7b292299f0aa875c8896b8ae2bd98
+--- /dev/null
++++ b/core/themes/starterkit_theme/css/components/unpublished-status.pcss.css
+@@ -0,0 +1,131 @@
++/**
++ * @file
++ * Theme-customizable local publication status.
++ */
++
++/* Neutral defaults for generated themes; never impose a palette on modules.
++ * Reset properties on each entity, independent of its parent's status. */
++:where(.node, .comment) {
++  --unpublished-accent: CanvasText;
++  --unpublished-on-accent: Canvas;
++  --unpublished-paper: Canvas;
++  --unpublished-node-surface: color-mix(in sRGB, var(--unpublished-accent) 4%, var(--unpublished-paper));
++  --unpublished-comment-surface: color-mix(in sRGB, var(--unpublished-accent) 8%, var(--unpublished-paper));
++  --unpublished-gutter: 1rem;
++}
++
++.node.node--unpublished,
++.comment.comment--unpublished {
++  position: relative;
++  /* The border-width shorthand retains pixels in the theme's PCSS build. */
++  border-width: 0 4px;
++  border-inline-end-style: solid;
++  border-inline-end-color: var(--unpublished-accent);
++  border-inline-start-width: 0;
++  background-color: var(--unpublished-node-surface);
++  min-inline-size: 0;
++  padding-block: 0 1.5rem;
++  padding-inline: var(--unpublished-gutter);
++}
++
++.comment:not(.comment--unpublished) {
++  background-color: var(--unpublished-paper);
++}
++
++.comment.comment--unpublished {
++  border-width: 0 3px;
++  border-inline-start-width: 0;
++  background-color: var(--unpublished-comment-surface);
++}
++
++.node--unpublished > .unpublished-status-row,
++.comment--unpublished > .unpublished-status-row {
++  display: flex;
++  grid-column: 1 / -1;
++  justify-content: flex-end;
++  min-inline-size: 0;
++  margin-inline-end: calc(-1 * var(--unpublished-gutter));
++  /* Reserve triangle space after wrapped labels, not a fixed-height overlay. */
++  padding-block-end: 1rem;
++}
++
++.node--unpublished > .unpublished-status-row > .unpublished-status,
++.comment--unpublished > .unpublished-status-row > .unpublished-status {
++  position: relative;
++  align-self: flex-start;
++  box-sizing: border-box;
++  text-align: center;
++  color: var(--unpublished-on-accent);
++  background-color: var(--unpublished-accent);
++  font-size: 0.875rem;
++  font-weight: bold;
++  line-height: 1.35;
++  max-inline-size: 100%;
++  padding-block: 0.45rem;
++  padding-inline: 0.9rem;
++  overflow-wrap: anywhere;
++  border-end-start-radius: 0.2rem;
++}
++
++.comment--unpublished > .unpublished-status-row > .unpublished-status {
++  padding-block: 0.35rem;
++  padding-inline: 0.65rem;
++  font-size: 0.8rem;
++}
++
++/* Real logical borders mirror in RTL and survive forced colors. */
++.node--unpublished > .unpublished-status-row > .unpublished-status::after,
++.comment--unpublished > .unpublished-status-row > .unpublished-status::after {
++  position: absolute;
++  inset-block-start: 100%;
++  inset-inline-end: 0;
++  inline-size: 0;
++  block-size: 0;
++  content: "";
++  pointer-events: none;
++  border-block-start: 0.85rem solid var(--unpublished-accent);
++  border-inline-start: 0.85rem solid transparent;
++}
++
++.comment--unpublished::after {
++  position: absolute;
++  inset-block-end: 0;
++  inset-inline-end: 0;
++  inline-size: 0;
++  block-size: 0;
++  content: "";
++  pointer-events: none;
++  border-block-end: 1rem solid var(--unpublished-accent);
++  border-inline-start: 1rem solid transparent;
++}
++
++@media (forced-colors: active) {
++  .node.node--unpublished,
++  .comment.comment--unpublished {
++    color: CanvasText;
++    border-inline-end-color: CanvasText;
++    background-color: Canvas;
++  }
++
++  .comment:not(.comment--unpublished) {
++    background-color: Canvas;
++  }
++
++  .node--unpublished > .unpublished-status-row > .unpublished-status,
++  .comment--unpublished > .unpublished-status-row > .unpublished-status {
++    color: CanvasText;
++    border: 1px solid CanvasText;
++    background-color: Canvas;
++  }
++
++  .node--unpublished > .unpublished-status-row > .unpublished-status::after,
++  .comment--unpublished > .unpublished-status-row > .unpublished-status::after {
++    border-block-start-color: CanvasText;
++    border-inline-start-color: Canvas;
++  }
++
++  .comment--unpublished::after {
++    border-block-end-color: CanvasText;
++    border-inline-start-color: Canvas;
++  }
++}
+diff --git a/core/themes/starterkit_theme/templates/content/comment.html.twig b/core/themes/starterkit_theme/templates/content/comment.html.twig
+index 40d3b1b379e67e1db5633abab0d4b597d93b4f17..bb966cf70fc549ad079f22c14b2a6ef8e0b40659 100644
+--- a/core/themes/starterkit_theme/templates/content/comment.html.twig
++++ b/core/themes/starterkit_theme/templates/content/comment.html.twig
+@@ -73,12 +73,19 @@
+   set classes = [
+     'comment',
+     'js-comment',
++    status == 'unpublished' ? 'comment--unpublished',
+     status != 'published' ? status,
+     comment.owner.anonymous ? 'by-anonymous',
+     author_id and author_id == commented_entity.getOwnerId() ? 'by-' ~ commented_entity.getEntityTypeId() ~ '-author',
+   ]
+ %}
++{{ attach_library('starterkit_theme/node') }}
+ <article{{ attributes.addClass(classes) }}>
++  {% if status == 'unpublished' %}
++    <div class="unpublished-status-row">
++      <span class="unpublished-status">{% trans %}<span class="visually-hidden">This comment is </span>Unpublished{% endtrans %}</span>
++    </div>
++  {% endif %}
+   {#
+     Hide the "new" indicator by default, let a piece of JavaScript ask the
+     server which comments are new for the user. Rendering the final "new"
+diff --git a/core/themes/starterkit_theme/templates/content/node.html.twig b/core/themes/starterkit_theme/templates/content/node.html.twig
+index 8dfd13a8ef94eccaf5dbf666a4f85a140eebb47f..61abe331bd211436b605ce1752f69a18761828b2 100644
+--- a/core/themes/starterkit_theme/templates/content/node.html.twig
++++ b/core/themes/starterkit_theme/templates/content/node.html.twig
+@@ -70,6 +70,11 @@
+ %}
+ {{ attach_library('starterkit_theme/node') }}
+ <article{{ attributes.addClass(classes) }}>
++  {% if not node.isPublished() %}
++    <div class="unpublished-status-row">
++      <span class="unpublished-status">{% trans %}<span class="visually-hidden">This node is </span>Unpublished{% endtrans %}</span>
++    </div>
++  {% endif %}
+ 
+   {{ title_prefix }}
+   {% if label and view_mode != 'full' %}
