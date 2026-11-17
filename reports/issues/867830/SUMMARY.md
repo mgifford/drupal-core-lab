@@ -4,6 +4,10 @@
 2026-11-09, with a focused Default Admin replay on 2026-11-17.
 No person has reviewed it, no real screen reader was run. Nothing has been posted.
 
+November 17 alternative: [rail-and-ribbon proposal](RIBBON-PROPOSAL.md), registered
+separately as `867830-ribbon-pinned` against November 17 Core. Its implementation
+and evidence are separate from the earlier proposal below.
+
 November 17 follow-up drafts: [targeted core summary amendment](ISSUE-SUMMARY-UPDATE-DRAFT.md)
 and [separate Claro issue/MR proposal](CLARO-FOLLOWUP-DRAFT.md).
 The refreshed [community brief](intake/BRIEF.md) includes comments 316 and 317.

@@ -1,0 +1,66 @@
+[
+  {
+    "slug": "867830-ribbon-pinned",
+    "extends": "867830-current-authoring",
+    "label": "#867830: alternative inline-end rail and ribbon",
+    "description": "Separate local proposal: entity-local status text, a full-height inline-end rail and flow-reserved ribbon. Preserves the earlier status-label proposal and its evidence.",
+    "status": "DRAFT; automated ribbon checks pass; human visual, keyboard and accessibility review pending",
+    "languages": ["ar"],
+    "core": {
+      "commit": "29b0a0b2256eb5ed27df6ec5e4e4e33142a717e8"
+    },
+    "before": {
+      "env": "baseline-867830-ribbon",
+      "label": "pristine November 17 Core with pinned Claro and Olivero"
+    },
+    "after": {
+      "env": "issue-867830-ribbon",
+      "label": "alternative rail-and-ribbon proposal",
+      "patches": [
+        "reports/issues/867830/branches/867830-ribbon-core.patch"
+      ],
+      "contribPatches": [
+        {
+          "project": "claro",
+          "patch": "reports/issues/867830/branches/867830-ribbon-claro.patch"
+        },
+        {
+          "project": "olivero",
+          "patch": "reports/issues/867830/branches/867830-ribbon-olivero.patch"
+        }
+      ]
+    },
+    "steps": [
+      {
+        "text": "Start with Standard and apply repro_867830_current on both sides. Log in with permission to view unpublished nodes and held comments. Set Default Admin as the default theme on both sides.",
+        "how": "recipe"
+      },
+      {
+        "text": "Use the same three-node fixture: /lab/published-article has a published comment; /lab/unpublished-article has published and held comments; /lab/unpublished-page hides author metadata.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open both unpublished pages in Default Admin on both sides.",
+        "how": "mirror",
+        "lookFor": "After has one local contextual Unpublished label per unpublished entity, a 4px inline-end node rail and flow-reserved ribbon with a same-colour triangular continuation. Held comments have their own 3px rail, compact ribbon and bottom corner. Published comments have a normal surface and no local status."
+      },
+      {
+        "text": "Repeat with Claro and Olivero as the default theme on both sides. Repeat with newly generated Starterkit themes where available.",
+        "how": "mirror",
+        "lookFor": "The same entity-local convention works independently of author metadata and the Navigation Top Bar. Do not treat existing Starterkit-generated themes as automatically updated."
+      },
+      {
+        "text": "Open /lab/published-article in each tested theme on both sides.",
+        "how": "mirror",
+        "lookFor": "The published node and its comment have no local unpublished text, rail or ribbon. Check an independently held comment in a published node with the rendering regression test."
+      },
+      {
+        "text": "Repeat in light, supported dark mode, forced colours and RTL. Check long translated labels, long titles, short comments, 200% text resize and 400% reflow.",
+        "how": "observe",
+        "lookFor": "The rail follows its entity height and moves to inline-end. Ribbons wrap without overlapping content. Forced colours retain real text and borders with system colours. Record browser emulation separately from real Windows Contrast Themes, and assess the existing Top Bar chip separately."
+      }
+    ],
+    "expected": "Unpublished entities have one visible, translatable contextual status label, an entity-height inline-end rail and a non-overlapping ribbon. Comments communicate their own state independently of the parent. Published entities remain unmarked. Shapes mirror in RTL and meaningful text and borders survive forced colours.",
+    "actual": "Before is pristine November 17 Core plus pinned unmodified Claro and Olivero. After is a separate local ribbon proposal, not the upstream patch or the earlier label-only proposal. Automated results and manual gaps are recorded separately."
+  }
+]

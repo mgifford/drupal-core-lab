@@ -3,6 +3,14 @@
 Status: DRAFT until a person has reviewed it. No real VoiceOver or NVDA pass was made; no person has done a keyboard pass.
 Date: 2026-11-06   Author/agent: Drupal Core Lab, AI-assisted (Copilot), for @mgifford.
 
+## Separate ribbon alternative (2026-11-17)
+
+The [rail-and-ribbon report](RIBBON-PROPOSAL.md) records the new comparison
+`867830-ribbon-pinned`: November 17 Core, the shared three-node recipe, three new
+standalone patches and dedicated geometry, contrast and status-speech checks.
+Earlier results below are preserved history, not verification of the ribbon
+alternative. Its screenshots and manual-review gaps are linked from that report.
+
 ## Historical environments (exact commits)
 | Env | Directory | Commit | Notes |
 |-----|-----------|--------|-------|

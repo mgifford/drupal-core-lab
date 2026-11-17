@@ -5009,6 +5009,87 @@
       "demo": {
         "start": "/admin/config/people/accounts"
       }
+    },
+    {
+      "slug": "867830-ribbon-pinned",
+      "issue": "867830",
+      "label": "#867830: alternative inline-end rail and ribbon",
+      "description": "Separate local proposal: entity-local status text, a full-height inline-end rail and flow-reserved ribbon. Preserves the earlier status-label proposal and its evidence.",
+      "before": {
+        "label": "pristine November 17 Core with pinned Claro and Olivero"
+      },
+      "after": {
+        "label": "alternative rail-and-ribbon proposal"
+      },
+      "steps": [
+        {
+          "text": "Start with Standard and apply repro_867830_current on both sides. Log in with permission to view unpublished nodes and held comments. Set Default Admin as the default theme on both sides.",
+          "how": "recipe"
+        },
+        {
+          "text": "Use the same three-node fixture: /lab/published-article has a published comment; /lab/unpublished-article has published and held comments; /lab/unpublished-page hides author metadata.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open both unpublished pages in Default Admin on both sides.",
+          "how": "mirror",
+          "lookFor": "After has one local contextual Unpublished label per unpublished entity, a 4px inline-end node rail and flow-reserved ribbon with a same-colour triangular continuation. Held comments have their own 3px rail, compact ribbon and bottom corner. Published comments have a normal surface and no local status."
+        },
+        {
+          "text": "Repeat with Claro and Olivero as the default theme on both sides. Repeat with newly generated Starterkit themes where available.",
+          "how": "mirror",
+          "lookFor": "The same entity-local convention works independently of author metadata and the Navigation Top Bar. Do not treat existing Starterkit-generated themes as automatically updated."
+        },
+        {
+          "text": "Open /lab/published-article in each tested theme on both sides.",
+          "how": "mirror",
+          "lookFor": "The published node and its comment have no local unpublished text, rail or ribbon. Check an independently held comment in a published node with the rendering regression test."
+        },
+        {
+          "text": "Repeat in light, supported dark mode, forced colours and RTL. Check long translated labels, long titles, short comments, 200% text resize and 400% reflow.",
+          "how": "observe",
+          "lookFor": "The rail follows its entity height and moves to inline-end. Ribbons wrap without overlapping content. Forced colours retain real text and borders with system colours. Record browser emulation separately from real Windows Contrast Themes, and assess the existing Top Bar chip separately."
+        }
+      ],
+      "expected": "Unpublished entities have one visible, translatable contextual status label, an entity-height inline-end rail and a non-overlapping ribbon. Comments communicate their own state independently of the parent. Published entities remain unmarked. Shapes mirror in RTL and meaningful text and borders survive forced colours.",
+      "actual": "Before is pristine November 17 Core plus pinned unmodified Claro and Olivero. After is a separate local ribbon proposal, not the upstream patch or the earlier label-only proposal. Automated results and manual gaps are recorded separately.",
+      "observe": [
+        {
+          "label": "Unpublished content has a readable text label, including in forced colours",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Published content has no unpublished label",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "A rendered node exists",
+          "probe": "!!document.querySelector('article.node')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Unpublished node has exactly one status label; published node has none",
+          "probe": "!!document.querySelector('article.node') && [...document.querySelector('article.node').querySelectorAll('.unpublished-status')].filter(s => !s.closest('.js-comment')).length === (document.querySelector('article.node').classList.contains('node--unpublished') ? 1 : 0)",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Only held comments have status labels",
+          "probe": "[...document.querySelectorAll('article.js-comment')].every(c => c.querySelectorAll('.unpublished-status').length === (c.matches('.unpublished, .comment--unpublished') ? 1 : 0))",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/lab/unpublished-article",
+        "/lab/unpublished-page",
+        "/lab/published-article"
+      ]
     }
   ]
 }
