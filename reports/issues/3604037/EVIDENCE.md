@@ -1,34 +1,54 @@
 # Evidence: issue 3604037 (Indicate that grouping elements have child element errors)
 
-Status: **DRAFT.** The lab's measurements for this issue were written up as they were taken, in
-[`EVALUATION-2026-10-01.md`](EVALUATION-2026-10-01.md). This file is the standard name for them and points
-to each source instead of repeating it. A person has not reviewed the results.
+Status: **DRAFT.** The current port has been built and checked with targeted tests, lint, and an automated Before/After browser evaluation. Human review remains outstanding. Historical runs below do not verify the current port.
 
-## Environments (exact commits)
-| Env | Directory | Core commit | MR / patches |
-|-----|-----------|-------------|--------------|
-| Baseline | `envs/baseline-3604037-latest` | `8cd44d484e3c` (2026-10-01) | upstream `main` |
-| Patched  | `envs/issue-3604037-latest` | `8cd44d484e3c` (2026-10-01) | MR !17078, tip `e8b2e166be8` |
+## Current patch
 
-The `-pinned` variant pins core to `c321043bb82d` (2026-09-28), the commit the patch was based on.
-
-## Where the evidence is
-| What | Where |
+| Item | Value |
 |---|---|
-| Measurements and images (forced colours, RTL, CSS check, PHPUnit Before vs After) | [`EVALUATION-2026-10-01.md`](EVALUATION-2026-10-01.md) |
-| The MR's own PHPUnit test logs | [`phpunit/`](phpunit/) — pass on After, fail on Before |
-| Scripted runs and screenshots (light, dark, forced colours, RTL, JS off) | [`playwright/`](playwright/) |
-| Core's own code checks on the patched files | [`lint/`](lint/) — not accessibility evidence |
-| Follow-up patches proposed on the MR | [`proposals/`](proposals/) |
-| Browser and colour-mode matrix | not generated (`node scripts/coverage.mjs 3604037`) |
+| Core base | `29b0a0b2256e` (2026-11-17) |
+| Upstream source | MR !17078, tip `c3c52b00` |
+| Before patches | `support-fixture-two-required-fields.patch`, then `support-fixture-multiple-vertical-tab-errors.patch` |
+| After patches | `support-fixture-multiple-vertical-tab-errors.patch`, then `3604037-comment61-current-main.patch` |
+| Local port SHA-256 | `e82af47b` (full hash in `BRANCHES.md`) |
+| Patch application | Pass: `node tools/compare/setup.mjs 3604037-latest --check-patches` |
+| Static checks | PHP syntax, JavaScript syntax, and variant JSON parse pass. Whitespace checks exempt required single-space context lines in patch files. |
 
-## Findings (one line each; detail in EVALUATION-2026-10-01.md)
-- The change adds error cues to closed or inactive grouping elements; measured on Before and After in Chromium.
-- Forced-colours icon colour (`canvasText`) does not match the label (link colour); `preserve-parent-color` is suggested.
-- Dark-mode error contrast fails (`#ce6060`: 3.72 to 4.48:1); a token change belongs with [#3625458](https://www.drupal.org/project/drupal/issues/3625458).
-- The MR's PHPUnit tests pass on After and fail on the same tests run against Before's code.
+The support patches are test fixtures and apply to both sides where configured. The local port omits the stale generated Umami performance snapshot from the upstream MR patch.
 
-## Not verified
-RTL was measured with real Farsi but English interface text. Not done: a real screen reader, Firefox and
-Safari, a real Windows contrast theme, and the MR's PHPUnit tests with the proposal patches applied. A
-person should look at the images before anything is posted.
+## Current verification
+
+The Before and After DDEV sites were built from core `29b0a0b2256e` with the `repro_3604037` recipe and Farsi locale.
+
+Pre-publication patch checks also pass for both the historical pinned stack on `c321043bb82d` and the latest stack on newer core `ecb483ff6d4b`. The functional and browser results below remain specific to `29b0a0b2256e`; no runtime tests were run on `ecb483ff6d4b`.
+
+Targeted After tests passed:
+
+| Test | Result |
+|---|---|
+| `core/tests/Drupal/Tests/Core/Render/Element/DetailsTest.php` | 1 test, 8 assertions |
+| `core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php` | 6 tests, 50 assertions |
+| `core/themes/default_admin/tests/src/FunctionalJavascript/FormGroupingElementsTest.php` | 3 tests, 15 assertions |
+| `core/modules/node/tests/src/Functional/NodeEditFormTest.php` | 4 tests, 112 assertions |
+
+`node scripts/lint.mjs 3604037-latest` passed all checks on 20 changed files; the report is [here](lint/2026-11-17-3604037-latest-after.md).
+
+The automated Before/After evaluation is [here](playwright/2026-11-17T23-46-32-155Z-evaluate/SUMMARY.md). It shows the expected child-error counts and indicators in the After state. It also reports six light-mode hover text contrast checks at 4.17:1, below the 4.5:1 text threshold. That contrast finding remains unresolved and should be reviewed separately; no human keyboard or screen-reader review has been done. The generated [coverage report](COVERAGE.md) still shows the 480px multi-browser matrix as untested; the custom evaluation is recorded in the older format without patch hashes.
+
+## Historical evidence (not evidence for the current port)
+
+| Env | Directory | Core commit | MR / patches |
+|---|---|---|---|
+| Baseline | `envs/baseline-3604037-latest` | `8cd44d484e3c` (2026-10-01) | upstream `main` |
+| Patched | `envs/issue-3604037-latest` | `8cd44d484e3c` (2026-10-01) | MR !17078, tip `e8b2e166be8` |
+
+Historical measurements, screenshots, test logs, and lint results are linked from [SUMMARY.md](SUMMARY.md) and [EVALUATION-2026-10-01.md](EVALUATION-2026-10-01.md). They describe an older core and patch revision.
+
+## Not verified for the current port
+
+- Human keyboard and real screen-reader testing, Firefox/Safari testing, and real Windows forced-colors testing.
+- The 480px cross-browser coverage matrix and text zoom/reflow checks.
+- Whether the six light-mode hover contrast failures are introduced by this change or reflect existing Default Admin hover styling.
+- The GitLab MR review discussions; the review API returned HTTP 401. Comment #61 itself was retrieved.
+
+No evidence here is ready to post until a person reviews it.

@@ -184,7 +184,7 @@ await b2.close();
 fs.writeFileSync(path.join(out, 'results.json'), JSON.stringify(results, null, 2));
 
 // ---- summary ----
-let md = `# #3604037 evaluation (${slug})\n\nRun ${results.when}. Before \`${v.before.env}\`, After \`${v.after.env}\` (the MR on current core). Automated measurements are a DRAFT: they do not replace a person's look in each mode.\n\n`;
+let md = `# #3604037 evaluation (${slug})\n\nRun ${results.when}. Before \`${v.before.env}\`, After \`${v.after.env}\` (the registered After configuration). Automated measurements are a DRAFT: they do not replace a person's look in each mode.\n\n`;
 for (const mode of MODES) {
   md += `## Mode: ${mode}\n\n`;
   for (const [key, e] of Object.entries(results.modes[mode])) {

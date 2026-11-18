@@ -1,5 +1,5 @@
 diff --git a/core/lib/Drupal/Core/Form/FormPreprocess.php b/core/lib/Drupal/Core/Form/FormPreprocess.php
-index 342f92f1ff2..78152262d36 100644
+index 3908989cd64283a6df5e7af914e59768c92d0c06..6061037f7e9dd1df5ada4c05dfe92211b45e5f06 100644
 --- a/core/lib/Drupal/Core/Form/FormPreprocess.php
 +++ b/core/lib/Drupal/Core/Form/FormPreprocess.php
 @@ -367,6 +367,8 @@ class FormPreprocess {
@@ -12,7 +12,7 @@ index 342f92f1ff2..78152262d36 100644
      // Suppress error messages.
      $variables['errors'] = NULL;
 diff --git a/core/lib/Drupal/Core/Render/Element/Details.php b/core/lib/Drupal/Core/Render/Element/Details.php
-index 28e7396887d..ff3f787fcef 100644
+index 28e7396887d8b3c6c673602a1b97eba364b09af8..ff3f787fcef8998b20c0f129e2470497e2979295 100644
 --- a/core/lib/Drupal/Core/Render/Element/Details.php
 +++ b/core/lib/Drupal/Core/Render/Element/Details.php
 @@ -4,6 +4,7 @@ namespace Drupal\Core\Render\Element;
@@ -36,10 +36,10 @@ index 28e7396887d..ff3f787fcef 100644
    }
  
 diff --git a/core/lib/Drupal/Core/Render/Element/RenderElementBase.php b/core/lib/Drupal/Core/Render/Element/RenderElementBase.php
-index ec4ab6f89ae..db5a4b225cd 100644
+index e6f01da5cc3f66ea53559744a27896ecf4863629..d89a02bf0a04b00840bc5836e0414e2cfe450119 100644
 --- a/core/lib/Drupal/Core/Render/Element/RenderElementBase.php
 +++ b/core/lib/Drupal/Core/Render/Element/RenderElementBase.php
-@@ -209,6 +209,12 @@ abstract class RenderElementBase extends PluginBase implements ElementInterface
+@@ -214,6 +214,12 @@ abstract class RenderElementBase extends PluginBase implements ElementInterface
        }
      }
  
@@ -53,7 +53,7 @@ index ec4ab6f89ae..db5a4b225cd 100644
    }
  
 diff --git a/core/misc/vertical-tabs.js b/core/misc/vertical-tabs.js
-index 9d2e955fc82..aae4ee16b50 100644
+index 9d2e955fc828e04bc7f655bddcbbbaa308171d82..aae4ee16b50fd32e4c42272fd1587549e0c219d1 100644
 --- a/core/misc/vertical-tabs.js
 +++ b/core/misc/vertical-tabs.js
 @@ -90,9 +90,13 @@
@@ -102,7 +102,7 @@ index 9d2e955fc82..aae4ee16b50 100644
    };
  })(jQuery, Drupal, drupalSettings);
 diff --git a/core/modules/node/tests/src/Functional/NodeEditFormTest.php b/core/modules/node/tests/src/Functional/NodeEditFormTest.php
-index 0f332ced914..51a04bc5ec6 100644
+index 0f332ced9147ff06d354bb1b57149949aa852bef..51a04bc5ec61cb7117ef62dd9e55c71f84316480 100644
 --- a/core/modules/node/tests/src/Functional/NodeEditFormTest.php
 +++ b/core/modules/node/tests/src/Functional/NodeEditFormTest.php
 @@ -150,7 +150,7 @@ class NodeEditFormTest extends NodeTestBase {
@@ -115,7 +115,7 @@ index 0f332ced914..51a04bc5ec6 100644
      $open_details_elements++;
      $this->assertCount($open_details_elements, $this->cssSelect('details[open="open"]'), 'Exactly one extra open &lt;details&gt; element found.');
 diff --git a/core/modules/system/tests/modules/form_test/src/Form/FormTestDetailsContainsRequiredFieldsForm.php b/core/modules/system/tests/modules/form_test/src/Form/FormTestDetailsContainsRequiredFieldsForm.php
-index 6fe69982e69..4dbc8e950a2 100644
+index 6fe69982e6954fd7f4775ab9350d65eec0d5d3f5..4dbc8e950a23e99c66faf6f1e9408fd14ebc3c59 100644
 --- a/core/modules/system/tests/modules/form_test/src/Form/FormTestDetailsContainsRequiredFieldsForm.php
 +++ b/core/modules/system/tests/modules/form_test/src/Form/FormTestDetailsContainsRequiredFieldsForm.php
 @@ -34,7 +34,12 @@ class FormTestDetailsContainsRequiredFieldsForm extends FormBase {
@@ -133,17 +133,17 @@ index 6fe69982e69..4dbc8e950a2 100644
      $form['meta2'] = [
        '#type' => 'details',
 diff --git a/core/profiles/demo_umami/tests/src/FunctionalJavascript/MultipleRequestsPerformanceTestAssertions/umamiNodeAddEditor.yml b/core/profiles/demo_umami/tests/src/FunctionalJavascript/MultipleRequestsPerformanceTestAssertions/umamiNodeAddEditor.yml
-index a64f9f0cd46..3264b8fb07b 100644
+index 50e313607a10a1fcf6a01ba50b97ae4f6cf64362..7a65db5c34a91ea34399f08f832f9a084dbc47da 100644
 --- a/core/profiles/demo_umami/tests/src/FunctionalJavascript/MultipleRequestsPerformanceTestAssertions/umamiNodeAddEditor.yml
 +++ b/core/profiles/demo_umami/tests/src/FunctionalJavascript/MultipleRequestsPerformanceTestAssertions/umamiNodeAddEditor.yml
 @@ -1,4 +1,4 @@
- ScriptCount: 25
- ScriptBytes: 3008189
+ ScriptCount: 23
+ ScriptBytes: 3010195
  StylesheetCount: 11
 -StylesheetBytes: 1075075
 +StylesheetBytes: 1079952
 diff --git a/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php b/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php
-index a5239d3bc3a..4f6851a6fc6 100644
+index a5239d3bc3a19cac38b55a6300793e67adc895af..4f6851a6fc6517ea511ceb4e2d064899e203eda6 100644
 --- a/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php
 +++ b/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php
 @@ -165,6 +165,16 @@ class FormGroupingElementsTest extends WebDriverTestBase {
@@ -183,7 +183,7 @@ index a5239d3bc3a..4f6851a6fc6 100644
  
    /**
 diff --git a/core/themes/default_admin/css/_variables/variables-components.css b/core/themes/default_admin/css/_variables/variables-components.css
-index 40afacfb663..e1bea7bd07c 100644
+index 40afacfb6632fdab5b17896836ea46da6cb4f0c1..e1bea7bd07c90e43a9920ee7971396834fc67fb2 100644
 --- a/core/themes/default_admin/css/_variables/variables-components.css
 +++ b/core/themes/default_admin/css/_variables/variables-components.css
 @@ -147,7 +147,7 @@
@@ -196,7 +196,7 @@ index 40afacfb663..e1bea7bd07c 100644
    --vertical-tabs-border: var(--vertical-tabs-border-size) solid var(--vertical-tabs-border-color);
    --vertical-tabs-menu-item-shadow-extraspace: 0.5rem;
 diff --git a/core/themes/default_admin/css/_variables/variables-components.pcss.css b/core/themes/default_admin/css/_variables/variables-components.pcss.css
-index 3389f1fac82..1f763fdb15a 100644
+index 3389f1fac82876ca1fe01f986fae03065a7a422b..1f763fdb15a0286724edd15f7baf40279bdb5a3d 100644
 --- a/core/themes/default_admin/css/_variables/variables-components.pcss.css
 +++ b/core/themes/default_admin/css/_variables/variables-components.pcss.css
 @@ -140,7 +140,7 @@
@@ -209,7 +209,7 @@ index 3389f1fac82..1f763fdb15a 100644
    --vertical-tabs-border: var(--vertical-tabs-border-size) solid var(--vertical-tabs-border-color);
    --vertical-tabs-menu-item-shadow-extraspace: 0.5rem;
 diff --git a/core/themes/default_admin/css/components/details.css b/core/themes/default_admin/css/components/details.css
-index 328b8001f00..e6d78500f42 100644
+index 328b8001f000d573ecb8f65ef66adc5053dfb286..e6d78500f42b3ec8342a7a57f1f41d212abb5b3e 100644
 --- a/core/themes/default_admin/css/components/details.css
 +++ b/core/themes/default_admin/css/components/details.css
 @@ -63,7 +63,7 @@
@@ -311,7 +311,7 @@ index 328b8001f00..e6d78500f42 100644
 +  }
 +}
 diff --git a/core/themes/default_admin/css/components/details.pcss.css b/core/themes/default_admin/css/components/details.pcss.css
-index 7a44a2fa1a4..7847146c180 100644
+index 7a44a2fa1a4b9c7ad8c910c49ec1b09306233b5b..7847146c1805be5dc2c8e78c0ec2c3b85db52645 100644
 --- a/core/themes/default_admin/css/components/details.pcss.css
 +++ b/core/themes/default_admin/css/components/details.pcss.css
 @@ -56,7 +56,7 @@
@@ -413,12 +413,12 @@ index 7a44a2fa1a4..7847146c180 100644
 +  }
 +}
 diff --git a/core/themes/default_admin/css/components/edit-form.css b/core/themes/default_admin/css/components/edit-form.css
-index 7ffc0e70138..71c9f6cc1cb 100644
+index 7ffc0e701381bda76fe2812ef8b4513675288792..e56c59692c2306ddfde5b08e2e1f118104715214 100644
 --- a/core/themes/default_admin/css/components/edit-form.css
 +++ b/core/themes/default_admin/css/components/edit-form.css
-@@ -204,6 +204,14 @@
-   border-block-end: 1px solid var(--admin-color-border-soft);
-   border-radius: 0;
+@@ -208,6 +208,14 @@
+     border-color: var(--admin-color-border);
+   }
  
 +  &.error {
 +    border-block: 1px solid var(--input--error-color);
@@ -428,16 +428,16 @@ index 7ffc0e70138..71c9f6cc1cb 100644
 +    }
 +  }
 +
-   .dark-mode & {
-     border-color: var(--admin-color-border);
-   }
+   > .details__summary {
+     display: block;
+     padding-inline-start: 3rem;
 diff --git a/core/themes/default_admin/css/components/edit-form.pcss.css b/core/themes/default_admin/css/components/edit-form.pcss.css
-index bed34ef3529..19686b0f07e 100644
+index bed34ef35296f066362577a74f3d9e3f9ad17d57..78f97e0c369e51bae3721f2327c3c28db516ed8e 100644
 --- a/core/themes/default_admin/css/components/edit-form.pcss.css
 +++ b/core/themes/default_admin/css/components/edit-form.pcss.css
-@@ -201,6 +201,14 @@
-   border-block-end: 1px solid var(--admin-color-border-soft);
-   border-radius: 0;
+@@ -205,6 +205,14 @@
+     border-color: var(--admin-color-border);
+   }
  
 +  &.error {
 +    border-block: 1px solid var(--input--error-color);
@@ -447,11 +447,11 @@ index bed34ef3529..19686b0f07e 100644
 +    }
 +  }
 +
-   .dark-mode & {
-     border-color: var(--admin-color-border);
-   }
+   > .details__summary {
+     display: block;
+     padding-inline-start: 3rem;
 diff --git a/core/themes/default_admin/css/components/vertical-tabs.css b/core/themes/default_admin/css/components/vertical-tabs.css
-index fbe4d313570..2be401a3ab9 100644
+index fbe4d3135708d2085a7eb0074b28b3ec0b53bb87..b459091b9f7cc74c52815310f3565702f7031b6b 100644
 --- a/core/themes/default_admin/css/components/vertical-tabs.css
 +++ b/core/themes/default_admin/css/components/vertical-tabs.css
 @@ -196,7 +196,7 @@
@@ -463,7 +463,7 @@ index fbe4d313570..2be401a3ab9 100644
        background: var(--admin-color-bg);
      }
    }
-@@ -209,6 +209,44 @@
+@@ -209,6 +209,49 @@
    }
  }
  
@@ -477,6 +477,11 @@ index fbe4d313570..2be401a3ab9 100644
 +      border-inline-start: calc(var(--vertical-tabs-menu-link--active-border-size) + 2px) solid var(--input--error-color);
 +      border-start-start-radius: var(--vertical-tabs-border-radius);
 +      border-end-start-radius: var(--vertical-tabs-border-radius);
++
++      @media (forced-colors: active) {
++        /* Match color of details element border */
++        border-color: canvasText;
++      }
 +    }
 +  }
 +
@@ -508,7 +513,7 @@ index fbe4d313570..2be401a3ab9 100644
  .vertical-tabs__menu-link-content {
    position: relative;
    z-index: 1; /* Keep text above the pseudo element that paints the hover background. */
-@@ -241,7 +279,7 @@
+@@ -241,7 +284,7 @@
    box-shadow: var(--vertical-tabs-shadow);
  
    .dark-mode & {
@@ -517,7 +522,7 @@ index fbe4d313570..2be401a3ab9 100644
      background: var(--admin-color-bg);
    }
  
-@@ -295,6 +333,12 @@
+@@ -295,6 +338,12 @@
      border-end-end-radius: var(--details-accordion-border-size-radius);
    }
  
@@ -530,7 +535,7 @@ index fbe4d313570..2be401a3ab9 100644
    .js .vertical-tabs & {
      float: inline-start;
      overflow: visible;
-@@ -310,6 +354,11 @@
+@@ -310,6 +359,11 @@
      > summary {
        display: none;
      }
@@ -543,7 +548,7 @@ index fbe4d313570..2be401a3ab9 100644
  
    .dark-mode & {
 diff --git a/core/themes/default_admin/css/components/vertical-tabs.pcss.css b/core/themes/default_admin/css/components/vertical-tabs.pcss.css
-index e1c2f5357cc..453fcfbb8b2 100644
+index e1c2f5357ccbac002e30b5f4fe6053aaa92e12c7..0c4fcc62ba585c279ad3d98476a2fd647abd8d9b 100644
 --- a/core/themes/default_admin/css/components/vertical-tabs.pcss.css
 +++ b/core/themes/default_admin/css/components/vertical-tabs.pcss.css
 @@ -191,7 +191,7 @@
@@ -555,7 +560,7 @@ index e1c2f5357cc..453fcfbb8b2 100644
        background: var(--admin-color-bg);
      }
    }
-@@ -204,6 +204,44 @@
+@@ -204,6 +204,49 @@
    }
  }
  
@@ -569,6 +574,11 @@ index e1c2f5357cc..453fcfbb8b2 100644
 +      border-inline-start: calc(var(--vertical-tabs-menu-link--active-border-size) + 2px) solid var(--input--error-color);
 +      border-start-start-radius: var(--vertical-tabs-border-radius);
 +      border-end-start-radius: var(--vertical-tabs-border-radius);
++
++      @media (forced-colors: active) {
++        /* Match color of details element border */
++        border-color: canvasText;
++      }
 +    }
 +  }
 +
@@ -600,7 +610,7 @@ index e1c2f5357cc..453fcfbb8b2 100644
  .vertical-tabs__menu-link-content {
    position: relative;
    z-index: 1; /* Keep text above the pseudo element that paints the hover background. */
-@@ -236,7 +274,7 @@
+@@ -236,7 +279,7 @@
    box-shadow: var(--vertical-tabs-shadow);
  
    .dark-mode & {
@@ -609,7 +619,7 @@ index e1c2f5357cc..453fcfbb8b2 100644
      background: var(--admin-color-bg);
    }
  
-@@ -290,6 +328,12 @@
+@@ -290,6 +333,12 @@
      border-end-end-radius: var(--details-accordion-border-size-radius);
    }
  
@@ -622,7 +632,7 @@ index e1c2f5357cc..453fcfbb8b2 100644
    .js .vertical-tabs & {
      float: inline-start;
      overflow: visible;
-@@ -305,6 +349,11 @@
+@@ -305,6 +354,11 @@
      > summary {
        display: none;
      }
@@ -635,7 +645,7 @@ index e1c2f5357cc..453fcfbb8b2 100644
  
    .dark-mode & {
 diff --git a/core/themes/default_admin/js/vertical-tabs.js b/core/themes/default_admin/js/vertical-tabs.js
-index b31c1b49eb1..d5d1178774e 100644
+index b31c1b49eb1290685459f2bf33dfd4ba0362e1e7..d5d1178774ead1f17149022fc9e8e97cd071c3fe 100644
 --- a/core/themes/default_admin/js/vertical-tabs.js
 +++ b/core/themes/default_admin/js/vertical-tabs.js
 @@ -11,6 +11,10 @@
@@ -662,10 +672,10 @@ index b31c1b49eb1..d5d1178774e 100644
  })(jQuery, Drupal);
 diff --git a/core/themes/default_admin/tests/src/FunctionalJavascript/FormGroupingElementsTest.php b/core/themes/default_admin/tests/src/FunctionalJavascript/FormGroupingElementsTest.php
 new file mode 100644
-index 00000000000..5f96257ff2f
+index 0000000000000000000000000000000000000000..c40f5ed4aa6fcf6e433cfbc9f10f6351b97cf660
 --- /dev/null
 +++ b/core/themes/default_admin/tests/src/FunctionalJavascript/FormGroupingElementsTest.php
-@@ -0,0 +1,115 @@
+@@ -0,0 +1,113 @@
 +<?php
 +
 +declare(strict_types=1);
@@ -685,9 +695,7 @@ index 00000000000..5f96257ff2f
 +class FormGroupingElementsTest extends WebDriverTestBase {
 +
 +  /**
-+   * Required modules.
-+   *
-+   * @var array
++   * {@inheritdoc}
 +   */
 +  protected static $modules = ['form_test'];
 +

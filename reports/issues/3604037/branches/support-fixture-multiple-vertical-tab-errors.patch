@@ -1,0 +1,17 @@
+diff --git a/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupVerticalTabsForm.php b/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupVerticalTabsForm.php
+index 0045fa7190..957cc3fdc5 100644
+--- a/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupVerticalTabsForm.php
++++ b/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupVerticalTabsForm.php
+@@ -57,8 +57,10 @@ public function buildForm(array $form, FormStateInterface $form_state) {
+    * {@inheritdoc}
+    */
+   public function validateForm(array &$form, FormStateInterface $form_state): void {
+-    if ($form_state->getValue('element_2') === 'bad') {
+-      $form_state->setErrorByName('element_2', $this->t('there was an error'));
++    foreach (['element', 'element_2'] as $name) {
++      if ($form_state->getValue($name) === 'bad') {
++        $form_state->setErrorByName($name, $this->t('there was an error'));
++      }
+     }
+   }
+ 

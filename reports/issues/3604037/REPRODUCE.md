@@ -1,77 +1,78 @@
 # Reproduce #3604037: Indicate that grouping elements have child element errors
 
 Issue: https://www.drupal.org/project/drupal/issues/3604037
-Pinned core: `c321043bb82d` (the commit the evidence here was produced on). Last verified: 2026-10-01.
 
-## The problem in one paragraph
-When a form has grouping elements (`<details>`, vertical tabs, the node form's sidebar) and a field inside a **closed or inactive** group
-has a validation error, nothing on the group says so. A user cannot tell which group holds the problem and has to open each one
-(WCAG 3.3.1 Error Identification, 1.3.1). The MR adds indicators in the Default Admin theme: a thick red border on the logical inline
-start, an error icon near the label's inline end, red label text, a 1 px red border around a `<details>`, the input border colour for an
-active vertical tab with errors, visually hidden " (child error)" text on the label, and a `data-child-error-count` attribute on
-`<details>`. Forced-colors mode uses `mask-image` with `canvasText`. Known open items on the issue: RTL border position, forced-colors
-icon, change record, and dark-mode contrast (#3625458).
+Merge request: !17078, refreshed tip `c3c52b00`
 
-## Steps to reproduce (from the issue; **not yet turned into viewer steps or checks**)
-1. Default Admin is the admin theme. Allow test modules (`$settings['extension_discovery_scan_tests'] = TRUE;`, in the add-on:
-   `ddev drupal test:extensions-enable`) and enable `form_test`. Create an Article content type (recipe `core/tests/fixtures/recipes/article_content_type`).
-2. **Plain details:** open `/form_test/details-contains-required-fields`, submit without filling the required fields, close the details.
-3. **Accordion details:** open `/node/add/article`, enter a URL alias without a leading slash, submit; the error is invisible while the sidebar is closed.
-4. **Vertical tabs** (window at least 650 px wide): open `/admin/config/people/accounts`, clear the required Subject in the Emails section, submit, switch to another tab.
-5. **RTL:** enable Locale, add Hebrew, repeat on the Hebrew pages.
-Expected: each grouping element that contains a child error shows the indicators listed above. Before the change: no indicator.
-The MR's own tests: `core/themes/default_admin/tests/src/FunctionalJavascript/FormGroupingElementsTest.php` and
-`core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php` (use them as the automated check, with `ddev phpunit`).
+Latest core checked for patch application: `29b0a0b2256e` (2026-11-17)
 
-## Status of this scaffold (2026-10-01)
-Created by `scripts/new-issue.mjs`: patch extracted from the MR branch (18 files) and pinned to the core it was based on
-(`c321043bb82d`, 2026-09-28). **Verified: the patch applies cleanly to that pinned core and to current `main` (`8cd44d484e3c`, 2026-10-01).**
-Not yet done: the recipe (`recipes/repro_3604037`), the variant's steps, checks and observe questions (selectors need reading from the MR:
-`data-child-error-count`, the " (child error)" text, vertical-tab markup), building the environments, running the MR's own tests, and the walkthrough.
+Recipe: [`recipes/repro_3604037/`](../../../recipes/repro_3604037/)
 
-## Reproduce it (pinned core, exactly as verified)
-    node tools/compare/setup.mjs 3604037-pinned        # builds Before and After, applies the recipe and patches
-    node tools/compare/serve.mjs 3604037-pinned        # side-by-side viewer
-    node tools/playwright/walkthrough.mjs 3604037-pinned   # scripted replay with real input
+Comparison: `3604037-latest`
 
-## Try it on the latest core
-    node tools/compare/setup.mjs 3604037-pinned --check-patches    # (use 3604037-latest to check the current core)
+## Current patch stacks
+
+- **Before:** `support-fixture-two-required-fields.patch`, then `support-fixture-multiple-vertical-tab-errors.patch`.
+- **After:** `support-fixture-multiple-vertical-tab-errors.patch`, then the lab-authored
+  [`3604037-comment61-current-main.patch`](branches/3604037-comment61-current-main.patch), a port of MR !17078 tip
+  `c3c52b00` onto core `29b0a0b2256e`.
+
+The test-support patches are applied to both sides. The After port includes the MR's second required field. See
+[`BRANCHES.md`](BRANCHES.md) for exact provenance and hashes. The `3604037-pinned` variant remains the historical
+comparison against the original MR patch; use `3604037-latest` to review Comment #61 fixes.
+
+## Build and run
+
+Patch application was checked with:
+
+    node tools/compare/setup.mjs 3604037-latest --check-patches
+
+Both current patch stacks apply cleanly to core `29b0a0b2256e`. The Before and After DDEV sites are now built and the
+`repro_3604037` recipe and Farsi locale are applied.
+
+## Current automated verification
+
+The following After tests passed:
+
+- `DetailsTest.php`: 1 test, 8 assertions.
+- Core `FormGroupingElementsTest.php`: 6 tests, 50 assertions.
+- Default Admin `FormGroupingElementsTest.php`: 3 tests, 15 assertions.
+- `NodeEditFormTest.php`: 4 tests, 112 assertions.
+
+`node scripts/lint.mjs 3604037-latest` passed on 20 changed files. The browser evaluation at
+[`playwright/2026-11-17T23-46-32-155Z-evaluate/`](playwright/2026-11-17T23-46-32-155Z-evaluate/)
+checked the registered Before/After pair across light, dark, forced-colours, and RTL scenarios. It reported six light-mode
+hover text contrast checks at 4.17:1 (below 4.5:1); this remains unresolved. Automated evaluation is a draft, not a human
+keyboard or screen-reader review. [COVERAGE.md](COVERAGE.md) shows that the 480px cross-browser matrix remains untested.
+
+To rebuild or start the comparison later:
+
+    node scripts/doctor.mjs 3604037-latest
     node tools/compare/setup.mjs 3604037-latest
-    node tools/playwright/walkthrough.mjs 3604037-latest
+    node scripts/lab-env.mjs start 3604037-latest --browser
 
-## If the result is not what you expect
-| What you see | What it probably means | What to do |
-|---|---|---|
-| A patch **does not apply** | Core changed the same lines | Reroll: rebase the issue fork branch on current `main`, regenerate the patch (`scripts/new-issue.mjs 3604037 --branch <branch> --refresh`), update the files in `branches/`. |
-| **Before no longer fails** | Upstream may have fixed it, or the steps/selectors no longer match | Check the issue and recent commits to the files in the patch before concluding anything. |
-| **After still fails** on newer core | The fix no longer works there | Review the diff of the changed file against current core; update the patch. |
-| Everything as expected | Still reproducible | Record the new core commit (see "Re-pin" below). |
+Follow the registered steps in the viewer. The main cases are:
 
-## Re-pin to a newer core after verifying
-1. Run the `-latest` variant to the end and confirm the walkthrough reports "Reproduced and fixed".
-2. Put the verified commit (`git -C envs/<after-env> rev-parse HEAD`) in `core.commit` of the `-pinned` variant in `tools/compare/variants.json`.
-3. Re-run the walkthrough and the diff report, commit the new evidence, update "Last verified" above.
+1. Submit `/form_test/details-contains-required-fields` with required fields empty; close the details section.
+2. Submit `/node/add/article` with a URL alias that has no leading slash; inspect the closed URL alias group.
+3. At a wide viewport, submit `/admin/config/people/accounts` with the required email Subject empty; switch to another tab.
+4. Repeat relevant steps in dark mode, forced colours, narrow width, with JavaScript off, and in right-to-left layout.
 
-## What is in this folder
-| Path | What |
-|---|---|
-| `SUMMARY.md` | **Entry point:** the issue summary and links to every file below. |
-| `branches/*.patch`, `BRANCHES.md` | Patches from the issue fork, with source, tip, base and date. |
-| `EVIDENCE.md` | Where the results are, with exact commits. DRAFT until a person has reviewed it. |
-| `EVALUATION-2026-10-01.md` | The measurements and images taken (forced colours, RTL, contrast, PHPUnit). |
-| `STATUS-2026-10-01.md`, `STATUS-2026-10-02.md` | Related issues and review threads, dated. Re-check on drupal.org before relying on it. |
-| `playwright/`, `phpunit/` | Generated evidence from the scripts and the MR's own tests. |
-| `lint/` | Core's own code checks on the patched files (`node scripts/lint.mjs 3604037-latest`). Not accessibility evidence. |
-| `proposals/` | Follow-up patches suggested on the MR, with a README. |
-| `ISSUE-COMMENT-DRAFT.md` | A draft for a human to review and post. Nothing is posted automatically. |
+Use these tests for automated checks:
 
+- `core/tests/Drupal/Tests/Core/Render/Element/DetailsTest.php` (fallback title).
+- `core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php` (group indicators and vertical tabs).
+- `core/themes/default_admin/tests/src/FunctionalJavascript/FormGroupingElementsTest.php` (theme behavior and multiple error tabs).
+- `core/modules/node/tests/src/Functional/NodeEditFormTest.php` (node form details).
 
-## Same test page on both sides
-The MR also changes the `form_test` page (adds a second required field so its test can check a count of 2). So that both sites show the same page, that one change is applied to **Before** as `branches/support-fixture-two-required-fields.patch` (listed as `before.patches`). It is a test-support file, not the code under test; the code differences are everything else in the MR patch.
+Run them through the lab's DDEV setup. The current After results are recorded above.
 
-## Replication recipes and what is where (added 2026-10-02)
-- Starting state: `recipes/repro_3604037/recipe.yml`; real right-to-left language: `scripts/lab-site.sh language <env> fa` (setup does it; browse `/fa/...`).
-- Follow-up patches to the MR: `proposals/` (README explains them). Measurements: `EVALUATION-2026-10-01.md`. MR tests: `phpunit/`.
-- Forced colours: `docs/FORCED-COLORS.md`; start with `node scripts/lab-env.mjs start 3604037-latest --browser` for a built-in switch.
-- One zip: `bundles/drupal-repro-3604037-<date>.zip`.
+## Current evidence gaps
 
+- No human keyboard or real screen-reader review; no Firefox/Safari or real Windows forced-colors testing.
+- The 480px cross-browser matrix and zoom/reflow checks are outstanding.
+- The browser evaluator reports six light-mode hover text contrast failures at 4.17:1; their scope and relation to this patch need human review.
+- Historical screenshots, tests, and measurements use an older core and patch; they are not evidence for this port.
+- The GitLab review discussions could not be fetched (HTTP 401); Comment #61 itself was retrieved.
+
+All results remain DRAFT until a person reviews them. Do not post or push without approval.
