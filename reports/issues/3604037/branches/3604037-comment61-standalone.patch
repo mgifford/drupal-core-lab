@@ -1,0 +1,879 @@
+diff --git a/core/lib/Drupal/Core/Form/FormPreprocess.php b/core/lib/Drupal/Core/Form/FormPreprocess.php
+index 3908989cd64283a6df5e7af914e59768c92d0c06..6061037f7e9dd1df5ada4c05dfe92211b45e5f06 100644
+--- a/core/lib/Drupal/Core/Form/FormPreprocess.php
++++ b/core/lib/Drupal/Core/Form/FormPreprocess.php
+@@ -367,6 +367,8 @@ public function preprocessDetails(array &$variables): void {
+     $variables['children'] = (isset($element['#children'])) ? $element['#children'] : '';
+     $variables['value'] = (isset($element['#value'])) ? $element['#value'] : '';
+     $variables['required'] = !empty($element['#required']) ? $element['#required'] : NULL;
++    $variables['child_error_count'] = !empty($element['#attributes']['data-child-error-count'])
++      ? $element['#attributes']['data-child-error-count'] : 0;
+ 
+     // Suppress error messages.
+     $variables['errors'] = NULL;
+diff --git a/core/lib/Drupal/Core/Render/Element/Details.php b/core/lib/Drupal/Core/Render/Element/Details.php
+index 28e7396887d8b3c6c673602a1b97eba364b09af8..739c7ceabaf70975b4017f6f4ffc2c1af4e70621 100644
+--- a/core/lib/Drupal/Core/Render/Element/Details.php
++++ b/core/lib/Drupal/Core/Render/Element/Details.php
+@@ -4,6 +4,7 @@
+ 
+ use Drupal\Core\Render\Attribute\RenderElement;
+ use Drupal\Core\Render\Element;
++use Drupal\Core\StringTranslation\TranslatableMarkup;
+ 
+ /**
+  * Provides a render element for a details element, similar to a fieldset.
+@@ -91,6 +92,15 @@ public static function preRenderDetails($element) {
+       }
+     }
+ 
++    // Indicate that there is a child element with an error.
++    if (!empty($element['#children_errors'])) {
++      if (empty($element['#title'])) {
++        $element['#title'] = new TranslatableMarkup('Details');
++      }
++      $element['#attributes']['class'][] = 'error';
++      $element['#attributes']['data-child-error-count'] = count($element['#children_errors']);
++    }
++
+     return $element;
+   }
+ 
+diff --git a/core/misc/vertical-tabs.js b/core/misc/vertical-tabs.js
+index 9d2e955fc828e04bc7f655bddcbbbaa308171d82..9d13319f53be291e5a170c88bffb36f1c3d81d84 100644
+--- a/core/misc/vertical-tabs.js
++++ b/core/misc/vertical-tabs.js
+@@ -90,9 +90,13 @@
+             // we only want to copy the summary title, which is the first child
+             // node.
+             const title = $summary[0]?.firstChild?.textContent || '';
++            const $childErrorIndicator = $summary
++              .find('.child-error-indicator')
++              .detach();
+             const verticalTab = new Drupal.verticalTab({
+               title,
+               details: $that,
++              childErrorIndicator: $childErrorIndicator,
+             });
+             tabList.append(verticalTab.item);
+             $that
+@@ -152,6 +156,8 @@
+    *   The name of the tab.
+    * @param {jQuery} settings.details
+    *   The jQuery object of the details element that is the tab pane.
++   * @param {jQuery} [settings.childErrorIndicator]
++   *   The indicator for form errors contained inside the tab pane.
+    *
+    * @fires event:summaryUpdated
+    *
+@@ -295,6 +301,10 @@
+    *   An object with the following keys:
+    * @param {string} settings.title
+    *   The name of the tab.
++   * @param {jQuery} settings.details
++   *   The jQuery object of the details element that is the tab pane.
++   * @param {jQuery} settings.childErrorIndicator
++   *   The indicator for form errors contained inside the tab pane.
+    *
+    * @return {object}
+    *   This function has to return an object with at least these keys:
+@@ -318,6 +328,10 @@
+           )),
+         )),
+     );
++    if (settings.childErrorIndicator?.length) {
++      tab.item.addClass('error');
++      tab.title.append(settings.childErrorIndicator);
++    }
+     return tab;
+   };
+ })(jQuery, Drupal, drupalSettings);
+diff --git a/core/modules/node/tests/src/Functional/NodeEditFormTest.php b/core/modules/node/tests/src/Functional/NodeEditFormTest.php
+index 0f332ced9147ff06d354bb1b57149949aa852bef..0cd9fb9fa1ee983a9c641443547a61220a30a46f 100644
+--- a/core/modules/node/tests/src/Functional/NodeEditFormTest.php
++++ b/core/modules/node/tests/src/Functional/NodeEditFormTest.php
+@@ -150,7 +150,8 @@ public function testNodeEdit(): void {
+     $open_details_elements = count($this->cssSelect('details[open="open"]'));
+     $this->submitForm($edit, 'Save');
+     // The node author details must be open.
+-    $this->assertSession()->responseContains('<details class="node-form-author js-form-wrapper form-wrapper" data-drupal-selector="edit-author" id="edit-author" open="open">');
++    $this->assertSession()->responseContains('<details class="node-form-author js-form-wrapper form-wrapper error" data-drupal-selector="edit-author" id="edit-author" open="open" data-child-error-count="3">');
++    $this->assertSession()->elementNotExists('css', '#edit-title-wrapper[data-child-error-count]');
+     // Only one extra details element should now be open.
+     $open_details_elements++;
+     $this->assertCount($open_details_elements, $this->cssSelect('details[open="open"]'), 'Exactly one extra open &lt;details&gt; element found.');
+diff --git a/core/modules/system/templates/details.html.twig b/core/modules/system/templates/details.html.twig
+index 1e235a07efee70b9a711116a8c56901aee0c9d0c..060c0d38e9fbfc87396f893ed055e753e4e1eddf 100644
+--- a/core/modules/system/templates/details.html.twig
++++ b/core/modules/system/templates/details.html.twig
+@@ -11,6 +11,7 @@
+  * - description: (optional) The description of the element, may not be set.
+  * - children: (optional) The children of the element, may not be set.
+  * - value: (optional) The value of the element, may not be set.
++ * - child_error_count: (optional) Number of child elements with errors.
+  *
+  * @see \Drupal\Core\Form\FormPreprocess::preprocessDetails()
+  *
+@@ -25,7 +26,7 @@
+     ]
+   %}
+   {%- if title -%}
+-    <summary{{ summary_attributes.addClass(summary_classes) }}>{{ title }}</summary>
++    <summary{{ summary_attributes.addClass(summary_classes) }}>{{ title }}{% if child_error_count %} <span class="visually-hidden child-error-indicator">{{ '(contains error)'|t }}</span>{% endif %}</summary>
+   {%- endif -%}
+ 
+   {% if errors %}
+diff --git a/core/modules/system/tests/modules/form_test/src/Form/FormTestDetailsContainsRequiredFieldsForm.php b/core/modules/system/tests/modules/form_test/src/Form/FormTestDetailsContainsRequiredFieldsForm.php
+index 6fe69982e6954fd7f4775ab9350d65eec0d5d3f5..4dbc8e950a23e99c66faf6f1e9408fd14ebc3c59 100644
+--- a/core/modules/system/tests/modules/form_test/src/Form/FormTestDetailsContainsRequiredFieldsForm.php
++++ b/core/modules/system/tests/modules/form_test/src/Form/FormTestDetailsContainsRequiredFieldsForm.php
+@@ -34,7 +34,12 @@ public function buildForm(array $form, FormStateInterface $form_state, $use_ajax
+     $form['meta']['required_textfield_in_details'] = [
+       '#type' => 'textfield',
+       '#required' => TRUE,
+-      '#title' => 'Required textfield',
++      '#title' => 'First required textfield',
++    ];
++    $form['meta']['required_textfield_in_details_2'] = [
++      '#type' => 'textfield',
++      '#required' => TRUE,
++      '#title' => 'Second required textfield',
+     ];
+     $form['meta2'] = [
+       '#type' => 'details',
+diff --git a/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupVerticalTabsForm.php b/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupVerticalTabsForm.php
+index 0045fa71906dec7f7abfede4c002ca0d71c0ee4d..957cc3fdc5b1c5d38e1575e422414a551ade8f46 100644
+--- a/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupVerticalTabsForm.php
++++ b/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupVerticalTabsForm.php
+@@ -57,8 +57,10 @@ public function buildForm(array $form, FormStateInterface $form_state) {
+    * {@inheritdoc}
+    */
+   public function validateForm(array &$form, FormStateInterface $form_state): void {
+-    if ($form_state->getValue('element_2') === 'bad') {
+-      $form_state->setErrorByName('element_2', $this->t('there was an error'));
++    foreach (['element', 'element_2'] as $name) {
++      if ($form_state->getValue($name) === 'bad') {
++        $form_state->setErrorByName($name, $this->t('there was an error'));
++      }
+     }
+   }
+ 
+diff --git a/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php b/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php
+index a5239d3bc3a19cac38b55a6300793e67adc895af..9700af3822913619aeb1fa206593b8cdd13c9fff 100644
+--- a/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php
++++ b/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php
+@@ -165,6 +165,29 @@ public function testVerticalTabValidationVisibility(): void {
+ 
+     // Confirm the tab containing the field with error is open.
+     $this->assertNotNull($assert_session->waitForElementVisible('css', '[name="element_2"].error'));
++
++    // Confirm the tab containing the field with error indicates child errors.
++    $title_element = $assert_session->waitForElement('css', ':nth-child(2).vertical-tabs__menu-item.error');
++
++    // Confirm the child-error text is in the title and has
++    // 'visually-hidden' class.
++    $error_indicator_element = $title_element->find('css', '.child-error-indicator');
++    $this->assertTrue($error_indicator_element->hasClass('visually-hidden'));
++    $this->assertEquals('(contains error)', $error_indicator_element->getText());
++  }
++
++  /**
++   * Tests vertical tabs without a child error indicator.
++   */
++  public function testVerticalTabWithoutChildErrorIndicator(): void {
++    $this->drupalGet('form-test/group-vertical-tabs');
++    $has_error_class = $this->getSession()->evaluateScript(<<<'JS'
++return new Drupal.verticalTab({
++  title: 'No error',
++  details: jQuery('<details id="test"></details>'),
++}).item.hasClass('error');
++JS);
++    $this->assertFalse($has_error_class);
+   }
+ 
+   /**
+@@ -198,6 +221,18 @@ public function testDetailsContainsRequiredTextfield(): void {
+     $this->assertTrue($textfield->isVisible(), 'Text field is visible');
+     $this->assertTrue($textarea->isVisible(), 'Text area field is visible');
+     $this->assertTrue($select->isVisible(), 'Select field is visible');
++    $this->assertSession()->elementNotExists('css', '[data-child-error-count]:not(details)');
++
++    // Confirm details element indicates child errors.
++    $this->assertEquals('2', $details->getAttribute('data-child-error-count'));
++    $summary = $details->find('xpath', './summary');
++    $this->assertTrue($details->hasClass('error'));
++
++    // Confirm the child-error text is in the summary and has
++    // 'visually-hidden' class.
++    $error_indicator_element = $summary->find('xpath', './*[contains(@class, "child-error-indicator")]');
++    $this->assertTrue($error_indicator_element->hasClass('visually-hidden'));
++    $this->assertEquals('(contains error)', $error_indicator_element->getText());
+   }
+ 
+   /**
+diff --git a/core/tests/Drupal/Tests/Core/Render/Element/DetailsTest.php b/core/tests/Drupal/Tests/Core/Render/Element/DetailsTest.php
+new file mode 100644
+index 0000000000000000000000000000000000000000..f536134b59311fa2417743ecd3dc1f502f478269
+--- /dev/null
++++ b/core/tests/Drupal/Tests/Core/Render/Element/DetailsTest.php
+@@ -0,0 +1,37 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\Core\Render\Element;
++
++use Drupal\Core\Render\Element\Details;
++use Drupal\Core\StringTranslation\TranslatableMarkup;
++use Drupal\Tests\UnitTestCase;
++use PHPUnit\Framework\Attributes\CoversClass;
++use PHPUnit\Framework\Attributes\Group;
++
++/**
++ * Tests Drupal\Core\Render\Element\Details.
++ */
++#[CoversClass(Details::class)]
++#[Group('Render')]
++class DetailsTest extends UnitTestCase {
++
++  /**
++   * Tests child errors when the details element has no title.
++   */
++  public function testPreRenderDetailsWithChildErrorsWithoutTitle(): void {
++    foreach ([[], ['#title' => '']] as $title_properties) {
++      $element = Details::preRenderDetails($title_properties + [
++        '#children_errors' => ['child' => 'Invalid value'],
++        '#attributes' => [],
++      ]);
++
++      $this->assertInstanceOf(TranslatableMarkup::class, $element['#title']);
++      $this->assertSame('Details', $element['#title']->getUntranslatedString());
++      $this->assertContains('error', $element['#attributes']['class']);
++      $this->assertSame(1, $element['#attributes']['data-child-error-count']);
++    }
++  }
++
++}
+diff --git a/core/themes/default_admin/css/components/details.css b/core/themes/default_admin/css/components/details.css
+index 328b8001f000d573ecb8f65ef66adc5053dfb286..9d3f02aa20b3c99be6bd8ab034c97c8dbe440a04 100644
+--- a/core/themes/default_admin/css/components/details.css
++++ b/core/themes/default_admin/css/components/details.css
+@@ -63,7 +63,7 @@
+   }
+ 
+   &.error {
+-    border: 2px solid var(--admin-color-error);
++    border: 1px solid var(--admin-color-error);
+   }
+ 
+   .dark-mode & {
+@@ -199,6 +199,11 @@
+   .dark-mode & {
+     background-color: transparent;
+   }
++
++  /* Make room for validation error icon. */
++  .form-wrapper > & {
++    padding-inline-end: calc(var(--admin-space-m) + var(--admin-space-l) + var(--admin-space-s));
++  }
+ }
+ 
+ /**
+@@ -364,3 +369,76 @@
+   border: 1px solid var(--admin-color-border);
+   border-radius: var(--admin-radius-m);
+ }
++
++/* Styles for details that contain child validation errors. */
++.details.error {
++  position: relative;
++  border-color: var(--input--error-color);
++  border-inline-start: none;
++
++  /* Remove the active-tab border when the details element has an error. */
++  &[open] > .details__summary--vertical-tabs-item:not(:focus, :active)::after {
++    border-inline-start-width: 0;
++  }
++
++  &::before {
++    position: absolute;
++    inset-block-start: 0;
++    inset-inline-start: 0;
++    display: block;
++    width: 0;
++    height: 100%;
++    content: "";
++    /* Match vertical tabs error border for consistency */
++    border-inline-start: calc(var(--vertical-tabs-menu-link--active-border-size) + 2px) solid var(--input--error-color);
++    border-start-start-radius: var(--admin-radius-m);
++    border-end-start-radius: var(--admin-radius-m);
++  }
++
++  &.details--accordion-item::before {
++    z-index: 1;
++  }
++
++  & > .details__summary {
++    &:not(:hover) {
++      color: var(--input--error-color);
++    }
++
++    & > span:first-child {
++      position: relative;
++      display: inline-block;
++      /* Make room for validation error icon. */
++      padding-inline-end: calc(var(--admin-space-m) + var(--admin-space-xs));
++
++      &::before {
++        position: absolute;
++        display: block;
++        padding-block-end: var(--admin-space-m); /* Match line-height */
++        padding-inline-end: var(--admin-space-m);
++        content: "";
++        mask-image: var(--admin-icon-error);
++        mask-repeat: no-repeat;
++        mask-position: center;
++        background: var(--input--error-color);
++        inset-inline-end: 0;
++
++        @media (forced-colors: active) {
++          background: canvasText;
++        }
++      }
++    }
++
++    &.details__summary--accordion,
++    &.details__summary--accordion-item,
++    &.details__summary--vertical-tabs-item {
++      &:not(:hover) {
++        /* Don't obscure error border. */
++        background: transparent;
++      }
++
++      & > span:first-child::before {
++        padding-block-end: var(--summary-accordion-line-height);
++      }
++    }
++  }
++}
+diff --git a/core/themes/default_admin/css/components/details.pcss.css b/core/themes/default_admin/css/components/details.pcss.css
+index 7a44a2fa1a4b9c7ad8c910c49ec1b09306233b5b..9ff79d9b15e5a3fa4972e55ce85907e6bd29855e 100644
+--- a/core/themes/default_admin/css/components/details.pcss.css
++++ b/core/themes/default_admin/css/components/details.pcss.css
+@@ -56,7 +56,7 @@
+   }
+ 
+   &.error {
+-    border: 2px solid var(--admin-color-error);
++    border: 1px solid var(--admin-color-error);
+   }
+ 
+   .dark-mode & {
+@@ -192,6 +192,11 @@
+   .dark-mode & {
+     background-color: transparent;
+   }
++
++  /* Make room for validation error icon. */
++  .form-wrapper > & {
++    padding-inline-end: calc(var(--admin-space-m) + var(--admin-space-l) + var(--admin-space-s));
++  }
+ }
+ 
+ /**
+@@ -357,3 +362,76 @@
+   border: 1px solid var(--admin-color-border);
+   border-radius: var(--admin-radius-m);
+ }
++
++/* Styles for details that contain child validation errors. */
++.details.error {
++  position: relative;
++  border-color: var(--input--error-color);
++  border-inline-start: none;
++
++  /* Remove the active-tab border when the details element has an error. */
++  &[open] > .details__summary--vertical-tabs-item:not(:focus, :active)::after {
++    border-inline-start-width: 0;
++  }
++
++  &::before {
++    position: absolute;
++    inset-block-start: 0;
++    inset-inline-start: 0;
++    display: block;
++    width: 0;
++    height: 100%;
++    content: "";
++    /* Match vertical tabs error border for consistency */
++    border-inline-start: calc(var(--vertical-tabs-menu-link--active-border-size) + 2px) solid var(--input--error-color);
++    border-start-start-radius: var(--admin-radius-m);
++    border-end-start-radius: var(--admin-radius-m);
++  }
++
++  &.details--accordion-item::before {
++    z-index: 1;
++  }
++
++  & > .details__summary {
++    &:not(:hover) {
++      color: var(--input--error-color);
++    }
++
++    & > span:first-child {
++      position: relative;
++      display: inline-block;
++      /* Make room for validation error icon. */
++      padding-inline-end: calc(var(--admin-space-m) + var(--admin-space-xs));
++
++      &::before {
++        position: absolute;
++        display: block;
++        padding-block-end: var(--admin-space-m); /* Match line-height */
++        padding-inline-end: var(--admin-space-m);
++        content: "";
++        mask-image: var(--admin-icon-error);
++        mask-repeat: no-repeat;
++        mask-position: center;
++        background: var(--input--error-color);
++        inset-inline-end: 0;
++
++        @media (forced-colors: active) {
++          background: canvasText;
++        }
++      }
++    }
++
++    &.details__summary--accordion,
++    &.details__summary--accordion-item,
++    &.details__summary--vertical-tabs-item {
++      &:not(:hover) {
++        /* Don't obscure error border. */
++        background: transparent;
++      }
++
++      & > span:first-child::before {
++        padding-block-end: var(--summary-accordion-line-height);
++      }
++    }
++  }
++}
+diff --git a/core/themes/default_admin/css/components/edit-form.css b/core/themes/default_admin/css/components/edit-form.css
+index 59fa6c97e116dbd993a743e7fa2065124a76ac29..b42ef08ee55b303f636f2bdaadbc3c82db686630 100644
+--- a/core/themes/default_admin/css/components/edit-form.css
++++ b/core/themes/default_admin/css/components/edit-form.css
+@@ -208,6 +208,14 @@
+     border-color: var(--admin-color-border);
+   }
+ 
++  &.error {
++    border-block: 1px solid var(--input--error-color);
++
++    &::before {
++      border-radius: 0;
++    }
++  }
++
+   > .details__summary {
+     display: block;
+     padding-inline-start: 3rem;
+diff --git a/core/themes/default_admin/css/components/edit-form.pcss.css b/core/themes/default_admin/css/components/edit-form.pcss.css
+index ef5b503e13778377ea67fa8f3a45817a437fdeb3..4457ced7058468974bafa6628fc2598d8bbfb494 100644
+--- a/core/themes/default_admin/css/components/edit-form.pcss.css
++++ b/core/themes/default_admin/css/components/edit-form.pcss.css
+@@ -205,6 +205,14 @@
+     border-color: var(--admin-color-border);
+   }
+ 
++  &.error {
++    border-block: 1px solid var(--input--error-color);
++
++    &::before {
++      border-radius: 0;
++    }
++  }
++
+   > .details__summary {
+     display: block;
+     padding-inline-start: 3rem;
+diff --git a/core/themes/default_admin/css/components/vertical-tabs.css b/core/themes/default_admin/css/components/vertical-tabs.css
+index fbe4d3135708d2085a7eb0074b28b3ec0b53bb87..089ca389aa867cff674f6cd45e39efbcdd39b723 100644
+--- a/core/themes/default_admin/css/components/vertical-tabs.css
++++ b/core/themes/default_admin/css/components/vertical-tabs.css
+@@ -209,6 +209,49 @@
+   }
+ }
+ 
++/* Styles for vertical tabs that contain child validation errors. */
++.vertical-tabs__menu-item.error {
++  & .vertical-tabs__menu-link {
++    color: var(--input--error-color);
++
++    &::before {
++      /* Width must be enough to create a good non-color contrast with the blue active border */
++      border-inline-start: calc(var(--vertical-tabs-menu-link--active-border-size) + 2px) solid var(--input--error-color);
++      border-start-start-radius: var(--vertical-tabs-border-radius);
++      border-end-start-radius: var(--vertical-tabs-border-radius);
++
++      @media (forced-colors: active) {
++        /* Match color of details element border */
++        border-color: canvasText;
++      }
++    }
++  }
++
++  & .vertical-tabs__menu-item-title {
++    position: relative;
++    display: inline-block;
++    /* Make room for validation error icon. */
++    padding-inline-end: calc(var(--admin-space-m) + var(--admin-space-xs));
++
++    &::before {
++      position: absolute;
++      display: block;
++      padding-block-end: calc(var(--admin-line-height) * 1rem); /* Match line-height */
++      padding-inline-end: var(--admin-space-m);
++      content: "";
++      mask-image: var(--admin-icon-error);
++      mask-repeat: no-repeat;
++      mask-position: center;
++      background: var(--input--error-color);
++      inset-inline-end: 0;
++
++      @media (forced-colors: active) {
++        background: canvasText;
++      }
++    }
++  }
++}
++
+ .vertical-tabs__menu-link-content {
+   position: relative;
+   z-index: 1; /* Keep text above the pseudo element that paints the hover background. */
+@@ -295,6 +338,12 @@
+     border-end-end-radius: var(--details-accordion-border-size-radius);
+   }
+ 
++  &.error {
++    &::before {
++      border-radius: 0;
++    }
++  }
++
+   .js .vertical-tabs & {
+     float: inline-start;
+     overflow: visible;
+@@ -310,6 +359,11 @@
+     > summary {
+       display: none;
+     }
++
++    /* Hide details border for vertical tabs pane */
++    &.error::before {
++      display: none;
++    }
+   }
+ 
+   .dark-mode & {
+diff --git a/core/themes/default_admin/css/components/vertical-tabs.pcss.css b/core/themes/default_admin/css/components/vertical-tabs.pcss.css
+index e1c2f5357ccbac002e30b5f4fe6053aaa92e12c7..79ec83ba9b1833893c78ab817f2de3cf71e0003a 100644
+--- a/core/themes/default_admin/css/components/vertical-tabs.pcss.css
++++ b/core/themes/default_admin/css/components/vertical-tabs.pcss.css
+@@ -204,6 +204,49 @@
+   }
+ }
+ 
++/* Styles for vertical tabs that contain child validation errors. */
++.vertical-tabs__menu-item.error {
++  & .vertical-tabs__menu-link {
++    color: var(--input--error-color);
++
++    &::before {
++      /* Width must be enough to create a good non-color contrast with the blue active border */
++      border-inline-start: calc(var(--vertical-tabs-menu-link--active-border-size) + 2px) solid var(--input--error-color);
++      border-start-start-radius: var(--vertical-tabs-border-radius);
++      border-end-start-radius: var(--vertical-tabs-border-radius);
++
++      @media (forced-colors: active) {
++        /* Match color of details element border */
++        border-color: canvasText;
++      }
++    }
++  }
++
++  & .vertical-tabs__menu-item-title {
++    position: relative;
++    display: inline-block;
++    /* Make room for validation error icon. */
++    padding-inline-end: calc(var(--admin-space-m) + var(--admin-space-xs));
++
++    &::before {
++      position: absolute;
++      display: block;
++      padding-block-end: calc(var(--admin-line-height) * 1rem); /* Match line-height */
++      padding-inline-end: var(--admin-space-m);
++      content: "";
++      mask-image: var(--admin-icon-error);
++      mask-repeat: no-repeat;
++      mask-position: center;
++      background: var(--input--error-color);
++      inset-inline-end: 0;
++
++      @media (forced-colors: active) {
++        background: canvasText;
++      }
++    }
++  }
++}
++
+ .vertical-tabs__menu-link-content {
+   position: relative;
+   z-index: 1; /* Keep text above the pseudo element that paints the hover background. */
+@@ -290,6 +333,12 @@
+     border-end-end-radius: var(--details-accordion-border-size-radius);
+   }
+ 
++  &.error {
++    &::before {
++      border-radius: 0;
++    }
++  }
++
+   .js .vertical-tabs & {
+     float: inline-start;
+     overflow: visible;
+@@ -305,6 +354,11 @@
+     > summary {
+       display: none;
+     }
++
++    /* Hide details border for vertical tabs pane */
++    &.error::before {
++      display: none;
++    }
+   }
+ 
+   .dark-mode & {
+diff --git a/core/themes/default_admin/js/vertical-tabs.js b/core/themes/default_admin/js/vertical-tabs.js
+index b31c1b49eb1290685459f2bf33dfd4ba0362e1e7..4bee2fb3ed4f91168fd12d7ad5f2d79cc6fbeca0 100644
+--- a/core/themes/default_admin/js/vertical-tabs.js
++++ b/core/themes/default_admin/js/vertical-tabs.js
+@@ -11,6 +11,10 @@
+    *   An object with the following keys:
+    * @param {string} settings.title
+    *   The name of the tab.
++   * @param {jQuery} settings.details
++   *   The jQuery object of the details element that is the tab pane.
++   * @param {jQuery} [settings.childErrorIndicator]
++   *   The indicator for form errors contained inside the tab pane.
+    *
+    * @return {object}
+    *   This function has to return an object with at least these keys:
+@@ -36,6 +40,10 @@
+           ),
+       )),
+     );
++    if (settings.childErrorIndicator?.length) {
++      tab.item.addClass('error');
++      tab.title.append(settings.childErrorIndicator);
++    }
+     return tab;
+   };
+ })(jQuery, Drupal);
+diff --git a/core/themes/default_admin/src/Hook/PreprocessHooks.php b/core/themes/default_admin/src/Hook/PreprocessHooks.php
+index fe8578840da804260316c2524cb974d586ab602c..5335a20c5c555fca057bcb55bb3c9efda7328b89 100644
+--- a/core/themes/default_admin/src/Hook/PreprocessHooks.php
++++ b/core/themes/default_admin/src/Hook/PreprocessHooks.php
+@@ -308,6 +308,8 @@ public function preprocessDatetimeWrapper(array &$variables): void {
+   public function preprocessDetails(array &$variables): void {
+     // @todo Revisit when https://www.drupal.org/node/3056089 is in.
+     $element = $variables['element'];
++    $variables['child_error_count'] = !empty($element['#attributes']['data-child-error-count'])
++      ? $element['#attributes']['data-child-error-count'] : 0;
+ 
+     if (!empty($element['#accordion_item'])) {
+       // Details should appear as an accordion item.
+diff --git a/core/themes/default_admin/templates/form/details.html.twig b/core/themes/default_admin/templates/form/details.html.twig
+index 9410fe7757b7eaaaa22a82e390fefea4ce834f06..2ff9612e17dbf36f9d82465a2b2edbd6ea676928 100644
+--- a/core/themes/default_admin/templates/form/details.html.twig
++++ b/core/themes/default_admin/templates/form/details.html.twig
+@@ -10,6 +10,7 @@
+  * - description: (optional) The description of the element, may not be set.
+  * - children: (optional) The children of the element, may not be set.
+  * - value: (optional) The value of the element, may not be set.
++ * - child_error_count: (optional) Number of child elements with errors.
+  * - accordion: whether the details element should look as an accordion.
+  * - accordion_item: whether the details element is an item of an accordion
+  *   list.
+@@ -67,7 +68,11 @@
+       ]
+     %}
+     <summary{{ summary_attributes.addClass(summary_classes) }}>
++      {%- if child_error_count -%}
++      <span class="details__summary-title">{{ title }}</span> <span class="visually-hidden child-error-indicator">{{ '(contains error)'|t }}</span>
++      {%- else -%}
+       {{- title -}}
++      {%- endif -%}
+       <span class="required-mark"></span>
+       {% if show_description_toggle %}
+         {{ attach_library('default_admin/description_toggle') }}
+diff --git a/core/themes/default_admin/templates/navigation/details--vertical-tabs.html.twig b/core/themes/default_admin/templates/navigation/details--vertical-tabs.html.twig
+index 32602ecc96def89ae582c6e83b6e1721c3dce6b5..d76b75d35c59652f3aaf8692aa3f77e9f8c6feb4 100644
+--- a/core/themes/default_admin/templates/navigation/details--vertical-tabs.html.twig
++++ b/core/themes/default_admin/templates/navigation/details--vertical-tabs.html.twig
+@@ -12,6 +12,7 @@
+  * - description: (optional) The description of the element, may not be set.
+  * - children: (optional) The children of the element, may not be set.
+  * - value: (optional) The value of the element, may not be set.
++ * - child_error_count: (optional) Number of child elements with errors.
+  * - accordion: whether the details element should look as an accordion.
+  * - accordion_item: whether the details element is an item of an accordion
+  *   list.
+@@ -50,7 +51,11 @@
+       ]
+     %}
+     <summary{{ summary_attributes.addClass(summary_classes) }}>
++      {%- if child_error_count -%}
++      <span class="details__summary-title">{{ title }}</span> <span class="visually-hidden child-error-indicator">{{ '(contains error)'|t }}</span>
++      {%- else -%}
+       {{- title -}}
++      {%- endif -%}
+     </summary>
+   {%- endif -%}
+   <div{{ content_attributes.addClass(content_wrapper_classes) }}>
+diff --git a/core/themes/default_admin/tests/src/FunctionalJavascript/FormGroupingElementsTest.php b/core/themes/default_admin/tests/src/FunctionalJavascript/FormGroupingElementsTest.php
+new file mode 100644
+index 0000000000000000000000000000000000000000..d75b93eeea2ab196949185a614bbfea1a671340e
+--- /dev/null
++++ b/core/themes/default_admin/tests/src/FunctionalJavascript/FormGroupingElementsTest.php
+@@ -0,0 +1,130 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\default_admin\FunctionalJavascript;
++
++use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++
++/**
++ * Tests for form grouping elements.
++ */
++#[Group('form')]
++#[Group('default_admin')]
++#[RunTestsInSeparateProcesses]
++class FormGroupingElementsTest extends WebDriverTestBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  protected static $modules = ['form_test'];
++
++  /**
++   * {@inheritdoc}
++   */
++  protected $defaultTheme = 'default_admin';
++
++  /**
++   * Tests that vertical tab children become visible.
++   *
++   * Makes sure that a child element of a vertical tab that is not visible,
++   * becomes visible when the tab is clicked, a fragment link to the child is
++   * clicked or when the URI fragment pointing to that child changes.
++   *
++   * Repeats the test in
++   * core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php
++   * to ensure that the vertical tabs theme function doesn't break standard tab
++   * functionality.
++   */
++  public function testVerticalTabChildVisibility(): void {
++    $session = $this->getSession();
++    $web_assert = $this->assertSession();
++
++    // Request the group vertical tabs testing page with a fragment identifier
++    // to the second element.
++    $this->drupalGet('form-test/group-vertical-tabs', ['fragment' => 'edit-element-2']);
++
++    $page = $session->getPage();
++
++    $tab_link_1 = $page->find('css', '.vertical-tabs__menu-item > a');
++
++    $child_1_selector = '#edit-element';
++    $child_1 = $page->find('css', $child_1_selector);
++
++    $child_2_selector = '#edit-element-2';
++    $child_2 = $page->find('css', $child_2_selector);
++
++    // Assert that the child in the second vertical tab becomes visible.
++    // It should be visible after initial load due to the fragment in the URI.
++    $this->assertTrue($child_2->isVisible(), 'Child 2 is visible due to a URI fragment');
++
++    // Click on a fragment link pointing to an invisible child inside an
++    // inactive vertical tab.
++    $session->executeScript("jQuery('<a href=\"$child_1_selector\"></a>').insertAfter('h1')[0].click()");
++
++    // Assert that the child in the first vertical tab becomes visible.
++    $web_assert->waitForElementVisible('css', $child_1_selector, 50);
++
++    // Trigger a URI fragment change (hashchange) to show the second vertical
++    // tab again.
++    $session->executeScript("location.replace('$child_2_selector')");
++
++    // Assert that the child in the second vertical tab becomes visible again.
++    $web_assert->waitForElementVisible('css', $child_2_selector, 50);
++
++    $tab_link_1->click();
++
++    // Assert that the child in the first vertical tab is visible again after
++    // a click on the first tab.
++    $this->assertTrue($child_1->isVisible(), 'Child 1 is visible after clicking the parent tab');
++  }
++
++  /**
++   * Confirms that there are indicators on tabs with child errors.
++   */
++  public function testVerticalTabsIndicateTabChildErrors(): void {
++    $page = $this->getSession()->getPage();
++    $assert_session = $this->assertSession();
++
++    $this->drupalGet('form-test/group-vertical-tabs');
++    $page->clickLink('Second group element');
++    $second_input = $assert_session->waitForField('element_2');
++    $this->assertNotNull($second_input);
++    $second_input->setValue('bad');
++
++    $page->clickLink('First group element');
++    $first_input = $assert_session->waitForField('element');
++    $this->assertNotNull($first_input);
++    $first_input->setValue('bad');
++
++    // Submit the form.
++    $page->pressButton('Save');
++
++    // Both tabs with errors indicate their state.
++    $error_tabs = $page->findAll('css', '.vertical-tabs__menu-item.error');
++    $this->assertCount(2, $error_tabs);
++    foreach ($error_tabs as $error_tab) {
++      $error_indicator = $error_tab->find('css', '.child-error-indicator');
++      $this->assertNotNull($error_indicator);
++      $this->assertTrue($error_indicator->hasClass('visually-hidden'));
++      $this->assertEquals('(contains error)', $error_indicator->getText());
++    }
++  }
++
++  /**
++   * Tests vertical tabs without a child error indicator.
++   */
++  public function testVerticalTabWithoutChildErrorIndicator(): void {
++    $this->drupalGet('form-test/group-vertical-tabs');
++    $has_error_class = $this->getSession()->evaluateScript(<<<'JS'
++return new Drupal.verticalTab({
++  title: 'No error',
++  details: jQuery('<details id="test"></details>'),
++}).item.hasClass('error');
++JS);
++    $this->assertFalse($has_error_class);
++  }
++
++}
