@@ -170,7 +170,7 @@
     "issue": "3604037",
     "label": "#3604037: groups (details, vertical tabs) that contain a field error say so, pinned core",
     "description": "Forms group fields in closed <details> and vertical tabs. When a field inside a closed or inactive group has an error, nothing on the group says so. The change (MR !17078, Default Admin theme) marks such groups with a red border, an icon, red label text, a hidden \" (contains error)\" label for screen readers and a data-child-error-count attribute. Follow the steps on three pages, then press Run checks on each page: the checks apply to the page the frames are on. Both sites carry the same test-page change (a second required field), so the page looks the same on both sides; only the code under test differs.",
-    "status": "stub: fill in pages, steps, expected, checks, observe",
+    "status": "Configured historical reproduction for the pinned MR snapshot.",
     "core": {
       "url": "https://git.drupalcode.org/project/drupal.git",
       "commit": "c321043bb82dc1c0789bcdef046799fc89121a6a"
@@ -184,7 +184,7 @@
     "after": {
       "env": "issue-3604037",
       "patches": [
-        "reports/issues/3604037/branches/3604037-grouping-elements-child-errors-default-admin.patch"
+        "reports/issues/3604037/original-patches/3604037-grouping-elements-child-errors-default-admin.763628f8.patch"
       ]
     },
     "pages": [
@@ -387,15 +387,25 @@
     "slug": "3604037-latest",
     "extends": "3604037-pinned",
     "label": "#3604037: same steps against the LATEST core main",
+    "description": "Current-main lab port of MR !17078 at c3c52b00, based on core 29b0a0b2256e. It includes fixes from mherchel's Comment #61. Targeted tests and core lint pass; the automated Before/After evaluation reports hover contrast failures. Human accessibility review remains outstanding.",
+    "status": "DRAFT: targeted tests and lint pass; browser evidence recorded with unresolved hover contrast findings and manual-review gaps.",
     "core": {
       "ref": "main",
       "commit": null
     },
     "before": {
-      "env": "baseline-3604037-latest"
+      "env": "baseline-3604037-latest",
+      "patches": [
+        "reports/issues/3604037/branches/support-fixture-two-required-fields.patch",
+        "reports/issues/3604037/branches/support-fixture-multiple-vertical-tab-errors.patch"
+      ]
     },
     "after": {
-      "env": "issue-3604037-latest"
+      "env": "issue-3604037-latest",
+      "patches": [
+        "reports/issues/3604037/branches/support-fixture-multiple-vertical-tab-errors.patch",
+        "reports/issues/3604037/branches/3604037-comment61-current-main.patch"
+      ]
     }
   },
   {
