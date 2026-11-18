@@ -1,0 +1,456 @@
+diff --git a/core/lib/Drupal/Core/Render/Element/Details.php b/core/lib/Drupal/Core/Render/Element/Details.php
+index ff3f787fcef8998b20c0f129e2470497e2979295..739c7ceabaf70975b4017f6f4ffc2c1af4e70621 100644
+--- a/core/lib/Drupal/Core/Render/Element/Details.php
++++ b/core/lib/Drupal/Core/Render/Element/Details.php
+@@ -94,7 +94,11 @@ public static function preRenderDetails($element) {
+ 
+     // Indicate that there is a child element with an error.
+     if (!empty($element['#children_errors'])) {
+-      $element['#title'] = new TranslatableMarkup('<span>@title</span> <span class="visually-hidden child-error-indicator"> (contains error)</span>', ['@title' => $element['#title']]);
++      if (empty($element['#title'])) {
++        $element['#title'] = new TranslatableMarkup('Details');
++      }
++      $element['#attributes']['class'][] = 'error';
++      $element['#attributes']['data-child-error-count'] = count($element['#children_errors']);
+     }
+ 
+     return $element;
+diff --git a/core/lib/Drupal/Core/Render/Element/RenderElementBase.php b/core/lib/Drupal/Core/Render/Element/RenderElementBase.php
+index d89a02bf0a04b00840bc5836e0414e2cfe450119..e6f01da5cc3f66ea53559744a27896ecf4863629 100644
+--- a/core/lib/Drupal/Core/Render/Element/RenderElementBase.php
++++ b/core/lib/Drupal/Core/Render/Element/RenderElementBase.php
+@@ -214,12 +214,6 @@ public static function preRenderGroup($element) {
+       }
+     }
+ 
+-    // Set attributes to indicate that there is a child element with an error.
+-    if (!empty($element['#children_errors'])) {
+-      $element['#attributes']['class'][] = 'error';
+-      $element['#attributes']['data-child-error-count'] = count($element['#children_errors']);
+-    }
+-
+     return $element;
+   }
+ 
+diff --git a/core/misc/vertical-tabs.js b/core/misc/vertical-tabs.js
+index aae4ee16b50fd32e4c42272fd1587549e0c219d1..9d13319f53be291e5a170c88bffb36f1c3d81d84 100644
+--- a/core/misc/vertical-tabs.js
++++ b/core/misc/vertical-tabs.js
+@@ -156,7 +156,7 @@
+    *   The name of the tab.
+    * @param {jQuery} settings.details
+    *   The jQuery object of the details element that is the tab pane.
+-   * @param {jQuery} settings.childErrorIndicator
++   * @param {jQuery} [settings.childErrorIndicator]
+    *   The indicator for form errors contained inside the tab pane.
+    *
+    * @fires event:summaryUpdated
+@@ -328,7 +328,7 @@
+           )),
+         )),
+     );
+-    if (settings.childErrorIndicator.length) {
++    if (settings.childErrorIndicator?.length) {
+       tab.item.addClass('error');
+       tab.title.append(settings.childErrorIndicator);
+     }
+diff --git a/core/modules/node/tests/src/Functional/NodeEditFormTest.php b/core/modules/node/tests/src/Functional/NodeEditFormTest.php
+index 51a04bc5ec61cb7117ef62dd9e55c71f84316480..0cd9fb9fa1ee983a9c641443547a61220a30a46f 100644
+--- a/core/modules/node/tests/src/Functional/NodeEditFormTest.php
++++ b/core/modules/node/tests/src/Functional/NodeEditFormTest.php
+@@ -151,6 +151,7 @@ public function testNodeEdit(): void {
+     $this->submitForm($edit, 'Save');
+     // The node author details must be open.
+     $this->assertSession()->responseContains('<details class="node-form-author js-form-wrapper form-wrapper error" data-drupal-selector="edit-author" id="edit-author" open="open" data-child-error-count="3">');
++    $this->assertSession()->elementNotExists('css', '#edit-title-wrapper[data-child-error-count]');
+     // Only one extra details element should now be open.
+     $open_details_elements++;
+     $this->assertCount($open_details_elements, $this->cssSelect('details[open="open"]'), 'Exactly one extra open &lt;details&gt; element found.');
+diff --git a/core/modules/system/templates/details.html.twig b/core/modules/system/templates/details.html.twig
+index 1e235a07efee70b9a711116a8c56901aee0c9d0c..060c0d38e9fbfc87396f893ed055e753e4e1eddf 100644
+--- a/core/modules/system/templates/details.html.twig
++++ b/core/modules/system/templates/details.html.twig
+@@ -11,6 +11,7 @@
+  * - description: (optional) The description of the element, may not be set.
+  * - children: (optional) The children of the element, may not be set.
+  * - value: (optional) The value of the element, may not be set.
++ * - child_error_count: (optional) Number of child elements with errors.
+  *
+  * @see \Drupal\Core\Form\FormPreprocess::preprocessDetails()
+  *
+@@ -25,7 +26,7 @@
+     ]
+   %}
+   {%- if title -%}
+-    <summary{{ summary_attributes.addClass(summary_classes) }}>{{ title }}</summary>
++    <summary{{ summary_attributes.addClass(summary_classes) }}>{{ title }}{% if child_error_count %} <span class="visually-hidden child-error-indicator">{{ '(contains error)'|t }}</span>{% endif %}</summary>
+   {%- endif -%}
+ 
+   {% if errors %}
+diff --git a/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupVerticalTabsForm.php b/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupVerticalTabsForm.php
+index 0045fa71906dec7f7abfede4c002ca0d71c0ee4d..957cc3fdc5b1c5d38e1575e422414a551ade8f46 100644
+--- a/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupVerticalTabsForm.php
++++ b/core/modules/system/tests/modules/form_test/src/Form/FormTestGroupVerticalTabsForm.php
+@@ -57,8 +57,10 @@ public function buildForm(array $form, FormStateInterface $form_state) {
+    * {@inheritdoc}
+    */
+   public function validateForm(array &$form, FormStateInterface $form_state): void {
+-    if ($form_state->getValue('element_2') === 'bad') {
+-      $form_state->setErrorByName('element_2', $this->t('there was an error'));
++    foreach (['element', 'element_2'] as $name) {
++      if ($form_state->getValue($name) === 'bad') {
++        $form_state->setErrorByName($name, $this->t('there was an error'));
++      }
+     }
+   }
+ 
+diff --git a/core/profiles/demo_umami/tests/src/FunctionalJavascript/MultipleRequestsPerformanceTestAssertions/umamiNodeAddEditor.yml b/core/profiles/demo_umami/tests/src/FunctionalJavascript/MultipleRequestsPerformanceTestAssertions/umamiNodeAddEditor.yml
+index 7a65db5c34a91ea34399f08f832f9a084dbc47da..50e313607a10a1fcf6a01ba50b97ae4f6cf64362 100644
+--- a/core/profiles/demo_umami/tests/src/FunctionalJavascript/MultipleRequestsPerformanceTestAssertions/umamiNodeAddEditor.yml
++++ b/core/profiles/demo_umami/tests/src/FunctionalJavascript/MultipleRequestsPerformanceTestAssertions/umamiNodeAddEditor.yml
+@@ -1,4 +1,4 @@
+ ScriptCount: 23
+ ScriptBytes: 3010195
+ StylesheetCount: 11
+-StylesheetBytes: 1079952
++StylesheetBytes: 1075075
+diff --git a/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php b/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php
+index 4f6851a6fc6517ea511ceb4e2d064899e203eda6..9700af3822913619aeb1fa206593b8cdd13c9fff 100644
+--- a/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php
++++ b/core/tests/Drupal/FunctionalJavascriptTests/Core/Form/FormGroupingElementsTest.php
+@@ -168,15 +168,28 @@ public function testVerticalTabValidationVisibility(): void {
+ 
+     // Confirm the tab containing the field with error indicates child errors.
+     $title_element = $assert_session->waitForElement('css', ':nth-child(2).vertical-tabs__menu-item.error');
+-    $this->assertStringNotContainsString($title_element->getText(), '(contains error)');
+ 
+-    // Confirm '(contains error)' text is in title and has
++    // Confirm the child-error text is in the title and has
+     // 'visually-hidden' class.
+     $error_indicator_element = $title_element->find('css', '.child-error-indicator');
+     $this->assertTrue($error_indicator_element->hasClass('visually-hidden'));
+     $this->assertEquals('(contains error)', $error_indicator_element->getText());
+   }
+ 
++  /**
++   * Tests vertical tabs without a child error indicator.
++   */
++  public function testVerticalTabWithoutChildErrorIndicator(): void {
++    $this->drupalGet('form-test/group-vertical-tabs');
++    $has_error_class = $this->getSession()->evaluateScript(<<<'JS'
++return new Drupal.verticalTab({
++  title: 'No error',
++  details: jQuery('<details id="test"></details>'),
++}).item.hasClass('error');
++JS);
++    $this->assertFalse($has_error_class);
++  }
++
+   /**
+    * Tests form submit with a required field in closed details element.
+    */
+@@ -208,14 +221,14 @@ public function testDetailsContainsRequiredTextfield(): void {
+     $this->assertTrue($textfield->isVisible(), 'Text field is visible');
+     $this->assertTrue($textarea->isVisible(), 'Text area field is visible');
+     $this->assertTrue($select->isVisible(), 'Select field is visible');
++    $this->assertSession()->elementNotExists('css', '[data-child-error-count]:not(details)');
+ 
+     // Confirm details element indicates child errors.
+     $this->assertEquals('2', $details->getAttribute('data-child-error-count'));
+     $summary = $details->find('xpath', './summary');
+     $this->assertTrue($details->hasClass('error'));
+-    $this->assertStringNotContainsString($summary->getText(), '(contains error)');
+ 
+-    // Confirm '(contains error)' text is in summary and has
++    // Confirm the child-error text is in the summary and has
+     // 'visually-hidden' class.
+     $error_indicator_element = $summary->find('xpath', './*[contains(@class, "child-error-indicator")]');
+     $this->assertTrue($error_indicator_element->hasClass('visually-hidden'));
+diff --git a/core/tests/Drupal/Tests/Core/Render/Element/DetailsTest.php b/core/tests/Drupal/Tests/Core/Render/Element/DetailsTest.php
+new file mode 100644
+index 0000000000000000000000000000000000000000..f536134b59311fa2417743ecd3dc1f502f478269
+--- /dev/null
++++ b/core/tests/Drupal/Tests/Core/Render/Element/DetailsTest.php
+@@ -0,0 +1,37 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\Core\Render\Element;
++
++use Drupal\Core\Render\Element\Details;
++use Drupal\Core\StringTranslation\TranslatableMarkup;
++use Drupal\Tests\UnitTestCase;
++use PHPUnit\Framework\Attributes\CoversClass;
++use PHPUnit\Framework\Attributes\Group;
++
++/**
++ * Tests Drupal\Core\Render\Element\Details.
++ */
++#[CoversClass(Details::class)]
++#[Group('Render')]
++class DetailsTest extends UnitTestCase {
++
++  /**
++   * Tests child errors when the details element has no title.
++   */
++  public function testPreRenderDetailsWithChildErrorsWithoutTitle(): void {
++    foreach ([[], ['#title' => '']] as $title_properties) {
++      $element = Details::preRenderDetails($title_properties + [
++        '#children_errors' => ['child' => 'Invalid value'],
++        '#attributes' => [],
++      ]);
++
++      $this->assertInstanceOf(TranslatableMarkup::class, $element['#title']);
++      $this->assertSame('Details', $element['#title']->getUntranslatedString());
++      $this->assertContains('error', $element['#attributes']['class']);
++      $this->assertSame(1, $element['#attributes']['data-child-error-count']);
++    }
++  }
++
++}
+diff --git a/core/themes/default_admin/css/_variables/variables-components.css b/core/themes/default_admin/css/_variables/variables-components.css
+index e1bea7bd07c90e43a9920ee7971396834fc67fb2..40afacfb6632fdab5b17896836ea46da6cb4f0c1 100644
+--- a/core/themes/default_admin/css/_variables/variables-components.css
++++ b/core/themes/default_admin/css/_variables/variables-components.css
+@@ -147,7 +147,7 @@
+   --vertical-tabs-margin-vertical: var(--admin-space-s);
+   --vertical-tabs-border-radius: var(--details-accordion-border-size-radius);
+   --vertical-tabs-shadow: var(--details-box-shadow);
+-  --vertical-tabs-border-color: var(--admin-color-border-input);
++  --vertical-tabs-border-color: var(--admin-color-border);
+   --vertical-tabs-border-size: 1px;
+   --vertical-tabs-border: var(--vertical-tabs-border-size) solid var(--vertical-tabs-border-color);
+   --vertical-tabs-menu-item-shadow-extraspace: 0.5rem;
+diff --git a/core/themes/default_admin/css/_variables/variables-components.pcss.css b/core/themes/default_admin/css/_variables/variables-components.pcss.css
+index 1f763fdb15a0286724edd15f7baf40279bdb5a3d..3389f1fac82876ca1fe01f986fae03065a7a422b 100644
+--- a/core/themes/default_admin/css/_variables/variables-components.pcss.css
++++ b/core/themes/default_admin/css/_variables/variables-components.pcss.css
+@@ -140,7 +140,7 @@
+   --vertical-tabs-margin-vertical: var(--admin-space-s);
+   --vertical-tabs-border-radius: var(--details-accordion-border-size-radius);
+   --vertical-tabs-shadow: var(--details-box-shadow);
+-  --vertical-tabs-border-color: var(--admin-color-border-input);
++  --vertical-tabs-border-color: var(--admin-color-border);
+   --vertical-tabs-border-size: 1px;
+   --vertical-tabs-border: var(--vertical-tabs-border-size) solid var(--vertical-tabs-border-color);
+   --vertical-tabs-menu-item-shadow-extraspace: 0.5rem;
+diff --git a/core/themes/default_admin/css/components/details.css b/core/themes/default_admin/css/components/details.css
+index e6d78500f42b3ec8342a7a57f1f41d212abb5b3e..9d3f02aa20b3c99be6bd8ab034c97c8dbe440a04 100644
+--- a/core/themes/default_admin/css/components/details.css
++++ b/core/themes/default_admin/css/components/details.css
+@@ -376,9 +376,9 @@
+   border-color: var(--input--error-color);
+   border-inline-start: none;
+ 
+-  /* Remove left border for open details summary. */
+-  &[open] > .details__summary::after {
+-    border-left: none;
++  /* Remove the active-tab border when the details element has an error. */
++  &[open] > .details__summary--vertical-tabs-item:not(:focus, :active)::after {
++    border-inline-start-width: 0;
+   }
+ 
+   &::before {
+diff --git a/core/themes/default_admin/css/components/details.pcss.css b/core/themes/default_admin/css/components/details.pcss.css
+index 7847146c1805be5dc2c8e78c0ec2c3b85db52645..9ff79d9b15e5a3fa4972e55ce85907e6bd29855e 100644
+--- a/core/themes/default_admin/css/components/details.pcss.css
++++ b/core/themes/default_admin/css/components/details.pcss.css
+@@ -369,9 +369,9 @@
+   border-color: var(--input--error-color);
+   border-inline-start: none;
+ 
+-  /* Remove left border for open details summary. */
+-  &[open] > .details__summary::after {
+-    border-left: none;
++  /* Remove the active-tab border when the details element has an error. */
++  &[open] > .details__summary--vertical-tabs-item:not(:focus, :active)::after {
++    border-inline-start-width: 0;
+   }
+ 
+   &::before {
+diff --git a/core/themes/default_admin/css/components/vertical-tabs.css b/core/themes/default_admin/css/components/vertical-tabs.css
+index b459091b9f7cc74c52815310f3565702f7031b6b..089ca389aa867cff674f6cd45e39efbcdd39b723 100644
+--- a/core/themes/default_admin/css/components/vertical-tabs.css
++++ b/core/themes/default_admin/css/components/vertical-tabs.css
+@@ -196,7 +196,7 @@
+     }
+ 
+     .dark-mode & {
+-      border-color: var(--vertical-tabs-border-color);
++      border-color: var(--admin-color-border);
+       background: var(--admin-color-bg);
+     }
+   }
+@@ -284,7 +284,7 @@
+   box-shadow: var(--vertical-tabs-shadow);
+ 
+   .dark-mode & {
+-    border-color: var(--vertical-tabs-border-color);
++    border-color: var(--admin-color-border);
+     background: var(--admin-color-bg);
+   }
+ 
+diff --git a/core/themes/default_admin/css/components/vertical-tabs.pcss.css b/core/themes/default_admin/css/components/vertical-tabs.pcss.css
+index 0c4fcc62ba585c279ad3d98476a2fd647abd8d9b..79ec83ba9b1833893c78ab817f2de3cf71e0003a 100644
+--- a/core/themes/default_admin/css/components/vertical-tabs.pcss.css
++++ b/core/themes/default_admin/css/components/vertical-tabs.pcss.css
+@@ -191,7 +191,7 @@
+     }
+ 
+     .dark-mode & {
+-      border-color: var(--vertical-tabs-border-color);
++      border-color: var(--admin-color-border);
+       background: var(--admin-color-bg);
+     }
+   }
+@@ -279,7 +279,7 @@
+   box-shadow: var(--vertical-tabs-shadow);
+ 
+   .dark-mode & {
+-    border-color: var(--vertical-tabs-border-color);
++    border-color: var(--admin-color-border);
+     background: var(--admin-color-bg);
+   }
+ 
+diff --git a/core/themes/default_admin/js/vertical-tabs.js b/core/themes/default_admin/js/vertical-tabs.js
+index d5d1178774ead1f17149022fc9e8e97cd071c3fe..4bee2fb3ed4f91168fd12d7ad5f2d79cc6fbeca0 100644
+--- a/core/themes/default_admin/js/vertical-tabs.js
++++ b/core/themes/default_admin/js/vertical-tabs.js
+@@ -13,7 +13,7 @@
+    *   The name of the tab.
+    * @param {jQuery} settings.details
+    *   The jQuery object of the details element that is the tab pane.
+-   * @param {jQuery} settings.childErrorIndicator
++   * @param {jQuery} [settings.childErrorIndicator]
+    *   The indicator for form errors contained inside the tab pane.
+    *
+    * @return {object}
+@@ -40,7 +40,7 @@
+           ),
+       )),
+     );
+-    if (settings.childErrorIndicator.length) {
++    if (settings.childErrorIndicator?.length) {
+       tab.item.addClass('error');
+       tab.title.append(settings.childErrorIndicator);
+     }
+diff --git a/core/themes/default_admin/src/Hook/PreprocessHooks.php b/core/themes/default_admin/src/Hook/PreprocessHooks.php
+index fe8578840da804260316c2524cb974d586ab602c..5335a20c5c555fca057bcb55bb3c9efda7328b89 100644
+--- a/core/themes/default_admin/src/Hook/PreprocessHooks.php
++++ b/core/themes/default_admin/src/Hook/PreprocessHooks.php
+@@ -308,6 +308,8 @@ public function preprocessDatetimeWrapper(array &$variables): void {
+   public function preprocessDetails(array &$variables): void {
+     // @todo Revisit when https://www.drupal.org/node/3056089 is in.
+     $element = $variables['element'];
++    $variables['child_error_count'] = !empty($element['#attributes']['data-child-error-count'])
++      ? $element['#attributes']['data-child-error-count'] : 0;
+ 
+     if (!empty($element['#accordion_item'])) {
+       // Details should appear as an accordion item.
+diff --git a/core/themes/default_admin/templates/form/details.html.twig b/core/themes/default_admin/templates/form/details.html.twig
+index 9410fe7757b7eaaaa22a82e390fefea4ce834f06..2ff9612e17dbf36f9d82465a2b2edbd6ea676928 100644
+--- a/core/themes/default_admin/templates/form/details.html.twig
++++ b/core/themes/default_admin/templates/form/details.html.twig
+@@ -10,6 +10,7 @@
+  * - description: (optional) The description of the element, may not be set.
+  * - children: (optional) The children of the element, may not be set.
+  * - value: (optional) The value of the element, may not be set.
++ * - child_error_count: (optional) Number of child elements with errors.
+  * - accordion: whether the details element should look as an accordion.
+  * - accordion_item: whether the details element is an item of an accordion
+  *   list.
+@@ -67,7 +68,11 @@
+       ]
+     %}
+     <summary{{ summary_attributes.addClass(summary_classes) }}>
++      {%- if child_error_count -%}
++      <span class="details__summary-title">{{ title }}</span> <span class="visually-hidden child-error-indicator">{{ '(contains error)'|t }}</span>
++      {%- else -%}
+       {{- title -}}
++      {%- endif -%}
+       <span class="required-mark"></span>
+       {% if show_description_toggle %}
+         {{ attach_library('default_admin/description_toggle') }}
+diff --git a/core/themes/default_admin/templates/navigation/details--vertical-tabs.html.twig b/core/themes/default_admin/templates/navigation/details--vertical-tabs.html.twig
+index 32602ecc96def89ae582c6e83b6e1721c3dce6b5..d76b75d35c59652f3aaf8692aa3f77e9f8c6feb4 100644
+--- a/core/themes/default_admin/templates/navigation/details--vertical-tabs.html.twig
++++ b/core/themes/default_admin/templates/navigation/details--vertical-tabs.html.twig
+@@ -12,6 +12,7 @@
+  * - description: (optional) The description of the element, may not be set.
+  * - children: (optional) The children of the element, may not be set.
+  * - value: (optional) The value of the element, may not be set.
++ * - child_error_count: (optional) Number of child elements with errors.
+  * - accordion: whether the details element should look as an accordion.
+  * - accordion_item: whether the details element is an item of an accordion
+  *   list.
+@@ -50,7 +51,11 @@
+       ]
+     %}
+     <summary{{ summary_attributes.addClass(summary_classes) }}>
++      {%- if child_error_count -%}
++      <span class="details__summary-title">{{ title }}</span> <span class="visually-hidden child-error-indicator">{{ '(contains error)'|t }}</span>
++      {%- else -%}
+       {{- title -}}
++      {%- endif -%}
+     </summary>
+   {%- endif -%}
+   <div{{ content_attributes.addClass(content_wrapper_classes) }}>
+diff --git a/core/themes/default_admin/tests/src/FunctionalJavascript/FormGroupingElementsTest.php b/core/themes/default_admin/tests/src/FunctionalJavascript/FormGroupingElementsTest.php
+index c40f5ed4aa6fcf6e433cfbc9f10f6351b97cf660..d75b93eeea2ab196949185a614bbfea1a671340e 100644
+--- a/core/themes/default_admin/tests/src/FunctionalJavascript/FormGroupingElementsTest.php
++++ b/core/themes/default_admin/tests/src/FunctionalJavascript/FormGroupingElementsTest.php
+@@ -90,24 +90,41 @@ public function testVerticalTabsIndicateTabChildErrors(): void {
+ 
+     $this->drupalGet('form-test/group-vertical-tabs');
+     $page->clickLink('Second group element');
+-    $input_field = $assert_session->waitForField('element_2');
+-    $this->assertNotNull($input_field);
++    $second_input = $assert_session->waitForField('element_2');
++    $this->assertNotNull($second_input);
++    $second_input->setValue('bad');
+ 
+-    // Enter a value that will trigger a validation error.
+-    $input_field->setValue('bad');
++    $page->clickLink('First group element');
++    $first_input = $assert_session->waitForField('element');
++    $this->assertNotNull($first_input);
++    $first_input->setValue('bad');
+ 
+     // Submit the form.
+     $page->pressButton('Save');
+ 
+-    // Confirm the tab containing the field with error indicates child errors.
+-    $title_element = $assert_session->waitForElement('css', ':nth-child(2).vertical-tabs__menu-item.error');
+-    $this->assertStringNotContainsString($title_element->getText(), '(contains error)');
++    // Both tabs with errors indicate their state.
++    $error_tabs = $page->findAll('css', '.vertical-tabs__menu-item.error');
++    $this->assertCount(2, $error_tabs);
++    foreach ($error_tabs as $error_tab) {
++      $error_indicator = $error_tab->find('css', '.child-error-indicator');
++      $this->assertNotNull($error_indicator);
++      $this->assertTrue($error_indicator->hasClass('visually-hidden'));
++      $this->assertEquals('(contains error)', $error_indicator->getText());
++    }
++  }
+ 
+-    // Confirm '(contains error)' text is in title and has
+-    // 'visually-hidden' class.
+-    $error_indicator_element = $title_element->find('css', '.child-error-indicator');
+-    $this->assertTrue($error_indicator_element->hasClass('visually-hidden'));
+-    $this->assertEquals('(contains error)', $error_indicator_element->getText());
++  /**
++   * Tests vertical tabs without a child error indicator.
++   */
++  public function testVerticalTabWithoutChildErrorIndicator(): void {
++    $this->drupalGet('form-test/group-vertical-tabs');
++    $has_error_class = $this->getSession()->evaluateScript(<<<'JS'
++return new Drupal.verticalTab({
++  title: 'No error',
++  details: jQuery('<details id="test"></details>'),
++}).item.hasClass('error');
++JS);
++    $this->assertFalse($has_error_class);
+   }
+ 
+ }

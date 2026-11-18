@@ -2,7 +2,7 @@
 
 **DRAFT.** The current lab port applies to core `29b0a0b2256e`. Targeted After tests and core lint pass, and an automated
 Before/After browser evaluation is recorded. That evaluation reports six light-mode hover text contrast checks below
-4.5:1. Human review remains outstanding. Historical measurements below predate this port. Last updated: 2026-11-17.
+4.5:1. Human review remains outstanding. Historical measurements below predate this port. Last updated: 2026-11-18.
 
 **This is the entry point for this issue.** It links to the patches, the recipe, the evidence and the comment
 draft. Start with **Files and links** below, or `REPRODUCE.md` for the step-by-step commands.
@@ -29,12 +29,30 @@ For `3604037-latest`, the lab uses a port of MR !17078 tip `c3c52b00` onto core 
 listed in mherchel's Comment #61; it is not the upstream MR patch. Patch application and targeted tests are verified. See
 [`BRANCHES.md`](BRANCHES.md) for provenance and [`EVIDENCE.md`](EVIDENCE.md) for what remains untested.
 
+## Next step: which code to use
+
+Use the [standalone replacement patch](branches/3604037-comment61-standalone.patch) for a clean checkout at
+core `29b0a0b2256e`. It contains the complete proposal, including its required test fixture.
+Do **not** apply it on top of the existing MR.
+
+To update the existing issue-fork branch instead, apply the
+[interdiff against MR !17078 at `c3c52b00`](branches/3604037-comment61-vs-mr17078-c3c52b00.interdiff.patch).
+It contains only the proposed follow-up changes, including removal of the stale Umami snapshot edit.
+Do **not** apply the standalone patch and interdiff together.
+
+Recommended: add a follow-up commit to the existing branch/MR if you have permission and the contributors agree.
+Otherwise, create a new branch from that exact MR tip, apply the interdiff, and open a replacement MR referencing !17078.
+Neither route requires overwriting shared branch history. See [the handoff in BRANCHES.md](BRANCHES.md#upstream-handoff)
+for exact bases, checks, and the remaining review gates. No upstream change has been made.
+
 ## Files and links
 
 | What | Where |
 |---|---|
 | How to reproduce (commands, pinned and latest) | [REPRODUCE.md](REPRODUCE.md) |
-| Patches under test | [Upstream MR patch](branches/3604037-grouping-elements-child-errors-default-admin.patch) · [Comment #61 current-main port](branches/3604037-comment61-current-main.patch) · [BRANCHES.md](BRANCHES.md) |
+| Complete proposed replacement for clean core | [Standalone patch, including required test fixture](branches/3604037-comment61-standalone.patch) |
+| Follow-up changes for existing MR branch | [Interdiff from MR !17078 tip `c3c52b00`](branches/3604037-comment61-vs-mr17078-c3c52b00.interdiff.patch) |
+| Upstream reference and registered lab stack | [Upstream MR snapshot](branches/3604037-grouping-elements-child-errors-default-admin.patch) · [Lab port (requires separate fixture)](branches/3604037-comment61-current-main.patch) · [BRANCHES.md](BRANCHES.md) |
 | Test-support patches applied to both sides | [two required fields](branches/support-fixture-two-required-fields.patch) · [multiple vertical-tab errors](branches/support-fixture-multiple-vertical-tab-errors.patch) |
 | Recipe (starting state) | [`recipes/repro_3604037/`](../../../recipes/repro_3604037/) |
 | Evidence index, exact commits | [EVIDENCE.md](EVIDENCE.md) |

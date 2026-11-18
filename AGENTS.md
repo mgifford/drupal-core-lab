@@ -108,6 +108,10 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
     Security Team ("Report a security issue", linked from https://www.drupal.org/security). Lab sites are private test sites: never
     point lab tools at a site other people use. Issues already public (a security advisory, a hardening issue in the public queue) are
     not covered.
+17. **A proposed revision includes a full patch and an interdiff.** Identify the exact prior patch/MR tip and the core base for each
+    artifact. The full patch includes any fixtures its tests require; the interdiff shows only changes from the prior proposal.
+    Verify that each applies to its declared starting tree and that the resulting proposals are equivalent after accounting for core-base
+    changes. Link both from the issue summary and draft handoff. A mutable MR `.diff` URL alone is not a pinned comparison.
 
 ### Shell Compatibility (macOS / zsh)
 - **Never include `#` comments inside executable shell blocks.** In interactive zsh (the macOS default), `#` is treated as an unknown command unless the user has `setopt INTERACTIVE_COMMENTS` set.
