@@ -10,3 +10,6 @@ Not rebased onto current `main`. The MR on drupal.org is the source of truth.
 | [`branches/2942404-mr6058.patch`](branches/2942404-mr6058.patch) | MR !6058 `.diff` (branch `core-message-landmarks`), sha256 6829696734ec | 25e7b657 | 66a4c78b453b (applies cleanly; the MR's own base was not read) | 2024-02-01 | 10 |
 
 The two `mr*.patch` files are evidence of the old proposals and are not listed in any variant. Interdiffs and the comparison with current main: [MR-EVALUATION.md](MR-EVALUATION.md).
+| [`branches/2942404-main-region-option.patch`](branches/2942404-main-region-option.patch) | authored in the lab (no merge request), captured from `issue-2942404-latest` on 2026-11-19 with `scripts/capture-patch.mjs`; sha256 77afe7c1 | - | 92e5c3a30476 | - | 3 |
+
+The lab-authored option for current main (After of `2942404-latest`) is [`branches/2942404-main-region-option.patch`](branches/2942404-main-region-option.patch): system, Default Admin and starterkit `status-messages.html.twig` only, no tests, based on core `92e5c3a30476`. It is not an upstream proposal.

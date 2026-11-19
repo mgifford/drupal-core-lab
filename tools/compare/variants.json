@@ -2345,18 +2345,18 @@
       ]
     },
     "pages": [
-      "/node/add/article",
+      "/admin/config/development/performance",
       "/admin/modules"
     ],
     "login": true,
     "steps": [
       {
-        "text": "Use a plain Standard install. Log in to both sites, create an Article (/node/add/article) and save it. A confirmation message appears after the redirect.",
+        "text": "Use a plain install (no content types exist, so use a settings page). Log in to both sites, open /admin/config/development/performance and press Clear all caches. A status message appears after the redirect.",
         "how": "each",
         "lookFor": "Before: the message wrapper is role=contentinfo with an aria-label. After: role=status (and role=alert for errors), no contentinfo landmark."
       },
       {
-        "text": "Submit the Article form with the title empty (browser validation off, or on a form that validates on the server) so that an error message is shown.",
+        "text": "Cause an error message: open /admin/config/system/site-information, type /no-such-page in Default front page and save.",
         "how": "each",
         "lookFor": "The error group is role=alert in both; check there is no second live region around it."
       },
@@ -2445,7 +2445,9 @@
   {
     "slug": "2942404-latest",
     "extends": "2942404-pinned",
-    "label": "#2942404: same steps against the LATEST core main",
+    "label": "#2942404: options for system messages on LATEST main (current main vs the MRs' region design)",
+    "description": "Before is current core main: each message block is itself the live region (role=alert for error and warning, role=status for the rest), no landmark. After is main plus a lab-authored option that realigns the two old merge requests' design to main: a role=region landmark per message type with an inner role=alert (error) or role=status (status and warning). Templates only (system, Default Admin, starterkit); the old tests are deliberately left out. This is an option to compare, not a recommendation: main's design came from #3587678 and the MRs predate it.",
+    "status": "DRAFT: lab-authored option for comparison; human review required",
     "core": {
       "ref": "main",
       "commit": null
@@ -2454,7 +2456,70 @@
       "env": "baseline-2942404-latest"
     },
     "after": {
-      "env": "issue-2942404-latest"
-    }
+      "env": "issue-2942404-latest",
+      "patches": [
+        "reports/issues/2942404/branches/2942404-main-region-option.patch"
+      ]
+    },
+    "pages": [
+      "/admin/config/development/performance",
+      "/admin/content"
+    ],
+    "steps": [
+      {
+        "text": "Use the lab's plain install (no content types exist, so use settings pages). Log in to both sites, open /admin/config/development/performance and press Clear all caches. A status message appears after the redirect.",
+        "how": "each",
+        "lookFor": "Before: one element with role=status labelled 'Status message'. After: a region landmark labelled 'Status message' that contains an inner role=status."
+      },
+      {
+        "text": "Cause an error: open /admin/config/system/site-information, type /no-such-page in Default front page and press Save configuration.",
+        "how": "each",
+        "lookFor": "Both: role=alert for the error (nothing is saved). After adds a region landmark around it."
+      },
+      {
+        "text": "Open the browser's landmark list (or a screen reader's landmarks rotor) on a page with a message. For the front-end theme, log out and submit a wrong password on /user/login.",
+        "how": "each",
+        "lookFor": "Before: no landmark for the message. After: one region landmark per message type, so a page may have several."
+      },
+      {
+        "text": "With a screen reader, compare what is spoken after the redirect and when a message is added by JavaScript. The lab runs none; record it as a person's result.",
+        "how": "each",
+        "lookFor": "Spoken once, twice or not at all, and whether warnings (alert on Before, status on After for server messages) are announced at a suitable time."
+      }
+    ],
+    "expected": "A message is exposed once, with the right politeness (error alert, status polite), without a contentinfo landmark. Whether each message type should also be a landmark region is the open design question.",
+    "actual": "Not yet decided. Before (main) exposes live regions only; After adds region landmarks and makes warnings polite.",
+    "checks": [
+      {
+        "label": "A message block is present on the page",
+        "probe": "!!document.querySelector('[data-drupal-messages] [role]')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "No message block uses role=contentinfo",
+        "probe": "!document.querySelector('[data-drupal-messages] [role=contentinfo]')",
+        "expect": true,
+        "kind": "regression"
+      },
+      {
+        "label": "Message blocks are exposed as region landmarks",
+        "probe": "!!document.querySelector('[data-drupal-messages] > [role=region]')",
+        "expect": true,
+        "kind": "fix"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Is the saved-content confirmation spoken exactly once after the redirect?",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Does the landmark list show one entry per message type, and is that useful rather than noisy?",
+        "expectBefore": false,
+        "expectAfter": true
+      }
+    ]
   }
 ]

@@ -2,17 +2,17 @@
 
 Each folder is one scripted run comparing **Before** and **After** under one configuration. Open a folder's `README.md` to see the paired screenshots. Folder names are `<UTC start time>-<browser>-<OS scheme>[-forced]-<viewport>`.
 
-Two evaluations live here:
+Evaluations that live here:
 
-- **Navigation toggle** (`3636143-latest`): the circular expand/collapse button; hover, focus and keyboard activation.
 - **Skip link** (`3636143-with-skip-focus`): the separate 3637339 focus proposal on top of the toggle MR.
+- **Navigation toggle** (`3636143-latest`): the circular expand/collapse button; hover, focus and keyboard activation.
 
 | Run | Evaluation | Configuration | Verdict | Screenshots | Status |
 |---|---|---|---|---|---|
 | [2026-11-19T15-30-46-605Z-chromium-light-1280x900](2026-11-19T15-30-46-605Z-chromium-light-1280x900/README.md) | Navigation toggle | light OS scheme, 1280x900 viewport, reduced motion | reproduced-and-fixed | 32 | latest for this configuration |
 | [2026-11-19T15-30-30-853Z-chromium-light-1280x900](2026-11-19T15-30-30-853Z-chromium-light-1280x900/README.md) | Navigation toggle | light OS scheme, 1280x900 viewport, RTL simulated | reproduced-and-fixed | 32 | latest for this configuration |
-| [2026-11-19T15-30-24-517Z-chromium-light-480x900](2026-11-19T15-30-24-517Z-chromium-light-480x900/README.md) | Navigation toggle | light OS scheme, 480x900 viewport | mixed | none (control hidden) | latest for this configuration |
-| [2026-11-19T15-30-18-670Z-chromium-light-768x900](2026-11-19T15-30-18-670Z-chromium-light-768x900/README.md) | Navigation toggle | light OS scheme, 768x900 viewport | mixed | none (control hidden) | latest for this configuration |
+| [2026-11-19T15-30-24-517Z-chromium-light-480x900](2026-11-19T15-30-24-517Z-chromium-light-480x900/README.md) | Navigation toggle | light OS scheme, 480x900 viewport | mixed | none | latest for this configuration |
+| [2026-11-19T15-30-18-670Z-chromium-light-768x900](2026-11-19T15-30-18-670Z-chromium-light-768x900/README.md) | Navigation toggle | light OS scheme, 768x900 viewport | mixed | none | latest for this configuration |
 | [2026-11-19T15-29-59-987Z-chromium-dark-forced-1280x900](2026-11-19T15-29-59-987Z-chromium-dark-forced-1280x900/README.md) | Navigation toggle | dark OS scheme, forced colors, 1280x900 viewport | not-reproduced | 32 | latest for this configuration |
 | [2026-11-19T15-29-42-619Z-chromium-light-forced-1280x900](2026-11-19T15-29-42-619Z-chromium-light-forced-1280x900/README.md) | Navigation toggle | light OS scheme, forced colors, 1280x900 viewport | not-reproduced | 32 | latest for this configuration |
 | [2026-11-19T15-29-22-982Z-chromium-dark-1280x900](2026-11-19T15-29-22-982Z-chromium-dark-1280x900/README.md) | Navigation toggle | dark OS scheme, 1280x900 viewport | reproduced-and-fixed | 32 | latest for this configuration |

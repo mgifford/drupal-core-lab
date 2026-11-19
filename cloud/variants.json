@@ -2737,12 +2737,12 @@
       "after": {},
       "steps": [
         {
-          "text": "Use a plain Standard install. Log in to both sites, create an Article (/node/add/article) and save it. A confirmation message appears after the redirect.",
+          "text": "Use a plain install (no content types exist, so use a settings page). Log in to both sites, open /admin/config/development/performance and press Clear all caches. A status message appears after the redirect.",
           "how": "each",
           "lookFor": "Before: the message wrapper is role=contentinfo with an aria-label. After: role=status (and role=alert for errors), no contentinfo landmark."
         },
         {
-          "text": "Submit the Article form with the title empty (browser validation off, or on a form that validates on the server) so that an error message is shown.",
+          "text": "Cause an error message: open /admin/config/system/site-information, type /no-such-page in Default front page and save.",
           "how": "each",
           "lookFor": "The error group is role=alert in both; check there is no second live region around it."
         },
@@ -2787,71 +2787,76 @@
         }
       ],
       "pages": [
-        "/node/add/article",
+        "/admin/config/development/performance",
         "/admin/modules"
       ]
     },
     {
       "slug": "2942404-latest",
       "issue": "2942404",
-      "label": "#2942404: same steps against the LATEST core main",
-      "description": "The merge request as submitted (!6112, branch 2942404-11) on the core it was based on (2024-02-01, still the contentinfo era). Before is that core, After adds the MR. The MR does NOT apply to current main, which already assigns role=alert (error, warning) and role=status (other types) in status-messages.html.twig, so this pinned pair only shows what the MR meant; it is not evidence about current core. See reports/issues/2942404/SUMMARY.md.",
+      "label": "#2942404: options for system messages on LATEST main (current main vs the MRs' region design)",
+      "description": "Before is current core main: each message block is itself the live region (role=alert for error and warning, role=status for the rest), no landmark. After is main plus a lab-authored option that realigns the two old merge requests' design to main: a role=region landmark per message type with an inner role=alert (error) or role=status (status and warning). Templates only (system, Default Admin, starterkit); the old tests are deliberately left out. This is an option to compare, not a recommendation: main's design came from #3587678 and the MRs predate it.",
       "before": {},
       "after": {},
       "steps": [
         {
-          "text": "Use a plain Standard install. Log in to both sites, create an Article (/node/add/article) and save it. A confirmation message appears after the redirect.",
+          "text": "Use the lab's plain install (no content types exist, so use settings pages). Log in to both sites, open /admin/config/development/performance and press Clear all caches. A status message appears after the redirect.",
           "how": "each",
-          "lookFor": "Before: the message wrapper is role=contentinfo with an aria-label. After: role=status (and role=alert for errors), no contentinfo landmark."
+          "lookFor": "Before: one element with role=status labelled 'Status message'. After: a region landmark labelled 'Status message' that contains an inner role=status."
         },
         {
-          "text": "Submit the Article form with the title empty (browser validation off, or on a form that validates on the server) so that an error message is shown.",
+          "text": "Cause an error: open /admin/config/system/site-information, type /no-such-page in Default front page and press Save configuration.",
           "how": "each",
-          "lookFor": "The error group is role=alert in both; check there is no second live region around it."
+          "lookFor": "Both: role=alert for the error (nothing is saved). After adds a region landmark around it."
         },
         {
-          "text": "With a screen reader running (the lab does not run one), compare what is spoken after the save redirect and after an AJAX update that inserts a message (for example the media or file upload forms).",
+          "text": "Open the browser's landmark list (or a screen reader's landmarks rotor) on a page with a message. For the front-end theme, log out and submit a wrong password on /user/login.",
           "how": "each",
-          "lookFor": "Whether the message is spoken once, twice or not at all. Recorded by a person; scripted runs only list the live regions."
+          "lookFor": "Before: no landmark for the message. After: one region landmark per message type, so a page may have several."
+        },
+        {
+          "text": "With a screen reader, compare what is spoken after the redirect and when a message is added by JavaScript. The lab runs none; record it as a person's result.",
+          "how": "each",
+          "lookFor": "Spoken once, twice or not at all, and whether warnings (alert on Before, status on After for server messages) are announced at a suitable time."
         }
       ],
-      "expected": "System messages are not exposed as a contentinfo landmark. Status and warning messages use role=status, errors use role=alert, and a message is announced once whether it is server-rendered, AJAX-inserted or delivered by BigPipe.",
-      "actual": "Not yet run. The issue says the wrapper is role=contentinfo; current main already uses role=alert or role=status, so the original defect may be fixed there.",
+      "expected": "A message is exposed once, with the right politeness (error alert, status polite), without a contentinfo landmark. Whether each message type should also be a landmark region is the open design question.",
+      "actual": "Not yet decided. Before (main) exposes live regions only; After adds region landmarks and makes warnings polite.",
       "observe": [
         {
           "label": "Is the saved-content confirmation spoken exactly once after the redirect?",
-          "expectBefore": false,
+          "expectBefore": true,
           "expectAfter": true
         },
         {
-          "label": "Is an AJAX-inserted message spoken exactly once?",
+          "label": "Does the landmark list show one entry per message type, and is that useful rather than noisy?",
           "expectBefore": false,
           "expectAfter": true
         }
       ],
       "checks": [
         {
-          "label": "A page with a saved-content message exposes at least one message block",
-          "probe": "!!document.querySelector('[data-drupal-messages] [role], [data-drupal-messages-fallback] [role]')",
+          "label": "A message block is present on the page",
+          "probe": "!!document.querySelector('[data-drupal-messages] [role]')",
           "expect": true,
           "kind": "precondition"
         },
         {
           "label": "No message block uses role=contentinfo",
-          "probe": "!document.querySelector('[data-drupal-messages] [role=contentinfo], [data-drupal-messages-fallback] [role=contentinfo]')",
-          "expect": true,
-          "kind": "fix"
-        },
-        {
-          "label": "Only one contentinfo landmark remains on the page (the footer, if any)",
-          "probe": "document.querySelectorAll('[role=contentinfo], footer').length <= 1",
+          "probe": "!document.querySelector('[data-drupal-messages] [role=contentinfo]')",
           "expect": true,
           "kind": "regression"
+        },
+        {
+          "label": "Message blocks are exposed as region landmarks",
+          "probe": "!!document.querySelector('[data-drupal-messages] > [role=region]')",
+          "expect": true,
+          "kind": "fix"
         }
       ],
       "pages": [
-        "/node/add/article",
-        "/admin/modules"
+        "/admin/config/development/performance",
+        "/admin/content"
       ]
     },
     {

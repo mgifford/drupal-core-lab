@@ -1,0 +1,123 @@
+diff --git a/core/modules/system/templates/status-messages.html.twig b/core/modules/system/templates/status-messages.html.twig
+index 417aa6d845c6aeb9100acb41cbc8e52512b63dd0..97ff2aaaf87c5e6228e75dd4d5c29338d365c8cb 100644
+--- a/core/modules/system/templates/status-messages.html.twig
++++ b/core/modules/system/templates/status-messages.html.twig
+@@ -9,13 +9,11 @@
+  * Sighted users see a colored box. See https://www.w3.org/TR/WCAG-TECHS/H69.html
+  * for info.
+  *
+- * Each message block exposes an ARIA live region role so assistive technology
+- * user agents announce it appropriately: "alert" for errors and warnings
+- * (assertive) and "status" for other message types (polite). This matches the
+- * role assignment used by Drupal.theme.message() for messages added by
+- * JavaScript. The "contentinfo" landmark role is reserved for the page footer
+- * and is intentionally not used here, which avoids duplicate landmark and
+- * non-unique landmark accessibility violations.
++ * Each message type is a "region" landmark that is labelled with its heading,
++ * so users can find messages by landmark. Inside it, an ARIA live region
++ * announces the messages: "alert" for errors (assertive) and "status" for
++ * status and warning messages (polite). The "contentinfo" landmark role is
++ * reserved for the page footer and is not used here.
+  *
+  * Available variables:
+  * - message_list: List of messages to be displayed, grouped by type.
+@@ -28,7 +26,8 @@
+ #}
+ <div data-drupal-messages>
+ {% for type, messages in message_list %}
+-  <div role="{{ type in ['error', 'warning'] ? 'alert' : 'status' }}" aria-label="{{ status_headings[type] }}"{{ attributes|without('role', 'aria-label') }}>
++  <div role="region" aria-label="{{ status_headings[type] }}"{{ attributes|without('role', 'aria-label') }}>
++    <div role="{{ type == 'error' ? 'alert' : 'status' }}">
+     {% if status_headings[type] %}
+       <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
+     {% endif %}
+@@ -41,6 +40,7 @@
+     {% else %}
+       {{ messages|first }}
+     {% endif %}
++    </div>
+   </div>
+ {% endfor %}
+ </div>
+diff --git a/core/themes/default_admin/templates/misc/status-messages.html.twig b/core/themes/default_admin/templates/misc/status-messages.html.twig
+index f82cb87e32fcb2997da6868aa523ce3318318f3d..bfe9f9b9d4803038cc620eb41daf54b880b52d5c 100644
+--- a/core/themes/default_admin/templates/misc/status-messages.html.twig
++++ b/core/themes/default_admin/templates/misc/status-messages.html.twig
+@@ -9,13 +9,11 @@
+  * Sighted users see a colored box. See http://www.w3.org/TR/WCAG-TECHS/H69.html
+  * for info.
+  *
+- * Each message block exposes an ARIA live region role so assistive technology
+- * user agents announce it appropriately: "alert" for errors and warnings
+- * (assertive) and "status" for other message types (polite). This matches the
+- * role assignment used by Drupal.theme.message() for messages added by
+- * JavaScript. The "contentinfo" landmark role is reserved for the page footer
+- * and is intentionally not used here, which avoids duplicate landmark and
+- * non-unique landmark accessibility violations.
++ * Each message type is a "region" landmark that is labelled with its heading,
++ * so users can find messages by landmark. Inside it, an ARIA live region
++ * announces the messages: "alert" for errors (assertive) and "status" for
++ * status and warning messages (polite). The "contentinfo" landmark role is
++ * reserved for the page footer and is not used here.
+  *
+  * Available variables:
+  * - message_list: List of messages to be displayed, grouped by type.
+@@ -44,7 +42,8 @@
+         set is_message_with_icon = type in ['error', 'status', 'warning']
+       %}
+ 
+-      <div role="{{ type in ['error', 'warning'] ? 'alert' : 'status' }}" aria-labelledby="{{ title_ids[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
++      <div role="region" aria-labelledby="{{ title_ids[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
++        <div role="{{ type == 'error' ? 'alert' : 'status' }}">
+         {% if is_message_with_title or is_message_with_icon %}
+           <div class="messages__header">
+             {% if is_message_with_title %}
+@@ -65,6 +64,7 @@
+             {{ messages|first }}
+           {% endif %}
+         </div>
++        </div>
+         <button type="button" class="button button--dismiss js-message-button-hide" title="{{ 'Hide'|t }}">
+           <span class="icon-close"></span>
+           {{ 'Hide'|t }}
+diff --git a/core/themes/starterkit_theme/templates/misc/status-messages.html.twig b/core/themes/starterkit_theme/templates/misc/status-messages.html.twig
+index 34570521d9630d51953a0a03e03b4e32bc4f1a3b..43d900ef0ebb7746649b358b6075b2ae0ab2712b 100644
+--- a/core/themes/starterkit_theme/templates/misc/status-messages.html.twig
++++ b/core/themes/starterkit_theme/templates/misc/status-messages.html.twig
+@@ -9,13 +9,11 @@
+  * Sighted users see a colored box. See https://www.w3.org/TR/WCAG-TECHS/H69.html
+  * for info.
+  *
+- * Each message block exposes an ARIA live region role so assistive technology
+- * user agents announce it appropriately: "alert" for errors and warnings
+- * (assertive) and "status" for other message types (polite). This matches the
+- * role assignment used by Drupal.theme.message() for messages added by
+- * JavaScript. The "contentinfo" landmark role is reserved for the page footer
+- * and is intentionally not used here, which avoids duplicate landmark and
+- * non-unique landmark accessibility violations.
++ * Each message type is a "region" landmark that is labelled with its heading,
++ * so users can find messages by landmark. Inside it, an ARIA live region
++ * announces the messages: "alert" for errors (assertive) and "status" for
++ * status and warning messages (polite). The "contentinfo" landmark role is
++ * reserved for the page footer and is not used here.
+  *
+  * Available variables:
+  * - message_list: List of messages to be displayed, grouped by type.
+@@ -33,7 +31,8 @@
+       'messages--' ~ type,
+     ]
+   %}
+-  <div role="{{ type in ['error', 'warning'] ? 'alert' : 'status' }}" aria-label="{{ status_headings[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
++  <div role="region" aria-label="{{ status_headings[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
++    <div role="{{ type == 'error' ? 'alert' : 'status' }}">
+     {% if status_headings[type] %}
+       <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
+     {% endif %}
+@@ -46,6 +45,7 @@
+     {% else %}
+       {{ messages|first }}
+     {% endif %}
++    </div>
+   </div>
+   {# Remove type specific classes. #}
+   {% set attributes = attributes.removeClass(classes) %}

@@ -33,13 +33,16 @@ These details have not been assessed by this generation step. Preserve credible 
 
 ## Reproduction and comparison
 
-Registered variants: `2942404-pinned` (old core `66a4c78b453b`, Before pristine, After plus the MR as submitted) and `2942404-latest` (inherits the MR, which does not apply to `main`, so it cannot be built until a patch exists). Neither has been built or run. See [REPRODUCE.md](REPRODUCE.md). The pinned pair shows only what the MR meant; it says nothing about current core.
+The `2942404-latest` pair is built and running (viewer: https://drupal-compare.ddev.site/). It compares **options on current main**, not the old MRs:
 
-Decision needed before building: the useful comparison for current core is probably "main as it is" with the scenarios of the prompt (A to F) observed on one side, plus a change only if a defect is found. The lab needs a patch on After to compare, so a defect (for example a duplicate announcement) must be shown first.
+- **Before:** main as it is. Each message block is itself the live region (`alert` for error and warning, `status` otherwise), no landmark.
+- **After (option):** [branches/2942404-main-region-option.patch](branches/2942404-main-region-option.patch), the two MRs' design realigned to main for the system, Default Admin and starterkit templates: a `region` landmark per message type with an inner `alert` (error) or `status` (status and warning). Old tests are left out on purpose.
+
+The old pair (`2942404-pinned`: old core plus MR !6112) is registered but not built and not needed for the comparison. Steps and commands: [REPRODUCE.md](REPRODUCE.md).
 
 ## Evidence and readiness
 
-Status: **not tested**. Assessment so far (reading only): the original defect (`contentinfo`) appears already fixed on `main`; the questions about announcement timing, duplication, BigPipe and theme consistency are open and untested. Nothing here establishes conformance.
+Status: **options compared by script; no defect reproduced.** On current main the original `contentinfo` problem is not present. Seven runs (Chromium light, dark, forced colors, 480px; Firefox; WebKit) show both designs expose messages as live regions with no new axe violations; the difference is the added landmark per message type on the option. See [EVIDENCE.md](EVIDENCE.md) and [playwright/README.md](playwright/README.md). Nothing here establishes conformance.
 
 ## Sources
 
@@ -48,9 +51,8 @@ Status: **not tested**. Assessment so far (reading only): the original defect (`
 
 ## Not verified and next actions
 
-- Nothing has been run: no scenario A to F, no Playwright live-region capture, no axe-core scan, no screen reader.
-- Not read: the full comment history for maintainer objections and unresolved test failures; the MR review threads (HTTP 401).
-- Next (owner: the contributor): (1) read comments #60 onward and #3587678 and say whether #2942404 is still actionable or should be closed or split; (2) build a plain main environment and capture the live regions for scenarios A to F; (3) only if a defect shows up, write the smallest patch in the lab. Nothing has been posted to drupal.org.
+- No screen reader, keyboard pass by a person, AJAX or BigPipe server messages, server-rendered warnings, or Umami; the option's tests and lint were not run (EVIDENCE.md lists them).
+- Next (owner: the contributor): use a screen reader on both sides to decide whether the extra landmarks help, decide the warning role (alert on main, status in the option), then say whether #2942404 should be closed as fixed by #3587678, narrowed to the announcement questions, or split. Nothing has been posted to drupal.org.
 
 ## Acceptance and verification
 

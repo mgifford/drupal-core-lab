@@ -4,7 +4,7 @@
 
 Issue: https://www.drupal.org/project/drupal/issues/2942404
 Pinned core: `66a4c78b453b` (selected base; not a verification claim).
-Prepared: 2026-11-19. Last verified: never. Nothing has been built or run for this issue.
+Prepared: 2026-11-19. Last verified: 2026-11-19 on `2942404-latest` ([playwright/](playwright/README.md); scripted, no person). The pinned pair has not been built.
 
 ## Task and barrier
 
@@ -15,8 +15,8 @@ Task: learn that an action succeeded or failed (save content, submit a form, an 
 - Selected variant: `2942404-pinned`; latest variant: `2942404-latest`.
 - Before/After environments: record the resolved variant's environment names.
 - Core: record the full resolved commit on BOTH sides.
-- Recipe: none; plain Standard install (the Article content type exists).
-- Patches: pinned After applies `branches/2942404-11.patch` (MR !6112). It does not apply to current `main`; there is no latest patch yet.
+- Recipe: none. The lab's plain install has no content types; the scripted scenarios use settings pages and the login form.
+- Patches: `2942404-latest` Before none; After `branches/2942404-main-region-option.patch` (lab-authored; the old MRs do not apply to main). `2942404-pinned` After applies `branches/2942404-11.patch` (MR !6112) on old core; not built.
 - Page and state: record the safe route, account role, data and state needed to reach the barrier.
 - Environment: record relevant browser, OS, assistive technology, input, viewport, zoom, preferences and locale.
 
