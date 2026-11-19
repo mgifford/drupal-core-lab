@@ -6,7 +6,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { labRoot } from '../../tools/compare/lib.mjs';
+import vm from 'node:vm';
+import { labRoot, variants } from '../../tools/compare/lib.mjs';
 import { NEW_ISSUE_MATRIX, matrixProblems } from '../../tools/compare/coverage-matrix.mjs';
 import { runProblems } from '../../tools/playwright/lib/run-schema.mjs';
 
@@ -21,6 +22,21 @@ test('a bad matrix is reported cell by cell', () => {
   for (const at of ['coverage.other', 'coverage.matrix[0].extra', 'coverage.matrix[0].browser', 'coverage.matrix[0].scheme', 'coverage.matrix[0].forced', 'coverage.matrix[0].width']) assert.ok(p.includes(at), at);
   assert.equal(matrixProblems({ matrix: [] }).length, 1);
   assert.equal(matrixProblems('x').length, 1);
+});
+
+test('navigation border probe follows the theme token in light and dark states, not one RGB literal', () => {
+  const check = variants().find(v => v.slug === '3636143-pinned').checks.find(c => /input-border token/.test(c.label));
+  const probe = (toolbar, input) => {
+    const properties = { '--admin-toolbar-color-gray-300': toolbar, '--admin-color-border-input': input };
+    return vm.runInNewContext(check.probe, {
+      document: { querySelector: () => ({}) },
+      getComputedStyle: () => ({ getPropertyValue: name => properties[name] }),
+    });
+  };
+  assert.equal(probe('rgb(184, 193, 208)', 'rgb(142, 146, 156)'), false, 'unpatched toolbar token differs');
+  assert.equal(probe('rgb(142, 146, 156)', 'rgb(142, 146, 156)'), true, 'patched Light mapping');
+  assert.equal(probe('rgb(153, 153, 153)', 'rgb(153, 153, 153)'), true, 'patched Dark mapping');
+  assert.equal(probe('', ''), false, 'missing theme tokens do not pass');
 });
 
 const side = () => ({ site: { php: '8.5.7' }, pages: [{ path: '/', theme: 'default_admin' }], ajax: [], speech: { announce: [], live: [] } });
