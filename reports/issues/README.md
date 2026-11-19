@@ -20,7 +20,7 @@ Something changed upstream that the lab should act on.
 | [3370946](3370946/SUMMARY.md) | Page title should contextualize the local navigation | Needs work, updated 2026-08-24 | !4479 opened at `1ff37e70` | no MR commit recorded ([how](3370946/REPRODUCE.md)) | Test MR !4479 (at 1ff37e70): BRANCHES.md records no MR commit the lab tested |
 | [3587661](3587661/SUMMARY.md) | Missing labels in "Limited files with a single pre-existing value (required)… | Needs work, updated 2026-11-12 | !16335 opened at `3ec7eefd` | no MR commit recorded ([how](3587661/REPRODUCE.md)) | Test MR !16335 (at 3ec7eefd): BRANCHES.md records no MR commit the lab tested |
 | [3593502](3593502/SUMMARY.md) | Introduce a new Menu UI to resolve memory issues and improve user experience | Needs work, updated 2026-10-18 | !15975 opened at `0a887245` | `6d566c31` ([how](3593502/REPRODUCE.md)) | Re-test: MR !15975 is at 0a887245; the lab tested 6d566c31 |
-| [3604037](3604037/SUMMARY.md) | Indicate that grouping elements have child element errors for UX and a11y | Needs work, updated 2026-11-04 | !17078 opened at `c3c52b00` | `e8b2e166` ([how](3604037/REPRODUCE.md)) | Re-test: MR !17078 is at c3c52b00; the lab tested e8b2e166 |
+| [3604037](3604037/SUMMARY.md) | Indicate that grouping elements have child element errors for UX and a11y | Needs work, updated 2026-11-04 | !17078 opened at `c3c52b00` | no MR commit recorded ([how](3604037/REPRODUCE.md)) | Test MR !17078 (at c3c52b00): BRANCHES.md records no MR commit the lab tested |
 | [3606655](3606655/) | Allow user-configurable UI settings - starting with dark mode | Needs review, updated 2026-11-04 | !16432 opened at `170be9e3` | `08a4cb4c` ([how](3606655/REPRODUCE.md)) | Re-test: MR !16432 is at 170be9e3; the lab tested 08a4cb4c |
 | [3615469](3615469/SUMMARY.md) | Change link text on Maintenance mode form to 'user login page' | Reviewed & tested by the community, updated 2026-10-26 | !16609 opened at `21bbeeb1` | `21bbeeb1` ([how](3615469/REPRODUCE.md)) | RTBC: one final run on current core main |
 | [3617875](3617875/SUMMARY.md) | Better Dark Mode Support for Disabled Elements | Closed (fixed), updated 2026-09-29 | !16905 closed at `71cd2aca` | `e87837c4` ([how](3617875/REPRODUCE.md)) | Closed (fixed) upstream: confirm on core main, then archive (node scripts/issue-archive.mjs 3617875) |
@@ -58,11 +58,13 @@ Nothing for the lab to do until the issue moves.
 | [3637339](3637339/SUMMARY.md) | Skip to main content link is not using the selected focus color in light and… | Needs work, updated 2026-11-17 | !17818 opened at `8c4a0e70` | `8c4a0e70` ([how](3637339/REPRODUCE.md)) | Needs work: waiting on the MR |
 | [867830](867830/SUMMARY.md) | "Unpublished" style of rendered entities is not accessible (and looks bad) | Active, updated 2026-11-17 | none found | `0fcbb553` ([how](867830/REPRODUCE.md)) | Active; no MR found |
 
-## Not checked yet (0)
+## Not checked yet (1)
 
 No `status.json` yet: the next weekly check fills these in, or `node scripts/issue-status.mjs <nid> --write` for one.
 
-None.
+| Issue | What | Lab tested |
+|---|---|---|
+| [3636143](3636143/SUMMARY.md) | Reproduce 3636143 with the separate skip-link proposal | `5e5521e4` ([how](3636143/REPRODUCE.md)) |
 
 ## Archived (0)
 

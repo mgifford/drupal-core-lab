@@ -2581,6 +2581,154 @@
       ]
     },
     {
+      "slug": "3636143-pinned",
+      "issue": "3636143",
+      "label": "#3636143: Navigation toggle button border contrast in light mode, pinned core",
+      "description": "Compare the circular expand/collapse toggle at the bottom of the administration navigation sidebar: Before is unmodified core, After is core plus MR !17738 (one line mapping --admin-toolbar-color-gray-300 to --admin-color-border-input in the Default Admin theme). Plain Standard install: it enables Navigation and uses Default Admin.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Use a plain Standard install (it enables Navigation and Default Admin). Log in to both sites and open the Default Admin appearance settings at a desktop width, where the sidebar shows the circular toggle at its bottom.",
+          "how": "each",
+          "lookFor": "Both sites show the circular toggle button at the bottom of the navigation sidebar."
+        },
+        {
+          "text": "Compare the toggle's border against the sidebar background in light mode, then in dark mode (switch the appearance setting, or simulate the dark OS in the viewer).",
+          "how": "each",
+          "lookFor": "Before: a very pale border in light mode. After: a darker, clearly visible border in light mode; dark mode should stay clearly visible."
+        },
+        {
+          "text": "Hover the toggle, then Tab to it with the keyboard (trusted input, not a script event). Press Enter or Space to collapse and expand the sidebar.",
+          "how": "each",
+          "lookFor": "What hover and keyboard focus add to the button, and that it still expands and collapses. The MR does not change hover or focus; those are the open question for version C."
+        }
+      ],
+      "expected": "The toggle's circular border is visible against the sidebar background in light and dark mode (at least 3:1 is the issue's objective).",
+      "actual": "Before: the border uses --admin-toolbar-color-gray-300 (#b8c1d0), about 1.81:1 against the light sidebar, per the issue. After (MR !17738): the border takes --admin-color-border-input.",
+      "observe": [
+        {
+          "label": "Is the toggle's circular border clearly visible against the sidebar in light mode?",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Is the toggle's border still clearly visible in dark mode?",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Does Enter or Space still expand and collapse the sidebar from the keyboard?",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "The expand/collapse toggle is rendered",
+          "probe": "!!document.querySelector('.admin-toolbar__expand-button')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Toggle border uses the appearance-aware input-border token (contrast measured separately)",
+          "probe": "((b) => !!b && ((s) => !!s.getPropertyValue('--admin-color-border-input').trim() && s.getPropertyValue('--admin-toolbar-color-gray-300').trim() === s.getPropertyValue('--admin-color-border-input').trim())(getComputedStyle(b)))(document.querySelector('.admin-toolbar__expand-button'))",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Toggle size unchanged",
+          "probe": "((b) => (b ? b.offsetWidth + 'x' + b.offsetHeight : null))(document.querySelector('.admin-toolbar__expand-button'))",
+          "expect": "same",
+          "kind": "regression"
+        },
+        {
+          "label": "Toggle starts expanded or collapsed the same way",
+          "probe": "document.querySelector('.admin-toolbar__expand-button')?.getAttribute('aria-expanded')",
+          "expect": "same",
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/admin/appearance/settings/default_admin",
+        "/admin/content"
+      ]
+    },
+    {
+      "slug": "3636143-latest",
+      "issue": "3636143",
+      "label": "#3636143: same steps against the LATEST core main",
+      "description": "Before is unmodified current core main (A). After is current core main plus MR !17738 (B, the border colour) plus the lab's separately recorded hover and keyboard-focus enhancement (C: accent border, inner ring, subtle background, external focus outline, forced-colors Highlight). The MR-only comparison (A vs B) is 3636143-pinned.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Use a plain Standard install (it enables Navigation and Default Admin). Log in to both sites and open the Default Admin appearance settings at a desktop width, where the sidebar shows the circular toggle at its bottom.",
+          "how": "each",
+          "lookFor": "Both sites show the circular toggle button at the bottom of the navigation sidebar."
+        },
+        {
+          "text": "Compare the toggle's border against the sidebar background in light mode, then in dark mode (switch the appearance setting, or simulate the dark OS in the viewer).",
+          "how": "each",
+          "lookFor": "Before: a very pale border in light mode. After: a darker, clearly visible border in light mode; dark mode should stay clearly visible."
+        },
+        {
+          "text": "Hover the toggle, then Tab to it with the keyboard (trusted input, not a script event). Press Enter or Space to collapse and expand the sidebar.",
+          "how": "each",
+          "lookFor": "What hover and keyboard focus add to the button, and that it still expands and collapses. The MR does not change hover or focus; those are the open question for version C."
+        }
+      ],
+      "expected": "On hover and keyboard focus the toggle's circle is clearly emphasised (accent border, thicker ring, subtle background) and a separate focus outline surrounds it; size and layout do not change.",
+      "actual": "Before: only the chevron colour changes on hover, and the border stays as drawn. After: border colour, an inner ring and a background change on hover and keyboard focus, plus an offset focus outline.",
+      "observe": [
+        {
+          "label": "Is the toggle's circular border clearly visible against the sidebar in light mode?",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Is the toggle's border still clearly visible in dark mode?",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Does Enter or Space still expand and collapse the sidebar from the keyboard?",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "The expand/collapse toggle is rendered",
+          "probe": "!!document.querySelector('.admin-toolbar__expand-button')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Toggle border uses the appearance-aware input-border token (contrast measured separately)",
+          "probe": "((b) => !!b && ((s) => !!s.getPropertyValue('--admin-color-border-input').trim() && s.getPropertyValue('--admin-toolbar-color-gray-300').trim() === s.getPropertyValue('--admin-color-border-input').trim())(getComputedStyle(b)))(document.querySelector('.admin-toolbar__expand-button'))",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Toggle size unchanged",
+          "probe": "((b) => (b ? b.offsetWidth + 'x' + b.offsetHeight : null))(document.querySelector('.admin-toolbar__expand-button'))",
+          "expect": "same",
+          "kind": "regression"
+        },
+        {
+          "label": "Toggle starts expanded or collapsed the same way",
+          "probe": "document.querySelector('.admin-toolbar__expand-button')?.getAttribute('aria-expanded')",
+          "expect": "same",
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/admin/appearance/settings/default_admin",
+        "/admin/content"
+      ]
+    },
+    {
       "slug": "2951317-pinned",
       "issue": "2951317",
       "label": "#2951317: Radios element missing required attribute, pinned core",
@@ -5009,6 +5157,76 @@
       "demo": {
         "start": "/admin/config/people/accounts"
       }
+    },
+    {
+      "slug": "3636143-with-skip-focus",
+      "issue": "3636143",
+      "label": "#3636143: toggle MR with separate #3637339 skip-link proposal",
+      "description": "Integration comparison only. Before contains navigation-border MR !17738; After adds the separately maintained #3637339 skip-link focus and clearance proposal. This does not revise either upstream MR.",
+      "comparisonGroup": "3636143-navigation",
+      "comparisonLabel": "Toggle MR to toggle MR plus skip-link proposal",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Use plain Standard installs with Default Admin and Navigation. Before contains the toggle-border MR, not pristine core. After adds the separate skip-link proposal.",
+          "how": "each",
+          "lookFor": "Both sites use core 92e5c3a30476 and the declared patch stacks."
+        },
+        {
+          "text": "Save identical Light or Dark appearance and Orange focus on both sites. Disable focus mirroring, reload, then Tab independently to Skip to main content.",
+          "how": "each",
+          "lookFor": "Before retains a browser ring. After follows the configured theme focus color and shows the complete ring at the viewport edge. Record the saved focus choice separately from accent."
+        },
+        {
+          "text": "Press Enter on the skip link and continue with Tab. Independently check the navigation toggle, then repeat representative dark, narrow and forced-colors states.",
+          "how": "each",
+          "lookFor": "The skip link reaches main content. The toggle-border MR remains present on both sides. Forced colors may replace Orange with a system color; emulation is not a real Windows review."
+        }
+      ],
+      "expected": "Adding the separate skip-link proposal makes its focus ring follow the saved focus choice without removing the toggle-border MR or changing measured navigation.",
+      "actual": "The toggle-border MR changes navigation CSS only and does not style the skip link. The user's screenshot shows that MR-only state with a blue skip-link ring and Orange selected.",
+      "observe": [
+        {
+          "label": "Does the focused skip link follow the saved focus configuration?",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Is the complete focused outline visible at top and logical start?",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Does Enter still reach main content?",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Skip link exists",
+          "probe": "!!document.querySelector('a.skip-link[href=\"#main-content\"]')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Navigation expand/collapse button exists",
+          "probe": "!!document.querySelector('.admin-toolbar__expand-button')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Navigation toggle border remains unchanged between integration sides",
+          "probe": "((b) => b ? getComputedStyle(b).borderTopColor : null)(document.querySelector('.admin-toolbar__expand-button'))",
+          "expect": "same",
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/admin/appearance/settings/default_admin",
+        "/admin/content"
+      ]
     },
     {
       "slug": "3637339-pinned",

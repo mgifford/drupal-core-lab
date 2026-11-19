@@ -1,0 +1,102 @@
+diff --git a/core/modules/navigation/css/components/admin-toolbar.css b/core/modules/navigation/css/components/admin-toolbar.css
+index afa4d8db7b..1d601544a4 100644
+--- a/core/modules/navigation/css/components/admin-toolbar.css
++++ b/core/modules/navigation/css/components/admin-toolbar.css
+@@ -166,8 +166,33 @@ body {
+     border-radius: 50%;
+     background-color: transparent;
+ 
+-    &:hover {
++    &:hover,
++    &:focus-visible {
+       color: var(--admin-toolbar-color-gray-990);
++      border-color: var(--admin-toolbar-color-gray-990);
++      background-color: var(--admin-toolbar-color-gray-050);
++
++      /* A second ring inside the border: thicker without changing the layout. */
++      box-shadow: inset 0 0 0 1px var(--admin-toolbar-color-gray-990);
++    }
++
++    &:focus-visible {
++      outline: var(--admin-toolbar-size-focus) solid var(--admin-toolbar-color-focus);
++      outline-offset: 2px;
++    }
++
++    @media (forced-colors: active) {
++      &:hover,
++      &:focus-visible {
++        color: ButtonText;
++        border-color: Highlight;
++        outline: 2px solid Highlight;
++        outline-offset: -3px;
++      }
++
++      &:focus-visible {
++        outline-offset: 2px;
++      }
+     }
+ 
+     @media (min-width: 64rem) {
+diff --git a/core/modules/navigation/css/components/admin-toolbar.pcss.css b/core/modules/navigation/css/components/admin-toolbar.pcss.css
+index 407fb097e1..2549ef0b49 100644
+--- a/core/modules/navigation/css/components/admin-toolbar.pcss.css
++++ b/core/modules/navigation/css/components/admin-toolbar.pcss.css
+@@ -163,8 +163,33 @@ body {
+     border-radius: 50%;
+     background-color: transparent;
+ 
+-    &:hover {
++    &:hover,
++    &:focus-visible {
+       color: var(--admin-toolbar-color-gray-990);
++      border-color: var(--admin-toolbar-color-gray-990);
++      background-color: var(--admin-toolbar-color-gray-050);
++
++      /* A second ring inside the border: thicker without changing the layout. */
++      box-shadow: inset 0 0 0 1px var(--admin-toolbar-color-gray-990);
++    }
++
++    &:focus-visible {
++      outline: var(--admin-toolbar-size-focus) solid var(--admin-toolbar-color-focus);
++      outline-offset: 2px;
++    }
++
++    @media (forced-colors: active) {
++      &:hover,
++      &:focus-visible {
++        color: ButtonText;
++        border-color: Highlight;
++        outline: 2px solid Highlight;
++        outline-offset: -3px;
++      }
++
++      &:focus-visible {
++        outline-offset: 2px;
++      }
+     }
+ 
+     @media (--admin-toolbar-desktop) {
+diff --git a/core/themes/default_admin/css/components/navigation.css b/core/themes/default_admin/css/components/navigation.css
+index afef666a5e..f0b4b2b919 100644
+--- a/core/themes/default_admin/css/components/navigation.css
++++ b/core/themes/default_admin/css/components/navigation.css
+@@ -38,6 +38,7 @@ html.admin-toolbar-expanded {
+   --admin-toolbar-color-gray-050: var(--admin-color-bg-surface-nested);
+   --admin-toolbar-color-gray-100: var(--admin-color-border-soft);
+   --admin-toolbar-color-gray-200: var(--admin-color-border);
++  --admin-toolbar-color-gray-300: var(--admin-color-border-input);
+   --admin-toolbar-color-gray-800: var(--admin-color-text);
+   --admin-toolbar-color-gray-990: var(--admin-color-primary-active);
+   --toolbar-button-has-active-child-color: var(--admin-color-primary);
+diff --git a/core/themes/default_admin/css/components/navigation.pcss.css b/core/themes/default_admin/css/components/navigation.pcss.css
+index d98887b34c..dd337773e8 100644
+--- a/core/themes/default_admin/css/components/navigation.pcss.css
++++ b/core/themes/default_admin/css/components/navigation.pcss.css
+@@ -35,6 +35,7 @@ html.admin-toolbar-expanded {
+   --admin-toolbar-color-gray-050: var(--admin-color-bg-surface-nested);
+   --admin-toolbar-color-gray-100: var(--admin-color-border-soft);
+   --admin-toolbar-color-gray-200: var(--admin-color-border);
++  --admin-toolbar-color-gray-300: var(--admin-color-border-input);
+   --admin-toolbar-color-gray-800: var(--admin-color-text);
+   --admin-toolbar-color-gray-990: var(--admin-color-primary-active);
+   --toolbar-button-has-active-child-color: var(--admin-color-primary);

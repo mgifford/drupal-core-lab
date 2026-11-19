@@ -1,0 +1,78 @@
+diff --git a/core/modules/navigation/css/components/admin-toolbar.css b/core/modules/navigation/css/components/admin-toolbar.css
+index afa4d8db7b53d197d304ab47a504d7407d781896..1d601544a4655d8a27afc2e895f87b02b810067e 100644
+--- a/core/modules/navigation/css/components/admin-toolbar.css
++++ b/core/modules/navigation/css/components/admin-toolbar.css
+@@ -166,8 +166,33 @@ body {
+     border-radius: 50%;
+     background-color: transparent;
+ 
+-    &:hover {
++    &:hover,
++    &:focus-visible {
+       color: var(--admin-toolbar-color-gray-990);
++      border-color: var(--admin-toolbar-color-gray-990);
++      background-color: var(--admin-toolbar-color-gray-050);
++
++      /* A second ring inside the border: thicker without changing the layout. */
++      box-shadow: inset 0 0 0 1px var(--admin-toolbar-color-gray-990);
++    }
++
++    &:focus-visible {
++      outline: var(--admin-toolbar-size-focus) solid var(--admin-toolbar-color-focus);
++      outline-offset: 2px;
++    }
++
++    @media (forced-colors: active) {
++      &:hover,
++      &:focus-visible {
++        color: ButtonText;
++        border-color: Highlight;
++        outline: 2px solid Highlight;
++        outline-offset: -3px;
++      }
++
++      &:focus-visible {
++        outline-offset: 2px;
++      }
+     }
+ 
+     @media (min-width: 64rem) {
+diff --git a/core/modules/navigation/css/components/admin-toolbar.pcss.css b/core/modules/navigation/css/components/admin-toolbar.pcss.css
+index 407fb097e189963db8f527a88d32a1848ef92d7d..2549ef0b4931a800100b350b4babe9b2918d389f 100644
+--- a/core/modules/navigation/css/components/admin-toolbar.pcss.css
++++ b/core/modules/navigation/css/components/admin-toolbar.pcss.css
+@@ -163,8 +163,33 @@ body {
+     border-radius: 50%;
+     background-color: transparent;
+ 
+-    &:hover {
++    &:hover,
++    &:focus-visible {
+       color: var(--admin-toolbar-color-gray-990);
++      border-color: var(--admin-toolbar-color-gray-990);
++      background-color: var(--admin-toolbar-color-gray-050);
++
++      /* A second ring inside the border: thicker without changing the layout. */
++      box-shadow: inset 0 0 0 1px var(--admin-toolbar-color-gray-990);
++    }
++
++    &:focus-visible {
++      outline: var(--admin-toolbar-size-focus) solid var(--admin-toolbar-color-focus);
++      outline-offset: 2px;
++    }
++
++    @media (forced-colors: active) {
++      &:hover,
++      &:focus-visible {
++        color: ButtonText;
++        border-color: Highlight;
++        outline: 2px solid Highlight;
++        outline-offset: -3px;
++      }
++
++      &:focus-visible {
++        outline-offset: 2px;
++      }
+     }
+ 
+     @media (--admin-toolbar-desktop) {
