@@ -15,9 +15,9 @@ Task: learn that an action succeeded or failed (save content, submit a form, an 
 - Selected variant: `2942404-pinned`; latest variant: `2942404-latest`.
 - Before/After environments: record the resolved variant's environment names.
 - Core: record the full resolved commit on BOTH sides.
-- Recipe: none. The lab's plain install has no content types; the scripted scenarios use settings pages and the login form.
+- Recipe: `recipes/repro_2942404` (applies core's `article_content_type` fixture recipe, giving the Article content type). Both sides get it; the lab's plain install has none.
 - Patches: `2942404-latest` Before none; After `branches/2942404-main-region-option.patch` (lab-authored; the old MRs do not apply to main). `2942404-pinned` After applies `branches/2942404-11.patch` (MR !6112) on old core; not built.
-- Page and state: record the safe route, account role, data and state needed to reach the barrier.
+- Page and state: as `admin`, `/node/add/article` (save with a title for a status message; save with an empty title and browser validation off for an error), `/admin/config/development/performance` (Clear all caches), and `/user/login` logged out (wrong password).
 - Environment: record relevant browser, OS, assistive technology, input, viewport, zoom, preferences and locale.
 
 Confirm preconditions on both sides before assessing the change. Do not include credentials or live login tokens.

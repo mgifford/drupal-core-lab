@@ -38,7 +38,7 @@ The `2942404-latest` pair is built and running (viewer: https://drupal-compare.d
 - **Before:** main as it is. Each message block is itself the live region (`alert` for error and warning, `status` otherwise), no landmark.
 - **After (option):** [branches/2942404-main-region-option.patch](branches/2942404-main-region-option.patch), the two MRs' design realigned to main for the system, Default Admin and starterkit templates: a `region` landmark per message type with an inner `alert` (error) or `status` (status and warning). Old tests are left out on purpose.
 
-The old pair (`2942404-pinned`: old core plus MR !6112) is registered but not built and not needed for the comparison. Steps and commands: [REPRODUCE.md](REPRODUCE.md).
+Both sides are built from the recipe `recipes/repro_2942404`, which adds the Article content type (steps: save an Article for a status message, save with an empty title for an error, Clear all caches, wrong password logged out). The old pair (`2942404-pinned`: old core plus MR !6112) is registered but not built; the recipe's fixture may not exist on core of 2024-02-01, which is untried and not needed for the comparison. Steps and commands: [REPRODUCE.md](REPRODUCE.md).
 
 ## Evidence and readiness
 

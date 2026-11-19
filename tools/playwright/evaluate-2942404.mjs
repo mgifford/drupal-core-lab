@@ -2,8 +2,9 @@
 // region landmark with an inner alert or status live region (After): the markup, the landmarks, the live-region roles, axe-core results and what the
 // lab's recorder saw announced. It is a comparison of options, not a test of a defect: the original problem (role="contentinfo") is not present on main.
 //   node tools/playwright/evaluate-2942404.mjs [slug] [--browser=chromium] [--scheme=light|dark] [--forced-colors] [--viewport=1280x900] [--out=<dir>]
-// Runs on lib/lab-run.mjs. Scenarios: a server-rendered status message after "Clear all caches" (full-page redirect, admin theme), a server-rendered error on a settings form
-// (admin theme), a server-rendered error after a wrong password while logged out (front-end theme), and a warning and a status message added through Drupal.Message.
+// Runs on lib/lab-run.mjs. Scenarios: a status message after saving an Article (full-page redirect, front-end theme), an error on the Article form with an empty title (admin theme;
+// the browser's validation is switched off), a status message after "Clear all caches" (admin theme), an error after a wrong password while logged out (front-end theme), and a warning and
+// a status message added through Drupal.Message.
 // Not covered: a real screen reader (the recorder lists live-region changes, it does not hear them), AJAX responses that carry a server-rendered message,
 // BigPipe placeholders, a person's keyboard pass. A message added by JavaScript is rendered by Drupal.theme.message(), which this option does not change.
 import path from 'node:path';
@@ -56,20 +57,27 @@ async function side(name) {
     rec.scenarios.push(s); return s;
   };
 
-  // 1. Server-rendered status after a full-page redirect (admin theme).
+  // 1. Server-rendered status after saving an Article: a full-page redirect to the article in the front-end theme (Stark).
+  await page.goto(`${base}/node/add/article`); await page.waitForLoadState('load');
+  await page.locator('#edit-title-0-value').click();
+  await page.keyboard.type(`Message test ${Date.now()}`);
+  await Promise.all([page.waitForURL((u) => !/node\/add/.test(u.pathname)), page.locator('#edit-submit').click()]);
+  await page.waitForLoadState('load');
+  await page.waitForSelector('[data-drupal-messages] [role]', { timeout: 15000 }).catch(() => {});
+  const status = await scenario('article-saved-frontend', 'Status message after saving an Article (server-rendered, full-page redirect, front-end theme)');
+
+  // 2. Server-rendered error on the Article form (admin theme). The browser's own validation is switched off (script-assisted).
+  await page.goto(`${base}/node/add/article`); await page.waitForLoadState('load');
+  await page.evaluate(() => { document.querySelector('#edit-title-0-value').form.noValidate = true; });
+  await Promise.all([page.waitForLoadState('load'), page.locator('#edit-submit').click()]);
+  await page.waitForSelector('[data-drupal-messages] [role]', { timeout: 15000 }).catch(() => {});
+  const error = await scenario('article-form-error-admin', 'Error message on the Article form with an empty title (server-rendered, admin theme)');
+
+  // 2b. Server-rendered status in the admin theme.
   await page.goto(`${base}/admin/config/development/performance`); await page.waitForLoadState('load');
   await Promise.all([page.waitForLoadState('load'), page.locator('#edit-clear').click()]);
   await page.waitForSelector('[data-drupal-messages] [role]', { timeout: 15000 }).catch(() => {});
-  const status = await scenario('server-status-admin', 'Status message after "Clear all caches" (server-rendered, full-page redirect, admin theme)');
-
-  // 2. Server-rendered error (admin theme).
-  await page.goto(`${base}/admin/config/system/site-information`); await page.waitForLoadState('load');
-  await page.locator('#edit-site-frontpage').click();
-  await page.keyboard.press('ControlOrMeta+A');
-  await page.keyboard.type('/no-such-page-for-the-lab');
-  await Promise.all([page.waitForLoadState('load'), page.locator('#edit-submit').click()]);
-  await page.waitForSelector('[data-drupal-messages] [role]', { timeout: 15000 }).catch(() => {});
-  const error = await scenario('server-error-admin', 'Error message on a form (server-rendered, admin theme; nothing is saved)');
+  const statusAdmin = await scenario('status-admin-cache-cleared', 'Status message after "Clear all caches" (server-rendered, full-page redirect, admin theme)');
 
   // 3. Messages added by JavaScript.
   await page.goto(`${base}/admin/content`); await page.waitForLoadState('load');
@@ -86,13 +94,13 @@ async function side(name) {
   const front = await scenario('server-error-frontend', 'Error message after a wrong password (server-rendered, front-end theme, system template)');
 
   const live = (b) => !!b && (['alert', 'status'].includes(b.role) || b.inner.some((i) => /^(alert|status)/.test(i)));
-  rec.checks.noContentinfoInMessages = [status, error, front, js].every((s) => !s.contentinfoInMessages);
-  rec.checks.everyBlockIsOrContainsALiveRegion = [status, error, front].every((s) => s.blocks.length > 0 && s.blocks.every(live));
-  rec.checks.everyBlockIsNamed = [status, error, front].every((s) => s.blocks.every((b) => b.name || b.heading));
+  rec.checks.noContentinfoInMessages = [status, error, statusAdmin, front, js].every((s) => !s.contentinfoInMessages);
+  rec.checks.everyBlockIsOrContainsALiveRegion = [status, error, statusAdmin, front].every((s) => s.blocks.length > 0 && s.blocks.every(live));
+  rec.checks.everyBlockIsNamed = [status, error, statusAdmin, front].every((s) => s.blocks.every((b) => b.name || b.heading));
   rec.checks.errorIsAlert = [error, front].every((s) => s.blocks.some((b) => b.role === 'alert' || b.inner.some((i) => /^alert/.test(i))));
-  rec.checks.noMessageBlockHasTwoLiveRegions = [status, error, front].every((s) => s.blocks.every((b) => (b.role && ['alert', 'status'].includes(b.role) ? 1 : 0) + b.inner.filter((i) => /^(alert|status)/.test(i)).length <= 1));
+  rec.checks.noMessageBlockHasTwoLiveRegions = [status, error, statusAdmin, front].every((s) => s.blocks.every((b) => (b.role && ['alert', 'status'].includes(b.role) ? 1 : 0) + b.inner.filter((i) => /^(alert|status)/.test(i)).length <= 1));
   rec.design = {
-    messageLandmarks: [status, error, front].map((s) => s.landmarks.filter((l) => l.role === 'region' && l.inMessages).length),
+    messageLandmarks: [status, error, statusAdmin, front].map((s) => s.landmarks.filter((l) => l.role === 'region' && l.inMessages).length),
     jsWarningRole: js.blocks.map((b) => b.role || b.inner[0]).join(', '),
     serverWarningRole: 'not exercised (no server-rendered warning on a stock page); main uses alert, the option uses status',
   };
@@ -104,13 +112,13 @@ const summarize = (results) => {
   for (const n of ['before', 'after']) for (const s of results.sides[n].scenarios || []) rows.push(`| ${n} | ${s.id} | ${s.blocks.map((b) => `${b.role || b.tag}${b.name ? ` "${b.name}"` : ''}${b.inner.length ? ` > ${b.inner.join(', ')}` : ''}`).join('<br>')} | ${s.landmarks.filter((l) => l.inMessages && l.role === 'region').length} | ${s.heard.live} live / ${s.heard.announce} announce | ${s.axe.total} | [${s.image}](${s.image}) |`);
   let md = `# #2942404 system messages: options on main (${results.variant}, ${results.environment.colorScheme}${results.environment.forcedColors ? ', forced colors' : ''}, ${results.environment.viewport.width}x${results.environment.viewport.height})\n\n`;
   md += `DRAFT, AI-assisted; a person has not reviewed it. This compares two designs; it is not a defect test. The original problem (role="contentinfo") does not reproduce on Before (current main): verdict ${results.verdict}; ${results.unexpected} After check(s) not met.\n\n`;
-  md += `Before: each message block is itself the live region (error and warning: alert; other types: status), no landmark. After: a region landmark per message type with an inner alert (error) or status (status and warning). The "live / announce" column is what the lab's recorder saw change in live regions or call Drupal.announce() since the previous scenario. It is not what a screen reader says. Not covered: real screen readers, AJAX-delivered server messages, BigPipe placeholders, a person's keyboard pass. The form error is triggered by typing an invalid path; no validation is bypassed.\n\n`;
+  md += `Before: each message block is itself the live region (error and warning: alert; other types: status), no landmark. After: a region landmark per message type with an inner alert (error) or status (status and warning). The "live / announce" column is what the lab's recorder saw change in live regions or call Drupal.announce() since the previous scenario. It is not what a screen reader says. Not covered: real screen readers, AJAX-delivered server messages, BigPipe placeholders, a person's keyboard pass. For the Article form error the browser's own form validation is switched off (script-assisted).\n\n`;
   md += `| Side | Scenario | Message blocks (role "name" > inner live regions) | Region landmarks in messages | Recorder | axe violations | Image |\n|---|---|---|---|---|---|---|\n${rows.join('\n')}\n\n## Checks\n\n`;
   for (const n of ['before', 'after']) md += `- **${n}**: ${Object.entries(results.sides[n].checks).map(([k, v]) => `${k}: ${v}`).join('; ')}\n`;
   md += `\n## Design facts\n\n`;
   for (const n of ['before', 'after']) { const d = results.sides[n].design; md += `- **${n}**: message region landmarks per scenario ${d.messageLandmarks.join(' / ')}; JavaScript message roles: ${d.jsWarningRole}; server warning: ${d.serverWarningRole}\n`; }
   md += `\n## axe-core (WCAG 2.2 A/AA tags; violation counts per scenario, Before → After)\n\n`;
-  for (const id of ['server-status-admin', 'server-error-admin', 'server-error-frontend', 'js-warning-and-status']) { const b = results.sides.before.scenarios.find((s) => s.id === id), a = results.sides.after.scenarios.find((s) => s.id === id); md += `- ${id}: ${b?.axe.total} → ${a?.axe.total}${Object.keys(a?.axe.rules || {}).length ? ` (After rules: ${Object.entries(a.axe.rules).map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}\n`; }
+  for (const id of ['article-saved-frontend', 'article-form-error-admin', 'status-admin-cache-cleared', 'server-error-frontend', 'js-warning-and-status']) { const b = results.sides.before.scenarios.find((s) => s.id === id), a = results.sides.after.scenarios.find((s) => s.id === id); md += `- ${id}: ${b?.axe.total} → ${a?.axe.total}${Object.keys(a?.axe.rules || {}).length ? ` (After rules: ${Object.entries(a.axe.rules).map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}\n`; }
   return md + '\n' + contextMarkdown(results);
 };
 
