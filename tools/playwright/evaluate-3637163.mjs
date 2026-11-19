@@ -124,7 +124,7 @@ async function side(name) {
   await page.locator(ACCENT).fill('zzzzzz');
   await page.locator('#edit-submit').click(); await page.waitForLoadState('load');
   const serverResult = await snap('server-submit-invalid');
-  rec.checks.serverRejectsInvalid = serverResult.serverErrors.some((m) => /hexadecimal/i.test(m)) && serverResult.accentBase !== 'zzzzzz';
+  rec.checks.serverRejectsInvalid = serverResult.serverErrors.some((m) => /valid hex color/i.test(m)) && serverResult.accentBase !== 'zzzzzz';
   await page.goto(`https://${rec.host}${PAGE}`); await page.waitForLoadState('load');
   const stored = await page.evaluate(measure);
   rec.storedAfterInvalidSubmit = stored.accentValue;

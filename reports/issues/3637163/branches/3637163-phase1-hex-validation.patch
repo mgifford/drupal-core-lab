@@ -59,7 +59,7 @@ index 123d01e9f50ab0b7bbe64dc90b6640b063f18b4e..d809c59d31674fdacd34cb1d027a6803
  
      clearFocusColor: (element = document.documentElement) => {
 diff --git a/core/themes/default_admin/migration/js/settings.js b/core/themes/default_admin/migration/js/settings.js
-index 4f100bd4078e4a2d139031e2d0d40e6f4a7817cd..4a20846ba0025ad57ca6d87a637d09cc1dcc0e89 100644
+index 4f100bd4078e4a2d139031e2d0d40e6f4a7817cd..b8a5e034050b0ef5b346e26c8809a27b552b8a70 100644
 --- a/core/themes/default_admin/migration/js/settings.js
 +++ b/core/themes/default_admin/migration/js/settings.js
 @@ -8,6 +8,46 @@
@@ -90,7 +90,7 @@ index 4f100bd4078e4a2d139031e2d0d40e6f4a7817cd..4a20846ba0025ad57ca6d87a637d09cc
 +          message.className = 'form-item__error-message';
 +          message.setAttribute('role', 'alert');
 +          message.textContent = Drupal.t(
-+            'Enter a six-digit hexadecimal color including the #, for example #336699. The previous color is still in use.',
++            'Not a valid hex color. The previous color is still in use.',
 +          );
 +          field.insertAdjacentElement('afterend', message);
 +        }
@@ -299,7 +299,7 @@ index c98d23eecce1fc2e106c2bd3c3c8c536f4fee32f..8c1981254817f6c9e0f4ddc92be588dd
        'high_contrast_mode_class' => 'high-contrast-mode',
        'show_user_theme_settings' => $settings->get('show_user_theme_settings'),
 diff --git a/core/themes/default_admin/src/Settings.php b/core/themes/default_admin/src/Settings.php
-index adaa4d44cecd1dfbc40c276b95a6c7d449c8990a..851399dcc02a3141718a2af0c5bffa09215aa4af 100644
+index adaa4d44cecd1dfbc40c276b95a6c7d449c8990a..7e7c85c5448a1fc5b2b457c149fa637a0b3c33a3 100644
 --- a/core/themes/default_admin/src/Settings.php
 +++ b/core/themes/default_admin/src/Settings.php
 @@ -21,6 +21,11 @@ final class Settings implements ContainerInjectionInterface {
@@ -354,8 +354,8 @@ index adaa4d44cecd1dfbc40c276b95a6c7d449c8990a..851399dcc02a3141718a2af0c5bffa09
 +    $value = $element['#value'] ?? '';
 +    if (!self::isValidColor($value)) {
 +      $message = $name === 'accent_color'
-+        ? t('The custom accent color must be a six-digit hexadecimal color including the #, for example #336699.')
-+        : t('The custom focus color must be a six-digit hexadecimal color including the #, for example #336699.');
++        ? t('The custom accent color is not a valid hex color. Use six digits, for example #336699.')
++        : t('The custom focus color is not a valid hex color. Use six digits, for example #336699.');
 +      $form_state->setError($element, $message);
 +    }
 +  }
@@ -404,11 +404,19 @@ index adaa4d44cecd1dfbc40c276b95a6c7d449c8990a..851399dcc02a3141718a2af0c5bffa09
    /**
     * Get the default setting from theme.
     *
-@@ -275,9 +363,11 @@ public function getSettingsForm(?AccountInterface $account = NULL): array {
+@@ -256,7 +344,6 @@ public function getSettingsForm(?AccountInterface $account = NULL): array {
+     $form['accent_group'] = [
+       '#type' => 'fieldset',
+       '#title' => $this->t('Custom Accent color'),
+-      '#description' => $this->t('Use with caution, values should meet a11y criteria.'),
+       '#states' => [
+         // Show if met.
+         'visible' => [
+@@ -275,9 +362,11 @@ public function getSettingsForm(?AccountInterface $account = NULL): array {
        '#title_display' => 'invisible',
        '#default_value' => $account ? $this->get('accent_color', $account) : $this->getDefault('accent_color'),
        '#group' => 'accent_group',
-+      '#description' => $this->t('Enter a six-digit hexadecimal color, including the #, for example #336699.'),
++      '#description' => $this->t('Six-digit hex, for example #336699. Then check its color contrast.'),
        '#attributes' => [
 -        'pattern' => '^#[a-fA-F0-9]{6}',
 +        'pattern' => '^#[a-fA-F0-9]{6}$',
@@ -417,11 +425,19 @@ index adaa4d44cecd1dfbc40c276b95a6c7d449c8990a..851399dcc02a3141718a2af0c5bffa09
      ];
  
      // Accent color picker (helper field).
-@@ -339,9 +429,11 @@ public function getSettingsForm(?AccountInterface $account = NULL): array {
+@@ -310,7 +399,6 @@ public function getSettingsForm(?AccountInterface $account = NULL): array {
+     $form['focus_group'] = [
+       '#type' => 'fieldset',
+       '#title' => $this->t('Custom Focus color') . $beta_label,
+-      '#description' => $this->t('Use with caution, values should meet a11y criteria.'),
+       '#states' => [
+         // Show if met.
+         'visible' => [
+@@ -339,9 +427,11 @@ public function getSettingsForm(?AccountInterface $account = NULL): array {
        '#size' => 7,
        '#default_value' => $account ? $this->get('focus_color', $account) : $this->getDefault('focus_color'),
        '#group' => 'focus_group',
-+      '#description' => $this->t('Enter a six-digit hexadecimal color, including the #, for example #336699.'),
++      '#description' => $this->t('Six-digit hex, for example #336699. Then check its color contrast.'),
        '#attributes' => [
 -        'pattern' => '^#[a-fA-F0-9]{6}',
 +        'pattern' => '^#[a-fA-F0-9]{6}$',

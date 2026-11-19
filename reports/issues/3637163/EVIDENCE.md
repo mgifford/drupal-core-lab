@@ -14,13 +14,13 @@ Plain Standard install on both sides, Default Admin as admin theme, DDEV, PHP 8.
 ## Automated results
 | Run | Command | Result |
 |-----|---------|--------|
-| Chromium, light, 1280x900 | `node tools/playwright/evaluate-3637163.mjs 3637163-latest` | reproduced-and-fixed; Before 9 checks not met, After 0 ([run](playwright/2026-11-19T18-36-34-321Z-chromium-light-1280x900/README.md)) |
-| Chromium, dark | `... --scheme=dark` | same; Before 9, After 0 ([run](playwright/2026-11-19T18-36-59-998Z-chromium-dark-1280x900/README.md)) |
-| Chromium, light, forced colors | `... --forced-colors` | Before 8, After 0 ([run](playwright/2026-11-19T18-37-23-936Z-chromium-light-forced-1280x900/README.md)) |
-| Chromium, dark, forced colors | `... --scheme=dark --forced-colors` | Before 8, After 0 ([run](playwright/2026-11-19T18-37-45-158Z-chromium-dark-forced-1280x900/README.md)) |
-| Chromium, 480x900 | `... --viewport=480x900` | Before 9, After 0 ([run](playwright/2026-11-19T18-38-08-290Z-chromium-light-480x900/README.md)) |
-| Firefox | `... --browser=firefox` | Before 9, After 0 ([run](playwright/2026-11-19T18-38-33-719Z-firefox-light-1280x900/README.md)) |
-| WebKit | `... --browser=webkit` | Before 9, After 0 ([run](playwright/2026-11-19T18-39-15-126Z-webkit-light-1280x900/README.md)) |
+| Chromium, light, 1280x900 | `node tools/playwright/evaluate-3637163.mjs 3637163-latest` | reproduced-and-fixed; Before 9 checks not met, After 0 ([run](playwright/2026-11-19T19-32-05-478Z-chromium-light-1280x900/README.md)) |
+| Chromium, dark | `... --scheme=dark` | same; Before 9, After 0 ([run](playwright/2026-11-19T19-32-23-828Z-chromium-dark-1280x900/README.md)) |
+| Chromium, light, forced colors | `... --forced-colors` | Before 8, After 0 ([run](playwright/2026-11-19T19-32-40-398Z-chromium-light-forced-1280x900/README.md)) |
+| Chromium, dark, forced colors | `... --scheme=dark --forced-colors` | Before 8, After 0 ([run](playwright/2026-11-19T19-32-56-470Z-chromium-dark-forced-1280x900/README.md)) |
+| Chromium, 480x900 | `... --viewport=480x900` | Before 9, After 0 ([run](playwright/2026-11-19T19-33-12-465Z-chromium-light-480x900/README.md)) |
+| Firefox | `... --browser=firefox` | Before 9, After 0 ([run](playwright/2026-11-19T19-33-28-712Z-firefox-light-1280x900/README.md)) |
+| WebKit | `... --browser=webkit` | Before 9, After 0 ([run](playwright/2026-11-19T19-33-48-734Z-webkit-light-1280x900/README.md)) |
 | Proposed tests | `node scripts/try-tests.mjs 3637163-latest reports/issues/3637163/tests-proposal` | `CustomColorValidationTest` (3 tests) fail on Before, pass on After; `SettingsColorTest` (15 cases) passes on After; PHPCS and PHPStan clean ([TESTS-REPORT.md](TESTS-REPORT.md)) |
 | Core's code checks | `node scripts/lint.mjs 3637163-latest` | PASS (CSpell, PHPStan, PHPCS, ESLint) ([report](lint/2026-11-19-3637163-latest-after.md)); code style, not accessibility evidence |
 

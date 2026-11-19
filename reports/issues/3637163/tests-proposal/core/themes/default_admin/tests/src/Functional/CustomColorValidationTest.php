@@ -48,7 +48,7 @@ class CustomColorValidationTest extends BrowserTestBase {
         'preset_accent_color' => 'custom',
         'accent_color' => $invalid,
       ], 'Save configuration');
-      $this->assertSession()->pageTextContains('The custom accent color must be a six-digit hexadecimal color including the #, for example #336699.');
+      $this->assertSession()->pageTextContains('The custom accent color is not a valid hex color. Use six digits, for example #336699.');
       $this->assertNotSame($invalid, $this->config('default_admin.settings')->get('accent_color'));
 
       $this->drupalGet($path);
@@ -56,7 +56,7 @@ class CustomColorValidationTest extends BrowserTestBase {
         'preset_focus_color' => 'custom',
         'focus_color' => $invalid,
       ], 'Save configuration');
-      $this->assertSession()->pageTextContains('The custom focus color must be a six-digit hexadecimal color including the #, for example #336699.');
+      $this->assertSession()->pageTextContains('The custom focus color is not a valid hex color. Use six digits, for example #336699.');
       $this->assertNotSame($invalid, $this->config('default_admin.settings')->get('focus_color'));
     }
 
@@ -90,7 +90,8 @@ class CustomColorValidationTest extends BrowserTestBase {
    */
   public function testFieldDescribesFormat(): void {
     $this->drupalGet('/admin/appearance/settings/default_admin');
-    $this->assertSession()->pageTextContains('Enter a six-digit hexadecimal color, including the #, for example #336699.');
+    $this->assertSession()->pageTextContains('Six-digit hex, for example #336699. Then check its color contrast.');
+    $this->assertSession()->pageTextNotContains('Use with caution');
     $field = $this->assertSession()->fieldExists('accent_color');
     $this->assertSame('^#[a-fA-F0-9]{6}$', $field->getAttribute('pattern'));
   }

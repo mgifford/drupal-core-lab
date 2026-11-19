@@ -16,12 +16,12 @@ Run one with, for example: `node tools/playwright/evaluate-3637163.mjs 3637163-p
 ## Automated matrix
 | Environment | Pinned core | Latest core | Browser version | Evidence |
 |---|---|---|---|---|
-| chromium · light · 1280px wide | **NOT TESTED** | ✓ reproduced and fixed (theme default_admin) (record: current) | 156.0.8078.4 | [2026-11-19](playwright/2026-11-19T18-36-34-321Z-chromium-light-1280x900/SUMMARY.md) |
-| chromium · dark · 1280px wide | **NOT TESTED** | ✓ reproduced and fixed (theme default_admin) (record: current) | 156.0.8078.4 | [2026-11-19](playwright/2026-11-19T18-36-59-998Z-chromium-dark-1280x900/SUMMARY.md) |
-| chromium · light · forced colours · 1280px wide | **NOT TESTED** | ✓ reproduced and fixed (theme default_admin) (record: current) | 156.0.8078.4 | [2026-11-19](playwright/2026-11-19T18-37-23-936Z-chromium-light-forced-1280x900/SUMMARY.md) |
-| chromium · light · 480px wide | **NOT TESTED** | ✓ reproduced and fixed (theme default_admin) (record: current) | 156.0.8078.4 | [2026-11-19](playwright/2026-11-19T18-38-08-290Z-chromium-light-480x900/SUMMARY.md) |
-| firefox · light · 1280px wide | **NOT TESTED** | ✓ reproduced and fixed (theme default_admin) (record: current) | 157.0 | [2026-11-19](playwright/2026-11-19T18-38-33-719Z-firefox-light-1280x900/SUMMARY.md) |
-| webkit · light · 1280px wide | **NOT TESTED** | ✓ reproduced and fixed (theme default_admin) (record: current) | 27.2 | [2026-11-19](playwright/2026-11-19T18-39-15-126Z-webkit-light-1280x900/SUMMARY.md) |
+| chromium · light · 1280px wide | **NOT TESTED** | ✓ reproduced and fixed (theme default_admin) (record: current) | 156.0.8078.4 | [2026-11-19](playwright/2026-11-19T19-32-05-478Z-chromium-light-1280x900/SUMMARY.md) |
+| chromium · dark · 1280px wide | **NOT TESTED** | ✓ reproduced and fixed (theme default_admin) (record: current) | 156.0.8078.4 | [2026-11-19](playwright/2026-11-19T19-32-23-828Z-chromium-dark-1280x900/SUMMARY.md) |
+| chromium · light · forced colours · 1280px wide | **NOT TESTED** | ✓ reproduced and fixed (theme default_admin) (record: current) | 156.0.8078.4 | [2026-11-19](playwright/2026-11-19T19-32-40-398Z-chromium-light-forced-1280x900/SUMMARY.md) |
+| chromium · light · 480px wide | **NOT TESTED** | ✓ reproduced and fixed (theme default_admin) (record: current) | 156.0.8078.4 | [2026-11-19](playwright/2026-11-19T19-33-12-465Z-chromium-light-480x900/SUMMARY.md) |
+| firefox · light · 1280px wide | **NOT TESTED** | ✓ reproduced and fixed (theme default_admin) (record: current) | 157.0 | [2026-11-19](playwright/2026-11-19T19-33-28-712Z-firefox-light-1280x900/SUMMARY.md) |
+| webkit · light · 1280px wide | **NOT TESTED** | ✓ reproduced and fixed (theme default_admin) (record: current) | 27.2 | [2026-11-19](playwright/2026-11-19T19-33-48-734Z-webkit-light-1280x900/SUMMARY.md) |
 
 Other runs: chromium · dark · forced colours · 1280px wide (2026-11-19, theme default_admin, ✓ reproduced and fixed) (record: current) [comparison: `3637163-latest`].
 
