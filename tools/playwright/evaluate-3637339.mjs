@@ -21,8 +21,9 @@ const SCENARIOS = [
   { id: 'light-pink-focus-default', appearance: 'Light', accent: 'Pink', focus: 'default' },
   { id: 'dark-pink-focus-default', appearance: 'Dark', accent: 'Pink', focus: 'default' },
 ];
-const HELP = `Usage: node tools/playwright/evaluate-3637339.mjs [registered-issue-3637339-slug]
-  Examples: 3637339-latest, 3637339-pinned, 3637339-focus-clearance (when registered).
+const HELP = `Usage: node tools/playwright/evaluate-3637339.mjs [registered-skip-link-comparison-slug]
+  Examples: 3637339-latest, 3637339-pinned, 3637339-focus-clearance,
+            3636143-with-skip-focus (integration with the separate toggle-border MR).
   --browser=chromium|firefox|webkit   Default chromium; browser must already be installed.
   --viewport=1280x900                One viewport per run (also 768x900, 375x900, 480x900).
   --scheme=light|dark                OS preference, independent of explicitly saved Appearance.
@@ -175,6 +176,28 @@ async function measure(page) {
       return (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05);
     };
     const adjacent = ancestors.find(a => rgb(a.background)?.[3] === 255)?.background || null;
+    const toggle = document.querySelector('.admin-toolbar__expand-button');
+    let navigationToggle = null;
+    if (toggle && el.matches('a.skip-link[href="#main-content"]')) {
+      const style = getComputedStyle(toggle);
+      const bounds = rect(toggle);
+      const applicable = bounds.width > 0 && bounds.height > 0;
+      let background = null, limitation = null;
+      if (!applicable) limitation = 'Not applicable: responsive desktop toggle has no rendered area at this viewport';
+      for (let e = applicable ? toggle : null; e; e = e.parentElement) {
+        const s = getComputedStyle(e), rgba = rgb(s.backgroundColor);
+        if (s.backgroundImage !== 'none' || Number(s.opacity) !== 1 || !rgba || (rgba[3] !== 0 && rgba[3] !== 255)) {
+          limitation = 'Non-solid surface requires composited/manual contrast measurement'; break;
+        }
+        if (rgba[3] === 255) { background = s.backgroundColor; break; }
+      }
+      navigationToggle = {
+        borderColor: style.borderTopColor, borderStyle: style.borderTopStyle, borderWidth: style.borderTopWidth,
+        background, rect: bounds, expanded: toggle.getAttribute('aria-expanded'), applicable, limitation,
+        contrastEstimate: background ? contrast(rgb(style.borderTopColor), rgb(background)) : null,
+        method: 'computed opaque border against nearest solid background; not sampled painted pixels',
+      };
+    }
     return {
       tag: el.tagName, id: el.id, name: el.getAttribute('name'), text: (el.textContent || '').trim().slice(0, 180),
       html: el.outerHTML.slice(0, 1600), href: el.getAttribute('href'), tabindex: el.getAttribute('tabindex'),
@@ -185,6 +208,7 @@ async function measure(page) {
       contrastEstimates: { method: 'computed solid colors only; no composited pixel or gradient proof',
         textOnOwnBackground: contrast(rgb(cs.color), rgb(cs.backgroundColor)),
         outlineOnAdjacentSolidBackground: contrast(rgb(cs.outlineColor), adjacent ? rgb(adjacent) : null) },
+      navigationToggle,
       position: cs.position, zIndex: cs.zIndex, clip: cs.clip, clipPath: cs.clipPath, overflow: cs.overflow,
       customProperties: Object.fromEntries(props.map(p => [p, cs.getPropertyValue(p).trim()])),
       root: { dir: document.documentElement.dir, focusPreset: document.documentElement.getAttribute('data-admin-focus'),
@@ -253,15 +277,22 @@ async function trial(page, base, run, rec, prefix, scan) {
     // An explicit full-ring geometry expectation, NOT an automated WCAG AA verdict.
     fullIndicatorBoundsInsideViewport: !skip.clipping.risk,
   };
+  const notApplicable = {};
+  if (String(run.v.issue) === '3636143') {
+    const toggle = skip.navigationToggle;
+    if (toggle?.applicable === false) notApplicable.navigationToggleBorderContrast = toggle.limitation;
+    else checks.navigationToggleBorderContrast = !!toggle && toggle.contrastEstimate !== null &&
+        toggle.contrastEstimate >= 3 && toggle.borderStyle !== 'none' && parseFloat(toggle.borderWidth) > 0;
+  }
   return {
-    readiness: ready, before, skip, activated, control, trace, reachability: true, checks,
+    readiness: ready, before, skip, activated, control, trace, reachability: true, checks, notApplicable,
     resolvedFocusColor: control ? { value: control.outline.color, rgba: control.outline.rgba, source: 'computed outline-color of keyboard-focused Appearance radio (general theme focus rule)' } : null,
     paintJudgment: 'inconclusive pending visual review: viewport/ancestor clipping risk is not a blanket AA or AAA verdict',
   };
 }
 
 function summarize(results) {
-  let md = `# #3637339 skip-link evaluation\n\nDRAFT, AI-assisted. ${results.verdict}; ${results.unexpected} After measured-check failures (including the explicit full-indicator-bounds expectation, not a WCAG verdict). Infrastructure errors: ${results.infrastructureErrors.length}.\n\n`;
+  let md = `# #${results.issue} skip-link evaluation (${results.variant})\n\nDRAFT, AI-assisted. ${results.verdict}; ${results.unexpected} After measured-check failures (including the explicit full-indicator-bounds expectation, not a WCAG verdict). Infrastructure errors: ${results.infrastructureErrors.length}.\n\n`;
   md += `Real UI saves, sequential trusted ${results.environment.keyboardNavigationKey || 'Tab'}/Enter, independent fresh-document repeats. OS scheme is distinct from saved Appearance. RTL is direction-only simulation. Forced colors is browser emulation, not Windows AT testing.\n\n`;
   md += `WCAG mapping: 2.4.7 Focus Visible (AA), 2.4.11 Focus Not Obscured (Minimum, AA), 2.4.13 Focus Appearance (AAA). Color preference mismatch and partial ring clipping alone do not establish failure of these criteria. No blanket conformance claim; no human keyboard or real VoiceOver/NVDA pass was done. Some loaded skills have outdated criterion numbering; this report uses final WCAG 2.2 numbering.\n\n`;
   md += `| Configuration | Before match | After match | After activation | Before → After edge risk | Geometry/navigation unchanged | Comparison |\n|---|---|---|---|---|---|---|\n`;
@@ -276,11 +307,15 @@ function summarize(results) {
       md += `Saved UI choices: ${JSON.stringify(s.configuration.saved)}\n\n`;
       for (const [i, t] of s.trials.entries()) {
         md += `Trial ${i + 1}: ${JSON.stringify(t.checks)}. Resolved focus: ${t.resolvedFocusColor?.value || 'unavailable'}. Paint: inconclusive; review required.\n\n`;
+        for (const [check, reason] of Object.entries(t.notApplicable || {})) md += `Not applicable: ${check}: ${reason}. This is not a contrast pass.\n\n`;
         if (t.skip) md += `[Skip focused](${t.skip.screenshot}) · ${t.control ? `[Comparable focused](${t.control.screenshot})` : 'Comparable not reached'} · [Activated](${t.activated.screenshot})\n\n`;
       }
     }
   }
-  md += `\n## Evidence limits\n\nFull axe results (violations, passes, incomplete and inapplicable) and body AX snapshots accompany important states on the first independent trial. Subsequent trials repeat navigation and measurements without repeated axe scans. Computed-color contrast estimates are not sampled/composited paint proof. Geometry/hit tests flag risks only. Each configuration carries per-scenario JS errors. Unavailable options are NOT TESTED, not substituted with invented presets.\n\nMR review threads were HTTP 401. The caller read all seven public issue comments and the migrated Gin #3506305 work-item summary ("[PP-1] Improve the Skip to main content-link", referencing !581, text contrast and focus color); full Gin comments were unavailable. The obsolete drupal.org URL was not found; that does not mean the related issue does not exist.\n\n`;
+  md += `\n## Evidence limits\n\nFull axe results (violations, passes, incomplete and inapplicable) and body AX snapshots accompany important states on the first independent trial. Subsequent trials repeat navigation and measurements without repeated axe scans. Computed-color contrast estimates are not sampled/composited paint proof. Geometry/hit tests flag risks only. Each configuration carries per-scenario JS errors. Unavailable options are NOT TESTED, not substituted with invented presets.\n\n`;
+  md += String(results.issue) === '3637339'
+    ? `MR review threads were HTTP 401. The caller read all seven public issue comments and the migrated Gin #3506305 work-item summary ("[PP-1] Improve the Skip to main content-link", referencing !581, text contrast and focus color); full Gin comments were unavailable. The obsolete drupal.org URL was not found; that does not mean the related issue does not exist.\n\n`
+    : `This is an integration run, not an upstream revision of either patch. Consult the issue intake and integration evidence for review access gaps; the #3637339 proposal retains its separate evidence and human-review requirements.\n\n`;
   if (results.infrastructureErrors.length) md += `Infrastructure errors:\n${results.infrastructureErrors.map(e => `- ${e}`).join('\n')}\n\n`;
   return md + contextMarkdown(results) + ajaxMarkdown(results) + speechMarkdown(results);
 }
@@ -296,7 +331,9 @@ async function main() {
   const scenarios = ids[0] === 'all' ? DEFAULT_SCENARIOS : SCENARIOS.filter(s => ids.includes(s.id));
   if (!['light', 'dark'].includes(option('scheme', 'light'))) throw new Error('--scheme must be light or dark');
   const run = runArgs({ slug: '3637339-latest' });
-  if (String(run.v.issue) !== '3637339') throw new Error('This evaluator only supports issue 3637339 variants');
+  const skipProposal = 'reports/issues/3637339/branches/3637339-focus-clearance-full.patch';
+  if (String(run.v.issue) !== '3637339' && !run.v.after.patches?.includes(skipProposal))
+    throw new Error('This evaluator requires an issue 3637339 variant or an integration explicitly containing its skip-link proposal');
   if (!Object.values(run.viewport).every(n => Number.isInteger(n) && n > 0)) throw new Error('Invalid viewport');
   run.rtl = argv.includes('--rtl');
   run.tabKey = option('tab-key', 'Tab');

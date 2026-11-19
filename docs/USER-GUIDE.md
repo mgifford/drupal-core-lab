@@ -52,9 +52,9 @@ in step.
 
 **Switch browsers.** The top-right logo buttons open this comparison in another installed browser: Edge, Chrome, Firefox, and Safari on a Mac. The current browser is omitted. Both page paths, scroll positions, test conditions, comparison mode and dock layout travel with it. Each browser has its own login session; sign in there if needed. Cookies, typed form contents, observations and audit results are not copied. Forced colours must be enabled separately in the destination browser or operating system. The buttons work when the lab server runs on your desktop computer; a cloud lab cannot launch applications on your laptop. Use **Tools → Copy comparison link** and paste it into another browser instead.
 
-**Switch comparisons.** The Comparison menu lists every configured pair. A pair
-whose environments do not exist is marked **not built** and cannot be selected
-from the menu. Build it with `node tools/compare/setup.mjs <slug>`, then start it
+**Switch comparisons.** The Comparison menu groups the built pairs by
+issue number, with latest, pinned and other variants under each issue. A pair
+whose environments do not exist is not listed (the last row counts them). Build it with `node tools/compare/setup.mjs <slug>`, then start it
 with `node scripts/lab-env.mjs start <slug>`.
 
 Some reviews compare more than pristine core against one finished patch. For

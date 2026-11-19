@@ -5,7 +5,7 @@
 set -euo pipefail
 settings="sites/default/settings.php"
 chmod u+w "$settings" "$(dirname "$settings")"
-if ! grep -q "enable_html5_validation" "$settings"; then
+if ! grep -qE "^\\\$settings\['enable_html5_validation'\] *= *TRUE;" "$settings"; then
   printf "\n\$settings['enable_html5_validation'] = TRUE;\n" >> "$settings"
 fi
-grep -n "enable_html5_validation" "$settings"
+grep -nE "^\\\$settings\[.enable_html5_validation.\]" "$settings"

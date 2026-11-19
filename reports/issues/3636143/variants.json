@@ -1,0 +1,89 @@
+[
+  {
+    "slug": "3636143-with-skip-focus",
+    "issue": "3636143",
+    "label": "#3636143: toggle MR with separate #3637339 skip-link proposal",
+    "description": "Integration comparison only. Before contains navigation-border MR !17738; After adds the separately maintained #3637339 skip-link focus and clearance proposal. This does not revise either upstream MR.",
+    "status": "DRAFT: combined integration; human review required",
+    "comparisonGroup": "3636143-navigation",
+    "comparisonLabel": "Toggle MR to toggle MR plus skip-link proposal",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "92e5c3a30476e248e82679cb63fa44c51bc667d0"
+    },
+    "before": {
+      "env": "issue-3636143-latest",
+      "patches": [
+        "reports/issues/3636143/branches/3636143-regression-the-toggle.patch"
+      ]
+    },
+    "after": {
+      "env": "issue-3636143-with-skip-focus",
+      "patches": [
+        "reports/issues/3636143/branches/3636143-regression-the-toggle.patch",
+        "reports/issues/3637339/branches/3637339-focus-clearance-full.patch"
+      ]
+    },
+    "pages": [
+      "/admin/appearance/settings/default_admin",
+      "/admin/content"
+    ],
+    "login": true,
+    "steps": [
+      {
+        "text": "Use plain Standard installs with Default Admin and Navigation. Before contains the toggle-border MR, not pristine core. After adds the separate skip-link proposal.",
+        "how": "each",
+        "lookFor": "Both sites use core 92e5c3a30476 and the declared patch stacks."
+      },
+      {
+        "text": "Save identical Light or Dark appearance and Orange focus on both sites. Disable focus mirroring, reload, then Tab independently to Skip to main content.",
+        "how": "each",
+        "lookFor": "Before retains a browser ring. After follows the configured theme focus color and shows the complete ring at the viewport edge. Record the saved focus choice separately from accent."
+      },
+      {
+        "text": "Press Enter on the skip link and continue with Tab. Independently check the navigation toggle, then repeat representative dark, narrow and forced-colors states.",
+        "how": "each",
+        "lookFor": "The skip link reaches main content. The toggle-border MR remains present on both sides. Forced colors may replace Orange with a system color; emulation is not a real Windows review."
+      }
+    ],
+    "expected": "Adding the separate skip-link proposal makes its focus ring follow the saved focus choice without removing the toggle-border MR or changing measured navigation.",
+    "actual": "The toggle-border MR changes navigation CSS only and does not style the skip link. The user's screenshot shows that MR-only state with a blue skip-link ring and Orange selected.",
+    "checks": [
+      {
+        "label": "Skip link exists",
+        "probe": "!!document.querySelector('a.skip-link[href=\"#main-content\"]')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "Navigation expand/collapse button exists",
+        "probe": "!!document.querySelector('.admin-toolbar__expand-button')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "Navigation toggle border remains unchanged between integration sides",
+        "probe": "((b) => b ? getComputedStyle(b).borderTopColor : null)(document.querySelector('.admin-toolbar__expand-button'))",
+        "expect": "same",
+        "kind": "regression"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Does the focused skip link follow the saved focus configuration?",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Is the complete focused outline visible at top and logical start?",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Does Enter still reach main content?",
+        "expectBefore": true,
+        "expectAfter": true
+      }
+    ]
+  }
+]

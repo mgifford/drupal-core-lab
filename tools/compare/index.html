@@ -423,17 +423,32 @@ function fillStaticPanel() {
 }
 function fillComparisons(data) {
   $('variant').textContent = '';
-  for (const item of variants) {
-    const option = document.createElement('option'); option.value = item.slug;
-    const revision = /-latest$/.test(item.slug) ? 'latest' : /-pinned$/.test(item.slug) ? 'pinned' : item.slug;
-    const title = item.label.replace(/^#\d+:\s*/, '').replace(/,?\s*pinned core.*$/i, '').slice(0, 65);
-    const available = STATIC || !data.availability || data.availability[item.slug] || item.slug === data.state?.slug;
-    const name = item.issue ? `#${item.issue}` : item.slug;   // a variant with no drupal.org issue is named by its slug, once
-    option.textContent = `${[name, revision === name ? null : revision, title].filter(Boolean).join(' · ')}${available ? '' : ' · not built'}`; option.title = item.label; option.disabled = !available;
-    $('variant').append(option);
+  const isAvailable = (item) => STATIC || !data.availability || data.availability[item.slug] || item.slug === data.state?.slug;
+  const shown = variants.filter(isAvailable);
+  // One group per drupal.org issue (ascending number), then lab-only comparisons by name. Inside a group: latest, pinned, others.
+  const rank = (item) => (/-latest$/.test(item.slug) ? 0 : /-pinned$/.test(item.slug) ? 1 : 2);
+  const groups = new Map();
+  for (const item of shown) { const key = item.issue ? `#${item.issue}` : item.slug; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(item); }
+  const keys = [...groups.keys()].sort((x, y) => (y[0] === '#') - (x[0] === '#') || (x[0] === '#' ? Number(x.slice(1)) - Number(y.slice(1)) : x.localeCompare(y)));
+  for (const key of keys) {
+    const items = groups.get(key).sort((x, y) => rank(x) - rank(y) || x.slug.localeCompare(y.slug));
+    const strip = (item) => item.label.replace(/^#\d+:\s*/, '').replace(/,?\s*pinned core.*$/i, '').replace(/^same steps against the LATEST.*$/i, '');
+    const group = document.createElement('optgroup');
+    const peers = variants.filter((item) => (item.issue ? `#${item.issue}` : item.slug) === key);   // unbuilt peers can name the group too
+    const named = [...items, ...peers].filter((item) => rank(item) === 1).concat(items, peers).map(strip).find(Boolean) || '';
+    group.label = [key, named.slice(0, 60)].filter(Boolean).join(' · ');
+    for (const item of items) {
+      const option = document.createElement('option'); option.value = item.slug;
+      const kind = rank(item) === 0 ? 'latest' : rank(item) === 1 ? 'pinned' : item.slug;
+      option.textContent = kind === item.slug || !item.issue ? `${item.slug}` : `${kind} (${item.slug})`; option.title = item.label;
+      group.append(option);
+    }
+    $('variant').append(group);
   }
   if (!STATIC) {
-    const hint = document.createElement('option'); hint.disabled = true; hint.textContent = 'Build other comparisons in the terminal'; $('variant').append(hint);
+    const hidden = variants.length - shown.length;
+    const hint = document.createElement('option'); hint.disabled = true;
+    hint.textContent = hidden ? `${hidden} more not built: node tools/compare/setup.mjs <slug>` : 'Build other comparisons in the terminal'; $('variant').append(hint);
   }
 }
 let incoming = null;

@@ -2173,5 +2173,156 @@
       "env": "issue-867830-current-latest"
     },
     "pinnedNote": "Follows main for the new proposal, not the historical #306 re-roll. Contrib Olivero and Claro remain pinned; check and update their patches separately."
+  },
+  {
+    "slug": "3636143-pinned",
+    "issue": "3636143",
+    "label": "#3636143: Navigation toggle button border contrast in light mode, pinned core",
+    "description": "Compare the circular expand/collapse toggle at the bottom of the administration navigation sidebar: Before is unmodified core, After is core plus MR !17738 (one line mapping --admin-toolbar-color-gray-300 to --admin-color-border-input in the Default Admin theme). Plain Standard install: it enables Navigation and uses Default Admin.",
+    "status": "DRAFT: MR !17738 only (version B). Our hover/focus enhancement (version C) is a separate variant, not built yet; human review required",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "fea1e49ac3e5257bac12871438d4fe00ad0f8904"
+    },
+    "before": {
+      "env": "baseline-3636143"
+    },
+    "after": {
+      "env": "issue-3636143",
+      "patches": [
+        "reports/issues/3636143/branches/3636143-regression-the-toggle.patch"
+      ]
+    },
+    "pages": [
+      "/admin/appearance/settings/default_admin",
+      "/admin/content"
+    ],
+    "login": true,
+    "steps": [
+      {
+        "text": "Use a plain Standard install (it enables Navigation and Default Admin). Log in to both sites and open the Default Admin appearance settings at a desktop width, where the sidebar shows the circular toggle at its bottom.",
+        "how": "each",
+        "lookFor": "Both sites show the circular toggle button at the bottom of the navigation sidebar."
+      },
+      {
+        "text": "Compare the toggle's border against the sidebar background in light mode, then in dark mode (switch the appearance setting, or simulate the dark OS in the viewer).",
+        "how": "each",
+        "lookFor": "Before: a very pale border in light mode. After: a darker, clearly visible border in light mode; dark mode should stay clearly visible."
+      },
+      {
+        "text": "Hover the toggle, then Tab to it with the keyboard (trusted input, not a script event). Press Enter or Space to collapse and expand the sidebar.",
+        "how": "each",
+        "lookFor": "What hover and keyboard focus add to the button, and that it still expands and collapses. The MR does not change hover or focus; those are the open question for version C."
+      }
+    ],
+    "expected": "The toggle's circular border is visible against the sidebar background in light and dark mode (at least 3:1 is the issue's objective).",
+    "actual": "Before: the border uses --admin-toolbar-color-gray-300 (#b8c1d0), about 1.81:1 against the light sidebar, per the issue. After (MR !17738): the border takes --admin-color-border-input.",
+    "checks": [
+      {
+        "label": "The expand/collapse toggle is rendered",
+        "probe": "!!document.querySelector('.admin-toolbar__expand-button')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "Toggle border uses the appearance-aware input-border token (contrast measured separately)",
+        "probe": "((b) => !!b && ((s) => !!s.getPropertyValue('--admin-color-border-input').trim() && s.getPropertyValue('--admin-toolbar-color-gray-300').trim() === s.getPropertyValue('--admin-color-border-input').trim())(getComputedStyle(b)))(document.querySelector('.admin-toolbar__expand-button'))",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "Toggle size unchanged",
+        "probe": "((b) => (b ? b.offsetWidth + 'x' + b.offsetHeight : null))(document.querySelector('.admin-toolbar__expand-button'))",
+        "expect": "same",
+        "kind": "regression"
+      },
+      {
+        "label": "Toggle starts expanded or collapsed the same way",
+        "probe": "document.querySelector('.admin-toolbar__expand-button')?.getAttribute('aria-expanded')",
+        "expect": "same",
+        "kind": "regression"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Is the toggle's circular border clearly visible against the sidebar in light mode?",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Is the toggle's border still clearly visible in dark mode?",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Does Enter or Space still expand and collapse the sidebar from the keyboard?",
+        "expectBefore": true,
+        "expectAfter": true
+      }
+    ],
+    "coverage": {
+      "note": "The combinations that count as tested for this issue (scripts/coverage.mjs). Edit to fit the question the issue asks.",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 480
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ]
+    }
+  },
+  {
+    "slug": "3636143-latest",
+    "extends": "3636143-pinned",
+    "label": "#3636143: same steps against the LATEST core main",
+    "description": "Before is unmodified current core main (A). After is current core main plus MR !17738 (B, the border colour) plus the lab's separately recorded hover and keyboard-focus enhancement (C: accent border, inner ring, subtle background, external focus outline, forced-colors Highlight). The MR-only comparison (A vs B) is 3636143-pinned.",
+    "status": "DRAFT: version C (MR !17738 + lab enhancement patch 3636143-toggle-hover-focus.patch); human review required",
+    "expected": "On hover and keyboard focus the toggle's circle is clearly emphasised (accent border, thicker ring, subtle background) and a separate focus outline surrounds it; size and layout do not change.",
+    "actual": "Before: only the chevron colour changes on hover, and the border stays as drawn. After: border colour, an inner ring and a background change on hover and keyboard focus, plus an offset focus outline.",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3636143-latest"
+    },
+    "after": {
+      "env": "issue-3636143-latest",
+      "patches": [
+        "reports/issues/3636143/branches/3636143-regression-the-toggle.patch",
+        "reports/issues/3636143/branches/3636143-toggle-hover-focus.patch"
+      ]
+    }
   }
 ]
