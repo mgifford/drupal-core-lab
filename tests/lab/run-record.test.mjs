@@ -114,6 +114,33 @@ test('coverage.mjs: a stale run is listed and not counted (its row is a gap), a 
   assert.doesNotMatch(c.md, /record: current/);
 });
 
+test('coverage.mjs: a passing experiment cannot fill or replace pinned-core coverage', () => {
+  fs.rmSync(issueDir, { recursive: true, force: true }); fs.mkdirSync(issueDir, { recursive: true });
+  const PATCH = 'reports/issues/99000008/p.patch'; w(path.join(labRoot, PATCH), 'patch v1\n');
+  fs.writeFileSync(path.join(issueDir, 'variants.json'), JSON.stringify([
+    { slug: 'zz-cov-pinned', issue: '99000008', core: { commit: 'a'.repeat(40) }, before: { env: 'zz-cov-b' }, after: { env: 'zz-cov-a', patches: [PATCH] }, coverage: { matrix: [{ browser: 'chromium', scheme: 'light', forced: false, width: 1280 }] } },
+    { slug: 'zz-cov-experiment', extends: 'zz-cov-pinned', core: { commit: 'b'.repeat(40) } },
+  ]));
+  const result = (variant, when, verdict) => ({
+    variant, issue: '99000008', when, verdict, unexpected: verdict === 'mixed' ? 1 : 0,
+    environment: { browser: 'chromium', colorScheme: 'light', forcedColors: false, viewport: { width: 1280 } },
+    patchState: { before: { current: [] }, after: { current: [{ path: PATCH, sha256: sha256('patch v1\n') }] } },
+  });
+  w(path.join(issueDir, 'playwright', 'experiment', 'results.json'), JSON.stringify(result('zz-cov-experiment', '2026-10-15T11:00:00Z', 'reproduced-and-fixed')));
+  const coverage = () => {
+    const r = spawnSync('node', [path.join(labRoot, 'scripts/coverage.mjs'), '99000008'], { cwd: labRoot, encoding: 'utf8' });
+    assert.equal(r.status, 0, r.stderr);
+    return fs.readFileSync(path.join(issueDir, 'COVERAGE.md'), 'utf8');
+  };
+  let md = coverage();
+  assert.match(md, /chromium · light · 1280px wide \| \*\*NOT TESTED\*\* \| _not run_/);
+  assert.match(md, /Other runs:.*reproduced and fixed.*comparison: `zz-cov-experiment`/);
+  w(path.join(issueDir, 'playwright', 'pinned', 'results.json'), JSON.stringify(result('zz-cov-pinned', '2026-10-15T10:00:00Z', 'mixed')));
+  md = coverage();
+  assert.match(md, /chromium · light · 1280px wide \| ⚠ mixed result/);
+  assert.doesNotMatch(md, /chromium · light · 1280px wide \| ✓ reproduced and fixed/);
+});
+
 // a run outside the issue's matrix is listed under "Other runs" and carries the same record mark as a matrix row
 test('coverage.mjs: a run outside the matrix is listed under Other runs with its record mark', () => {
   fs.rmSync(issueDir, { recursive: true, force: true }); fs.mkdirSync(issueDir, { recursive: true });

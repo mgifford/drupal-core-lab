@@ -5011,6 +5011,218 @@
       }
     },
     {
+      "slug": "3637339-pinned",
+      "issue": "3637339",
+      "label": "#3637339: Skip link does not follow configured focus color, pinned core",
+      "description": "Compare the keyboard-focused skip link with the configured focus color, independently from accent color, in light, dark and emulated forced colors.",
+      "comparisonGroup": "3637339-focus",
+      "comparisonLabel": "Core to MR",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Use a plain Standard install with Default Admin as the administration theme. Log in to both sites and open the Default Admin appearance settings.",
+          "how": "each",
+          "lookFor": "Both sites render the same settings form."
+        },
+        {
+          "text": "Set identical appearance, accent color and focus color through each site's settings form, then save. Test focus color independently from accent color.",
+          "how": "each",
+          "lookFor": "Record the exact selected options on both sites."
+        },
+        {
+          "text": "Turn focus mirroring off. Reload each page and press Tab to reach Skip to main content independently. Use the evaluator's paired screenshots to compare both genuinely focused states.",
+          "how": "each",
+          "lookFor": "A visible focus indicator matching the selected focus configuration, including at the viewport edge."
+        },
+        {
+          "text": "Press Enter on the skip link and inspect its main-content destination. Repeat in light, dark, forced colors, narrow viewports and RTL.",
+          "how": "each",
+          "lookFor": "The intended main-content target is reached without keyboard or scrolling regressions. Forced colors and viewer RTL are simulations."
+        }
+      ],
+      "expected": "The skip link uses the configured focus indicator and remains visible and keyboard operable.",
+      "actual": "The baseline uses the browser focus ring. MR !17818 matches the configured theme outline, but its top and logical-start bounds extend 6px outside the viewport.",
+      "observe": [
+        {
+          "label": "Does the focused skip link follow the saved focus color, rather than merely the accent color?",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Is the full focus indicator visible at the viewport edge?",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Does Enter move navigation to the intended main-content target?",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Skip link exists",
+          "probe": "!!document.querySelector('a[href=\"#main-content\"]')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Main-content target exists",
+          "probe": "!!document.getElementById('main-content')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Skip target unchanged",
+          "probe": "document.querySelector('a[href=\"#main-content\"]')?.getAttribute('href')",
+          "expect": "same",
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/admin/appearance/settings/default_admin"
+      ]
+    },
+    {
+      "slug": "3637339-latest",
+      "issue": "3637339",
+      "label": "#3637339: same steps against the LATEST core main",
+      "description": "Compare the keyboard-focused skip link with the configured focus color, independently from accent color, in light, dark and emulated forced colors.",
+      "comparisonGroup": "3637339-focus",
+      "comparisonLabel": "Core to MR",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Use a plain Standard install with Default Admin as the administration theme. Log in to both sites and open the Default Admin appearance settings.",
+          "how": "each",
+          "lookFor": "Both sites render the same settings form."
+        },
+        {
+          "text": "Set identical appearance, accent color and focus color through each site's settings form, then save. Test focus color independently from accent color.",
+          "how": "each",
+          "lookFor": "Record the exact selected options on both sites."
+        },
+        {
+          "text": "Turn focus mirroring off. Reload each page and press Tab to reach Skip to main content independently. Use the evaluator's paired screenshots to compare both genuinely focused states.",
+          "how": "each",
+          "lookFor": "A visible focus indicator matching the selected focus configuration, including at the viewport edge."
+        },
+        {
+          "text": "Press Enter on the skip link and inspect its main-content destination. Repeat in light, dark, forced colors, narrow viewports and RTL.",
+          "how": "each",
+          "lookFor": "The intended main-content target is reached without keyboard or scrolling regressions. Forced colors and viewer RTL are simulations."
+        }
+      ],
+      "expected": "The skip link uses the configured focus indicator and remains visible and keyboard operable.",
+      "actual": "The baseline uses the browser focus ring. MR !17818 matches the configured theme outline, but its top and logical-start bounds extend 6px outside the viewport.",
+      "observe": [
+        {
+          "label": "Does the focused skip link follow the saved focus color, rather than merely the accent color?",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Is the full focus indicator visible at the viewport edge?",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Does Enter move navigation to the intended main-content target?",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Skip link exists",
+          "probe": "!!document.querySelector('a[href=\"#main-content\"]')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Main-content target exists",
+          "probe": "!!document.getElementById('main-content')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Skip target unchanged",
+          "probe": "document.querySelector('a[href=\"#main-content\"]')?.getAttribute('href')",
+          "expect": "same",
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/admin/appearance/settings/default_admin"
+      ]
+    },
+    {
+      "slug": "3637339-focus-clearance",
+      "issue": "3637339",
+      "label": "#3637339: MR to experimental focus clearance",
+      "description": "DRAFT local experiment, separate from MR !17818: assess token-derived top and logical-start clearance for the focused skip link.",
+      "comparisonGroup": "3637339-focus",
+      "comparisonLabel": "MR to experimental clearance",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Use plain Standard installs with Default Admin. Before intentionally contains MR !17818; After contains the same MR followed by the separate clearance patch.",
+          "how": "each",
+          "lookFor": "Both sites use core ecb483ff6d4b and the declared patch stacks, not a pristine Before."
+        },
+        {
+          "text": "Save identical appearance, accent and focus choices through both settings forms. Disable focus mirroring, reload each document, and press Tab independently.",
+          "how": "each",
+          "lookFor": "Both indicators use the configured color. Before clips the ring at top/start; After provides token-derived clearance."
+        },
+        {
+          "text": "Press Enter on each skip link. Compare the subsequent focus sequence and scroll position, then repeat representative narrow, forced-colors and RTL cases.",
+          "how": "each",
+          "lookFor": "Main content is reached without changes to the measured navigation, control geometry or scroll. Direction and forced colors are browser simulations."
+        }
+      ],
+      "expected": "The configured MR focus indicator remains fully inside the viewport after adding token-derived clearance.",
+      "actual": "The unchanged MR has a 4px outline plus 2px offset at zero top/start position; measured bounds extend 6px beyond the viewport.",
+      "observe": [
+        {
+          "label": "Is the complete focused outline visible at top and logical start without moving other content?",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Does Enter still reach main content, without a new scrolling or layout regression?",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Skip link exists",
+          "probe": "!!document.querySelector('a[href=\"#main-content\"]')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Main-content target exists",
+          "probe": "!!document.getElementById('main-content')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Skip target unchanged",
+          "probe": "document.querySelector('a[href=\"#main-content\"]')?.getAttribute('href')",
+          "expect": "same",
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/admin/appearance/settings/default_admin"
+      ]
+    },
+    {
       "slug": "867830-ribbon-pinned",
       "issue": "867830",
       "label": "#867830: alternative inline-end rail and ribbon",

@@ -23,6 +23,8 @@ One directory per issue: `reports/issues/<nid>/`.
 - `ARCHIVED.md` (`scripts/issue-archive.mjs`): the issue is finished and archived in place; why, when, and which variants were retired
   ([ISSUE-LIFECYCLE.md](ISSUE-LIFECYCLE.md)).
 - `variants.json` of a new issue carries `coverage.matrix`: the browser, scheme and width combinations that count as tested (`tools/compare/coverage-matrix.mjs`).
+  The coverage ledger's Pinned column uses the designated pinned variant only; other comparisons, including local experiments,
+  are listed under Other runs and cannot fill a pinned environment gap.
 
 Barriers found outside an issue's question go in `reports/findings/` (`scripts/findings.mjs`), not in the issue's folder.
 
