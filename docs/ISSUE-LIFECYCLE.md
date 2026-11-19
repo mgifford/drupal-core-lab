@@ -60,6 +60,18 @@ none, and an open merge request on such an issue shows as **Test MR !n**.
 | **Closed (duplicate, won't fix, works as designed, outdated, cannot reproduce)**: archive | `node scripts/issue-archive.mjs <nid>`; for a duplicate add `--duplicate-of <nid>`. |
 | **Needs work**, **Needs review** (current head tested), **Active**, **Postponed** | Nothing until the issue moves. |
 
+## Closing out before the next issue
+
+Every issue ends the same way, finished upstream or not: nothing uncommitted and no orphaned evidence, so the next issue starts from a clean tree.
+
+    node scripts/close-out.mjs <nid>             # report
+    node scripts/close-out.mjs <nid> --commit    # commit this issue's own paths locally
+
+It refreshes `COVERAGE.md` and the issue list, then lists each uncommitted or untracked file as **this issue** (its report folder, recipes, evaluator,
+`variants.json`, the generated list and `cloud/`) or **not this issue**, which it never commits: commit, ignore or delete that on purpose. It also flags a
+`playwright/<run>` folder with no `results.json`: re-run it, or write an `ABORTED.md` saying what is known (the folder stays as history; the script never
+deletes evidence). It names the issue's sites that are still running. Exit 0 means a clean tree. It pushes nothing.
+
 ## When an issue is fixed upstream
 
 1. **Confirm that core has the change.** Build the issue's comparison on current core main: `node scripts/test-mr.mjs <nid>`. Once

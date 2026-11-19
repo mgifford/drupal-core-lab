@@ -42,6 +42,7 @@ The shared template is `prompts/coder-prompt.md`. Regenerate after changing a sc
     node scripts/lint.mjs <slug>                         4b. core's own code checks (the CI ones) on the patched files; report in reports/issues/<nid>/lint/
     (write up: REPRODUCE/EVIDENCE/STATUS, drafts only)    5. then: node scripts/coverage.mjs <nid>; node scripts/check-draft.mjs <nid>; node scripts/index-issues.mjs
     node scripts/lab-env.mjs stop <slug>                 6. when done (nothing is lost)
+    node scripts/close-out.mjs <nid> [--commit]          7. BEFORE the next issue: nothing uncommitted, no orphaned evidence (local commit only; pushing still needs approval)
 
 New issue: `node scripts/new-issue.mjs <nid> --branch <fork-branch>`, then `docs/NEW-ISSUE.md`. People: `docs/FIRST-RUN.md`, `docs/USER-GUIDE.md`.
 Slugs and environments are in `tools/compare/variants.json`; `node scripts/lab-env.mjs status` shows what exists and runs.
