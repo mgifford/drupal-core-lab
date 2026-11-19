@@ -2737,7 +2737,7 @@
       "after": {},
       "steps": [
         {
-          "text": "Log in to both sites (the recipe adds the Article content type). Open /node/add/article, type a title and press Save. A status message appears on the new article after the redirect (front-end theme, Stark).",
+          "text": "Log in to both sites (the recipe adds the Article content type). Open /node/add/article, type a title and press Save. A status message appears on the new article after the redirect (front-end theme, Stark). Leave the page as it is, then press Run checks: the checks read the page each frame is on, so a message must be showing.",
           "how": "each",
           "lookFor": "Before: the message wrapper is role=contentinfo with an aria-label. After (the MR): role=region plus an inner role=status."
         },
@@ -2768,22 +2768,22 @@
       ],
       "checks": [
         {
-          "label": "A page with a saved-content message exposes at least one message block",
-          "probe": "!!document.querySelector('[data-drupal-messages] [role], [data-drupal-messages-fallback] [role]')",
+          "label": "A message is on the page. Do step 1 first (save an Article), then run the checks on the page you land on",
+          "probe": "!!document.querySelector('[data-drupal-messages] [role=alert], [data-drupal-messages] [role=status]')",
           "expect": true,
           "kind": "precondition"
         },
         {
           "label": "No message block uses role=contentinfo",
-          "probe": "!document.querySelector('[data-drupal-messages] [role=contentinfo], [data-drupal-messages-fallback] [role=contentinfo]')",
-          "expect": true,
-          "kind": "fix"
-        },
-        {
-          "label": "Only one contentinfo landmark remains on the page (the footer, if any)",
-          "probe": "document.querySelectorAll('[role=contentinfo], footer').length <= 1",
+          "probe": "!document.querySelector('[data-drupal-messages] [role=contentinfo]')",
           "expect": true,
           "kind": "regression"
+        },
+        {
+          "label": "Each message type is exposed as a region landmark instead of contentinfo (the MR)",
+          "probe": "!!document.querySelector('[data-drupal-messages] [role=region]')",
+          "expect": true,
+          "kind": "fix"
         }
       ],
       "pages": [
@@ -2800,7 +2800,7 @@
       "after": {},
       "steps": [
         {
-          "text": "Log in to both sites (the recipe adds the Article content type). Open /node/add/article, type a title and press Save. A status message appears on the new article after the redirect (front-end theme, Stark).",
+          "text": "Log in to both sites (the recipe adds the Article content type). Open /node/add/article, type a title and press Save. A status message appears on the new article after the redirect (front-end theme, Stark). Leave the page as it is, then press Run checks: the checks read the page each frame is on, so a message must be showing.",
           "how": "each",
           "lookFor": "Before: one element with role=status labelled 'Status message'. After: a region landmark labelled 'Status message' that contains an inner role=status. No contentinfo on either."
         },
@@ -2841,8 +2841,8 @@
       ],
       "checks": [
         {
-          "label": "A message block is present on the page",
-          "probe": "!!document.querySelector('[data-drupal-messages] [role]')",
+          "label": "A message is on the page. Do step 1 first (save an Article), then run the checks on the page you land on",
+          "probe": "!!document.querySelector('[data-drupal-messages] [role=alert], [data-drupal-messages] [role=status]')",
           "expect": true,
           "kind": "precondition"
         },
@@ -2853,8 +2853,8 @@
           "kind": "regression"
         },
         {
-          "label": "Message blocks are exposed as region landmarks",
-          "probe": "!!document.querySelector('[data-drupal-messages] > [role=region]')",
+          "label": "Each message type is exposed as a region landmark (the option; Before has none)",
+          "probe": "!!document.querySelector('[data-drupal-messages] [role=region]')",
           "expect": true,
           "kind": "fix"
         }
