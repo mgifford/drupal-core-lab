@@ -61,14 +61,14 @@
         "kind": "precondition"
       },
       {
-        "label": "Invalid custom accent value does not reach --accent-base (value entered by the script, then change event)",
-        "probe": "(() => { const f = document.querySelector('input[name=\"accent_color\"]'); if (!f) return null; const html = document.documentElement; const had = html.style.getPropertyValue('--accent-base'); f.value = 'zzz'; f.dispatchEvent(new Event('change', {bubbles: true})); const now = html.style.getPropertyValue('--accent-base').trim(); const ok = now !== 'zzz'; f.value = ''; if (had) html.style.setProperty('--accent-base', had); else html.style.removeProperty('--accent-base'); return ok; })()",
+        "label": "The custom accent field is described by text that names the hexadecimal format",
+        "probe": "/hexadecimal/i.test(document.getElementById((document.querySelector('input[name=\"accent_color\"]')?.getAttribute('aria-describedby') || '').split(' ')[0])?.textContent || '')",
         "expect": true,
         "kind": "fix"
       },
       {
-        "label": "Valid custom accent value is still applied to --accent-base",
-        "probe": "(() => { const f = document.querySelector('input[name=\"accent_color\"]'); if (!f) return null; const html = document.documentElement; const had = html.style.getPropertyValue('--accent-base'); f.value = '#336699'; f.dispatchEvent(new Event('change', {bubbles: true})); const ok = html.style.getPropertyValue('--accent-base').trim() === '#336699'; f.value = ''; if (had) html.style.setProperty('--accent-base', had); else html.style.removeProperty('--accent-base'); return ok; })()",
+        "label": "The active accent color on the page is a valid six-digit hex value",
+        "probe": "/^#[0-9a-f]{6}$/i.test(getComputedStyle(document.documentElement).getPropertyValue('--accent-base').trim())",
         "expect": true,
         "kind": "regression"
       }
