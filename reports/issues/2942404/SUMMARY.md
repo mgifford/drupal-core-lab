@@ -16,7 +16,11 @@ The issue (opened 2018) reports that system messages are wrapped in `role="conte
 - Claro's `status-messages.html.twig` no longer exists on `main`; `default_admin`, `starterkit_theme`, Umami and the `test_messages` test theme each have their own copy.
 - `core/misc/announce.js` keeps one polite live region (`#drupal-live-announce`); `core/misc/message.js` calls `Drupal.announce()` from `Drupal.Message.add()` unless `options.announce` is an empty string.
 
-## The merge request is stale
+## The merge requests are stale (two of them)
+
+The issue has two open MRs with the same core change, [!6058](https://git.drupalcode.org/project/drupal/-/merge_requests/6058) and !6112 below. Evaluation, interdiffs between them and to current `main`, and the per-file result are in [MR-EVALUATION.md](MR-EVALUATION.md): both are superseded by what `main` already has, and no aligning patch is needed.
+
+### !6112
 
 [!6112](https://git.drupalcode.org/project/drupal/-/merge_requests/6112) (branch `2942404-11`, base `66a4c78b453b`, 2024-02-01) changes 12 files. Against `main`, 3 of 12 file patches apply (`BigPipeTest.php`, `AjaxFormPageCacheTest.php`, `ElementValidationTest.php`); the templates, the Claro and stable9 files and the other tests do not. The template change it proposes is largely already in `main`. Do not reroll it before deciding what, if anything, remains.
 
