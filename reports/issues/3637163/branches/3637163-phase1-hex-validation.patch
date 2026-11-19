@@ -1,0 +1,448 @@
+diff --git a/core/themes/default_admin/migration/js/accent.js b/core/themes/default_admin/migration/js/accent.js
+index 123d01e9f50ab0b7bbe64dc90b6640b063f18b4e..d809c59d31674fdacd34cb1d027a68037b79e629 100644
+--- a/core/themes/default_admin/migration/js/accent.js
++++ b/core/themes/default_admin/migration/js/accent.js
+@@ -14,6 +14,15 @@
+   };
+ 
+   Drupal.adminAccent = {
++    /**
++     * Checks that a custom color is a six-digit hexadecimal color.
++     *
++     * This must match \Drupal\default_admin\Settings::COLOR_PATTERN. Anything
++     * else is never applied, because it could leave the interface unreadable.
++     */
++    isValidColor: (color) =>
++      typeof color === 'string' && /^#[0-9a-f]{6}$/i.test(color),
++
+     setAccentColor: function setAccentColor(preset = null) {
+       const accentColorPreset =
+         preset != null
+@@ -32,11 +41,14 @@
+       // If custom color is set, generate colors through JS.
+       const accentColor =
+         color != null ? color : drupalSettings.defaultAdmin.accent_color;
+-      if (accentColor) {
++      // An invalid value leaves the last valid color in place.
++      if (this.isValidColor(accentColor)) {
+         this.clearAccentColor(element);
+ 
+         element.style.setProperty('--accent-base', accentColor);
++        return true;
+       }
++      return false;
+     },
+ 
+     clearAccentColor: (element = document.documentElement) => {
+@@ -65,8 +77,8 @@
+       const accentColor =
+         color != null ? color : drupalSettings.defaultAdmin.focus_color;
+ 
+-      // Set preset color.
+-      if (accentColor) {
++      // An invalid value leaves the last valid focus color in place.
++      if (this.isValidColor(accentColor)) {
+         this.clearFocusColor(element);
+ 
+         const strippedAccentColor = accentColor.replace('#', '');
+@@ -87,7 +99,12 @@
+           }`;
+ 
+         element.append(style);
++        // The custom color may be the first valid one since the preset was
++        // chosen, so the attribute that selects it is set here as well.
++        document.documentElement.setAttribute('data-admin-focus', 'custom');
++        return true;
+       }
++      return false;
+     },
+ 
+     clearFocusColor: (element = document.documentElement) => {
+diff --git a/core/themes/default_admin/migration/js/settings.js b/core/themes/default_admin/migration/js/settings.js
+index 4f100bd4078e4a2d139031e2d0d40e6f4a7817cd..b8a5e034050b0ef5b346e26c8809a27b552b8a70 100644
+--- a/core/themes/default_admin/migration/js/settings.js
++++ b/core/themes/default_admin/migration/js/settings.js
+@@ -8,6 +8,46 @@
+   };
+ 
+   Drupal.adminSettings = {
++    /**
++     * Shows or clears the error of a custom color text field.
++     *
++     * The message is a live region so that it is announced when it appears, and
++     * it is tied to the field with aria-describedby.
++     */
++    setColorFieldValidity: function (field, valid) {
++      const messageId = `${field.id}--color-error`;
++      const existing = document.getElementById(messageId);
++      const describedBy = (field.getAttribute('aria-describedby') || '')
++        .split(' ')
++        .filter((id) => id && id !== messageId);
++
++      if (valid) {
++        existing?.remove();
++        field.removeAttribute('aria-invalid');
++        field.classList.remove('error');
++      } else {
++        if (!existing) {
++          const message = document.createElement('div');
++          message.id = messageId;
++          message.className = 'form-item__error-message';
++          message.setAttribute('role', 'alert');
++          message.textContent = Drupal.t(
++            'Not a valid hex color. The previous color is still in use.',
++          );
++          field.insertAdjacentElement('afterend', message);
++        }
++        field.setAttribute('aria-invalid', 'true');
++        field.classList.add('error');
++        describedBy.push(messageId);
++      }
++
++      if (describedBy.length) {
++        field.setAttribute('aria-describedby', describedBy.join(' '));
++      } else {
++        field.removeAttribute('aria-describedby');
++      }
++    },
++
+     init: function (context) {
+       // Watch dark mode setting has changed.
+       context.querySelectorAll('input[name="enable_dark_mode"]').forEach((el) =>
+@@ -56,17 +96,18 @@
+           el.addEventListener('change', (e) => {
+             const accentColorPreset = e.currentTarget.value;
+ 
+-            // Update.
+-            Drupal.adminAccent.clearAccentColor();
+-            Drupal.adminAccent.setAccentColor(accentColorPreset);
+-
+-            // Set custom color if 'custom' is set.
++            // Set custom color if 'custom' is set. The custom fallback color
++            // is never applied: when the field is not valid, the color that is
++            // active stays.
+             if (accentColorPreset === 'custom') {
+               const accentColorSetting = document.querySelector(
+                 'input[name="accent_color"]',
+               ).value;
+ 
+               Drupal.adminAccent.setCustomAccentColor(accentColorSetting);
++            } else {
++              Drupal.adminAccent.clearAccentColor();
++              Drupal.adminAccent.setAccentColor(accentColorPreset);
+             }
+           }),
+         );
+@@ -77,8 +118,9 @@
+           const accentColorSetting = e.currentTarget.value;
+ 
+           // Sync fields.
+-          document.querySelector('input[name="accent_color"]').value =
+-            accentColorSetting;
++          const accentField = document.querySelector('input[name="accent_color"]');
++          accentField.value = accentColorSetting;
++          this.setColorFieldValidity(accentField, true);
+ 
+           // Update.
+           Drupal.adminAccent.setCustomAccentColor(accentColorSetting);
+@@ -89,13 +131,18 @@
+       context.querySelectorAll('input[name="accent_color"]').forEach((el) =>
+         el.addEventListener('change', (e) => {
+           const accentColorSetting = e.currentTarget.value;
++          const valid = Drupal.adminAccent.isValidColor(accentColorSetting);
++          this.setColorFieldValidity(e.currentTarget, valid);
+ 
+-          // Sync fields.
+-          document.querySelector('input[name="accent_picker"]').value =
+-            accentColorSetting;
++          // An invalid value is kept for editing but never applied.
++          if (valid) {
++            // Sync fields.
++            document.querySelector('input[name="accent_picker"]').value =
++              accentColorSetting;
+ 
+-          // Update.
+-          Drupal.adminAccent.setCustomAccentColor(accentColorSetting);
++            // Update.
++            Drupal.adminAccent.setCustomAccentColor(accentColorSetting);
++          }
+         }),
+       );
+ 
+@@ -105,17 +152,21 @@
+         .addEventListener('change', (e) => {
+           const focusColorPreset = e.currentTarget.value;
+ 
+-          // Update.
+-          Drupal.adminAccent.clearFocusColor();
+-          Drupal.adminAccent.setFocusColor(focusColorPreset);
+-
+-          // Set custom color if 'custom' is set.
++          // Set custom color if 'custom' is set. Without a valid custom color
++          // the focus color that is active stays, so that keyboard focus is
++          // never left without a visible indicator.
+           if (focusColorPreset === 'custom') {
+             const focusColorSetting = document.querySelector(
+               'input[name="focus_color"]',
+             ).value;
+ 
+-            Drupal.adminAccent.setCustomFocusColor(focusColorSetting);
++            if (Drupal.adminAccent.isValidColor(focusColorSetting)) {
++              Drupal.adminAccent.clearFocusColor();
++              Drupal.adminAccent.setFocusColor('custom', focusColorSetting);
++            }
++          } else {
++            Drupal.adminAccent.clearFocusColor();
++            Drupal.adminAccent.setFocusColor(focusColorPreset);
+           }
+         });
+ 
+@@ -126,8 +177,9 @@
+           const focusColorSetting = e.currentTarget.value;
+ 
+           // Sync fields.
+-          document.querySelector('input[name="focus_color"]').value =
+-            focusColorSetting;
++          const focusField = document.querySelector('input[name="focus_color"]');
++          focusField.value = focusColorSetting;
++          this.setColorFieldValidity(focusField, true);
+ 
+           // Update.
+           Drupal.adminAccent.setCustomFocusColor(focusColorSetting);
+@@ -138,13 +190,18 @@
+         .querySelector('input[name="focus_color"]')
+         .addEventListener('change', (e) => {
+           const focusColorSetting = e.currentTarget.value;
++          const valid = Drupal.adminAccent.isValidColor(focusColorSetting);
++          this.setColorFieldValidity(e.currentTarget, valid);
+ 
+-          // Sync fields.
+-          document.querySelector('input[name="focus_picker"]').value =
+-            focusColorSetting;
++          // An invalid value is kept for editing but never applied.
++          if (valid) {
++            // Sync fields.
++            document.querySelector('input[name="focus_picker"]').value =
++              focusColorSetting;
+ 
+-          // Update.
+-          Drupal.adminAccent.setCustomFocusColor(focusColorSetting);
++            // Update.
++            Drupal.adminAccent.setCustomFocusColor(focusColorSetting);
++          }
+         });
+ 
+       // Watch Hight contrast mode setting has changed.
+diff --git a/core/themes/default_admin/src/Hook/PreprocessHooks.php b/core/themes/default_admin/src/Hook/PreprocessHooks.php
+index fe8578840da804260316c2524cb974d586ab602c..cfb19777225cd5426ae472b99fc2e1ceeb00ca8e 100644
+--- a/core/themes/default_admin/src/Hook/PreprocessHooks.php
++++ b/core/themes/default_admin/src/Hook/PreprocessHooks.php
+@@ -612,19 +612,22 @@ public function preprocessHtml(array &$variables): void {
+     // Get theme settings.
+     $settings = Settings::getInstance();
+ 
++    // A stored custom color that is not valid is replaced by a safe fallback.
++    $colors = $settings->getRenderableColors();
++
+     // Old way to set accent color.
+-    $variables['html_attributes']['data-accent'] = $settings->get('preset_accent_color');
++    $variables['html_attributes']['data-accent'] = $colors['preset_accent_color'];
+ 
+     // New way to set accent color.
+     $accent_colors = Helper::accentColors();
+     // The theme settings are not available while Drupal is being installed,
+     // because they are stored in configuration. Fall back to an empty string so
+     // that the preset can be used as an array offset.
+-    $preset = $settings->get('preset_accent_color') ?? '';
++    $preset = $colors['preset_accent_color'] ?? '';
+     $accent_color = '';
+ 
+-    if ($preset === 'custom' && $settings->get('accent_color')) {
+-      $accent_color = $settings->get('accent_color');
++    if ($preset === 'custom' && $colors['accent_color']) {
++      $accent_color = $colors['accent_color'];
+     }
+     elseif (isset($accent_colors[$preset]['hex'])) {
+       $accent_color = $accent_colors[$preset]['hex'];
+@@ -635,7 +638,7 @@ public function preprocessHtml(array &$variables): void {
+     }
+ 
+     // Set focus color.
+-    $variables['html_attributes']['data-admin-focus'] = $settings->get('preset_focus_color');
++    $variables['html_attributes']['data-admin-focus'] = $colors['preset_focus_color'];
+ 
+     // High contrast mode.
+     if ($settings->get('high_contrast_mode')) {
+diff --git a/core/themes/default_admin/src/Hook/ThemeHooks.php b/core/themes/default_admin/src/Hook/ThemeHooks.php
+index c98d23eecce1fc2e106c2bd3c3c8c536f4fee32f..8c1981254817f6c9e0f4ddc92be588dd3b642444 100644
+--- a/core/themes/default_admin/src/Hook/ThemeHooks.php
++++ b/core/themes/default_admin/src/Hook/ThemeHooks.php
+@@ -147,15 +147,16 @@ public function pageAttachmentsAlter(array &$page): void {
+     $page['#attached']['library'][] = 'default_admin/sticky';
+ 
+     $settings = Settings::getInstance();
++    $colors = $settings->getRenderableColors();
+     // Expose theme settings to JS.
+     $default_admin_settings = [
+       'dark_mode' => $settings->get('enable_dark_mode'),
+       'dark_mode_class' => 'dark-mode',
+       'accent_colors' => Helper::accentColors(),
+-      'preset_accent_color' => $settings->get('preset_accent_color'),
+-      'accent_color' => $settings->get('accent_color'),
+-      'preset_focus_color' => $settings->get('preset_focus_color'),
+-      'focus_color' => $settings->get('focus_color'),
++      'preset_accent_color' => $colors['preset_accent_color'],
++      'accent_color' => $colors['accent_color'],
++      'preset_focus_color' => $colors['preset_focus_color'],
++      'focus_color' => $colors['focus_color'],
+       'high_contrast_mode' => $settings->get('high_contrast_mode'),
+       'high_contrast_mode_class' => 'high-contrast-mode',
+       'show_user_theme_settings' => $settings->get('show_user_theme_settings'),
+diff --git a/core/themes/default_admin/src/Settings.php b/core/themes/default_admin/src/Settings.php
+index adaa4d44cecd1dfbc40c276b95a6c7d449c8990a..7e7c85c5448a1fc5b2b457c149fa637a0b3c33a3 100644
+--- a/core/themes/default_admin/src/Settings.php
++++ b/core/themes/default_admin/src/Settings.php
+@@ -21,6 +21,11 @@ final class Settings implements ContainerInjectionInterface {
+ 
+   use StringTranslationTrait;
+ 
++  /**
++   * The pattern a custom color must match: a six-digit hexadecimal color.
++   */
++  public const COLOR_PATTERN = '/^#[0-9a-f]{6}\z/i';
++
+   /**
+    * Settings constructor.
+    *
+@@ -94,6 +99,89 @@ public function get(string $name, ?AccountInterface $account = NULL): mixed {
+     return $value;
+   }
+ 
++  /**
++   * Checks that a value is a six-digit hexadecimal color.
++   *
++   * @param mixed $value
++   *   The value to check.
++   *
++   * @return bool
++   *   TRUE if the value is a color such as #336699.
++   */
++  public static function isValidColor(mixed $value): bool {
++    return is_string($value) && preg_match(self::COLOR_PATTERN, $value) === 1;
++  }
++
++  /**
++   * Element validate callback for the custom accent and focus colors.
++   *
++   * The value is only checked while its preset is "custom": a stale value in a
++   * field the user cannot see must not block saving the form.
++   *
++   * @param array $element
++   *   The form element.
++   * @param \Drupal\Core\Form\FormStateInterface $form_state
++   *   The current state of the form.
++   */
++  public static function validateCustomColor(array &$element, FormStateInterface $form_state): void {
++    $name = end($element['#parents']);
++    $preset = $form_state->getValue('preset_' . $name);
++    if ($preset !== 'custom') {
++      return;
++    }
++    if ($form_state->hasValue('enable_user_settings') && !$form_state->getValue('enable_user_settings')) {
++      return;
++    }
++    $value = $element['#value'] ?? '';
++    if (!self::isValidColor($value)) {
++      $message = $name === 'accent_color'
++        ? t('The custom accent color is not a valid hex color. Use six digits, for example #336699.')
++        : t('The custom focus color is not a valid hex color. Use six digits, for example #336699.');
++      $form_state->setError($element, $message);
++    }
++  }
++
++  /**
++   * Gets the accent and focus color settings that are safe to render.
++   *
++   * A stored custom color that is not a valid hexadecimal color is never used.
++   * The preset falls back to a value that is always visible instead.
++   *
++   * @param \Drupal\Core\Session\AccountInterface|null $account
++   *   The account object. Current user if NULL.
++   *
++   * @return array
++   *   The preset_accent_color, accent_color, preset_focus_color and
++   *   focus_color settings.
++   */
++  public function getRenderableColors(?AccountInterface $account = NULL): array {
++    $preset_accent = $this->get('preset_accent_color', $account);
++    $accent = $this->get('accent_color', $account);
++    $preset_focus = $this->get('preset_focus_color', $account);
++    $focus = $this->get('focus_color', $account);
++
++    if (!self::isValidColor($accent)) {
++      $accent = '';
++      if ($preset_accent === 'custom') {
++        $default = $this->getDefault('preset_accent_color');
++        $preset_accent = $default === 'custom' ? 'blue' : $default;
++      }
++    }
++    if (!self::isValidColor($focus)) {
++      $focus = '';
++      if ($preset_focus === 'custom') {
++        $preset_focus = 'default';
++      }
++    }
++
++    return [
++      'preset_accent_color' => $preset_accent,
++      'accent_color' => $accent,
++      'preset_focus_color' => $preset_focus,
++      'focus_color' => $focus,
++    ];
++  }
++
+   /**
+    * Get the default setting from theme.
+    *
+@@ -256,7 +344,6 @@ public function getSettingsForm(?AccountInterface $account = NULL): array {
+     $form['accent_group'] = [
+       '#type' => 'fieldset',
+       '#title' => $this->t('Custom Accent color'),
+-      '#description' => $this->t('Use with caution, values should meet a11y criteria.'),
+       '#states' => [
+         // Show if met.
+         'visible' => [
+@@ -275,9 +362,11 @@ public function getSettingsForm(?AccountInterface $account = NULL): array {
+       '#title_display' => 'invisible',
+       '#default_value' => $account ? $this->get('accent_color', $account) : $this->getDefault('accent_color'),
+       '#group' => 'accent_group',
++      '#description' => $this->t('Six-digit hex, for example #336699. Then check its color contrast.'),
+       '#attributes' => [
+-        'pattern' => '^#[a-fA-F0-9]{6}',
++        'pattern' => '^#[a-fA-F0-9]{6}$',
+       ],
++      '#element_validate' => [[__CLASS__, 'validateCustomColor']],
+     ];
+ 
+     // Accent color picker (helper field).
+@@ -310,7 +399,6 @@ public function getSettingsForm(?AccountInterface $account = NULL): array {
+     $form['focus_group'] = [
+       '#type' => 'fieldset',
+       '#title' => $this->t('Custom Focus color') . $beta_label,
+-      '#description' => $this->t('Use with caution, values should meet a11y criteria.'),
+       '#states' => [
+         // Show if met.
+         'visible' => [
+@@ -339,9 +427,11 @@ public function getSettingsForm(?AccountInterface $account = NULL): array {
+       '#size' => 7,
+       '#default_value' => $account ? $this->get('focus_color', $account) : $this->getDefault('focus_color'),
+       '#group' => 'focus_group',
++      '#description' => $this->t('Six-digit hex, for example #336699. Then check its color contrast.'),
+       '#attributes' => [
+-        'pattern' => '^#[a-fA-F0-9]{6}',
++        'pattern' => '^#[a-fA-F0-9]{6}$',
+       ],
++      '#element_validate' => [[__CLASS__, 'validateCustomColor']],
+     ];
+ 
+     // High contrast mode.

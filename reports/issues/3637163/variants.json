@@ -1,0 +1,158 @@
+[
+  {
+    "slug": "3637163-pinned",
+    "issue": "3637163",
+    "label": "#3637163: Custom accent color field lacks validation, pinned core",
+    "description": "Authoring comparison, no merge request yet. Before is unmodified core. After adds a lab-authored Phase 1 fix: the live preview of the custom Accent and Focus colours is applied only when the value is a valid six-digit hex colour, the Form API rejects invalid values on save, and stored invalid values fail safely when rendered. Plain Standard install (Default Admin is the admin theme).",
+    "status": "DRAFT: lab-authored proposal (no merge request); human review required",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "92e5c3a30476e248e82679cb63fa44c51bc667d0"
+    },
+    "before": {
+      "env": "baseline-3637163"
+    },
+    "after": {
+      "env": "issue-3637163",
+      "patches": [
+        "reports/issues/3637163/branches/3637163-phase1-hex-validation.patch"
+      ]
+    },
+    "pages": [
+      "/admin/appearance/settings/default_admin",
+      "/admin/content"
+    ],
+    "login": true,
+    "steps": [
+      {
+        "text": "Use a plain Standard install (Default Admin is the admin theme). Log in to both sites and open /admin/appearance/settings/default_admin. Choose the last Accent color swatch, Custom, so the Custom Accent color text field is shown.",
+        "how": "each",
+        "lookFor": "A text field with the placeholder #777777 and a colour picker next to it."
+      },
+      {
+        "text": "Type an invalid value into the Custom Accent color field (for example 777777 without the #, or #zzzzzz) and press Tab to leave the field.",
+        "how": "each",
+        "lookFor": "Before: the interface colours turn black or invisible (Save button, Appearance state, toggles) as soon as the field loses focus. After: the interface keeps its last valid colour and the field shows an actionable error."
+      },
+      {
+        "text": "Repeat for the Custom Focus color field (set Focus color to Custom, enter an invalid value, press Tab to leave the field), then press Tab through the page.",
+        "how": "each",
+        "lookFor": "Before: keyboard focus indicators can become invisible. After: the last valid focus colour stays in use."
+      },
+      {
+        "text": "Enter a valid value (#336699) and save. Then try to save an invalid value with the browser's own validation bypassed (the viewer's tools, or the evaluate script).",
+        "how": "each",
+        "lookFor": "Valid value saves and applies. Invalid value is rejected by the server on After with a message naming the field; Before it is accepted and stored."
+      }
+    ],
+    "expected": "An invalid custom accent or focus colour never changes the live styling, is rejected on save, and the last valid colour stays in use.",
+    "actual": "Before: the invalid text is written to --accent-base (or to the custom focus style) when the field loses focus, so controls and text can become invisible; the browser-only pattern attribute does not stop the preview or a submit that bypasses it.",
+    "checks": [
+      {
+        "label": "Settings form has the Custom Accent color field",
+        "probe": "!!document.querySelector('input[name=\"accent_color\"]')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "Settings form has the Custom Focus color field",
+        "probe": "!!document.querySelector('input[name=\"focus_color\"]')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "The custom accent field is described by text that names the hex format",
+        "probe": "/hex/i.test(document.getElementById((document.querySelector('input[name=\"accent_color\"]')?.getAttribute('aria-describedby') || '').split(' ')[0])?.textContent || '')",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "The active accent color on the page is a valid six-digit hex value",
+        "probe": "/^#[0-9a-f]{6}$/i.test(getComputedStyle(document.documentElement).getPropertyValue('--accent-base').trim())",
+        "expect": true,
+        "kind": "regression"
+      }
+    ],
+    "observe": [
+      {
+        "label": "After typing an invalid Custom Accent value and leaving the field, are the Save button and Appearance labels still visible?",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Is an error message shown on the field that says what format is accepted?",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Does a valid hex colour still change the preview, and does the picker still sync with the text field?",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "With an invalid Custom Focus value, is the keyboard focus indicator still visible on the page?",
+        "expectBefore": false,
+        "expectAfter": true
+      }
+    ],
+    "coverage": {
+      "note": "The combinations that count as tested for this issue (scripts/coverage.mjs). Edit to fit the question the issue asks.",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 480
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ]
+    }
+  },
+  {
+    "slug": "3637163-latest",
+    "extends": "3637163-pinned",
+    "label": "#3637163: same steps against the LATEST core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3637163-latest"
+    },
+    "after": {
+      "env": "issue-3637163-latest",
+      "patches": [
+        "reports/issues/3637163/branches/3637163-phase1-hex-validation.patch"
+      ]
+    }
+  }
+]
