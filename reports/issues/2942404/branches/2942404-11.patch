@@ -1,0 +1,256 @@
+diff --git a/core/modules/big_pipe/tests/modules/big_pipe_test/src/BigPipePlaceholderTestCases.php b/core/modules/big_pipe/tests/modules/big_pipe_test/src/BigPipePlaceholderTestCases.php
+index fc33e67c0e0f0f7d047a8c7ae8704a699711becb..c8192398852cebf70d3eaf76e16596447e587b0b 100644
+--- a/core/modules/big_pipe/tests/modules/big_pipe_test/src/BigPipePlaceholderTestCases.php
++++ b/core/modules/big_pipe/tests/modules/big_pipe_test/src/BigPipePlaceholderTestCases.php
+@@ -106,11 +106,11 @@ class BigPipePlaceholderTestCases {
+           'method' => 'replaceWith',
+           // cspell:disable-next-line
+           'selector' => '[data-big-pipe-placeholder-id="callback=Drupal%5CCore%5CRender%5CElement%5CStatusMessages%3A%3ArenderMessages&args%5B0%5D&token=_HAdUpwWmet0TOTe2PSiJuMntExoshbm1kh2wQzzzAA"]',
+-          'data' => '<div data-drupal-messages>' . "\n" . ' <div role="contentinfo" aria-label="Status message">' . "\n" . ' <h2 class="visually-hidden">Status message</h2>' . "\n" . ' Hello from BigPipe!' . "\n" . ' </div>' . "\n" . '</div>' . "\n",
++          'data' => '<div data-drupal-messages>' . "\n" . '  <div role="region" aria-label="Status message">' . "\n" . '          <div role="status">' . "\n" . '              <h2 class="visually-hidden">Status message</h2>' . "\n" . '              Hello from BigPipe!' . "\n" . '              </div>' . "\n" . '      </div>' . "\n" . '</div>' . "\n",
+           'settings' => NULL,
+         ],
+       ];
+-      $status_messages->embeddedHtmlResponse = '<div data-drupal-messages-fallback class="hidden"></div><div data-drupal-messages>' . "\n" . '  <div role="contentinfo" aria-label="Status message">' . "\n" . '              <h2 class="visually-hidden">Status message</h2>' . "\n" . '              Hello from BigPipe!' . "\n" . '          </div>' . "\n" . '</div>' . "\n";
++      $status_messages->embeddedHtmlResponse = '<div data-drupal-messages-fallback class="hidden"></div><div data-drupal-messages>' . "\n" . '  <div role="region" aria-label="Status message">' . "\n" . '          <div role="status">' . "\n" . '              <h2 class="visually-hidden">Status message</h2>' . "\n" . '              Hello from BigPipe!' . "\n" . '              </div>' . "\n" . '      </div>' . "\n" . '</div>' . "\n";
+     }
+ 
+     // 2. Real-world example of HTML attribute value placeholder: form action.
+diff --git a/core/modules/big_pipe/tests/src/Functional/BigPipeTest.php b/core/modules/big_pipe/tests/src/Functional/BigPipeTest.php
+index 0a5899ba9194748309421d8ab975a1c7c836434a..ca9f39381bca11b0ae17a4ff5c4f8358b2dc38b4 100644
+--- a/core/modules/big_pipe/tests/src/Functional/BigPipeTest.php
++++ b/core/modules/big_pipe/tests/src/Functional/BigPipeTest.php
+@@ -388,7 +388,8 @@ class BigPipeTest extends BrowserTestBase {
+         $this->assertSession()->responseNotContains($expected_placeholder_replacement);
+         continue;
+       }
+-      $this->assertSession()->elementTextContains('xpath', $xpath, $expected_ajax_response);
++      $element = $this->assertSession()->elementExists('xpath', $xpath);
++      $this->assertStringContainsString($expected_ajax_response, $element->getHtml());
+       $this->assertSession()->responseContains($expected_placeholder_replacement);
+       $pos = strpos($this->getSession()->getPage()->getContent(), $expected_placeholder_replacement);
+       $placeholder_replacement_positions[$pos] = $big_pipe_placeholder_id;
+diff --git a/core/modules/big_pipe/tests/src/FunctionalJavascript/BigPipeRegressionTest.php b/core/modules/big_pipe/tests/src/FunctionalJavascript/BigPipeRegressionTest.php
+index a20fe48253127a4a13f308850207905a13beef72..74d4f35e4c04cec1bc200a62e61ff72a5454a3a0 100644
+--- a/core/modules/big_pipe/tests/src/FunctionalJavascript/BigPipeRegressionTest.php
++++ b/core/modules/big_pipe/tests/src/FunctionalJavascript/BigPipeRegressionTest.php
+@@ -82,7 +82,7 @@ JS;
+     $this->assertTrue($this->container->get('module_installer')->install(['render_placeholder_message_test'], TRUE), 'Installed modules.');
+ 
+     $this->drupalLogin($this->drupalCreateUser());
+-    $messages_markup = '<div role="contentinfo" aria-label="Status message"';
++    $messages_markup = '<div role="region" aria-label="Status message"';
+ 
+     $test_routes = [
+       // Messages placeholder rendered first.
+diff --git a/core/modules/system/templates/status-messages.html.twig b/core/modules/system/templates/status-messages.html.twig
+index 1385bbb7346814af7532513d96870e62fb5240e1..2b855331f8cae64482c90a73f5e9c7a092b23d58 100644
+--- a/core/modules/system/templates/status-messages.html.twig
++++ b/core/modules/system/templates/status-messages.html.twig
+@@ -23,9 +23,11 @@
+ #}
+ <div data-drupal-messages>
+ {% for type, messages in message_list %}
+-  <div role="contentinfo" aria-label="{{ status_headings[type] }}"{{ attributes|without('role', 'aria-label') }}>
++  <div role="region" aria-label="{{ status_headings[type] }}"{{ attributes|without('role', 'aria-label') }}>
+     {% if type == 'error' %}
+       <div role="alert">
++    {% elseif type == 'status' or type == 'warning' %}
++      <div role="status">
+     {% endif %}
+     {% if status_headings[type] %}
+       <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
+@@ -39,7 +41,7 @@
+     {% else %}
+       {{ messages|first }}
+     {% endif %}
+-    {% if type == 'error' %}
++    {% if type in ['error', 'status', 'warning'] %}
+       </div>
+     {% endif %}
+   </div>
+diff --git a/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php b/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php
+index eec9b277fc2d2f732eba8b9963acd3a8f9aaccae..49fbbecc44094c900a8efec57de6b0ddae0b4d30 100644
+--- a/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php
++++ b/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php
+@@ -73,21 +73,21 @@ class ModulesListFormWebTest extends BrowserTestBase {
+     // Enable a module that does not define permissions.
+     $edit = ['modules[layout_discovery][enable]' => 'layout_discovery'];
+     $this->submitForm($edit, 'Install');
+-    $this->assertSession()->elementTextContains('xpath', "//div[@role='contentinfo' and h2[text()='Status message']]", 'Module Layout Discovery has been installed.');
++    $this->assertSession()->elementTextContains('xpath', "//div[@role='status' and h2[text()='Status message']]", 'Module Layout Discovery has been installed.');
+     $this->assertSession()->elementNotExists('xpath', "//div[@role='contentinfo' and h2[text()='Status message']]//a");
+ 
+     // Enable a module that defines permissions.
+     $edit = ['modules[action][enable]' => 'action'];
+     $this->submitForm($edit, 'Install');
+-    $this->assertSession()->elementTextContains('xpath', "//div[@role='contentinfo' and h2[text()='Status message']]", 'Module Actions UI has been installed.');
+-    $this->assertSession()->elementExists('xpath', "//div[@role='contentinfo' and h2[text()='Status message']]//a[contains(@href, '/admin/people/permissions/module/action')]");
++    $this->assertSession()->elementTextContains('xpath', "//div[@role='status' and h2[text()='Status message']]", 'Module Actions UI has been installed.');
++    $this->assertSession()->elementExists('xpath', "//div[@role='status' and h2[text()='Status message']]//a[contains(@href, '/admin/people/permissions/module/action')]");
+ 
+     // Enable a module that has dependencies and both define permissions.
+     $edit = ['modules[content_moderation][enable]' => 'content_moderation'];
+     $this->submitForm($edit, 'Install');
+     $this->submitForm([], 'Continue');
+-    $this->assertSession()->elementTextContains('xpath', "//div[@role='contentinfo' and h2[text()='Status message']]", '2 modules have been installed: Content Moderation, Workflows.');
+-    $this->assertSession()->elementExists('xpath', "//div[@role='contentinfo' and h2[text()='Status message']]//a[contains(@href, '/admin/people/permissions/module/content_moderation%2Cworkflows')]");
++    $this->assertSession()->elementTextContains('xpath', "//div[@role='status' and h2[text()='Status message']]", '2 modules have been installed: Content Moderation, Workflows.');
++    $this->assertSession()->elementExists('xpath', "//div[@role='status' and h2[text()='Status message']]//a[contains(@href, '/admin/people/permissions/module/content_moderation%2Cworkflows')]");
+   }
+ 
+   /**
+diff --git a/core/modules/system/tests/src/Functional/Render/PlaceholderMessageTest.php b/core/modules/system/tests/src/Functional/Render/PlaceholderMessageTest.php
+index 68fd9543b0025172dc1275ef5ca9be6bc6b30d11..a0e50af73ce73968ff7011fc842e5475085c1bff 100644
+--- a/core/modules/system/tests/src/Functional/Render/PlaceholderMessageTest.php
++++ b/core/modules/system/tests/src/Functional/Render/PlaceholderMessageTest.php
+@@ -28,7 +28,7 @@ class PlaceholderMessageTest extends BrowserTestBase {
+    * Tests rendering of message placeholder.
+    */
+   public function testMessagePlaceholder() {
+-    $messages_markup = '<div role="contentinfo" aria-label="Status message"';
++    $messages_markup = '<div role="region" aria-label="Status message"';
+ 
+     $test_routes = [
+       // Messages placeholder rendered first.
+diff --git a/core/modules/system/tests/themes/test_messages/templates/status-messages.html.twig b/core/modules/system/tests/themes/test_messages/templates/status-messages.html.twig
+index 42f105d3df855f4dbf1637f4c1c54d261e0df083..7ef19eb5d1ca4e27228c049186bb6bbbb6e3a980 100644
+--- a/core/modules/system/tests/themes/test_messages/templates/status-messages.html.twig
++++ b/core/modules/system/tests/themes/test_messages/templates/status-messages.html.twig
+@@ -13,9 +13,11 @@
+       'messages--' ~ type,
+     ]
+   %}
+-  <div role="contentinfo" aria-label="{{ status_headings[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
++  <div role="region" aria-label="{{ status_headings[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
+     {% if type == 'error' %}
+       <div role="alert">
++    {% elseif type == 'status' or type == 'warning' %}
++      <div role="status">
+     {% endif %}
+       {% if status_headings[type] %}
+         <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
+@@ -29,7 +31,7 @@
+       {% else %}
+         {{ messages|first }}
+       {% endif %}
+-    {% if type == 'error' %}
++    {% if type in ['error', 'status', 'warning'] %}
+       </div>
+     {% endif %}
+   </div>
+diff --git a/core/profiles/demo_umami/themes/umami/templates/components/messages/status-messages.html.twig b/core/profiles/demo_umami/themes/umami/templates/components/messages/status-messages.html.twig
+index 1a65511a3d5d107beaed66cb686aa26544f15758..75b2da453366bd93a6dccb60670779318f38874a 100644
+--- a/core/profiles/demo_umami/themes/umami/templates/components/messages/status-messages.html.twig
++++ b/core/profiles/demo_umami/themes/umami/templates/components/messages/status-messages.html.twig
+@@ -28,10 +28,12 @@
+       'messages--' ~ type,
+     ]
+   %}
+-  <div role="contentinfo" aria-label="{{ status_headings[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
++  <div role="region" aria-label="{{ status_headings[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
+     <div class="messages__content container">
+       {% if type == 'error' %}
+         <div role="alert">
++      {% elseif type == 'status' or type == 'warning' %}
++        <div role="status">
+       {% endif %}
+         {% if status_headings[type] %}
+           <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
+@@ -45,7 +47,7 @@
+         {% else %}
+           <span class="messages__item">{{ messages|first }}</span>
+         {% endif %}
+-      {% if type == 'error' %}
++      {% if type in ['error', 'status', 'warning'] %}
+         </div>
+       {% endif %}
+     </div>
+diff --git a/core/tests/Drupal/FunctionalJavascriptTests/Ajax/AjaxFormPageCacheTest.php b/core/tests/Drupal/FunctionalJavascriptTests/Ajax/AjaxFormPageCacheTest.php
+index 622311c11434749f5c8a4c8d8082e5905faf5771..65834d0aae352194ff5f1a30144d75275c5c3d10 100644
+--- a/core/tests/Drupal/FunctionalJavascriptTests/Ajax/AjaxFormPageCacheTest.php
++++ b/core/tests/Drupal/FunctionalJavascriptTests/Ajax/AjaxFormPageCacheTest.php
+@@ -127,7 +127,8 @@ class AjaxFormPageCacheTest extends WebDriverTestBase {
+     // When the AJAX command updates the DOM a <ul> unsorted list
+     // "message__list" structure will appear on the page echoing back the
+     // "some dumb text" message.
+-    $placeholder = $this->assertSession()->waitForElement('css', "[aria-label='Status message'] > ul > li > em:contains('some dumb text')");
++    $this->assertSession()->waitForElement('css', "[aria-label='Status message'] > div[role='status'] > ul > li > em:contains('some dumb text')");
++    $placeholder = $this->assertSession()->elementExists('css', "[aria-label='Status message'] > div[role='status'] > ul > li > em:contains('some dumb text')");
+     $this->assertNotNull($placeholder, 'Message structure containing input data located.');
+   }
+ 
+diff --git a/core/tests/Drupal/FunctionalJavascriptTests/Ajax/ElementValidationTest.php b/core/tests/Drupal/FunctionalJavascriptTests/Ajax/ElementValidationTest.php
+index 345cef2107d2f1b5684b9b3fa084e2943e90fd51..edadc7f4e15b8a6fef509cdd42d14c6ccc047c3a 100644
+--- a/core/tests/Drupal/FunctionalJavascriptTests/Ajax/ElementValidationTest.php
++++ b/core/tests/Drupal/FunctionalJavascriptTests/Ajax/ElementValidationTest.php
+@@ -42,7 +42,7 @@ class ElementValidationTest extends WebDriverTestBase {
+     // When the AJAX command updates the DOM a <ul> unsorted list
+     // "message__list" structure will appear on the page echoing back the
+     // "some dumb text" message.
+-    $placeholder_text = $assert->waitForElement('css', "[aria-label='Status message'] > ul > li > em:contains('some dumb text')");
++    $placeholder_text = $assert->waitForElement('css', "[aria-label='Status message'] > div[role='status'] > ul > li > em:contains('some dumb text')");
+     $this->assertNotNull($placeholder_text, 'A callback successfully echoed back a string.');
+ 
+     $this->drupalGet('ajax_validation_test');
+@@ -53,7 +53,7 @@ class ElementValidationTest extends WebDriverTestBase {
+     // The AJAX request/response will complete successfully when an
+     // InsertCommand injects a message with a placeholder element into the DOM
+     // with the submitted number.
+-    $placeholder_number = $assert->waitForElement('css', "[aria-label='Status message'] > ul > li > em:contains('12345')");
++    $placeholder_number = $assert->waitForElement('css', "[aria-label='Status message'] > div[role='status'] > ul > li > em:contains('12345')");
+     $this->assertNotNull($placeholder_number, 'A callback successfully echoed back a number.');
+   }
+ 
+diff --git a/core/themes/claro/templates/misc/status-messages.html.twig b/core/themes/claro/templates/misc/status-messages.html.twig
+index 7708a745b2fcb0ecb5bd45222b9e4118634a7dab..4195e084599249cf528968f3f6775a45bcc7d83e 100644
+--- a/core/themes/claro/templates/misc/status-messages.html.twig
++++ b/core/themes/claro/templates/misc/status-messages.html.twig
+@@ -39,9 +39,11 @@
+         set is_message_with_icon = type in ['error', 'status', 'warning']
+       %}
+ 
+-      <div role="contentinfo" aria-labelledby="{{ title_ids[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
++      <div role="region" aria-labelledby="{{ title_ids[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
+         {% if type == 'error' %}
+           <div role="alert">
++        {% elseif type == 'status' or type == 'warning' %}
++          <div role="status">
+         {% endif %}
+           {% if is_message_with_title or is_message_with_icon %}
+             <div class="messages__header">
+@@ -63,7 +65,7 @@
+               {{ messages|first }}
+             {% endif %}
+           </div>
+-        {% if type == 'error' %}
++        {% if type in ['error', 'status', 'warning'] %}
+           </div>
+         {% endif %}
+       </div>
+diff --git a/core/themes/stable9/templates/media-library/status-messages.html.twig b/core/themes/stable9/templates/media-library/status-messages.html.twig
+index 9866f27401c69a162c17ecb9bdb803e43f4b0c5d..8cd70ff656cea6d9d8a0e21488cddc4fffdc247a 100644
+--- a/core/themes/stable9/templates/media-library/status-messages.html.twig
++++ b/core/themes/stable9/templates/media-library/status-messages.html.twig
+@@ -21,9 +21,11 @@
+ #}
+ <div data-drupal-messages>
+ {% for type, messages in message_list %}
+-  <div role="contentinfo" aria-label="{{ status_headings[type] }}"{{ attributes|without('role', 'aria-label') }}>
++  <div role="region" aria-label="{{ status_headings[type] }}"{{ attributes|without('role', 'aria-label') }}>
+     {% if type == 'error' %}
+       <div role="alert">
++    {% elseif type == 'status' or type == 'warning' %}
++      <div role="status">
+     {% endif %}
+     {% if status_headings[type] %}
+       <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
+@@ -37,7 +39,7 @@
+     {% else %}
+       {{ messages|first }}
+     {% endif %}
+-    {% if type == 'error' %}
++    {% if type in ['error', 'status', 'warning'] %}
+       </div>
+     {% endif %}
+   </div>

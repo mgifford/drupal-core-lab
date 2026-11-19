@@ -2324,5 +2324,137 @@
         "reports/issues/3636143/branches/3636143-toggle-hover-focus.patch"
       ]
     }
+  },
+  {
+    "slug": "2942404-pinned",
+    "issue": "2942404",
+    "label": "#2942404: System messages should be accessible, pinned core",
+    "description": "The merge request as submitted (!6112, branch 2942404-11) on the core it was based on (2024-02-01, still the contentinfo era). Before is that core, After adds the MR. The MR does NOT apply to current main, which already assigns role=alert (error, warning) and role=status (other types) in status-messages.html.twig, so this pinned pair only shows what the MR meant; it is not evidence about current core. See reports/issues/2942404/SUMMARY.md.",
+    "status": "DRAFT: investigation; the MR is stale against main and has not been run",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "66a4c78b453be62c644f7a438dd4c5190b027c59"
+    },
+    "before": {
+      "env": "baseline-2942404"
+    },
+    "after": {
+      "env": "issue-2942404",
+      "patches": [
+        "reports/issues/2942404/branches/2942404-11.patch"
+      ]
+    },
+    "pages": [
+      "/node/add/article",
+      "/admin/modules"
+    ],
+    "login": true,
+    "steps": [
+      {
+        "text": "Use a plain Standard install. Log in to both sites, create an Article (/node/add/article) and save it. A confirmation message appears after the redirect.",
+        "how": "each",
+        "lookFor": "Before: the message wrapper is role=contentinfo with an aria-label. After: role=status (and role=alert for errors), no contentinfo landmark."
+      },
+      {
+        "text": "Submit the Article form with the title empty (browser validation off, or on a form that validates on the server) so that an error message is shown.",
+        "how": "each",
+        "lookFor": "The error group is role=alert in both; check there is no second live region around it."
+      },
+      {
+        "text": "With a screen reader running (the lab does not run one), compare what is spoken after the save redirect and after an AJAX update that inserts a message (for example the media or file upload forms).",
+        "how": "each",
+        "lookFor": "Whether the message is spoken once, twice or not at all. Recorded by a person; scripted runs only list the live regions."
+      }
+    ],
+    "expected": "System messages are not exposed as a contentinfo landmark. Status and warning messages use role=status, errors use role=alert, and a message is announced once whether it is server-rendered, AJAX-inserted or delivered by BigPipe.",
+    "actual": "Not yet run. The issue says the wrapper is role=contentinfo; current main already uses role=alert or role=status, so the original defect may be fixed there.",
+    "checks": [
+      {
+        "label": "A page with a saved-content message exposes at least one message block",
+        "probe": "!!document.querySelector('[data-drupal-messages] [role], [data-drupal-messages-fallback] [role]')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "No message block uses role=contentinfo",
+        "probe": "!document.querySelector('[data-drupal-messages] [role=contentinfo], [data-drupal-messages-fallback] [role=contentinfo]')",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "Only one contentinfo landmark remains on the page (the footer, if any)",
+        "probe": "document.querySelectorAll('[role=contentinfo], footer').length <= 1",
+        "expect": true,
+        "kind": "regression"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Is the saved-content confirmation spoken exactly once after the redirect?",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Is an AJAX-inserted message spoken exactly once?",
+        "expectBefore": false,
+        "expectAfter": true
+      }
+    ],
+    "coverage": {
+      "note": "The combinations that count as tested for this issue (scripts/coverage.mjs). Edit to fit the question the issue asks.",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 480
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ]
+    }
+  },
+  {
+    "slug": "2942404-latest",
+    "extends": "2942404-pinned",
+    "label": "#2942404: same steps against the LATEST core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-2942404-latest"
+    },
+    "after": {
+      "env": "issue-2942404-latest"
+    }
   }
 ]
