@@ -12,6 +12,7 @@ One directory per issue: `reports/issues/<nid>/`.
 - `EVIDENCE.md`: how it was validated, results with exact commits. DRAFT until a person has reviewed them. (`VALIDATION.md` is the old name; rename it.)
 - `STATUS.md`: the current status snapshot; `STATUS-<date>.md` is a dated snapshot kept for history. Related issues and review threads. Statuses go stale; re-check on drupal.org.
 - `playwright/`, `screenreader/`, `compare/`: generated, dated evidence. Each summary records the core commits.
+  Run `node scripts/run-readmes.mjs <nid>` after new runs: it writes a `README.md` in each run folder (paired Before/After images, what each state means) and an index `playwright/README.md`; `--check` exits 1 if any is out of date.
 - `variants.json`: the issue's own variants (written by a pack import). Older issues keep theirs in `tools/compare/variants.json`; `tools/compare/lib.mjs` merges both.
 - `BUG.feature` (`scripts/bug-feature.mjs`, added 2026-10-16): the bug summary in Gherkin, one behaviour per scenario, each with its Before and After result and sources. `@draft` until a person reviews it. See `docs/BUG-FEATURE.md`.
 - `ISSUE-COMMENT-DRAFT.md`: a draft for the human to post. New drafts follow core's `AGENTS.md` rules for drupal.org prose (template in `reports/_templates/`); check with `scripts/check-draft.mjs`.
