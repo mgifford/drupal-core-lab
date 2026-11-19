@@ -60,7 +60,7 @@ show('Uncommitted, this issue (run with --commit)', own, (c) => `${c.code} ${c.f
 show('Uncommitted, NOT this issue (commit, ignore or delete it on purpose)', other, (c) => `${c.code} ${c.file}`);
 show('Incomplete evidence runs (no results.json: re-run it, or add an ABORTED.md saying what is known)', incomplete, (x) => x);
 
-const sites = Object.entries(variants()).filter(([k, v]) => k.startsWith(`${nid}-`) || String(v.issue) === nid).map(([k]) => k);
+const sites = variants().filter((v) => v.slug.startsWith(`${nid}-`) || String(v.issue) === nid).map((v) => v.slug);
 const st = run('node', ['scripts/lab-env.mjs', 'status']);
 const running = sites.filter((s) => new RegExp(`${s}[^\\n]*running`, 'i').test(st.stdout || ''));
 if (running.length) console.log(`\nStill running: ${running.join(', ')}. Stop them: ${running.map((s) => `node scripts/lab-env.mjs stop ${s}`).join(' ; ')}`);
