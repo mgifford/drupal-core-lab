@@ -55,10 +55,11 @@ const mark = (v, u) => (v === 'reproduced-and-fixed' && u > 0 ? `⚠ reproduced 
 
 // what the run recorded about its patches and recipe, against now: stale runs never get here
 const recMark = (rec) => (rec.status === 'current' ? ` (record: current${rec.notes.length ? `; ${rec.notes.join(', ')}` : ''})` : ` (record: none, not checked against the current patches${rec.hints.length ? `; ${rec.hints.join('; ')}: it may be stale` : ''})`);
-const staleFor = (m, kind) => stale.filter((r) => same(m, r.env) && (kind === 'latest' ? /-latest$/.test(r.variant) : !/-latest$/.test(r.variant)));
+const comparisonMatches = (r, kind) => kind === 'latest' ? /-latest$/.test(r.variant) : r.variant === pinned?.slug;
+const staleFor = (m, kind) => stale.filter((r) => same(m, r.env) && comparisonMatches(r, kind));
 const rows = []; const gaps = [];
 const cell = (m, kind) => {
-  const hits = runs.filter((r) => same(m, r.env) && (kind === 'latest' ? /-latest$/.test(r.variant) : !/-latest$/.test(r.variant))).sort((a, b) => (a.when < b.when ? 1 : -1));
+  const hits = runs.filter((r) => same(m, r.env) && comparisonMatches(r, kind)).sort((a, b) => (a.when < b.when ? 1 : -1));
   if (!hits.length) return null;
   const r = hits[0]; return { text: `${mark(r.verdict, r.unexpected)}${r.env.assumed ? ' (older run: browser and scheme assumed)' : ''}${r.themes.length ? ` (theme ${r.themes.join(', ')})` : ''}${recMark(r.rec)}`, ver: r.env.browserVersion || '', core: `\`${(r.commit || '').slice(0, 12)}\` ${r.date}`, link: `[${r.when.slice(0, 10)}](playwright/${r.dir}/SUMMARY.md)` };
 };
@@ -69,8 +70,8 @@ for (const m of matrix) {
   if (!p) gaps.push(label(m) + (blocked[m.browser] ? ` (blocked: ${blocked[m.browser]})` : sp.length ? ' (only stale runs)' : ''));
   rows.push(`| ${label(m)} | ${p ? p.text : why} | ${l ? l.text : sl.length ? `**NOT TESTED against the current patches** (${sl.length} stale run${sl.length === 1 ? '' : 's'})` : '_not run_'} | ${(p || l || {}).ver || ''} | ${[p && p.link, l && l.link].filter(Boolean).join(' · ')} |`);
 }
-// runs that are not in the matrix (other widths, schemes)
-const extra = runs.filter((r) => !matrix.some((m) => same(m, r.env)));
+// Other comparisons must not fill a pinned-core row, even when their environments match.
+const extra = runs.filter((r) => !matrix.some((m) => same(m, r.env)) || (!comparisonMatches(r, 'pinned') && !comparisonMatches(r, 'latest')));
 
 // ---- manual logs saved from the viewer
 const manual = []; const md = path.join(dir, 'manual');
@@ -89,7 +90,7 @@ ${gaps.length ? `## Gaps: ${gaps.length} automated environment${gaps.length === 
 | Environment | Pinned core | Latest core | Browser version | Evidence |
 |---|---|---|---|---|
 ${rows.join('\n')}
-${extra.length ? `\nOther runs: ${extra.map((r) => `${label({ browser: r.env.browser, scheme: r.env.colorScheme, forced: r.env.forcedColors, width: r.env.viewport && r.env.viewport.width })} (${r.when.slice(0, 10)}${r.themes.length ? `, theme ${r.themes.join(', ')}` : ''}, ${mark(r.verdict, r.unexpected)})${recMark(r.rec)}`).join('; ')}.\n` : ''}${stale.length ? `\nStale runs (kept, not counted: what they recorded differs from the variant now, so they are evidence about an older state; run them again): ${stale.map((x) => `\`${x.dir}\` (${x.reasons.join('; ')})`).join('; ')}.\n` : ''}${superseded.length ? `\nSuperseded runs (kept, not counted): ${superseded.map((x) => `\`${x.dir}\` (${x.reason}${x.by ? `; see \`${x.by}\`` : ''})`).join('; ')}.\n` : ''}
+${extra.length ? `\nOther runs: ${extra.map((r) => `${label({ browser: r.env.browser, scheme: r.env.colorScheme, forced: r.env.forcedColors, width: r.env.viewport && r.env.viewport.width })} (${r.when.slice(0, 10)}${r.themes.length ? `, theme ${r.themes.join(', ')}` : ''}, ${mark(r.verdict, r.unexpected)})${recMark(r.rec)} [comparison: \`${r.variant}\`]`).join('; ')}.\n` : ''}${stale.length ? `\nStale runs (kept, not counted: what they recorded differs from the variant now, so they are evidence about an older state; run them again): ${stale.map((x) => `\`${x.dir}\` (${x.reasons.join('; ')})`).join('; ')}.\n` : ''}${superseded.length ? `\nSuperseded runs (kept, not counted): ${superseded.map((x) => `\`${x.dir}\` (${x.reason}${x.by ? `; see \`${x.by}\`` : ''})`).join('; ')}.\n` : ''}
 ## Manual checks (a person)
 Save the viewer's "Download log" into \`reports/issues/${nid}/manual/\`; it records the environment you tested in.
 
