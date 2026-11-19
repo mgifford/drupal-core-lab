@@ -33,6 +33,7 @@ Details, commands and the step table: [REPRODUCE.md](REPRODUCE.md). The pinned v
 - Live preview (`migration/js/accent.js`, `settings.js`): a custom color is applied only if it is a six-digit hex color. Otherwise the last valid color stays, the typed text stays editable, and the field gets `aria-invalid` and a `role="alert"` message tied to it by `aria-describedby`. The `#000` fallback of the "custom" preset is no longer installed, and an invalid custom focus color never switches `data-admin-focus` to `custom`.
 - Server (`Settings.php`): the fields validate on save with a message that says what is accepted (only while the matching preset is Custom), have a description naming the format, and the HTML pattern is anchored.
 - Rendering (`Settings::getRenderableColors()`, `PreprocessHooks`, `ThemeHooks`): a stored invalid value is never printed into the `style` attribute or `drupalSettings`; the preset falls back to the default.
+- Scope decision (owner, 2026-11-19): this issue stays hex-only. CSS named colors such as `red` or `purple` are valid CSS but are deliberately rejected here and tested as invalid; broader color validation is for a separate stand-alone issue.
 - Not in this proposal: any color syntax beyond six-digit hex (Phases 2 to 4 of the implementation prompt: named colors, `rgb()`, `oklch()`, a parser, opacity policy). The contrast check for the accent color is a separate issue, [#3637296](https://www.drupal.org/i/3637296).
 
 ## Evidence and readiness
