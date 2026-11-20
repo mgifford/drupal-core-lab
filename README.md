@@ -229,6 +229,7 @@ Detailed guides and technical references are maintained separately from this int
 - [Results and evidence layout](docs/RESULTS-LAYOUT.md)
 - [Accessibility requirements](ACCESSIBILITY.md)
 - [AI agent instructions](AGENTS.md)
+- [Technical reference](docs/TECHNICAL-REFERENCE.md)
 
 ## Relationship to Drupal
 
