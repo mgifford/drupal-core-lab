@@ -15,7 +15,7 @@ const git = (dir, args, o = {}) => spawnSync('git', args, { cwd: dir, encoding: 
 const firstLine = (r) => `${r.stderr || r.stdout || ''}`.trim().split('\n')[0].slice(0, 220);
 
 // Files the lab itself puts in a checkout: never part of a change under test. Contrib project folders have their own patches.
-export const labFiles = (recipe, contribProjects = []) => [MARKER, '.lab-contrib-patches-applied', ...(recipe ? [`recipes/${recipe}`] : []), ...contribProjects.flatMap((project) => {
+export const labFiles = (recipe, contribProjects = []) => [MARKER, '.lab-contrib-patches-applied', '.lab-css-build.json', '.lab-css', '.lab-lint', ...(recipe ? [`recipes/${recipe}`] : []), ...contribProjects.flatMap((project) => {
   const p = typeof project === 'string' ? { name: project } : project;
   return [`.lab-contrib-${p.name}`, contribProjectPath(p)];
 })];

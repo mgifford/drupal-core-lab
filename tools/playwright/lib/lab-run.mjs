@@ -24,6 +24,7 @@ import { runBlockReason } from '../../compare/patch-state.mjs';
 import { sideState } from '../../compare/contrib-state.mjs';
 import { identity, blockMessage, identityRecord } from '../../compare/env-state.mjs';
 import { noChangeProblem } from '../../compare/change-under-test.mjs';
+import { analyze as cssAnalyze } from '../../compare/css-build.mjs';
 import { RECORDER } from './recorder.mjs';
 import { silentMarkdown } from './silent-changes.mjs';
 export { VERDICTS } from './run-schema.mjs';
@@ -60,6 +61,12 @@ export async function launch(a) {
   if (idn.problems.length) throw new Error(blockMessage(idn));
   if (ps.after.outside && ps.after.outside.length) console.warn(`WARNING: tracked files changed outside the patches in ${a.v.after.env}: ${ps.after.outside.slice(0, 6).join(', ')}${ps.after.outside.length > 6 ? ', ...' : ''}. The run goes ahead and records them in results.json (patchState.after.outside).`);
   for (const side of ['before', 'after']) if (ps[side].state === 'unverified') console.warn(`WARNING: the ${side} environment's patches are recorded by name only, not by content; run \`node tools/compare/setup.mjs ${a.v.slug}\` once to verify and record them.`);
+  // Is the generated CSS the browser will load the CSS the patch's PostCSS source produces? Read-only; a mismatch is stated, not repaired, and the run goes on.
+  try {
+    const css = cssAnalyze({ slug: a.v.slug, side: 'after', mode: 'host', install: false });
+    a.cssBuild = css.relevant ? { overall: css.overall, files: css.entries.map((e) => ({ source: e.source, state: e.state, origin: e.origin })) } : { overall: 'SKIPPED', files: [] };
+    if (css.relevant && css.overall !== 'PASS') console.warn(`WARNING: CSS build ${css.overall} for ${a.v.slug} (After): ${css.entries.filter((e) => e.result !== 'PASS').map((e) => `${path.basename(e.source)} ${e.state}`).join(', ') || css.notes.join(' ')}. The browser may not be testing the CSS this patch's source produces, so this run does not validate the submitted patch. Details: node scripts/css-build.mjs ${a.v.slug}`);
+  } catch (e) { a.cssBuild = { overall: 'NOT VERIFIED', files: [], error: String(e.message).slice(0, 160) }; }
   const b = await BROWSERS[a.browser].launch({ handleSIGINT: false, handleSIGTERM: false, handleSIGHUP: false, ...(a.executablePath ? { executablePath: a.executablePath } : {}) });   // executablePath: tree-diff.mjs --chromium=
   const environment = { browser: a.browser, browserVersion: b.version(), colorScheme: a.scheme, forcedColors: a.forced, viewport: a.viewport, os: `${process.platform} ${process.arch}` };
   return { browser: b, environment };
@@ -148,6 +155,7 @@ export function contextMarkdown(results) {
   md += `| Profile; default / admin theme (config) | ${B.site.profile}; ${B.site.theme?.default} / ${B.site.theme?.admin} | ${A.site.profile}; ${A.site.theme?.default} / ${A.site.theme?.admin} |\n`;
   md += `| Theme that rendered each page | ${themes(B)} | ${themes(A)} |\n| Languages (default) | ${list(B.site.languages)} (${B.site.defaultLangcode}) | ${list(A.site.languages)} (${A.site.defaultLangcode}) |\n`;
   md += `| Modules only on this side | ${list(onlyIn(B, A))} | ${list(onlyIn(A, B))} |\n| Enabled modules | ${(B.site.modules || []).length} | ${(A.site.modules || []).length} |\n`;
+  if (results.cssBuild && results.cssBuild.overall !== 'SKIPPED') md += `\nCSS build of the After patch stack (core's build:css, separate from accessibility results): **${results.cssBuild.overall}**${results.cssBuild.overall === 'PASS' ? '' : ': the browser may not be loading the CSS this patch\'s PostCSS source produces, so this run does not validate the submitted patch'}.\n`;
   for (const s of [B, A]) if (s.site.error || s.site.dbError) md += `\n${s.side}: ${s.site.error || s.site.dbError}\n`;
   return md + '\n';
 }
@@ -183,5 +191,5 @@ export function writeRun(run, results, md) {
 }
 
 export function baseResults(run, environment) {
-  return { variant: run.v.slug, issue: run.v.issue, when: new Date().toISOString(), environment, core: run.v.core, patches: run.v.after.patches || [], patchState: sidePatchStates(run.v), identity: identityRecord(identity(run.v, { labRoot, envDir })), commits: { before: gitInfo(run.v.before.env), after: gitInfo(run.v.after.env) }, sides: {} };
+  return { variant: run.v.slug, issue: run.v.issue, when: new Date().toISOString(), environment, core: run.v.core, patches: run.v.after.patches || [], patchState: sidePatchStates(run.v), identity: identityRecord(identity(run.v, { labRoot, envDir })), commits: { before: gitInfo(run.v.before.env), after: gitInfo(run.v.after.env) }, cssBuild: run.cssBuild || null, sides: {} };
 }

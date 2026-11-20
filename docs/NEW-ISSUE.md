@@ -45,6 +45,9 @@ when you want the exact original reproduction recorded. Stop the previous issue'
 Environments are named `baseline-<nid>` and `issue-<nid>`. Two issues may share a baseline if they pin the same core commit:
 give them the same `before.env`. Keep two or three DDEV projects running at most (`ddev stop` the others).
 
+## 3b. Generated CSS (when the change touches a `.pcss.css`)
+Core compiles `*.pcss.css` into `*.css` and its CI fails a merge request where they differ. `new-issue.mjs` notes it in `reports/issues/<nid>/css-build.json` when the imported patch has PostCSS sources (and says if the compiled file is missing from the patch). You do not run the build by hand while authoring: `scripts/capture-patch.mjs` rebuilds your own stale or missing compiled files with core's `yarn run build:css` before it writes a patch, and `scripts/lint.mjs` reports the CSS build separately from Stylelint. For an imported merge request, `node scripts/css-build.mjs <slug>` only reports; a repair is `--build --corrective`, written up as a follow-up patch and interdiff, never an edit of the imported patch. Browser runs record the CSS build status and warn when the browser may not be loading the CSS the patch's source produces.
+
 ## 4. Script it and record evidence
 Write `tools/playwright/evaluate-<nid>.mjs` on `tools/playwright/lib/lab-run.mjs` (`evaluate-3618230.mjs` is the example; see
 `tools/playwright/README.md`). The library records the theme, modules, AJAX commands and announcements of every run, so the script

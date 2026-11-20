@@ -66,9 +66,9 @@ test('an environment that holds exactly the declared patches has nothing to capt
 
 test("the lab's own marker file and recipe copy are left out when asked, an extra path too", () => {
   const dir = repo(); write(path.join(dir, MARKER), 'p/x.patch\n'); write(path.join(dir, 'recipes/repro_1/recipe.yml'), 'name: x\n'); write(path.join(dir, 'core/scratch.txt'), 's\n'); write(path.join(dir, 'core/real.txt'), 'r\n');
-  assert.deepEqual(labFiles('repro_1'), [MARKER, '.lab-contrib-patches-applied', 'recipes/repro_1']);
-  assert.deepEqual(labFiles(null, ['toolbar']).slice(2), ['.lab-contrib-toolbar', 'modules/contrib/toolbar']);
-  assert.deepEqual(labFiles(null, [{ name: 'olivero', type: 'theme' }]).slice(2), ['.lab-contrib-olivero', 'themes/contrib/olivero']);
+  assert.deepEqual(labFiles('repro_1'), [MARKER, '.lab-contrib-patches-applied', '.lab-css-build.json', '.lab-css', '.lab-lint', 'recipes/repro_1']);
+  assert.deepEqual(labFiles(null, ['toolbar']).slice(5), ['.lab-contrib-toolbar', 'modules/contrib/toolbar']);
+  assert.deepEqual(labFiles(null, [{ name: 'olivero', type: 'theme' }]).slice(5), ['.lab-contrib-olivero', 'themes/contrib/olivero']);
   const c = captureEdits(dir, [], { exclude: [...labFiles('repro_1'), 'core/scratch.txt'] }); assert.deepEqual(c.files, [{ status: 'A', path: 'core/real.txt' }]);
   assert.equal(captureEdits(dir, []).files.length, 4, 'without the exclusions all four show');
 });

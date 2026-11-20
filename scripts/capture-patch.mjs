@@ -14,6 +14,7 @@ import { labRoot, rawVariants, variants, envDir } from '../tools/compare/lib.mjs
 import { captureEdits, labFiles } from '../tools/compare/capture.mjs';
 import { spawnSync } from 'node:child_process';
 import { ensurePatches, inspect } from '../tools/compare/patch-state.mjs';
+import { analyze } from '../tools/compare/css-build.mjs';
 
 const args = process.argv.slice(2), slug = args.find((a) => !a.startsWith('--') && !['--name', '--exclude'].includes(args[args.indexOf(a) - 1]));
 const val = (n) => { const i = args.indexOf(`--${n}`); return i >= 0 && args[i + 1] && !args[i + 1].startsWith('--') ? args[i + 1] : null; };
@@ -24,9 +25,22 @@ const v = variants().find((x) => x.slug === slug); if (!v) fail(`No variant ${sl
 const nid = v.issue || ((v.after.patches || [])[0] || '').match(/reports\/issues\/(\d+)\//)?.[1]; if (!nid) fail(`${slug} has no issue number (set "issue" in the variant).`);
 const dir = envDir(v.after.env); if (!fs.existsSync(dir)) fail(`The After environment ${v.after.env} does not exist. Build it first: node tools/compare/setup.mjs ${slug}`);
 const declared = v.after.patches || [], bufs = declared.map((p) => fs.readFileSync(path.join(labRoot, p)));
+const name = val('name');
+// CSS preflight: a change to a .pcss.css source must travel with its compiled .css. When a patch is being written, the author's own stale or missing compiled
+// files are rebuilt first with core's toolchain (the imported patches are never rewritten; a stale imported file is only reported). Without --name this only checks.
+if (!args.includes('--no-css-build')) {
+  const css = analyze({ slug, side: 'after', build: !!name, corrective: false });
+  if (css.relevant) {
+    const mine = css.entries.filter((e) => e.origin !== 'imported'), theirs = css.entries.filter((e) => e.origin === 'imported');
+    for (const e of css.built ? css.entries.filter((x) => x.built && x.changed) : []) console.log(`CSS: rebuilt ${e.compiled} from ${e.source} with core's build:css.`);
+    for (const e of theirs.filter((x) => ['FAIL', 'BLOCKED'].includes(x.result))) console.log(`CSS WARNING: ${e.detail} It comes from an imported patch, which is not changed here (node scripts/css-build.mjs ${slug} --build --corrective writes a separate follow-up).`);
+    const bad = mine.filter((e) => ['FAIL', 'BLOCKED'].includes(e.result));
+    if (css.overall === 'BLOCKED' && !mine.length) console.log(`CSS: not checked (${css.notes.join(' ') || 'toolchain missing'}).`);
+    if (bad.length) fail(`Not captured: the CSS build is not ready.\n${bad.map((e) => `  ${e.result}: ${e.detail}${e.refused ? ` ${e.refused}` : ''}`).join('\n')}\nFix it (node scripts/css-build.mjs ${slug} --build), or skip this check with --no-css-build (recorded nowhere: the patch may then fail core's CSS check).`);
+  }
+}
 const cap = captureEdits(dir, bufs, { exclude: [...labFiles(v.recipe, v.contrib || []), ...vals('exclude')] });
 if (!cap.ok) fail(`Nothing captured: ${cap.error}`);
-const name = val('name');
 console.log(`${v.after.env}: ${cap.files.length ? `${cap.files.length} file(s) changed beyond the ${declared.length} declared patch(es):` : `nothing changed beyond the ${declared.length} declared patch(es); nothing to capture.`}`);
 for (const f of cap.files.slice(0, 40)) console.log(`  ${f.status}  ${f.path}`);
 if (cap.files.length > 40) console.log(`  ... and ${cap.files.length - 40} more`);

@@ -20,6 +20,7 @@ const nid = args.find((a) => /^\d{5,8}$/.test(a));
 const branch = flag('branch'); const title = flag('title', `Issue ${nid}`); const depth = flag('depth', '300');
 const dry = args.includes('--dry-run'), refresh = args.includes('--refresh'), authoring = args.includes('--authoring');
 if (!nid || (!branch && !authoring) || (branch && authoring)) { console.error('usage: node scripts/new-issue.mjs <nid> --branch <fork-branch> [--title "<title>"] | <nid> --authoring')  /* the branch and --authoring exclude each other */; console.error('       full form: --branch <fork-branch> [--title "<title>"] [--depth 300] [--variants-file <path>] [--dry-run]'); process.exit(2); }
+import { staticSurvey } from '../tools/compare/css-build.mjs';
 const bare = path.join(labRoot, 'envs/core.git');
 if (!fs.existsSync(bare)) { console.error('envs/core.git does not exist yet. Run: node tools/compare/setup.mjs <any-slug> (it creates the shared core clone), or: git init --bare envs/core.git && git -C envs/core.git remote add origin https://git.drupalcode.org/project/drupal.git'); process.exit(1); }
 // Auto-gc and maintenance off: after the first shallow fetch git starts a background cleanup, which makes the second fetch fail
@@ -106,5 +107,11 @@ if (!all.some((x) => x.slug === pinned)) {
     coverage: { note: 'The combinations that count as tested for this issue (scripts/coverage.mjs). Edit to fit the question the issue asks.', matrix: NEW_ISSUE_MATRIX } });
   all.push({ slug: latest, extends: pinned, label: `#${nid}: same steps against the LATEST core main`, core: { ref: 'main', commit: null }, before: { env: `baseline-${nid}-latest` }, after: { env: `issue-${nid}-latest` } });
   fs.writeFileSync(vf, JSON.stringify(all, null, 2) + '\n');
+}
+// Does the patch change PostCSS sources (*.pcss.css)? A static look, no toolchain. Skipped for issues without any.
+const cssSurvey = staticSurvey(patch);
+if (cssSurvey.relevant) {
+  fs.writeFileSync(path.join(dir, 'css-build.json'), JSON.stringify({ surveyed: date, patch: patchRel, ...cssSurvey }, null, 2) + '\n');
+  console.log(`\nPostCSS: the patch changes ${cssSurvey.sources} .pcss.css source(s)${cssSurvey.missingCompiled.length ? `; NO compiled .css in the patch for ${cssSurvey.missingCompiled.join(', ')}, so core's CSS check would fail on it` : ' and carries their compiled .css'}. Check it with core's own build: node scripts/css-build.mjs <slug> --check   (recorded in css-build.json)`);
 }
 console.log(`\nCreated reports/issues/${nid}/ (patch: ${files.length} files, base ${base.slice(0, 12)} ${baseInfo}), recipes/${recipe}/, variants ${pinned} and ${latest}.\n\nNext:\n  1. Edit tools/compare/variants.json (${pinned}): pages, steps, expected, checks, observe.\n  2. Edit recipes/${recipe}/recipe.yml so the starting state exists.\n  3. node tools/compare/setup.mjs ${pinned} --check-patches   then   node tools/compare/setup.mjs ${pinned}\n  4. node tools/compare/serve.mjs ${pinned}   and follow reports/issues/${nid}/REPRODUCE.md`);
