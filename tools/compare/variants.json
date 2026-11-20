@@ -2346,7 +2346,9 @@
     },
     "pages": [
       "/node/add/article",
-      "/admin/content"
+      "/admin/content",
+      "/lab/status-messages",
+      "/admin/lab/status-messages"
     ],
     "login": true,
     "steps": [
@@ -2441,7 +2443,8 @@
         }
       ]
     },
-    "recipe": "repro_2942404"
+    "recipe": "repro_2942404",
+    "testExtensions": true
   },
   {
     "slug": "2942404-latest",
@@ -2464,7 +2467,9 @@
     },
     "pages": [
       "/node/add/article",
-      "/admin/content"
+      "/admin/content",
+      "/lab/status-messages",
+      "/admin/lab/status-messages"
     ],
     "steps": [
       {
@@ -2481,6 +2486,11 @@
         "text": "Press Clear all caches on /admin/config/development/performance, and submit a wrong password on /user/login while logged out.",
         "how": "each",
         "lookFor": "A status message in the admin theme and an error in the front-end theme: the same structure as above in each theme."
+      },
+      {
+        "text": "Open /system-test/status-messages-for-assertions (core's own fixture: a status, an error and a warning message together, plus quotes, ampersands and escaped markup). This is the one page where all three message types render at once.",
+        "how": "each",
+        "lookFor": "Three groups on every side: status, warning, error. Compare the landmark list, the heading list and the roles. Before: no message landmark. B: one region per type. C: one region around all three."
       },
       {
         "text": "Open the browser's landmark list (or a screen reader's landmarks rotor) on a page with a message.",
@@ -2513,6 +2523,104 @@
         "probe": "!!document.querySelector('[data-drupal-messages] [role=region]')",
         "expect": true,
         "kind": "fix"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Is the saved-content confirmation spoken exactly once after the redirect?",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Does the landmark list show one entry per message type, and is that useful rather than noisy?",
+        "expectBefore": false,
+        "expectAfter": true
+      }
+    ]
+  },
+  {
+    "slug": "2942404-consolidated",
+    "extends": "2942404-pinned",
+    "label": "#2942404: current main vs ONE consolidated \"System messages\" region (Variant C)",
+    "description": "Before is current core main (Variant A, the same checkout as the 2942404-latest comparison). After is main plus a lab-authored option that wraps the message groups in ONE named landmark: the [data-drupal-messages] container becomes role=region with the accessible name 'System messages', and the existing per-type groups keep role=status (status) or role=alert (error and warning) and their headings. No nested live regions, no aria-live, no focus change. Templates only (system, Default Admin, starterkit). Variant B (a region per type) is the 2942404-latest comparison. This is an option to evaluate, not a recommendation.",
+    "status": "DRAFT: lab-authored option for comparison; human review required",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-2942404-latest"
+    },
+    "after": {
+      "env": "issue-2942404-consolidated",
+      "patches": [
+        "reports/issues/2942404/branches/2942404-consolidated-region.patch"
+      ]
+    },
+    "pages": [
+      "/node/add/article",
+      "/admin/content",
+      "/lab/status-messages",
+      "/admin/lab/status-messages"
+    ],
+    "steps": [
+      {
+        "text": "Log in to both sites (the recipe adds the Article content type). Open /node/add/article, type a title and press Save. A status message appears on the new article after the redirect (front-end theme, Stark). Leave the page as it is, then press Run checks: the checks read the page each frame is on, so a message must be showing.",
+        "how": "each",
+        "lookFor": "Before: one element with role=status labelled 'Status message'. After: a region landmark labelled 'Status message' that contains an inner role=status. No contentinfo on either."
+      },
+      {
+        "text": "Open /node/add/article again and press Save with the title empty. Browser validation stops the form first; turn it off (the evaluate script does) or submit from a form that validates on the server. An error message appears (admin theme).",
+        "how": "each",
+        "lookFor": "Both: role=alert for the error. After adds a region landmark around it."
+      },
+      {
+        "text": "Press Clear all caches on /admin/config/development/performance, and submit a wrong password on /user/login while logged out.",
+        "how": "each",
+        "lookFor": "A status message in the admin theme and an error in the front-end theme: the same structure as above in each theme."
+      },
+      {
+        "text": "Open /system-test/status-messages-for-assertions (core's own fixture: a status, an error and a warning message together, plus quotes, ampersands and escaped markup). This is the one page where all three message types render at once.",
+        "how": "each",
+        "lookFor": "Three groups on every side: status, warning, error. Compare the landmark list, the heading list and the roles. Before: no message landmark. B: one region per type. C: one region around all three."
+      },
+      {
+        "text": "Open the browser's landmark list (or a screen reader's landmarks rotor) on a page with a message.",
+        "how": "each",
+        "lookFor": "Before: no landmark for the message. After: one region landmark per message type, so a page may have several."
+      },
+      {
+        "text": "With a screen reader, compare what is spoken after the save redirect and when a message is added by JavaScript. The lab runs none; record it as a person's result.",
+        "how": "each",
+        "lookFor": "Spoken once, twice or not at all, and whether warnings (alert on Before, status on After for server messages) are announced at a suitable time."
+      }
+    ],
+    "expected": "Messages stay announced exactly as on main (status polite, error and warning assertive), and one named landmark lets a screen-reader user jump to all current messages.",
+    "actual": "Not yet decided. Before has no message landmark; After adds one named region around the groups.",
+    "checks": [
+      {
+        "label": "A message is on the page. Do step 1 first (save an Article), then run the checks on the page you land on",
+        "probe": "!!document.querySelector('[data-drupal-messages] [role=alert], [data-drupal-messages] [role=status]')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "No message block uses role=contentinfo",
+        "probe": "!document.querySelector('[data-drupal-messages] [role=contentinfo], [data-drupal-messages][role=contentinfo]')",
+        "expect": true,
+        "kind": "regression"
+      },
+      {
+        "label": "Exactly one message landmark, named, around the groups (Variant C)",
+        "probe": "document.querySelectorAll('[data-drupal-messages][role=region][aria-label]').length === 1",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "No live region is nested inside another live region",
+        "probe": "!document.querySelector('[role=alert] [role=alert], [role=alert] [role=status], [role=status] [role=status], [role=status] [role=alert], [aria-live] [role=alert], [aria-live] [role=status]')",
+        "expect": true,
+        "kind": "regression"
       }
     ],
     "observe": [

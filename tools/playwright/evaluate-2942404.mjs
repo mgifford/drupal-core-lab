@@ -26,6 +26,12 @@ const measure = () => {
   const landmarks = [...document.querySelectorAll('[role=region],[role=contentinfo],[role=alert],[role=status],footer,main,nav,aside,header,[role=banner],[role=complementary]')].filter((e) => !e.closest('[hidden]')).map((e) => ({ role: e.getAttribute('role') || e.tagName.toLowerCase(), name: name(e), inMessages: !!e.closest('[data-drupal-messages]') }));
   return {
     path: location.pathname, blocks: blocks.map(describe), landmarks,
+    rootCount: roots.length,
+    roots: roots.map((r) => ({ role: r.getAttribute('role'), name: name(r) })),
+    liveRegions: [...document.querySelectorAll('[data-drupal-messages] [role=alert], [data-drupal-messages] [role=status], [data-drupal-messages][role=alert], [data-drupal-messages][role=status]')].map((e) => ({ role: e.getAttribute('role'), name: name(e), nestedInLive: !!e.parentElement?.closest('[role=alert],[role=status],[aria-live]') })),
+    headings: [...document.querySelectorAll('[data-drupal-messages] :is(h1,h2,h3,h4,h5,h6)')].map((h) => `${h.tagName.toLowerCase()} ${h.textContent.trim().replace(/\s+/g, ' ')}`),
+    dupIds: (() => { const seen = {}; let n = 0; for (const e of document.querySelectorAll('[id]')) { if (seen[e.id]) n++; seen[e.id] = 1; } return n; })(),
+    active: (() => { const a = document.activeElement; return a && a !== document.body ? `${a.tagName.toLowerCase()}${a.id ? '#' + a.id : ''}` : 'body'; })(),
     contentinfoInMessages: !!document.querySelector('[data-drupal-messages] [role=contentinfo], [data-drupal-messages][role=contentinfo]'),
     contentinfoCount: document.querySelectorAll('[role=contentinfo], body > footer, footer').length,
     html: roots.map((r) => r.outerHTML.replace(/\s+/g, ' ')).join('\n').slice(0, 1600),
@@ -84,6 +90,20 @@ async function side(name) {
   await page.evaluate(() => { const m = new Drupal.Message(); m.add('A JavaScript warning.', { type: 'warning' }); m.add('A JavaScript status message.', { type: 'status' }); });
   const js = await scenario('js-warning-and-status', 'Warning and status added by Drupal.Message (client-rendered; not changed by the option)');
 
+  // 3b. All three message types at once from core's own fixture (system_test), in the front-end theme; then JavaScript messages added next to them.
+  await page.goto(`${base}/system-test/status-messages-for-assertions`); await page.waitForLoadState('load');
+  await page.waitForSelector('[data-drupal-messages] [role]', { timeout: 15000 }).catch(() => {});
+  const fixture = await scenario('all-types-fixture', 'Status, warning and error together, with quotes, an ampersand and escaped markup (core system_test fixture, front-end theme)');
+  await page.locator('body').click({ position: { x: 5, y: 5 } }).catch(() => {});
+  const focusBefore = await page.evaluate(() => { const a = document.activeElement; return a && a !== document.body ? `${a.tagName.toLowerCase()}${a.id ? '#' + a.id : ''}` : 'body'; });
+  await page.evaluate(() => { const m = new Drupal.Message(); m.add('A JavaScript status after the server messages.', { type: 'status' }); });
+  const jsNext = await scenario('js-next-to-server-messages', 'A JavaScript message added to a page that already shows server-rendered messages (does it land inside the same container?)');
+  rec.focusMoved = jsNext.active !== focusBefore;
+
+  // 3c. A page with no messages: no message container may enter landmark navigation.
+  await page.goto(`${base}/admin/content`); await page.waitForLoadState('load'); await page.waitForTimeout(800);
+  const empty = await scenario('empty-state', 'A page with no messages');
+
   // 4. Server-rendered error in the front-end theme (Stark, the system template): a wrong password while logged out.
   await page.context().clearCookies();
   await page.goto(`${base}/user/login`); await page.waitForLoadState('load');
@@ -99,7 +119,19 @@ async function side(name) {
   rec.checks.everyBlockIsNamed = [status, error, statusAdmin, front].every((s) => s.blocks.every((b) => b.name || b.heading));
   rec.checks.errorIsAlert = [error, front].every((s) => s.blocks.some((b) => b.role === 'alert' || b.inner.some((i) => /^alert/.test(i))));
   rec.checks.noMessageBlockHasTwoLiveRegions = [status, error, statusAdmin, front].every((s) => s.blocks.every((b) => (b.role && ['alert', 'status'].includes(b.role) ? 1 : 0) + b.inner.filter((i) => /^(alert|status)/.test(i)).length <= 1));
+  const all = [status, error, statusAdmin, fixture, jsNext, front, js];
+  rec.checks.noDuplicateIds = all.every((x) => x.dupIds === 0);
+  rec.checks.noNestedLiveRegions = all.every((x) => x.liveRegions.every((l) => !l.nestedInLive));
+  rec.checks.emptyStateHasNoMessageLandmark = empty.rootCount === 0 && empty.landmarks.filter((l) => l.inMessages && l.role === 'region').length === 0;
+  rec.checks.javascriptMessagesDoNotMoveFocus = !rec.focusMoved;
+  rec.checks.allThreeTypesHaveTheirOwnGroup = ['Status message', 'Warning message', 'Error message'].every((h) => fixture.liveRegions.some((l) => l.name === h)) && fixture.liveRegions.filter((l) => l.role === 'alert').length >= 2 && fixture.liveRegions.some((l) => l.role === 'status');
+  rec.checks.groupsKeepTheirHeadings = fixture.headings.length >= 3;
   rec.design = {
+    fixtureLandmarks: fixture.landmarks.filter((l) => l.inMessages && l.role === 'region').map((l) => l.name || '(unnamed)'),
+    fixtureHeadings: fixture.headings,
+    fixtureRoots: fixture.roots,
+    jsJoinedServerContainer: jsNext.rootCount === fixture.rootCount,
+    jsOnlyRoots: js.roots,
     messageLandmarks: [status, error, statusAdmin, front].map((s) => s.landmarks.filter((l) => l.role === 'region' && l.inMessages).length),
     jsWarningRole: js.blocks.map((b) => b.role || b.inner[0]).join(', '),
     serverWarningRole: 'not exercised (no server-rendered warning on a stock page); main uses alert, the option uses status',
@@ -118,7 +150,7 @@ const summarize = (results) => {
   md += `\n## Design facts\n\n`;
   for (const n of ['before', 'after']) { const d = results.sides[n].design; md += `- **${n}**: message region landmarks per scenario ${d.messageLandmarks.join(' / ')}; JavaScript message roles: ${d.jsWarningRole}; server warning: ${d.serverWarningRole}\n`; }
   md += `\n## axe-core (WCAG 2.2 A/AA tags; violation counts per scenario, Before → After)\n\n`;
-  for (const id of ['article-saved-frontend', 'article-form-error-admin', 'status-admin-cache-cleared', 'server-error-frontend', 'js-warning-and-status']) { const b = results.sides.before.scenarios.find((s) => s.id === id), a = results.sides.after.scenarios.find((s) => s.id === id); md += `- ${id}: ${b?.axe.total} → ${a?.axe.total}${Object.keys(a?.axe.rules || {}).length ? ` (After rules: ${Object.entries(a.axe.rules).map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}\n`; }
+  for (const id of results.sides.before.scenarios.map((x) => x.id)) { const b = results.sides.before.scenarios.find((s) => s.id === id), a = results.sides.after.scenarios.find((s) => s.id === id); md += `- ${id}: ${b?.axe.total} → ${a?.axe.total}${Object.keys(a?.axe.rules || {}).length ? ` (After rules: ${Object.entries(a.axe.rules).map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}\n`; }
   return md + '\n' + contextMarkdown(results);
 };
 
