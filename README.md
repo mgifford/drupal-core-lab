@@ -1,66 +1,250 @@
-# drupal-core-lab
+# Drupal Core Lab
 
-![A short looped demonstration of the side-by-side viewer. Two Drupal sites sit next to each other: core on the left, core plus the change on the right. A form is submitted once and both sides show the same errors. After closing a group of fields, the right-hand side marks it with a red bar and an error icon while the left does not. The colour mode is switched to dark and the width to mobile with one click each.](docs/images/viewer-demo.gif)
+**A reproducible testing environment for investigating Drupal Core issues, evaluating proposed fixes, and collecting evidence for the Drupal community.**
 
-*What it does in about 15 seconds: two Drupal sites side by side, one set of steps, the difference marked. Low resolution on purpose; the live viewer is full size.*
+Drupal Core Lab helps contributors determine whether a proposed change fixes a problem without introducing new regressions.
 
-A workspace for **evaluating Drupal core changes**, kept separate from Drupal core itself. For an issue it can: build upstream core
-and a patched copy side by side, let a person reproduce the problem and confirm the fix, replay the steps with real input and
-axe-core, compare what each site serves, and keep the evidence so the work can be **repeated later, on the same core or on updated
-Drupal**. Runs locally with DDEV. An opt-in path for a DDEV Coder (coder.ddev.com) workspace is in `tools/compare/cloud/README.md` (partly tested; see its status table). Nothing is posted anywhere automatically.
+It creates two comparable Drupal environments: one running the original code and another running the proposed change. Contributors can reproduce the problem, examine both implementations, run accessibility tests, and document the results.
 
-![Two Drupal sites side by side: upstream Drupal on the left, where clicking the error link does nothing, and the same page with the change on the right, where the sidebar opened to show the invalid field.](docs/images/viewer-frames.png)
+Each experiment records enough information to repeat the evaluation against the same Drupal revision or a newer version of Drupal.
 
-*The side-by-side viewer: upstream Drupal (left) and the same page with a patch (right), showing issue #3619127 (error links that should open the form's sidebar). It repeats your setup in both frames, runs checks, and compares accessibility as you click.*
+**[Explore the published Lab](https://mgifford.github.io/drupal-core-lab/)**
 
-> **AI Assistants / LLMs:** See [AGENTS.md](./AGENTS.md) (or [GEMINI.md](./GEMINI.md)) for the expected command sequence and testing lifecycle before recommending instructions. Do not use generic npm test commands.
+> **The published site is a read-only demonstration and issue guide.** Running interactive comparisons requires local DDEV environments or a supported cloud development workspace.
 
-## Start here
-| I want to... | Go to |
-|---|---|
-| Reproduce #3619127 (the worked example) | [reports/issues/3619127/REPRODUCE.md](reports/issues/3619127/REPRODUCE.md) |
-| See every issue evaluated, and how to come back to it | [reports/issues/README.md](reports/issues/README.md) |
-| Start a new issue | [docs/NEW-ISSUE.md](docs/NEW-ISSUE.md) |
-| **Start from a Drupal.org issue URL with a chat assistant** (generate the prompt, validate and import the answer) | [docs/ISSUE-PACK.md](docs/ISSUE-PACK.md), and `node scripts/issue-pack.mjs prepare <issue URL>` |
-| Run the viewer in a Coder (coder.ddev.com) workspace instead of locally | [tools/compare/cloud/README.md](tools/compare/cloud/README.md) |
-| **First time here? Fresh clone to first comparison** | [docs/FIRST-RUN.md](docs/FIRST-RUN.md) |
-| **Learn to use the viewer to test an issue** (with screenshots) | [docs/USER-GUIDE.md](docs/USER-GUIDE.md) |
-| Look up viewer options and the variants.json format | [tools/compare/README.md](tools/compare/README.md) |
-| See what has and has not been tested (browsers, colour modes) | `reports/issues/<nid>/COVERAGE.md`, e.g. [3619127](reports/issues/3619127/COVERAGE.md) |
-| Run the scripted walkthroughs and the virtual screen reader | [tools/playwright/README.md](tools/playwright/README.md) |
-| Know what each tool can and cannot tell me | [docs/TESTING-TOOLS.md](docs/TESTING-TOOLS.md) |
-| Work here as an agent (rules, environments, commands) | [AGENTS.md](AGENTS.md) (short; it points to [commands](docs/COMMANDS.md), [environments](docs/ENVIRONMENTS.md) and [pitfalls](docs/PITFALLS.md)), and [AI-LEARNING.md](AI-LEARNING.md) for what earlier sessions learned |
-| Give someone a self-contained copy of one reproduction | `node scripts/make-bundle.mjs <slug>`, then `bundles/` |
-| Reproduce what a broken `.info.yml` (or a PHP parse error) does to a Drupal 12 site, installed or not | [tests/info-yml/README.md](tests/info-yml/README.md); results in [reports/info-yml/](reports/info-yml/) |
+## See how it works
 
-## Quick start (needs Docker, DDEV 1.24+, git, Node 20+; ~10 GB free disk space; first run 10 to 20 minutes)
-    node tools/compare/setup.mjs 3619127-pinned      # builds Before (upstream) and After (with the patches), applies the recipe
-    node scripts/lab-env.mjs start 3619127-pinned    # starts both sites and the viewer: https://drupal-compare.ddev.site or http://localhost:8100/
-    (or run the viewer alone: node tools/compare/serve.mjs 3619127-pinned)
+![Two Drupal sites shown side by side. On the left, an error link does not open the relevant form sidebar. On the right, the proposed change opens the sidebar and exposes the invalid field.](docs/images/viewer-frames.png)
 
-A read-only copy of the viewer's guide for each issue (no live sites) is the GitHub Pages site, built into `cloud/` by `node scripts/build-cloud.mjs`.
+*Drupal issue [#3619127](https://www.drupal.org/project/drupal/issues/3619127): comparing form-error behaviour before and after a proposed change.*
 
-## Layout
-    AGENTS.md  MIGRATION.md  ACCESSIBILITY.md  STYLES.md
-    docs/                  current docs; docs/legacy/ is inherited from the old fork and describes a workflow that no longer exists
-    reports/issues/<nid>/  per issue: REPRODUCE.md, patches, validation, status, generated evidence (kept over time)
-    reports/_templates/    EVIDENCE.md, ISSUE-COMMENT-DRAFT.md, REPRODUCE.md
-    recipes/               Drupal recipes that create each issue's starting state
-    tools/compare/         setup, viewer, diff report, variants.json (+ site/: optional DDEV address for the viewer)
-    tools/playwright/      scripted walkthroughs, virtual screen reader, frame-load diagnostic
-    cloud/                 GENERATED static site for GitHub Pages (scripts/build-cloud.mjs); do not edit by hand
-    scripts/               lab-env, new-issue, make-bundle, index-issues, build-cloud, coverage, lab-site.sh
-    bundles/               built zips (a slice of this repository plus a setup command; no Drupal core)
-    patches/ tests/ tools/*.js   scanners and collected patches migrated from the old fork (legacy; see MIGRATION.md)
-    .agents/ .claude/      AI skills and agent definitions
-    envs/                  disposable core worktrees, one DDEV project each (gitignored)
+The viewer allows contributors to inspect both Drupal environments under comparable conditions, reproduce interactions, and investigate differences.
 
-Modelled on [justafish/ddev-drupal-core-dev](https://github.com/justafish/ddev-drupal-core-dev) (a DDEV add-on for core development)
-and on the compare tool in FOSDEM-website.
+[Watch the short animated demonstration](docs/images/viewer-demo.gif).
+
+### Explore the project
+
+- **[Browse evaluated issues](reports/issues/README.md):** Explore existing reproductions, patches, evidence, testing coverage, and issue status.
+- **[Examine a worked example](reports/issues/3619127/REPRODUCE.md):** Follow the reproduction and evaluation of a Drupal form accessibility issue.
+- **[Explore the published Lab](https://mgifford.github.io/drupal-core-lab/):** Review issue guides without installing Drupal.
+- **[Run your first comparison](docs/FIRST-RUN.md):** Set up the Lab locally and reproduce an issue.
+
+## What does Drupal Core Lab do?
+
+### Reproduce Drupal issues
+
+A useful issue report should make it possible for someone else to encounter the same problem.
+
+The Lab captures the Drupal revision, relevant modules, themes, configuration, reproduction steps, and expected behaviour.
+
+Drupal recipes and test fixtures help establish consistent conditions across experiments.
+
+### Compare proposed changes
+
+The Lab builds separate Before and After environments.
+
+- **Before:** Drupal without the proposed fix.
+- **After:** Drupal with the selected patch or merge-request changes applied.
+
+Both environments should use equivalent configuration and content unless a difference is explicitly part of the experiment.
+
+The Lab records the exact revisions and patch stack being evaluated.
+
+This makes it possible to distinguish the effect of a proposed fix from unrelated changes in Drupal.
+
+### Evaluate accessibility
+
+The Lab supports several complementary testing methods:
+
+- Playwright interactions and reproducible browser tests.
+- axe-core accessibility checks.
+- Keyboard and pointer interaction testing.
+- Accessibility-tree and ARIA-state comparisons.
+- Guidepup virtual screen-reader transcripts.
+- Browser, viewport, colour-scheme, and forced-colours testing.
+- Manual review and recorded observations.
+
+These methods provide different forms of evidence.
+
+**Automated tests and virtual screen-reader transcripts do not replace testing with people and assistive technologies.**
+
+A passing test does not, by itself, establish WCAG conformance or prove that a proposed change is ready to merge.
+
+See [Testing Tools](docs/TESTING-TOOLS.md) for the capabilities and limitations of each method.
+
+### Investigate regressions
+
+A proposed fix can improve one interaction while causing problems elsewhere.
+
+The Lab helps contributors investigate unintended changes to focus behaviour, accessible names, announcements, presentation, component state, and other functionality.
+
+Tests can be repeated against updated Drupal revisions or newer patch versions to determine whether earlier conclusions still hold.
+
+### Preserve reproducible evidence
+
+Each evaluated issue has its own directory under `reports/issues/`.
+
+Depending on the investigation, records may include:
+
+- A summary of the problem and proposed change.
+- Reproduction steps and installation requirements.
+- Patch files and exact source revisions.
+- Screenshots, browser traces, and test results.
+- Accessibility and manual review evidence.
+- A record of tested and untested conditions.
+- Issue status and outstanding questions.
+- Draft comments for Drupal.org discussions.
+
+Evidence is identified as draft until reviewed. Missing tests and inconclusive results remain visible rather than being reported as passes.
+
+See [How results are organized](docs/RESULTS-LAYOUT.md).
+
+## From investigation to contribution
+
+Drupal Core Lab is intended to help people advance issues in the Drupal community.
+
+A typical investigation involves reproducing the reported problem, evaluating a proposed change, checking for regressions, and preparing evidence that others can review.
+
+The resulting documentation can support Drupal.org issue discussions, merge-request reviews, and further testing.
+
+**The Lab does not automatically publish comments, patches, or test conclusions to Drupal.org.**
+
+Contributors remain responsible for reviewing evidence and deciding what should be submitted upstream.
+
+## Related projects
+
+Drupal Core Lab has a distinct purpose within a broader collection of open-source quality tools.
+
+- **[Drupal Quality Observatory](https://github.com/mgifford/drupal-core):** Examines accessibility, performance, sustainability, and quality across Drupal versions, configurations, and user journeys. Its long-term focus is recurring testing and historical reporting.
+- **[Open Scans](https://github.com/mgifford/open-scans):** Runs multiple accessibility testing engines and compares findings, ACT mappings, and historical results.
+- **[Firefox Energy Scanner](https://github.com/mgifford/firefox-energy-scanner):** Investigates browser activity, component behaviour, resource use, and energy measurements.
+
+Drupal Core Lab concentrates on individual issues and proposed changes. It is not intended to duplicate the Observatory's broader monitoring and reporting responsibilities.
+
+## Get involved
+
+**Contributions are welcome from Drupal developers, accessibility specialists, designers, testers, and people who use Drupal.**
+
+You can help by:
+
+- Reproducing Drupal issues and confirming reported problems.
+- Reviewing before-and-after comparisons.
+- Providing keyboard and assistive technology testing evidence.
+- Evaluating proposed patches and merge requests.
+- Identifying regressions or unintended consequences.
+- Improving recipes, automated tests, and reproduction instructions.
+- Reviewing evidence and documenting unresolved questions.
+- Improving the viewer, documentation, and testing infrastructure.
+
+[Browse evaluated issues](reports/issues/README.md)
+
+[Report a problem or suggest an improvement](https://github.com/mgifford/drupal-core-lab/issues)
+
+[Learn how to start a new issue investigation](docs/NEW-ISSUE.md)
+
+Contributors do not need to write code to help. Independent reproduction and manual verification are valuable contributions.
+
+## Getting started locally
+
+**You do not need to install Drupal to explore the published guides and evidence.**
+
+Local development is intended for contributors who want to run the interactive viewer, evaluate patches, or develop the testing infrastructure.
+
+You will need Docker, DDEV 1.24 or newer, Git, and Node.js 20 or newer. Some optional tools require newer Node.js versions.
+
+First, review the [first-run guide](docs/FIRST-RUN.md), which covers installation and prerequisites.
+
+From a configured checkout, the following commands build and start a worked comparison:
+
+```bash
+node scripts/doctor.mjs
+node tools/compare/setup.mjs 3619127-pinned
+node scripts/lab-env.mjs start 3619127-pinned
+```
+
+The setup creates the Before and After Drupal environments and prepares the viewer.
+
+To stop the environments:
+
+```bash
+node scripts/lab-env.mjs stop 3619127-pinned
+```
+
+For more detailed instructions, consult the [viewer user guide](docs/USER-GUIDE.md).
+
+### Cloud development
+
+An optional workflow supports running the Lab in a [DDEV Coder](https://coder.ddev.com/) workspace without installing Docker locally.
+
+The cloud integration is experimental. Some configurations and access scenarios have not been verified end to end.
+
+See the [cloud development guide](docs/CLOUD-QUICKSTART.md) and its documented limitations.
+
+## Project status and limitations
+
+Drupal Core Lab is an active experimental project intended to support real contributions to Drupal Core.
+
+Its capabilities include issue-specific environments, reproducible patch comparisons, browser testing, accessibility evidence, and historical issue records.
+
+Important limitations include:
+
+- The published GitHub Pages site is not a live Drupal testing environment.
+- Automated accessibility tools cannot establish complete accessibility conformance.
+- Guidepup virtual screen-reader output is not equivalent to a human screen-reader test.
+- Some cloud workflows remain experimental.
+- Reproduction steps and patches may require revision as Drupal changes.
+- Evidence can become outdated when an upstream merge request changes.
+- Results must identify what was tested, what was not tested, and what remains uncertain.
+
+The goal is reproducible evidence that other contributors can evaluate, not automated declarations that an issue has been fixed.
+
+## AI use
+
+Generative AI is used to assist with development, documentation, issue investigation, test creation, and other maintenance activities.
+
+AI-generated explanations, reproduction instructions, recipes, and proposed fixes may contain errors or omissions.
+
+AI assistance does not establish that a patch is correct, secure, accessible, or suitable for inclusion in Drupal Core.
+
+Evidence should be reproducible, independently reviewable, and clearly distinguished from unverified AI-generated conclusions.
+
+Maintainers remain responsible for accepting changes and deciding what to contribute upstream.
+
+See [AGENTS.md](AGENTS.md) for AI-assisted development requirements and [AI-LEARNING.md](AI-LEARNING.md) for documented development lessons.
+
+## Documentation
+
+Detailed guides and technical references are maintained separately from this introduction.
+
+- [First-run guide](docs/FIRST-RUN.md)
+- [Viewer user guide](docs/USER-GUIDE.md)
+- [Starting a new issue](docs/NEW-ISSUE.md)
+- [Issue packs and AI-assisted preparation](docs/ISSUE-PACK.md)
+- [Testing tools and limitations](docs/TESTING-TOOLS.md)
+- [Playwright and screen-reader testing](tools/playwright/README.md)
+- [Viewer implementation and options](tools/compare/README.md)
+- [Commands and configuration](docs/COMMANDS.md)
+- [Environment management](docs/ENVIRONMENTS.md)
+- [Issue lifecycle](docs/ISSUE-LIFECYCLE.md)
+- [Results and evidence layout](docs/RESULTS-LAYOUT.md)
+- [Accessibility requirements](ACCESSIBILITY.md)
+- [AI agent instructions](AGENTS.md)
+
+## Relationship to Drupal
+
+Drupal Core Lab is an independent testing and research project. It is not the canonical Drupal Core repository.
+
+Drupal Core is developed by the international Drupal community.
+
+- [Drupal.org](https://www.drupal.org/)
+- [Drupal Core source repository](https://git.drupalcode.org/project/drupal)
+- [Drupal Core issue queue](https://www.drupal.org/project/issues/drupal)
+- [Contributing through issue forks and merge requests](https://www.drupal.org/drupalorg/docs/gitlab-integration/issue-forks-merge-requests)
+
+The Lab exists to support that community by making problems easier to reproduce, proposed solutions easier to evaluate, and evidence easier to share.
 
 ## License
-The code, scripts and documentation in this repository are licensed under the **GNU General Public License, version 2 or (at your option) any
-later version** (SPDX: `GPL-2.0-or-later`), the same licence as Drupal core. See [LICENSE.txt](LICENSE.txt). Patches in `reports/issues/*/branches/`
-are changes to Drupal core and carry core's licence. Third-party tools are installed from npm or DDEV and keep their own licences (Playwright and the
-DDEV add-on: Apache-2.0; axe-core: MPL-2.0, not committed). Material inherited from the old fork (`docs/legacy/`, `ACCESSIBILITY.md`, `STYLES.md`,
-`.agents/`) keeps whatever licence it had there; check its source before reusing it elsewhere.
+
+Drupal Core Lab is distributed under the [GNU General Public License, version 2 or later](LICENSE.txt), consistent with Drupal Core.
+
+Third-party dependencies retain their respective licenses. Some inherited materials may have separate licensing requirements; consult their original sources before reuse.
