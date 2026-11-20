@@ -4,6 +4,7 @@
 //                                               and tools/playwright/evaluate-<nid>.mjs if it exists (output to a temp folder; results.json must be complete)
 //   node scripts/selftest.mjs --network         also read one issue's status from drupal.org (scripts/issue-status.mjs, read-only)
 // Writes nothing into reports/. Exit 1 if any check fails; skipped checks say why.
+import { staticSurvey, isAuthoredPatch } from '../tools/compare/css-build.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -67,6 +68,21 @@ for (const [name, list, needsYaml] of [['unit tests: lab tools', glob('tests/lab
   const base = resolveBase(labRoot);
   if (!base) record('patch changes recorded (patch-change.mjs check)', 'skip', 'no base branch to compare with (origin/main not fetched); that is not a pass');
   else { const bad = unrecorded(labRoot, base); record('patch changes recorded (patch-change.mjs check)', bad.length ? 'FAIL' : 'ok', bad.length ? `${bad.length} changed patch file(s) since ${base} without a record: ${bad.map((x) => x.path).slice(0, 4).join(', ')}. Run: node scripts/patch-change.mjs check` : `against ${base}`); }
+}
+
+// 3c. generated CSS: a patch written in the lab that changes a .pcss.css must carry its compiled .css (static look, no toolchain). Imported patches are
+// only counted: they are preserved as submitted, and node scripts/css-build.mjs checks them with core's own toolchain.
+{
+  const bad = [], imported = []; const issuesDir = path.join(labRoot, 'reports/issues');
+  for (const nid of fs.existsSync(issuesDir) ? fs.readdirSync(issuesDir) : []) {
+    const bdir = path.join(issuesDir, nid, 'branches'); if (!fs.existsSync(bdir)) continue;
+    for (const f of fs.readdirSync(bdir).filter((x) => x.endsWith('.patch'))) {
+      const rel = `reports/issues/${nid}/branches/${f}`, sv = staticSurvey(fs.readFileSync(path.join(labRoot, rel), 'utf8'));
+      if (!sv.missingCompiled.length) continue;
+      (isAuthoredPatch(rel) ? bad : imported).push(`${rel} (${sv.missingCompiled.map((x) => path.basename(x)).join(', ')})`);
+    }
+  }
+  record('generated CSS: lab-authored patches carry their compiled .css', bad.length ? 'FAIL' : 'ok', bad.length ? `${bad.length}: ${bad.slice(0, 4).join('; ')}. Run: node scripts/css-build.mjs <slug> --build` : `${imported.length} imported patch(es) change a .pcss.css without its .css in the patch (left as submitted; check with css-build.mjs)`);
 }
 
 // 4. documentation links and the published guide

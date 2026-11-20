@@ -53,7 +53,7 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
     scripts/doctor.mjs [slug] [--network]  |  scripts/lab-env.mjs status|start|stop|reset|delete|trim|disk|retire <slug>
     tools/compare/setup.mjs <slug> [--check-patches | --refresh-patches | --checkout-only | --reinstall | --core-from=<path>]
     tools/compare/serve.mjs <slug>  |  tools/compare/diff.mjs <slug>  |  tools/playwright/walkthrough.mjs <slug>  |  tools/playwright/tree-diff.mjs <nid|slug>  (accessibility tree, ARIA, speech: docs/ACCESSIBILITY-TREE-DIFF.md)
-    scripts/lint.mjs <slug> [--contrib]  |  scripts/coverage.mjs <nid>  |  scripts/check-draft.mjs <nid>  |  scripts/findings.mjs add|from-run|set|list  |  scripts/run-mark.mjs <run>
+    scripts/css-build.mjs <slug> [--check | --build [--corrective]] [--side=after] [--dry-run] [--json] [--stylelint]    .pcss.css to .css with core's own build:css (docs/COMMANDS.md)  |  scripts/lint.mjs <slug> [--contrib]  |  scripts/coverage.mjs <nid>  |  scripts/check-draft.mjs <nid>  |  scripts/findings.mjs add|from-run|set|list  |  scripts/run-mark.mjs <run>
     scripts/code-map.mjs <env|folder> <symbol|file>    ONE call for locate + read: definition, body, what it calls, who uses it, its tests (or a file outline). Use it instead of a grep, sed, cat chain.
     scripts/try-tests.mjs <slug> <tests...> [--existing ...] [--patch-out f] [--mr-ref ref]    proposed PHPUnit tests, ONE call: both sides, remove, PHPCS+PHPStan, patch checked against the MR (sites running)
     scripts/feedback.mjs add|resolve|list <nid>    feedback tied to the run and patch revision it was about, and to the run that answered it (FEEDBACK.md)
@@ -113,6 +113,9 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
     artifact. The full patch includes any fixtures its tests require; the interdiff shows only changes from the prior proposal.
     Verify that each applies to its declared starting tree and that the resulting proposals are equivalent after accounting for core-base
     changes. Link both from the issue summary and draft handoff. A mutable MR `.diff` URL alone is not a pinned comparison.
+
+18. **Generated CSS.** Whenever Drupal Core CSS source files ending in `.pcss.css` are modified during patch authoring, rebuild their compiled `.css` counterparts using the exact checkout's supported build toolchain, verify consistency, run applicable code-quality checks, and include both files in the final patch. `node scripts/css-build.mjs <slug> --build` does it with core's own `yarn run build:css` (only the affected files, After checkout only), and `scripts/capture-patch.mjs` runs it before it writes a patch. Core's CI fails a merge request whose `.css` does not match its `.pcss.css`.
+19. **Reviewing generated CSS.** When reviewing imported patches, report inconsistent generated artifacts without silently modifying the proposal. `node scripts/css-build.mjs <slug> --check` reports them (PASS, FAIL, BLOCKED, SKIPPED). A repair is a separate, explicit `--build --corrective` in the After checkout that leaves the imported patch byte for byte unchanged and writes a follow-up patch and an interdiff. Never report the original MR as passing because the lab repaired its files, never write into Before, and never substitute an approximate CSS transformation: if the toolchain cannot run, the result is BLOCKED. A passing CSS build says nothing about accessibility.
 
 ### Shell Compatibility (macOS / zsh)
 - **Never include `#` comments inside executable shell blocks.** In interactive zsh (the macOS default), `#` is treated as an unknown command unless the user has `setopt INTERACTIVE_COMMENTS` set.

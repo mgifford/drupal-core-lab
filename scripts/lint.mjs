@@ -20,6 +20,8 @@ import { spawnSync, spawn } from 'node:child_process';
 import { labRoot, variants, envDir } from '../tools/compare/lib.mjs';
 import { sideState } from '../tools/compare/contrib-state.mjs';
 import { contribFileList, classify, phpcsScript, verdict, PHPCS_EXT } from '../tools/compare/lint-contrib.mjs';
+import { resolveYarn, ensureNodeModules } from '../tools/compare/core-toolchain.mjs';
+import { analyze as cssAnalyze } from '../tools/compare/css-build.mjs';
 
 const args = process.argv.slice(2);
 const slug = args.find((a) => !a.startsWith('--'));
@@ -114,19 +116,13 @@ if (!fs.existsSync(path.join(dir, 'vendor/bin/phpcs'))) {
 // script hides that (it would then report every JS and CSS check as failed). Use Corepack's Yarn through a shim in
 // .lab-lint/bin when the global one is wrong, and install core's JS tools here, where an error is visible.
 fs.rmSync(path.join(dir, '.lab-lint'), { recursive: true, force: true });
-const yarnWant = ((JSON.parse(fs.readFileSync(path.join(dir, 'core/package.json'), 'utf8')).packageManager || '').match(/^yarn@([\d.]+)/) || [])[1];
-let pathPrefix = '';
-if (yarnWant && firstLine(inEnv('cd core && yarn --version 2>/dev/null')) !== yarnWant) {
-  if (inEnv('corepack --version').status !== 0) fail(`core needs Yarn ${yarnWant} and this ${useDdev ? 'container' : 'machine'} has neither it nor Corepack. Install Node with Corepack, or run: corepack enable`);
-  fs.mkdirSync(path.join(dir, '.lab-lint/bin'), { recursive: true });
-  fs.writeFileSync(path.join(dir, '.lab-lint/bin/yarn'), '#!/bin/sh\nexec corepack yarn "$@"\n', { mode: 0o755 });
-  pathPrefix = 'PATH="$PWD/.lab-lint/bin:$PATH" COREPACK_ENABLE_DOWNLOAD_PROMPT=0 ';
-}
+const yarn = resolveYarn({ dir, inEnv, useDdev });
+if (yarn.error) fail(yarn.error);
+const pathPrefix = yarn.pathPrefix;
 const base = `export ${pathPrefix}GIT_DIR="$PWD/.lab-lint/git" GIT_WORK_TREE="$PWD" GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0='*' TERM=xterm;`;
 if (!fs.existsSync(path.join(dir, 'core/node_modules/eslint/bin/eslint.js'))) {
   console.log('Installing core\'s JavaScript tools (core/node_modules is missing, about 400 MB; `lab-env.mjs trim --deep` removes it again)...');
-  const r = inEnv(`${base} cd core && yarn install --immutable`, { stdio: 'inherit' });
-  if (r.status !== 0 || !fs.existsSync(path.join(dir, 'core/node_modules/eslint/bin/eslint.js'))) fail('yarn install in core failed; see above.');
+  if (!ensureNodeModules({ dir, inEnv, prefix: `${base} ` }).ok) fail('yarn install in core failed; see above.');
 }
 const tools = { php: phpVer, node: firstLine(inEnv('node --version')), yarn: firstLine(inEnv(`${base} cd core && yarn --version`)), git: firstLine(inEnv('git --version')) };
 
@@ -149,11 +145,15 @@ for (const s of [child.stdout, child.stderr]) s.on('data', (c) => { process.stdo
 const status = await new Promise((res) => child.on('close', (code) => res(code ?? 1)));
 fs.rmSync(path.join(dir, '.lab-lint'), { recursive: true, force: true });
 const secs = Math.round((Date.now() - started) / 1000);
+// The CSS build as its own status (core's script above already fails on a .pcss.css that does not match; this names the files and keeps it apart from Stylelint).
+const css = cssAnalyze({ slug, side, mode: useDdev ? 'ddev' : 'host', install: false });
+if (css.relevant) console.log(`\nCSS build (core's build:css): ${css.overall}${css.entries.length ? ` (${css.entries.map((e) => `${path.basename(e.source)} ${e.state}`).join(', ')})` : ''}`);
 // The script exits 0 on "There are no files to check" too; treat that as an error here, since we always pass files.
 // A tool that did not start makes the script fail every check after it; that is not a result about the patch.
 const toolError = (log.match(/Cannot find module[^\n]*|defines "packageManager"[^\n]*|command not found[^\n]*|PHP Fatal error[^\n]*|PHPStan process crashed[^\n]*|Allowed memory size[^\n]*/) || [])[0];
 const ran = !/There are no files to check/.test(log) && !toolError;
-const result = /There are no files to check/.test(log) ? 'ERROR (no files reached the script)' : toolError ? `ERROR (a tool did not run: ${toolError.trim().slice(0, 120)}). Not a result about the patch` : status === 0 ? 'PASS' : 'FAIL';
+const cssFailed = css.relevant && css.overall === 'FAIL';
+const result = /There are no files to check/.test(log) ? 'ERROR (no files reached the script)' : cssFailed && status === 0 ? 'FAIL (generated CSS does not match its source)' : toolError ? `ERROR (a tool did not run: ${toolError.trim().slice(0, 120)}). Not a result about the patch` : status === 0 ? 'PASS' : 'FAIL';
 console.log(`\nResult: ${result} (exit ${status}, ${secs} s)`);
 
 // 5. Report.
@@ -187,6 +187,9 @@ on only the files the patches change. It is about code style and static analysis
 ${perCheck.length ? `| Check (as the script reports it) | Result |\n|---|---|\n${perCheck.join('\n')}\n\nChecks the script skips when no file of that type changed, or reports without a \`passed\`/\`failed\` line (file modes, .pcss.css versus .css), appear only in the output below.\n\n` : ''}## Files checked (${files.length})
 ${files.map((f) => `- \`${f}\``).join('\n')}
 
+## CSS build (separate from Stylelint)
+${css.relevant ? `Result: **${css.overall}**. ${css.entries.map((e) => `\`${e.source}\`: ${e.state}${e.origin === 'imported' ? ' (imported patch)' : ''}. ${e.detail}`).join(' ')} Details: \`node scripts/css-build.mjs ${slug}\`.` : 'No .pcss.css source in these patches: nothing to compile.'}
+
 ## Output
 \`\`\`text
 ${shown.join('\n')}
@@ -199,4 +202,4 @@ ${(spec.contribPatches || []).length ? '- Contrib patches (not core files).\n' :
   fs.writeFileSync(file, md);
   console.log(`Report: ${path.relative(labRoot, file)}`);
 }
-process.exit(ran ? status : 3);
+process.exit(ran ? (cssFailed && status === 0 ? 1 : status) : 3);
