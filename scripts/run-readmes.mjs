@@ -45,7 +45,21 @@ const run = (name) => {
   const files = fs.readdirSync(dir).filter((f) => f !== 'README.md');
   const results = readJson(path.join(dir, 'results.json'));
   const md = fs.existsSync(path.join(dir, 'SUMMARY.md')) ? fs.readFileSync(path.join(dir, 'SUMMARY.md'), 'utf8') : '';
-  return { name, dir, files, results, md, kind: files.some((f) => /-(skip-focused|before-tab)\.png$/.test(f)) ? 'skip' : 'toggle' };
+  const kind = files.some((f) => /-(skip-focused|before-tab)\.png$/.test(f)) ? 'skip'
+    : files.some((f) => /^(before|after)-(default|hover|focus|focus\+hover)-(expanded|collapsed)/.test(f)) || !files.some((f) => f.endsWith('.png')) && /toggle/i.test(md.split('\n')[0]) ? 'toggle' : 'generic';
+  return { name, dir, files, results, md, kind };
+};
+
+// What the evaluation is called: the report's own heading, without the issue number and the parenthesised details.
+const evalName = (r) => {
+  if (r.kind === 'skip') return 'Skip link';
+  if (r.kind === 'toggle') return 'Navigation toggle';
+  const h = r.md.split('\n')[0].replace(/^#\s*/, '').replace(/^#\d+\s*/, '').replace(/\s*\(.*$/, '').trim();
+  return h ? h.charAt(0).toUpperCase() + h.slice(1) : 'Scripted evaluation';
+};
+const EVAL_NOTES = {
+  skip: 'the separate 3637339 focus proposal on top of the toggle MR.',
+  toggle: 'the circular expand/collapse button; hover, focus and keyboard activation.',
 };
 
 const envLabel = (r) => {
@@ -63,7 +77,12 @@ const pairs = (r) => {
   for (const f of imgs) { const k = keyOf(f), side = f.startsWith('before-') ? 'before' : 'after'; if (!rows.has(k)) rows.set(k, {}); rows.get(k)[side] = f; }
   const entries = [...rows].map(([key, p]) => {
     let group = '', step = key, note = '';
-    if (r.kind === 'skip') {
+    if (r.kind === 'generic') {
+      step = key.replace(/\.png$/, '');
+      const scenarios = [...(r.results?.sides?.after?.scenarios || []), ...(r.results?.sides?.after?.states || [])];
+      const hit = scenarios.find((x) => (x.id || x.state) === step);
+      note = hit?.what || (hit?.typed ? `Typed: ${hit.typed}` : '');
+    } else if (r.kind === 'skip') {
       const m = key.match(/^(.*?)(?:-trial(\d+))?-(before-tab|skip-focused|control-focused|activated)\.png$/);
       if (m) { group = `${m[1]}${m[2] ? `, trial ${m[2]}` : ''}`; step = m[3]; note = SKIP_STEPS[m[3]]; }
     } else {
@@ -72,6 +91,11 @@ const pairs = (r) => {
     }
     return { key, p, group, step, note };
   }).filter(Boolean);
+  if (r.kind === 'generic') {
+    const ids = [...(r.results?.sides?.after?.scenarios || []), ...(r.results?.sides?.after?.states || [])].map((x) => x.id || x.state);
+    const at = (e) => (ids.indexOf(e.step) < 0 ? 999 : ids.indexOf(e.step));
+    return entries.sort((a, b) => at(a) - at(b) || a.step.localeCompare(b.step));
+  }
   const order = r.kind === 'skip' ? Object.keys(SKIP_STEPS) : Object.keys(TOGGLE_STATES);
   const rank = (e) => order.indexOf(e.step);
   return entries.sort((a, b) => a.group.localeCompare(b.group) || rank(a) - rank(b));
@@ -86,7 +110,7 @@ const readme = (r) => {
   const e = r.results?.environment || {};
   const title = r.kind === 'skip'
     ? 'skip link: keyboard focus, saved Appearance and focus colour'
-    : 'administration navigation toggle: hover, keyboard focus and activation';
+    : r.kind === 'toggle' ? 'administration navigation toggle: hover, keyboard focus and activation' : evalName(r).toLowerCase();
   let out = `# #${nid} ${title}\n\n`;
   out += `**Run:** \`${r.name}\`  \n**Configuration:** ${envLabel(r)}  \n`;
   if (slug) out += `**Comparison:** \`${slug}\`${v.label ? ` (${v.label})` : ''}  \n`;
@@ -110,7 +134,7 @@ const readme = (r) => {
       }
       const f = r.kind === 'toggle';
       const b = f ? closeupOf(row.p.before, r) : row.p.before, a = f ? closeupOf(row.p.after, r) : row.p.after;
-      out += `| **${row.step}**${row.note ? `<br>${row.note}` : ''} | ${img(b, `Before: ${row.step} ${row.group}`)} | ${img(a, `After: ${row.step} ${row.group}`)} |\n`;
+      out += `| **${row.step}**${row.note ? `<br>${row.note}` : ''} | ${img(b, `Before: ${row.step}${row.group ? ` ${row.group}` : ''}`)} | ${img(a, `After: ${row.step}${row.group ? ` ${row.group}` : ''}`)} |\n`;
     }
     out += `\n${r.kind === 'toggle' ? 'Close-up crops are shown; the full-page screenshot has the same name without "-closeup", and carries a label in its top-left corner naming the side (BEFORE or AFTER).' : 'Each image is the full page.'}\n\n`;
   }
@@ -128,11 +152,14 @@ const cfgKey = (r) => JSON.stringify([r.results?.variant, r.kind, envLabel(r)]);
 const newest = new Map(); for (const r of runs) newest.set(cfgKey(r), r.name);
 
 let index = `# #${nid} Playwright runs\n\nEach folder is one scripted run comparing **Before** and **After** under one configuration. Open a folder's \`README.md\` to see the paired screenshots. Folder names are \`<UTC start time>-<browser>-<OS scheme>[-forced]-<viewport>\`.\n\n`;
-index += `Two evaluations live here:\n\n- **Navigation toggle** (\`3636143-latest\`): the circular expand/collapse button; hover, focus and keyboard activation.\n- **Skip link** (\`3636143-with-skip-focus\`): the separate 3637339 focus proposal on top of the toggle MR.\n\n`;
+const kinds = new Map(); for (const r of runs) if (!kinds.has(evalName(r))) kinds.set(evalName(r), r);
+index += `${kinds.size === 1 ? 'One evaluation lives here' : 'Evaluations that live here'}:\n\n`;
+for (const [name, r] of kinds) index += `- **${name}** (\`${r.results?.variant || 'unknown'}\`)${EVAL_NOTES[r.kind] ? `: ${EVAL_NOTES[r.kind]}` : `: ${variants.get(r.results?.variant)?.label || ''}`}\n`;
+index += `\n`;
 index += `| Run | Evaluation | Configuration | Verdict | Screenshots | Status |\n|---|---|---|---|---|---|\n`;
 for (const r of [...runs].reverse()) {
   const shots = r.files.filter((f) => f.endsWith('.png')).length;
-  index += `| [${r.name}](${r.name}/README.md) | ${r.kind === 'skip' ? 'Skip link' : 'Navigation toggle'} | ${envLabel(r)} | ${r.results?.verdict || 'n/a'} | ${shots || 'none (control hidden)'} | ${newest.get(cfgKey(r)) === r.name ? 'latest for this configuration' : 'superseded by a later run'} |\n`;
+  index += `| [${r.name}](${r.name}/README.md) | ${evalName(r)} | ${envLabel(r)} | ${r.results?.verdict || 'n/a'} | ${shots || 'none'} | ${newest.get(cfgKey(r)) === r.name ? 'latest for this configuration' : 'superseded by a later run'} |\n`;
 }
 index += `\nDRAFT, AI-assisted. Generated by \`node scripts/run-readmes.mjs ${nid}\`; do not edit by hand.\n`;
 
