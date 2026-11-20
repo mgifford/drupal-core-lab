@@ -1,4 +1,4 @@
-# #3637163 administration navigation toggle: hover, keyboard focus and activation
+# #3637163 custom colour validation evaluation
 
 **Run:** `2026-11-19T19-32-40-398Z-chromium-light-forced-1280x900`  
 **Configuration:** light OS scheme, forced colors, 1280x900 viewport  
@@ -13,19 +13,19 @@ Start with [SUMMARY.md](SUMMARY.md) for the measurements. The pictures below are
 
 | State | Before | After |
 |---|---|---|
-| **accent-invalid-777777.png** | [![Before: accent-invalid-777777.png ](before-accent-invalid-777777.png)](before-accent-invalid-777777.png) | [![After: accent-invalid-777777.png ](after-accent-invalid-777777.png)](after-accent-invalid-777777.png) |
-| **accent-invalid-zzzzzz.png** | [![Before: accent-invalid-zzzzzz.png ](before-accent-invalid-zzzzzz.png)](before-accent-invalid-zzzzzz.png) | [![After: accent-invalid-zzzzzz.png ](after-accent-invalid-zzzzzz.png)](after-accent-invalid-zzzzzz.png) |
-| **accent-valid.png** | [![Before: accent-valid.png ](before-accent-valid.png)](before-accent-valid.png) | [![After: accent-valid.png ](after-accent-valid.png)](after-accent-valid.png) |
-| **back-to-custom-with-invalid.png** | [![Before: back-to-custom-with-invalid.png ](before-back-to-custom-with-invalid.png)](before-back-to-custom-with-invalid.png) | [![After: back-to-custom-with-invalid.png ](after-back-to-custom-with-invalid.png)](after-back-to-custom-with-invalid.png) |
-| **custom-selected.png** | [![Before: custom-selected.png ](before-custom-selected.png)](before-custom-selected.png) | [![After: custom-selected.png ](after-custom-selected.png)](after-custom-selected.png) |
-| **focus-invalid-abc.png** | [![Before: focus-invalid-abc.png ](before-focus-invalid-abc.png)](before-focus-invalid-abc.png) | [![After: focus-invalid-abc.png ](after-focus-invalid-abc.png)](after-focus-invalid-abc.png) |
-| **focus-preset-orange.png** | [![Before: focus-preset-orange.png ](before-focus-preset-orange.png)](before-focus-preset-orange.png) | [![After: focus-preset-orange.png ](after-focus-preset-orange.png)](after-focus-preset-orange.png) |
-| **focus-valid-aa5500.png** | [![Before: focus-valid-aa5500.png ](before-focus-valid-aa5500.png)](before-focus-valid-aa5500.png) | [![After: focus-valid-aa5500.png ](after-focus-valid-aa5500.png)](after-focus-valid-aa5500.png) |
-| **initial.png** | [![Before: initial.png ](before-initial.png)](before-initial.png) | [![After: initial.png ](after-initial.png)](after-initial.png) |
-| **preset-red.png** | [![Before: preset-red.png ](before-preset-red.png)](before-preset-red.png) | [![After: preset-red.png ](after-preset-red.png)](after-preset-red.png) |
-| **server-submit-invalid.png** | [![Before: server-submit-invalid.png ](before-server-submit-invalid.png)](before-server-submit-invalid.png) | [![After: server-submit-invalid.png ](after-server-submit-invalid.png)](after-server-submit-invalid.png) |
+| **initial** | [![Before: initial](before-initial.png)](before-initial.png) | [![After: initial](after-initial.png)](after-initial.png) |
+| **custom-selected** | [![Before: custom-selected](before-custom-selected.png)](before-custom-selected.png) | [![After: custom-selected](after-custom-selected.png)](after-custom-selected.png) |
+| **accent-invalid-777777**<br>Typed: 777777 | [![Before: accent-invalid-777777](before-accent-invalid-777777.png)](before-accent-invalid-777777.png) | [![After: accent-invalid-777777](after-accent-invalid-777777.png)](after-accent-invalid-777777.png) |
+| **accent-invalid-zzzzzz**<br>Typed: #zzzzzz | [![Before: accent-invalid-zzzzzz](before-accent-invalid-zzzzzz.png)](before-accent-invalid-zzzzzz.png) | [![After: accent-invalid-zzzzzz](after-accent-invalid-zzzzzz.png)](after-accent-invalid-zzzzzz.png) |
+| **accent-valid**<br>Typed: #336699 | [![Before: accent-valid](before-accent-valid.png)](before-accent-valid.png) | [![After: accent-valid](after-accent-valid.png)](after-accent-valid.png) |
+| **preset-red** | [![Before: preset-red](before-preset-red.png)](before-preset-red.png) | [![After: preset-red](after-preset-red.png)](after-preset-red.png) |
+| **back-to-custom-with-invalid** | [![Before: back-to-custom-with-invalid](before-back-to-custom-with-invalid.png)](before-back-to-custom-with-invalid.png) | [![After: back-to-custom-with-invalid](after-back-to-custom-with-invalid.png)](after-back-to-custom-with-invalid.png) |
+| **focus-preset-orange** | [![Before: focus-preset-orange](before-focus-preset-orange.png)](before-focus-preset-orange.png) | [![After: focus-preset-orange](after-focus-preset-orange.png)](after-focus-preset-orange.png) |
+| **focus-invalid-abc**<br>Typed: abc | [![Before: focus-invalid-abc](before-focus-invalid-abc.png)](before-focus-invalid-abc.png) | [![After: focus-invalid-abc](after-focus-invalid-abc.png)](after-focus-invalid-abc.png) |
+| **focus-valid-aa5500**<br>Typed: #aa5500 | [![Before: focus-valid-aa5500](before-focus-valid-aa5500.png)](before-focus-valid-aa5500.png) | [![After: focus-valid-aa5500](after-focus-valid-aa5500.png)](after-focus-valid-aa5500.png) |
+| **server-submit-invalid** | [![Before: server-submit-invalid](before-server-submit-invalid.png)](before-server-submit-invalid.png) | [![After: server-submit-invalid](after-server-submit-invalid.png)](after-server-submit-invalid.png) |
 
-Close-up crops are shown; the full-page screenshot has the same name without "-closeup", and carries a label in its top-left corner naming the side (BEFORE or AFTER).
+Each image is the full page.
 
 ## Files in this folder
 
