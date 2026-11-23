@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drupal status messages: types, roles and why</title>
+<style>
+  :root { color-scheme: light dark; --fg: #1b1b1b; --bg: #fff; --line: #6b6f7a; --status: #1f6b3a; --warning: #8a5300; --error: #b0261c; }
+  @media (prefers-color-scheme: dark) { :root { --fg: #eee; --bg: #1c1c1f; --line: #a0a4ae; --status: #6fcf97; --warning: #f2c36b; --error: #ff8f85; } }
+  body { font: 1rem/1.5 system-ui, sans-serif; color: var(--fg); background: var(--bg); margin: 0; }
+  main { max-width: 52rem; margin: 0 auto; padding: 1rem; }
+  .skip { position: absolute; inset-inline-start: .5rem; inset-block-start: -4rem; background: var(--bg); padding: .5rem; border: 2px solid currentColor; }
+  .skip:focus { inset-block-start: .5rem; }
+  .sample { border: 2px solid var(--line); border-inline-start-width: .5rem; padding: .5rem 1rem; margin-block: .5rem 1rem; border-radius: .25rem; }
+  .sample h3 { margin: 0; font-size: 1rem; }
+  .sample--status { border-color: var(--status); } .sample--warning { border-color: var(--warning); } .sample--error { border-color: var(--error); }
+  pre { overflow-x: auto; padding: .75rem; border: 1px solid var(--line); border-radius: .25rem; }
+  table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid var(--line); padding: .4rem .6rem; text-align: start; vertical-align: top; }
+  a:focus-visible, .skip:focus-visible { outline: 3px solid currentColor; outline-offset: 2px; }
+</style>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<main id="content">
+  <h1>Drupal status messages: every type, its role, and why</h1>
+  <p>Draft, AI-assisted, read from Drupal core <code>main</code> (<code>92e5c3a30476</code>, 2026-11-18). The boxes below are <strong>visual replicas with no live role</strong>, so opening this page announces nothing. The real markup is shown under each one. Written reference: <a href="https://github.com/mgifford/drupal-core-lab/blob/main/docs/STATUS-MESSAGES.md">STATUS-MESSAGES.md</a>.</p>
+
+  <h2 id="summary">At a glance</h2>
+  <table>
+    <caption>The three message types in core</caption>
+    <thead><tr><th scope="col">Type</th><th scope="col">Use it for</th><th scope="col">Role</th><th scope="col">Name</th><th scope="col">Announced</th></tr></thead>
+    <tbody>
+      <tr><th scope="row"><code>status</code></th><td>A result or confirmation</td><td><code>status</code></td><td>Status message</td><td>Politely, after current speech</td></tr>
+      <tr><th scope="row"><code>warning</code></th><td>Works, but needs attention</td><td><code>alert</code></td><td>Warning message</td><td>Assertively, interrupting</td></tr>
+      <tr><th scope="row"><code>error</code></th><td>An action failed or input is invalid</td><td><code>alert</code></td><td>Error message</td><td>Assertively, interrupting</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="status">Status message</h2>
+  <div class="sample sample--status"><h3>Status message</h3><p>The configuration options have been saved.</p></div>
+  <pre><code>&lt;div role="status" aria-label="Status message"&gt;
+  &lt;h2 class="visually-hidden"&gt;Status message&lt;/h2&gt;
+  The configuration options have been saved.
+&lt;/div&gt;</code></pre>
+  <p><strong>Why <code>role="status"</code>:</strong> a confirmation should be heard, but never cut off what the person is already hearing (polite live region, WCAG technique ARIA22).</p>
+
+  <h2 id="warning">Warning message</h2>
+  <div class="sample sample--warning"><h3>Warning message</h3><p>Cron has not run recently.</p></div>
+  <pre><code>&lt;div role="alert" aria-label="Warning message"&gt;
+  &lt;h2 class="visually-hidden"&gt;Warning message&lt;/h2&gt;
+  Cron has not run recently.
+&lt;/div&gt;</code></pre>
+  <p><strong>Why <code>role="alert"</code>:</strong> core treats a warning like an error because it asks for attention now (assertive live region, technique ARIA19).</p>
+
+  <h2 id="error">Error message</h2>
+  <div class="sample sample--error"><h3>Error message</h3><p>The username field is required.</p></div>
+  <pre><code>&lt;div role="alert" aria-label="Error message"&gt;
+  &lt;h2 class="visually-hidden"&gt;Error message&lt;/h2&gt;
+  The username field is required.
+&lt;/div&gt;</code></pre>
+  <p><strong>Why <code>role="alert"</code>:</strong> a failed action must be heard when it happens, without moving focus (WCAG 2.2 SC 4.1.3 Status Messages).</p>
+
+  <h2 id="variants">Variants</h2>
+  <ul>
+    <li><strong>Default Admin</strong> uses the same roles, but names the box from its visible heading (<code>aria-labelledby</code> on the <code>h2</code>) and adds a <strong>Hide</strong> button.</li>
+    <li><strong>Messages added by JavaScript</strong> (<code>Drupal.Message.add()</code>) get the same role and <code>aria-label</code>, and also call <code>Drupal.announce()</code>: assertive for warnings and errors, unless a priority is given. <code>announce: ''</code> turns that call off.</li>
+    <li><strong>More than one message</strong> of a type share one box, as a list.</li>
+  </ul>
+
+  <h2 id="limits">Limits</h2>
+  <ul>
+    <li>Messages present at page load are not spoken the same way by every screen reader.</li>
+    <li>Several <code>alert</code> boxes at once are announced one after another.</li>
+    <li>This page shows what the templates do. It is not a screen-reader test and says nothing about a theme's colours or sizes.</li>
+  </ul>
+</main>
+</body>
+</html>
