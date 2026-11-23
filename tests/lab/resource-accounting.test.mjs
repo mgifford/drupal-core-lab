@@ -120,7 +120,7 @@ test('byte and time parsers keep measured zero and missing distinct', () => {
   assert.equal(parseBytes('1.5MiB'), 1572864);
   assert.deepEqual(parsePair('12MiB / 1GiB'), [12582912, 1073741824]);
   assert.equal(formatBytes(0), '0 B');
-  const mac = parseTimeOutput('        0.00 real         0.00 user         0.00 sys\n              868352  maximum resident set size\n                   0  block input operations\n                   2  block output operations\n');
+  const mac = parseTimeOutput('        0.00 real         0.00 user         0.00 sys\n              868352  maximum resident set size\n                   0  block input operations\n                   2  block output operations\n', 'darwin');
   assert.equal(mac.wall_ms, 0); assert.equal(mac.user_seconds, 0); assert.equal(mac.max_rss_bytes, 868352); assert.equal(mac.read_ops, 0); assert.equal(mac.write_ops, 2);
   const linux = parseTimeOutput('\tUser time (seconds): 1.25\n\tSystem time (seconds): 0.50\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0:03.00\n\tMaximum resident set size (kbytes): 2048\n', 'linux');
   assert.equal(linux.user_seconds, 1.25); assert.equal(linux.system_seconds, 0.5); assert.equal(linux.wall_ms, 3000); assert.equal(linux.max_rss_bytes, 2097152);
