@@ -36,6 +36,8 @@ test('the dashboard keeps native controls and the promised preference modes', ()
   assert.match(html, /@media \(forced-colors: active\)/);
   assert.match(html, /:focus-visible/);
   assert.match(html, /role="region"/);
+  assert.match(html, /\.opportunity p \{[^}]*overflow-wrap: anywhere/);
+  assert.match(html, /\.barvalue \{[^}]*overflow-wrap: anywhere/);
   assert.doesNotMatch(html, /<div[^>]+onclick=/i);
 });
 

@@ -245,16 +245,17 @@ override.
 - shows totals, activity shares, daily trend, cost by model, CPU by tool, GitHub Actions time and per-issue totals;
 - supports date, issue, activity, tool and model filters with native controls;
 - gives every chart a visible table equivalent; wide tables scroll inside focusable `role="region"` wrappers;
-- works in light, dark, forced-colours, reduced-motion and 320 px contexts;
+- works in light, dark, forced-colours, reduced-motion, 320 px and 200% text contexts;
 - distinguishes provider-reported, measured, derived, estimated and unavailable values, and shows “—” rather than zero.
 
 Selecting an issue in the filter gives the per-issue view. The page reads only `resources.json`; it does not contact an AI
 provider, Drupal, a collector or a database.
 
 `node tools/playwright/resource-dashboard.mjs` checked the static dashboard in light, dark, forced-colours,
-reduced-motion and 320 px contexts, with native filters and focusable table regions: 5 of 5 contexts passed with no
-axe-core violations. The result is [dashboard-a11y.json](../reports/resources/dashboard-a11y.json). This is automated
-accessibility evidence, not a manual keyboard or screen-reader pass.
+reduced-motion, 320 px and 200% text contexts, with native filters and focusable table regions: 6 of 6 contexts passed
+with no axe-core violations and no page errors. The result is
+[dashboard-a11y.json](../reports/resources/dashboard-a11y.json). This is automated accessibility evidence, not a manual
+keyboard or screen-reader pass. A 320 px reflow defect in the opportunities section was found by this run and fixed.
 
 ## Monitoring the measurement system
 

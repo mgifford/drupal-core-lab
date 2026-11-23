@@ -26,18 +26,20 @@ await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const base = `http://127.0.0.1:${server.address().port}/resources.html`;
 const browser = await chromium.launch();
 const results = [];
-for (const [name, width, options] of [
+for (const [name, width, options, setup] of [
   ['light-desktop', 1280, { colorScheme: 'light' }],
   ['dark-desktop', 1280, { colorScheme: 'dark' }],
   ['forced-colours', 1280, { colorScheme: 'light', forcedColors: 'active' }],
   ['reduced-motion', 1280, { reducedMotion: 'reduce' }],
   ['mobile-320', 320, { colorScheme: 'light' }],
+  ['large-text-200', 1280, { colorScheme: 'light' }, (page) => page.addStyleTag({ content: 'html { font-size: 32px; }' })],
 ]) {
   const context = await browser.newContext({ viewport: { width, height: 900 }, ...options });
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e.message)));
   await page.goto(base, { waitUntil: 'load' });
+  if (setup) await setup(page);
   await page.waitForSelector('#summary:not([hidden])', { timeout: 15000 });
   const geometry = await page.evaluate(() => ({
     status: document.getElementById('status').textContent,
