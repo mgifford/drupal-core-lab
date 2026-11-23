@@ -129,6 +129,264 @@
       "demo": {
         "viewport": "narrow",
         "start": "/node/add/article"
+      },
+      "executionEvidence": {
+        "schema_version": "1.0.0",
+        "run_id": "3619127-pinned-2026-11-23T17-55-59-509Z-a0d910",
+        "generated_at": "2026-11-23T19:12:07.716Z",
+        "issue": {
+          "id": "3619127",
+          "url": "https://www.drupal.org/project/drupal/issues/3619127",
+          "synthetic": false
+        },
+        "scenario": {
+          "id": "3619127-pinned",
+          "label": "#3619127: sidebar opens from Inline Form Errors links (MR + vanilla JS), pinned core",
+          "variant": "3619127-pinned"
+        },
+        "instrumented": true,
+        "correlation": {
+          "status": "correlated",
+          "matched_requests": 18,
+          "partially_matched_requests": 0,
+          "requests_without_server_trace": 0,
+          "requests_without_server_details": 0,
+          "server_traces_without_request": 0,
+          "notes": [
+            "20 server traces were recorded for 18 browser requests. A redirect, a re-issued request or an internal forward can produce more than one Drupal request for one browser request; the request id is shared, the root span is not."
+          ]
+        },
+        "environments": [
+          {
+            "id": "before",
+            "role": "before",
+            "label": "before",
+            "env": "baseline-main",
+            "drupal_revision": "d29add7ebc18954dcb88877ed38b5bd88cdbf967",
+            "drupal_version": "12.0-dev",
+            "php_version": "8.5.7",
+            "patches": [],
+            "recipe": "ife_sidebar_repro",
+            "modules": 41,
+            "observability": {
+              "enabled": true,
+              "status": "ok",
+              "export": "exported"
+            }
+          },
+          {
+            "id": "after",
+            "role": "after",
+            "label": "after",
+            "env": "issue-3619127-vanilla",
+            "drupal_revision": "d29add7ebc18954dcb88877ed38b5bd88cdbf967",
+            "drupal_version": "12.0-dev",
+            "php_version": "8.5.7",
+            "patches": [
+              "3619127-forms-sidebar-with-ife.patch",
+              "patch-0-vanilla-js-no-jquery.patch",
+              "patch-1-no-persist-and-waits.patch"
+            ],
+            "recipe": "ife_sidebar_repro",
+            "modules": 41,
+            "observability": {
+              "enabled": true,
+              "status": "ok",
+              "export": "exported"
+            }
+          }
+        ],
+        "before": {
+          "id": "before",
+          "requests": 9,
+          "traces": 10,
+          "server_ms_median": 900.805,
+          "db_queries": 956,
+          "cache_queries": 783,
+          "exceptions": 0,
+          "axe_nodes": 0,
+          "correlation": "correlated"
+        },
+        "after": {
+          "id": "after",
+          "requests": 9,
+          "traces": 10,
+          "server_ms_median": 289.46000000000004,
+          "db_queries": 987,
+          "cache_queries": 814,
+          "exceptions": 0,
+          "axe_nodes": 0,
+          "correlation": "correlated"
+        },
+        "rows": [
+          {
+            "metric": "Browser requests",
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "comparability": "comparable",
+            "observed": true,
+            "note": "The same scenario can issue a different number of requests, for example after an AJAX response."
+          },
+          {
+            "metric": "Server traces",
+            "before": 10,
+            "after": 10,
+            "delta": 0,
+            "comparability": "comparable",
+            "observed": true,
+            "note": ""
+          },
+          {
+            "metric": "Server duration, median (ms)",
+            "before": 900.805,
+            "after": 289.46000000000004,
+            "delta": -611.34,
+            "comparability": "comparable",
+            "observed": true,
+            "note": "Instrumented runs include database-logging and export overhead. A single pair is also noisy; repeat the run before drawing any inference, and treat the difference as diagnostic, not as a benchmark."
+          },
+          {
+            "metric": "Server duration, total (ms)",
+            "before": 14869.810000000003,
+            "after": 5008.500000000001,
+            "delta": -9861.31,
+            "comparability": "comparable",
+            "observed": true,
+            "note": "Total depends on how many requests the scenario made; compare the median as well."
+          },
+          {
+            "metric": "Database queries",
+            "before": 956,
+            "after": 987,
+            "delta": 31,
+            "comparability": "comparable",
+            "observed": true,
+            "note": "Cache state and the number of requests affect this. A difference is not by itself a problem."
+          },
+          {
+            "metric": "Database queries, median per request",
+            "before": 43,
+            "after": 43,
+            "delta": 0,
+            "comparability": "comparable",
+            "observed": true,
+            "note": ""
+          },
+          {
+            "metric": "Database time (ms)",
+            "before": 4444.109999999999,
+            "after": 1357.8000000000004,
+            "delta": -3086.31,
+            "comparability": "comparable",
+            "observed": true,
+            "note": "Query logging measures statement time only; it excludes PHP and rendering."
+          },
+          {
+            "metric": "Cache-table queries",
+            "before": 783,
+            "after": 814,
+            "delta": 31,
+            "comparability": "comparable",
+            "observed": true,
+            "note": "Inferred from queries against cache tables. This is not a cache hit/miss ratio."
+          },
+          {
+            "metric": "Exceptions recorded",
+            "before": 0,
+            "after": 0,
+            "delta": 0,
+            "comparability": "comparable",
+            "observed": true,
+            "note": "Only exception class and count are recorded; messages are not exported."
+          },
+          {
+            "metric": "axe violating elements",
+            "before": 0,
+            "after": 0,
+            "delta": 0,
+            "comparability": "comparable",
+            "observed": true,
+            "note": "Scanner findings, not a WCAG conformance result. Compare only when both sides were scanned at the same step."
+          }
+        ],
+        "interpretation": "Observed data, not a causal claim. A difference in duration, query count or cache activity describes what happened in these two runs under these conditions. It does not establish that the patch caused a performance or functional regression; tracing overhead, cache state, request count and environment differences can all change these numbers. Use the per-request traces and the native browser, axe-core and Lighthouse artifacts to investigate, and re-run without instrumentation before making a performance claim.",
+        "artifacts": [
+          {
+            "id": "results",
+            "kind": "playwright-results",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/results.json",
+            "retention": "committed"
+          },
+          {
+            "id": "browser-before",
+            "kind": "request-catalog",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/observability-before.json",
+            "retention": "committed"
+          },
+          {
+            "id": "browser-after",
+            "kind": "request-catalog",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/observability-after.json",
+            "retention": "committed"
+          },
+          {
+            "id": "screenshot-1",
+            "kind": "screenshot",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/after-keyboard-1-error-state.png",
+            "retention": "committed"
+          },
+          {
+            "id": "screenshot-2",
+            "kind": "screenshot",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/after-keyboard-2-after-link.png",
+            "retention": "committed"
+          },
+          {
+            "id": "screenshot-3",
+            "kind": "screenshot",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/after-mouse-1-error-state.png",
+            "retention": "committed"
+          },
+          {
+            "id": "screenshot-4",
+            "kind": "screenshot",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/after-mouse-2-after-link.png",
+            "retention": "committed"
+          },
+          {
+            "id": "screenshot-5",
+            "kind": "screenshot",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/before-keyboard-1-error-state.png",
+            "retention": "committed"
+          },
+          {
+            "id": "screenshot-6",
+            "kind": "screenshot",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/before-keyboard-2-after-link.png",
+            "retention": "committed"
+          },
+          {
+            "id": "screenshot-7",
+            "kind": "screenshot",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/before-mouse-1-error-state.png",
+            "retention": "committed"
+          },
+          {
+            "id": "screenshot-8",
+            "kind": "screenshot",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/before-mouse-2-after-link.png",
+            "retention": "committed"
+          }
+        ],
+        "limitations": [
+          "Automated accessibility rules cover only part of WCAG; a finding is not a conformance verdict.",
+          "A correlated trace shows that a request reached Drupal with the same trace id. It does not show that the patch caused the observed behaviour.",
+          "Server timings include tracing and database-logging overhead when instrumentation is on. Do not compare them with a benchmark run.",
+          "Drupal page-cache and dynamic-page-cache hits can serve a response without the instrumented request path; those requests may have no server trace."
+        ],
+        "report_path": "reports/issues/3619127/observability/2026-11-23T17-59-23-635Z/SUMMARY.md",
+        "manifest_path": "reports/issues/3619127/observability/2026-11-23T17-59-23-635Z/evidence.json"
       }
     },
     {
@@ -258,6 +516,264 @@
       "demo": {
         "viewport": "narrow",
         "start": "/node/add/article"
+      },
+      "executionEvidence": {
+        "schema_version": "1.0.0",
+        "run_id": "3619127-pinned-2026-11-23T17-55-59-509Z-a0d910",
+        "generated_at": "2026-11-23T19:12:07.716Z",
+        "issue": {
+          "id": "3619127",
+          "url": "https://www.drupal.org/project/drupal/issues/3619127",
+          "synthetic": false
+        },
+        "scenario": {
+          "id": "3619127-pinned",
+          "label": "#3619127: sidebar opens from Inline Form Errors links (MR + vanilla JS), pinned core",
+          "variant": "3619127-pinned"
+        },
+        "instrumented": true,
+        "correlation": {
+          "status": "correlated",
+          "matched_requests": 18,
+          "partially_matched_requests": 0,
+          "requests_without_server_trace": 0,
+          "requests_without_server_details": 0,
+          "server_traces_without_request": 0,
+          "notes": [
+            "20 server traces were recorded for 18 browser requests. A redirect, a re-issued request or an internal forward can produce more than one Drupal request for one browser request; the request id is shared, the root span is not."
+          ]
+        },
+        "environments": [
+          {
+            "id": "before",
+            "role": "before",
+            "label": "before",
+            "env": "baseline-main",
+            "drupal_revision": "d29add7ebc18954dcb88877ed38b5bd88cdbf967",
+            "drupal_version": "12.0-dev",
+            "php_version": "8.5.7",
+            "patches": [],
+            "recipe": "ife_sidebar_repro",
+            "modules": 41,
+            "observability": {
+              "enabled": true,
+              "status": "ok",
+              "export": "exported"
+            }
+          },
+          {
+            "id": "after",
+            "role": "after",
+            "label": "after",
+            "env": "issue-3619127-vanilla",
+            "drupal_revision": "d29add7ebc18954dcb88877ed38b5bd88cdbf967",
+            "drupal_version": "12.0-dev",
+            "php_version": "8.5.7",
+            "patches": [
+              "3619127-forms-sidebar-with-ife.patch",
+              "patch-0-vanilla-js-no-jquery.patch",
+              "patch-1-no-persist-and-waits.patch"
+            ],
+            "recipe": "ife_sidebar_repro",
+            "modules": 41,
+            "observability": {
+              "enabled": true,
+              "status": "ok",
+              "export": "exported"
+            }
+          }
+        ],
+        "before": {
+          "id": "before",
+          "requests": 9,
+          "traces": 10,
+          "server_ms_median": 900.805,
+          "db_queries": 956,
+          "cache_queries": 783,
+          "exceptions": 0,
+          "axe_nodes": 0,
+          "correlation": "correlated"
+        },
+        "after": {
+          "id": "after",
+          "requests": 9,
+          "traces": 10,
+          "server_ms_median": 289.46000000000004,
+          "db_queries": 987,
+          "cache_queries": 814,
+          "exceptions": 0,
+          "axe_nodes": 0,
+          "correlation": "correlated"
+        },
+        "rows": [
+          {
+            "metric": "Browser requests",
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "comparability": "comparable",
+            "observed": true,
+            "note": "The same scenario can issue a different number of requests, for example after an AJAX response."
+          },
+          {
+            "metric": "Server traces",
+            "before": 10,
+            "after": 10,
+            "delta": 0,
+            "comparability": "comparable",
+            "observed": true,
+            "note": ""
+          },
+          {
+            "metric": "Server duration, median (ms)",
+            "before": 900.805,
+            "after": 289.46000000000004,
+            "delta": -611.34,
+            "comparability": "comparable",
+            "observed": true,
+            "note": "Instrumented runs include database-logging and export overhead. A single pair is also noisy; repeat the run before drawing any inference, and treat the difference as diagnostic, not as a benchmark."
+          },
+          {
+            "metric": "Server duration, total (ms)",
+            "before": 14869.810000000003,
+            "after": 5008.500000000001,
+            "delta": -9861.31,
+            "comparability": "comparable",
+            "observed": true,
+            "note": "Total depends on how many requests the scenario made; compare the median as well."
+          },
+          {
+            "metric": "Database queries",
+            "before": 956,
+            "after": 987,
+            "delta": 31,
+            "comparability": "comparable",
+            "observed": true,
+            "note": "Cache state and the number of requests affect this. A difference is not by itself a problem."
+          },
+          {
+            "metric": "Database queries, median per request",
+            "before": 43,
+            "after": 43,
+            "delta": 0,
+            "comparability": "comparable",
+            "observed": true,
+            "note": ""
+          },
+          {
+            "metric": "Database time (ms)",
+            "before": 4444.109999999999,
+            "after": 1357.8000000000004,
+            "delta": -3086.31,
+            "comparability": "comparable",
+            "observed": true,
+            "note": "Query logging measures statement time only; it excludes PHP and rendering."
+          },
+          {
+            "metric": "Cache-table queries",
+            "before": 783,
+            "after": 814,
+            "delta": 31,
+            "comparability": "comparable",
+            "observed": true,
+            "note": "Inferred from queries against cache tables. This is not a cache hit/miss ratio."
+          },
+          {
+            "metric": "Exceptions recorded",
+            "before": 0,
+            "after": 0,
+            "delta": 0,
+            "comparability": "comparable",
+            "observed": true,
+            "note": "Only exception class and count are recorded; messages are not exported."
+          },
+          {
+            "metric": "axe violating elements",
+            "before": 0,
+            "after": 0,
+            "delta": 0,
+            "comparability": "comparable",
+            "observed": true,
+            "note": "Scanner findings, not a WCAG conformance result. Compare only when both sides were scanned at the same step."
+          }
+        ],
+        "interpretation": "Observed data, not a causal claim. A difference in duration, query count or cache activity describes what happened in these two runs under these conditions. It does not establish that the patch caused a performance or functional regression; tracing overhead, cache state, request count and environment differences can all change these numbers. Use the per-request traces and the native browser, axe-core and Lighthouse artifacts to investigate, and re-run without instrumentation before making a performance claim.",
+        "artifacts": [
+          {
+            "id": "results",
+            "kind": "playwright-results",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/results.json",
+            "retention": "committed"
+          },
+          {
+            "id": "browser-before",
+            "kind": "request-catalog",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/observability-before.json",
+            "retention": "committed"
+          },
+          {
+            "id": "browser-after",
+            "kind": "request-catalog",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/observability-after.json",
+            "retention": "committed"
+          },
+          {
+            "id": "screenshot-1",
+            "kind": "screenshot",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/after-keyboard-1-error-state.png",
+            "retention": "committed"
+          },
+          {
+            "id": "screenshot-2",
+            "kind": "screenshot",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/after-keyboard-2-after-link.png",
+            "retention": "committed"
+          },
+          {
+            "id": "screenshot-3",
+            "kind": "screenshot",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/after-mouse-1-error-state.png",
+            "retention": "committed"
+          },
+          {
+            "id": "screenshot-4",
+            "kind": "screenshot",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/after-mouse-2-after-link.png",
+            "retention": "committed"
+          },
+          {
+            "id": "screenshot-5",
+            "kind": "screenshot",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/before-keyboard-1-error-state.png",
+            "retention": "committed"
+          },
+          {
+            "id": "screenshot-6",
+            "kind": "screenshot",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/before-keyboard-2-after-link.png",
+            "retention": "committed"
+          },
+          {
+            "id": "screenshot-7",
+            "kind": "screenshot",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/before-mouse-1-error-state.png",
+            "retention": "committed"
+          },
+          {
+            "id": "screenshot-8",
+            "kind": "screenshot",
+            "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/before-mouse-2-after-link.png",
+            "retention": "committed"
+          }
+        ],
+        "limitations": [
+          "Automated accessibility rules cover only part of WCAG; a finding is not a conformance verdict.",
+          "A correlated trace shows that a request reached Drupal with the same trace id. It does not show that the patch caused the observed behaviour.",
+          "Server timings include tracing and database-logging overhead when instrumentation is on. Do not compare them with a benchmark run.",
+          "Drupal page-cache and dynamic-page-cache hits can serve a response without the instrumented request path; those requests may have no server trace."
+        ],
+        "report_path": "reports/issues/3619127/observability/2026-11-23T17-59-23-635Z/SUMMARY.md",
+        "manifest_path": "reports/issues/3619127/observability/2026-11-23T17-59-23-635Z/evidence.json"
       }
     },
     {
@@ -455,7 +971,8 @@
       ],
       "demo": {
         "start": "/form_test/details-contains-required-fields"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3604037-latest",
@@ -652,7 +1169,8 @@
       ],
       "demo": {
         "start": "/form_test/details-contains-required-fields"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3093378-latest",
@@ -754,7 +1272,8 @@
       ],
       "demo": {
         "start": "/"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3093378-pinned",
@@ -856,7 +1375,8 @@
       ],
       "demo": {
         "start": "/"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3618405-pinned",
@@ -877,7 +1397,8 @@
       "checks": [],
       "pages": [
         "/admin/content"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3618405-latest",
@@ -898,7 +1419,8 @@
       "checks": [],
       "pages": [
         "/admin/content"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3619154-pinned",
@@ -1089,7 +1611,8 @@
       ],
       "pages": [
         "/node/1/edit"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3619154-latest",
@@ -1280,7 +1803,8 @@
       ],
       "pages": [
         "/node/1/edit"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3273806-latest",
@@ -1321,7 +1845,8 @@
       ],
       "pages": [
         "/admin/content"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3426468-pinned",
@@ -1337,7 +1862,8 @@
       "checks": [],
       "pages": [
         "/admin/content"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3426468-latest",
@@ -1384,7 +1910,8 @@
       ],
       "pages": [
         "/admin/content"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3606655-pinned",
@@ -1459,7 +1986,8 @@
       "pages": [
         "/user/1/edit",
         "/"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3606655-latest",
@@ -1534,7 +2062,8 @@
       "pages": [
         "/user/1/edit",
         "/"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3273054-pinned",
@@ -1601,7 +2130,8 @@
       ],
       "demo": {
         "start": "/admin/people/permissions"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3273054-latest",
@@ -1668,7 +2198,8 @@
       ],
       "demo": {
         "start": "/admin/people/permissions"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3419891-pinned",
@@ -1740,7 +2271,8 @@
       ],
       "demo": {
         "start": "/node/add/page"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3419891-latest",
@@ -1812,7 +2344,8 @@
       ],
       "demo": {
         "start": "/node/add/page"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "info-yml-theme-incompatible",
@@ -1857,7 +2390,8 @@
       ],
       "demo": {
         "start": "/admin/appearance"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "info-yml-name-not-string",
@@ -1928,7 +2462,8 @@
       ],
       "demo": {
         "start": "/admin/modules"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "2574721-pinned",
@@ -1990,7 +2525,8 @@
       ],
       "pages": [
         "/admin/modules"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "2574721-latest",
@@ -2052,7 +2588,8 @@
       ],
       "pages": [
         "/admin/modules"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "867830-pinned",
@@ -2234,7 +2771,8 @@
       ],
       "demo": {
         "start": "/lab/unpublished-article"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "867830-latest",
@@ -2416,7 +2954,8 @@
       ],
       "demo": {
         "start": "/lab/unpublished-article"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "867830-current-authoring",
@@ -2497,7 +3036,8 @@
         "/lab/unpublished-article",
         "/lab/unpublished-page",
         "/lab/published-article"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "867830-current-latest",
@@ -2578,7 +3118,8 @@
         "/lab/unpublished-article",
         "/lab/unpublished-page",
         "/lab/published-article"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3636143-pinned",
@@ -2652,7 +3193,8 @@
       "pages": [
         "/admin/appearance/settings/default_admin",
         "/admin/content"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3636143-latest",
@@ -2726,7 +3268,8 @@
       "pages": [
         "/admin/appearance/settings/default_admin",
         "/admin/content"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "2942404-pinned",
@@ -2791,7 +3334,8 @@
         "/admin/content",
         "/lab/status-messages",
         "/admin/lab/status-messages"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "2942404-latest",
@@ -2871,7 +3415,8 @@
         "/admin/content",
         "/lab/status-messages",
         "/admin/lab/status-messages"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "2942404-consolidated",
@@ -2957,7 +3502,8 @@
         "/admin/content",
         "/lab/status-messages",
         "/admin/lab/status-messages"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "2951317-pinned",
@@ -3051,7 +3597,8 @@
       ],
       "pages": [
         "/admin/config/development/lab-radios-2951317"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "2951317-native-validation",
@@ -3135,7 +3682,8 @@
       ],
       "pages": [
         "/admin/config/development/lab-radios-2951317"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "2951317-latest",
@@ -3229,7 +3777,8 @@
       ],
       "pages": [
         "/admin/config/development/lab-radios-2951317"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3155130-pinned",
@@ -3307,7 +3856,8 @@
       ],
       "pages": [
         "/node/add/page"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3207233-pinned",
@@ -3386,7 +3936,8 @@
       ],
       "demo": {
         "start": "/admin/config/workflow/workspaces"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3207233-latest",
@@ -3465,7 +4016,8 @@
       ],
       "demo": {
         "start": "/admin/config/workflow/workspaces"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3415961-pinned",
@@ -3542,7 +4094,8 @@
       ],
       "demo": {
         "start": "/node/add/article"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3415961-latest",
@@ -3619,7 +4172,8 @@
       ],
       "demo": {
         "start": "/node/add/article"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3587661-pinned",
@@ -3684,7 +4238,8 @@
       ],
       "pages": [
         "/node/add/article"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3587661-latest",
@@ -3749,7 +4304,8 @@
       ],
       "pages": [
         "/node/add/article"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3587661-proposal",
@@ -3814,7 +4370,8 @@
       ],
       "pages": [
         "/node/add/article"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3593502-pinned",
@@ -3934,7 +4491,8 @@
       ],
       "demo": {
         "start": "/admin/structure/menu"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3593502-mr-only",
@@ -4007,7 +4565,8 @@
       ],
       "demo": {
         "start": "/admin/structure/menu"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3593502-interdiff",
@@ -4109,7 +4668,8 @@
       ],
       "demo": {
         "start": "/admin/structure/menu/manage/main/tree"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3593502-latest",
@@ -4229,7 +4789,8 @@
       ],
       "demo": {
         "start": "/admin/structure/menu"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3615469-pinned",
@@ -4297,7 +4858,8 @@
       ],
       "demo": {
         "start": "/admin/config/development/maintenance"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3615469-latest",
@@ -4365,7 +4927,8 @@
       ],
       "demo": {
         "start": "/admin/config/development/maintenance"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3618230-pinned",
@@ -4438,7 +5001,8 @@
       ],
       "demo": {
         "start": "/node/add/article"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3618230-latest",
@@ -4511,7 +5075,8 @@
       ],
       "demo": {
         "start": "/node/add/article"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3618230-pilot",
@@ -4584,7 +5149,8 @@
       ],
       "demo": {
         "start": "/node/add/article"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3627936-pinned",
@@ -4641,7 +5207,8 @@
       ],
       "demo": {
         "start": "/admin/config/workflow/workspaces"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3627936-latest",
@@ -4698,7 +5265,8 @@
       ],
       "demo": {
         "start": "/admin/config/workflow/workspaces"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3630425-pinned",
@@ -4790,7 +5358,8 @@
       ],
       "demo": {
         "start": "/node/add/article"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3630425-latest",
@@ -4882,7 +5451,8 @@
       ],
       "demo": {
         "start": "/node/add/article"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3630425-mr-only",
@@ -4974,7 +5544,8 @@
       ],
       "demo": {
         "start": "/node/add/article"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3631321-pinned",
@@ -5050,7 +5621,8 @@
       ],
       "demo": {
         "start": "/admin/config/people/accounts"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3631321-latest",
@@ -5126,7 +5698,8 @@
       ],
       "demo": {
         "start": "/admin/config/people/accounts"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3631337-pinned",
@@ -5213,7 +5786,8 @@
       ],
       "demo": {
         "start": "/admin/config/people/accounts"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3631337-latest",
@@ -5300,7 +5874,8 @@
       ],
       "demo": {
         "start": "/admin/config/people/accounts"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3631337-independent",
@@ -5387,7 +5962,8 @@
       ],
       "demo": {
         "start": "/admin/config/people/accounts"
-      }
+      },
+      "executionEvidence": null
     },
     {
       "slug": "3636143-with-skip-focus",
@@ -5457,7 +6033,8 @@
       "pages": [
         "/admin/appearance/settings/default_admin",
         "/admin/content"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3637163-pinned",
@@ -5541,7 +6118,8 @@
       "pages": [
         "/admin/appearance/settings/default_admin",
         "/admin/content"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3637163-latest",
@@ -5625,7 +6203,8 @@
       "pages": [
         "/admin/appearance/settings/default_admin",
         "/admin/content"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3637339-pinned",
@@ -5699,7 +6278,8 @@
       ],
       "pages": [
         "/admin/appearance/settings/default_admin"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3637339-latest",
@@ -5773,7 +6353,8 @@
       ],
       "pages": [
         "/admin/appearance/settings/default_admin"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "3637339-focus-clearance",
@@ -5837,7 +6418,8 @@
       ],
       "pages": [
         "/admin/appearance/settings/default_admin"
-      ]
+      ],
+      "executionEvidence": null
     },
     {
       "slug": "867830-ribbon-pinned",
@@ -5918,7 +6500,8 @@
         "/lab/unpublished-article",
         "/lab/unpublished-page",
         "/lab/published-article"
-      ]
+      ],
+      "executionEvidence": null
     }
   ]
 }

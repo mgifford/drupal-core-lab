@@ -1,0 +1,570 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mgifford/drupal-core-lab/tools/observability/evidence.schema.json",
+  "title": "Drupal Core Lab execution evidence manifest",
+  "description": "Version 1.0.0. Correlates browser actions, HTTP requests, OpenTelemetry server traces, accessibility findings, performance measurements and screenshots for one Core Lab run. The manifest is deliberately redundant: artifacts stay in their native formats and are referenced here.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "producer",
+    "run",
+    "environments",
+    "playwright",
+    "requests",
+    "traces",
+    "correlation",
+    "findings",
+    "artifacts",
+    "limitations"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "producer": { "$ref": "#/$defs/producer" },
+    "run": { "$ref": "#/$defs/run" },
+    "environments": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/environment" }
+    },
+    "playwright": { "$ref": "#/$defs/playwright" },
+    "requests": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/request" }
+    },
+    "traces": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/trace" }
+    },
+    "correlation": { "$ref": "#/$defs/correlation" },
+    "findings": { "$ref": "#/$defs/findings" },
+    "artifacts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/artifact" }
+    },
+    "comparison": { "$ref": "#/$defs/comparison" },
+    "limitations": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Namespaced extension data. Unknown top-level fields are rejected; put experimental data here.",
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "producer": {
+      "type": "object",
+      "required": ["name", "version", "repository"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "repository": { "type": "string", "minLength": 1 }
+      }
+    },
+    "issue": {
+      "type": "object",
+      "required": ["id", "url", "synthetic"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "url": { "type": "string", "pattern": "^https://" },
+        "synthetic": { "type": "boolean" },
+        "label": { "type": "string" }
+      }
+    },
+    "run": {
+      "type": "object",
+      "required": ["id", "scenario", "issue", "started_at", "finished_at", "instrumented", "tools"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9._-]+$" },
+        "scenario": {
+          "type": "object",
+          "required": ["id", "variant"],
+          "additionalProperties": false,
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "label": { "type": "string" },
+            "variant": { "type": "string", "minLength": 1 }
+          }
+        },
+        "issue": { "$ref": "#/$defs/issue" },
+        "started_at": { "$ref": "#/$defs/timestamp" },
+        "finished_at": { "$ref": "#/$defs/timestamp" },
+        "instrumented": { "type": "boolean" },
+        "tools": { "$ref": "#/$defs/tools" }
+      }
+    },
+    "tools": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "node": { "type": "string" },
+        "playwright": { "type": "string" },
+        "browser": { "type": "string" },
+        "browser_version": { "type": "string" },
+        "axe_core": { "type": "string" },
+        "lighthouse": { "type": ["string", "null"] },
+        "drupal": { "type": "string" },
+        "php": { "type": "string" },
+        "otel_sdk": { "type": ["string", "null"] }
+      }
+    },
+    "observability": {
+      "type": "object",
+      "required": ["enabled", "status", "endpoint_configured", "collector", "export", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "status": { "enum": ["ok", "partial", "disabled", "unavailable", "error"] },
+        "endpoint_configured": { "type": "boolean" },
+        "endpoint": { "type": ["string", "null"] },
+        "collector": { "type": ["string", "null"] },
+        "export": { "$ref": "#/$defs/export" },
+        "reason": { "type": ["string", "null"] }
+      }
+    },
+    "export": {
+      "type": "object",
+      "required": ["status", "received_traces", "missing_traces"],
+      "additionalProperties": false,
+      "properties": {
+        "status": { "enum": ["exported", "partial", "failed", "disabled", "unknown"] },
+        "received_traces": { "type": "integer", "minimum": 0 },
+        "missing_traces": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "artifact_id": { "type": ["string", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "required": [
+        "id",
+        "role",
+        "env",
+        "run_id",
+        "drupal_revision",
+        "drupal_version",
+        "php_version",
+        "patches",
+        "recipe",
+        "modules",
+        "configuration",
+        "observability"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9._-]+$" },
+        "role": { "enum": ["before", "after", "variant"] },
+        "label": { "type": "string" },
+        "env": { "type": "string", "minLength": 1 },
+        "run_id": { "type": "string", "minLength": 1 },
+        "drupal_revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "drupal_version": { "type": "string", "minLength": 1 },
+        "php_version": { "type": "string", "minLength": 1 },
+        "patches": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/patch" }
+        },
+        "recipe": { "type": ["string", "null"] },
+        "modules": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "configuration": {
+          "type": "object",
+          "additionalProperties": { "type": ["string", "number", "boolean", "null"] }
+        },
+        "observability": { "$ref": "#/$defs/observability" }
+      }
+    },
+    "patch": {
+      "type": "object",
+      "required": ["name", "path"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "path": { "$ref": "#/$defs/relativePath" },
+        "sha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "playwright": {
+      "type": "object",
+      "required": ["run_id", "trace_file", "actions"],
+      "additionalProperties": false,
+      "properties": {
+        "run_id": { "type": "string", "minLength": 1 },
+        "trace_file": { "type": ["string", "null"] },
+        "actions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/action" }
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "required": ["id", "side", "environment_id", "kind", "label", "started_at", "duration_ms", "request_ids"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^a[0-9]+$" },
+        "side": { "enum": ["before", "after", "variant"] },
+        "environment_id": { "type": "string" },
+        "kind": {
+          "enum": ["goto", "click", "fill", "press", "select", "check", "screenshot", "wait", "evaluate", "other"]
+        },
+        "label": { "type": "string", "minLength": 1 },
+        "started_at": { "$ref": "#/$defs/timestamp" },
+        "duration_ms": { "type": "number", "minimum": 0 },
+        "request_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "screenshot_artifact_id": { "type": ["string", "null"] }
+      }
+    },
+    "request": {
+      "type": "object",
+      "required": [
+        "id",
+        "side",
+        "environment_id",
+        "action_id",
+        "method",
+        "url",
+        "resource_type",
+        "started_at",
+        "duration_ms",
+        "status",
+        "client_trace_id",
+        "client_span_id",
+        "server_trace_id",
+        "server_root_span_id",
+        "correlation"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^r[0-9]+$" },
+        "side": { "enum": ["before", "after", "variant"] },
+        "environment_id": { "type": "string" },
+        "action_id": { "type": ["string", "null"] },
+        "method": { "type": "string", "pattern": "^[A-Z]+$" },
+        "url": { "type": "string", "minLength": 1 },
+        "resource_type": { "type": "string" },
+        "started_at": { "$ref": "#/$defs/timestamp" },
+        "duration_ms": { "type": ["number", "null"], "minimum": 0 },
+        "status": { "type": ["integer", "null"], "minimum": 100, "maximum": 599 },
+        "client_trace_id": { "$ref": "#/$defs/traceId" },
+        "client_span_id": { "$ref": "#/$defs/spanId" },
+        "server_trace_id": { "type": ["string", "null"], "pattern": "^[0-9a-f]{32}$" },
+        "server_root_span_id": { "type": ["string", "null"], "pattern": "^[0-9a-f]{16}$" },
+        "server_summary_available": { "type": "boolean" },
+        "correlation": {
+          "enum": [
+            "matched",
+            "server-generated",
+            "no-server-trace",
+            "not-instrumented",
+            "export-failed",
+            "request-failed",
+            "pending"
+          ]
+        },
+        "export_status": { "enum": ["exported", "not-exported", "failed", "disabled", "unknown"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "trace": {
+      "type": "object",
+      "required": [
+        "id",
+        "environment_id",
+        "side",
+        "request_id",
+        "root_span_id",
+        "name",
+        "started_at",
+        "duration_ms",
+        "span_count",
+        "db",
+        "exceptions",
+        "export_status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/traceId" },
+        "environment_id": { "type": "string" },
+        "side": { "enum": ["before", "after", "variant"] },
+        "request_id": { "type": ["string", "null"] },
+        "root_span_id": { "$ref": "#/$defs/spanId" },
+        "name": { "type": "string", "minLength": 1 },
+        "started_at": { "$ref": "#/$defs/timestamp" },
+        "duration_ms": { "type": "number", "minimum": 0 },
+        "span_count": { "type": "integer", "minimum": 1 },
+        "db": { "$ref": "#/$defs/db" },
+        "exceptions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/exception" }
+        },
+        "export_status": { "enum": ["exported", "not-exported", "failed", "disabled", "unknown"] },
+        "artifact_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": { "type": ["string", "number", "boolean"] }
+        }
+      }
+    },
+    "db": {
+      "type": "object",
+      "required": ["query_count", "total_ms", "cache_query_count", "cache_write_count"],
+      "additionalProperties": false,
+      "properties": {
+        "query_count": { "type": "integer", "minimum": 0 },
+        "total_ms": { "type": "number", "minimum": 0 },
+        "slowest_ms": { "type": ["number", "null"], "minimum": 0 },
+        "cache_query_count": { "type": "integer", "minimum": 0 },
+        "cache_write_count": { "type": "integer", "minimum": 0 },
+        "targets": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "tables": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "exception": {
+      "type": "object",
+      "required": ["class", "code", "count"],
+      "additionalProperties": false,
+      "properties": {
+        "class": { "type": "string", "minLength": 1 },
+        "code": { "type": ["integer", "string", "null"] },
+        "count": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "correlation": {
+      "type": "object",
+      "required": [
+        "status",
+        "matched_requests",
+        "partially_matched_requests",
+        "requests_without_server_trace",
+        "requests_without_server_details",
+        "server_traces_without_request",
+        "notes"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "correlated",
+            "partially-correlated",
+            "not-correlated",
+            "not-instrumented",
+            "observability-disabled"
+          ]
+        },
+        "matched_requests": { "type": "integer", "minimum": 0 },
+        "partially_matched_requests": { "type": "integer", "minimum": 0 },
+        "requests_without_server_trace": { "type": "integer", "minimum": 0 },
+        "requests_without_server_details": { "type": "integer", "minimum": 0 },
+        "server_traces_without_request": { "type": "integer", "minimum": 0 },
+        "notes": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "findings": {
+      "type": "object",
+      "required": ["axe", "lighthouse", "resources"],
+      "additionalProperties": false,
+      "properties": {
+        "axe": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/axeFinding" }
+        },
+        "lighthouse": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/lighthouseFinding" }
+        },
+        "resources": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/resourceFinding" }
+        }
+      }
+    },
+    "attribution": {
+      "type": "object",
+      "required": ["classification", "method"],
+      "additionalProperties": false,
+      "properties": {
+        "classification": { "enum": ["verified", "probable", "candidate", "unknown"] },
+        "method": { "type": "string", "minLength": 1 }
+      }
+    },
+    "axeFinding": {
+      "type": "object",
+      "required": ["id", "side", "environment_id", "tool", "rule", "impact", "help", "help_url", "wcag_tags", "nodes", "native", "attribution"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "side": { "enum": ["before", "after", "variant"] },
+        "environment_id": { "type": "string" },
+        "tool": {
+          "type": "object",
+          "required": ["name", "version"],
+          "additionalProperties": false,
+          "properties": {
+            "name": { "type": "string" },
+            "version": { "type": "string" }
+          }
+        },
+        "rule": { "type": "string", "minLength": 1 },
+        "impact": { "type": ["string", "null"] },
+        "help": { "type": "string" },
+        "help_url": { "type": "string" },
+        "wcag_tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["target", "html"],
+            "additionalProperties": false,
+            "properties": {
+              "target": { "type": "string" },
+              "html": { "type": "string" }
+            }
+          }
+        },
+        "action_id": { "type": ["string", "null"] },
+        "request_id": { "type": ["string", "null"] },
+        "trace_id": { "type": ["string", "null"] },
+        "artifact_id": { "type": ["string", "null"] },
+        "native": { "const": true, "description": "The finding is kept as the scanner reported it, not re-derived." },
+        "attribution": { "$ref": "#/$defs/attribution" }
+      }
+    },
+    "lighthouseFinding": {
+      "type": "object",
+      "required": ["side", "environment_id", "url", "tool_version", "categories", "metrics", "artifact_id"],
+      "additionalProperties": false,
+      "properties": {
+        "side": { "enum": ["before", "after", "variant"] },
+        "environment_id": { "type": "string" },
+        "url": { "type": "string" },
+        "tool_version": { "type": "string" },
+        "categories": {
+          "type": "object",
+          "additionalProperties": { "type": ["number", "null"] }
+        },
+        "metrics": {
+          "type": "object",
+          "additionalProperties": { "type": ["number", "null"] }
+        },
+        "artifact_id": { "type": ["string", "null"] }
+      }
+    },
+    "resourceFinding": {
+      "type": "object",
+      "required": ["side", "environment_id", "metric", "value", "unit", "method", "artifact_id"],
+      "additionalProperties": false,
+      "properties": {
+        "side": { "enum": ["before", "after", "variant"] },
+        "environment_id": { "type": "string" },
+        "metric": { "type": "string", "minLength": 1 },
+        "value": { "type": ["number", "null"] },
+        "unit": { "type": "string" },
+        "method": { "type": "string", "minLength": 1 },
+        "artifact_id": { "type": ["string", "null"] }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "required": ["id", "kind", "path", "media_type", "bytes", "sha256", "retention", "public", "sanitized"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9._-]+$" },
+        "kind": {
+          "enum": [
+            "playwright-results",
+            "playwright-trace",
+            "screenshot",
+            "axe-json",
+            "lighthouse-json",
+            "resource-json",
+            "otel-export",
+            "otel-local-spans",
+            "server-summary",
+            "request-catalog",
+            "evidence-manifest",
+            "trace-summary",
+            "comparison",
+            "log",
+            "other"
+          ]
+        },
+        "path": { "$ref": "#/$defs/relativePath" },
+        "media_type": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 0 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "environment_id": { "type": ["string", "null"] },
+        "retention": { "enum": ["committed", "local", "transient"] },
+        "public": { "type": "boolean" },
+        "sanitized": { "type": "boolean" },
+        "description": { "type": "string" }
+      }
+    },
+    "comparison": {
+      "type": "object",
+      "required": ["before_environment_id", "after_environment_id", "rows", "interpretation"],
+      "additionalProperties": false,
+      "properties": {
+        "before_environment_id": { "type": "string" },
+        "after_environment_id": { "type": "string" },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["metric", "before", "after", "delta", "comparability", "observed"],
+            "additionalProperties": false,
+            "properties": {
+              "metric": { "type": "string", "minLength": 1 },
+              "before": { "type": ["number", "string", "null"] },
+              "after": { "type": ["number", "string", "null"] },
+              "delta": { "type": ["number", "string", "null"] },
+              "comparability": { "enum": ["comparable", "not-comparable"] },
+              "observed": { "type": "boolean" },
+              "note": { "type": "string" }
+            }
+          }
+        },
+        "interpretation": { "type": "string", "minLength": 1 }
+      }
+    },
+    "timestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$"
+    },
+    "traceId": { "type": "string", "pattern": "^[0-9a-f]{32}$" },
+    "spanId": { "type": "string", "pattern": "^[0-9a-f]{16}$" },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._@+/-]+$"
+    }
+  }
+}

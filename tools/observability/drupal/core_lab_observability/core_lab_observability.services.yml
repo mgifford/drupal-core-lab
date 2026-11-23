@@ -1,0 +1,17 @@
+services:
+  logger.channel.core_lab_observability:
+    parent: logger.channel_base
+    arguments: ['core_lab_observability']
+
+  core_lab_observability.config:
+    class: Drupal\core_lab_observability\Config
+
+  core_lab_observability.tracer:
+    class: Drupal\core_lab_observability\Tracer
+    arguments: ['@core_lab_observability.config', '@logger.channel.core_lab_observability']
+
+  core_lab_observability.event_subscriber:
+    class: Drupal\core_lab_observability\EventSubscriber\DrupalExecutionSubscriber
+    arguments: ['@core_lab_observability.tracer', '@logger.channel.core_lab_observability']
+    tags:
+      - { name: event_subscriber }

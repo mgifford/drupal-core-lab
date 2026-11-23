@@ -7,14 +7,14 @@ import { browserThemeContext } from './theme-context.mjs';
 import https from 'node:https';
 import fs from 'node:fs';
 import path from 'node:path';
-import { execFile } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
 import { lighthouseAvailable, audit as lighthouseAudit } from './lighthouse.mjs';
 import * as emulation from './emulation.mjs';
 import { installedBrowsers, openBrowser, noWindowReason } from './browser-launch.mjs';
 // Why the preference emulation window cannot open here ('' when it can). A headless window (LAB_EMULATION_HEADLESS, for the scripted
 // checks such as tools/playwright/forced-window.mjs) needs no display.
 const noWindow = () => (process.env.LAB_EMULATION_HEADLESS ? '' : noWindowReason());
-import { labRoot, variants, envInfo, envInfoAsync, loginPathAsync, envDir } from './lib.mjs';
+import { labRoot, variants, envInfo, envInfoAsync, loginPathAsync, envDir, reportsDir } from './lib.mjs';
 
 const PAGE = Number(process.env.PORT || 8100);
 const AXE = path.join(labRoot, 'tools/compare/.deps/node_modules/axe-core/axe.min.js');
@@ -45,6 +45,15 @@ for (const [side, key] of [['before', 'LAB_BEFORE_ORIGIN'], ['after', 'LAB_AFTER
 const VIEWER_ORIGINS = [`http://localhost:${PAGE}`, `http://127.0.0.1:${PAGE}`, 'https://drupal-compare.ddev.site', ...(process.env.LAB_EXTRA_ORIGINS || '').split(',').map((x) => x.trim()).filter(Boolean)].map((o) => new URL(o).origin);
 const VIEWER_HOSTS = VIEWER_ORIGINS.map((o) => new URL(o).host);
 const list = variants();
+const repo = (() => { try { return execFileSync('git', ['-C', labRoot, 'remote', 'get-url', 'origin'], { encoding: 'utf8' }).trim().replace(/^git@github\.com:/, 'https://github.com/').replace(/\.git$/, ''); } catch { return ''; } })();
+// The latest sanitised execution summary for one variant. No path comes from the request: only the registered slug and
+// the reports folder are used, so this endpoint cannot read an arbitrary file.
+function latestObservability(v) {
+  const file = path.join(labRoot, v.reports || path.join('reports/issues', String(v.issue || '')), 'observability', 'latest.json');
+  if (!fs.existsSync(file)) return { available: false, reason: 'No execution evidence has been collected for this comparison.' };
+  try { const summary = JSON.parse(fs.readFileSync(file, 'utf8')); return { available: true, summary }; }
+  catch (e) { return { available: false, reason: 'The execution summary could not be read: ' + String(e.message).split('\n')[0] }; }
+}
 const state = { slug: process.argv.slice(2).find((x) => !x.startsWith('--')) || list[0].slug, theme: 'auto', darkos: false, axe: false, axeBest: false, dir: 'auto', nojs: false };
 const current = () => list.find((x) => x.slug === state.slug) || list[0];
 function latestResources() {
@@ -275,10 +284,15 @@ http.createServer((req, res) => {
   if (u.pathname === '/variants.json') {
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
     const availability = Object.fromEntries(list.map(v => [v.slug, ['before', 'after'].every(s => fs.existsSync(path.join(envDir(v[s].env), '.ddev/config.yaml')))]));
-    res.end(JSON.stringify({ variants: list, availability, state, origins: { before: SIDES.before.origin, after: SIDES.after.origin }, sites: realSites(), noWindow: noWindow() }));
+    res.end(JSON.stringify({ variants: list, availability, state, repo, origins: { before: SIDES.before.origin, after: SIDES.after.origin }, sites: realSites(), noWindow: noWindow() }));
   } else if (['/browser-handoff.mjs', '/media-preferences.mjs'].includes(u.pathname) || /^\/browser-icons\/(chrome|edge|firefox|safari)\.svg$/.test(u.pathname)) {
     const file = path.join(labRoot, 'tools/compare', u.pathname.slice(1));
     res.writeHead(200, { 'content-type': u.pathname.endsWith('.mjs') ? 'text/javascript' : 'image/svg+xml' }); res.end(fs.readFileSync(file));
+  } else if (u.pathname === '/api/observability') {
+    const wanted = u.searchParams.get('slug');
+    const v = list.find((x) => x.slug === wanted) || current();
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+    res.end(JSON.stringify(latestObservability(v)));
   } else if (u.pathname === '/api/browsers') {
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
     res.end(JSON.stringify({ browsers: installedBrowsers().map(({ id, label }) => ({ id, label })) }));

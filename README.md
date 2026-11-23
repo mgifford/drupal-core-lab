@@ -72,6 +72,15 @@ A passing test does not, by itself, establish WCAG conformance or prove that a p
 
 See [Testing Tools](docs/TESTING-TOOLS.md) for the capabilities and limitations of each method.
 
+### Investigate Drupal execution (optional)
+
+A browser-only comparison can show that the page changed, but not which Drupal request produced it or whether the patch
+added server-side work. An optional tracing layer connects Playwright actions and HTTP requests to Drupal's own
+OpenTelemetry spans using W3C Trace Context, then adds a **Drupal execution evidence** section to the existing run report
+and a hidden-when-unused tab to the viewer. It is off by default, needs no hosted service, and does not replace Playwright
+traces, axe-core findings or Lighthouse reports. See [docs/observability/README.md](docs/observability/README.md) for the
+worked #3619127 example and the limits of what a trace can prove.
+
 ### Investigate regressions
 
 A proposed fix can improve one interaction while causing problems elsewhere.
@@ -98,6 +107,13 @@ Depending on the investigation, records may include:
 Evidence is identified as draft until reviewed. Missing tests and inconclusive results remain visible rather than being reported as passes.
 
 See [How results are organized](docs/RESULTS-LAYOUT.md).
+
+## Resource use
+
+The Lab records where AI tokens, estimated cost, CPU time, memory and GitHub Actions time are spent while an issue is
+investigated. The measurements are deterministic, the local ledger stays out of Git, and the public dashboard contains
+aggregates only. See [docs/RESOURCE-MONITORING.md](docs/RESOURCE-MONITORING.md) and the
+[resource dashboard](https://mgifford.github.io/drupal-core-lab/resources.html).
 
 ## From investigation to contribution
 

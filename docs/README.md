@@ -14,6 +14,9 @@ Current documentation for this lab (written or verified 2026-10-01), plus a `leg
 | [CLOUD-QUICKSTART.md](CLOUD-QUICKSTART.md) | Browser-only walkthrough: create a DDEV Coder workspace, bootstrap before/after, open the viewer, handle lifespan/restarts. |
 | [ADDON-TRIAL-2026-10-01.md](ADDON-TRIAL-2026-10-01.md) | Trial of the DDEV add-on `justafish/ddev-drupal-core-dev`, with gotchas (Mutagen, router, SQLite). |
 | [FRAME-LOADING-2026-10-01.md](FRAME-LOADING-2026-10-01.md) | Why viewer frames sometimes did not load, what was measured and fixed, how to diagnose it. |
+| [observability/](observability/README.md) | Optional execution tracing: architecture, setup, evidence schema, privacy, Playwright correlation, upstream research and limitations. Off by default. |
+| [RESOURCE-MONITORING.md](RESOURCE-MONITORING.md) | Resource accounting: AI tokens and estimated cost, process CPU/RSS, Docker samples, GitHub Actions, local ledger, budgets, dashboard and baseline. |
+| [RESOURCE-PRIVACY.md](RESOURCE-PRIVACY.md) | What resource data is collected, what is public, the export allowlist, retention and removal. |
 
 Elsewhere:
 - `../AGENTS.md`: how to work here, and the rules (kept short: every agent session loads it). The reference material it points to:

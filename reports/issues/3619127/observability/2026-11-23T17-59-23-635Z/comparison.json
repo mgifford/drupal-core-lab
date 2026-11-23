@@ -1,0 +1,97 @@
+{
+  "before_environment_id": "before",
+  "after_environment_id": "after",
+  "rows": [
+    {
+      "metric": "Browser requests",
+      "before": 9,
+      "after": 9,
+      "delta": 0,
+      "comparability": "comparable",
+      "observed": true,
+      "note": "The same scenario can issue a different number of requests, for example after an AJAX response."
+    },
+    {
+      "metric": "Server traces",
+      "before": 10,
+      "after": 10,
+      "delta": 0,
+      "comparability": "comparable",
+      "observed": true,
+      "note": ""
+    },
+    {
+      "metric": "Server duration, median (ms)",
+      "before": 900.805,
+      "after": 289.46000000000004,
+      "delta": -611.34,
+      "comparability": "comparable",
+      "observed": true,
+      "note": "Instrumented runs include database-logging and export overhead. A single pair is also noisy; repeat the run before drawing any inference, and treat the difference as diagnostic, not as a benchmark."
+    },
+    {
+      "metric": "Server duration, total (ms)",
+      "before": 14869.810000000003,
+      "after": 5008.500000000001,
+      "delta": -9861.31,
+      "comparability": "comparable",
+      "observed": true,
+      "note": "Total depends on how many requests the scenario made; compare the median as well."
+    },
+    {
+      "metric": "Database queries",
+      "before": 956,
+      "after": 987,
+      "delta": 31,
+      "comparability": "comparable",
+      "observed": true,
+      "note": "Cache state and the number of requests affect this. A difference is not by itself a problem."
+    },
+    {
+      "metric": "Database queries, median per request",
+      "before": 43,
+      "after": 43,
+      "delta": 0,
+      "comparability": "comparable",
+      "observed": true,
+      "note": ""
+    },
+    {
+      "metric": "Database time (ms)",
+      "before": 4444.109999999999,
+      "after": 1357.8000000000004,
+      "delta": -3086.31,
+      "comparability": "comparable",
+      "observed": true,
+      "note": "Query logging measures statement time only; it excludes PHP and rendering."
+    },
+    {
+      "metric": "Cache-table queries",
+      "before": 783,
+      "after": 814,
+      "delta": 31,
+      "comparability": "comparable",
+      "observed": true,
+      "note": "Inferred from queries against cache tables. This is not a cache hit/miss ratio."
+    },
+    {
+      "metric": "Exceptions recorded",
+      "before": 0,
+      "after": 0,
+      "delta": 0,
+      "comparability": "comparable",
+      "observed": true,
+      "note": "Only exception class and count are recorded; messages are not exported."
+    },
+    {
+      "metric": "axe violating elements",
+      "before": 0,
+      "after": 0,
+      "delta": 0,
+      "comparability": "comparable",
+      "observed": true,
+      "note": "Scanner findings, not a WCAG conformance result. Compare only when both sides were scanned at the same step."
+    }
+  ],
+  "interpretation": "Observed data, not a causal claim. A difference in duration, query count or cache activity describes what happened in these two runs under these conditions. It does not establish that the patch caused a performance or functional regression; tracing overhead, cache state, request count and environment differences can all change these numbers. Use the per-request traces and the native browser, axe-core and Lighthouse artifacts to investigate, and re-run without instrumentation before making a performance claim."
+}

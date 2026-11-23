@@ -2,7 +2,8 @@
 
 **DRAFT.** Scripted walkthroughs (mouse and keyboard-only), PHPUnit and a virtual screen-reader run were confirmed by
 the lab on 2026-10-01 on pinned core `d29add7ebc18`, and the patches were re-checked on current `main` (`073a7d38198`);
-a person has not done the manual keyboard pass. Last updated: 2026-10-14.
+a person has not done the manual keyboard pass. Last updated: 2026-11-23 (optional execution evidence added; the earlier
+validation is unchanged).
 
 **This is the entry point for this issue.** It links to the patches, the recipe, the evidence and the comment
 draft. Start with **Files and links** below, or `REPRODUCE.md` for the step-by-step commands.
@@ -37,6 +38,7 @@ persisted the open state to `localStorage` (patch-1 fixes) and the test used a f
 | Recipe (starting state) | [`recipes/ife_sidebar_repro/`](../../../recipes/ife_sidebar_repro/) |
 | Before and After in DDEV Coder without the lab (recipe to paste in VS Code, and a prompt for an agent in the workspace; not run yet) | [CODER-PROMPT.md](CODER-PROMPT.md) |
 | Evidence (layers, results, manual pass), exact commits | [EVIDENCE.md](EVIDENCE.md) |
+| Optional execution tracing (DRAFT): correlated browser/Drupal traces, before/after execution evidence | [OBSERVABILITY.md](OBSERVABILITY.md) |
 | Findings (including an unrelated upstream one) | [FINDINGS-2026-10-01.md](FINDINGS-2026-10-01.md) |
 | Scripted runs and screenshots | [`playwright/`](playwright/) · [`compare/`](compare/) |
 | Virtual screen-reader runs | [`screenreader/`](screenreader/) |
@@ -56,6 +58,7 @@ persisted the open state to `localStorage` (patch-1 fixes) and the test used a f
 - Firefox (Playwright's Firefox does not launch on this machine).
 - Other themes than Default Admin; a wide viewport, zoom and reflow, right-to-left, and touch.
 - The manual keyboard pass by a person (the layer list in `EVIDENCE.md` notes what it should cover).
+- A repeat instrumented run for timing stability, and execution tracing in a browser other than Chromium.
 
 ## Notes
 
@@ -65,4 +68,9 @@ persisted the open state to `localStorage` (patch-1 fixes) and the test used a f
   A bundle is at `bundles/drupal-repro-3619127-2026-10-02.zip`.
 - Known limit: an unrelated upstream test is flaky on pristine `main` (`FormErrorHandlerCKEditor5Test::testFragmentLink`,
   2 failures in 6 runs) — do not blame a patch for it.
+- Optional execution tracing (2026-11-23, DRAFT): `evaluate-3619127.mjs --observe` matched all 18 same-origin browser
+  requests to Drupal server traces on the pinned pair. Both sides used the `node.add` route, the median database query
+  count was 43 per request on both sides, and no exceptions were recorded. Server timing was not stable across pilot
+  runs and is not a performance result. The trace adds "no new Drupal-side work or errors observed in this run"; it does
+  not prove the fix or attribute the focus change to a specific Drupal component. See [OBSERVABILITY.md](OBSERVABILITY.md).
 - AI-assisted: scripted runs; nothing has been posted to drupal.org or GitLab.

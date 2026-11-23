@@ -1,0 +1,14 @@
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.165.0
+    container_name: ddev-${DDEV_SITENAME}-otel-collector
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    restart: "no"
+    environment:
+      - CORE_LAB_SIDE=${CORE_LAB_SIDE:-unknown}
+    volumes:
+      - ../observability/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+      - ../observability/data:/data
+    labels:
+      com.ddev.site-name: ${DDEV_SITENAME}
+      com.ddev.approot: ${DDEV_APPROOT}

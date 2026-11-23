@@ -1,6 +1,6 @@
 // A small PAIRED model evaluation of the two Phase 1 and 2 changes (AI-usage). It calls a model, so it spends allowance: it will not run without --yes.
 //   node scripts/model-eval.mjs plan                              what would run and a rough size; calls nothing
-//   node scripts/model-eval.mjs run --yes [--trials 3] [--only intake|repair] [--concurrency 4]
+//   node scripts/model-eval.mjs run --yes [--trials 3] [--only intake|repair] [--concurrency 4] [--approve --reason="..."]
 //   node scripts/model-eval.mjs report                            the tables, from the recorded trials
 // A: does a model answer the same questions about a long issue thread as well from the compact brief as from the full text? Three synthetic threads
 //    (the long-discussion fixture with the planted facts moved to other comments and renamed), questions with known answers, scored by fixed patterns.
@@ -17,6 +17,8 @@ import { gather } from '../tools/compare/pack-prepare.mjs';
 import { buildSnapshot, indexComments, renderBrief } from '../tools/compare/issue-intake.mjs';
 import { validatePack, loadYaml, repairMessage } from '../tools/compare/pack-validate.mjs';
 import { applyEdit, dumpPack, targetedRepairMessage, atToTokens, toPointer } from '../tools/compare/pack-edit.mjs';
+import { loadBudgets, evaluateBudget, readRunning, registerRunning, unregisterRunning, recordBudgetDecision, formatBudget } from '../tools/resource/budgets.mjs';
+import { loadEvents } from '../tools/resource/ledger.mjs';
 
 const MODEL = 'claude-sonnet-5-5', CACHE = path.join(labRoot, '.lab-cache/model-eval'), OUT = path.join(labRoot, 'reports/ai-usage/model-eval');
 const args = process.argv.slice(2), cmd = args[0], val = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
@@ -130,7 +132,23 @@ if (cmd === 'plan') {
 }
 if (cmd === 'run') {
   if (!args.includes('--yes')) { console.error('This calls a model and spends allowance. Look at `plan`, then add --yes.'); process.exit(2); }
-  const jobs = await buildJobs(); fs.mkdirSync(CACHE, { recursive: true });
+  const jobs = await buildJobs();
+  const budgetLoad = loadBudgets();
+  if (budgetLoad.problems.length) { console.error(`Budget configuration problems:\n  ${budgetLoad.problems.join('\n  ')}`); process.exit(2); }
+  const budget = evaluateBudget({ config: budgetLoad.config, events: loadEvents({ includeMonitoring: false }).events, task: 'model-eval', running: readRunning(), starting: true, additionalAiRequests: jobs.length });
+  console.log(formatBudget(budget));
+  if (budget.action === 'refuse' && !args.includes('--approve')) {
+    recordBudgetDecision({ decision: 'refused', mode: budget.mode, task: 'model-eval', reason: val('reason'), exceeded: budget.exceeded, source: budgetLoad.source });
+    console.error('Refused before any model call: the enforce budget would be exceeded. Re-run with --approve --reason="..." to proceed; the override is recorded.');
+    process.exit(3);
+  }
+  if (args.includes('--approve')) {
+    if (!val('reason')) { console.error('--approve requires --reason="<why this evaluation is worth the extra budget>"'); process.exit(2); }
+    recordBudgetDecision({ decision: 'approved', mode: budget.mode, task: 'model-eval', reason: val('reason'), exceeded: budget.exceeded, source: budgetLoad.source });
+    console.log(`Approved override: ${val('reason')}`);
+  }
+  registerRunning({ pid: process.pid, task: 'model-eval', activity: 'model-evaluation', started_at: new Date().toISOString(), mode: budget.mode });
+  fs.mkdirSync(CACHE, { recursive: true });
   const base = await ask('Reply with exactly: ok'); console.log(`Client overhead per call (no payload): ${base.inTok} input tokens.`);
   let done = 0; const log = path.join(CACHE, 'trials.jsonl'); if (!APPEND || !fs.existsSync(log)) fs.writeFileSync(log, '');
   await pool(jobs, CONC, async (j) => {
@@ -139,6 +157,7 @@ if (cmd === 'run') {
     console.log(`${String(++done).padStart(3)}/${jobs.length} ${j.eval} ${j.case} ${j.cond} #${j.trial}: score ${s.score}${r.ok ? '' : ` ERROR ${r.error}`} (out ${r.outTok} tokens)`);
   });
   fs.writeFileSync(path.join(CACHE, 'baseline.json'), JSON.stringify({ model: MODEL, overheadInputTokens: base.inTok }));
+  unregisterRunning(process.pid);
 }
 if (cmd === 'run' || cmd === 'report') {
   const f = path.join(CACHE, 'trials.jsonl'); if (!fs.existsSync(f)) { console.error('No trials recorded. Run: node scripts/model-eval.mjs run --yes'); process.exit(1); }
