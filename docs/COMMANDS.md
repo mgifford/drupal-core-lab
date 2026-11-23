@@ -73,7 +73,9 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/test-mr.mjs <nid|slug> [--diff=<file|url>] [--mr=<n|url>] [--patch=<path>] [--no-update] [--no-start] [--dry-run] [--core-url=<url>]  # one command: update checkout, optional MR diff, stop other comparisons, build and start (Coder or local), print the viewer address
     node scripts/cloud-bootstrap.mjs <slug> [--install-autostart] [--rebuild] [--core-url=<url>] [--use-existing-core[=<path>]] [--check]  # DDEV Coder workspace bootstrap
     node scripts/build-cloud.mjs                         # regenerate cloud/ (the GitHub Pages site); commit the result. CI fails if it is stale
-    node scripts/resource.mjs collect|recent|report|export|verify   # local resource ledger: AI tokens/cost, process CPU/RSS, Docker samples, GitHub Actions; deterministic, no model call (docs/RESOURCE-MONITORING.md)
+    node scripts/resource.mjs collect|recent|report|export|audit|verify   # local resource ledger: AI tokens/cost, process CPU/RSS, Docker samples, GitHub Actions; deterministic, no model call (docs/RESOURCE-MONITORING.md). `collect --prompt-content` (raw local prompts) and `--inspect-artifacts` (bounded ZIP/patch reads) are opt-in; `audit` is the Unknown/attribution investigation.
+    node scripts/resource-benchmark.mjs [--json=<file>]   # timings and sizes for ledger parse, aggregation and the public JSON
+    node scripts/resource-exploration.mjs [--json=<file>] [<transcript>...]   # LOCAL ONLY: repeated lookup targets and after-edit/after-failure flags; never publish
     node scripts/resource-run.mjs --activity=<category> [--issue=<nid>] [--task=<id>] [--approve --reason="..."] -- <command...>   # measure one command under /usr/bin/time, record it, apply the budget; never kills unless --timeout is explicit
     node scripts/resource-budget.mjs [--task=<id>] [--issue=<nid>] [--mode=observe|warn|enforce] [--json]   # read-only budget check; exit 3 only when enforce refuses
 

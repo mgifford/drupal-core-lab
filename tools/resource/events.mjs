@@ -35,6 +35,7 @@ export function blankMeasurements() {
     cost: { reported_usd: null, estimated_usd: null, basis: 'unavailable', note: null },
     tools: { invocations: null, result_bytes: null, repeated_reads: null, errors: null },
     context: { start_tokens: null, average_tokens: null, growth_tokens: null },
+    exploration: { unique_targets: null, repeated_targets: null, repeated_lookups: null, failed_searches: null, exploration_after_failure: null, exploration_after_edit: null, loop_sequences: null, code_map_calls: null, unique_files: null, result_bytes: null },
     latency: { api_ms: null, tool_ms: null },
     cpu: { user_seconds: null, system_seconds: null, total_seconds: null, cpu_percent: null, measurement: 'unavailable', source: null },
     memory: { peak_rss_bytes: null, peak_container_bytes: null, peak_php_mb: null, measurement: 'unavailable' },
@@ -87,6 +88,10 @@ export function makeEvent(input) {
       reference: input.source?.reference ?? null,
     },
     measurements: deepMerge(blankMeasurements(), input.measurements || {}),
+    classification: input.classification ?? undefined,
+    accounting: input.accounting ?? undefined,
+    provenance: input.provenance ?? undefined,
+    reconciliation: input.reconciliation ?? undefined,
     quality: {
       completeness: input.quality?.completeness || 'partial',
       missing: [...new Set(input.quality?.missing || [])].sort(),
@@ -97,6 +102,7 @@ export function makeEvent(input) {
     revision: input.revision ?? 1,
     private: input.private && typeof input.private === 'object' ? input.private : undefined,
   };
+  for (const key of ['classification', 'accounting', 'provenance', 'reconciliation']) if (event[key] === undefined) delete event[key];
   if (event.private === undefined) delete event.private;
   event.event_id = eventId(event);
   return event;
@@ -109,7 +115,8 @@ export function eventId(event) {
     adapter: event.source?.adapter, event_type: event.event_type, occurred_at: event.occurred_at,
     duration_ms: event.duration_ms, source_key: event.source_key || null,
     measurements: event.measurements, task: event.task?.id || null, activity: event.activity,
-    outcome: event.outcome, commit: event.commit,
+    outcome: event.outcome, commit: event.commit, classification: event.classification || null,
+    provenance: event.provenance || null,
   };
   return sha256(stableStringify(material));
 }
@@ -154,12 +161,29 @@ export function publicEvent(event) {
       reported_usd: num(m.cost.reported_usd), estimated_usd: num(m.cost.estimated_usd), basis: m.cost.basis,
     },
     tools: { invocations: num(m.tools.invocations), result_bytes: num(m.tools.result_bytes), repeated_reads: num(m.tools.repeated_reads), errors: num(m.tools.errors) },
+    exploration: m.exploration ? Object.fromEntries(Object.entries(m.exploration).map(([k, v]) => [k, num(v)])) : null,
     cpu: { total_seconds: num(m.cpu.total_seconds), cpu_percent: num(m.cpu.cpu_percent), measurement: m.cpu.measurement },
     memory: { peak_rss_bytes: num(m.memory.peak_rss_bytes), peak_container_bytes: num(m.memory.peak_container_bytes), peak_php_mb: num(m.memory.peak_php_mb), measurement: m.memory.measurement },
     github: {
       workflow: m.github.workflow, job: m.github.job, event: m.github.event, runner: m.github.runner,
       attempt: num(m.github.attempt), potentially_superseded: m.github.potentially_superseded,
     },
+    classification: e.classification ? {
+      version: e.classification.version, method: e.classification.method, method_version: e.classification.method_version ?? null,
+      provenance: e.classification.provenance, confidence: e.classification.confidence, subcategory: e.classification.subcategory ?? null,
+      unknown_reasons: (e.classification.unknown_reasons || []).map((r) => ({ unknown_reason: r.reason, operations: num(r.operations) })),
+      components: (e.classification.components || []).map((c) => ({ activity: c.activity, operations: num(c.operations), unknown_reason: c.unknown_reason ?? null, subcategory: c.subcategory ?? null })),
+      exploration_subcategories: e.classification.exploration_subcategories || null,
+      notes: (e.classification.notes || []).slice(0, 8),
+    } : null,
+    provenance: e.provenance ? {
+      version: e.provenance.version, capture: e.provenance.capture, prompts: num(e.provenance.prompts), prompt_bytes: num(e.provenance.prompt_bytes),
+      purposes: e.provenance.purposes || {}, content_types: e.provenance.content_types || {}, size_buckets: e.provenance.size_buckets || {},
+      origins: e.provenance.origins || {}, repeated_prompts: num(e.provenance.repeated_prompts), artifacts: num(e.provenance.artifacts),
+      artifact_bytes: num(e.provenance.artifact_bytes), artifact_kinds: e.provenance.artifact_kinds || {}, artifacts_inspected: num(e.provenance.artifacts_inspected),
+      completeness: e.provenance.completeness, limitations: (e.provenance.limitations || []).slice(0, 6),
+    } : null,
+    reconciliation: e.reconciliation ? { ...e.reconciliation } : null,
     source: { adapter: e.source.adapter, confidence: e.source.confidence },
     allocations: (m.allocations || []).map((a) => ({ activity: a.activity, tokens: num(a.tokens), cpu_seconds: num(a.cpu_seconds), method: a.method })),
   };
@@ -174,5 +198,5 @@ export const totalTokens = (t) => {
 
 export const publicFields = Object.freeze([
   'id', 'date', 'event_type', 'issue', 'variant', 'activity', 'tool', 'model', 'provider', 'outcome', 'validation',
-  'duration_seconds', 'quality', 'tokens', 'cost', 'tools', 'cpu', 'memory', 'github', 'source', 'allocations',
+  'duration_seconds', 'quality', 'classification', 'provenance', 'reconciliation', 'tokens', 'cost', 'tools', 'exploration', 'cpu', 'memory', 'github', 'source', 'allocations',
 ]);

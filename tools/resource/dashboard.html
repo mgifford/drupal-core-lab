@@ -84,10 +84,40 @@
     <p class="note">Filters apply to the grouped public rows below. The task count in the cards is for the whole period when a filter is active; token and cost values are filtered.</p>
   </section>
 
+  <section id="attribution-section" hidden aria-labelledby="attribution-h">
+    <h2 id="attribution-h">Attribution quality</h2>
+    <p class="note">These are independent measures, not a single quality score. Unknown activity is a measurement gap, not waste; a missing Drupal issue is a separate attribution dimension. Figures are for the whole period, not the filtered rows.</p>
+    <div class="tablewrap" role="region" aria-label="Attribution quality table" tabindex="0"><table id="attribution-table"></table></div>
+
+    <h3>Unknown activity by reason</h3>
+    <p class="note">Every Unknown event carries a reason code where the evidence supports one. Model-only requests have no tool invocation; compound commands could not be resolved to one purpose; unrecognized commands need a registry rule or a narrower call.</p>
+    <div class="tablewrap" role="region" aria-label="Unknown activity by reason table" tabindex="0"><table id="unknown-table"></table></div>
+
+    <h3>Request reconciliation</h3>
+    <p class="note">A session is counted from request events only when the request token sum equals the session sum. A mismatch keeps the session total and marks the request rows uncounted; it is reported, never silently adjusted.</p>
+    <div class="tablewrap" role="region" aria-label="Request reconciliation table" tabindex="0"><table id="reconciliation-table"></table></div>
+  </section>
+
+  <section id="exploration-section" hidden aria-labelledby="exploration-h">
+    <h2 id="exploration-h">Code exploration</h2>
+    <p class="note">Exploration is a legitimate deliverable. Repeated lookups and loops are diagnostics for investigation, not automatic findings of waste: a file may have changed, a test may have failed, or a new task may need the same evidence. Lookup targets remain local.</p>
+    <div class="tablewrap" role="region" aria-label="Exploration by subcategory table" tabindex="0"><table id="exploration-table"></table></div>
+    <div class="tablewrap" role="region" aria-label="Exploration diagnostics table" tabindex="0"><table id="exploration-diagnostics-table"></table></div>
+  </section>
+
+  <section id="provenance-section" hidden aria-labelledby="provenance-h">
+    <h2 id="provenance-h">Prompt and artifact provenance</h2>
+    <p class="note">Metadata only by default: sizes, purpose, content types, fingerprints and artifact references. Prompt text, attachments, local paths and fingerprints are never published. A reference does not prove that a model received or read an artifact.</p>
+    <div class="tablewrap" role="region" aria-label="Prompt composition table" tabindex="0"><table id="prompt-table"></table></div>
+    <div class="tablewrap" role="region" aria-label="Prompt purpose table" tabindex="0"><table id="purpose-table"></table></div>
+    <div class="tablewrap" role="region" aria-label="Artifact provenance table" tabindex="0"><table id="artifact-table"></table></div>
+  </section>
+
   <section id="charts" hidden aria-labelledby="charts-h">
     <h2>Tokens by category</h2>
     <p class="note">Provider-reported token categories for the filtered rows. Cache reads are the prompt context re-read on later calls; the categories are additive provider fields, not independent work.</p>
     <div class="tablewrap" role="region" aria-label="Tokens by category table" tabindex="0"><table id="token-table"></table></div>
+    <p id="token-note" class="note" hidden></p>
 
     <h2 id="charts-h">Consumption by activity</h2>
     <div id="activity-chart" class="chart"></div>
@@ -209,6 +239,74 @@ function sum(key, filter = () => true) { const v = ROWS.filter(filter).map((r) =
 function max(key) { const v = ROWS.map((r) => r[key]).filter((x) => typeof x === 'number' && Number.isFinite(x)); return v.length ? Math.max(...v) : null; }
 function card(title, value, quality, note = '') { const c = text('div', null, 'card'); c.append(text('h3', title), text('p', value, 'value'), text('p', quality, 'quality')); if (note) c.append(text('p', note, 'note')); $('cards').append(c); }
 
+function renderAttribution() {
+  const a = DATA.attribution || {};
+  const rows = [
+    ['Activity (events)', `${fmt(a.activity?.classified)} classified / ${fmt(a.activity?.unknown)} unknown`, pct(a.activity?.coverage_events), 'deterministic rules; Unknown kept explicit'],
+    ['Activity (tokens)', `${fmt(a.activity?.tokens_classified)} classified / ${fmt(a.activity?.tokens_unknown)} unknown`, pct(a.activity?.coverage_tokens), 'provider tokens with a derived activity association'],
+    ['Model requests', `${fmt(a.model_requests?.classified)} classified / ${fmt(a.model_requests?.unknown)} unknown`, pct(a.model_requests?.coverage), 'one record per observable provider message id'],
+    ['Tool operations', `${fmt(a.tool_operations?.total)} recorded / ${fmt(a.tool_operations?.unknown)} in Unknown events`, pct(a.tool_operations?.coverage), 'client tool records'],
+    ['Drupal issue', `${fmt(a.issue?.events_attributed)} attributed events`, pct(a.issue?.coverage), 'independent of activity; a missing issue is not Unknown activity'],
+    ['Task', `${fmt(a.task?.events_attributed)} attributed events`, pct(a.task?.coverage), 'session task ids, not one explicit task per session'],
+    ['Outcome', `${fmt(a.outcome?.success)} success / ${fmt(a.outcome?.failure)} failure / ${fmt(a.outcome?.unknown)} unknown`, MISSING, 'a command result or model claim is not a verified outcome'],
+    ['Prompt provenance', `${fmt(DATA.provenance?.prompts)} prompt(s), ${bytes(DATA.provenance?.prompt_bytes)}`, MISSING, DATA.provenance?.capture || 'none'],
+  ];
+  table($('attribution-table'), 'Attribution quality, whole period', ['Dimension', 'Measure', 'Coverage', 'Basis'], rows);
+  const reasons = (DATA.by_unknown_reason || []).map((r) => [r.unknown_reason, r.events, r.tokens, r.model_requests, r.operations]);
+  table($('unknown-table'), 'Unknown activity by reason, whole period', ['Reason', 'Events', 'Tokens', 'Model requests', 'Operations'], reasons);
+  const rec = DATA.reconciliation || {};
+  const status = rec.status || {};
+  table($('reconciliation-table'), 'Request-level reconciliation, whole period', ['Measure', 'Value'], [
+    ['Sessions with request data', rec.sessions_with_request_data],
+    ['Matched / mismatch / unavailable', `${fmt(status.matched)} / ${fmt(status.mismatch)} / ${fmt(status.unavailable)}`],
+    ['Session tokens', rec.session_tokens],
+    ['Request tokens', rec.request_tokens],
+    ['Difference', rec.delta],
+    ['Requests recorded / expected', `${fmt(rec.request_count)} / ${fmt(rec.expected_requests)}`],
+    ['Missing usage', rec.missing_usage],
+    ['Duplicate usage records collapsed', rec.duplicate_usage_records],
+    ['Tool-free requests', rec.model_only_requests],
+    ['Multi-tool requests', rec.multi_tool_requests],
+  ]);
+}
+
+function renderExploration() {
+  const rows = (DATA.by_exploration_subcategory || []).map((x) => [x.subcategory, x.events, x.tokens, pct(x.share)]);
+  table($('exploration-table'), 'Code exploration tokens by subcategory', ['Subcategory', 'Events', 'Tokens', 'Share'], rows);
+  const e = DATA.exploration || {};
+  table($('exploration-diagnostics-table'), 'Exploration diagnostics (whole period; local targets not published)', ['Measure', 'Value'], [
+    ['Unique lookup targets', e.unique_targets],
+    ['Repeated targets', e.repeated_targets],
+    ['Repeated lookups', e.repeated_lookups],
+    ['Failed searches', e.failed_searches],
+    ['Exploration after a failure', e.exploration_after_failure],
+    ['Exploration after an edit', e.exploration_after_edit],
+    ['Loop-like sequences', e.loop_sequences],
+    ['code-map.mjs calls', e.code_map_calls],
+    ['Unique files examined', e.unique_files],
+    ['Tool-result bytes', bytes(e.result_bytes)],
+  ]);
+}
+
+function renderProvenance() {
+  const p = DATA.provenance || {};
+  table($('prompt-table'), 'Prompt composition, whole period', ['Measure', 'Value'], [
+    ['Prompts recorded', p.prompts],
+    ['Recorded prompt text bytes', p.prompt_bytes],
+    ['Capture mode', p.capture || 'none'],
+    ['Distinct repeated prompts', p.repeated_prompts],
+    ['Artifact references', p.artifacts],
+    ['Artifacts inspected locally', p.artifacts_inspected],
+    ['Content types', Object.entries(p.content_types || {}).map(([k, v]) => `${k}: ${v}`).join(', ') || MISSING],
+  ]);
+  table($('purpose-table'), 'Prompt purpose distribution', ['Purpose', 'Count'], Object.entries(p.purposes || {}).sort((a, b) => b[1] - a[1]).map(([k, v]) => [k, v]));
+  table($('artifact-table'), 'Artifact provenance, whole period', ['Measure', 'Value'], [
+    ['Artifact kinds', Object.entries(p.artifact_kinds || {}).map(([k, v]) => `${k}: ${v}`).join(', ') || MISSING],
+    ['Recorded artifact bytes', p.artifact_bytes],
+    ['Note', p.note || MISSING],
+  ]);
+}
+
 function render() {
   const provider = (r) => r.token_basis === 'provider-reported';
   const tokens = sum('tokens', provider);
@@ -234,9 +332,13 @@ function render() {
   card('Collection overhead', `${hours(DATA.monitoring?.cpu_seconds)} · ${bytes(DATA.monitoring?.peak_memory_bytes)}`, 'measured separately from activity', `${fmt(DATA.monitoring?.events || 0)} collector event(s); not mixed into activity totals`);
   $('completeness').textContent = `Period ${DATA.period.from || MISSING} to ${DATA.period.to || MISSING}. Data completeness: ${DATA.completeness}. ${ROWS.length} grouped public row(s) shown. Monitoring overhead is reported separately: ${hours(DATA.monitoring?.cpu_seconds)} CPU, ${bytes(DATA.monitoring?.peak_memory_bytes)} peak.`;
 
-  const tokenCategories = ['uncached_input', 'output', 'cache_creation', 'cache_read', 'reasoning'].map((key) => [key, sum(key)]);
+  const tokenCategories = ['uncached_input', 'cache_creation', 'cache_read', 'output'].map((key) => [key, sum(key)]);
   tokenCategories.push(['Total', sum('tokens')]);
-  table($('token-table'), 'Tokens by category', ['Category', 'Tokens'], tokenCategories.map(([k, v]) => [k.replace(/_/g, ' '), v]));
+  table($('token-table'), 'Tokens by category. Reasoning is included in output; it is not added again.', ['Category', 'Tokens'], tokenCategories.map(([k, v]) => [k.replace(/_/g, ' '), v]));
+  const reasoning = sum('reasoning');
+  const reasoningNote = $('token-note');
+  reasoningNote.hidden = reasoning == null;
+  if (reasoning != null) reasoningNote.textContent = `Reported reasoning tokens: ${fmt(reasoning)}. The client reports these inside output; the total above does not add them again.`;
 
   const byActivity = new Map();
   for (const r of ROWS) { const k = r.activity || 'unknown'; const b = byActivity.get(k) || { activity: k, tokens: null, model_requests: null, cost_usd: null, cpu_seconds: null, events: 0 }; b.events += r.events; for (const key of ['tokens', 'model_requests', 'cost_usd', 'cpu_seconds']) if (typeof r[key] === 'number') b[key] = (b[key] || 0) + r[key]; byActivity.set(k, b); }
@@ -275,6 +377,10 @@ function render() {
 
   table($('rows-table'), 'Grouped public rows after filters', ['Date', 'Activity', 'Issue', 'Tool', 'Model', 'Grouped events', 'Tokens', 'Model requests', 'CPU (s)', 'Estimated cost', 'Outcomes'], ROWS.map((r) => [r.date, r.activity, r.issue || 'Unattributed', r.tool, r.model || MISSING, r.events, r.tokens, r.model_requests, r.cpu_seconds, money(r.cost_usd), Object.entries(r.outcomes || {}).filter(([, n]) => n).map(([k, n]) => `${k}: ${n}`).join(', ')]));
 
+  renderAttribution();
+  renderExploration();
+  renderProvenance();
+
   const q = DATA.quality || {};
   const qrows = ['tokens', 'cost', 'cpu', 'memory', 'github'].filter((k) => q[k]).map((k) => [k, q[k].status, q[k].events, q[k].note]);
   qrows.push(['events', `${q.events?.complete || 0} complete / ${q.events?.partial || 0} partial / ${q.events?.unavailable || 0} unavailable`, q.events?.total, 'Counts of source records; partial is expected when a source cannot provide every metric.']);
@@ -294,6 +400,8 @@ function render() {
   method.append(text('p', `Budget mode: ${DATA.budget?.mode || 'observe'} (${DATA.budget?.source || 'default'}). Budget checks only refuse operations started through scripts/resource-run.mjs; provider-side model calls cannot be stopped by the repository.`));
   const ul = text('ul');
   for (const l of DATA.limitations || []) ul.append(text('li', l));
+  method.append(text('h3', 'Measurement methods'), text('p', `Classifier ${DATA.methodology?.classifier_version || MISSING}. Accounting versions: ${(DATA.methodology?.accounting_versions || []).join(', ') || MISSING}. ${DATA.methodology?.note || ''}`));
+  method.append(text('p', 'Request-level activity is associated with the request context, not proven to have caused every token in it. Legacy session rows are labelled separately and are not directly comparable with request-level rows.'));
   method.append(text('h3', 'Limitations'), ul);
   const p = text('p'); p.append(document.createTextNode('Privacy: '), text('span', DATA.privacy?.public_fields || 'Public data is aggregated only.')); method.append(p);
   method.append(text('p', 'The page reads resources.json. It does not contact Drupal, an AI provider, a trace collector or a database.', 'note'));
@@ -307,7 +415,7 @@ async function init() {
     ROWS = Array.isArray(DATA.events) ? DATA.events : [];
     if (!ROWS.length) { setStatus('No resource events have been collected yet. Missing data is not the same as zero consumption.', 'warn'); $('summary').hidden = false; $('period').textContent = `Period ${DATA.period?.from || MISSING} to ${DATA.period?.to || MISSING}.`; return; }
     setStatus(`Loaded ${ROWS.length} grouped public row(s), ${DATA.period?.from || MISSING} to ${DATA.period?.to || MISSING}.`, '');
-    $('summary').hidden = false; $('filters-section').hidden = false; $('charts').hidden = false; $('quality').hidden = false; $('opportunities').hidden = false; $('method').hidden = false;
+    $('summary').hidden = false; $('filters-section').hidden = false; $('attribution-section').hidden = false; $('exploration-section').hidden = false; $('provenance-section').hidden = false; $('charts').hidden = false; $('quality').hidden = false; $('opportunities').hidden = false; $('method').hidden = false;
     $('period').textContent = `Period ${DATA.period?.from || MISSING} to ${DATA.period?.to || MISSING}. Generated ${DATA.generated_at || MISSING}. Completeness: ${DATA.completeness || 'unknown'}.`;
     options($('issue'), ROWS.map((r) => ({ value: r.issue || '__none', label: r.issue || 'Unattributed' })), 'All issues');
     options($('activity'), ROWS.map((r) => ({ value: r.activity, label: r.activity })), 'All activities');

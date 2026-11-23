@@ -1,60 +1,114 @@
-// Deterministic activity classification. It uses tool labels, script names and workflow names, never message text.
-// A session can mix activities; `allocateActivity` creates an explicit, derived token split and labels the method.
-const MAP = [
-  [/^Read$|^Grep$|^Glob$|^NotebookRead$/, 'code-exploration'],
-  [/^Edit$|^Write$|^NotebookEdit$|^MultiEdit$/, 'patch-development'],
-  [/^Bash\/lab:measure-resources/, 'resource-measurement'],
-  [/^Bash\/lab:(evaluate|walkthrough|tree-diff|screenreader|viewer-|mirror|frameload|flow)/, 'playwright-testing'],
-  [/^Bash\/lab:(axe|forced-window|a11y|label-)/, 'accessibility-scanning'],
-  [/^Bash\/lab:lighthouse/, 'lighthouse-testing'],
-  [/^Bash\/lab:(lint|try-tests|css-build|selftest|doctor|coverage|check-|ready-to-push)/, 'validation'],
-  [/^Bash\/lab:(issue-intake|issue-status|issue-pack|new-issue|issue-from-url|bug-feature|feedback)/, 'issue-intake'],
-  [/^Bash\/lab:(build-cloud|index-issues|run-readmes|make-bundle|coder-prompt)/, 'documentation-generation'],
-  [/^Bash\/(ddev phpunit|phpunit)/, 'phpunit-execution'],
-  [/^Bash\/(ddev composer|composer)/, 'composer-install'],
-  [/^Bash\/ddev drupal cache|^Bash\/ddev.*cache/, 'cache-rebuild'],
-  [/^Bash\/ddev/, 'environment-setup'],
-  [/^Bash\/lab:lab-env/, 'environment-setup'],
-  [/^Bash\/(cd|pwd)/, 'environment-setup'],
-  [/^Bash\/(rm|cp|mv|mkdir|chmod|ln|tar|unzip|zip)\b/, 'environment-setup'],
-  [/^Bash\/(node|npm test|npx playwright|python3|python)\b/, 'validation'],
-  [/^Bash\/(for|while|until|if|S|sh|bash)\b/, 'unknown'],
-  [/^Bash\/pkill|^Bash\/kill/, 'infrastructure'],
-  [/^Bash\/(docker|podman)/, 'infrastructure'],
-  [/^Bash\/(gh|gitlab)/, 'issue-intake'],
-  [/^Bash\/(git|rg|grep|cat|sed|ls|find|head|tail|wc|awk|less|tree)\b/, 'code-exploration'],
-  [/^Bash\/lab:code-map/, 'code-exploration'],
-  [/^Bash\/lab:/, 'unknown'],
-  [/^mcp__.*Browser|^mcp__.*Playwright/, 'playwright-testing'],
-  [/^mcp__.*(coder|ddev)/i, 'environment-setup'],
-  [/^mcp__ccd_turn__|^mcp__.*(plan|review)/i, 'issue-analysis'],
-  [/^ToolSearch$/, 'code-exploration'],
-  [/^Bash\/(gh|curl|wget)/, 'unknown'],
-];
-export function classifyTool(label) {
-  const text = String(label || '');
-  for (const [re, activity] of MAP) if (re.test(text)) return activity;
-  if (/^Bash\/node .*scripts\/|^Bash\/node scripts\//.test(text)) return 'unknown';
-  if (/^Bash\//.test(text)) return 'unknown';
-  return 'unknown';
+// Deterministic activity classification. It uses tool names, script registries and parsed shell structure; it never reads
+// message text, executes a command or calls a model. A session can mix activities; `allocateActivity` and
+// `allocateOperations` create an explicit, derived token split and label the method and its limitations.
+//
+// Backwards compatibility: `classifyTool()` still returns an activity string. New code should use
+// `classifyLabelDetailed()` / `classifyOperation()` so that the rule, provenance, confidence and Unknown reason travel
+// with the classification.
+import {
+  CLASSIFIER_VERSION, RULE_REGISTRY_VERSION, UNKNOWN_REASONS, PROVENANCE, CONFIDENCE,
+  EXPLORATION_SUBCATEGORIES, TOOL_RULES, NAVIGATION, PLUMBING, classifyShell, classifyArgv,
+  primaryActivity, isStrongPrimary, dominantSubcategory, scriptRule,
+} from './rules.mjs';
+
+export { CLASSIFIER_VERSION, RULE_REGISTRY_VERSION, UNKNOWN_REASONS, PROVENANCE, CONFIDENCE, EXPLORATION_SUBCATEGORIES };
+
+const ACTIVITY_METHOD = 'tool-call share; derived';
+export const ALLOCATION_METHOD_VERSION = 'legacy-tool-call-share-v1';
+
+const base = (activity, extra = {}) => ({
+  activity: activity || 'unknown',
+  subcategory: null,
+  rule_id: 'unclassified',
+  rule_version: RULE_REGISTRY_VERSION,
+  classifier_version: CLASSIFIER_VERSION,
+  provenance: 'unclassified',
+  confidence: activity && activity !== 'unknown' ? 'deterministic' : 'unclassified',
+  unknown_reason: activity && activity !== 'unknown' ? null : 'unclassified_other',
+  components: [],
+  notes: [],
+  ...extra,
+});
+
+function finish(d) {
+  const out = base(d.activity, d);
+  if (out.activity !== 'unknown') out.unknown_reason = null;
+  if (out.unknown_reason && !UNKNOWN_REASONS[out.unknown_reason]) out.unknown_reason = 'unclassified_other';
+  out.components = (out.components || []).map((c) => ({
+    activity: c.activity || 'unknown',
+    rule_id: c.rule_id || 'unclassified',
+    subcategory: c.subcategory || null,
+    ...(c.activity === 'unknown' && c.unknown_reason ? { unknown_reason: c.unknown_reason } : {}),
+  }));
+  return out;
 }
 
-export function classifyCommand(argv = []) {
-  const command = argv.map((x) => String(x)).join(' ');
-  if (/\bphpunit\b/.test(command)) return 'phpunit-execution';
-  if (/\bplaywright\b|evaluate-\d+|walkthrough\.mjs|tree-diff\.mjs/.test(command)) return 'playwright-testing';
-  if (/\blighthouse\b/.test(command)) return 'lighthouse-testing';
-  if (/\baxe\b|a11y|forced-window/.test(command)) return 'accessibility-scanning';
-  if (/\bcomposer\b/.test(command)) return 'composer-install';
-  if (/\bddev\b.*\bcache\b|\bdrupal\b.*\bcache\b/.test(command)) return 'cache-rebuild';
-  if (/\blint\.mjs|try-tests|css-build|selftest|check-draft|coverage\.mjs/.test(command)) return 'validation';
-  if (/\bissue-(intake|status|pack)|new-issue|issue-from-url/.test(command)) return 'issue-intake';
-  if (/\bbuild-cloud|index-issues|run-readmes|make-bundle/.test(command)) return 'documentation-generation';
-  if (/\bmeasure-resources|resource\.mjs|resource-run/.test(command)) return 'resource-measurement';
-  if (/\bgit\b|\bgrep\b|\brg\b|\bcat\b|\bsed\b|\bfind\b/.test(command)) return 'code-exploration';
-  if (/\bnode\b/.test(command)) return 'unknown';
-  return 'unknown';
+// Classify a full tool label as recorded by scripts/session-usage.mjs. This is the fallback path when the raw tool
+// arguments are not available; it deliberately cannot see a loop body, so `Bash/for` stays Unknown.
+export function classifyLabelDetailed(label) {
+  const text = String(label || '').trim();
+  if (!text) return finish({ activity: 'unknown', unknown_reason: 'missing_tool_details', rule_id: 'label.empty' });
+  if (text.startsWith('Bash/lab:')) {
+    const scripts = text.slice('Bash/lab:'.length).split('+').map((name) => name.trim().replace(/^lab:/, '')).filter(Boolean);
+    if (!scripts.length) return finish({ activity: 'unknown', unknown_reason: 'missing_tool_details', rule_id: 'label.lab-empty' });
+    const results = scripts.map((name) => {
+      const file = /\.(?:mjs|cjs|js|php)$/.test(name) ? name : `${name}.mjs`;
+      const rule = scriptRule(file);
+      if (rule) return { activity: rule.activity, rule_id: rule.rule_id, provenance: 'known_script_registry', confidence: 'deterministic', components: [{ activity: rule.activity, rule_id: rule.rule_id }] };
+      return classifyOperation({ tool: 'Bash', command: `node scripts/${file}` });
+    });
+    return combine(results, { source: 'known_script_registry' });
+  }
+  if (text.startsWith('Bash/')) {
+    const rest = text.slice('Bash/'.length).trim();
+    if (!rest) return finish({ activity: 'unknown', unknown_reason: 'missing_tool_details', rule_id: 'label.bash-empty' });
+    if (['for', 'while', 'until'].includes(rest)) return finish({ activity: 'unknown', unknown_reason: 'compound_command', rule_id: 'label.loop-without-body', notes: ['The label records only the loop keyword, not its body.'] });
+    if (rest === 'S') return finish({ activity: 'unknown', unknown_reason: 'unrecognized_command', rule_id: 'label.unrecognized' });
+    return finish(classifyShell(rest));
+  }
+  const rule = toolRule(text);
+  if (rule) return finish({ ...rule, components: [rule] });
+  return finish({ activity: 'unknown', unknown_reason: 'unrecognized_tool', rule_id: 'tool.unknown' });
 }
+
+function toolRule(name) {
+  for (const r of TOOL_RULES) if (r.match.test(name)) return { activity: r.activity, subcategory: r.subcategory || null, rule_id: r.rule, provenance: r.provenance || 'tool_name_rule', confidence: 'deterministic' };
+  return null;
+}
+
+// Classify one tool invocation when the client exposed structured arguments. `command` is only used for Bash; it is
+// parsed, never executed, and is not stored in the event.
+export function classifyOperation(op = {}) {
+  const tool = String(op.tool || op.name || '');
+  if (!tool) return finish({ activity: 'unknown', unknown_reason: 'missing_tool_details', rule_id: 'operation.no-tool' });
+  if (tool === 'Bash') {
+    if (!op.command || !String(op.command).trim()) return finish({ activity: 'unknown', unknown_reason: 'missing_tool_details', rule_id: 'operation.bash-no-command' });
+    const d = classifyShell(String(op.command));
+    return finish({ ...d, provenance: d.provenance || 'parsed_command' });
+  }
+  const rule = toolRule(tool);
+  if (rule) return finish({ ...rule, components: [rule] });
+  return finish({ activity: 'unknown', unknown_reason: 'unrecognized_tool', rule_id: 'tool.unknown' });
+}
+
+function combine(results, { source = 'parsed_command' } = {}) {
+  const known = results.filter((r) => r.activity !== 'unknown');
+  const unknown = results.filter((r) => r.activity === 'unknown');
+  const activities = [...new Set(known.map((r) => r.activity))];
+  const provenance = known.some((r) => r.provenance === 'known_script_registry') ? 'known_script_registry' : source;
+  if (activities.length === 1 && unknown.length === 0) {
+    const sub = known.find((r) => r.subcategory)?.subcategory || null;
+    return finish({ activity: activities[0], subcategory: sub, rule_id: known[0].rule_id, provenance, confidence: 'deterministic', components: known });
+  }
+  if (activities.length > 1) return finish({ activity: 'unknown', unknown_reason: 'ambiguous_activity', rule_id: 'combine.mixed', provenance: 'contextual_inference', confidence: 'heuristic', components: [...known, ...unknown], notes: ['The operations support more than one activity; no token split is asserted.'] });
+  if (activities.length === 1) return finish({ activity: 'unknown', unknown_reason: 'compound_command', rule_id: 'combine.partial', provenance: 'contextual_inference', confidence: 'heuristic', components: [...known, ...unknown] });
+  return finish({ activity: 'unknown', unknown_reason: unknown[0]?.unknown_reason || 'unclassified_other', rule_id: unknown[0]?.rule_id || 'combine.unknown', components: unknown });
+}
+
+// Backwards-compatible string API.
+export function classifyTool(label) { return classifyLabelDetailed(label).activity; }
+export function classifyCommand(argv = []) { return classifyArgv(argv).activity; }
+export const classifyToolDetailed = classifyLabelDetailed;
 
 export function classifyWorkflow(workflow = '', job = '') {
   const text = `${workflow} ${job}`;
@@ -83,33 +137,113 @@ export function variantFromText(...parts) {
   return null;
 }
 
-// Allocate a session's tokens to activities by tool-call share. The result is explicitly derived; it is not a provider
-// measurement of per-activity tokens.
-export function allocateActivity(tools = {}, tokens = null, cpuSeconds = null) {
-  const weights = new Map(), details = new Map();
-  let totalCalls = 0;
+// Aggregate a set of tool labels into activity weights. Used by the legacy session path and by tests.
+function bucketsFromLabels(tools) {
+  const buckets = new Map();
   for (const [label, tool] of Object.entries(tools || {})) {
-    const activity = classifyTool(label);
     const calls = Number(tool?.calls) || 0;
-    const bytes = Number(tool?.resultBytes) || 0;
-    const weight = calls || (bytes ? 1 : 0);
-    if (!weight) continue;
-    totalCalls += weight;
-    weights.set(activity, (weights.get(activity) || 0) + weight);
-    const d = details.get(activity) || { activity, tool_calls: 0, result_bytes: 0 };
-    d.tool_calls += calls; d.result_bytes += bytes; details.set(activity, d);
+    if (!calls) continue;
+    const d = classifyLabelDetailed(label);
+    const key = d.activity === 'unknown' ? `unknown:${d.unknown_reason || 'unclassified_other'}` : d.activity;
+    const b = buckets.get(key) || { activity: d.activity, reason: d.unknown_reason, calls: 0, rule_id: d.rule_id, provenance: d.provenance, subcategory: d.subcategory };
+    b.calls += calls;
+    buckets.set(key, b);
   }
-  if (!totalCalls) return { activity: 'unknown', allocations: [] };
-  const ordered = [...weights.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  return buckets;
+}
+
+function bucketsFromOperations(operations) {
+  const buckets = new Map();
+  for (const op of operations || []) {
+    const d = classifyOperation(op);
+    const key = d.activity === 'unknown' ? `unknown:${d.unknown_reason || 'unclassified_other'}` : d.activity;
+    const b = buckets.get(key) || { activity: d.activity, reason: d.unknown_reason, calls: 0, rule_id: d.rule_id, provenance: d.provenance, subcategory: d.subcategory };
+    b.calls += 1;
+    buckets.set(key, b);
+  }
+  return buckets;
+}
+
+function allocateBuckets(buckets, tokens, cpuSeconds) {
+  const totalCalls = [...buckets.values()].reduce((n, b) => n + b.calls, 0);
+  if (!totalCalls) return { activity: 'unknown', allocations: [], classification: { version: CLASSIFIER_VERSION, method: 'tool-call-share', provenance: 'unclassified', confidence: 'unclassified', unknown_reasons: [{ reason: 'missing_tool_details', operations: 0 }], components: [] } };
+  const ordered = [...buckets.values()].sort((a, b) => b.calls - a.calls || a.activity.localeCompare(b.activity) || String(a.reason).localeCompare(String(b.reason)));
   const allocations = [];
   let allocated = 0;
-  ordered.forEach(([activity, weight], i) => {
-    const share = weight / totalCalls;
+  ordered.forEach((b, i) => {
+    const share = b.calls / totalCalls;
     const isLast = i === ordered.length - 1;
     const t = tokens == null ? null : (isLast ? tokens - allocated : Math.round(tokens * share));
     const c = cpuSeconds == null ? null : Math.round(cpuSeconds * share * 1000) / 1000;
     if (t !== null) allocated += t;
-    allocations.push({ activity, tokens: t, cpu_seconds: c, method: 'tool-call share; derived' });
+    const entry = { activity: b.activity, tokens: t, cpu_seconds: c, method: ACTIVITY_METHOD };
+    if (b.activity === 'unknown') entry.reason = b.reason || 'unclassified_other';
+    allocations.push(entry);
   });
-  return { activity: ordered[0][0], allocations };
+  const unknownReasons = ordered.filter((b) => b.activity === 'unknown').map((b) => ({ reason: b.reason || 'unclassified_other', operations: b.calls }));
+  return {
+    activity: ordered[0].activity,
+    allocations,
+    classification: {
+      version: CLASSIFIER_VERSION,
+      method: 'tool-call-share',
+      method_version: ALLOCATION_METHOD_VERSION,
+      provenance: 'contextual_inference',
+      confidence: 'heuristic',
+      unknown_reasons: unknownReasons,
+      components: ordered.map((b) => ({ activity: b.activity, operations: b.calls, ...(b.activity === 'unknown' ? { unknown_reason: b.reason || 'unclassified_other' } : {}) })),
+      notes: ['Tokens are split by tool-call share, not provider per-tool accounting.'],
+    },
+  };
+}
+
+// Allocate a session's tokens to activities by tool-call share. The result is explicitly derived; it is not a provider
+// measurement of per-activity tokens. `method_version` makes the historical method distinguishable from request-level
+// accounting.
+export function allocateActivity(tools = {}, tokens = null, cpuSeconds = null) {
+  return allocateBuckets(bucketsFromLabels(tools), tokens, cpuSeconds);
+}
+
+// Request-level path: every tool operation contributes one call. A request with several operations is not split by
+// tokens here; the caller decides whether the request has one activity or stays Unknown/ambiguous.
+export function allocateOperations(operations = [], tokens = null, cpuSeconds = null) {
+  return allocateBuckets(bucketsFromOperations(operations), tokens, cpuSeconds);
+}
+
+// Aggregate exploration subcategories from classified operations (session or request level).
+export function explorationSubcategories(operations = []) {
+  const out = {};
+  for (const op of operations) {
+    const d = classifyOperation(op);
+    if (d.activity === 'code-exploration' && d.subcategory) out[d.subcategory] = (out[d.subcategory] || 0) + 1;
+  }
+  return out;
+}
+
+// Classify a provider request from the operations it invoked. A tool-free request stays Unknown with a specific reason;
+// it is still counted. A request with several distinct activities stays Unknown/ambiguous rather than dividing its
+// provider-reported tokens among tools.
+export function classifyRequestOperations(operations = []) {
+  if (!operations.length) return finish({ activity: 'unknown', unknown_reason: 'model_only_request', rule_id: 'request.no-tools' });
+  const detailed = operations.map((op) => classifyOperation(op));
+  const known = detailed.filter((d) => d.activity !== 'unknown');
+  const activities = [...new Set(known.map((d) => d.activity))];
+  const components = detailed.map((d) => ({ activity: d.activity, rule_id: d.rule_id, subcategory: d.subcategory, ...(d.activity === 'unknown' ? { unknown_reason: d.unknown_reason } : {}) }));
+  if (activities.length === 1 && known.length === detailed.length) {
+    const counts = new Map();
+    for (const d of known) if (d.subcategory) counts.set(d.subcategory, (counts.get(d.subcategory) || 0) + 1);
+    const subcategory = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] || null;
+    return finish({ activity: activities[0], subcategory, rule_id: known[0].rule_id, provenance: [...new Set(known.map((d) => d.provenance))].length === 1 ? known[0].provenance : 'contextual_inference', confidence: 'deterministic', components });
+  }
+  if (activities.length > 1) {
+    const primary = primaryActivity(known);
+    const subcategory = primary === 'code-exploration' ? dominantSubcategory(known) : null;
+    return finish({ activity: primary, subcategory, rule_id: `request.primary:${known.find((d) => d.activity === primary)?.rule_id || primary}`, provenance: 'contextual_inference', confidence: 'heuristic', components, notes: [`Primary-operation rule chose ${primary} from ${activities.join(', ')}; the request's tokens are not divided among tools.`] });
+  }
+  if (activities.length === 1) {
+    const primary = activities[0];
+    if (isStrongPrimary(primary)) return finish({ activity: primary, subcategory: primary === 'code-exploration' ? dominantSubcategory(known) : null, rule_id: `request.primary:${known[0].rule_id}`, provenance: 'contextual_inference', confidence: 'heuristic', components, notes: [`${primary} is the primary operation; ${detailed.length - known.length} part(s) of the request remain unclassified.`] });
+    return finish({ activity: 'unknown', unknown_reason: 'compound_command', rule_id: 'request.partial', provenance: 'contextual_inference', confidence: 'heuristic', components });
+  }
+  return finish({ activity: 'unknown', unknown_reason: detailed[0]?.unknown_reason || 'unrecognized_tool', rule_id: detailed[0]?.rule_id || 'request.unknown', components });
 }

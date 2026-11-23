@@ -82,13 +82,82 @@ engine.
 - `tokens.input_total` is the input side when a source does not split cache categories. `uncached_input`,
   `cache_creation`, `cache_read`, `output` and `reasoning` are kept separately when reported.
 - `token_basis` says `provider-reported`, `estimated` or `unavailable`. The dashboard sums provider-reported tokens
-  separately from estimated prompt bytes; it never presents bytes/4 as a tokenizer count.
+  separately from estimated prompt bytes; it never presents bytes/4 as a tokenizer count. Reported reasoning tokens are
+  shown as a note because the client already includes them in output; they are never added a second time.
 - `cost.reported_usd` is a provider invoice-like figure; `cost.estimated_usd` is a client or model estimate.
   `cost.basis` distinguishes `provider-reported`, `client-reported-estimate`, `estimated`, `subscription-allowance` and
   `unavailable`. Claude Code’s cost-state value is a **client-reported estimate** and may be a subscription allowance,
   not a charge. Missing cost is null, never zero.
 - `model_requests`, tool invocations, result bytes, repeated reads, context start/average, API and tool latency are
   recorded when the source reports them.
+
+### Request-level accounting
+
+`scripts/session-usage.mjs --requests` emits one record per distinct provider message id. The Claude adapter turns each
+record into an `ai-request` event and a session roll-up:
+
+| Scope | Event | Counted? | What it carries |
+|---|---|---|---|
+| Request | `ai-request` | Yes when the session reconciles | Provider token categories for one message id, its tool operations, one activity association, a derived cost share |
+| Session | `ai-usage` | No when the session reconciles | Context start/average, API/tool latency, repeated reads, prompt provenance, reconciliation |
+| Session | `ai-usage` | Yes when request totals do not reconcile | The session total, as before; request rows are stored but marked uncounted |
+
+`accounting.counted` is the only switch aggregation uses. A request-level session is never added to its roll-up. The
+check is deterministic: request token sum must equal the session token sum, request count must equal the client’s call
+count, and no usage record may be missing. A mismatch is reported with its delta; the totals are not silently adjusted.
+
+Token formulas for the Claude transcript: `input_total = input + cache_creation + cache_read`;
+`uncached_input = input`; `output` already includes reported thinking tokens, so `reasoning` is shown separately and is
+not added again. A tool-free request is included and stays `unknown` / `model_only_request`. A request with several
+tool operations is not divided equally: if its operations support one activity, that activity is recorded; otherwise it
+stays Unknown with `ambiguous_activity`, and the components are preserved.
+
+Activity association is not causation. A validation request’s 300k-token input contains earlier exploration and
+instructions. The event says “this request happened while validating”; it does not say those tokens were caused by
+validation or were avoidable.
+
+### Classification provenance and Unknown reasons
+
+`tools/resource/rules.mjs` is the versioned rule registry (`CLASSIFIER_VERSION`). Each classification records:
+
+- the activity and optional code-exploration subcategory;
+- a rule id (`tool.read`, `git.history`, `script.lint`, `inline.write-signal`, …);
+- provenance: `structured_tool_arguments`, `known_script_registry`, `parsed_command`, `tool_name_rule`,
+  `contextual_inference`, `explicit_task_metadata` or `unclassified`;
+- confidence: `deterministic`, `heuristic` or `unclassified` (a category, not a calibrated score);
+- an Unknown reason when no activity is asserted.
+
+Unknown reason codes are `unrecognized_tool`, `unrecognized_command`, `compound_command`, `ambiguous_activity`,
+`missing_tool_details`, `model_only_request`, `missing_task`, `missing_issue`, `incomplete_transcript`,
+`unsupported_client`, `missing_usage`, `parser_error` and `unclassified_other`. Activity, issue and task attribution are
+independent: a missing Drupal issue does not make a known activity Unknown, and an Unknown activity does not make the
+issue unattributed.
+
+A compound command or multi-tool request is resolved with a documented primary-operation precedence (patch development,
+validation, issue work, environment, exploration). Every component is retained and the result is labelled `heuristic`;
+the rule does not divide the request’s tokens among the operations. Shell parsing is conservative: quotes, `&&`, `||`,
+pipelines, loops, assignments and substitutions are handled without evaluation; a heredoc body is data and is never
+executed. If the line cannot be parsed safely, the operation stays Unknown with `parser_error`.
+
+### Prompt and artifact provenance
+
+Prompt capture is metadata-first. `scripts/session-usage.mjs --provenance <file>` writes, per prompt: a stable local id,
+timestamps, origin (`human`, `generated`, `unknown`), purpose, byte size, line count, size bucket, content types,
+SHA-256 fingerprint, and artifact references. It never writes prompt text into the event or the public summary.
+
+- `--prompt-content <dir>` is the explicit opt-in for raw local prompt text. Files are written with mode `0600` under the
+  local cache, named by fingerprint; they are gitignored and never read by the report or the dashboard.
+- `--inspect-artifacts` is the explicit opt-in for reading referenced local ZIP/patch files. ZIP inspection reads only the
+  central directory (bounded entries, declared sizes, traversal, absolute paths, symlinks, encryption) and extracts
+  nothing. Patch inspection counts files/lines and flags tests/docs/generated CSS. The result records an artifact
+  reference separately from ingestion: a reference does not prove a model received or read the content.
+
+### Exploration diagnostics
+
+`tools/resource/exploration.mjs` compares local-only lookup targets (file, search pattern, `code-map` symbol) across the
+requests of a session. It reports unique/repeated targets, failed searches, exploration after a failure or an edit,
+loop-like sequences, `code-map.mjs` use, unique files and tool-result bytes. The targets are not published. Repetition is
+a diagnostic: a file may have changed, a test may have failed, or a new task may need the same evidence.
 
 ### CPU, memory and I/O
 
@@ -114,6 +183,10 @@ are unavailable and stay null. An overlapping later run on the same workflow/bra
 node scripts/resource.mjs collect
 node scripts/resource.mjs collect --source=all --samples=3 --interval=1000
 node scripts/resource.mjs collect --source=claude --issue=3619127 --variant=3619127-pinned
+node scripts/resource.mjs collect --source=claude --prompt-content   # opt-in: local raw prompt files
+node scripts/resource.mjs collect --source=claude --inspect-artifacts # opt-in: bounded ZIP/patch metadata reads
+node scripts/resource.mjs audit                                      # deterministic Unknown/attribution investigation
+node scripts/resource.mjs audit --json=/tmp/attribution-audit.json
 
 # Inspect the local ledger (sanitised view)
 node scripts/resource.mjs recent --limit=20
@@ -189,15 +262,45 @@ accessibility evidence, not a manual keyboard or screen-reader pass.
 - Every `collect`/`run` records a `monitoring` event with the collector process’s CPU, peak RSS and duration from
   `process.resourceUsage()`.
 - The wrapper’s own CPU is separate from the child’s `/usr/bin/time` CPU; the dashboard reports both separately.
-- The local ledger is small (tens of KB for the current baseline). Run `node scripts/resource.mjs verify` and delete or
-  compact the local ledger when needed; the committed summary remains.
-- The public summary is an aggregate; it does not grow with every raw event.
+- Run `node scripts/resource.mjs verify` and delete or compact the local ledger when needed; the committed summary
+  remains. Request-level collection makes the local ledger larger than the earlier session-only ledger (10.5 MB on
+  2026-11-23); it stays local and is not published.
+- The public summary is an aggregate; it grows with distinct grouped rows, not with every raw event.
+- Measured on 2026-11-23 after the request-level collection: the local ledger held 2,371 events in 10.5 MB; loading and
+  validating it took about 200 ms, aggregation about 23 ms, public-row construction about 4 ms, and the compact public
+  JSON was about 258 KB. These are host-specific observations, not targets. `node scripts/resource-benchmark.mjs`
+  reproduces them.
+- Re-importing unchanged transcripts added 0 duplicate events (2,191 source events skipped); each collection run still
+  appends one `monitoring` event for its own overhead.
+
+### Proposed diagnostic warnings (experimental, not enforced)
+
+The existing `resource-budgets.yml` keys remain the only enforced-or-observed limits. The following are reported as
+**possible opportunities** in the deterministic report until a measured baseline justifies a key:
+
+- high Unknown share, with its reason breakdown;
+- explicit-task or issue attribution gaps (reported separately, never merged);
+- repeated lookup targets and loop-like exploration sequences;
+- large tool-result bytes or unusually rapid context growth;
+- repeated identical validation runs on the same tree;
+- repeated environment setup at the same commit.
+
+Each opportunity carries the observed measurement, evidence event ids, a limitation and a next diagnostic action. Thresholds
+are not uniform: an accessibility investigation, a patch, and routine maintenance do not share a budget. No warning stops
+work.
 
 ## Limitations
 
 - Claude Code is the only AI client adapter today. Other coding agents, local LLMs and direct API clients need adapters.
-- Session usage is provider/client reported; the client’s cost is not an invoice. Tokens are not estimates, but the
-  per-activity token split is derived from tool-call share, not provider per-tool accounting.
+- Session usage is provider/client reported; the client’s cost is not an invoice. Request-level token counts are
+  provider-reported. Activity association is derived, sometimes heuristic, and is not a per-tool provider measurement.
+- Per-request duration is not exposed by the client transcript; only session API/tool duration is available. Request
+  context is associated with an activity, not proven to be caused by it.
+- Prompt capture is metadata-only by default. The effective provider request (hidden system instructions, tool
+  definitions, attachments added by the client) is only partly observable. A prompt fingerprint proves identical bytes,
+  not identical meaning.
+- Unknown cannot be eliminated. Model-only requests have no tool evidence; unrecognized inline code, unsupported
+  clients and incomplete transcripts stay explicitly Unknown.
 - CPU time is measured for wrapped commands, not for whole shells, editors, MCP servers or host-wide work such as
   Mutagen, the DDEV router or the operating system. Docker CPU is sampled/derived.
 - GitHub Actions billable minutes and runner CPU are unavailable. Overlap/supersession is derived.
@@ -217,7 +320,9 @@ accessibility evidence, not a manual keyboard or screen-reader pass.
    responses, transcripts or credentials into the ledger or a report.
 4. Use `source_key` for a mutable snapshot (a growing session or an in-progress CI run); use a deterministic content event
    for an immutable record. Never count the same provider message twice.
-5. Classify with `classifyTool`, `classifyCommand` or `classifyWorkflow`; if uncertain, use `unknown`.
+5. Classify with `classifyOperation()` (preferred), `classifyLabelDetailed()` or `classifyWorkflow()`. Add a named rule to
+   `tools/resource/rules.mjs` with a `rule_id`, provenance and confidence, and a test in
+   `tests/lab/resource-attribution.test.mjs`. If uncertain, return Unknown with a documented reason; never guess.
 6. Add the source to `scripts/resource.mjs collect` and document it in this file.
 7. Add a test fixture and a test under `tests/lab/` covering parsing, missing values, deduplication and public export.
 8. If a new field is needed, bump `schema_version`, update the schema and the public allowlist, and run
@@ -225,25 +330,47 @@ accessibility evidence, not a manual keyboard or screen-reader pass.
 9. Update the baseline and rebuild `cloud/` with `node scripts/resource.mjs report --write` and
    `node scripts/build-cloud.mjs`.
 
-## Initial baseline and opportunities
+## Baseline and opportunities
 
-The initial baseline is [reports/resources/BASELINE.md](../reports/resources/BASELINE.md), generated 2026-11-23 from
-recorded data through 2026-11-23. It includes the 10 Claude Code sessions then available, 54 recorded model-eval trials,
-one `measure-resources` result, 100 GitHub Actions runs/jobs and two Docker samples, plus three measured local commands.
+The current baseline is [reports/resources/BASELINE.md](../reports/resources/BASELINE.md). The historical baseline and
+its generated summary are preserved unchanged under
+[reports/resources/archive/2026-11-23/](../reports/resources/archive/2026-11-23/); the methodological difference is
+documented in [reports/resources/METHODOLOGY-COMPARISON.md](../reports/resources/METHODOLOGY-COMPARISON.md).
 
-The deterministic rules identified four **possible** opportunities, with evidence event ids in the report:
+The current data covers the same 10 Claude Code sessions, 54 model-eval trials, 100 GitHub Actions runs/jobs, Docker
+samples and measured local commands. Request-level reconciliation matched all 10 sessions: 2,181 request events sum to
+812,265,879 tokens, the same session total as before, with zero difference.
 
-1. **High:** code exploration is 24.7% of provider-reported tokens; try `scripts/code-map.mjs` for locate-and-read chains.
-2. **High:** nine sessions had large starting or average contexts (max start 81k, max average 531k tokens); measure
+The deterministic rules identify possible opportunities, with evidence event ids in the report:
+
+1. **High:** a material share of request context is associated with code exploration (29.2%); try
+   `scripts/code-map.mjs` for locate-and-read chains, then compare a comparable session.
+2. **High:** 16.7% of request context is Unknown. The reasons are model-only requests (81.0M tokens),
+   compound commands (45.0M) and unrecognized commands (10.0M). This is a measurement gap, not waste.
+3. **High:** nine sessions had large starting or average contexts (max start 81k, max average 531k tokens); measure
    `scripts/context-size.mjs` before changing instructions.
-3. **Medium:** two GitHub Actions runs overlap a later run; review concurrency, but do not cancel evidence-producing runs.
-4. **Low:** one repeated read was recorded; check whether a targeted range would do, but one occurrence is weak evidence.
+4. **Medium:** two GitHub Actions runs overlap a later run; review concurrency, but do not cancel evidence-producing runs.
+5. **Low:** 82 repeated lookups in 49 repeated targets; inspect them locally before changing instructions.
 
-These are possible inefficiencies, not confirmed waste. The baseline also shows the most important limit: the provider
-token total is dominated by cache reads (about 797M of 813M input-side tokens), so context re-reading is the largest
-lever, and it must be measured rather than guessed.
+The provider token total remains dominated by cache reads (796.8M of 812.8M input-side tokens), so context re-reading is
+the largest lever. That is a measurement, not yet a change in behaviour.
+
+## Planning an investigation
+
+1. `node scripts/resource.mjs audit` — read the attribution quality, Unknown reasons and reconciliation first.
+2. `node scripts/resource.mjs audit --json=/tmp/a.json` — keep a local snapshot for comparison after a change.
+3. `node scripts/session-usage.mjs --tools --sequences` — inspect the sessions and repeated call sequences.
+4. `node scripts/resource.mjs recent --limit=20` — inspect sanitised ledger events; raw prompt metadata stays in the
+   local ledger’s `private` object.
+5. For a specific prompt/artifact, run `scripts/session-usage.mjs --provenance /tmp/p.json <transcript>` and, only if
+   needed, add `--prompt-content .lab-cache/resource-ledger/prompt-content`. Never commit that directory.
+6. For repeated exploration, `node scripts/resource-exploration.mjs` prints the local targets and whether a repeat followed an edit or failure. Its output is local-only; do not publish it.
+7. Re-run `node scripts/resource.mjs report --write --baseline`, `node scripts/build-cloud.mjs`, and the tests. Compare
+   attribution coverage and reconciliation before comparing token totals; a classification change is not an efficiency
+   improvement.
 
 ## Privacy
 
-The public export is an explicit allowlist. Raw transcripts, prompts, responses, API keys, account identifiers, private
-paths, precise work timestamps, run ids and command text are never public. See [RESOURCE-PRIVACY.md](RESOURCE-PRIVACY.md).
+The public export is an explicit allowlist. Raw transcripts, prompt text, responses, API keys, account identifiers,
+private paths, precise work timestamps, run ids, command text and artifact references/fingerprints are never public.
+Prompt metadata is published only as aggregate counts and distributions. See [RESOURCE-PRIVACY.md](RESOURCE-PRIVACY.md).

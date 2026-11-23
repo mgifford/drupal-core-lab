@@ -2,9 +2,11 @@
 // Deterministic resource accounting CLI.
 //   node scripts/resource.mjs collect [--source=claude,model-eval,measure-resources,github,docker|all]
 //        [--activity=...] [--issue=...] [--variant=...] [--since=YYYY-MM-DD] [--samples=3] [--interval=1000] [--dry-run] [--json]
+//        [--prompt-content] [--inspect-artifacts]   prompt/artifact metadata is the default; content and ZIP/patch reads are opt-in
 //   node scripts/resource.mjs recent [--limit=20] [--json]
 //   node scripts/resource.mjs report [--write] [--check] [--baseline] [--out=directory] [--json]
 //   node scripts/resource.mjs export [--out=cloud/resources.json] [--json]
+//   node scripts/resource.mjs audit [--json=<file>]   deterministic Unknown/attribution investigation
 //   node scripts/resource.mjs verify
 // It never calls a model. Raw source references stay in .lab-cache/resource-ledger/; reports contain only the public
 // allowlist in tools/resource/events.mjs.
@@ -37,7 +39,7 @@ function writeJson(file, value) { fs.mkdirSync(path.dirname(path.resolve(file)),
 async function collect() {
   const startedAt = iso(), started = performance.now();
   const all = [], errors = [], metadata = {};
-  if (wants('claude')) { const r = collectClaude({ activity: val('activity'), issue: val('issue'), variant: val('variant'), since: val('since') }); all.push(...r.events); errors.push(...r.errors); metadata.claude = r.metadata; }
+  if (wants('claude')) { const r = collectClaude({ activity: val('activity'), issue: val('issue'), variant: val('variant'), since: val('since'), promptContent: has('prompt-content'), inspectArtifacts: has('inspect-artifacts') }); all.push(...r.events); errors.push(...r.errors); metadata.claude = r.metadata; }
   if (wants('model-eval')) { const r = collectModelEval(); all.push(...r.events); errors.push(...r.errors); metadata.modelEval = r.metadata; }
   if (wants('measure-resources')) { const r = collectMeasureResources({ issue: val('issue'), variant: val('variant') }); all.push(...r.events); errors.push(...r.errors); metadata.measureResources = r.metadata; }
   if (wants('github')) { const r = await collectGithubActions({ limit: Number(val('limit', '100')), jobsFor: Number(val('jobs', '20')), issue: val('issue'), variant: val('variant') }); all.push(...r.events); errors.push(...r.errors); metadata.github = r.metadata; }
@@ -86,7 +88,10 @@ function report() {
   };
   summary.limitations = [
     'AI token and cost values are only as complete as the local Claude Code transcripts and recorded model-eval trials. Other agents and API clients are not represented yet.',
-    'Cost is a client-reported estimate (or an estimate where no provider cost exists), not an invoice or subscription statement. Missing cost is null, never zero.',
+    'Cost is a client-reported estimate (or an estimate where no provider cost exists), not an invoice or subscription statement. Per-request cost is derived from the session estimate by token share. Missing cost is null, never zero.',
+    'Request-level activity is associated with the context processed at that request; it is not proof that the activity caused every token. Legacy session rows use a different method and are not directly comparable.',
+    'Unknown is a measurement gap, not waste. Tool-free requests have no tool-based activity evidence; unrecognized inline code and unsupported clients remain explicitly Unknown.',
+    'Prompt and artifact provenance is metadata-only by default. The effective provider request, hidden instructions and client-added attachments are only partly observable; a reference does not prove ingestion.',
     'CPU-seconds come from measured processes, or are derived from sampled Docker percentages. They are not hardware cycle counts and do not include host-wide work such as Mutagen, the DDEV router or the OS.',
     'GitHub Actions duration comes from the API; billable minutes and runner CPU are unavailable. Overlap/supersession is inferred.',
     'The collector runs on demand; a period with no events is not proof that no work happened.',
@@ -138,7 +143,7 @@ function markdown(s, baseline = false) {
   md += `| — cache creation | ${n(s.totals.ai.cache_creation)} | provider-reported where available |\n`;
   md += `| — cache read | ${n(s.totals.ai.cache_read)} | provider-reported where available |\n`;
   md += `| — output | ${n(s.totals.ai.output)} | provider-reported where available |\n`;
-  md += `| — reasoning | ${n(s.totals.ai.reasoning)} | provider-reported where available |\n`;
+  md += `| — reasoning (already inside output) | ${n(s.totals.ai.reasoning)} | provider-reported where available; not added again |\n`;
   md += `| Estimated prompt tokens (bytes/4, not a tokenizer count) | ${n(s.totals.ai.estimated_tokens)} | ${s.totals.ai.estimated_tokens == null ? 'unavailable' : 'estimated'} |\n`;
   md += `| Model requests | ${n(s.totals.ai.model_requests)} | ${s.totals.ai.model_requests == null ? 'unavailable' : 'provider-reported'} |\n`;
   md += `| Estimated AI cost | ${money(s.totals.ai.cost_estimated_usd)} | ${s.quality.cost.status}; not an invoice |\n`;
@@ -149,9 +154,49 @@ function markdown(s, baseline = false) {
   md += `| GitHub Actions duration | ${hours(s.totals.github.duration_seconds)} (${n(s.totals.github.runs)} runs / ${n(s.totals.github.jobs)} jobs) | ${s.quality.github.status} |\n`;
   md += `| Tasks measured | ${n(s.totals.tasks.measured)} (${n(s.totals.tasks.success)} success, ${n(s.totals.tasks.failure)} failure, ${n(s.totals.tasks.unknown)} unknown) | derived from event outcomes |\n`;
   md += `| Collection overhead | ${hours(s.totals.monitoring.cpu_seconds)} CPU, ${formatBytes(s.totals.monitoring.peak_memory_bytes)} peak | measured |\n\n`;
-  md += `## Consumption by activity\n\n| Activity | Events | Tasks | Tokens | Share | Model requests | CPU-hours | Estimated cost |\n|---|---:|---:|---:|---:|---:|---:|---:|\n`;
-  for (const a of s.by_activity) md += `| ${a.activity} | ${n(a.events)} | ${n(a.tasks)} | ${n(a.tokens)} | ${pct(a.share)} | ${n(a.model_requests)} | ${a.cpu_seconds == null ? '—' : (a.cpu_seconds / 3600).toFixed(3)} | ${a.cost_usd == null ? '—' : `$${a.cost_usd.toFixed(2)}`} |\n`;
-  md += `\nToken shares are derived from tool-call share where a session mixes activities; they are not provider per-tool accounting.\n\n`;
+  md += `## Consumption by activity\n\n| Activity | Events | Tasks | Tokens | Share | Model requests | CPU-hours | Estimated cost | Method |\n|---|---:|---:|---:|---:|---:|---:|---:|---|\n`;
+  for (const a of s.by_activity) md += `| ${a.activity} | ${n(a.events)} | ${n(a.tasks)} | ${n(a.tokens)} | ${pct(a.share)} | ${n(a.model_requests)} | ${a.cpu_seconds == null ? '—' : (a.cpu_seconds / 3600).toFixed(3)} | ${a.cost_usd == null ? '—' : `$${a.cost_usd.toFixed(2)}`} | ${a.method || '—'} |\n`;
+  md += `\nRows mix two accounting methods: request-level activity where a transcript reconciles, and the older session tool-call-share allocation for historical records. The method column above names them per activity; the dashboard keeps them distinguishable. Request-level activity is associated with the request context and is not proof that the activity caused every token in it.\n\n`;
+  if (s.by_exploration_subcategory?.length) {
+    md += `## Code exploration subcategories\n\n| Subcategory | Events | Tokens | Share |\n|---|---:|---:|---:|\n`;
+    for (const x of s.by_exploration_subcategory) md += `| ${x.subcategory} | ${n(x.events)} | ${n(x.tokens)} | ${pct(x.share)} |\n`;
+    md += `\nSubcategories are deterministic from the tool and operation. A repeated lookup is a diagnostic, not proof of waste.\n\n`;
+  }
+  const a = s.attribution || {};
+  md += `## Attribution quality\n\n| Dimension | Measure | Coverage | Basis |\n|---|---:|---:|---|\n`;
+  md += `| Activity (events) | ${n(a.activity?.classified)} classified / ${n(a.activity?.unknown)} unknown | ${pct(a.activity?.coverage_events)} | deterministic rules; Unknown kept explicit |\n`;
+  md += `| Activity (tokens) | ${n(a.activity?.tokens_classified)} classified / ${n(a.activity?.tokens_unknown)} unknown | ${pct(a.activity?.coverage_tokens)} | provider tokens with derived activity association |\n`;
+  md += `| Model requests | ${n(a.model_requests?.classified)} classified / ${n(a.model_requests?.unknown)} unknown | ${pct(a.model_requests?.coverage)} | one event per observable message id |\n`;
+  md += `| Tool operations | ${n(a.tool_operations?.total)} recorded / ${n(a.tool_operations?.unknown)} in Unknown events | ${pct(a.tool_operations?.coverage)} | provider/client tool records |\n`;
+  md += `| Drupal issue | ${n(a.issue?.events_attributed)} attributed events | ${pct(a.issue?.coverage)} | independent of activity; missing issue is not Unknown activity |\n`;
+  md += `| Task (explicit) | ${n(a.task?.events_attributed)} attributed events | ${pct(a.task?.coverage)} | explicit task metadata; session task ids are reported separately |\n`;
+  md += `| Task (session id) | ${n(a.task?.session_task_events)} events, ${n(a.task?.session_task_tokens)} tokens | — | a session is not one development task |\n`;
+  md += `| Outcome | ${n(a.outcome?.success)} success / ${n(a.outcome?.failure)} failure / ${n(a.outcome?.unknown)} unknown | — | a command result is not a verified outcome |\n\n`;
+  md += `Request-level sessions: ${n(a.data?.request_level_sessions)}; legacy sessions: ${n(a.data?.legacy_sessions)}. Uncounted roll-up events: ${n(a.data?.events_uncounted)}. Their token fields are null; they are not added to the totals.\n\n`;
+  if (s.by_unknown_reason?.length) {
+    md += `## Unknown activity by reason\n\n| Reason | Events | Tokens | Model requests | Operations |\n|---|---:|---:|---:|---:|\n`;
+    for (const r of s.by_unknown_reason) md += `| ${r.unknown_reason} | ${n(r.events)} | ${n(r.tokens)} | ${n(r.model_requests)} | ${n(r.operations)} |\n`;
+    md += `\nUnknown is a measurement gap, not waste or a quality score. Missing issue attribution is reported separately above.\n\n`;
+  }
+  if (s.provenance?.prompts) {
+    md += `## Prompt and artifact provenance\n\n| Measure | Value |\n|---|---:|\n`;
+    md += `| Prompts recorded | ${n(s.provenance.prompts)} |\n| Prompt bytes (recorded text) | ${n(s.provenance.prompt_bytes)} |\n| Repeated prompts within a session | ${n(s.provenance.repeated_prompts)} |\n| Artifact references | ${n(s.provenance.artifacts)} |\n| Artifacts inspected locally | ${n(s.provenance.artifacts_inspected)} |\n| Capture mode | ${s.provenance.capture} |\n\n`;
+    md += `Purpose distribution: ${Object.entries(s.provenance.purposes || {}).sort((x, y) => y[1] - x[1]).map(([k, v]) => `${k}=${v}`).join(', ') || '—'}.\n\n`;
+    md += `Artifact kinds: ${Object.entries(s.provenance.artifact_kinds || {}).sort((x, y) => y[1] - x[1]).map(([k, v]) => `${k}=${v}`).join(', ') || '—'}. ${s.provenance.note}\n\n`;
+  }
+  if (s.reconciliation) {
+    md += `## Request reconciliation\n\n| Measure | Value |\n|---|---:|\n`;
+    md += `| Sessions with request data | ${n(s.reconciliation.sessions_with_request_data)} |\n| Matched / mismatch / unavailable | ${n(s.reconciliation.status.matched)} / ${n(s.reconciliation.status.mismatch)} / ${n(s.reconciliation.status.unavailable)} |\n`;
+    md += `| Session tokens | ${n(s.reconciliation.session_tokens)} |\n| Request tokens | ${n(s.reconciliation.request_tokens)} |\n| Difference | ${n(s.reconciliation.delta)} |\n| Requests recorded / expected | ${n(s.reconciliation.request_count)} / ${n(s.reconciliation.expected_requests)} |\n`;
+    md += `| Missing usage | ${n(s.reconciliation.missing_usage)} |\n| Duplicate usage records collapsed | ${n(s.reconciliation.duplicate_usage_records)} |\n| Tool-free requests | ${n(s.reconciliation.model_only_requests)} |\n| Multi-tool requests | ${n(s.reconciliation.multi_tool_requests)} |\n\n`;
+    md += `${s.reconciliation.method}\n\n`;
+  }
+  if (s.exploration?.sessions_with_data) {
+    md += `## Exploration diagnostics\n\n| Measure | Value |\n|---|---:|\n`;
+    for (const k of ['unique_targets', 'repeated_targets', 'repeated_lookups', 'failed_searches', 'exploration_after_failure', 'exploration_after_edit', 'loop_sequences', 'code_map_calls', 'unique_files', 'result_bytes']) md += `| ${k.replace(/_/g, ' ')} | ${n(s.exploration[k])} |\n`;
+    md += `\n${s.exploration.note}\n\n`;
+  }
+  md += `## Classification method versions\n\nClassifier: ${s.methodology?.classifier_version || '—'}. Accounting versions: ${(s.methodology?.accounting_versions || []).join(', ') || '—'}. ${s.methodology?.note || ''}\n\n`;
   md += `## Resource usage by Drupal issue\n\n| Issue | Events | Tasks | Tokens | Model requests | CPU-hours | Duration (h) | Peak memory | Estimated cost | Success / failure |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n`;
   for (const i of s.by_issue) md += `| ${i.issue || 'Unattributed'} | ${n(i.events)} | ${n(i.tasks)} | ${n(i.tokens)} | ${n(i.model_requests)} | ${i.cpu_seconds == null ? '—' : (i.cpu_seconds / 3600).toFixed(3)} | ${i.duration_seconds == null ? '—' : (i.duration_seconds / 3600).toFixed(3)} | ${formatBytes(i.peak_memory_bytes)} | ${i.cost_usd == null ? '—' : `${i.cost_usd.toFixed(2)}`} | ${n(i.success)} / ${n(i.failure)} |\n`;
   if (s.by_model.length) { md += `\n## By model\n\n| Model | Provider | Events | Tokens | Requests | Estimated cost |\n|---|---|---:|---:|---:|---:|\n`; for (const m of s.by_model) md += `| ${m.model} | ${m.provider || '—'} | ${n(m.events)} | ${n(m.tokens)} | ${n(m.model_requests)} | ${m.cost_usd == null ? '—' : `$${m.cost_usd.toFixed(2)}`} |\n`; }
@@ -181,13 +226,42 @@ function exportPublic() {
   summary.monitoring = summary.totals.monitoring;
   summary.data_quality = summary.quality;
   summary.privacy = { public_fields: 'Aggregates and grouped rows only.', raw_ledger: 'local', missing_is_not_zero: true };
-  summary.limitations = ['See reports/resources/SUMMARY.md; missing data is null, not zero.', 'No AI model is called to build this export.'];
+  summary.limitations = ['See reports/resources/SUMMARY.md and reports/resources/METHODOLOGY-COMPARISON.md; missing data is null, not zero.', 'Request-level activity is associated with request context, not proven causation; legacy session rows are not directly comparable.', 'Unknown is a measurement gap, not waste. Prompt provenance is metadata-only by default.', 'No AI model is called to build this export.'];
   summary.budget = (() => { const b = loadBudgets(); return { mode: b.config.mode, source: b.source, problems: b.problems, limits: b.config.limits }; })();
   assertPublic(summary, 'cloud/resources.json');
   const out = path.resolve(labRoot, val('out', 'cloud/resources.json'));
   writeJson(out, summary);
   say(`Wrote ${path.relative(labRoot, out)} (${summary.events.length} public rows; no private records).`);
   if (val('json')) writeJson(val('json'), summary);
+}
+
+function audit() {
+  const { events, invalid } = loadEvents({ includeMonitoring: true });
+  const s = aggregate(events);
+  const out = {
+    generated_at: iso(), period: s.period, methodology: s.methodology,
+    totals: s.totals.ai, attribution: s.attribution, by_unknown_reason: s.by_unknown_reason,
+    by_exploration_subcategory: s.by_exploration_subcategory, reconciliation: s.reconciliation,
+    exploration: s.exploration, provenance: s.provenance, quality: s.quality,
+  };
+  assertPublic(out, 'resource attribution audit');
+  if (val('json')) { writeJson(val('json'), out); say(`Wrote ${val('json')}.`); return; }
+  const n = (v) => (v == null ? '—' : Number(v).toLocaleString('en-US'));
+  say(`Resource attribution audit — ${s.period.from || '—'} to ${s.period.to || '—'} (no model called)`);
+  say(`Activity: ${n(s.attribution.activity.classified)} classified / ${n(s.attribution.activity.unknown)} Unknown events; token coverage ${(100 * (s.attribution.activity.coverage_tokens || 0)).toFixed(1)}%.`);
+  say(`Model requests: ${n(s.attribution.model_requests.total)} total, ${n(s.attribution.model_requests.unknown)} Unknown.`);
+  say(`Issue attribution: ${(100 * (s.attribution.issue.coverage || 0)).toFixed(1)}% of tokens; missing issue is not Unknown activity.`);
+  say('\nUnknown by reason:');
+  for (const r of s.by_unknown_reason) say(`  ${r.unknown_reason.padEnd(24)} events ${n(r.events).padStart(6)}  tokens ${n(r.tokens).padStart(12)}  requests ${n(r.model_requests).padStart(6)}`);
+  say('\nRequest reconciliation:');
+  say(`  sessions ${n(s.reconciliation.sessions_with_request_data)}; matched ${n(s.reconciliation.status.matched)}, mismatch ${n(s.reconciliation.status.mismatch)}, unavailable ${n(s.reconciliation.status.unavailable)}; delta ${n(s.reconciliation.delta)}.`);
+  say(`  requests ${n(s.reconciliation.request_count)} / expected ${n(s.reconciliation.expected_requests)}; missing usage ${n(s.reconciliation.missing_usage)}; duplicate records collapsed ${n(s.reconciliation.duplicate_usage_records)}.`);
+  say('\nExploration:');
+  for (const k of ['unique_targets', 'repeated_targets', 'repeated_lookups', 'failed_searches', 'exploration_after_failure', 'exploration_after_edit', 'loop_sequences', 'code_map_calls', 'unique_files', 'result_bytes']) if (s.exploration[k] != null) say(`  ${k.replace(/_/g, ' ').padEnd(28)} ${n(s.exploration[k])}`);
+  say('\nPrompt provenance:');
+  say(`  prompts ${n(s.provenance.prompts)}; bytes ${n(s.provenance.prompt_bytes)}; capture ${s.provenance.capture}; artifacts referenced ${n(s.provenance.artifacts)}; inspected locally ${n(s.provenance.artifacts_inspected)}.`);
+  say(`  purposes: ${Object.entries(s.provenance.purposes).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k}=${v}`).join(', ') || '—'}`);
+  if (invalid.length) say(`\nWARNING: ${invalid.length} invalid ledger line(s) skipped; run verify.`);
 }
 
 function verify() {
@@ -203,5 +277,6 @@ if (cmd === 'collect') await collect();
 else if (cmd === 'recent') recent();
 else if (cmd === 'report') report();
 else if (cmd === 'export') exportPublic();
+else if (cmd === 'audit') audit();
 else if (cmd === 'verify') verify();
-else { console.error('usage: node scripts/resource.mjs collect|recent|report|export|verify [options]'); process.exit(2); }
+else { console.error('usage: node scripts/resource.mjs collect|recent|report|export|audit|verify [options]'); process.exit(2); }

@@ -16,12 +16,19 @@ The local ledger is intended to answer “where did resources go?” without kee
 | Activity category, tool name, model/provider name, public issue number, variant slug, commit/patch reference (where known) | Local event; aggregate | Yes, where the source provides it |
 | Source adapter and confidence | Local event; aggregate | Yes |
 | Task/execution identifiers, transcript filename, session title, command hash, local file path, run URL, branch name, raw command | Local ledger only | **No** |
-| Prompts, responses, message text, request bodies, cookies, authorization headers, API keys, account identifiers | Never collected | **No** |
+| Prompt metadata: origin, purpose, byte size, content types, size bucket, SHA-256 fingerprint, artifact references | Local ledger `private` and a local provenance file; aggregate counts in reports | Aggregates only; no fingerprint, reference or text |
+| Raw prompt text | Only in an explicitly requested local directory (`.lab-cache/resource-ledger/prompt-content/`, mode 0600) | **No** |
+| Responses, message text, request bodies, cookies, authorization headers, API keys, account identifiers | Not collected | **No** |
 | Raw Claude Code session transcripts | Stay in `~/.claude/projects/`; not copied | **No** |
 
-The collector reads transcripts only through `scripts/session-usage.mjs`, which prints numbers and tool labels, not message
-text. The adapter stores the transcript filename in the local event’s `private` object and a local `source.reference`; both
-are stripped from every public object.
+The collector reads transcripts only through `scripts/session-usage.mjs`. Its default output is numbers, tool labels and
+prompt metadata, not prompt text. Prompt text is written only when `--prompt-content` is passed; that directory is
+gitignored and never read by the report, the export or the dashboard. The adapter stores the transcript filename and
+prompt metadata in the local event’s `private` object; both are stripped from every public object.
+
+Artifact inspection is opt-in (`--inspect-artifacts`). It reads only files inside the repository, never follows a
+symlink, never extracts a ZIP and never executes content. A reference in a prompt does not prove that the model received
+or read the artifact; the event records that distinction explicitly.
 
 ## The public allowlist
 
@@ -29,17 +36,20 @@ are stripped from every public object.
 
 - field names such as `private`, `source_key`, `transcript`, `title`, `command`, `command_hash`, `run_id`, `url`, `branch`,
   `reason`, `prompt`, `response`, `authorization`, `cookie`, `api_key`, account/user/email fields;
+- prompt text, artifact contents, prompt fingerprints and local artifact paths, which are not in any public builder;
 - strings that look like a private path (`/Users/`, `/home/`, `.lab-cache`, `~/.claude`, a Windows drive path) or a
   secret-shaped token.
 
 The dashboard receives **aggregated public rows**, not raw events: date (day), issue, variant, activity, tool, model,
-provider, token basis, cost basis, CPU measurement, quality, counts and evidence id hashes. It does not receive session
-names, task ids, paths or precise times. Evidence ids are hashes used to cite a measurement, not identifiers that reveal
-a person.
+provider, token basis, cost basis, CPU measurement, quality, classification confidence/provenance, unknown reason
+labels, counts and evidence id hashes. It also receives aggregate prompt composition (purpose and content-type counts,
+size buckets, artifact-kind counts) and exploration diagnostics (counts only). It does not receive session names, task
+ids, prompt text, artifact references, fingerprints, paths or precise times. Evidence ids are hashes used to cite a
+measurement, not identifiers that reveal a person.
 
 ## What the public dashboard shows
 
-- Totals and shares, not individual prompt content.
+- Totals and shares, not individual prompt or artifact content.
 - Cost as an **estimate** where no provider invoice exists. If cost is missing, it is `—`, not `$0.00`.
 - CPU-hours and memory as computational measurements, not energy or emissions.
 - GitHub Actions time from the public API; no run ids or account details.
@@ -55,6 +65,8 @@ collector, a database or an analytics service. GitHub Pages remains static.
 | Local ledger | `.lab-cache/resource-ledger/`, gitignored; keep as long as useful | `rm -rf .lab-cache/resource-ledger`; `node scripts/resource.mjs verify` reports integrity |
 | Raw source transcripts | In the client’s own `~/.claude/projects/`; not managed by this repository | Use the client’s normal transcript controls |
 | Committed summary | `reports/resources/summary.json`, `SUMMARY.md`, `BASELINE.md`, `baseline.json` | Delete or regenerate in a reviewed commit |
+| Opt-in raw prompt text | `.lab-cache/resource-ledger/prompt-content/`, gitignored, mode 0600 | `rm -rf .lab-cache/resource-ledger/prompt-content` |
+| Local prompt metadata / ledger | `.lab-cache/resource-ledger/events.jsonl` | `rm -rf .lab-cache/resource-ledger` |
 | Published dashboard data | `cloud/resources.json`, `cloud/resources.html` | Regenerate `cloud/` and publish; old GitHub Pages deployments/history may persist |
 | Raw command measurements | Only aggregated in reports; the local event keeps a command hash, not the command | Delete the local ledger |
 
@@ -78,4 +90,7 @@ disclosed; do not assume deleting a file removes copies.
 - The local ledger is not encrypted. Anyone with access to the host can read it; use disk encryption and normal
   workspace access controls.
 - The public dashboard is a presentation layer, not an authorization boundary.
-- This document describes the implementation as of 2026-11-23. Review it when adding a provider, field or public view.
+- Automated redaction is imperfect. A prompt can contain a secret or personal data even when the client did not label it;
+  raw capture is therefore opt-in and should be treated as sensitive. Do not commit the prompt-content directory.
+- This document describes request-level accounting, prompt/artifact metadata and opt-in raw capture as of 2026-11-23.
+  Review it when adding a provider, field or public view.
