@@ -122,7 +122,7 @@ export function taskSummaries(events, { tasks = [] } = {}) {
       cost_usd: g.cost_usd == null ? null : Math.round(g.cost_usd * 100) / 100,
       cpu_seconds: g.cpu_seconds == null ? null : Math.round(g.cpu_seconds * 1000) / 1000,
       duration_seconds: g.duration_ms == null ? null : Math.round(g.duration_ms / 100) / 10,
-      data_completeness: g.tokens_events === g.events ? 'complete' : g.tokens_events ? 'partial' : 'unavailable',
+      data_completeness: g.events === 0 ? 'unavailable' : g.tokens_events === g.events ? 'complete' : g.tokens_events ? 'partial' : 'unavailable',
     };
   }).sort((a, b) => (b.tokens ?? -1) - (a.tokens ?? -1) || a.task_hash.localeCompare(b.task_hash));
 }

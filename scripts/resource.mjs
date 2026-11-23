@@ -17,6 +17,7 @@ import { makeEvent, publicEvent, totalTokens, iso, validateEvent } from '../tool
 import { aggregate, publicRows } from '../tools/resource/aggregate.mjs';
 import { formatBytes } from '../tools/resource/units.mjs';
 import { loadBudgets } from '../tools/resource/budgets.mjs';
+import { loadTasks } from '../tools/resource/tasks.mjs';
 import { assertPublic } from '../tools/resource/public.mjs';
 import { collectClaude } from '../tools/resource/adapters/claude.mjs';
 import { collectModelEval } from '../tools/resource/adapters/model-eval.mjs';
@@ -77,7 +78,7 @@ function recent() {
 
 function report() {
   const { events, invalid } = loadEvents({ includeMonitoring: true });
-  const summary = aggregate(events);
+  const summary = aggregate(events, { tasks: loadTasks() });
   summary.events = publicRows(events);
   summary.monitoring = summary.totals.monitoring;
   summary.data_quality = summary.quality;
@@ -227,7 +228,7 @@ function markdown(s, baseline = false) {
 
 function exportPublic() {
   const { events } = loadEvents({ includeMonitoring: true });
-  const summary = aggregate(events);
+  const summary = aggregate(events, { tasks: loadTasks() });
   summary.events = publicRows(events);
   summary.monitoring = summary.totals.monitoring;
   summary.data_quality = summary.quality;
@@ -243,10 +244,10 @@ function exportPublic() {
 
 function audit() {
   const { events, invalid } = loadEvents({ includeMonitoring: true });
-  const s = aggregate(events);
+  const s = aggregate(events, { tasks: loadTasks() });
   const out = {
     generated_at: iso(), period: s.period, methodology: s.methodology,
-    totals: s.totals.ai, attribution: s.attribution, by_unknown_reason: s.by_unknown_reason,
+    totals: s.totals.ai, attribution: s.attribution, by_task: s.by_task, by_unknown_reason: s.by_unknown_reason,
     by_exploration_subcategory: s.by_exploration_subcategory, reconciliation: s.reconciliation,
     exploration: s.exploration, provenance: s.provenance, quality: s.quality,
   };

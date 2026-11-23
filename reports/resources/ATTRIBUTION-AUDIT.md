@@ -85,10 +85,11 @@ tests include negative controls so a new rule cannot silently turn `node` into v
 - Tool operations: 2,155 recorded, 164 inside Unknown events (92.4% of operations are in a classified event).
 - Drupal issue: 8.4% of tokens are attributed to an issue. This is a separate gap and is unchanged from the historical
   report; it is not a classification failure.
-- Explicit task: no task has been declared for the recorded Claude sessions yet. 113 events carry non-session task ids
-  from process, CI and model-eval records, but those are not development-task declarations. 2,181 request events are
-  associated with a session task id; a session is not one task. Use `scripts/resource-task.mjs` to declare a task and
-  map its session files.
+- Explicit task: one local task record now exists (`issue-3619127`, `accessibility-evaluation`, `in_progress`, no
+  mapped session, expected deliverable `accessibility-findings`). It has zero request events, so it appears in the task
+  view with no resources. 113 events carry non-session task ids from process, CI and model-eval records, but those are
+  not development-task declarations. 2,181 request events are associated with a session task id; a session is not one
+  task.
 
 ## Reconciliation
 

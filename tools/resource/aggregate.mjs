@@ -58,7 +58,7 @@ function unknownReasonsOf(event) {
   return [{ reason: 'unclassified_other', operations: num(event.measurements.tools?.invocations) ?? 0 }];
 }
 
-export function aggregate(events, { now = new Date() } = {}) {
+export function aggregate(events, { now = new Date(), tasks = [] } = {}) {
   const all = events || [];
   const monitoring = all.filter((e) => e.activity === 'monitoring');
   const data = all.filter((e) => e.activity !== 'monitoring');
@@ -71,13 +71,13 @@ export function aggregate(events, { now = new Date() } = {}) {
   const estimatedCosts = countedData.map(costOf).filter((c) => ['client-reported-estimate', 'estimated', 'subscription-allowance'].includes(c.basis)).map((c) => c.usd).filter((x) => x != null);
   const github = countedData.filter((e) => e.event_type === 'github-actions');
 
-  const tasks = new Map();
+  const taskOutcomes = new Map();
   for (const e of countedData) {
-    const prev = tasks.get(e.task.id) || { id: e.task.id, outcomes: new Set(), events: 0, first: e.occurred_at, last: e.occurred_at };
+    const prev = taskOutcomes.get(e.task.id) || { id: e.task.id, outcomes: new Set(), events: 0, first: e.occurred_at, last: e.occurred_at };
     prev.outcomes.add(e.outcome); prev.events++; if (String(e.occurred_at) < prev.first) prev.first = e.occurred_at; if (String(e.occurred_at) > prev.last) prev.last = e.occurred_at;
-    tasks.set(e.task.id, prev);
+    taskOutcomes.set(e.task.id, prev);
   }
-  const taskList = [...tasks.values()].map((t) => ({ id: t.id, events: t.events, outcome: t.outcomes.has('failure') ? 'failure' : t.outcomes.has('success') ? 'success' : t.outcomes.has('cancelled') ? 'cancelled' : 'unknown', first: t.first, last: t.last }));
+  const taskList = [...taskOutcomes.values()].map((t) => ({ id: t.id, events: t.events, outcome: t.outcomes.has('failure') ? 'failure' : t.outcomes.has('success') ? 'success' : t.outcomes.has('cancelled') ? 'cancelled' : 'unknown', first: t.first, last: t.last }));
 
   const totals = {
     ai: {
@@ -209,7 +209,7 @@ export function aggregate(events, { now = new Date() } = {}) {
     missing: [...new Set(countedData.flatMap((e) => e.quality.missing || []))].sort(),
   };
 
-  const byTask = taskSummaries(countedData);
+  const byTask = taskSummaries(countedData, { tasks });
   const attribution = attributionSummary({ data, countedData, sessions, uncounted, totalTokens: sumOrNull(countedData.map(tokensOf)) });
   attribution.task.declared_tasks = byTask.filter((t) => t.declared).length;
   attribution.task.verified_tasks = byTask.filter((t) => t.verified === true).length;
