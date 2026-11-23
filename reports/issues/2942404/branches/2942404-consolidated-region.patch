@@ -1,0 +1,75 @@
+diff --git a/core/modules/system/templates/status-messages.html.twig b/core/modules/system/templates/status-messages.html.twig
+index 417aa6d845c6aeb9100acb41cbc8e52512b63dd0..5f68ca089bd3b20d41163a525a8766646de2ca63 100644
+--- a/core/modules/system/templates/status-messages.html.twig
++++ b/core/modules/system/templates/status-messages.html.twig
+@@ -17,6 +17,11 @@
+  * and is intentionally not used here, which avoids duplicate landmark and
+  * non-unique landmark accessibility violations.
+  *
++ * All message groups are inside one "region" landmark named "System messages",
++ * so assistive technology users can find the current messages again by landmark
++ * navigation. The region is not a live region: announcements still come only
++ * from the "alert" and "status" roles of the individual groups.
++ *
+  * Available variables:
+  * - message_list: List of messages to be displayed, grouped by type.
+  * - status_headings: List of all status types.
+@@ -26,7 +31,7 @@
+  * @ingroup themeable
+  */
+ #}
+-<div data-drupal-messages>
++<div data-drupal-messages role="region" aria-label="{{ 'System messages'|t }}">
+ {% for type, messages in message_list %}
+   <div role="{{ type in ['error', 'warning'] ? 'alert' : 'status' }}" aria-label="{{ status_headings[type] }}"{{ attributes|without('role', 'aria-label') }}>
+     {% if status_headings[type] %}
+diff --git a/core/themes/default_admin/templates/misc/status-messages.html.twig b/core/themes/default_admin/templates/misc/status-messages.html.twig
+index f82cb87e32fcb2997da6868aa523ce3318318f3d..486600b7aa9a31f1b141f9c9ee3fe7ee3a8a2c9c 100644
+--- a/core/themes/default_admin/templates/misc/status-messages.html.twig
++++ b/core/themes/default_admin/templates/misc/status-messages.html.twig
+@@ -17,6 +17,11 @@
+  * and is intentionally not used here, which avoids duplicate landmark and
+  * non-unique landmark accessibility violations.
+  *
++ * All message groups are inside one "region" landmark named "System messages",
++ * so assistive technology users can find the current messages again by landmark
++ * navigation. The region is not a live region: announcements still come only
++ * from the "alert" and "status" roles of the individual groups.
++ *
+  * Available variables:
+  * - message_list: List of messages to be displayed, grouped by type.
+  * - status_headings: List of all status types.
+@@ -27,7 +32,7 @@
+  * @see \Drupal\default_admin\Hook\PreprocessHooks::preprocessStatusMessages()
+  */
+ #}
+-<div data-drupal-messages class="messages-list">
++<div data-drupal-messages class="messages-list" role="region" aria-label="{{ 'System messages'|t }}">
+   <div class="messages__wrapper">
+     {% for type, messages in message_list %}
+       {%
+diff --git a/core/themes/starterkit_theme/templates/misc/status-messages.html.twig b/core/themes/starterkit_theme/templates/misc/status-messages.html.twig
+index 34570521d9630d51953a0a03e03b4e32bc4f1a3b..37fc3832977f8e304d3884d02cb41bba657945e4 100644
+--- a/core/themes/starterkit_theme/templates/misc/status-messages.html.twig
++++ b/core/themes/starterkit_theme/templates/misc/status-messages.html.twig
+@@ -17,6 +17,11 @@
+  * and is intentionally not used here, which avoids duplicate landmark and
+  * non-unique landmark accessibility violations.
+  *
++ * All message groups are inside one "region" landmark named "System messages",
++ * so assistive technology users can find the current messages again by landmark
++ * navigation. The region is not a live region: announcements still come only
++ * from the "alert" and "status" roles of the individual groups.
++ *
+  * Available variables:
+  * - message_list: List of messages to be displayed, grouped by type.
+  * - status_headings: List of all status types.
+@@ -24,7 +29,7 @@
+  *   - class: HTML classes.
+  */
+ #}
+-<div data-drupal-messages>
++<div data-drupal-messages role="region" aria-label="{{ 'System messages'|t }}">
+ {% block messages %}
+ {% for type, messages in message_list %}
+   {%

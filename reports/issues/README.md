@@ -29,7 +29,7 @@ Something changed upstream that the lab should act on.
 | [3619387](3619387/) | Indicate on forms sidebar toggle button that sidebar has child element errors | Reviewed & tested by the community, updated 2026-11-09 | !17013 opened at `052a9309` | `cb915a48` ([how](3619387/REPRODUCE.md)) | Re-test: MR !17013 is at 052a9309; the lab tested cb915a48 |
 | [3627936](3627936/) | Active workspace has a broken styling in dark mode | Fixed, updated 2026-11-03 | !17471 closed at `b0bf91b9` | no MR commit recorded ([how](3627936/REPRODUCE.md)) | Fixed upstream: confirm on core main, then archive (node scripts/issue-archive.mjs 3627936) |
 
-## Waiting (23)
+## Waiting (24)
 
 Nothing for the lab to do until the issue moves.
 
@@ -37,6 +37,7 @@ Nothing for the lab to do until the issue moves.
 |---|---|---|---|---|---|
 | [2574721](2574721/SUMMARY.md) | Provide access to action links in the modules page on small screens | Needs work, updated 2026-09-15 | !17049 opened at `ed3917f4` | `ed3917f4` ([how](2574721/REPRODUCE.md)) | Needs work: waiting on the MR |
 | [2848307](2848307/SUMMARY.md) | Inline errors not working on form table elements | Needs work, updated 2026-08-05 | !16355 opened at `46e9b7e7` | no BRANCHES.md ([how](2848307/REPRODUCE.md)) | Needs work: waiting on the MR |
+| [2942404](2942404/SUMMARY.md) | System messages should be accessible | Needs work, updated 2026-05-27 | !6112 opened at `7dc95633` | `7dc95633` ([how](2942404/REPRODUCE.md)) | Needs work: waiting on the MR |
 | [2951317](2951317/SUMMARY.md) | Radios element missing "required" attribute | Needs work, updated 2026-11-03 | !15536 opened at `ab7ab046` | `ab7ab046` ([how](2951317/REPRODUCE.md)) | Needs work: waiting on the MR |
 | [3046089](3046089/SUMMARY.md) | Accessibility of Main toolbar items and internal editing | Active, updated 2026-10-14 | none found | no BRANCHES.md ([how](3046089/REPRODUCE.md)) | Active; no MR found |
 | [3083103](3083103/SUMMARY.md) | Programmatically associate error messages with inputs | Needs work, updated 2026-08-06 | !15692 opened at `ed60e948` | `ed60e948` ([how](3083103/REPRODUCE.md)) | Needs work: waiting on the MR |

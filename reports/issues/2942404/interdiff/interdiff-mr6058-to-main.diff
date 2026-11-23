@@ -1,0 +1,824 @@
+diff --git a/core/modules/big_pipe/tests/modules/big_pipe_test/src/BigPipePlaceholderTestCases.php b/core/modules/big_pipe/tests/modules/big_pipe_test/src/BigPipePlaceholderTestCases.php
+index 82f28da02db2a1f5d82f64cd05e603905f7bb6a4..6d29551c9df8b4a193d6a55a3e7b62baa7db4519 100644
+--- a/core/modules/big_pipe/tests/modules/big_pipe_test/src/BigPipePlaceholderTestCases.php
++++ b/core/modules/big_pipe/tests/modules/big_pipe_test/src/BigPipePlaceholderTestCases.php
+@@ -1,15 +1,13 @@
+ <?php
+ 
+-/**
+- * @file
+- */
++declare(strict_types=1);
+ 
+-// cSpell:ignore Vxezb
+-// cSpell:ignore divpiggydiv
++// cspell:ignore divpiggydiv timecurrent timetime
+ 
+ namespace Drupal\big_pipe_test;
+ 
+ use Drupal\big_pipe\Render\BigPipeMarkup;
++use Drupal\Component\Utility\Crypt;
+ use Drupal\Core\Session\AccountInterface;
+ use Drupal\Core\Url;
+ use Symfony\Component\DependencyInjection\ContainerInterface;
+@@ -35,8 +33,9 @@ class BigPipePlaceholderTestCases {
+    *   Optional. Necessary to get the embedded AJAX/HTML responses.
+    *
+    * @return \Drupal\big_pipe_test\BigPipePlaceholderTestCase[]
++   *   An array of placeholder test cases.
+    */
+-  public static function cases(ContainerInterface $container = NULL, AccountInterface $user = NULL) {
++  public static function cases(?ContainerInterface $container = NULL, ?AccountInterface $user = NULL) {
+     // Define the two types of cacheability that we expect to see. These will be
+     // used in the expectations.
+     $cacheability_depends_on_session_only = [
+@@ -106,11 +105,11 @@ public static function cases(ContainerInterface $container = NULL, AccountInterf
+           'method' => 'replaceWith',
+           // cspell:disable-next-line
+           'selector' => '[data-big-pipe-placeholder-id="callback=Drupal%5CCore%5CRender%5CElement%5CStatusMessages%3A%3ArenderMessages&args%5B0%5D&token=_HAdUpwWmet0TOTe2PSiJuMntExoshbm1kh2wQzzzAA"]',
+-          'data' => '<div data-drupal-messages>' . "\n" . ' <div role="region" aria-label="Status message">' . "\n" . ' <h2 class="visually-hidden">Status message</h2>' . "\n" . ' Hello from BigPipe!' . "\n" . ' </div>' . "\n" . '</div>' . "\n",
++          'data' => '<div data-drupal-messages>' . "\n" . ' <div role="status" aria-label="Status message">' . "\n" . ' <h2 class="visually-hidden">Status message</h2>' . "\n" . ' Hello from BigPipe!' . "\n" . ' </div>' . "\n" . '</div>' . "\n",
+           'settings' => NULL,
+         ],
+       ];
+-      $status_messages->embeddedHtmlResponse = '<div data-drupal-messages-fallback class="hidden"></div><div data-drupal-messages>' . "\n" . '  <div role="region" aria-label="Status message">' . "\n" . '              <h2 class="visually-hidden">Status message</h2>' . "\n" . '              Hello from BigPipe!' . "\n" . '          </div>' . "\n" . '</div>' . "\n";
++      $status_messages->embeddedHtmlResponse = '<div data-drupal-messages-fallback class="hidden"></div><div data-drupal-messages>' . "\n" . '  <div role="status" aria-label="Status message">' . "\n" . '          <h2 class="visually-hidden">Status message</h2>' . "\n" . '              Hello from BigPipe!' . "\n" . '      </div>' . "\n" . '</div>' . "\n";
+     }
+ 
+     // 2. Real-world example of HTML attribute value placeholder: form action.
+@@ -136,28 +135,31 @@ public static function cases(ContainerInterface $container = NULL, AccountInterf
+     }
+ 
+     // 3. Real-world example of HTML attribute value subset placeholder: CSRF
+-    // token in link.
++    // token in link. The route system.theme_set_default has _csrf_token: TRUE,
++    // so RouteProcessorCsrf generates Crypt::hashBase64($path) as a placeholder.
++    $csrf_token_path = 'admin/appearance/default';
++    $csrf_token_hash = Crypt::hashBase64($csrf_token_path);
+     $csrf_token = new BigPipePlaceholderTestCase(
+       [
+         '#title' => 'Link with CSRF token',
+         '#type' => 'link',
+         '#url' => Url::fromRoute('system.theme_set_default'),
+       ],
+-      'e88b559cce72c80b687d56b0e2a3a5ae4b66bc0e',
++      $csrf_token_hash,
+       [
+         '#lazy_builder' => [
+           'route_processor_csrf:renderPlaceholderCsrfToken',
+-          ['admin/config/user-interface/shortcut/manage/default/add-link-inline'],
++          [$csrf_token_path],
+         ],
+       ]
+     );
+-    $csrf_token->bigPipeNoJsPlaceholder = 'big_pipe_nojs_placeholder_attribute_safe:e88b559cce72c80b687d56b0e2a3a5ae4b66bc0e';
++    $csrf_token->bigPipeNoJsPlaceholder = 'big_pipe_nojs_placeholder_attribute_safe:' . $csrf_token_hash;
+     $csrf_token->bigPipeNoJsPlaceholderRenderArray = [
+-      '#markup' => 'big_pipe_nojs_placeholder_attribute_safe:e88b559cce72c80b687d56b0e2a3a5ae4b66bc0e',
++      '#markup' => 'big_pipe_nojs_placeholder_attribute_safe:' . $csrf_token_hash,
+       '#cache' => $cacheability_depends_on_session_only,
+       '#attached' => [
+         'big_pipe_nojs_placeholders' => [
+-          'big_pipe_nojs_placeholder_attribute_safe:e88b559cce72c80b687d56b0e2a3a5ae4b66bc0e' => $csrf_token->placeholderRenderArray,
++          'big_pipe_nojs_placeholder_attribute_safe:' . $csrf_token_hash => $csrf_token->placeholderRenderArray,
+         ],
+       ],
+     ];
+@@ -172,7 +174,7 @@ public static function cases(ContainerInterface $container = NULL, AccountInterf
+         '#markup' => BigPipeMarkup::create('<hello'),
+         '#attached' => [
+           'placeholders' => [
+-            '<hello' => ['#lazy_builder' => ['\Drupal\big_pipe_test\BigPipeTestController::helloOrYarhar', []]],
++            '<hello' => ['#lazy_builder' => ['\Drupal\big_pipe_test\BigPipeTestController::helloOrHi', []]],
+           ],
+         ],
+       ],
+@@ -182,7 +184,7 @@ public static function cases(ContainerInterface $container = NULL, AccountInterf
+           // We specifically test an invalid callback here. We need to let
+           // PHPStan ignore it.
+           // @phpstan-ignore-next-line
+-          'hello_or_yarhar',
++          'hello_or_hi',
+           [],
+         ],
+       ]
+@@ -197,7 +199,7 @@ public static function cases(ContainerInterface $container = NULL, AccountInterf
+         ],
+       ],
+     ];
+-    $hello->embeddedHtmlResponse = '<marquee>Yarhar llamas forever!</marquee>';
++    $hello->embeddedHtmlResponse = '<marquee>Llamas forever!</marquee>';
+ 
+     // 5. Edge case: non-#lazy_builder placeholder that calls Fiber::suspend().
+     $piggy = new BigPipePlaceholderTestCase(
+@@ -331,6 +333,7 @@ public static function cases(ContainerInterface $container = NULL, AccountInterf
+     // cspell:disable-next-line
+     $exception->bigPipePlaceholderId = 'callback=%5CDrupal%5Cbig_pipe_test%5CBigPipeTestController%3A%3Aexception&amp;args%5B0%5D=llamas&amp;args%5B1%5D=suck&amp;token=uhKFNfT4eF449_W-kDQX8E5z4yHyt0-nSHUlwaGAQeU';
+     $exception->bigPipePlaceholderRenderArray = [
++      // cspell:disable-next-line
+       '#prefix' => '<span data-big-pipe-placeholder-id="callback=%5CDrupal%5Cbig_pipe_test%5CBigPipeTestController%3A%3Aexception&amp;args%5B0%5D=llamas&amp;args%5B1%5D=suck&amp;token=uhKFNfT4eF449_W-kDQX8E5z4yHyt0-nSHUlwaGAQeU">',
+       'interface_preview' => [
+         '#theme' => 'big_pipe_interface_preview',
+@@ -367,7 +370,7 @@ public static function cases(ContainerInterface $container = NULL, AccountInterf
+     ];
+     $exception->embeddedHtmlResponse = NULL;
+ 
+-    // cSpell:disable-next-line.
++    // cSpell:disable-next-line
+     $token = 'PxOHfS_QL-T01NjBgu7Z7I04tIwMp6La5vM-mVxezbU';
+     // 8. Edge case: response filter throwing an exception for this placeholder.
+     $embedded_response_exception = new BigPipePlaceholderTestCase(
+@@ -430,6 +433,9 @@ public static function cases(ContainerInterface $container = NULL, AccountInterf
+ 
+ }
+ 
++/**
++ * Provides a placeholder for the BigPipe placeholder test cases.
++ */
+ class BigPipePlaceholderTestCase {
+ 
+   /**
+diff --git a/core/modules/big_pipe/tests/src/FunctionalJavascript/BigPipeRegressionTest.php b/core/modules/big_pipe/tests/src/FunctionalJavascript/BigPipeRegressionTest.php
+index 74d4f35e4c04cec1bc200a62e61ff72a5454a3a0..845d216101abd885f67d45ae4bddd852e50a5c3a 100644
+--- a/core/modules/big_pipe/tests/src/FunctionalJavascript/BigPipeRegressionTest.php
++++ b/core/modules/big_pipe/tests/src/FunctionalJavascript/BigPipeRegressionTest.php
+@@ -8,12 +8,15 @@
+ use Drupal\big_pipe_regression_test\BigPipeRegressionTestController;
+ use Drupal\Core\Url;
+ use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+ 
+ /**
+  * BigPipe regression tests.
+- *
+- * @group big_pipe
+  */
++#[Group('big_pipe')]
++#[Group('#slow')]
++#[RunTestsInSeparateProcesses]
+ class BigPipeRegressionTest extends WebDriverTestBase {
+ 
+   /**
+@@ -21,23 +24,24 @@ class BigPipeRegressionTest extends WebDriverTestBase {
+    */
+   protected static $modules = [
+     'big_pipe',
++    'big_pipe_messages_test',
+     'big_pipe_regression_test',
+   ];
+ 
+   /**
+    * {@inheritdoc}
+    */
+-  protected $defaultTheme = 'stark';
++  protected $defaultTheme = 'big_pipe_test_theme';
+ 
+   /**
+-   * {@inheritdoc}
++   * Tests edge cases with placeholder HTML.
+    */
+-  protected function setUp(): void {
+-    parent::setUp();
+-
+-    // Use the big_pipe_test_theme theme.
+-    $this->container->get('theme_installer')->install(['big_pipe_test_theme']);
+-    $this->container->get('config.factory')->getEditable('system.theme')->set('default', 'big_pipe_test_theme')->save();
++  public function testPlaceholderHtmlEdgeCases(): void {
++    $this->drupalLogin($this->drupalCreateUser());
++    $this->doTestMultipleClosingBodies_2678662();
++    $this->doTestPlaceholderInParagraph_2802923();
++    $this->doTestBigPipeLargeContent();
++    $this->doInlineScriptTest();
+   }
+ 
+   /**
+@@ -45,17 +49,13 @@ protected function setUp(): void {
+    *
+    * @see https://www.drupal.org/node/2678662
+    */
+-  public function testMultipleClosingBodies_2678662() {
+-    $this->assertTrue($this->container->get('module_installer')->install(['render_placeholder_message_test'], TRUE), 'Installed modules.');
+-
+-    $this->drupalLogin($this->drupalCreateUser());
++  protected function doTestMultipleClosingBodies_2678662(): void {
+     $this->drupalGet(Url::fromRoute('big_pipe_regression_test.2678662'));
+ 
+-    // Confirm that AJAX behaviors were instantiated, if not, this points to a
+-    // JavaScript syntax error.
++    // Confirm that the JS variable has the appropriate content.
+     $javascript = <<<JS
+     (function(){
+-      return Object.keys(Drupal.ajax.instances).length > 0;
++      return hitsTheFloor === "</body>";
+     }())
+ JS;
+     $this->assertJsCondition($javascript);
+@@ -71,47 +71,9 @@ public function testMultipleClosingBodies_2678662() {
+     // in an inline script.
+     $this->assertSession()
+       ->responseNotContains($js_code_until_closing_body_tag . "\n" . BigPipe::START_SIGNAL);
+-  }
+-
+-  /**
+-   * Ensure messages set in placeholders always appear.
+-   *
+-   * @see https://www.drupal.org/node/2712935
+-   */
+-  public function testMessages_2712935() {
+-    $this->assertTrue($this->container->get('module_installer')->install(['render_placeholder_message_test'], TRUE), 'Installed modules.');
+-
+-    $this->drupalLogin($this->drupalCreateUser());
+-    $messages_markup = '<div role="region" aria-label="Status message"';
+-
+-    $test_routes = [
+-      // Messages placeholder rendered first.
+-      'render_placeholder_message_test.first',
+-      // Messages placeholder rendered after one, before another.
+-      'render_placeholder_message_test.middle',
+-      // Messages placeholder rendered last.
+-      'render_placeholder_message_test.last',
+-    ];
+-
+-    $assert = $this->assertSession();
+-    foreach ($test_routes as $route) {
+-      // Verify that we start off with zero messages queued.
+-      $this->drupalGet(Url::fromRoute('render_placeholder_message_test.queued'));
+-      $assert->responseNotContains($messages_markup);
+-
+-      // Verify the test case at this route behaves as expected.
+-      $this->drupalGet(Url::fromRoute($route));
+-      $assert->elementContains('css', 'p.logged-message:nth-of-type(1)', 'Message: P1');
+-      $assert->elementContains('css', 'p.logged-message:nth-of-type(2)', 'Message: P2');
+-      $assert->responseContains($messages_markup);
+-      $assert->elementExists('css', 'div[aria-label="Status message"] ul');
+-      $assert->elementContains('css', 'div[aria-label="Status message"] ul li:nth-of-type(1)', 'P1');
+-      $assert->elementContains('css', 'div[aria-label="Status message"] ul li:nth-of-type(2)', 'P2');
+-
+-      // Verify that we end with all messages printed, hence again zero queued.
+-      $this->drupalGet(Url::fromRoute('render_placeholder_message_test.queued'));
+-      $assert->responseNotContains($messages_markup);
+-    }
++    // But the inline script itself should not be altered.
++    $this->assertSession()
++      ->responseContains(BigPipeRegressionTestController::MARKER_2678662);
+   }
+ 
+   /**
+@@ -119,8 +81,7 @@ public function testMessages_2712935() {
+    *
+    * @see https://www.drupal.org/node/2802923
+    */
+-  public function testPlaceholderInParagraph_2802923() {
+-    $this->drupalLogin($this->drupalCreateUser());
++  protected function doTestPlaceholderInParagraph_2802923(): void {
+     $this->drupalGet(Url::fromRoute('big_pipe_regression_test.2802923'));
+ 
+     $this->assertJsCondition('document.querySelectorAll(\'p\').length === 1');
+@@ -132,9 +93,7 @@ public function testPlaceholderInParagraph_2802923() {
+    * Repeat loading of same page for two times, after second time the page is
+    * cached and the bug consistently reproducible.
+    */
+-  public function testBigPipeLargeContent() {
+-    $user = $this->drupalCreateUser();
+-    $this->drupalLogin($user);
++  protected function doTestBigPipeLargeContent(): void {
+     $assert_session = $this->assertSession();
+ 
+     $this->drupalGet(Url::fromRoute('big_pipe_test_large_content'));
+@@ -161,9 +120,8 @@ public function testBigPipeLargeContent() {
+    * @see https://www.drupal.org/node/3390178
+    */
+   public function testMultipleReplacements(): void {
+-    $user = $this->drupalCreateUser();
+-    $this->drupalLogin($user);
+-
++    // @todo re-enable this test in https://www.drupal.org/project/drupal/issues/3590200
++    $this->markTestSkipped();
+     $assert_session = $this->assertSession();
+ 
+     $this->drupalGet(Url::fromRoute('big_pipe_test_multiple_replacements'));
+@@ -173,4 +131,25 @@ public function testMultipleReplacements(): void {
+     $this->assertCount(BigPipeRegressionTestController::PLACEHOLDER_COUNT + 1, $this->getSession()->getPage()->findAll('css', 'script[data-big-pipe-replacement-for-placeholder-with-id]'));
+   }
+ 
++  /**
++   * Tests for the correct replacement of a chunk with inline javascript.
++   *
++   * Parsing a <script> tag causes a mutation to be reported because it
++   * triggers a micro task checkpoint.  Watching for template tags directly
++   * results in early mutation reporting, and the trailing markup is not yet
++   * parsed when the template is processed.
++   *
++   * Also, chunk markup needs to not be double escaped.  We encountered both
++   * regressions in https://www.drupal.org/project/drupal/issues/3526267.
++   */
++  protected function doInlineScriptTest(): void {
++    $assert_session = $this->assertSession();
++
++    $this->drupalGet(Url::fromRoute('big_pipe_regression_test.inline_script'));
++    $this->assertNotNull($assert_session->waitForElement('css', 'script[data-big-pipe-event="stop"]'));
++    $assert_session->elementExists('css', 'div.container-before');
++    $assert_session->elementExists('css', 'body.inline-script-fires');
++    $assert_session->elementExists('css', 'div.container-after');
++  }
++
+ }
+diff --git a/core/modules/system/templates/status-messages.html.twig b/core/modules/system/templates/status-messages.html.twig
+index 2b855331f8cae64482c90a73f5e9c7a092b23d58..417aa6d845c6aeb9100acb41cbc8e52512b63dd0 100644
+--- a/core/modules/system/templates/status-messages.html.twig
++++ b/core/modules/system/templates/status-messages.html.twig
+@@ -6,11 +6,16 @@
+  * Displays status, error, and warning messages, grouped by type.
+  *
+  * An invisible heading identifies the messages for assistive technology.
+- * Sighted users see a colored box. See http://www.w3.org/TR/WCAG-TECHS/H69.html
++ * Sighted users see a colored box. See https://www.w3.org/TR/WCAG-TECHS/H69.html
+  * for info.
+  *
+- * Add an ARIA label to the contentinfo area so that assistive technology
+- * user agents will better describe this landmark.
++ * Each message block exposes an ARIA live region role so assistive technology
++ * user agents announce it appropriately: "alert" for errors and warnings
++ * (assertive) and "status" for other message types (polite). This matches the
++ * role assignment used by Drupal.theme.message() for messages added by
++ * JavaScript. The "contentinfo" landmark role is reserved for the page footer
++ * and is intentionally not used here, which avoids duplicate landmark and
++ * non-unique landmark accessibility violations.
+  *
+  * Available variables:
+  * - message_list: List of messages to be displayed, grouped by type.
+@@ -23,12 +28,7 @@
+ #}
+ <div data-drupal-messages>
+ {% for type, messages in message_list %}
+-  <div role="region" aria-label="{{ status_headings[type] }}"{{ attributes|without('role', 'aria-label') }}>
+-    {% if type == 'error' %}
+-      <div role="alert">
+-    {% elseif type == 'status' or type == 'warning' %}
+-      <div role="status">
+-    {% endif %}
++  <div role="{{ type in ['error', 'warning'] ? 'alert' : 'status' }}" aria-label="{{ status_headings[type] }}"{{ attributes|without('role', 'aria-label') }}>
+     {% if status_headings[type] %}
+       <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
+     {% endif %}
+@@ -41,9 +41,6 @@
+     {% else %}
+       {{ messages|first }}
+     {% endif %}
+-    {% if type in ['error', 'status', 'warning'] %}
+-      </div>
+-    {% endif %}
+   </div>
+ {% endfor %}
+ </div>
+diff --git a/core/modules/system/tests/src/Functional/Render/PlaceholderMessageTest.php b/core/modules/system/tests/src/Functional/Render/PlaceholderMessageTest.php
+index a0e50af73ce73968ff7011fc842e5475085c1bff..088e6964722258ea924b129ef1e5106e6c68067c 100644
+--- a/core/modules/system/tests/src/Functional/Render/PlaceholderMessageTest.php
++++ b/core/modules/system/tests/src/Functional/Render/PlaceholderMessageTest.php
+@@ -1,23 +1,28 @@
+ <?php
+ 
++declare(strict_types=1);
++
+ namespace Drupal\Tests\system\Functional\Render;
+ 
+ use Drupal\Core\Url;
+ use Drupal\Tests\BrowserTestBase;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+ 
+ /**
+  * Functional test verifying that messages set in placeholders always appear.
+- *
+- * @group Render
+  */
++#[Group('Render')]
++#[RunTestsInSeparateProcesses]
+ class PlaceholderMessageTest extends BrowserTestBase {
+ 
+   /**
+-   * Modules to enable.
+-   *
+-   * @var array
++   * {@inheritdoc}
+    */
+-  protected static $modules = ['render_placeholder_message_test'];
++  protected static $modules = [
++    'render_placeholder_message_test',
++    'big_pipe_messages_test',
++  ];
+ 
+   /**
+    * {@inheritdoc}
+@@ -27,8 +32,8 @@ class PlaceholderMessageTest extends BrowserTestBase {
+   /**
+    * Tests rendering of message placeholder.
+    */
+-  public function testMessagePlaceholder() {
+-    $messages_markup = '<div role="region" aria-label="Status message"';
++  public function testMessagePlaceholder(): void {
++    $messages_markup = '<div role="status" aria-label="Status message"';
+ 
+     $test_routes = [
+       // Messages placeholder rendered first.
+diff --git a/core/modules/system/tests/themes/test_messages/templates/status-messages.html.twig b/core/modules/system/tests/themes/test_messages/templates/status-messages.html.twig
+index 7ef19eb5d1ca4e27228c049186bb6bbbb6e3a980..b05b443a4ff044914653cf314a2ee9ea0a42eaf6 100644
+--- a/core/modules/system/tests/themes/test_messages/templates/status-messages.html.twig
++++ b/core/modules/system/tests/themes/test_messages/templates/status-messages.html.twig
+@@ -13,26 +13,18 @@
+       'messages--' ~ type,
+     ]
+   %}
+-  <div role="region" aria-label="{{ status_headings[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
+-    {% if type == 'error' %}
+-      <div role="alert">
+-    {% elseif type == 'status' or type == 'warning' %}
+-      <div role="status">
++  <div role="{{ type in ['error', 'warning'] ? 'alert' : 'status' }}" aria-label="{{ status_headings[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
++    {% if status_headings[type] %}
++      <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
+     {% endif %}
+-      {% if status_headings[type] %}
+-        <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
+-      {% endif %}
+-      {% if messages|length > 1 %}
+-        <ul class="messages__list">
+-          {% for message in messages %}
+-            <li class="messages__item">{{ message }}</li>
+-          {% endfor %}
+-        </ul>
+-      {% else %}
+-        {{ messages|first }}
+-      {% endif %}
+-    {% if type in ['error', 'status', 'warning'] %}
+-      </div>
++    {% if messages|length > 1 %}
++      <ul class="messages__list">
++        {% for message in messages %}
++          <li class="messages__item">{{ message }}</li>
++        {% endfor %}
++      </ul>
++    {% else %}
++      {{ messages|first }}
+     {% endif %}
+   </div>
+   {# Remove type specific classes. #}
+diff --git a/core/profiles/demo_umami/themes/umami/templates/components/messages/status-messages.html.twig b/core/profiles/demo_umami/themes/umami/templates/components/messages/status-messages.html.twig
+index 75b2da453366bd93a6dccb60670779318f38874a..f4d9619e3111ec7af896c4d7e6e8eb802c5bdebc 100644
+--- a/core/profiles/demo_umami/themes/umami/templates/components/messages/status-messages.html.twig
++++ b/core/profiles/demo_umami/themes/umami/templates/components/messages/status-messages.html.twig
+@@ -6,11 +6,12 @@
+  * Displays status, error, and warning messages, grouped by type.
+  *
+  * An invisible heading identifies the messages for assistive technology.
+- * Sighted users see a colored box. See http://www.w3.org/TR/WCAG-TECHS/H69.html
++ * Sighted users see a colored box. See https://www.w3.org/TR/WCAG-TECHS/H69.html
+  * for info.
+  *
+- * Add an ARIA label to the contentinfo area so that assistive technology
+- * user agents will better describe this landmark.
++ * Each message block exposes an ARIA live region role so assistive technology
++ * user agents announce it appropriately: "alert" for errors and warnings
++ * (assertive) and "status" for other message types (polite).
+  *
+  * Available variables:
+  * - message_list: List of messages to be displayed, grouped by type.
+@@ -20,40 +21,32 @@
+  */
+ #}
+ <div data-drupal-messages>
+-{% block messages %}
+-{% for type, messages in message_list %}
+-  {%
+-    set classes = [
+-      'messages',
+-      'messages--' ~ type,
+-    ]
+-  %}
+-  <div role="region" aria-label="{{ status_headings[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
+-    <div class="messages__content container">
+-      {% if type == 'error' %}
+-        <div role="alert">
+-      {% elseif type == 'status' or type == 'warning' %}
+-        <div role="status">
+-      {% endif %}
++  <div class="messages__wrapper container">
++  {% block messages %}
++    {% for type, messages in message_list %}
++      {%
++        set classes = [
++          'messages',
++          'messages--' ~ type,
++        ]
++      %}
++      <drupal-umami-messages aria-label="{{ status_headings[type] }}" {{ attributes.addClass(classes)|without('aria-label') }} role={{ type == 'error' or type == 'warning' ? 'alert' : 'status' }}>
+         {% if status_headings[type] %}
+-          <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
++          <span slot="title">{{ status_headings[type] }}</span>
+         {% endif %}
+-        {% if messages|length > 1 %}
+-          <ul class="messages__list">
++        {% if messages|length > 0 %}
++          <ul class="messages__list" slot="content">
+             {% for message in messages %}
+               <li class="messages__item">{{ message }}</li>
+             {% endfor %}
+           </ul>
+         {% else %}
+-          <span class="messages__item">{{ messages|first }}</span>
++          <span class="messages__item" slot="content">{{ messages|first }}</span>
+         {% endif %}
+-      {% if type in ['error', 'status', 'warning'] %}
+-        </div>
+-      {% endif %}
+-    </div>
++      </drupal-umami-messages>
++      {# Remove type specific classes. #}
++      {% set attributes = attributes.removeClass(classes) %}
++    {% endfor %}
++  {% endblock messages %}
+   </div>
+-  {# Remove type specific classes. #}
+-  {% set attributes = attributes.removeClass(classes) %}
+-{% endfor %}
+-{% endblock messages %}
+ </div>
+diff --git a/core/themes/claro/templates/misc/status-messages.html.twig b/core/themes/claro/templates/misc/status-messages.html.twig
+deleted file mode 100644
+index 4195e084599249cf528968f3f6775a45bcc7d83e..0000000000000000000000000000000000000000
+--- a/core/themes/claro/templates/misc/status-messages.html.twig
++++ /dev/null
+@@ -1,76 +0,0 @@
+-{#
+-/**
+- * @file
+- * Theme override for status messages.
+- *
+- * Displays status, error, and warning messages, grouped by type.
+- *
+- * An invisible heading identifies the messages for assistive technology.
+- * Sighted users see a colored box. See http://www.w3.org/TR/WCAG-TECHS/H69.html
+- * for info.
+- *
+- * Add an ARIA label to the contentinfo area so that assistive technology
+- * user agents will better describe this landmark.
+- *
+- * Available variables:
+- * - message_list: List of messages to be displayed, grouped by type.
+- * - status_headings: List of all status types.
+- * - attributes: HTML attributes for the element, including:
+- *   - class: HTML classes.
+- * - title_ids: A list of unique ids keyed by message type.
+- *
+- * @see claro_preprocess_status_messages().
+- */
+-#}
+-<div data-drupal-messages class="messages-list">
+-  <div class="messages-list__wrapper">
+-    {% for type, messages in message_list %}
+-      {%
+-        set classes = [
+-          'messages-list__item',
+-          'messages',
+-          'messages--' ~ type,
+-        ]
+-      %}
+-      {%
+-        set is_message_with_title = status_headings[type]
+-      %}
+-      {%
+-        set is_message_with_icon = type in ['error', 'status', 'warning']
+-      %}
+-
+-      <div role="region" aria-labelledby="{{ title_ids[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
+-        {% if type == 'error' %}
+-          <div role="alert">
+-        {% elseif type == 'status' or type == 'warning' %}
+-          <div role="status">
+-        {% endif %}
+-          {% if is_message_with_title or is_message_with_icon %}
+-            <div class="messages__header">
+-              {% if is_message_with_title %}
+-                <h2 id="{{ title_ids[type] }}" class="messages__title">
+-                  {{ status_headings[type] }}
+-                </h2>
+-              {% endif %}
+-            </div>
+-          {% endif %}
+-          <div class="messages__content">
+-            {% if messages|length > 1 %}
+-              <ul class="messages__list">
+-                {% for message in messages %}
+-                  <li class="messages__item">{{ message }}</li>
+-                {% endfor %}
+-              </ul>
+-            {% else %}
+-              {{ messages|first }}
+-            {% endif %}
+-          </div>
+-        {% if type in ['error', 'status', 'warning'] %}
+-          </div>
+-        {% endif %}
+-      </div>
+-      {# Remove type specific classes. #}
+-      {% set attributes = attributes.removeClass(classes) %}
+-    {% endfor %}
+-  </div>
+-</div>
+diff --git a/core/themes/olivero/templates/misc/status-messages.html.twig b/core/themes/olivero/templates/misc/status-messages.html.twig
+deleted file mode 100644
+index 412f91cb48d2c18f425982295f5f8b803bf721a1..0000000000000000000000000000000000000000
+--- a/core/themes/olivero/templates/misc/status-messages.html.twig
++++ /dev/null
+@@ -1,75 +0,0 @@
+-{#
+-/**
+- * @file
+- * Theme override for status messages.
+- *
+- * Displays status, error, and warning messages, grouped by type.
+- *
+- * An invisible heading identifies the messages for assistive technology.
+- * Sighted users see a colored box. See
+- * https://www.w3.org/TR/WCAG-TECHS/H69.html for info.
+- *
+- * Add an ARIA label to the contentinfo area so that assistive technology
+- * user agents will better describe this landmark.
+- *
+- * Available variables:
+- * - message_list: List of messages to be displayed, grouped by type.
+- * - status_headings: List of all status types.
+- * - attributes: HTML attributes for the element, including:
+- *   - class: HTML classes.
+- */
+-#}
+-{{ attach_library('olivero/messages') }}
+-
+-<div data-drupal-messages class="messages-list">
+-  <div class="messages__wrapper layout-container">
+-    {% for type, messages in message_list %}
+-      {%
+-        set classes = [
+-        'messages-list__item',
+-        'messages',
+-        'messages--' ~ type,
+-      ]
+-      %}
+-
+-      <div{{ attributes
+-        .addClass(classes)
+-        .setAttribute('data-drupal-selector', 'messages')
+-        .setAttribute('role', 'region')
+-        .setAttribute('aria-label', status_headings[type])
+-        }}>
+-        <div class="messages__container" data-drupal-selector="messages-container"{% if type == 'error' %} role="alert" {% elseif type == 'status' or type == 'warning' %} role="status"{% endif %}>
+-          {% if status_headings[type] %}
+-            <div class="messages__header">
+-            <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
+-              <div class="messages__icon">
+-                {% if type == 'error' %}
+-                  {% include "@olivero/../images/error.svg" %}
+-                {% elseif type == 'warning' %}
+-                  {% include "@olivero/../images/warning.svg" %}
+-                {% elseif type == 'status' %}
+-                  {% include "@olivero/../images/status.svg" %}
+-                {% elseif type == 'info' %}
+-                  {% include "@olivero/../images/info.svg" %}
+-                {% endif %}
+-              </div>
+-            </div>
+-          {% endif %}
+-          <div class="messages__content">
+-            {% if messages|length > 1 %}
+-              <ul class="messages__list">
+-                {% for message in messages %}
+-                  <li class="messages__item">{{ message }}</li>
+-                {% endfor %}
+-              </ul>
+-            {% else %}
+-              {{ messages|first }}
+-            {% endif %}
+-          </div>
+-        </div>
+-      </div>
+-      {# Remove type specific classes. #}
+-      {% set attributes = attributes.removeClass(classes) %}
+-    {% endfor %}
+-  </div>
+-</div>
+diff --git a/core/themes/stable9/templates/media-library/status-messages.html.twig b/core/themes/stable9/templates/media-library/status-messages.html.twig
+deleted file mode 100644
+index 8cd70ff656cea6d9d8a0e21488cddc4fffdc247a..0000000000000000000000000000000000000000
+--- a/core/themes/stable9/templates/media-library/status-messages.html.twig
++++ /dev/null
+@@ -1,47 +0,0 @@
+-{#
+-/**
+- * @file
+- * Theme override for status messages.
+- *
+- * Displays status, error, and warning messages, grouped by type.
+- *
+- * An invisible heading identifies the messages for assistive technology.
+- * Sighted users see a colored box. See http://www.w3.org/TR/WCAG-TECHS/H69.html
+- * for info.
+- *
+- * Add an ARIA label to the contentinfo area so that assistive technology
+- * user agents will better describe this landmark.
+- *
+- * Available variables:
+- * - message_list: List of messages to be displayed, grouped by type.
+- * - status_headings: List of all status types.
+- * - attributes: HTML attributes for the element, including:
+- *   - class: HTML classes.
+- */
+-#}
+-<div data-drupal-messages>
+-{% for type, messages in message_list %}
+-  <div role="region" aria-label="{{ status_headings[type] }}"{{ attributes|without('role', 'aria-label') }}>
+-    {% if type == 'error' %}
+-      <div role="alert">
+-    {% elseif type == 'status' or type == 'warning' %}
+-      <div role="status">
+-    {% endif %}
+-    {% if status_headings[type] %}
+-      <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
+-    {% endif %}
+-    {% if messages|length > 1 %}
+-      <ul>
+-        {% for message in messages %}
+-          <li>{{ message }}</li>
+-        {% endfor %}
+-      </ul>
+-    {% else %}
+-      {{ messages|first }}
+-    {% endif %}
+-    {% if type in ['error', 'status', 'warning'] %}
+-      </div>
+-    {% endif %}
+-  </div>
+-{% endfor %}
+-</div>
+diff --git a/core/themes/starterkit_theme/templates/misc/status-messages.html.twig b/core/themes/starterkit_theme/templates/misc/status-messages.html.twig
+index b292b2c63eb2e78d8b89195897a970ab847e1b03..34570521d9630d51953a0a03e03b4e32bc4f1a3b 100644
+--- a/core/themes/starterkit_theme/templates/misc/status-messages.html.twig
++++ b/core/themes/starterkit_theme/templates/misc/status-messages.html.twig
+@@ -6,11 +6,16 @@
+  * Displays status, error, and warning messages, grouped by type.
+  *
+  * An invisible heading identifies the messages for assistive technology.
+- * Sighted users see a colored box. See http://www.w3.org/TR/WCAG-TECHS/H69.html
++ * Sighted users see a colored box. See https://www.w3.org/TR/WCAG-TECHS/H69.html
+  * for info.
+  *
+- * Add an ARIA label to the contentinfo area so that assistive technology
+- * user agents will better describe this landmark.
++ * Each message block exposes an ARIA live region role so assistive technology
++ * user agents announce it appropriately: "alert" for errors and warnings
++ * (assertive) and "status" for other message types (polite). This matches the
++ * role assignment used by Drupal.theme.message() for messages added by
++ * JavaScript. The "contentinfo" landmark role is reserved for the page footer
++ * and is intentionally not used here, which avoids duplicate landmark and
++ * non-unique landmark accessibility violations.
+  *
+  * Available variables:
+  * - message_list: List of messages to be displayed, grouped by type.
+@@ -28,26 +33,18 @@
+       'messages--' ~ type,
+     ]
+   %}
+-  <div role="region" aria-label="{{ status_headings[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
+-    {% if type == 'error' %}
+-      <div role="alert">
+-    {% elseif type == 'status' or type == 'warning' %}
+-      <div role="status">
++  <div role="{{ type in ['error', 'warning'] ? 'alert' : 'status' }}" aria-label="{{ status_headings[type] }}"{{ attributes.addClass(classes)|without('role', 'aria-label') }}>
++    {% if status_headings[type] %}
++      <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
+     {% endif %}
+-      {% if status_headings[type] %}
+-        <h2 class="visually-hidden">{{ status_headings[type] }}</h2>
+-      {% endif %}
+-      {% if messages|length > 1 %}
+-        <ul class="messages__list">
+-          {% for message in messages %}
+-            <li class="messages__item">{{ message }}</li>
+-          {% endfor %}
+-        </ul>
+-      {% else %}
+-        {{ messages|first }}
+-      {% endif %}
+-    {% if type in ['error', 'status', 'warning'] %}
+-      </div>
++    {% if messages|length > 1 %}
++      <ul class="messages__list">
++        {% for message in messages %}
++          <li class="messages__item">{{ message }}</li>
++        {% endfor %}
++      </ul>
++    {% else %}
++      {{ messages|first }}
+     {% endif %}
+   </div>
+   {# Remove type specific classes. #}

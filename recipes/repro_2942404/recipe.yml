@@ -1,0 +1,8 @@
+name: 'Repro: #2942404 system messages should be accessible'
+description: 'Starting state for #2942404: an Article content type (a status message after saving, an error with an empty title) and core''s system_test module, whose route /system-test/status-messages-for-assertions renders a status, an error and a warning message together, with quotes, ampersands and escaped markup. Needs the test extensions enabled first (the variant sets testExtensions). Default Admin comes from the install; the front-end theme is Stark.'
+type: 'Testing'
+# A dependency name containing '/' is resolved from the Drupal root.
+recipes:
+  - core/tests/fixtures/recipes/article_content_type
+install:
+  - system_test
