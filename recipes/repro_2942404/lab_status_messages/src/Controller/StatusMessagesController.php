@@ -20,7 +20,13 @@ class StatusMessagesController extends ControllerBase {
     $messenger->addWarning($this->t('Cron has not run recently.'));
     $messenger->addError($this->t('The Username field is required.'));
     return [
-      '#markup' => '<p>' . $this->t('The messages above were added by the server. The button adds one of each type with Drupal.Message, as AJAX and JavaScript code does.') . '</p><p><button type="button" id="lab-add-js-messages" class="button">' . $this->t('Add messages with JavaScript') . '</button></p>',
+      'intro' => ['#markup' => '<p>' . $this->t('The messages above were added by the server. The button adds one of each type with Drupal.Message, as AJAX and JavaScript code does.') . '</p>'],
+      'button' => [
+        '#type' => 'html_tag',
+        '#tag' => 'button',
+        '#value' => $this->t('Add messages with JavaScript'),
+        '#attributes' => ['type' => 'button', 'id' => 'lab-add-js-messages', 'class' => ['button']],
+      ],
       '#attached' => ['library' => ['lab_status_messages/demo']],
     ];
   }

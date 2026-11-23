@@ -50,3 +50,5 @@ In the forced-colors runs axe reports the same `color-contrast` counts on both s
 - Any screen reader (VoiceOver, NVDA, JAWS), a person's keyboard pass, Windows contrast themes, 200% zoom.
 - Server-rendered messages delivered by AJAX or BigPipe; a server-rendered warning; theme-specific templates other than the system, Default Admin and starterkit ones (Umami is not covered by the option).
 - The old tests: the option deliberately leaves them out, so core's tests that assert message markup (for example `PlaceholderMessageTest`, `BigPipePlaceholderTestCases`, `ModulesListFormWebTest`) would fail against the option and have not been run.
+
+Screen reader evidence (Guidepup virtual reader and Guidepup with real VoiceOver, Before and After): [SCREENREADER.md](SCREENREADER.md).

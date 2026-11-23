@@ -18,6 +18,7 @@ import { labRoot, envInfo, loginPath } from '../compare/lib.mjs';
 const argv = process.argv.slice(2);
 const opt = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); return a ? a.slice(n.length + 3) : d; };
 const MODE = opt('mode', 'both');
+const SIDES = opt('sides', 'before,after').split(',');
 const PAGES = opt('pages', 'front,admin').split(',');
 const PATHS = { front: '/lab/status-messages', admin: '/admin/lab/status-messages' };
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -75,33 +76,44 @@ async function virtualPass(browser, side) {
 }
 
 // ---- real VoiceOver through Guidepup, in Safari ----
-const osa = (script) => execFileSync('osascript', ['-e', script], { encoding: 'utf8', timeout: 30000 }).trim();
-const safariOpen = (url) => osa(`tell application "Safari"\nactivate\nmake new document with properties {URL:"${url}"}\nend tell`);
-const safariClose = () => { try { osa('tell application "Safari" to close front window'); } catch { /* none open */ } };
+const osa = (script) => execFileSync('osascript', ['-e', script], { encoding: 'utf8', timeout: 60000 }).trim();
+const safariOpen = (url) => execFileSync('open', ['-a', 'Safari', url], { timeout: 30000 });
+const safariClose = () => { try { osa('tell application "Safari" to close every window'); } catch { /* none open */ } };
 
 async function voiceOverPass(side) {
   const { voiceOver } = await import('@guidepup/guidepup');
   const env = run.v[side].env, host = envInfo(env).hosts.slice().sort((a, b) => a.length - b.length)[0], base = `https://${host}`;
   const result = {};
+  const startVO = async () => {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try { await voiceOver.stop(); } catch { /* not running */ }
+      await sleep(4000);
+      await voiceOver.start(); await sleep(2500);
+      const said = (await voiceOver.spokenPhraseLog()).join(' ');
+      if (!/Recovery mode/i.test(said)) return;   // VoiceOver can start with default preferences; start again
+    }
+    throw new Error('VoiceOver kept starting in Recovery mode');
+  };
   try {
-    await voiceOver.start();
-    safariOpen(base + loginPath(env)); await sleep(5000);   // the one-time link signs the administrator in
+    await startVO();
+    safariOpen(base + loginPath(env)); await sleep(6000);   // the one-time link signs the administrator in
     for (const key of PAGES) {
-      safariClose(); safariOpen(base + PATHS[key]); await sleep(5000);
-      await voiceOver.interact().catch(() => {});   // into the web area; the first phrases show where the VoiceOver cursor started
+      safariClose(); await sleep(1000); safariOpen(base + PATHS[key]); await sleep(6000);
+      await voiceOver.interact().catch(() => {});
+      // Jump to the page's h1 by heading navigation (skips the sidebar and skip link), then read on in VoiceOver's own order.
       const phrases = [];
+      let atTitle = false;
+      for (let i = 0; i < 40 && !atTitle; i++) { await voiceOver.perform(voiceOver.keyboardCommands.findNextHeading); const p = await voiceOver.lastSpokenPhrase(); phrases.push(p); atTitle = /heading level 1/i.test(p) && /Status messages/i.test(p); }
       let found = false;
-      for (let i = 0; i < 160 && !found; i++) { await voiceOver.next(); const p = await voiceOver.lastSpokenPhrase(); phrases.push(p); found = BUTTON.test(p); }
+      for (let i = 0; i < 80 && !found && atTitle; i++) { await voiceOver.next(); const p = await voiceOver.lastSpokenPhrase(); phrases.push(p); found = BUTTON.test(p); }
       const before = (await voiceOver.spokenPhraseLog()).length;
-      let afterButton = [];
       if (found) {
-        await voiceOver.act(); await sleep(3500);
-        const log = await voiceOver.spokenPhraseLog();
-        afterButton = log.slice(before);                       // what VoiceOver said by itself after the activation
+        await voiceOver.act(); await sleep(4000);
+        const announced = (await voiceOver.spokenPhraseLog()).slice(before);   // what VoiceOver said by itself after the activation
         const followed = [];
-        for (let i = 0; i < 30; i++) { await voiceOver.next(); followed.push(await voiceOver.lastSpokenPhrase()); }
-        result[key] = { url: base + PATHS[key], reachedButton: true, order: phrases, announcedAfterActivation: afterButton, readAfterActivation: followed };
-      } else result[key] = { url: base + PATHS[key], reachedButton: false, order: phrases, announcedAfterActivation: [], readAfterActivation: [] };
+        for (let i = 0; i < 12; i++) { await voiceOver.next(); followed.push(await voiceOver.lastSpokenPhrase()); }
+        result[key] = { url: base + PATHS[key], reachedTitle: atTitle, reachedButton: true, order: phrases, announcedAfterActivation: announced, readAfterActivation: followed };
+      } else result[key] = { url: base + PATHS[key], reachedTitle: atTitle, reachedButton: false, order: phrases, announcedAfterActivation: [], readAfterActivation: [] };
     }
   } catch (e) {
     let c = e; const chain = []; while (c) { chain.push(String(c.message).split('\n')[0]); c = c.cause; }
@@ -109,6 +121,7 @@ async function voiceOverPass(side) {
   } finally {
     safariClose();
     try { await voiceOver.stop(); } catch { /* not running */ }
+    await sleep(3000);
   }
   return result;
 }
@@ -120,7 +133,7 @@ const results = { issue: '2942404', variant: run.v.slug, when: new Date().toISOS
 try {
   if (MODE !== 'voiceover') for (const side of ['before', 'after']) results.virtual[side] = await virtualPass(browser, side);
 } finally { await browser.close(); }
-if (MODE !== 'virtual') for (const side of ['before', 'after']) results.voiceover[side] = await voiceOverPass(side);
+if (MODE !== 'virtual') for (const side of SIDES) results.voiceover[side] = await voiceOverPass(side);
 fs.writeFileSync(path.join(outDir, 'results.json'), JSON.stringify(results, null, 2));
 
 const list = (a) => (a && a.length ? a.map((p) => `    - ${p}`).join('\n') : '    - (nothing)');
