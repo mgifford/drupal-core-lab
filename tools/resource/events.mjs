@@ -65,7 +65,7 @@ export function makeEvent(input) {
     project: input.project || 'drupal-core-lab',
     issue: input.issue ?? null,
     variant: input.variant ?? null,
-    task: { id: input.task?.id || 'unfiled', label: input.task?.label ?? null, execution_id: input.task?.execution_id ?? null },
+    task: { id: input.task?.id || 'unfiled', label: input.task?.label ?? null, execution_id: input.task?.execution_id ?? null, kind: input.task?.kind ?? null, state: input.task?.state ?? null, expected_deliverable: input.task?.expected_deliverable ?? null, verified: input.task?.verified ?? null },
     activity: input.activity || 'unknown',
     tool: input.tool || 'unknown',
     model: input.model ?? null,

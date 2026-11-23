@@ -98,6 +98,13 @@
     <div class="tablewrap" role="region" aria-label="Request reconciliation table" tabindex="0"><table id="reconciliation-table"></table></div>
   </section>
 
+  <section id="tasks-section" hidden aria-labelledby="tasks-h">
+    <h2 id="tasks-h">Task effectiveness</h2>
+    <p class="note">Only explicitly declared tasks appear here. A task key is a hash of a local task id; descriptions, evidence paths and session names stay local. A completed claim is not a verified outcome.</p>
+    <div class="tablewrap" role="region" aria-label="Task effectiveness table" tabindex="0"><table id="task-table"></table></div>
+    <p id="task-note" class="note" hidden></p>
+  </section>
+
   <section id="exploration-section" hidden aria-labelledby="exploration-h">
     <h2 id="exploration-h">Code exploration</h2>
     <p class="note">Exploration is a legitimate deliverable. Repeated lookups and loops are diagnostics for investigation, not automatic findings of waste: a file may have changed, a test may have failed, or a new task may need the same evidence. Lookup targets remain local.</p>
@@ -270,6 +277,18 @@ function renderAttribution() {
   ]);
 }
 
+function renderTasks() {
+  const rows = (DATA.by_task || []).map((t) => [
+    t.task_hash, t.issue || MISSING, t.kind || MISSING, t.state || MISSING, t.expected_deliverable || MISSING,
+    t.verified == null ? MISSING : t.verified ? 'yes' : 'no', t.sessions, t.events, t.model_requests, t.tokens,
+    money(t.cost_usd), t.data_completeness,
+  ]);
+  table($('task-table'), 'Explicit tasks: resource use against declared deliverable and verification state', ['Task key', 'Issue', 'Kind', 'State', 'Deliverable', 'Verified', 'Sessions', 'Events', 'Model requests', 'Tokens', 'Estimated cost', 'Data'], rows);
+  const note = $('task-note');
+  note.hidden = rows.length > 0;
+  note.textContent = rows.length ? '' : 'No explicit task has been declared yet. Use the local resource-task command; see the method section.';
+}
+
 function renderExploration() {
   const rows = (DATA.by_exploration_subcategory || []).map((x) => [x.subcategory, x.events, x.tokens, pct(x.share)]);
   table($('exploration-table'), 'Code exploration tokens by subcategory', ['Subcategory', 'Events', 'Tokens', 'Share'], rows);
@@ -378,6 +397,7 @@ function render() {
   table($('rows-table'), 'Grouped public rows after filters', ['Date', 'Activity', 'Issue', 'Tool', 'Model', 'Grouped events', 'Tokens', 'Model requests', 'CPU (s)', 'Estimated cost', 'Outcomes'], ROWS.map((r) => [r.date, r.activity, r.issue || 'Unattributed', r.tool, r.model || MISSING, r.events, r.tokens, r.model_requests, r.cpu_seconds, money(r.cost_usd), Object.entries(r.outcomes || {}).filter(([, n]) => n).map(([k, n]) => `${k}: ${n}`).join(', ')]));
 
   renderAttribution();
+  renderTasks();
   renderExploration();
   renderProvenance();
 
@@ -415,7 +435,7 @@ async function init() {
     ROWS = Array.isArray(DATA.events) ? DATA.events : [];
     if (!ROWS.length) { setStatus('No resource events have been collected yet. Missing data is not the same as zero consumption.', 'warn'); $('summary').hidden = false; $('period').textContent = `Period ${DATA.period?.from || MISSING} to ${DATA.period?.to || MISSING}.`; return; }
     setStatus(`Loaded ${ROWS.length} grouped public row(s), ${DATA.period?.from || MISSING} to ${DATA.period?.to || MISSING}.`, '');
-    $('summary').hidden = false; $('filters-section').hidden = false; $('attribution-section').hidden = false; $('exploration-section').hidden = false; $('provenance-section').hidden = false; $('charts').hidden = false; $('quality').hidden = false; $('opportunities').hidden = false; $('method').hidden = false;
+    $('summary').hidden = false; $('filters-section').hidden = false; $('attribution-section').hidden = false; $('tasks-section').hidden = false; $('exploration-section').hidden = false; $('provenance-section').hidden = false; $('charts').hidden = false; $('quality').hidden = false; $('opportunities').hidden = false; $('method').hidden = false;
     $('period').textContent = `Period ${DATA.period?.from || MISSING} to ${DATA.period?.to || MISSING}. Generated ${DATA.generated_at || MISSING}. Completeness: ${DATA.completeness || 'unknown'}.`;
     options($('issue'), ROWS.map((r) => ({ value: r.issue || '__none', label: r.issue || 'Unattributed' })), 'All issues');
     options($('activity'), ROWS.map((r) => ({ value: r.activity, label: r.activity })), 'All activities');

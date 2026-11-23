@@ -18,6 +18,7 @@ import {
 } from '../classify.mjs';
 import { explorationDiagnostics } from '../exploration.mjs';
 import { provenanceSummary } from '../artifacts.mjs';
+import { loadTasks, taskForSession } from '../tasks.mjs';
 
 const PROJECTS = path.join(os.homedir(), '.claude/projects');
 export const REQUEST_ACCOUNTING_VERSION = 'request-level-v1';
@@ -66,7 +67,8 @@ function reconcile({ session, requests }) {
   };
 }
 
-export function collectClaude({ activity = null, issue = null, variant = null, files = [], since = null, promptContent = false, inspectArtifacts = false } = {}) {
+export function collectClaude({ activity = null, issue = null, variant = null, files = [], since = null, promptContent = false, inspectArtifacts = false, tasksFile = undefined } = {}) {
+  const tasks = loadTasks(tasksFile ? { file: tasksFile } : {});
   const stamp = Date.now();
   const tmp = path.join(labRoot, '.lab-cache/resource-ledger', `session-usage-${stamp}.json`);
   const tmpProvenance = path.join(labRoot, '.lab-cache/resource-ledger', `session-provenance-${stamp}.json`);
@@ -88,7 +90,7 @@ export function collectClaude({ activity = null, issue = null, variant = null, f
   const sessions = Array.isArray(data) ? data : (data.sessions || []);
   const events = [];
   const errors = [];
-  const metadata = { transcripts: sessions.length, request_level_sessions: 0, fallback_sessions: 0, reconciled_requests: 0, prompts: 0, prompt_bytes: 0, artifacts: 0, prompt_content: promptContent ? 'opt-in' : 'metadata-only' };
+  const metadata = { transcripts: sessions.length, request_level_sessions: 0, fallback_sessions: 0, reconciled_requests: 0, prompts: 0, prompt_bytes: 0, artifacts: 0, prompt_content: promptContent ? 'opt-in' : 'metadata-only', explicit_tasks: 0 };
 
   for (const s of sessions) {
     if (since && String(s.to || '').slice(0, 10) < since) continue;
@@ -107,6 +109,13 @@ export function collectClaude({ activity = null, issue = null, variant = null, f
     const requestLevel = reconciliation.status === 'matched';
     if (requestLevel) { metadata.request_level_sessions++; metadata.reconciled_requests += requests.length; } else metadata.fallback_sessions++;
 
+    const explicitTask = taskForSession(tasks, s.file);
+    if (explicitTask) metadata.explicit_tasks++;
+    const taskInput = explicitTask ? {
+      id: explicitTask.task_id, label: explicitTask.label || 'Explicit task', execution_id: s.file,
+      kind: explicitTask.kind ?? null, state: explicitTask.state ?? null,
+      expected_deliverable: explicitTask.expected_deliverable ?? null, verified: explicitTask.verified ?? null,
+    } : { id: `claude-session:${s.file}`, label: title || 'Claude Code session', execution_id: s.file, kind: null, state: null, expected_deliverable: null, verified: null };
     const promptMeta = provenanceByFile.get(s.file) || [];
     const promptSummary = s.promptSummary || provenanceSummary(promptMeta);
     metadata.prompts += promptSummary.prompts || 0;
@@ -149,7 +158,7 @@ export function collectClaude({ activity = null, issue = null, variant = null, f
         occurred_at: req.timestamp || started || iso(),
         duration_ms: null,
         issue: detectedIssue, variant: detectedVariant,
-        task: { id: `claude-session:${s.file}`, label: title || 'Claude Code session', execution_id: s.file },
+        task: taskInput,
         activity: detail.activity,
         tool: 'claude-code', model: req.model || models.join(', ') || null, provider,
         environment: { os: `${process.platform} ${process.arch}`, node: process.version, runner: 'local', ddev: null, docker: null },
@@ -185,7 +194,7 @@ export function collectClaude({ activity = null, issue = null, variant = null, f
       occurred_at: started || iso(),
       duration_ms: duration,
       issue: detectedIssue, variant: detectedVariant,
-      task: { id: `claude-session:${s.file}`, label: title || 'Claude Code session', execution_id: s.file },
+      task: taskInput,
       activity: activity || (requestLevel ? (allocation.activity || 'unknown') : sessionClassification.components?.[0]?.activity || allocation.activity || 'unknown'),
       tool: 'claude-code', model: models.join(', ') || null, provider,
       environment: { os: `${process.platform} ${process.arch}`, node: process.version, runner: 'local', ddev: null, docker: null },

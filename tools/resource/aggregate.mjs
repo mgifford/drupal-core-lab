@@ -3,6 +3,7 @@
 // session roll-ups plus counted request events; legacy sessions have no accounting field and are counted as before.
 import { totalTokens } from './events.mjs';
 import { CLASSIFIER_VERSION, RULE_REGISTRY_VERSION } from './rules.mjs';
+import { taskSummaries } from './tasks.mjs';
 
 const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 export function sumOrNull(values) { const v = values.map(num).filter((x) => x !== null); return v.length ? v.reduce((a, b) => a + b, 0) : null; }
@@ -208,7 +209,11 @@ export function aggregate(events, { now = new Date() } = {}) {
     missing: [...new Set(countedData.flatMap((e) => e.quality.missing || []))].sort(),
   };
 
+  const byTask = taskSummaries(countedData);
   const attribution = attributionSummary({ data, countedData, sessions, uncounted, totalTokens: sumOrNull(countedData.map(tokensOf)) });
+  attribution.task.declared_tasks = byTask.filter((t) => t.declared).length;
+  attribution.task.verified_tasks = byTask.filter((t) => t.verified === true).length;
+  attribution.task.task_states = Object.fromEntries([...new Set(byTask.map((t) => t.state))].sort().map((s) => [s, byTask.filter((t) => t.state === s).length]));
   const byUnknownReason = attribution.unknown.reasons;
   const byExploration = explorationSummary(countedData);
   const reconciliation = reconciliationSummary(sessions);
@@ -228,7 +233,7 @@ export function aggregate(events, { now = new Date() } = {}) {
     period: { from: dates[0] || null, to: dates.at(-1) || null },
     completeness: quality.events.partial + quality.events.unavailable > 0 ? 'partial' : 'complete',
     totals, by_activity: activityRows, by_issue: issueRows, by_model: modelRows, by_tool: toolRows, github_workflows: githubWorkflows, trend,
-    attribution, by_unknown_reason: byUnknownReason, by_exploration_subcategory: byExploration,
+    attribution, by_task: byTask, by_unknown_reason: byUnknownReason, by_exploration_subcategory: byExploration,
     reconciliation, provenance, exploration,
     quality,
   };

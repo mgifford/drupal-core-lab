@@ -82,7 +82,7 @@ function report() {
   summary.monitoring = summary.totals.monitoring;
   summary.data_quality = summary.quality;
   summary.privacy = {
-    public_fields: 'Aggregates and grouped rows only; no transcript titles, paths, prompts, responses, API keys, account ids or precise work timestamps.',
+    public_fields: 'Aggregates and grouped rows only; no transcript titles, paths, prompts, responses, task descriptions, evidence references, API keys, account ids or precise work timestamps.',
     raw_ledger: 'Local-only ledger; not committed and not published.',
     missing_is_not_zero: true,
   };
@@ -171,8 +171,14 @@ function markdown(s, baseline = false) {
   md += `| Drupal issue | ${n(a.issue?.events_attributed)} attributed events | ${pct(a.issue?.coverage)} | independent of activity; missing issue is not Unknown activity |\n`;
   md += `| Task (explicit) | ${n(a.task?.events_attributed)} attributed events | ${pct(a.task?.coverage)} | explicit task metadata; session task ids are reported separately |\n`;
   md += `| Task (session id) | ${n(a.task?.session_task_events)} events, ${n(a.task?.session_task_tokens)} tokens | — | a session is not one development task |\n`;
+  md += `| Declared tasks | ${n(a.task?.declared_tasks)} declared, ${n(a.task?.verified_tasks)} verified | — | explicit local task records |\n`;
   md += `| Outcome | ${n(a.outcome?.success)} success / ${n(a.outcome?.failure)} failure / ${n(a.outcome?.unknown)} unknown | — | a command result is not a verified outcome |\n\n`;
   md += `Request-level sessions: ${n(a.data?.request_level_sessions)}; legacy sessions: ${n(a.data?.legacy_sessions)}. Uncounted roll-up events: ${n(a.data?.events_uncounted)}. Their token fields are null; they are not added to the totals.\n\n`;
+  if (s.by_task?.length) {
+    md += `## Task effectiveness\n\n| Task key | Issue | Kind | State | Deliverable | Verified | Sessions | Events | Requests | Tokens | Estimated cost | Data |\n|---|---|---|---|---|---|---:|---:|---:|---:|---:|---|\n`;
+    for (const t of s.by_task) md += `| ${t.task_hash} | ${t.issue || '—'} | ${t.kind || '—'} | ${t.state || '—'} | ${t.expected_deliverable || '—'} | ${t.verified == null ? '—' : t.verified ? 'yes' : 'no'} | ${n(t.sessions)} | ${n(t.events)} | ${n(t.model_requests)} | ${n(t.tokens)} | ${t.cost_usd == null ? '—' : `$${t.cost_usd.toFixed(2)}`} | ${t.data_completeness} |\n`;
+    md += `\nTask keys are hashes of local task ids. Descriptions, evidence paths and session names are never published. A completed claim is not a verified outcome.\n\n`;
+  }
   if (s.by_unknown_reason?.length) {
     md += `## Unknown activity by reason\n\n| Reason | Events | Tokens | Model requests | Operations |\n|---|---:|---:|---:|---:|\n`;
     for (const r of s.by_unknown_reason) md += `| ${r.unknown_reason} | ${n(r.events)} | ${n(r.tokens)} | ${n(r.model_requests)} | ${n(r.operations)} |\n`;

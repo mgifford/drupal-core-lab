@@ -139,6 +139,30 @@ the rule does not divide the request’s tokens among the operations. Shell pars
 pipelines, loops, assignments and substitutions are handled without evaluation; a heredoc body is data and is never
 executed. If the line cannot be parsed safely, the operation stays Unknown with `parser_error`.
 
+### Explicit task metadata and outcomes
+
+A session id is not a development task. `scripts/resource-task.mjs` records a small local task record and maps it to one
+or more Claude session files; the collector then puts that task id, kind, state, expected deliverable and verified flag on
+the session and its request events. The record is append-only JSONL under `.lab-cache/resource-ledger/tasks.jsonl`; the
+latest record for a task id wins.
+
+```bash
+node scripts/resource-task.mjs start issue-3619127 --kind=accessibility-evaluation \
+  --deliverable=accessibility-findings --issue=3619127 --variant=3619127-pinned \
+  --session=<transcript.jsonl> --label="Drupal issue investigation"
+node scripts/resource-task.mjs update issue-3619127 --state=completed_verified --verified \
+  --evidence=reports/issues/3619127/EVIDENCE.md
+node scripts/resource-task.mjs list
+```
+
+States are `planned`, `in_progress`, `blocked`, `paused`, `completed_claimed`, `completed_verified`, `abandoned` and
+`unknown`. A `completed_claimed` record is not evidence; only `completed_verified` with a human-confirmed evidence
+reference counts as verified. Descriptions, evidence paths and session names are local-only.
+
+Limitations: a session maps to at most one explicit task. A session that contains several development tasks cannot be
+split from the transcript alone; its requests stay on the declared task until a finer, explicit boundary exists. Task
+summaries publish only a hash of the task id, the kind/state/deliverable, issue, resource totals and data completeness.
+
 ### Prompt and artifact provenance
 
 Prompt capture is metadata-first. `scripts/session-usage.mjs --provenance <file>` writes, per prompt: a stable local id,

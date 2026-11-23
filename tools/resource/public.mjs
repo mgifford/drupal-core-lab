@@ -3,7 +3,7 @@
 const FORBIDDEN_KEYS = new Set([
   'private', 'source_key', 'supersedes', 'revision', 'transcript', 'transcripts', 'title', 'command', 'command_hash',
   'command_label', 'run_id', 'url', 'branch', 'head_sha', 'reason', 'api_key', 'apikey', 'authorization', 'cookie',
-  'session_id', 'prompt', 'response', 'raw', 'source_ref', 'user', 'username', 'email', 'account',
+  'session_id', 'prompt', 'response', 'raw', 'source_ref', 'user', 'username', 'email', 'account', 'description', 'task_id', 'task_description', 'evidence_refs',
 ]);
 const PRIVATE_PATH = /(\/Users\/|\/home\/|\.lab-cache|~\/\.claude|\.claude\/projects|[A-Za-z]:\\)/;
 const SECRET_TEXT = /(gho_|ghp_|sk-ant-|xox[baprs]-|BEGIN (?:RSA |OPENSSH )?PRIVATE KEY)/;
