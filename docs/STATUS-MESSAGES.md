@@ -1,6 +1,6 @@
 # Status messages in Drupal core: every type, its ARIA role, and why
 
-**DRAFT, AI-assisted; read from Drupal core `main` (`92e5c3a30476`, 2026-11-18); a person has not reviewed it.** A visual page with all three types is [examples/status-messages.html](examples/status-messages.html). It reproduces the markup as static text and does not announce anything itself.
+**DRAFT, AI-assisted; read from Drupal core `main` (`92e5c3a30476`, 2026-11-18); a person has not reviewed it.** A visual page with all three types is [examples/status-messages.html](examples/status-messages.html); with the viewer running (`node scripts/lab-env.mjs start <slug>`) open `https://drupal-compare.ddev.site/reference/status-messages` (or `http://localhost:8100/reference/status-messages`). It reproduces the markup as static text and does not announce anything itself.
 
 ## The types
 
