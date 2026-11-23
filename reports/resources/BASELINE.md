@@ -1,6 +1,6 @@
 # Resource usage baseline
 
-Generated 2026-11-23T23:35:44.923Z. Period: 2026-10-02 to 2026-11-23. Completeness: **partial**. No AI model was called to produce this report.
+Generated 2026-11-23T23:53:24.450Z. Period: 2026-10-02 to 2026-11-23. Completeness: **partial**. No AI model was called to produce this report.
 
 ## Totals
 
@@ -21,7 +21,7 @@ Generated 2026-11-23T23:35:44.923Z. Period: 2026-10-02 to 2026-11-23. Completene
 | Peak memory | 355.1 MiB | measured/sampled |
 | GitHub Actions duration | 0.944 h (100 runs / 100 jobs) | provider-reported |
 | Tasks measured | 27 (12 success, 1 failure, 14 unknown) | derived from event outcomes |
-| Collection overhead | 0.001 h CPU, 158.7 MiB peak | measured |
+| Collection overhead | 0.002 h CPU, 162.5 MiB peak | measured |
 
 ## Consumption by activity
 
@@ -69,7 +69,7 @@ Subcategories are deterministic from the tool and operation. A repeated lookup i
 | Drupal issue | 271 attributed events | 8.4% | independent of activity; missing issue is not Unknown activity |
 | Task (explicit) | 113 attributed events | — | explicit task metadata; session task ids are reported separately |
 | Task (session id) | 2,181 events, 812,265,879 tokens | — | a session is not one development task |
-| Declared tasks | 1 declared, 0 verified | — | explicit local task records |
+| Declared tasks | 1 declared, 1 verified | — | explicit local task records |
 | Outcome | 156 success / 1 failure / 2,191 unknown | — | a command result is not a verified outcome |
 
 Request-level sessions: 10; legacy sessions: 0. Uncounted roll-up events: 10. Their token fields are null; they are not added to the totals.
@@ -78,7 +78,7 @@ Request-level sessions: 10; legacy sessions: 0. Uncounted roll-up events: 10. Th
 
 | Task key | Issue | Kind | State | Deliverable | Verified | Sessions | Events | Requests | Tokens | Estimated cost | Data |
 |---|---|---|---|---|---|---:|---:|---:|---:|---:|---|
-| 464bd7e93db1 | 3619127 | accessibility-evaluation | in_progress | accessibility-findings | — | 0 | 0 | — | — | — | unavailable |
+| 464bd7e93db1 | 3619127 | accessibility-evaluation | completed_verified | accessibility-findings | yes | 0 | 0 | — | — | — | unavailable |
 
 Task keys are hashes of local task ids. Descriptions, evidence paths and session names are never published. A completed claim is not a verified outcome.
 
