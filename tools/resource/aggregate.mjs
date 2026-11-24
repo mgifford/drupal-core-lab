@@ -150,7 +150,7 @@ export function aggregate(events, { now = new Date(), tasks = [] } = {}) {
     } else {
       const b = byActivity.get(e.activity) || { ...emptyBucket(), methods: new Set() };
       add(b, { tokens: t, modelRequests: e.measurements.tokens.model_requests, cost, cpu, memory: mem, toolInvocations: e.measurements.tools.invocations, repeatedReads: e.measurements.tools.repeated_reads, duration, outcome: e.outcome, task: e.task.id, evidence: e.event_id.slice(0, 12) });
-      b.methods.add(e.accounting?.method_version || 'legacy-session-v1');
+      b.methods.add(e.accounting?.method_version || 'direct-event');
       byActivity.set(e.activity, b);
     }
   }
@@ -211,7 +211,7 @@ export function aggregate(events, { now = new Date(), tasks = [] } = {}) {
   };
 
   const byTask = taskSummaries(countedData, { tasks });
-  const attribution = attributionSummary({ data, countedData, sessions, uncounted, totalTokens: sumOrNull(countedData.map(tokensOf)) });
+  const attribution = attributionSummary({ data, countedData, sessions, uncounted, totalTokens: sumOrNull(countedData.map(tokensOf)), tasks });
   attribution.task.declared_tasks = byTask.filter((t) => t.declared).length;
   attribution.task.verified_tasks = byTask.filter((t) => t.verified === true).length;
   attribution.task.task_states = Object.fromEntries([...new Set(byTask.map((t) => t.state))].sort().map((s) => [s, byTask.filter((t) => t.state === s).length]));
@@ -228,9 +228,9 @@ export function aggregate(events, { now = new Date(), tasks = [] } = {}) {
     methodology: {
       classifier_version: [...new Set(countedData.map((e) => e.classification?.version).filter(Boolean))].sort().join(', ') || CLASSIFIER_VERSION,
       rule_registry_version: RULE_REGISTRY_VERSION,
-      accounting_versions: [...new Set(data.map((e) => e.accounting?.method_version || 'legacy-session-v1'))].sort(),
+      accounting_versions: [...new Set(data.map((e) => e.accounting?.method_version || 'direct-event'))].sort(),
       request_accounting: 'request-level-v1 where a transcript reconciles; otherwise legacy session allocation',
-      note: 'Request-level activity is the primary operation of a request. It is associated with the request context, not proven to have caused every token in it.',
+      note: 'Request-level activity is the primary operation of a request when at most one strong activity is present; otherwise it stays Unknown with ambiguous_activity. It is associated with the request context, not proven to have caused every token in it.',
     },
     period: { from: dates[0] || null, to: dates.at(-1) || null },
     completeness: quality.events.partial + quality.events.unavailable > 0 ? 'partial' : 'complete',
@@ -244,14 +244,19 @@ export function aggregate(events, { now = new Date(), tasks = [] } = {}) {
   return summary;
 }
 
-function attributionSummary({ data, countedData, sessions, uncounted, totalTokens }) {
+function attributionSummary({ data, countedData, sessions, uncounted, totalTokens, tasks = [] }) {
   const tokensKnown = sumOrNull(countedData.filter((e) => !isUnknown(e)).map(tokensOf));
   const tokensUnknown = sumOrNull(countedData.filter(isUnknown).map(tokensOf));
   const requestsKnown = sumOrNull(countedData.filter((e) => !isUnknown(e)).map((e) => e.measurements.tokens.model_requests));
   const requestsUnknown = sumOrNull(countedData.filter(isUnknown).map((e) => e.measurements.tokens.model_requests));
   const issueTokens = sumOrNull(countedData.filter((e) => e.issue).map(tokensOf));
-  const explicitTask = (e) => e.task?.id && e.task.id !== 'unfiled' && !/^(?:claude-session:|model-eval|monitor:)/.test(e.task.id);
-  const taskTokens = sumOrNull(countedData.filter(explicitTask).map(tokensOf));
+  const declaredIds = new Set((tasks || []).map((t) => t.task_id).filter(Boolean));
+  const isSessionTask = (e) => /^claude-session:/.test(e.task?.id || '');
+  const isPseudoTask = (e) => !e.task?.id || e.task.id === 'unfiled' || /^(?:model-eval|monitor:)/.test(e.task.id);
+  const isDeclaredTask = (e) => !isPseudoTask(e) && !isSessionTask(e) && (declaredIds.has(e.task.id) || Boolean(e.task.kind || e.task.state));
+  const isNonSessionTask = (e) => !isPseudoTask(e) && !isSessionTask(e) && !isDeclaredTask(e);
+  const taskTokens = sumOrNull(countedData.filter(isDeclaredTask).map(tokensOf));
+  const nonSessionTaskTokens = sumOrNull(countedData.filter(isNonSessionTask).map(tokensOf));
   const sessionTaskTokens = sumOrNull(countedData.filter((e) => /^claude-session:/.test(e.task?.id || '')).map(tokensOf));
   const operations = sumOrNull(countedData.map((e) => e.measurements.tools.invocations));
   const unknownOperations = sumOrNull(countedData.filter(isUnknown).map((e) => e.measurements.tools.invocations));
@@ -288,7 +293,7 @@ function attributionSummary({ data, countedData, sessions, uncounted, totalToken
     },
     model_requests: { total: sumOrNull(countedData.map((e) => e.measurements.tokens.model_requests)), classified: requestsKnown, unknown: requestsUnknown, coverage: rate(requestsKnown, sumOrNull([requestsKnown, requestsUnknown])) },
     tool_operations: { total: operations, unknown: unknownOperations, coverage: rate(operations == null || unknownOperations == null ? null : operations - unknownOperations, operations) },
-    task: { events_attributed: countedData.filter(explicitTask).length, events_total: countedData.length, tokens_attributed: taskTokens, coverage: rate(taskTokens, totalTokens), session_task_events: countedData.filter((e) => /^claude-session:/.test(e.task?.id || '')).length, session_task_tokens: sessionTaskTokens, note: 'Session task ids are recorded but are not one explicit development task per session; they are reported separately from explicit task metadata.' },
+    task: { events_attributed: countedData.filter(isDeclaredTask).length, events_total: countedData.length, tokens_attributed: taskTokens, coverage: rate(taskTokens, totalTokens), non_session_task_events: countedData.filter(isNonSessionTask).length, non_session_task_tokens: nonSessionTaskTokens, session_task_events: countedData.filter((e) => /^claude-session:/.test(e.task?.id || '')).length, session_task_tokens: sessionTaskTokens, note: 'events_attributed counts only task ids declared in tasks.jsonl, or explicit task metadata carried by the event. Non-session ids from CI, Docker and wrapper labels are reported separately; they are not development tasks. A session id is not one task.' },
     issue: { events_attributed: countedData.filter((e) => e.issue).length, events_total: countedData.length, tokens_attributed: issueTokens, coverage: rate(issueTokens, totalTokens), note: 'Issue attribution is independent of activity classification. An Unknown activity is not an unattributed issue.' },
     outcome: { success: countedData.filter((e) => e.outcome === 'success').length, failure: countedData.filter((e) => e.outcome === 'failure').length, unknown: countedData.filter((e) => e.outcome === 'unknown').length, verified_note: 'A successful command or a model claim is not a verified task outcome; evidence review remains human.' },
     unknown: {

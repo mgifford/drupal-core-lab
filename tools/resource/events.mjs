@@ -114,6 +114,9 @@ export function eventId(event) {
   const material = {
     adapter: event.source?.adapter, event_type: event.event_type, occurred_at: event.occurred_at,
     duration_ms: event.duration_ms, source_key: event.source_key || null,
+    // Attribution is part of an event's identity: re-collecting with --issue/--variant must supersede, not be skipped
+    // as an identical event.
+    issue: event.issue || null, variant: event.variant || null,
     measurements: event.measurements, task: event.task?.id || null, activity: event.activity,
     outcome: event.outcome, commit: event.commit, classification: event.classification || null,
     provenance: event.provenance || null,

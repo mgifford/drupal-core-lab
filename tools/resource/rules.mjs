@@ -13,7 +13,7 @@
 // A new rule needs a test in tests/lab/resource-classification.test.mjs. Rules must never run a command, read a file,
 // call a model or look at the network. If a command is ambiguous, return Unknown rather than guessing.
 
-export const CLASSIFIER_VERSION = '2.0.0';
+export const CLASSIFIER_VERSION = '2.1.0';
 export const RULE_REGISTRY_VERSION = 1;
 
 export const UNKNOWN_REASONS = Object.freeze({
@@ -419,6 +419,12 @@ export function primaryActivity(components) {
   return [...counts.entries()].sort((a, b) => b[1] - a[1] || PRIMARY_PRECEDENCE.indexOf(a[0]) - PRIMARY_PRECEDENCE.indexOf(b[0]))[0][0];
 }
 export function isStrongPrimary(activity) { return STRONG_PRIMARY.has(activity); }
+// Two or more substantive activities cannot be reduced to one primary without asserting a cause. Such a command or
+// request stays Unknown with `ambiguous_activity`; with fewer strong activities, primaryActivity() still applies.
+export function hasMultipleStrong(components) {
+  const activities = new Set((components || []).filter((c) => c.activity !== 'unknown').map((c) => c.activity));
+  return [...activities].filter((a) => STRONG_PRIMARY.has(a)).length > 1;
+}
 export function dominantSubcategory(components) {
   const counts = new Map();
   for (const c of components) if (c.subcategory) counts.set(c.subcategory, (counts.get(c.subcategory) || 0) + 1);
@@ -489,6 +495,9 @@ export function classifyShell(command, depth = 0) {
     return { activity: 'unknown', unknown_reason: unresolved[0]?.unknown_reason || (parsed.segments.length > 1 ? 'compound_command' : 'unrecognized_command'), rule_id: unresolved[0]?.rule_id || 'shell.unknown', provenance: 'unclassified', components: unresolved, notes: parsed.opaque ? ['Command contains a substitution or heredoc.'] : [] };
   }
   if (activities.length > 1) {
+    if (hasMultipleStrong(resolved)) {
+      return { activity: 'unknown', unknown_reason: 'ambiguous_activity', rule_id: 'shell.ambiguous-strong', provenance: 'contextual_inference', confidence: 'heuristic', components: [...resolved, ...unresolved], notes: [`More than one strong activity is present (${activities.join(', ')}); no primary is asserted.`] };
+    }
     const primary = primaryActivity(resolved);
     const subcategory = primary === 'code-exploration' ? dominantSubcategory(resolved) : null;
     return { activity: primary, subcategory, rule_id: `shell.primary:${resolved.find((c) => c.activity === primary)?.rule_id || primary}`, provenance: 'contextual_inference', confidence: 'heuristic', components: [...resolved, ...unresolved], notes: [`Primary-operation rule chose ${primary} from ${activities.join(', ')}; no token split is asserted.`] };

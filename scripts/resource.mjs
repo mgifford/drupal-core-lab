@@ -153,11 +153,11 @@ function markdown(s, baseline = false) {
   md += `| CPU-hours | ${hours(s.totals.cpu.total_seconds)} | ${s.quality.cpu.status} |\n`;
   md += `| Peak memory | ${formatBytes(s.totals.cpu.peak_memory_bytes)} | ${s.quality.memory.status} |\n`;
   md += `| GitHub Actions duration | ${hours(s.totals.github.duration_seconds)} (${n(s.totals.github.runs)} runs / ${n(s.totals.github.jobs)} jobs) | ${s.quality.github.status} |\n`;
-  md += `| Tasks measured | ${n(s.totals.tasks.measured)} (${n(s.totals.tasks.success)} success, ${n(s.totals.tasks.failure)} failure, ${n(s.totals.tasks.unknown)} unknown) | derived from event outcomes |\n`;
+  md += `| Task ids observed | ${n(s.totals.tasks.measured)} (${n(s.totals.tasks.success)} success, ${n(s.totals.tasks.failure)} failure, ${n(s.totals.tasks.unknown)} unknown) | distinct task ids, including sessions, CI and Docker; declared-task rows are separate |\n`;
   md += `| Collection overhead | ${hours(s.totals.monitoring.cpu_seconds)} CPU, ${formatBytes(s.totals.monitoring.peak_memory_bytes)} peak | measured |\n\n`;
   md += `## Consumption by activity\n\n| Activity | Events | Tasks | Tokens | Share | Model requests | CPU-hours | Estimated cost | Method |\n|---|---:|---:|---:|---:|---:|---:|---:|---|\n`;
   for (const a of s.by_activity) md += `| ${a.activity} | ${n(a.events)} | ${n(a.tasks)} | ${n(a.tokens)} | ${pct(a.share)} | ${n(a.model_requests)} | ${a.cpu_seconds == null ? '—' : (a.cpu_seconds / 3600).toFixed(3)} | ${a.cost_usd == null ? '—' : `$${a.cost_usd.toFixed(2)}`} | ${a.method || '—'} |\n`;
-  md += `\nRows mix two accounting methods: request-level activity where a transcript reconciles, and the older session tool-call-share allocation for historical records. The method column above names them per activity; the dashboard keeps them distinguishable. Request-level activity is associated with the request context and is not proof that the activity caused every token in it.\n\n`;
+  md += `\nRows mix request-level activity, the older session tool-call-share allocation for historical records, and direct events (process, Docker, GitHub Actions) that were never session allocations. The method column above names them per activity; the dashboard keeps them distinguishable. Request-level activity is associated with the request context and is not proof that the activity caused every token in it.\n\n`;
   if (s.by_exploration_subcategory?.length) {
     md += `## Code exploration subcategories\n\n| Subcategory | Events | Tokens | Share |\n|---|---:|---:|---:|\n`;
     for (const x of s.by_exploration_subcategory) md += `| ${x.subcategory} | ${n(x.events)} | ${n(x.tokens)} | ${pct(x.share)} |\n`;
@@ -170,7 +170,8 @@ function markdown(s, baseline = false) {
   md += `| Model requests | ${n(a.model_requests?.classified)} classified / ${n(a.model_requests?.unknown)} unknown | ${pct(a.model_requests?.coverage)} | one event per observable message id |\n`;
   md += `| Tool operations | ${n(a.tool_operations?.total)} recorded / ${n(a.tool_operations?.unknown)} in Unknown events | ${pct(a.tool_operations?.coverage)} | provider/client tool records |\n`;
   md += `| Drupal issue | ${n(a.issue?.events_attributed)} attributed events | ${pct(a.issue?.coverage)} | independent of activity; missing issue is not Unknown activity |\n`;
-  md += `| Task (explicit) | ${n(a.task?.events_attributed)} attributed events | ${pct(a.task?.coverage)} | explicit task metadata; session task ids are reported separately |\n`;
+  md += `| Task (declared) | ${n(a.task?.events_attributed)} attributed events | ${pct(a.task?.coverage)} | declared in tasks.jsonl or carried as explicit task metadata |\n`;
+  md += `| Task ids (non-session) | ${n(a.task?.non_session_task_events)} attributed events | — | CI, Docker and wrapper ids; not declared development tasks |\n`;
   md += `| Task (session id) | ${n(a.task?.session_task_events)} events, ${n(a.task?.session_task_tokens)} tokens | — | a session is not one development task |\n`;
   md += `| Declared tasks | ${n(a.task?.declared_tasks)} declared, ${n(a.task?.verified_tasks)} verified | — | explicit local task records |\n`;
   md += `| Outcome | ${n(a.outcome?.success)} success / ${n(a.outcome?.failure)} failure / ${n(a.outcome?.unknown)} unknown | — | a command result is not a verified outcome |\n\n`;

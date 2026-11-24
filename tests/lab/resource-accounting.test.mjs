@@ -40,6 +40,10 @@ test('events validate, required provenance is enforced, and missing differs from
   assert.equal(again.event_id, e.event_id, 'same content is the same immutable event');
   const changed = makeEvent(base({ measurements: { ...base().measurements, tokens: { ...base().measurements.tokens, output: 21 } } }));
   assert.notEqual(changed.event_id, e.event_id);
+  const otherIssue = makeEvent(base({ issue: '3619128' }));
+  assert.notEqual(otherIssue.event_id, e.event_id, 'issue attribution is part of event identity');
+  const otherVariant = makeEvent(base({ variant: '3619127-latest' }));
+  assert.notEqual(otherVariant.event_id, e.event_id, 'variant attribution is part of event identity');
   const missing = makeEvent(base({ measurements: { ...base().measurements, cost: { reported_usd: null, estimated_usd: null, basis: 'unavailable', note: null } }, quality: { completeness: 'partial', missing: ['cost'], notes: [] } }));
   assert.equal(costOf(missing).usd, null, 'missing cost is null, never zero');
   const zero = makeEvent(base({ measurements: { ...base().measurements, cost: { reported_usd: 0, estimated_usd: null, basis: 'provider-reported', note: null } } }));
@@ -65,6 +69,11 @@ test('ledger dedupes identical events and supersedes a newer snapshot of the sam
   assert.equal(loaded.events[0].event_id, second.event_id);
   assert.equal(loaded.events[0].measurements.tokens.output, 99);
   assert.equal(readRaw(file).invalid.length, 0);
+  const attributed = makeEvent({ ...base({ issue: '3619128' }), source_key: 'session:abc' });
+  const d = appendEvents([attributed], { file });
+  assert.equal(d.added.length, 1, 'a changed issue supersedes the existing snapshot');
+  assert.equal(d.added[0].supersedes, second.event_id);
+  assert.equal(loadEvents({ file }).events[0].issue, '3619128');
   fs.appendFileSync(file, '{not json}\n');
   const partial = loadEvents({ file });
   assert.equal(partial.invalid.length, 1, 'an interrupted line is reported, not fatal');
