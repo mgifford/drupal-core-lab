@@ -38,6 +38,14 @@ Build it on `lib/lab-run.mjs`; `evaluate-3618230.mjs` is the example. The librar
   `writeRun()`, which refuses a `results.json` without verdict, context, AJAX or speech (`lib/run-schema.mjs`).
 The issue script supplies only its steps and its checks. `--out=<dir>` sends a trial run elsewhere (used by `scripts/selftest.mjs --live`).
 
+`--observe` (with `evaluate-3619127.mjs`, or any evaluator that passes `run.observe` into `openSide`) adds a W3C
+`traceparent` to same-origin document/XHR/fetch requests and writes `observability-<side>.json` next to `results.json`;
+`--playwright-trace` also records a browser trace zip. Both are off by default. Collect the server side with
+`node tools/observability/cli.mjs collect <slug> --run <run folder>`; see `../../docs/observability/README.md`.
+`viewer-execution.mjs [--live]` checks the resulting viewer/static section with axe in light, dark, forced-colours, reduced-motion
+and 320 px contexts. `resource-dashboard.mjs` does the same for the resource usage page in `cloud/`, including the native filters
+and the focusable table regions.
+
 ## Playwright MCP
 `@playwright/mcp` is installed here, and `../../.mcp.json` registers it for this project only
 (it does not touch your global Claude settings). Start Claude Code from the lab root and approve the

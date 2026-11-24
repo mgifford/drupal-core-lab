@@ -122,6 +122,7 @@
   .verdict.ok { background: var(--ok-bg); color: var(--ok-fg); } .verdict.bad { background: var(--bad-bg); color: var(--bad-fg); } .verdict.warn { background: var(--warn-bg); color: var(--warn-fg); }
   table.checks { border-collapse: collapse; margin: .3rem 0; font-size: .85rem; width: 100%; max-width: 80rem; }
   table.checks th, table.checks td { border: 1px solid var(--line); padding: .25rem .5rem; text-align: left; vertical-align: top; } table.checks th { background: var(--surface2); font-weight: 600; font-size: .8rem; }
+  .exec-tablewrap { max-width: 100%; overflow-x: auto; } .exec-tablewrap:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   td.ok { background: var(--ok-bg); color: var(--ok-fg); } td.bad { background: var(--bad-bg); color: var(--bad-fg); } td.warn { background: var(--warn-bg); color: var(--warn-fg); } td.na { background: var(--na-bg); color: var(--na-fg); }
   td.v { font-weight: 600; }
   #steps { margin: .3rem 0; padding-left: 1.4rem; } #steps li { margin: .2rem 0; } .tag { font-size: .75rem; border: 1px solid var(--line); border-radius: .6rem; padding: 0 .4rem; margin-left: .4rem; white-space: nowrap; }
@@ -228,6 +229,7 @@
       <li>On your own computer (recommended): <code id="spcmd"></code></li>
       <li id="spcloud">In a DDEV Coder workspace, from a browser only (needs access that DDEV grants): follow the <a id="spcloudlink" href="https://github.com/mgifford/drupal-core-lab/blob/main/docs/CLOUD-QUICKSTART.md">cloud quickstart</a>. In short: create a workspace from the <strong>DDEV Freeform</strong> template (not the issue picker, which builds only one site) with the DDEV project names <code>drupal-compare,drupal-compare-before,drupal-compare-after</code>, then run this in the workspace terminal: <code id="spcloudcmd"></code></li>
       <li>Evidence and notes for this issue: <a id="spreports" href="#">reports</a><span id="spissuewrap">, <a id="spissue" href="#">issue on drupal.org</a></span>. Guides: <a id="spdocs" href="#">documentation</a>.</li>
+      <li>Resource usage dashboard: <a id="spresources" href="resources.html">tokens, CPU, memory and GitHub Actions time</a>.</li>
     </ol>
   </section>
   <p data-needs="live" id="legend" role="status" hidden></p>
@@ -256,6 +258,7 @@
       <button type="button" role="tab" id="tab-lh" aria-controls="p-lh" data-tab="lh" data-needs="live">Lighthouse <span class="chip" id="bd-lh"></span></button>
       <button type="button" role="tab" id="tab-resources" aria-controls="p-resources" data-tab="resources" data-needs="live">Resources <span class="chip" id="bd-resources"></span></button>
       <button type="button" role="tab" id="tab-env" aria-controls="p-env" data-tab="env" data-needs="live">Environment <span class="chip" id="bd-env"></span></button>
+      <button type="button" role="tab" id="tab-exec" aria-controls="p-exec" data-tab="exec" hidden>Execution <span class="chip" id="bd-exec"></span></button>
     </div>
     <span class="sp"><button type="button" id="docksize" aria-pressed="false">Larger</button><button type="button" id="dockhide" aria-expanded="true">Hide panel</button></span>
   </div>
@@ -263,6 +266,7 @@
     <div role="tabpanel" id="p-steps" aria-labelledby="tab-steps" tabindex="0">
       <p id="desc" class="note"></p>
       <div id="stepsbox"><h2>Steps to reproduce <span class="note">(optional checklist: tick each step as you do it)</span></h2><ol id="steps"></ol><p id="stepsprog" class="note" role="status"></p><p><button type="button" id="tickrecipe">Tick the steps the recipe did</button> <button type="button" id="clearticks">Clear ticks</button> <span class="note">Ticks are saved in this browser for this issue and included in the downloaded log. Nothing depends on them.</span></p><p id="exp" class="note"></p><p id="act" class="note"></p><p id="setup" class="note"></p></div>
+      <div id="static-exec" hidden></div>
     </div>
     <div role="tabpanel" id="p-checks" aria-labelledby="tab-checks" tabindex="0" data-needs="live" hidden>
       <h2>Checks <button type="button" id="runchecks" class="primary">Run checks</button> <span id="rcstat" class="path" role="status" aria-live="polite"></span></h2>
@@ -329,6 +333,12 @@
         <p class="note">Viewer build: <code>static</code>. If this differs from the server's start, reload the page (an old tab keeps running old code).</p>
         <p class="note">Frames are separate sites on <code>before.localhost</code> and <code>after.localhost</code>, so logins do not interfere. This compares behaviour in a browser. It is not a substitute for testing with a keyboard and a screen reader.</p></details>
     </div>
+    <div role="tabpanel" id="p-exec" aria-labelledby="tab-exec" tabindex="0" hidden>
+      <h2>Drupal execution evidence</h2>
+      <p id="execstatus" class="note" role="status" aria-live="polite">No execution evidence has been collected for this comparison.</p>
+      <div id="execbody" hidden></div>
+      <p class="note">Optional tracing. A matched trace shows that a browser request reached Drupal in the same W3C trace; it does not prove that the patch caused what was observed. Raw spans stay local; only a sanitised summary is published.</p>
+    </div>
   </div>
 </section>
 <script type="module">
@@ -376,6 +386,105 @@ function showProgress() { const n = (v.steps || []).length, d = (v.steps || []).
 function renderSteps() { ticks = loadTicks(); const ol = $('steps'); ol.textContent = ''; for (const st of v.steps || []) { const li = document.createElement('li'); const idx = ol.children.length; const lab = document.createElement('label'); const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!ticks[idx]; cb.addEventListener('change', () => { ticks[idx] = cb.checked; saveTicks(); showProgress(); }); lab.append(cb, document.createTextNode(' ' + st.text)); li.append(lab); if (st.lookFor) { const lf = document.createElement('span'); lf.className = 'lookfor'; lf.textContent = 'Look for: ' + st.lookFor; li.append(lf); } const t = document.createElement('span'); t.className = 'tag'; t.textContent = TAGS[st.how] || st.how; li.append(t); ol.append(li); }
   $('exp').textContent = v.expected ? 'Expected: ' + v.expected : ''; $('act').textContent = v.actual ? 'Actual: ' + v.actual : ''; $('setup').textContent = v.setup ? 'Setup: ' + v.setup : ''; $('stepsbox').hidden = !(v.steps && v.steps.length); showProgress(); }
 $('tickrecipe').addEventListener('click', () => { (v.steps || []).forEach((st, i) => { if (st.how === 'recipe') ticks[i] = true; }); saveTicks(); renderSteps(); });
+
+// ---- Optional execution evidence. Hidden when nothing has been collected, so an ordinary run does not show an empty section. ----
+const execValue = (x) => (x === null || x === undefined || x === '' ? '—' : String(x));
+const execRepoLink = (p) => { const repo = (window.__repo || '').replace(/\/$/, ''); return repo && p ? repo + '/blob/main/' + p : null; };
+function execTable(container, captionText, headers, rows, rowHeader = false) {
+  const table = document.createElement('table'); table.className = 'checks';
+  const cap = document.createElement('caption'); cap.className = 'note'; cap.style.textAlign = 'left'; cap.textContent = captionText; table.append(cap);
+  const thead = document.createElement('thead'), tr = document.createElement('tr');
+  for (const h of headers) { const th = document.createElement('th'); th.scope = 'col'; th.textContent = h; tr.append(th); }
+  thead.append(tr); table.append(thead);
+  const tbody = document.createElement('tbody');
+  for (const row of rows) {
+    const r = document.createElement('tr');
+    row.forEach((cell, i) => {
+      const td = document.createElement(i === 0 && rowHeader ? 'th' : 'td');
+      if (i === 0 && rowHeader) td.scope = 'row';
+      td.textContent = execValue(cell); r.append(td);
+    });
+    tbody.append(r);
+  }
+  table.append(tbody);
+  const wrap = document.createElement('div'); wrap.className = 'exec-tablewrap'; wrap.tabIndex = 0; wrap.setAttribute('role', 'region'); wrap.setAttribute('aria-label', captionText);
+  wrap.append(table); container.append(wrap); return table;
+}
+function renderExecution(summary, container, withHeading) {
+  container.textContent = '';
+  if (withHeading) { const h = document.createElement('h2'); h.textContent = 'Drupal execution evidence'; container.append(h); }
+  const meta = document.createElement('p'); meta.className = 'note';
+  meta.textContent = 'Run ' + summary.run_id + ' · ' + (summary.instrumented ? 'instrumented' : 'not instrumented') + ' · correlation ' + (summary.correlation?.status || 'unknown') + ' · collected ' + summary.generated_at + '.';
+  container.append(meta);
+  const report = execRepoLink(summary.report_path), manifest = execRepoLink(summary.manifest_path);
+  if (report || manifest) {
+    const p = document.createElement('p'); p.className = 'note'; p.append(document.createTextNode('Detailed evidence: '));
+    if (report) { const a = document.createElement('a'); a.href = report; a.textContent = 'generated execution report'; p.append(a); }
+    if (report && manifest) p.append(document.createTextNode(' · '));
+    if (manifest) { const a = document.createElement('a'); a.href = manifest; a.textContent = 'evidence manifest (JSON)'; p.append(a); }
+    container.append(p);
+  }
+  const envs = summary.environments || [];
+  if (envs.length) {
+    const rows = envs.map((e) => {
+      const m = e.role === 'before' ? summary.before : e.role === 'after' ? summary.after : null;
+      return [e.label || e.role, e.env, String(e.drupal_revision || '').slice(0, 12), (e.patches || []).length, m ? m.requests : '—', m ? m.traces : '—', e.observability?.export || '—'];
+    });
+    execTable(container, 'Environments and correlation in this run', ['Side', 'Environment', 'Drupal core', 'Patches', 'Requests', 'Server traces', 'OTLP export'], rows, true);
+  }
+  if (summary.correlation?.notes?.length) {
+    const ul = document.createElement('ul'); ul.className = 'note';
+    for (const n of summary.correlation.notes) { const li = document.createElement('li'); li.textContent = n; ul.append(li); }
+    container.append(ul);
+  }
+  if ((summary.rows || []).length) {
+    const h = document.createElement('h3'); h.textContent = 'Before-and-after measurements'; container.append(h);
+    const rows = summary.rows.map((r) => [r.metric, r.before, r.after, r.delta, r.comparability === 'comparable' ? 'yes' : 'no']);
+    execTable(container, 'Observed measurements. A difference is not a causal claim; see the interpretation and limitations.', ['Metric', 'Before', 'After', 'Difference', 'Comparable?'], rows, true);
+    const p = document.createElement('p'); p.className = 'note'; p.textContent = summary.interpretation || ''; container.append(p);
+  }
+  if ((summary.limitations || []).length) {
+    const h = document.createElement('h3'); h.textContent = 'Limitations'; container.append(h);
+    const ul = document.createElement('ul'); ul.className = 'note';
+    for (const l of summary.limitations) { const li = document.createElement('li'); li.textContent = l; ul.append(li); }
+    container.append(ul);
+  }
+  if ((summary.artifacts || []).length) {
+    const h = document.createElement('h3'); h.textContent = 'Artifacts'; container.append(h);
+    const details = document.createElement('details'); const ds = document.createElement('summary'); ds.textContent = `Show ${summary.artifacts.length} artifact path${summary.artifacts.length === 1 ? '' : 's'}`; details.append(ds);
+    const ul = document.createElement('ul'); ul.className = 'note';
+    for (const a of summary.artifacts) {
+      const li = document.createElement('li'); const link = execRepoLink(a.path);
+      if (link) { const anchor = document.createElement('a'); anchor.href = link; anchor.textContent = a.kind + ': ' + a.path; li.append(anchor); }
+      else li.textContent = a.kind + ': ' + a.path;
+      li.append(document.createTextNode(' (committed)'));
+      ul.append(li);
+    }
+    details.append(ul); container.append(details);
+  }
+}
+async function loadExecution(variant) {
+  const button = $('tab-exec'), panel = $('p-exec'), body = $('execbody'), staticBox = $('static-exec'), status = $('execstatus');
+  if (!button) return;
+  button.hidden = true; body.hidden = true; body.textContent = ''; if (staticBox) { staticBox.hidden = true; staticBox.textContent = ''; }
+  if (!variant) return;
+  if (STATIC) {
+    const summary = variant.executionEvidence || null;
+    if (!summary) { if (dock.tab === 'exec') showTab('steps'); return; }
+    staticBox.hidden = false; renderExecution(summary, staticBox, true);
+    return;
+  }
+  status.textContent = 'Loading execution evidence…';
+  try {
+    const response = await fetch('api/observability?slug=' + encodeURIComponent(variant.slug));
+    const data = response.ok ? await response.json() : { available: false, reason: 'Execution evidence is not available.' };
+    if (!data.available) { status.textContent = data.reason || 'No execution evidence has been collected for this comparison.'; panel.hidden = true; if (dock.tab === 'exec') showTab('steps'); return; }
+    button.hidden = false; panel.hidden = false; body.hidden = false;
+    status.textContent = 'Drupal execution evidence for ' + variant.slug + '.';
+    renderExecution(data.summary, body, false);
+    if (dock.tab === 'exec') showTab('exec');
+  } catch (e) { status.textContent = 'Execution evidence could not be read.'; panel.hidden = true; if (dock.tab === 'exec') showTab('steps'); }
+}
 $('clearticks').addEventListener('click', () => { ticks = []; saveTicks(); renderSteps(); });
 function setVariant(slug) { resetThemeEvidence(); v = variants.find((x) => x.slug === slug); showRealClick(); $('desc').textContent = v.description; renderSteps(); buildObs(); document.title = `Compare: ${v.slug}`;
   const beforeLabel = v.before?.label || 'Before patch', afterLabel = v.after?.label || 'After patch';
@@ -388,7 +497,7 @@ function setVariant(slug) { resetThemeEvidence(); v = variants.find((x) => x.slu
   if (v.issue) { iss.hidden = false; iss.textContent = `(#${v.issue})`; iss.href = `https://www.drupal.org/project/drupal/issues/${v.issue}`; iss.title = `Open Drupal issue #${v.issue} in a new window`; iss.setAttribute('aria-label', `Open Drupal issue ${v.issue} in a new window`); F.after.title = `${afterLabel} (#${v.issue})`; }
   else { iss.hidden = true; iss.textContent = ''; iss.removeAttribute('href'); }
   const start = (v.demo && v.demo.start) || v.pages[0] || '/'; $('goto').value = start;
-  document.querySelector('input[name="width"][value="half"]').checked = true; applyWidth(); renderComparisonPeers(); if (!STATIC) loadResources(); }
+  document.querySelector('input[name="width"][value="half"]').checked = true; applyWidth(); renderComparisonPeers(); if (!STATIC) loadResources(); loadExecution(v); }
 async function chooseVariant(slug) {
   if (slug === v.slug) return;
   if (!STATIC && !availability[slug]) { status(`Not built. Run: node tools/compare/setup.mjs ${slug}`); return; }
@@ -417,7 +526,7 @@ function fillStaticPanel() {
   const lab = root || 'https://github.com/mgifford/drupal-core-lab';
   $('spcloudcmd').textContent = `git clone ${lab}.git && cd ${lab.split('/').pop()} && node scripts/cloud-bootstrap.mjs ${v.slug} --install-autostart --core-url=https://github.com/drupal/drupal.git`;
   $('spcloudlink').href = `${lab}/blob/main/docs/CLOUD-QUICKSTART.md`;
-  $('spreports').href = `${root}/tree/main/${v.reports || `reports/issues/${v.issue}`}`; $('spdocs').href = `${root}/blob/main/docs/USER-GUIDE.md`;
+  $('spreports').href = `${root}/tree/main/${v.reports || `reports/issues/${v.issue}`}`; $('spdocs').href = `${root}/blob/main/docs/USER-GUIDE.md`; $('spresources').href = 'resources.html';
   // A variant with no drupal.org issue yet (a fix proposed in the lab) has a `reports` folder and no issue link.
   $('spissuewrap').hidden = !v.issue; if (v.issue) $('spissue').href = `https://www.drupal.org/project/drupal/issues/${v.issue}`;
 }
@@ -560,12 +669,12 @@ const DOCK_KEY = 'compare.dock'; let dock = {}; try { dock = JSON.parse(localSto
 const saveDock = () => { try { localStorage.setItem(DOCK_KEY, JSON.stringify(dock)); } catch (e) { /* storage unavailable */ } };
 function applyDock() { const d = $('dock'); d.dataset.collapsed = String(!!dock.collapsed); d.dataset.size = dock.large ? 'large' : 'normal';
   $('dockhide').textContent = dock.collapsed ? 'Show panel' : 'Hide panel'; $('dockhide').setAttribute('aria-expanded', String(!dock.collapsed)); $('docksize').textContent = dock.large ? 'Smaller' : 'Larger'; $('docksize').setAttribute('aria-pressed', String(!!dock.large)); $('docksize').hidden = !!dock.collapsed; }
-function showTab(name, focus) { const tabs = [...document.querySelectorAll('#tabs [role=tab]')]; if (STATIC || !tabs.some((t) => t.dataset.tab === name)) name = 'steps';
+function showTab(name, focus) { const tabs = [...document.querySelectorAll('#tabs [role=tab]')]; if (STATIC || !tabs.some((t) => t.dataset.tab === name && !t.hidden)) name = 'steps';
   tabs.forEach((t) => { const on = t.dataset.tab === name; t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1; if (on && focus) t.focus(); });
   document.querySelectorAll('#panels > [role=tabpanel]').forEach((p) => { p.hidden = p.id !== 'p-' + name; }); dock.tab = name; saveDock(); }
-document.querySelectorAll('#tabs [role=tab]').forEach((t, i, all) => {
+document.querySelectorAll('#tabs [role=tab]').forEach((t) => {
   t.addEventListener('click', () => { dock.collapsed = false; applyDock(); showTab(t.dataset.tab); });
-  t.addEventListener('keydown', (e) => { const n = { ArrowRight: (i + 1) % all.length, ArrowLeft: (i + all.length - 1) % all.length, Home: 0, End: all.length - 1 }[e.key]; if (n === undefined) return; e.preventDefault(); showTab(all[n].dataset.tab, true); });
+  t.addEventListener('keydown', (e) => { const list = [...document.querySelectorAll('#tabs [role=tab]')].filter((x) => !x.hidden); const i = list.indexOf(t); if (i < 0) return; const n = { ArrowRight: (i + 1) % list.length, ArrowLeft: (i + list.length - 1) % list.length, Home: 0, End: list.length - 1 }[e.key]; if (n === undefined) return; e.preventDefault(); showTab(list[n].dataset.tab, true); });
 });
 $('dockhide').addEventListener('click', () => { dock.collapsed = !dock.collapsed; applyDock(); saveDock(); });
 $('docksize').addEventListener('click', () => { dock.large = !dock.large; applyDock(); saveDock(); });

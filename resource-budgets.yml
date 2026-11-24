@@ -1,0 +1,23 @@
+# Resource budgets for repository-controlled work. Start in observe mode: nothing is blocked and every measurement is
+# recorded. Warn prints a warning; enforce refuses to start a wrapped operation when an enforceable limit is exceeded,
+# unless the person passes --approve with a reason. It never kills a running process.
+mode: observe
+
+limits:
+  # Per task, measured from ledger events for that task. Set to 0 to disable a check.
+  max_ai_requests_per_task: 80
+  max_provider_tokens_per_task: 2000000
+  max_estimated_spend_usd: 25
+  max_repeated_exploratory_calls: 20
+  max_unsuccessful_iterations: 3
+  max_process_duration_seconds: 900
+  max_concurrent_cpu_jobs: 2
+  max_test_repetitions: 2
+
+# A complex accessibility investigation may need more room. Keys may be an issue number, a task id, or issue_<nid>.
+# Overrides are explicit and local; they are not a silent global change.
+overrides:
+  issue_3619127:
+    max_ai_requests_per_task: 120
+    max_provider_tokens_per_task: 3000000
+    max_process_duration_seconds: 1200

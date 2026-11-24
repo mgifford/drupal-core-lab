@@ -1,0 +1,41 @@
+# Local OpenTelemetry Collector for Drupal Core Lab.
+#
+# One collector runs inside each environment's DDEV project, so traces from Before and After never share a collector
+# or an output file. The image is pinned; the collector is optional and is only started by
+# `node tools/observability/cli.mjs enable <slug>`.
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 128
+  resource:
+    attributes:
+      - key: core_lab.collector
+        value: ${env:CORE_LAB_SIDE}
+        action: insert
+
+exporters:
+  # The lab reads this file after a run. It is on the host under envs/<env>/observability/data/ and is never published.
+  file:
+    path: /data/traces.jsonl
+    rotation:
+      max_megabytes: 64
+      max_days: 1
+      max_backups: 3
+
+service:
+  telemetry:
+    logs:
+      level: warn
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [resource, batch]
+      exporters: [file]

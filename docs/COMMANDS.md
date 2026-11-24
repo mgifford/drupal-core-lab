@@ -41,7 +41,7 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/issue-pack.mjs sync-issue <pack> [--write]   # the issue block (title, url, fork branch, merge request) from the fetched issue, not from a model
     node scripts/repair-benchmark.mjs [--json <file>]   # bytes of one repair turn, whole pack against edit, on recorded packs (mechanical)
     node scripts/issue-pack.mjs prepare <issue> --compact   # the pack prompt carries the compact brief instead of the whole thread, when that is smaller
-    node scripts/model-eval.mjs plan | run --yes [--trials 3] [--only intake|repair] [--cases V3,...] [--append] | report   # a small PAIRED model evaluation (compact brief against full thread; targeted edit against whole-file repair): calls a model and spends allowance, so run needs --yes; plan calls nothing
+    node scripts/model-eval.mjs plan | run --yes [--trials 3] [--only intake|repair] [--cases V3,...] [--append] [--approve --reason="..."] | report   # a small PAIRED model evaluation (compact brief against full thread; targeted edit against whole-file repair): calls a model and spends allowance, so run needs --yes; plan calls nothing
     node scripts/intake-benchmark.mjs [--json <file>]   # bytes of the pack prompt, full and compact, on recorded fixtures (mechanical, no model)
     node scripts/close-out.mjs <nid> [--commit] [--message "<subject>"] [--no-refresh]   # close an issue before starting the next: refreshes COVERAGE.md and the issue list, lists uncommitted/untracked files (this issue vs other), flags evidence runs with no results.json (add ABORTED.md to explain one), names running sites; --commit commits only this issue's paths locally; exit 1 until the tree is clean (docs/ISSUE-LIFECYCLE.md)
     node scripts/ready-to-push.mjs [--allow-behind] [--install-hook]   # before a push: fetches the base, STOPS if the branch is behind it (CI tests the merge), then runs selftest; --install-hook makes it the local pre-push hook
@@ -73,6 +73,12 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/test-mr.mjs <nid|slug> [--diff=<file|url>] [--mr=<n|url>] [--patch=<path>] [--no-update] [--no-start] [--dry-run] [--core-url=<url>]  # one command: update checkout, optional MR diff, stop other comparisons, build and start (Coder or local), print the viewer address
     node scripts/cloud-bootstrap.mjs <slug> [--install-autostart] [--rebuild] [--core-url=<url>] [--use-existing-core[=<path>]] [--check]  # DDEV Coder workspace bootstrap
     node scripts/build-cloud.mjs                         # regenerate cloud/ (the GitHub Pages site); commit the result. CI fails if it is stale
+    node scripts/resource.mjs collect|recent|report|export|audit|verify   # local resource ledger: AI tokens/cost, process CPU/RSS, Docker samples, GitHub Actions; deterministic, no model call (docs/RESOURCE-MONITORING.md). `collect --prompt-content` (raw local prompts) and `--inspect-artifacts` (bounded ZIP/patch reads) are opt-in; `audit` is the Unknown/attribution investigation.
+    node scripts/resource-task.mjs start|update|list|show ...   # local explicit task identity, state, deliverable and verification; descriptions/evidence are local-only
+    node scripts/resource-benchmark.mjs [--json=<file>]   # timings and sizes for ledger parse, aggregation and the public JSON
+    node scripts/resource-exploration.mjs [--json=<file>] [<transcript>...]   # LOCAL ONLY: repeated lookup targets and after-edit/after-failure flags; never publish
+    node scripts/resource-run.mjs --activity=<category> [--issue=<nid>] [--task=<id>] [--test-id=<id>] [--result-signature=<stable>] [--patch=<ref>] [--approve --reason="..."] -- <command...>   # measure one command under /usr/bin/time, record it, apply the budget; never kills unless --timeout is explicit
+    node scripts/resource-budget.mjs [--task=<id>] [--issue=<nid>] [--mode=observe|warn|enforce] [--json]   # read-only budget check; exit 3 only when enforce refuses
 
 Details: `tools/compare/README.md`, `tools/playwright/README.md`, `docs/TESTING-TOOLS.md`. Each run is a **pinned** variant (exactly as
 verified) or a **latest** variant (follows current core `main`); see `docs/NEW-ISSUE.md`.

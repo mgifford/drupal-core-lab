@@ -20,6 +20,7 @@ The patches stack: MR `branches/3619127-forms-sidebar-with-ife.patch`, then `pat
 | Virtual screen reader | `node tools/playwright/screenreader.mjs 3619127-pinned` | What is announced for the field (semantics only, synthetic). |
 | PHPUnit browser test | in `envs/issue-3619127-vanilla`: `ddev phpunit core/themes/default_admin/tests/src/FunctionalJavascript/AdminInlineFormErrorsTest.php` | The MR's own test (added by the MR patch). |
 | Diff report | `node tools/compare/diff.mjs 3619127-pinned` | Which served files and pages differ between the sites. |
+| Optional execution trace | `node tools/playwright/evaluate-3619127.mjs 3619127-pinned --observe`, then `node tools/observability/cli.mjs collect ...` | Browser requests matched to Drupal server spans, route, database/cache counts and exceptions, for the same scenario. Off by default. |
 
 ## Results (2026-10-01, pinned core)
 
@@ -45,6 +46,16 @@ Reference runs: `playwright/<newest>/SUMMARY.md` (records the exact core commits
 Negative control for patch 1 (done earlier in a different checkout): putting the persisting call back (`showSidebar()` without
 `false` in the fragment handler) makes the test fail at its `localStorage` assertion, so that assertion does detect the problem.
 
+## Execution evidence (2026-11-23, optional)
+
+An instrumented run on the pinned pair matched 18 of 18 same-origin browser requests to Drupal server traces (ten server
+root spans per side; the one-time login redirect produces two Drupal requests for one browser request). Both sides used
+`node.add`; the median database query count was 43 per request on both sides; no exceptions were recorded; OTLP export
+succeeded for both sides. Server medians varied between pilot runs and are not a performance result. The trace is
+consistent with a client-side JavaScript fix and adds "no new Drupal-side work or errors observed in this run", not a
+causal claim and not component attribution. Full write-up: [OBSERVABILITY.md](OBSERVABILITY.md). The manifest validates
+against evidence schema 1.0.0.
+
 ## Manual pass (a person, keyboard)
 Use the viewer or the two sites in separate windows, window about 480 to 800 px wide so the sidebar starts closed.
 
@@ -63,5 +74,5 @@ Optional aid, not yet tried here: Accessibility Insights for Web "Tab stops" on 
 
 ## Known limits
 Only the Default Admin theme, one browser engine (Chromium), narrow viewports, and the Article form's URL alias field were
-exercised. A real screen reader was not used. An unrelated upstream test is flaky on pristine `main`
+exercised. A real screen reader was not used. Execution tracing covers only the instrumented run and browser; it does not replace the manual pass. An unrelated upstream test is flaky on pristine `main`
 (`FormErrorHandlerCKEditor5Test::testFragmentLink`, 2 failures in 6 runs): do not blame a patch for it.

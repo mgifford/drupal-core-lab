@@ -27,6 +27,7 @@ import { noChangeProblem } from '../../compare/change-under-test.mjs';
 import { analyze as cssAnalyze } from '../../compare/css-build.mjs';
 import { RECORDER } from './recorder.mjs';
 import { silentMarkdown } from './silent-changes.mjs';
+import { attachObservability, newRunId } from './observability.mjs';
 export { VERDICTS } from './run-schema.mjs';
 
 export const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
@@ -47,7 +48,12 @@ export function runArgs({ slug: defaultSlug, viewport = '1280x900' } = {}) {
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const out = path.resolve(opt('out', '') || path.join(labRoot, reportsDir(v), 'playwright', `${stamp}-${envTag}`));
   fs.mkdirSync(out, { recursive: true });
-  return { v, slug, browser, scheme, forced, viewport: { width: vw, height: vh }, envTag, out };
+  // Observability is opt-in. --observe adds W3C trace context to same-origin document/XHR/fetch requests and writes a
+  // browser request catalogue; --playwright-trace also records a Playwright trace zip, which is a different artifact.
+  const observe = argv.includes('--observe');
+  const playwrightTrace = argv.includes('--playwright-trace');
+  const runId = observe ? newRunId(v.slug) : null;
+  return { v, slug, browser, scheme, forced, viewport: { width: vw, height: vh }, envTag, out, observe, playwrightTrace, runId, scenarioId: v.slug };
 }
 
 // What each side's patches are, by content (tools/compare/patch-state.mjs). Recorded in every run; a run does not start on a mismatch.
@@ -102,7 +108,9 @@ export async function openSide(run, side) {
   const changes = [];   // changes after input arrive as each action's window ends, from every page of this side
   await ctx.exposeBinding('__labReport', (source, record) => { changes.push(record); });
   const page = await ctx.newPage();
-  const rec = { side, env: spec.env, host, commit: gitInfo(spec.env), site: siteContext(spec.env), pages: [], ajax: [], speech: { announce: [], live: [], changes }, jsErrors: [] };
+  const obs = run.observe ? attachObservability({ context: ctx, page, base, side, environmentId: spec.env, scenarioId: run.scenarioId, runId: run.runId }) : null;
+  if (run.playwrightTrace) await ctx.tracing.start({ screenshots: true, snapshots: true, sources: false });
+  const rec = { side, env: spec.env, host, commit: gitInfo(spec.env), site: siteContext(spec.env), pages: [], ajax: [], speech: { announce: [], live: [], changes }, jsErrors: [], observability: obs ? obs.trace : null };
   const raw = []; const waits = [];
   page.on('pageerror', (e) => { const m = String(e.message); if (!/ResizeObserver loop/.test(m)) rec.jsErrors.push(m); });
   page.on('response', (r) => {
@@ -121,12 +129,19 @@ export async function openSide(run, side) {
     try { await page.evaluate(() => window.__lab.flush()); const s = await page.evaluate(() => window.__lab); rec.speech.announce.push(...s.announce.splice(0)); rec.speech.live.push(...s.live.splice(0)); rec.speech.changes.push(...(s.changes || []).splice(0)); await page.evaluate(() => { window.__lab.announce.length = 0; window.__lab.live.length = 0; window.__lab.changes.length = 0; }); } catch { /* page gone */ }
     return rec;
   };
-  rec.close = async (out) => { await rec.collect(); fs.writeFileSync(path.join(out, `ajax-${side}.json`), JSON.stringify(raw, null, 2)); await ctx.close(); delete rec.collect; delete rec.close; return rec; };
+  rec.close = async (out) => {
+    await rec.collect();
+    if (obs) rec.observability = await obs.flush(path.join(out, `observability-${side}.json`));
+    if (run.playwrightTrace) { const file = path.join(out, `playwright-trace-${side}.zip`); await ctx.tracing.stop({ path: file }); rec.playwrightTrace = path.basename(file); }
+    fs.writeFileSync(path.join(out, `ajax-${side}.json`), JSON.stringify(raw, null, 2));
+    await ctx.close();
+    delete rec.collect; delete rec.close; return rec;
+  };
   await page.goto(base + loginPath(spec.env));
   await page.waitForLoadState('load');
   await Promise.all(waits.splice(0));
   if (!rec.pages.length) rec.pages.push(await pageContext(page));
-  return { page, base, rec };
+  return { page, base, rec, obs };
 }
 
 export const pageContext = (page) => page.evaluate(() => ({
@@ -156,6 +171,7 @@ export function contextMarkdown(results) {
   md += `| Theme that rendered each page | ${themes(B)} | ${themes(A)} |\n| Languages (default) | ${list(B.site.languages)} (${B.site.defaultLangcode}) | ${list(A.site.languages)} (${A.site.defaultLangcode}) |\n`;
   md += `| Modules only on this side | ${list(onlyIn(B, A))} | ${list(onlyIn(A, B))} |\n| Enabled modules | ${(B.site.modules || []).length} | ${(A.site.modules || []).length} |\n`;
   if (results.cssBuild && results.cssBuild.overall !== 'SKIPPED') md += `\nCSS build of the After patch stack (core's build:css, separate from accessibility results): **${results.cssBuild.overall}**${results.cssBuild.overall === 'PASS' ? '' : ': the browser may not be loading the CSS this patch\'s PostCSS source produces, so this run does not validate the submitted patch'}.\n`;
+  if (results.observability?.enabled) md += `\nObservability: **enabled** for this run (\`${results.observability.run_id}\`). Browser requests carry a W3C traceparent; the Drupal execution evidence is added after collection with \`node tools/observability/cli.mjs collect <slug> --run <this directory>\`.\n`;
   for (const s of [B, A]) if (s.site.error || s.site.dbError) md += `\n${s.side}: ${s.site.error || s.site.dbError}\n`;
   return md + '\n';
 }
@@ -191,5 +207,5 @@ export function writeRun(run, results, md) {
 }
 
 export function baseResults(run, environment) {
-  return { variant: run.v.slug, issue: run.v.issue, when: new Date().toISOString(), environment, core: run.v.core, patches: run.v.after.patches || [], patchState: sidePatchStates(run.v), identity: identityRecord(identity(run.v, { labRoot, envDir })), commits: { before: gitInfo(run.v.before.env), after: gitInfo(run.v.after.env) }, cssBuild: run.cssBuild || null, sides: {} };
+  return { variant: run.v.slug, issue: run.v.issue, when: new Date().toISOString(), environment, core: run.v.core, patches: run.v.after.patches || [], patchState: sidePatchStates(run.v), identity: identityRecord(identity(run.v, { labRoot, envDir })), commits: { before: gitInfo(run.v.before.env), after: gitInfo(run.v.after.env) }, cssBuild: run.cssBuild || null, observability: { enabled: !!run.observe, run_id: run.runId, scenario_id: run.scenarioId, playwright_trace: !!run.playwrightTrace }, sides: {} };
 }

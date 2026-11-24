@@ -6,6 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import http from 'node:http';
+import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
@@ -13,6 +14,9 @@ import { fileURLToPath } from 'node:url';
 import { noWindowReason } from '../../tools/compare/browser-launch.mjs';
 
 const labRoot = fileURLToPath(new URL('../..', import.meta.url));
+// Its own hostname must reach the site lookup: 502 when no site is running, 200 when the developer has a pair up. Both
+// prove the Host gate passed; a foreign host is still 403.
+const reachedSite = (code) => [200, 502].includes(code);
 
 test('viewer: origins typed with capitals still accept the browser\'s lower-case Host and Origin', { timeout: 15000 }, async () => {
   const port = 20000 + Math.floor(Math.random() * 25000);
@@ -44,8 +48,8 @@ test('viewer: origins typed with capitals still accept the browser\'s lower-case
     const proxy = (host) => new Promise((resolve, reject) => { const q = http.request({ host: '127.0.0.1', port: port + 1, path: '/user/login', headers: { host } }, (r) => { r.resume(); r.on('end', () => resolve(r.statusCode)); }); q.on('error', reject); q.end(); });
     assert.equal(await proxy('attacker.example'), 403, 'a foreign Host is refused by the before proxy');
     assert.equal(await proxy('127.0.0.1:' + (port + 1)), 403, 'so is the bare address');
-    assert.equal(await proxy('drupal-compare-before--compare--mike.coder.example'), 502, 'its own hostname reaches the site lookup');
-    assert.equal(await proxy('Drupal-Compare-Before--Compare--Mike.coder.example'), 502, 'in any letter case');
+    assert.ok(reachedSite(await proxy('drupal-compare-before--compare--mike.coder.example')), 'its own hostname reaches the site lookup');
+    assert.ok(reachedSite(await proxy('Drupal-Compare-Before--Compare--Mike.coder.example')), 'in any letter case');
     // A window opened from a cloud workspace would be on the remote machine: the viewer is told why, and opening one is refused.
     assert.match(v.noWindow, /cloud workspace/);
     const open = await raw('POST', '/api/emulation', sameOrigin, JSON.stringify({ open: true, mode: 'normal' }));
@@ -86,8 +90,8 @@ for (const [mode, env, own, foreign] of [
     const proxy = (host) => new Promise((resolve, reject) => { const q = http.request({ host: '127.0.0.1', port: port + 1, path: '/user/login', headers: { host } }, (r) => { r.resume(); r.on('end', () => resolve(r.statusCode)); }); q.on('error', reject); q.end(); });
     try {
       for (let i = 0; i < 40 && !output.includes('compare:'); i++) await new Promise((r) => setTimeout(r, 200));
-      assert.equal(await proxy(own(port)), 502, `${own(port)} reaches the site lookup`);
-      assert.equal(await proxy(own(port).toUpperCase()), 502, 'in any letter case');
+      assert.ok(reachedSite(await proxy(own(port))), `${own(port)} reaches the site lookup`);
+      assert.ok(reachedSite(await proxy(own(port).toUpperCase())), 'in any letter case');
       assert.equal(await proxy(foreign(port)), 403, `${foreign(port)} is refused`);
       assert.equal(await proxy('attacker.example'), 403);
     } finally { child.kill('SIGTERM'); await exit; }
@@ -103,8 +107,14 @@ test('noWindowReason: a cloud workspace or a Linux machine without a display can
 });
 
 test('start-viewer.sh, cloud-smoke.mjs and test-mr.mjs build Coder app addresses in lower case', () => {
-  const sh = spawnSync('bash', ['-c', `source <(sed -n '/^DOMAIN=/,/^APP()/p' tools/compare/cloud/start-viewer.sh) && APP drupal-compare`],
+  // Bash 3.2 (the macOS default) does not source function definitions from a process substitution. Write the snippet
+  // to a temporary file instead, so this test runs on both the old macOS bash and newer CI bash.
+  const snippet = spawnSync('sed', ['-n', '/^DOMAIN=/,/^APP()/p', 'tools/compare/cloud/start-viewer.sh'], { cwd: labRoot, encoding: 'utf8' }).stdout;
+  const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'start-viewer-')), 'snippet.sh');
+  fs.writeFileSync(file, snippet);
+  const sh = spawnSync('bash', ['-c', `source ${JSON.stringify(file)} && APP drupal-compare`],
     { cwd: labRoot, encoding: 'utf8', env: { ...process.env, CODER_WORKSPACE_NAME: 'Compare', CODER_WORKSPACE_OWNER_NAME: 'Mike', CODER_AGENT_URL: 'https://Coder.Example/' } });
+  fs.rmSync(path.dirname(file), { recursive: true, force: true });
   assert.equal(sh.stdout.trim(), 'https://drupal-compare--compare--mike.coder.example', sh.stderr);
   for (const file of ['scripts/cloud-smoke.mjs', 'scripts/test-mr.mjs']) {
     const text = fs.readFileSync(path.join(labRoot, file), 'utf8');

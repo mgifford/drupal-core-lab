@@ -1,0 +1,2114 @@
+{
+  "schema_version": "1.0.0",
+  "producer": {
+    "name": "drupal-core-lab",
+    "version": "1.0.0",
+    "repository": "https://github.com/mgifford/drupal-core-lab"
+  },
+  "run": {
+    "id": "3619127-pinned-2026-11-23T17-55-59-509Z-a0d910",
+    "scenario": {
+      "id": "3619127-pinned",
+      "label": "#3619127: sidebar opens from Inline Form Errors links (MR + vanilla JS), pinned core",
+      "variant": "3619127-pinned"
+    },
+    "issue": {
+      "id": "3619127",
+      "url": "https://www.drupal.org/project/drupal/issues/3619127",
+      "synthetic": false
+    },
+    "started_at": "2026-11-23T17:57:04.353Z",
+    "finished_at": "2026-11-23T17:58:21.576Z",
+    "instrumented": true,
+    "tools": {
+      "node": "v22.20.0",
+      "playwright": "1.65.1",
+      "browser": "chromium",
+      "browser_version": "159.0.8154.6",
+      "axe_core": "4.14.1",
+      "lighthouse": null,
+      "drupal": "before:12.0-dev, after:12.0-dev",
+      "php": "before:8.5.7, after:8.5.7",
+      "otel_sdk": "1.15.0"
+    }
+  },
+  "environments": [
+    {
+      "id": "before",
+      "role": "before",
+      "label": "before",
+      "env": "baseline-main",
+      "run_id": "3619127-pinned-2026-11-23T17-55-59-509Z-a0d910",
+      "drupal_revision": "d29add7ebc18954dcb88877ed38b5bd88cdbf967",
+      "drupal_version": "12.0-dev",
+      "php_version": "8.5.7",
+      "patches": [],
+      "recipe": "ife_sidebar_repro",
+      "modules": [
+        "announcements_feed",
+        "automated_cron",
+        "big_pipe",
+        "block",
+        "block_content",
+        "breakpoint",
+        "ckeditor5",
+        "config",
+        "contextual",
+        "core_lab_observability",
+        "datetime",
+        "dblog",
+        "dynamic_page_cache",
+        "editor",
+        "field",
+        "field_ui",
+        "file",
+        "filter",
+        "help",
+        "image",
+        "inline_form_errors",
+        "layout_builder",
+        "layout_discovery",
+        "link",
+        "menu_link_content",
+        "menu_ui",
+        "navigation",
+        "node",
+        "options",
+        "page_cache",
+        "path",
+        "path_alias",
+        "sqlite",
+        "system",
+        "taxonomy",
+        "text",
+        "update",
+        "user",
+        "views_ui",
+        "views",
+        "standard"
+      ],
+      "configuration": {
+        "observability_status": "ok",
+        "endpoint": "http://otel-collector:4318/v1/traces",
+        "sample_ratio": 1,
+        "database_capture": true,
+        "admin_theme": "default_admin"
+      },
+      "observability": {
+        "enabled": true,
+        "status": "ok",
+        "endpoint_configured": true,
+        "endpoint": "http://otel-collector:4318/v1/traces",
+        "collector": "otel/opentelemetry-collector-contrib:0.165.0",
+        "export": {
+          "status": "exported",
+          "received_traces": 1,
+          "missing_traces": [],
+          "artifact_id": "collector-before",
+          "error": null
+        },
+        "reason": null
+      }
+    },
+    {
+      "id": "after",
+      "role": "after",
+      "label": "after",
+      "env": "issue-3619127-vanilla",
+      "run_id": "3619127-pinned-2026-11-23T17-55-59-509Z-a0d910",
+      "drupal_revision": "d29add7ebc18954dcb88877ed38b5bd88cdbf967",
+      "drupal_version": "12.0-dev",
+      "php_version": "8.5.7",
+      "patches": [
+        {
+          "name": "3619127-forms-sidebar-with-ife.patch",
+          "path": "reports/issues/3619127/branches/3619127-forms-sidebar-with-ife.patch",
+          "sha256": "fe90ecc44366d998fda08fef35ec7f0cbf1415714a29988ac00c922f3c79ee33"
+        },
+        {
+          "name": "patch-0-vanilla-js-no-jquery.patch",
+          "path": "reports/issues/3619127/patch-0-vanilla-js-no-jquery.patch",
+          "sha256": "177ff83f2fc6aacb0f03919c2ebbb8e65b75fdf5e426cb52f440c88ef7d41564"
+        },
+        {
+          "name": "patch-1-no-persist-and-waits.patch",
+          "path": "reports/issues/3619127/patch-1-no-persist-and-waits.patch",
+          "sha256": "63d1437ceea177e935b64f441d82998d0a9772a5f374ac6c4bc4d2394cb1eb5d"
+        }
+      ],
+      "recipe": "ife_sidebar_repro",
+      "modules": [
+        "announcements_feed",
+        "automated_cron",
+        "big_pipe",
+        "block",
+        "block_content",
+        "breakpoint",
+        "ckeditor5",
+        "config",
+        "contextual",
+        "core_lab_observability",
+        "datetime",
+        "dblog",
+        "dynamic_page_cache",
+        "editor",
+        "field",
+        "field_ui",
+        "file",
+        "filter",
+        "help",
+        "image",
+        "inline_form_errors",
+        "layout_builder",
+        "layout_discovery",
+        "link",
+        "menu_link_content",
+        "menu_ui",
+        "navigation",
+        "node",
+        "options",
+        "page_cache",
+        "path",
+        "path_alias",
+        "sqlite",
+        "system",
+        "taxonomy",
+        "text",
+        "update",
+        "user",
+        "views_ui",
+        "views",
+        "standard"
+      ],
+      "configuration": {
+        "observability_status": "ok",
+        "endpoint": "http://otel-collector:4318/v1/traces",
+        "sample_ratio": 1,
+        "database_capture": true,
+        "admin_theme": "default_admin"
+      },
+      "observability": {
+        "enabled": true,
+        "status": "ok",
+        "endpoint_configured": true,
+        "endpoint": "http://otel-collector:4318/v1/traces",
+        "collector": "otel/opentelemetry-collector-contrib:0.165.0",
+        "export": {
+          "status": "exported",
+          "received_traces": 1,
+          "missing_traces": [],
+          "artifact_id": "collector-after",
+          "error": null
+        },
+        "reason": null
+      }
+    }
+  ],
+  "playwright": {
+    "run_id": "3619127-pinned-2026-11-23T17-55-59-509Z-a0d910",
+    "trace_file": null,
+    "actions": [
+      {
+        "id": "a1",
+        "side": "before",
+        "environment_id": "before",
+        "kind": "goto",
+        "label": "Open Create Article",
+        "started_at": "2026-11-23T17:57:24.131Z",
+        "duration_ms": 2558,
+        "request_ids": [
+          "r3"
+        ],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a2",
+        "side": "before",
+        "environment_id": "before",
+        "kind": "click",
+        "label": "Open the advanced-fields sidebar",
+        "started_at": "2026-11-23T17:57:26.747Z",
+        "duration_ms": 246,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a3",
+        "side": "before",
+        "environment_id": "before",
+        "kind": "click",
+        "label": "Open the URL alias section",
+        "started_at": "2026-11-23T17:57:26.994Z",
+        "duration_ms": 532,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a4",
+        "side": "before",
+        "environment_id": "before",
+        "kind": "fill",
+        "label": "Enter an invalid URL alias (no-slash)",
+        "started_at": "2026-11-23T17:57:27.526Z",
+        "duration_ms": 188,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a5",
+        "side": "before",
+        "environment_id": "before",
+        "kind": "click",
+        "label": "Close the advanced-fields sidebar",
+        "started_at": "2026-11-23T17:57:27.714Z",
+        "duration_ms": 303,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a6",
+        "side": "before",
+        "environment_id": "before",
+        "kind": "click",
+        "label": "Save the article and wait for the validation error",
+        "started_at": "2026-11-23T17:57:28.017Z",
+        "duration_ms": 3447,
+        "request_ids": [
+          "r4"
+        ],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a7",
+        "side": "before",
+        "environment_id": "before",
+        "kind": "click",
+        "label": "Use the URL alias error link (mouse)",
+        "started_at": "2026-11-23T17:57:33.735Z",
+        "duration_ms": 63,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a8",
+        "side": "before",
+        "environment_id": "before",
+        "kind": "goto",
+        "label": "Open Create Article",
+        "started_at": "2026-11-23T17:57:40.133Z",
+        "duration_ms": 3248,
+        "request_ids": [
+          "r7"
+        ],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a9",
+        "side": "before",
+        "environment_id": "before",
+        "kind": "click",
+        "label": "Open the advanced-fields sidebar",
+        "started_at": "2026-11-23T17:57:43.517Z",
+        "duration_ms": 61,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a10",
+        "side": "before",
+        "environment_id": "before",
+        "kind": "click",
+        "label": "Open the URL alias section",
+        "started_at": "2026-11-23T17:57:43.578Z",
+        "duration_ms": 443,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a11",
+        "side": "before",
+        "environment_id": "before",
+        "kind": "fill",
+        "label": "Enter an invalid URL alias (no-slash)",
+        "started_at": "2026-11-23T17:57:44.022Z",
+        "duration_ms": 29,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a12",
+        "side": "before",
+        "environment_id": "before",
+        "kind": "click",
+        "label": "Close the advanced-fields sidebar",
+        "started_at": "2026-11-23T17:57:44.051Z",
+        "duration_ms": 55,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a13",
+        "side": "before",
+        "environment_id": "before",
+        "kind": "click",
+        "label": "Save the article and wait for the validation error",
+        "started_at": "2026-11-23T17:57:44.106Z",
+        "duration_ms": 2339,
+        "request_ids": [
+          "r8"
+        ],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a14",
+        "side": "before",
+        "environment_id": "before",
+        "kind": "press",
+        "label": "Focus the URL alias error link and press Enter",
+        "started_at": "2026-11-23T17:57:48.579Z",
+        "duration_ms": 75,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a1",
+        "side": "after",
+        "environment_id": "after",
+        "kind": "goto",
+        "label": "Open Create Article",
+        "started_at": "2026-11-23T17:58:05.622Z",
+        "duration_ms": 1251,
+        "request_ids": [
+          "r3"
+        ],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a2",
+        "side": "after",
+        "environment_id": "after",
+        "kind": "click",
+        "label": "Open the advanced-fields sidebar",
+        "started_at": "2026-11-23T17:58:06.910Z",
+        "duration_ms": 175,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a3",
+        "side": "after",
+        "environment_id": "after",
+        "kind": "click",
+        "label": "Open the URL alias section",
+        "started_at": "2026-11-23T17:58:07.085Z",
+        "duration_ms": 443,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a4",
+        "side": "after",
+        "environment_id": "after",
+        "kind": "fill",
+        "label": "Enter an invalid URL alias (no-slash)",
+        "started_at": "2026-11-23T17:58:07.528Z",
+        "duration_ms": 29,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a5",
+        "side": "after",
+        "environment_id": "after",
+        "kind": "click",
+        "label": "Close the advanced-fields sidebar",
+        "started_at": "2026-11-23T17:58:07.557Z",
+        "duration_ms": 78,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a6",
+        "side": "after",
+        "environment_id": "after",
+        "kind": "click",
+        "label": "Save the article and wait for the validation error",
+        "started_at": "2026-11-23T17:58:07.635Z",
+        "duration_ms": 827,
+        "request_ids": [
+          "r4"
+        ],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a7",
+        "side": "after",
+        "environment_id": "after",
+        "kind": "click",
+        "label": "Use the URL alias error link (mouse)",
+        "started_at": "2026-11-23T17:58:09.973Z",
+        "duration_ms": 77,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a8",
+        "side": "after",
+        "environment_id": "after",
+        "kind": "goto",
+        "label": "Open Create Article",
+        "started_at": "2026-11-23T17:58:14.442Z",
+        "duration_ms": 1015,
+        "request_ids": [
+          "r7"
+        ],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a9",
+        "side": "after",
+        "environment_id": "after",
+        "kind": "click",
+        "label": "Open the advanced-fields sidebar",
+        "started_at": "2026-11-23T17:58:15.501Z",
+        "duration_ms": 91,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a10",
+        "side": "after",
+        "environment_id": "after",
+        "kind": "click",
+        "label": "Open the URL alias section",
+        "started_at": "2026-11-23T17:58:15.592Z",
+        "duration_ms": 419,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a11",
+        "side": "after",
+        "environment_id": "after",
+        "kind": "fill",
+        "label": "Enter an invalid URL alias (no-slash)",
+        "started_at": "2026-11-23T17:58:16.011Z",
+        "duration_ms": 18,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a12",
+        "side": "after",
+        "environment_id": "after",
+        "kind": "click",
+        "label": "Close the advanced-fields sidebar",
+        "started_at": "2026-11-23T17:58:16.029Z",
+        "duration_ms": 70,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a13",
+        "side": "after",
+        "environment_id": "after",
+        "kind": "click",
+        "label": "Save the article and wait for the validation error",
+        "started_at": "2026-11-23T17:58:16.100Z",
+        "duration_ms": 1170,
+        "request_ids": [
+          "r8"
+        ],
+        "screenshot_artifact_id": null
+      },
+      {
+        "id": "a14",
+        "side": "after",
+        "environment_id": "after",
+        "kind": "press",
+        "label": "Focus the URL alias error link and press Enter",
+        "started_at": "2026-11-23T17:58:19.173Z",
+        "duration_ms": 73,
+        "request_ids": [],
+        "screenshot_artifact_id": null
+      }
+    ]
+  },
+  "requests": [
+    {
+      "id": "r1",
+      "side": "before",
+      "environment_id": "before",
+      "action_id": null,
+      "method": "GET",
+      "url": "/user/reset/[uid]/[timestamp]/[token]/login",
+      "resource_type": "document",
+      "started_at": "2026-11-23T17:57:04.353Z",
+      "duration_ms": 3274,
+      "status": 302,
+      "client_trace_id": "0815288f2b8971c49619c3419f43ffe3",
+      "client_span_id": "17f9c68d410b55b3",
+      "server_trace_id": "0815288f2b8971c49619c3419f43ffe3",
+      "server_root_span_id": "8bb13896e398619c",
+      "server_summary_available": true,
+      "correlation": "matched",
+      "export_status": "exported",
+      "error": null
+    },
+    {
+      "id": "r2",
+      "side": "before",
+      "environment_id": "before",
+      "action_id": null,
+      "method": "GET",
+      "url": "/node/add/article",
+      "resource_type": "document",
+      "started_at": "2026-11-23T17:57:16.590Z",
+      "duration_ms": 3374,
+      "status": 200,
+      "client_trace_id": "0815288f2b8971c49619c3419f43ffe3",
+      "client_span_id": "81762b130cd4783b",
+      "server_trace_id": "0815288f2b8971c49619c3419f43ffe3",
+      "server_root_span_id": "77b5aa79301fc952",
+      "server_summary_available": true,
+      "correlation": "matched",
+      "export_status": "exported",
+      "error": null
+    },
+    {
+      "id": "r3",
+      "side": "before",
+      "environment_id": "before",
+      "action_id": "a1",
+      "method": "GET",
+      "url": "/node/add/article",
+      "resource_type": "document",
+      "started_at": "2026-11-23T17:57:24.173Z",
+      "duration_ms": 1169,
+      "status": 200,
+      "client_trace_id": "0815288f2b8971c49619c3419f43ffe3",
+      "client_span_id": "f46bc58239161756",
+      "server_trace_id": "0815288f2b8971c49619c3419f43ffe3",
+      "server_root_span_id": "073db78a9bcdfed8",
+      "server_summary_available": true,
+      "correlation": "matched",
+      "export_status": "exported",
+      "error": null
+    },
+    {
+      "id": "r4",
+      "side": "before",
+      "environment_id": "before",
+      "action_id": "a6",
+      "method": "POST",
+      "url": "/node/add/article",
+      "resource_type": "document",
+      "started_at": "2026-11-23T17:57:28.145Z",
+      "duration_ms": 1539,
+      "status": 200,
+      "client_trace_id": "0815288f2b8971c49619c3419f43ffe3",
+      "client_span_id": "272c3928544e9d6a",
+      "server_trace_id": "0815288f2b8971c49619c3419f43ffe3",
+      "server_root_span_id": "68fc4356bdb88adc",
+      "server_summary_available": true,
+      "correlation": "matched",
+      "export_status": "exported",
+      "error": null
+    },
+    {
+      "id": "r5",
+      "side": "before",
+      "environment_id": "before",
+      "action_id": null,
+      "method": "GET",
+      "url": "/node/add/article",
+      "resource_type": "document",
+      "started_at": "2026-11-23T17:57:36.402Z",
+      "duration_ms": 410,
+      "status": 200,
+      "client_trace_id": "0815288f2b8971c49619c3419f43ffe3",
+      "client_span_id": "5e7b545a5205b453",
+      "server_trace_id": "0815288f2b8971c49619c3419f43ffe3",
+      "server_root_span_id": "b08008d0ec84fdce",
+      "server_summary_available": true,
+      "correlation": "matched",
+      "export_status": "exported",
+      "error": null
+    },
+    {
+      "id": "r6",
+      "side": "before",
+      "environment_id": "before",
+      "action_id": null,
+      "method": "GET",
+      "url": "/node/add/article",
+      "resource_type": "document",
+      "started_at": "2026-11-23T17:57:38.336Z",
+      "duration_ms": 588,
+      "status": 200,
+      "client_trace_id": "0815288f2b8971c49619c3419f43ffe3",
+      "client_span_id": "9f030890a949e3ed",
+      "server_trace_id": "0815288f2b8971c49619c3419f43ffe3",
+      "server_root_span_id": "dcc678ff96c643f0",
+      "server_summary_available": true,
+      "correlation": "matched",
+      "export_status": "exported",
+      "error": null
+    },
+    {
+      "id": "r7",
+      "side": "before",
+      "environment_id": "before",
+      "action_id": "a8",
+      "method": "GET",
+      "url": "/node/add/article",
+      "resource_type": "document",
+      "started_at": "2026-11-23T17:57:40.143Z",
+      "duration_ms": 823,
+      "status": 200,
+      "client_trace_id": "0815288f2b8971c49619c3419f43ffe3",
+      "client_span_id": "6b124028acee0730",
+      "server_trace_id": "0815288f2b8971c49619c3419f43ffe3",
+      "server_root_span_id": "cda99e75826845a2",
+      "server_summary_available": true,
+      "correlation": "matched",
+      "export_status": "exported",
+      "error": null
+    },
+    {
+      "id": "r8",
+      "side": "before",
+      "environment_id": "before",
+      "action_id": "a13",
+      "method": "POST",
+      "url": "/node/add/article",
+      "resource_type": "document",
+      "started_at": "2026-11-23T17:57:44.172Z",
+      "duration_ms": 969,
+      "status": 200,
+      "client_trace_id": "0815288f2b8971c49619c3419f43ffe3",
+      "client_span_id": "7f8e0129d96c8b19",
+      "server_trace_id": "0815288f2b8971c49619c3419f43ffe3",
+      "server_root_span_id": "d028b4999585820e",
+      "server_summary_available": true,
+      "correlation": "matched",
+      "export_status": "exported",
+      "error": null
+    },
+    {
+      "id": "r9",
+      "side": "before",
+      "environment_id": "before",
+      "action_id": null,
+      "method": "GET",
+      "url": "/node/add/article",
+      "resource_type": "document",
+      "started_at": "2026-11-23T17:57:50.805Z",
+      "duration_ms": 295,
+      "status": 200,
+      "client_trace_id": "0815288f2b8971c49619c3419f43ffe3",
+      "client_span_id": "72138ea792f5249d",
+      "server_trace_id": "0815288f2b8971c49619c3419f43ffe3",
+      "server_root_span_id": "ca4f51571f9b3adc",
+      "server_summary_available": true,
+      "correlation": "matched",
+      "export_status": "exported",
+      "error": null
+    },
+    {
+      "id": "r1",
+      "side": "after",
+      "environment_id": "after",
+      "action_id": null,
+      "method": "GET",
+      "url": "/user/reset/[uid]/[timestamp]/[token]/login",
+      "resource_type": "document",
+      "started_at": "2026-11-23T17:58:00.262Z",
+      "duration_ms": 1077,
+      "status": 302,
+      "client_trace_id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "client_span_id": "3a9af0191c248598",
+      "server_trace_id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "server_root_span_id": "3c3bb1017a29a33e",
+      "server_summary_available": true,
+      "correlation": "matched",
+      "export_status": "exported",
+      "error": null
+    },
+    {
+      "id": "r2",
+      "side": "after",
+      "environment_id": "after",
+      "action_id": null,
+      "method": "GET",
+      "url": "/node/add/article",
+      "resource_type": "document",
+      "started_at": "2026-11-23T17:58:03.093Z",
+      "duration_ms": 1210,
+      "status": 200,
+      "client_trace_id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "client_span_id": "67ec7f8748cc5ab7",
+      "server_trace_id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "server_root_span_id": "df79373c4b3268a2",
+      "server_summary_available": true,
+      "correlation": "matched",
+      "export_status": "exported",
+      "error": null
+    },
+    {
+      "id": "r3",
+      "side": "after",
+      "environment_id": "after",
+      "action_id": "a1",
+      "method": "GET",
+      "url": "/node/add/article",
+      "resource_type": "document",
+      "started_at": "2026-11-23T17:58:05.673Z",
+      "duration_ms": 406,
+      "status": 200,
+      "client_trace_id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "client_span_id": "584c9641747e3d08",
+      "server_trace_id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "server_root_span_id": "7539fdc79fde2166",
+      "server_summary_available": true,
+      "correlation": "matched",
+      "export_status": "exported",
+      "error": null
+    },
+    {
+      "id": "r4",
+      "side": "after",
+      "environment_id": "after",
+      "action_id": "a6",
+      "method": "POST",
+      "url": "/node/add/article",
+      "resource_type": "document",
+      "started_at": "2026-11-23T17:58:07.707Z",
+      "duration_ms": 315,
+      "status": 200,
+      "client_trace_id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "client_span_id": "b51cdbbe9c7395bf",
+      "server_trace_id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "server_root_span_id": "f5084b72b984344f",
+      "server_summary_available": true,
+      "correlation": "matched",
+      "export_status": "exported",
+      "error": null
+    },
+    {
+      "id": "r5",
+      "side": "after",
+      "environment_id": "after",
+      "action_id": null,
+      "method": "GET",
+      "url": "/node/add/article",
+      "resource_type": "document",
+      "started_at": "2026-11-23T17:58:12.164Z",
+      "duration_ms": 224,
+      "status": 200,
+      "client_trace_id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "client_span_id": "980216a5880174bf",
+      "server_trace_id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "server_root_span_id": "584296082a76b358",
+      "server_summary_available": true,
+      "correlation": "matched",
+      "export_status": "exported",
+      "error": null
+    },
+    {
+      "id": "r6",
+      "side": "after",
+      "environment_id": "after",
+      "action_id": null,
+      "method": "GET",
+      "url": "/node/add/article",
+      "resource_type": "document",
+      "started_at": "2026-11-23T17:58:13.373Z",
+      "duration_ms": 182,
+      "status": 200,
+      "client_trace_id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "client_span_id": "6ec7c56e30675036",
+      "server_trace_id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "server_root_span_id": "64f5b548a2374f8d",
+      "server_summary_available": true,
+      "correlation": "matched",
+      "export_status": "exported",
+      "error": null
+    },
+    {
+      "id": "r7",
+      "side": "after",
+      "environment_id": "after",
+      "action_id": "a8",
+      "method": "GET",
+      "url": "/node/add/article",
+      "resource_type": "document",
+      "started_at": "2026-11-23T17:58:14.451Z",
+      "duration_ms": 175,
+      "status": 200,
+      "client_trace_id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "client_span_id": "66259caa40000c15",
+      "server_trace_id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "server_root_span_id": "2509ca654f2f5c61",
+      "server_summary_available": true,
+      "correlation": "matched",
+      "export_status": "exported",
+      "error": null
+    },
+    {
+      "id": "r8",
+      "side": "after",
+      "environment_id": "after",
+      "action_id": "a13",
+      "method": "POST",
+      "url": "/node/add/article",
+      "resource_type": "document",
+      "started_at": "2026-11-23T17:58:16.167Z",
+      "duration_ms": 370,
+      "status": 200,
+      "client_trace_id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "client_span_id": "7b571a33d64b1011",
+      "server_trace_id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "server_root_span_id": "776ff21d2f0f9f60",
+      "server_summary_available": true,
+      "correlation": "matched",
+      "export_status": "exported",
+      "error": null
+    },
+    {
+      "id": "r9",
+      "side": "after",
+      "environment_id": "after",
+      "action_id": null,
+      "method": "GET",
+      "url": "/node/add/article",
+      "resource_type": "document",
+      "started_at": "2026-11-23T17:58:21.576Z",
+      "duration_ms": 270,
+      "status": 200,
+      "client_trace_id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "client_span_id": "69d2815236867bdd",
+      "server_trace_id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "server_root_span_id": "a5b9e17342d1ecd2",
+      "server_summary_available": true,
+      "correlation": "matched",
+      "export_status": "exported",
+      "error": null
+    }
+  ],
+  "traces": [
+    {
+      "id": "0815288f2b8971c49619c3419f43ffe3",
+      "environment_id": "before",
+      "side": "before",
+      "request_id": "r1",
+      "root_span_id": "8bb13896e398619c",
+      "name": "GET /user/reset/[uid]/[timestamp]/[token]/login",
+      "started_at": "2026-11-23T17:57:07Z",
+      "duration_ms": 620.84,
+      "span_count": 2,
+      "db": {
+        "query_count": 48,
+        "total_ms": 245.97,
+        "slowest_ms": 52.21,
+        "cache_query_count": 33,
+        "cache_write_count": 8,
+        "targets": {
+          "default": 48
+        },
+        "tables": [
+          "cache_bootstrap",
+          "cache_config",
+          "cache_discovery",
+          "cache_entity",
+          "cache_routes",
+          "config",
+          "key_value",
+          "main",
+          "path_alias",
+          "router",
+          "sessions",
+          "users_field_data",
+          "watchdog"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "user.reset.login",
+        "drupal.controller": "Drupal\\user\\Controller\\UserController::resetPassLogin",
+        "http.response.status_code": 302
+      }
+    },
+    {
+      "id": "0815288f2b8971c49619c3419f43ffe3",
+      "environment_id": "before",
+      "side": "before",
+      "request_id": "r1",
+      "root_span_id": "f413aa5e05079e37",
+      "name": "GET /user/1/edit",
+      "started_at": "2026-11-23T17:57:08Z",
+      "duration_ms": 5556.45,
+      "span_count": 2,
+      "db": {
+        "query_count": 493,
+        "total_ms": 2684.84,
+        "slowest_ms": 178.78,
+        "cache_query_count": 391,
+        "cache_write_count": 156,
+        "targets": {
+          "default": 493
+        },
+        "tables": [
+          "block_content",
+          "block_content_field_data",
+          "cache_bootstrap",
+          "cache_config",
+          "cache_data",
+          "cache_default",
+          "cache_discovery",
+          "cache_file_parsing",
+          "cache_menu",
+          "cache_render",
+          "cache_routes",
+          "cachetags",
+          "config",
+          "key_value",
+          "key_value_expire",
+          "menu_tree",
+          "path_alias",
+          "router",
+          "semaphore",
+          "sessions"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "entity.user.edit_form",
+        "drupal.controller": "controller.entity_form:getContentResult",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "id": "0815288f2b8971c49619c3419f43ffe3",
+      "environment_id": "before",
+      "side": "before",
+      "request_id": "r2",
+      "root_span_id": "77b5aa79301fc952",
+      "name": "GET /node/add/article",
+      "started_at": "2026-11-23T17:57:17Z",
+      "duration_ms": 2986.16,
+      "span_count": 2,
+      "db": {
+        "query_count": 154,
+        "total_ms": 1178.26,
+        "slowest_ms": 164.92,
+        "cache_query_count": 135,
+        "cache_write_count": 37,
+        "targets": {
+          "default": 154
+        },
+        "tables": [
+          "cache_bootstrap",
+          "cache_config",
+          "cache_data",
+          "cache_default",
+          "cache_discovery",
+          "cache_entity",
+          "cache_file_parsing",
+          "cache_menu",
+          "cache_render",
+          "cache_routes",
+          "cachetags",
+          "config",
+          "key_value",
+          "key_value_expire",
+          "menu_tree",
+          "path_alias",
+          "router"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "node.add",
+        "drupal.controller": "controller.entity_form:getContentResult",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "id": "0815288f2b8971c49619c3419f43ffe3",
+      "environment_id": "before",
+      "side": "before",
+      "request_id": "r3",
+      "root_span_id": "073db78a9bcdfed8",
+      "name": "GET /node/add/article",
+      "started_at": "2026-11-23T17:57:24Z",
+      "duration_ms": 825.68,
+      "span_count": 2,
+      "db": {
+        "query_count": 67,
+        "total_ms": 117.13,
+        "slowest_ms": 70.1,
+        "cache_query_count": 63,
+        "cache_write_count": 1,
+        "targets": {
+          "default": 67
+        },
+        "tables": [
+          "cache_bootstrap",
+          "cache_config",
+          "cache_data",
+          "cache_default",
+          "cache_discovery",
+          "cache_entity",
+          "cache_menu",
+          "cache_render",
+          "cache_routes",
+          "cachetags",
+          "key_value",
+          "key_value_expire"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "node.add",
+        "drupal.controller": "controller.entity_form:getContentResult",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "id": "0815288f2b8971c49619c3419f43ffe3",
+      "environment_id": "before",
+      "side": "before",
+      "request_id": "r4",
+      "root_span_id": "68fc4356bdb88adc",
+      "name": "POST /node/add/article",
+      "started_at": "2026-11-23T17:57:28Z",
+      "duration_ms": 1387.44,
+      "span_count": 2,
+      "db": {
+        "query_count": 48,
+        "total_ms": 126.94,
+        "slowest_ms": 42.47,
+        "cache_query_count": 39,
+        "cache_write_count": 3,
+        "targets": {
+          "default": 48
+        },
+        "tables": [
+          "cache_data",
+          "cache_default",
+          "cache_discovery",
+          "cache_entity",
+          "cache_menu",
+          "cache_render",
+          "cache_routes",
+          "cachetags",
+          "key_value",
+          "key_value_expire",
+          "path_alias",
+          "router",
+          "users",
+          "users_field_data"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "node.add",
+        "drupal.controller": "controller.entity_form:getContentResult",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "id": "0815288f2b8971c49619c3419f43ffe3",
+      "environment_id": "before",
+      "side": "before",
+      "request_id": "r5",
+      "root_span_id": "b08008d0ec84fdce",
+      "name": "GET /node/add/article",
+      "started_at": "2026-11-23T17:57:36Z",
+      "duration_ms": 324.18,
+      "span_count": 2,
+      "db": {
+        "query_count": 27,
+        "total_ms": 8.83,
+        "slowest_ms": 1.53,
+        "cache_query_count": 23,
+        "cache_write_count": 0,
+        "targets": {
+          "default": 27
+        },
+        "tables": [
+          "cache_data",
+          "cache_default",
+          "cache_entity",
+          "cache_menu",
+          "cache_render",
+          "cache_routes",
+          "cachetags",
+          "key_value",
+          "key_value_expire"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "node.add",
+        "drupal.controller": "controller.entity_form:getContentResult",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "id": "0815288f2b8971c49619c3419f43ffe3",
+      "environment_id": "before",
+      "side": "before",
+      "request_id": "r6",
+      "root_span_id": "dcc678ff96c643f0",
+      "name": "GET /node/add/article",
+      "started_at": "2026-11-23T17:57:38Z",
+      "duration_ms": 434.41,
+      "span_count": 2,
+      "db": {
+        "query_count": 27,
+        "total_ms": 6.53,
+        "slowest_ms": 0.82,
+        "cache_query_count": 23,
+        "cache_write_count": 0,
+        "targets": {
+          "default": 27
+        },
+        "tables": [
+          "cache_data",
+          "cache_default",
+          "cache_entity",
+          "cache_menu",
+          "cache_render",
+          "cache_routes",
+          "cachetags",
+          "key_value",
+          "key_value_expire"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "node.add",
+        "drupal.controller": "controller.entity_form:getContentResult",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "id": "0815288f2b8971c49619c3419f43ffe3",
+      "environment_id": "before",
+      "side": "before",
+      "request_id": "r7",
+      "root_span_id": "cda99e75826845a2",
+      "name": "GET /node/add/article",
+      "started_at": "2026-11-23T17:57:40Z",
+      "duration_ms": 1359.02,
+      "span_count": 2,
+      "db": {
+        "query_count": 27,
+        "total_ms": 26.51,
+        "slowest_ms": 15,
+        "cache_query_count": 23,
+        "cache_write_count": 0,
+        "targets": {
+          "default": 27
+        },
+        "tables": [
+          "cache_data",
+          "cache_default",
+          "cache_entity",
+          "cache_menu",
+          "cache_render",
+          "cache_routes",
+          "cachetags",
+          "key_value",
+          "key_value_expire"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "node.add",
+        "drupal.controller": "controller.entity_form:getContentResult",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "id": "0815288f2b8971c49619c3419f43ffe3",
+      "environment_id": "before",
+      "side": "before",
+      "request_id": "r8",
+      "root_span_id": "d028b4999585820e",
+      "name": "POST /node/add/article",
+      "started_at": "2026-11-23T17:57:44Z",
+      "duration_ms": 975.93,
+      "span_count": 2,
+      "db": {
+        "query_count": 38,
+        "total_ms": 43.94,
+        "slowest_ms": 24.24,
+        "cache_query_count": 30,
+        "cache_write_count": 0,
+        "targets": {
+          "default": 38
+        },
+        "tables": [
+          "cache_data",
+          "cache_default",
+          "cache_discovery",
+          "cache_entity",
+          "cache_menu",
+          "cache_render",
+          "cache_routes",
+          "cachetags",
+          "key_value",
+          "key_value_expire",
+          "path_alias",
+          "users",
+          "users_field_data"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "node.add",
+        "drupal.controller": "controller.entity_form:getContentResult",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "id": "0815288f2b8971c49619c3419f43ffe3",
+      "environment_id": "before",
+      "side": "before",
+      "request_id": "r9",
+      "root_span_id": "ca4f51571f9b3adc",
+      "name": "GET /node/add/article",
+      "started_at": "2026-11-23T17:57:50Z",
+      "duration_ms": 399.7,
+      "span_count": 2,
+      "db": {
+        "query_count": 27,
+        "total_ms": 5.16,
+        "slowest_ms": 0.91,
+        "cache_query_count": 23,
+        "cache_write_count": 0,
+        "targets": {
+          "default": 27
+        },
+        "tables": [
+          "cache_data",
+          "cache_default",
+          "cache_entity",
+          "cache_menu",
+          "cache_render",
+          "cache_routes",
+          "cachetags",
+          "key_value",
+          "key_value_expire"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "node.add",
+        "drupal.controller": "controller.entity_form:getContentResult",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "environment_id": "after",
+      "side": "after",
+      "request_id": "r1",
+      "root_span_id": "3c3bb1017a29a33e",
+      "name": "GET /user/reset/[uid]/[timestamp]/[token]/login",
+      "started_at": "2026-11-23T17:58:01Z",
+      "duration_ms": 116.83,
+      "span_count": 2,
+      "db": {
+        "query_count": 48,
+        "total_ms": 33.8,
+        "slowest_ms": 8.65,
+        "cache_query_count": 33,
+        "cache_write_count": 8,
+        "targets": {
+          "default": 48
+        },
+        "tables": [
+          "cache_bootstrap",
+          "cache_config",
+          "cache_discovery",
+          "cache_entity",
+          "cache_routes",
+          "config",
+          "key_value",
+          "main",
+          "path_alias",
+          "router",
+          "sessions",
+          "users_field_data",
+          "watchdog"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "user.reset.login",
+        "drupal.controller": "Drupal\\user\\Controller\\UserController::resetPassLogin",
+        "http.response.status_code": 302
+      }
+    },
+    {
+      "id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "environment_id": "after",
+      "side": "after",
+      "request_id": "r1",
+      "root_span_id": "5b8a837d8bc27258",
+      "name": "GET /user/1/edit",
+      "started_at": "2026-11-23T17:58:01Z",
+      "duration_ms": 1247.09,
+      "span_count": 2,
+      "db": {
+        "query_count": 492,
+        "total_ms": 406.99,
+        "slowest_ms": 19.86,
+        "cache_query_count": 390,
+        "cache_write_count": 155,
+        "targets": {
+          "default": 492
+        },
+        "tables": [
+          "block_content",
+          "block_content_field_data",
+          "cache_bootstrap",
+          "cache_config",
+          "cache_data",
+          "cache_default",
+          "cache_discovery",
+          "cache_file_parsing",
+          "cache_menu",
+          "cache_render",
+          "cache_routes",
+          "cachetags",
+          "config",
+          "key_value",
+          "key_value_expire",
+          "menu_tree",
+          "path_alias",
+          "router",
+          "semaphore",
+          "sessions"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "entity.user.edit_form",
+        "drupal.controller": "controller.entity_form:getContentResult",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "environment_id": "after",
+      "side": "after",
+      "request_id": "r2",
+      "root_span_id": "df79373c4b3268a2",
+      "name": "GET /node/add/article",
+      "started_at": "2026-11-23T17:58:03Z",
+      "duration_ms": 1875.68,
+      "span_count": 2,
+      "db": {
+        "query_count": 154,
+        "total_ms": 824.08,
+        "slowest_ms": 180.12,
+        "cache_query_count": 135,
+        "cache_write_count": 37,
+        "targets": {
+          "default": 154
+        },
+        "tables": [
+          "cache_bootstrap",
+          "cache_config",
+          "cache_data",
+          "cache_default",
+          "cache_discovery",
+          "cache_entity",
+          "cache_file_parsing",
+          "cache_menu",
+          "cache_render",
+          "cache_routes",
+          "cachetags",
+          "config",
+          "key_value",
+          "key_value_expire",
+          "menu_tree",
+          "path_alias",
+          "router"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "node.add",
+        "drupal.controller": "controller.entity_form:getContentResult",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "environment_id": "after",
+      "side": "after",
+      "request_id": "r3",
+      "root_span_id": "7539fdc79fde2166",
+      "name": "GET /node/add/article",
+      "started_at": "2026-11-23T17:58:05Z",
+      "duration_ms": 295.4,
+      "span_count": 2,
+      "db": {
+        "query_count": 68,
+        "total_ms": 26.65,
+        "slowest_ms": 7.88,
+        "cache_query_count": 64,
+        "cache_write_count": 1,
+        "targets": {
+          "default": 68
+        },
+        "tables": [
+          "cache_bootstrap",
+          "cache_config",
+          "cache_data",
+          "cache_default",
+          "cache_discovery",
+          "cache_entity",
+          "cache_menu",
+          "cache_render",
+          "cache_routes",
+          "cachetags",
+          "key_value",
+          "key_value_expire"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "node.add",
+        "drupal.controller": "controller.entity_form:getContentResult",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "environment_id": "after",
+      "side": "after",
+      "request_id": "r4",
+      "root_span_id": "f5084b72b984344f",
+      "name": "POST /node/add/article",
+      "started_at": "2026-11-23T17:58:07Z",
+      "duration_ms": 301.22,
+      "span_count": 2,
+      "db": {
+        "query_count": 79,
+        "total_ms": 29.9,
+        "slowest_ms": 10.81,
+        "cache_query_count": 70,
+        "cache_write_count": 3,
+        "targets": {
+          "default": 79
+        },
+        "tables": [
+          "cache_bootstrap",
+          "cache_data",
+          "cache_default",
+          "cache_discovery",
+          "cache_entity",
+          "cache_menu",
+          "cache_render",
+          "cache_routes",
+          "cachetags",
+          "key_value",
+          "key_value_expire",
+          "path_alias",
+          "router",
+          "users",
+          "users_field_data"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "node.add",
+        "drupal.controller": "controller.entity_form:getContentResult",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "environment_id": "after",
+      "side": "after",
+      "request_id": "r5",
+      "root_span_id": "584296082a76b358",
+      "name": "GET /node/add/article",
+      "started_at": "2026-11-23T17:58:12Z",
+      "duration_ms": 205.06,
+      "span_count": 2,
+      "db": {
+        "query_count": 27,
+        "total_ms": 4.49,
+        "slowest_ms": 1.12,
+        "cache_query_count": 23,
+        "cache_write_count": 0,
+        "targets": {
+          "default": 27
+        },
+        "tables": [
+          "cache_data",
+          "cache_default",
+          "cache_entity",
+          "cache_menu",
+          "cache_render",
+          "cache_routes",
+          "cachetags",
+          "key_value",
+          "key_value_expire"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "node.add",
+        "drupal.controller": "controller.entity_form:getContentResult",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "environment_id": "after",
+      "side": "after",
+      "request_id": "r6",
+      "root_span_id": "64f5b548a2374f8d",
+      "name": "GET /node/add/article",
+      "started_at": "2026-11-23T17:58:13Z",
+      "duration_ms": 210.45,
+      "span_count": 2,
+      "db": {
+        "query_count": 27,
+        "total_ms": 9.74,
+        "slowest_ms": 3.84,
+        "cache_query_count": 23,
+        "cache_write_count": 0,
+        "targets": {
+          "default": 27
+        },
+        "tables": [
+          "cache_data",
+          "cache_default",
+          "cache_entity",
+          "cache_menu",
+          "cache_render",
+          "cache_routes",
+          "cachetags",
+          "key_value",
+          "key_value_expire"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "node.add",
+        "drupal.controller": "controller.entity_form:getContentResult",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "environment_id": "after",
+      "side": "after",
+      "request_id": "r7",
+      "root_span_id": "2509ca654f2f5c61",
+      "name": "GET /node/add/article",
+      "started_at": "2026-11-23T17:58:14Z",
+      "duration_ms": 177.85,
+      "span_count": 2,
+      "db": {
+        "query_count": 27,
+        "total_ms": 6.73,
+        "slowest_ms": 1.53,
+        "cache_query_count": 23,
+        "cache_write_count": 0,
+        "targets": {
+          "default": 27
+        },
+        "tables": [
+          "cache_data",
+          "cache_default",
+          "cache_entity",
+          "cache_menu",
+          "cache_render",
+          "cache_routes",
+          "cachetags",
+          "key_value",
+          "key_value_expire"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "node.add",
+        "drupal.controller": "controller.entity_form:getContentResult",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "environment_id": "after",
+      "side": "after",
+      "request_id": "r8",
+      "root_span_id": "776ff21d2f0f9f60",
+      "name": "POST /node/add/article",
+      "started_at": "2026-11-23T17:58:16Z",
+      "duration_ms": 288.11,
+      "span_count": 2,
+      "db": {
+        "query_count": 38,
+        "total_ms": 9.27,
+        "slowest_ms": 2.41,
+        "cache_query_count": 30,
+        "cache_write_count": 0,
+        "targets": {
+          "default": 38
+        },
+        "tables": [
+          "cache_data",
+          "cache_default",
+          "cache_discovery",
+          "cache_entity",
+          "cache_menu",
+          "cache_render",
+          "cache_routes",
+          "cachetags",
+          "key_value",
+          "key_value_expire",
+          "path_alias",
+          "users",
+          "users_field_data"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "node.add",
+        "drupal.controller": "controller.entity_form:getContentResult",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "id": "23aba1ca010626ce80e8f24c1b4a519c",
+      "environment_id": "after",
+      "side": "after",
+      "request_id": "r9",
+      "root_span_id": "a5b9e17342d1ecd2",
+      "name": "GET /node/add/article",
+      "started_at": "2026-11-23T17:58:21Z",
+      "duration_ms": 290.81,
+      "span_count": 2,
+      "db": {
+        "query_count": 27,
+        "total_ms": 6.15,
+        "slowest_ms": 1.11,
+        "cache_query_count": 23,
+        "cache_write_count": 0,
+        "targets": {
+          "default": 27
+        },
+        "tables": [
+          "cache_data",
+          "cache_default",
+          "cache_entity",
+          "cache_menu",
+          "cache_render",
+          "cache_routes",
+          "cachetags",
+          "key_value",
+          "key_value_expire"
+        ]
+      },
+      "exceptions": [],
+      "export_status": "exported",
+      "artifact_ids": [],
+      "attributes": {
+        "drupal.route": "node.add",
+        "drupal.controller": "controller.entity_form:getContentResult",
+        "http.response.status_code": 200
+      }
+    }
+  ],
+  "correlation": {
+    "status": "correlated",
+    "matched_requests": 18,
+    "partially_matched_requests": 0,
+    "requests_without_server_trace": 0,
+    "requests_without_server_details": 0,
+    "server_traces_without_request": 0,
+    "notes": [
+      "20 server traces were recorded for 18 browser requests. A redirect, a re-issued request or an internal forward can produce more than one Drupal request for one browser request; the request id is shared, the root span is not."
+    ]
+  },
+  "findings": {
+    "axe": [],
+    "lighthouse": [],
+    "resources": []
+  },
+  "artifacts": [
+    {
+      "id": "server-summary-before",
+      "kind": "server-summary",
+      "path": "reports/issues/3619127/observability/2026-11-23T17-59-23-635Z/raw/requests-before.jsonl",
+      "media_type": "application/json",
+      "bytes": 8564,
+      "sha256": "c0c8316f22ace6a8e73725b3bc2c708181a98440b736229806a9bbb546f5e812",
+      "environment_id": "before",
+      "retention": "local",
+      "public": false,
+      "sanitized": true,
+      "description": "Sanitised request summaries from the Drupal module (local only)."
+    },
+    {
+      "id": "spans-before",
+      "kind": "otel-local-spans",
+      "path": "reports/issues/3619127/observability/2026-11-23T17-59-23-635Z/raw/spans-before.jsonl",
+      "media_type": "application/json",
+      "bytes": 21260,
+      "sha256": "b01f8a0c8c0fec98f05d0822735597892e7bc3c84f0ac62320a6f51f1bc47aed",
+      "environment_id": "before",
+      "retention": "local",
+      "public": false,
+      "sanitized": true,
+      "description": "Local OpenTelemetry spans (allow-listed attributes; no SQL, headers or bodies)."
+    },
+    {
+      "id": "collector-before",
+      "kind": "otel-export",
+      "path": "reports/issues/3619127/observability/2026-11-23T17-59-23-635Z/raw/collector-before.jsonl",
+      "media_type": "application/json",
+      "bytes": 169433,
+      "sha256": "2d5891d125f018ca21958b438006e49f2368958343617c7bb0c23ecd8d26aea7",
+      "environment_id": "before",
+      "retention": "local",
+      "public": false,
+      "sanitized": false,
+      "description": "Collector output (raw OTLP JSON lines; local only)."
+    },
+    {
+      "id": "server-summary-after",
+      "kind": "server-summary",
+      "path": "reports/issues/3619127/observability/2026-11-23T17-59-23-635Z/raw/requests-after.jsonl",
+      "media_type": "application/json",
+      "bytes": 8640,
+      "sha256": "1ede3edece0ddf723bfa3e9591ae530e46b42c8277994613714bc28f8c7d23ce",
+      "environment_id": "after",
+      "retention": "local",
+      "public": false,
+      "sanitized": true,
+      "description": "Sanitised request summaries from the Drupal module (local only)."
+    },
+    {
+      "id": "spans-after",
+      "kind": "otel-local-spans",
+      "path": "reports/issues/3619127/observability/2026-11-23T17-59-23-635Z/raw/spans-after.jsonl",
+      "media_type": "application/json",
+      "bytes": 21626,
+      "sha256": "ba3fb6df98a3139d92eb31e2c5bbf638860632d4407292e965de89c9f0ae81f0",
+      "environment_id": "after",
+      "retention": "local",
+      "public": false,
+      "sanitized": true,
+      "description": "Local OpenTelemetry spans (allow-listed attributes; no SQL, headers or bodies)."
+    },
+    {
+      "id": "collector-after",
+      "kind": "otel-export",
+      "path": "reports/issues/3619127/observability/2026-11-23T17-59-23-635Z/raw/collector-after.jsonl",
+      "media_type": "application/json",
+      "bytes": 117238,
+      "sha256": "6518be14ebddeef690706fd5ca58e5570ed0a59eac341202abda81e2e061c0a3",
+      "environment_id": "after",
+      "retention": "local",
+      "public": false,
+      "sanitized": false,
+      "description": "Collector output (raw OTLP JSON lines; local only)."
+    },
+    {
+      "id": "results",
+      "kind": "playwright-results",
+      "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/results.json",
+      "media_type": "application/json",
+      "bytes": 71030,
+      "sha256": "a31b23ffea7b88ed44e011c95651b87cee36f876171302cd8e42f4ea21927a88",
+      "environment_id": null,
+      "retention": "committed",
+      "public": true,
+      "sanitized": false,
+      "description": "Existing Playwright run results (native format, unchanged)."
+    },
+    {
+      "id": "browser-before",
+      "kind": "request-catalog",
+      "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/observability-before.json",
+      "media_type": "application/json",
+      "bytes": 16826,
+      "sha256": "2b7d26d7934d80b32d68153f0e930a981384f0197012843d55942f61280685c4",
+      "environment_id": "before",
+      "retention": "committed",
+      "public": true,
+      "sanitized": true,
+      "description": "Browser actions and correlation ids (no cookies, auth headers or query values)."
+    },
+    {
+      "id": "browser-after",
+      "kind": "request-catalog",
+      "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/observability-after.json",
+      "media_type": "application/json",
+      "bytes": 16997,
+      "sha256": "2afbd1b9d45b33216d2df486fa08d0551014954577fba491ac83af9a1282dea6",
+      "environment_id": "after",
+      "retention": "committed",
+      "public": true,
+      "sanitized": true,
+      "description": "Browser actions and correlation ids (no cookies, auth headers or query values)."
+    },
+    {
+      "id": "screenshot-1",
+      "kind": "screenshot",
+      "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/after-keyboard-1-error-state.png",
+      "media_type": "image/png",
+      "bytes": 43174,
+      "sha256": "54f2f1b7408b5320ca7ed88f4f162a24448823c18856a3844b0f9dadbaeb0c6a",
+      "environment_id": "after",
+      "retention": "committed",
+      "public": true,
+      "sanitized": false,
+      "description": "after-keyboard-1-error-state.png"
+    },
+    {
+      "id": "screenshot-2",
+      "kind": "screenshot",
+      "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/after-keyboard-2-after-link.png",
+      "media_type": "image/png",
+      "bytes": 67676,
+      "sha256": "61084f3db7dab90faedbeaed510f3b811805133e92fff790780f027175b70b22",
+      "environment_id": "after",
+      "retention": "committed",
+      "public": true,
+      "sanitized": false,
+      "description": "after-keyboard-2-after-link.png"
+    },
+    {
+      "id": "screenshot-3",
+      "kind": "screenshot",
+      "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/after-mouse-1-error-state.png",
+      "media_type": "image/png",
+      "bytes": 43174,
+      "sha256": "54f2f1b7408b5320ca7ed88f4f162a24448823c18856a3844b0f9dadbaeb0c6a",
+      "environment_id": "after",
+      "retention": "committed",
+      "public": true,
+      "sanitized": false,
+      "description": "after-mouse-1-error-state.png"
+    },
+    {
+      "id": "screenshot-4",
+      "kind": "screenshot",
+      "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/after-mouse-2-after-link.png",
+      "media_type": "image/png",
+      "bytes": 67676,
+      "sha256": "61084f3db7dab90faedbeaed510f3b811805133e92fff790780f027175b70b22",
+      "environment_id": "after",
+      "retention": "committed",
+      "public": true,
+      "sanitized": false,
+      "description": "after-mouse-2-after-link.png"
+    },
+    {
+      "id": "screenshot-5",
+      "kind": "screenshot",
+      "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/before-keyboard-1-error-state.png",
+      "media_type": "image/png",
+      "bytes": 43174,
+      "sha256": "54f2f1b7408b5320ca7ed88f4f162a24448823c18856a3844b0f9dadbaeb0c6a",
+      "environment_id": "before",
+      "retention": "committed",
+      "public": true,
+      "sanitized": false,
+      "description": "before-keyboard-1-error-state.png"
+    },
+    {
+      "id": "screenshot-6",
+      "kind": "screenshot",
+      "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/before-keyboard-2-after-link.png",
+      "media_type": "image/png",
+      "bytes": 43174,
+      "sha256": "54f2f1b7408b5320ca7ed88f4f162a24448823c18856a3844b0f9dadbaeb0c6a",
+      "environment_id": "before",
+      "retention": "committed",
+      "public": true,
+      "sanitized": false,
+      "description": "before-keyboard-2-after-link.png"
+    },
+    {
+      "id": "screenshot-7",
+      "kind": "screenshot",
+      "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/before-mouse-1-error-state.png",
+      "media_type": "image/png",
+      "bytes": 43174,
+      "sha256": "54f2f1b7408b5320ca7ed88f4f162a24448823c18856a3844b0f9dadbaeb0c6a",
+      "environment_id": "before",
+      "retention": "committed",
+      "public": true,
+      "sanitized": false,
+      "description": "before-mouse-1-error-state.png"
+    },
+    {
+      "id": "screenshot-8",
+      "kind": "screenshot",
+      "path": "reports/issues/3619127/playwright/2026-11-23T17-55-58-690Z-chromium-light-480x900/before-mouse-2-after-link.png",
+      "media_type": "image/png",
+      "bytes": 43129,
+      "sha256": "04be3863337925a3fe0ed34b2cf3c3415a16c31a07e0e373d3b3e5fef3f56771",
+      "environment_id": "before",
+      "retention": "committed",
+      "public": true,
+      "sanitized": false,
+      "description": "before-mouse-2-after-link.png"
+    }
+  ],
+  "limitations": [
+    "Automated accessibility rules cover only part of WCAG; a finding is not a conformance verdict.",
+    "A correlated trace shows that a request reached Drupal with the same trace id. It does not show that the patch caused the observed behaviour.",
+    "Server timings include tracing and database-logging overhead when instrumentation is on. Do not compare them with a benchmark run.",
+    "Drupal page-cache and dynamic-page-cache hits can serve a response without the instrumented request path; those requests may have no server trace."
+  ],
+  "comparison": {
+    "before_environment_id": "before",
+    "after_environment_id": "after",
+    "rows": [
+      {
+        "metric": "Browser requests",
+        "before": 9,
+        "after": 9,
+        "delta": 0,
+        "comparability": "comparable",
+        "observed": true,
+        "note": "The same scenario can issue a different number of requests, for example after an AJAX response."
+      },
+      {
+        "metric": "Server traces",
+        "before": 10,
+        "after": 10,
+        "delta": 0,
+        "comparability": "comparable",
+        "observed": true,
+        "note": ""
+      },
+      {
+        "metric": "Server duration, median (ms)",
+        "before": 900.805,
+        "after": 289.46000000000004,
+        "delta": -611.34,
+        "comparability": "comparable",
+        "observed": true,
+        "note": "Instrumented runs include database-logging and export overhead. A single pair is also noisy; repeat the run before drawing any inference, and treat the difference as diagnostic, not as a benchmark."
+      },
+      {
+        "metric": "Server duration, total (ms)",
+        "before": 14869.810000000003,
+        "after": 5008.500000000001,
+        "delta": -9861.31,
+        "comparability": "comparable",
+        "observed": true,
+        "note": "Total depends on how many requests the scenario made; compare the median as well."
+      },
+      {
+        "metric": "Database queries",
+        "before": 956,
+        "after": 987,
+        "delta": 31,
+        "comparability": "comparable",
+        "observed": true,
+        "note": "Cache state and the number of requests affect this. A difference is not by itself a problem."
+      },
+      {
+        "metric": "Database queries, median per request",
+        "before": 43,
+        "after": 43,
+        "delta": 0,
+        "comparability": "comparable",
+        "observed": true,
+        "note": ""
+      },
+      {
+        "metric": "Database time (ms)",
+        "before": 4444.109999999999,
+        "after": 1357.8000000000004,
+        "delta": -3086.31,
+        "comparability": "comparable",
+        "observed": true,
+        "note": "Query logging measures statement time only; it excludes PHP and rendering."
+      },
+      {
+        "metric": "Cache-table queries",
+        "before": 783,
+        "after": 814,
+        "delta": 31,
+        "comparability": "comparable",
+        "observed": true,
+        "note": "Inferred from queries against cache tables. This is not a cache hit/miss ratio."
+      },
+      {
+        "metric": "Exceptions recorded",
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "comparability": "comparable",
+        "observed": true,
+        "note": "Only exception class and count are recorded; messages are not exported."
+      },
+      {
+        "metric": "axe violating elements",
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "comparability": "comparable",
+        "observed": true,
+        "note": "Scanner findings, not a WCAG conformance result. Compare only when both sides were scanned at the same step."
+      }
+    ],
+    "interpretation": "Observed data, not a causal claim. A difference in duration, query count or cache activity describes what happened in these two runs under these conditions. It does not establish that the patch caused a performance or functional regression; tracing overhead, cache state, request count and environment differences can all change these numbers. Use the per-request traces and the native browser, axe-core and Lighthouse artifacts to investigate, and re-run without instrumentation before making a performance claim."
+  }
+}
