@@ -1,0 +1,70 @@
+{
+  "slug": "2574721-latest",
+  "side": "after",
+  "env": "issue-2574721-current",
+  "generated": "2026-11-23T18:39:10.373Z",
+  "commands": [
+    "cd core && yarn run build:css --check --file themes/default_admin/css/components/system-admin--modules.pcss.css"
+  ],
+  "notes": [],
+  "entries": [
+    {
+      "source": "core/themes/default_admin/css/components/system-admin--modules.pcss.css",
+      "compiled": "core/themes/default_admin/css/components/system-admin--modules.css",
+      "sourceState": "present",
+      "origin": "imported",
+      "compiledInStack": "present",
+      "state": "blocked",
+      "result": "BLOCKED",
+      "detail": "core's build:css did not run: Usage Error: Couldn't find the node_modules state file - running an install might help (findPackageLocation)",
+      "inPatch": true
+    },
+    {
+      "source": "core/modules/system/css/system.admin.pcss.css",
+      "compiled": "core/modules/system/css/system.admin.css",
+      "sourceState": "absent",
+      "origin": "imported",
+      "compiledInStack": "present",
+      "state": "no-source",
+      "result": "SKIPPED",
+      "detail": "core/modules/system/css/system.admin.css has no .pcss.css source in core, so there is nothing to compile.",
+      "inPatch": true
+    }
+  ],
+  "built": [],
+  "overall": "BLOCKED",
+  "ready": false,
+  "patches": [
+    {
+      "path": "reports/issues/2574721/branches/2574721-current-main-proposal.patch",
+      "sha256": "e2ce2f3bfd163ec3a1adb1626d3735fe74ca922c17b507bd8e635fb3c50ef8e5",
+      "authored": false
+    }
+  ],
+  "coreCommit": "97c6ff8b2534",
+  "editsBeyondPatches": 0,
+  "relevant": true,
+  "runtime": "host",
+  "tools": {
+    "node": "v24.22.0",
+    "yarn": "4.18.0",
+    "yarnWanted": "4.18.0",
+    "corepack": true
+  },
+  "cache": "miss",
+  "stylelint": {
+    "result": "NOT VERIFIED",
+    "detail": "Not run here. node scripts/lint.mjs runs core's Stylelint on the patched files."
+  },
+  "table": {
+    "PostCSS source detected": "YES",
+    "Affected source files": "1",
+    "Compiled output present": "YES",
+    "Rebuild required": "NO",
+    "Compilation completed": "SKIPPED (check only; use --build)",
+    "Source/output consistency": "BLOCKED",
+    "Stylelint": "NOT VERIFIED",
+    "Patch includes generated CSS": "PASS",
+    "Ready for submission": "NO"
+  }
+}
