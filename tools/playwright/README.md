@@ -42,8 +42,9 @@ The issue script supplies only its steps and its checks. `--out=<dir>` sends a t
 `traceparent` to same-origin document/XHR/fetch requests and writes `observability-<side>.json` next to `results.json`;
 `--playwright-trace` also records a browser trace zip. Both are off by default. Collect the server side with
 `node tools/observability/cli.mjs collect <slug> --run <run folder>`; see `../../docs/observability/README.md`.
-`viewer-execution.mjs [--live]` checks the resulting viewer/static section with axe in light, dark, forced-colours, reduced-motion
-and 320 px contexts. `resource-dashboard.mjs` does the same for the resource usage page in `cloud/`, including the native filters
+`viewer-layout.mjs`, `viewer-handoff.mjs` and `viewer-find.mjs` are standalone viewer regressions (layout, toolbar/handoff, and
+comparison search/status/order with an axe scan of the filter region); they need no DDEV. `viewer-execution.mjs [--live]` checks
+the resulting viewer/static section with axe in light, dark, forced-colours, reduced-motion and 320 px contexts. `resource-dashboard.mjs` does the same for the resource usage page in `cloud/`, including the native filters
 and the focusable table regions.
 
 ## Playwright MCP

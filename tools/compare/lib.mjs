@@ -179,3 +179,32 @@ export function assetsOf(html) {
     return { key, fetchPath: p.pathname + p.search };
   });
 }
+
+// Public status snapshot for one variant's drupal.org issue: status, priority, tags, dates and MR state.
+// Read from reports/issues/<nid>/status.json (written by scripts/issue-status.mjs --write). Comment bodies are never copied.
+// Read on each call (the file is small and the weekly check may update it while the viewer runs).
+export function issueMeta(v, { root = labRoot } = {}) {
+  const nid = v && v.issue ? String(v.issue) : null;
+  if (!nid) return null;
+  let meta = null;
+  const file = path.join(root, 'reports/issues', nid, 'status.json');
+  if (fs.existsSync(file)) {
+    try {
+      const s = JSON.parse(fs.readFileSync(file, 'utf8'));
+      const count = Number(s.comments);
+      meta = {
+        status: s.status || null,
+        status_code: Number.isFinite(Number(s.statusCode)) ? Number(s.statusCode) : null,
+        priority: s.priority || null,
+        category: s.category || null,
+        changed: s.changed || null,
+        comments: Number.isFinite(count) ? count : null,
+        title: s.title || null,
+        since: s.since || null,
+        tags: Array.isArray(s.tags) ? s.tags.slice(0, 20) : [],
+        mr: s.mr ? { state: s.mr.state || null, sha: s.mr.sha || null, draft: !!s.mr.draft } : null,
+      };
+    } catch { meta = null; }
+  }
+  return meta;
+}

@@ -14,7 +14,7 @@ import { installedBrowsers, openBrowser, noWindowReason } from './browser-launch
 // Why the preference emulation window cannot open here ('' when it can). A headless window (LAB_EMULATION_HEADLESS, for the scripted
 // checks such as tools/playwright/forced-window.mjs) needs no display.
 const noWindow = () => (process.env.LAB_EMULATION_HEADLESS ? '' : noWindowReason());
-import { labRoot, variants, envInfo, envInfoAsync, loginPathAsync, envDir, reportsDir } from './lib.mjs';
+import { labRoot, variants, issueMeta, envInfo, envInfoAsync, loginPathAsync, envDir, reportsDir } from './lib.mjs';
 
 const PAGE = Number(process.env.PORT || 8100);
 const AXE = path.join(labRoot, 'tools/compare/.deps/node_modules/axe-core/axe.min.js');
@@ -284,7 +284,7 @@ http.createServer((req, res) => {
   if (u.pathname === '/variants.json') {
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
     const availability = Object.fromEntries(list.map(v => [v.slug, ['before', 'after'].every(s => fs.existsSync(path.join(envDir(v[s].env), '.ddev/config.yaml')))]));
-    res.end(JSON.stringify({ variants: list, availability, state, repo, origins: { before: SIDES.before.origin, after: SIDES.after.origin }, sites: realSites(), noWindow: noWindow() }));
+    res.end(JSON.stringify({ variants: list.map((v) => ({ ...v, issueMeta: issueMeta(v) })), availability, state, repo, origins: { before: SIDES.before.origin, after: SIDES.after.origin }, sites: realSites(), noWindow: noWindow() }));
   } else if (u.pathname === '/reference/status-messages') {
     // A fixed read-only reference page (docs/STATUS-MESSAGES.md has the written version); it announces nothing and carries no script.
     res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' });

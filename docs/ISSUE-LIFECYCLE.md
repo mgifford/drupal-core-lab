@@ -101,3 +101,28 @@ reports.)
   A variant pinned to a core commit (usually `<nid>-pinned`) is not retired and still builds, so the Before/After evidence stays
   reproducible. A variant that extends a retired one does not inherit the mark.
 - To undo: delete `ARCHIVED.md` and the `"retired"` entries, or revert the commit that archived the issue.
+
+## Scale: what many issues cost
+
+Measured in this checkout on 2026-11-24: **41 issue folders**, **69 registered variants** (67 with a drupal.org number),
+**26 issue recipes**, and **41 `status.json` snapshots**. Only **2 environments** were built, using **1.3 GB** (about
+626 MB per Drupal environment); `reports/issues/` held **801 MB**, mostly evidence. The viewer payload was about
+**362 KB** (`cloud/variants.json`) plus a **125 KB** page, and the full weekly read of all 41 issues took **2m 5s**
+(network-bound; 0 changed).
+
+Most of that does not scale with the number of issues: folders, recipes, variants and status snapshots are small, and the
+viewer loads one grouped JSON file. The costs that do grow are:
+
+- **Built environments.** Each pair is two DDEV projects and about 1.2 GB. If all 69 variants were built, that is tens
+  of GB before shared pairs. Stop them when a review ends (`lab-env.mjs stop`), and delete or trim ones you no longer
+  need (`lab-env.mjs delete|trim`).
+- **DDEV projects and Docker.** `ddev list`, `lab-env.mjs status` and the router get slower with every registered
+  project, even stopped ones. Built environments are the main source of drag.
+- **The weekly status check.** It reads every unarchived issue from drupal.org and GitLab: about 3 seconds per issue
+  here, so the 41 issues take about two minutes. Archiving closed issues removes them from the sweep.
+- **Evidence size.** `reports/issues/` grows with screenshots and run records; it is not loaded by the viewer, but it
+  is what makes a full clone large.
+
+Keeping many *variants and recipes* is cheap. Keeping many *built environments* is not. Archive closed issues
+(`scripts/issue-archive.mjs`), retire the branch-following variant and free its environment (`lab-env.mjs retire
+<nid>-latest --yes`), and keep the pinned variant when the evidence must stay reproducible.
