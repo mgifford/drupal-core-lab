@@ -15,11 +15,11 @@
   :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
   h1 { font-size: 1.05rem; margin: 0; } h2 { font-size: 1rem; margin: 0 0 .4rem; }
   code, .path { font-family: ui-monospace, monospace; font-size: .85em; }
-  button, select, input[type=text] { font: inherit; color: inherit; }
+  button, select, input[type=text], input[type=search] { font: inherit; color: inherit; }
   .btn, button { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: .25rem .7rem; cursor: pointer; min-height: 2rem; }
   .btn:hover, button:hover { background: var(--surface2); }
   button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
-  select, input[type=text] { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: .25rem .5rem; min-height: 2rem; }
+  select, input[type=text], input[type=search] { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: .25rem .5rem; min-height: 2rem; }
   .chip { display: inline-flex; align-items: center; font-size: .75rem; padding: 0 .5rem; border-radius: 999px; border: 1px solid var(--line); background: var(--surface2); white-space: nowrap; }
   .chip.ok { background: var(--ok-bg); color: var(--ok-fg); border-color: transparent; } .chip.bad { background: var(--bad-bg); color: var(--bad-fg); border-color: transparent; } .chip.warn { background: var(--warn-bg); color: var(--warn-fg); border-color: transparent; }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -37,6 +37,13 @@
   .browser-buttons .browser-prompt { font-size: .8rem; white-space: nowrap; }
   @media (forced-colors: active) { .browser-buttons img { forced-color-adjust: none; } .browser-buttons button { background: white; } .browser-buttons img { filter: none; } }
   #variant { max-width: 16rem; min-width: 0; } .topbar label.v { max-width: 100%; display: inline-flex; flex-wrap: wrap; gap: .4rem; align-items: center; font-size: .85rem; color: var(--muted); }
+  .comparison-filters { flex: 1 0 100%; display: flex; flex-wrap: wrap; gap: .35rem .8rem; align-items: center; padding-top: .35rem; border-top: 1px solid var(--line); }
+  .comparison-filters .v { display: inline-flex; flex-wrap: wrap; gap: .35rem; align-items: center; font-size: .85rem; color: var(--muted); }
+  .comparison-filters input[type=search] { min-width: 14rem; max-width: 22rem; }
+  .comparison-filters select { max-width: 16rem; }
+  #vcount { margin-left: auto; font-size: .82rem; color: var(--muted); }
+  #vempty { flex-basis: 100%; margin: .2rem 0 0; }
+  @media (max-width: 800px) { #vcount { margin-left: 0; } }
   .topbar .goto { display: flex; gap: .4rem; flex: 1 1 16rem; min-width: 0; } .topbar .goto input { flex: 1; min-width: 6rem; }
   .topbar .state { flex-basis: 100%; display: flex; gap: .6rem; align-items: center; font-size: .85rem; color: var(--muted); }
   #status:not(:empty) { padding: 0 .6rem; border-radius: 999px; background: var(--surface2); color: var(--text); }
@@ -141,6 +148,27 @@
 <header class="topbar">
   <h1>Drupal core comparison</h1>
   <label class="v">Comparison <select id="variant" title="Switch between comparisons already built in this lab"></select></label>
+  <div class="comparison-filters" role="group" aria-label="Find and prioritise comparisons">
+    <label class="v">Find a comparison <input type="search" id="vsearch" placeholder="Issue, title, status or tag" autocomplete="off" spellcheck="false" aria-controls="variant"></label>
+    <label class="v">Issue status <select id="vstatus">
+      <option value="all">All statuses</option>
+      <option value="rtbc">RTBC</option>
+      <option value="review">Needs review</option>
+      <option value="work">Needs work</option>
+      <option value="active">Active</option>
+      <option value="other">Postponed / other</option>
+      <option value="closed">Closed</option>
+      <option value="unknown">Status unknown</option>
+      <option value="none">No issue</option>
+    </select></label>
+    <label class="v">Order <select id="vsort">
+      <option value="status">Status priority (RTBC first)</option>
+      <option value="issue">Issue number</option>
+      <option value="changed">Recently changed</option>
+    </select></label>
+    <span id="vcount" role="status" aria-live="polite"></span>
+  </div>
+  <p id="vempty" class="note" hidden>No comparison matches these filters. Clear the search or choose <strong>All statuses</strong>.</p>
   <div class="goto" data-needs="live"><label class="sr" for="goto">Page</label><input type="text" id="goto" size="26" value="/" placeholder="/node/add/article"><button type="button" id="go" class="primary">Go (both)</button></div>
   <span data-needs="live" style="display:contents">
     <button type="button" id="login" title="Log in as administrator on both sites, clear their caches and reload the page">Log in both</button>
@@ -351,7 +379,7 @@ let STATIC = /\.github\.io$/.test(location.hostname) || new URLSearchParams(loca
 const setRuntime = (s) => { STATIC = s; if (s) { const d = document.getElementById('loaddlg'); if (d && d.open) d.close(); } document.documentElement.dataset.runtime = s ? 'static' : 'local'; };
 setRuntime(STATIC);
 const F = { before: $('fb'), after: $('fa') }, P = { before: $('pb'), after: $('pa') };
-const last = { before: '', after: '' }; let origins, sites = {}; let variants = []; let availability = {}; let v;
+const last = { before: '', after: '' }; let origins, sites = {}; let variants = []; let availability = {}; let comparisonPool = []; let v;
 const other = (s) => (s === 'before' ? 'after' : 'before');
 const status = (t) => { $('status').textContent = t; };
 const radio = (name) => document.querySelector(`input[name="${name}"]:checked`).value;
@@ -530,35 +558,89 @@ function fillStaticPanel() {
   // A variant with no drupal.org issue yet (a fix proposed in the lab) has a `reports` folder and no issue link.
   $('spissuewrap').hidden = !v.issue; if (v.issue) $('spissue').href = `https://www.drupal.org/project/drupal/issues/${v.issue}`;
 }
+const STATUS_GROUPS = Object.freeze([
+  { key: 'rtbc', label: 'RTBC', rank: 0, codes: [14] },
+  { key: 'review', label: 'Needs review', rank: 1, codes: [8] },
+  { key: 'work', label: 'Needs work', rank: 2, codes: [13] },
+  { key: 'active', label: 'Active', rank: 3, codes: [1] },
+  { key: 'other', label: 'Postponed / other', rank: 4, codes: [4, 15, 16] },
+  { key: 'closed', label: 'Closed', rank: 5, codes: [2, 3, 5, 6, 7, 17, 18] },
+  { key: 'unknown', label: 'Status unknown', rank: 6, codes: [] },
+  { key: 'none', label: 'No issue', rank: 7, codes: [] },
+]);
+const statusGroup = (item) => {
+  if (!item.issue) return STATUS_GROUPS.find((g) => g.key === 'none');
+  const code = item.issueMeta?.status_code;
+  return STATUS_GROUPS.find((g) => g.codes.includes(code)) || STATUS_GROUPS.find((g) => g.key === 'unknown');
+};
+const statusLabel = (item) => statusGroup(item).label;
+const optionRank = (item) => (/-latest$/.test(item.slug) ? 0 : /-pinned$/.test(item.slug) ? 1 : 2);
+const issueNumber = (item) => (item.issue ? Number(item.issue) : Number.MAX_SAFE_INTEGER);
+const searchText = (item) => [item.slug, item.issue, item.label, item.description, statusLabel(item), statusGroup(item).key, item.issueMeta?.title, item.issueMeta?.status, item.issueMeta?.status_code, item.issueMeta?.priority, item.issueMeta?.category, ...(item.issueMeta?.tags || [])].filter((x) => x != null && x !== '').join(' ').toLowerCase();
+function variantMatches(item) {
+  for (const term of ($('vsearch').value || '').trim().toLowerCase().split(/\s+/).filter(Boolean)) if (!searchText(item).includes(term)) return false;
+  const status = $('vstatus').value;
+  return status === 'all' || statusGroup(item).key === status;
+}
+function compareVariants(a, b) {
+  const byIssue = () => issueNumber(a) - issueNumber(b) || optionRank(a) - optionRank(b) || a.slug.localeCompare(b.slug);
+  const sort = $('vsort').value;
+  if (sort === 'issue') return byIssue();
+  if (sort === 'changed') {
+    const ac = a.issueMeta?.changed || '', bc = b.issueMeta?.changed || '';
+    if (ac && bc && ac !== bc) return bc.localeCompare(ac);
+    if (ac && !bc) return -1;
+    if (!ac && bc) return 1;
+    return byIssue();
+  }
+  return statusGroup(a).rank - statusGroup(b).rank || byIssue();
+}
 function fillComparisons(data) {
-  $('variant').textContent = '';
   const isAvailable = (item) => STATIC || !data.availability || data.availability[item.slug] || item.slug === data.state?.slug;
-  const shown = variants.filter(isAvailable);
-  // One group per drupal.org issue (ascending number), then lab-only comparisons by name. Inside a group: latest, pinned, others.
-  const rank = (item) => (/-latest$/.test(item.slug) ? 0 : /-pinned$/.test(item.slug) ? 1 : 2);
+  comparisonPool = variants.filter(isAvailable);
+  renderComparisonOptions();
+}
+function renderComparisonOptions() {
+  const select = $('variant');
+  const currentSlug = v?.slug || select.value;
+  const matches = comparisonPool.filter(variantMatches).sort(compareVariants);
+  select.textContent = '';
   const groups = new Map();
-  for (const item of shown) { const key = item.issue ? `#${item.issue}` : item.slug; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(item); }
-  const keys = [...groups.keys()].sort((x, y) => (y[0] === '#') - (x[0] === '#') || (x[0] === '#' ? Number(x.slice(1)) - Number(y.slice(1)) : x.localeCompare(y)));
-  for (const key of keys) {
-    const items = groups.get(key).sort((x, y) => rank(x) - rank(y) || x.slug.localeCompare(y.slug));
+  for (const item of matches) { const key = item.issue ? `#${item.issue}` : item.slug; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(item); }
+  if (currentSlug && !matches.some((item) => item.slug === currentSlug)) {
+    const option = document.createElement('option'); option.value = currentSlug;
+    option.textContent = `${currentSlug} (current; hidden by filter)`; select.append(option);
+  }
+  for (const [key, items] of groups) {
+    items.sort((a, b) => optionRank(a) - optionRank(b) || a.slug.localeCompare(b.slug));
     const strip = (item) => item.label.replace(/^#\d+:\s*/, '').replace(/,?\s*pinned core.*$/i, '').replace(/^same steps against the LATEST.*$/i, '');
+    const title = items[0].issueMeta?.title || items.map(strip).find(Boolean) || '';
     const group = document.createElement('optgroup');
-    const peers = variants.filter((item) => (item.issue ? `#${item.issue}` : item.slug) === key);   // unbuilt peers can name the group too
-    const named = [...items, ...peers].filter((item) => rank(item) === 1).concat(items, peers).map(strip).find(Boolean) || '';
-    group.label = [key, named.slice(0, 60)].filter(Boolean).join(' · ');
+    group.label = [key, statusLabel(items[0]), title].filter(Boolean).join(' · ').slice(0, 90);
     for (const item of items) {
       const option = document.createElement('option'); option.value = item.slug;
-      const kind = rank(item) === 0 ? 'latest' : rank(item) === 1 ? 'pinned' : item.slug;
-      option.textContent = kind === item.slug || !item.issue ? `${item.slug}` : `${kind} (${item.slug})`; option.title = item.label;
+      const rank = optionRank(item);
+      const kind = rank === 0 ? 'latest' : rank === 1 ? 'pinned' : item.slug;
+      option.textContent = kind === item.slug || !item.issue ? item.slug : `${kind} (${item.slug})`;
+      const meta = item.issueMeta;
+      option.title = [meta?.status, meta?.priority, meta?.changed ? `changed ${meta.changed}` : null, meta?.comments != null ? `${meta.comments} comments` : null, item.label].filter(Boolean).join(' · ');
       group.append(option);
     }
-    $('variant').append(group);
+    select.append(group);
   }
-  if (!STATIC) {
-    const hidden = variants.length - shown.length;
-    const hint = document.createElement('option'); hint.disabled = true;
-    hint.textContent = hidden ? `${hidden} more not built: node tools/compare/setup.mjs <slug>` : 'Build other comparisons in the terminal'; $('variant').append(hint);
+  if (!matches.length) {
+    const option = document.createElement('option'); option.disabled = true; option.textContent = 'No comparisons match'; select.append(option);
   }
+  select.value = currentSlug && [...select.options].some((o) => o.value === currentSlug) ? currentSlug : (matches[0]?.slug || '');
+  const query = ($('vsearch').value || '').trim();
+  const status = $('vstatus').value;
+  const noun = STATIC ? 'comparison' : 'built comparison';
+  const parts = [`${matches.length} of ${comparisonPool.length} ${noun}${comparisonPool.length === 1 ? '' : 's'}`];
+  if (query) parts.push(`matching “${query}”`);
+  if (status !== 'all') parts.push($('vstatus').selectedOptions[0]?.textContent || status);
+  if (!STATIC) { const unbuilt = variants.length - comparisonPool.length; if (unbuilt) parts.push(`${unbuilt} not built`); }
+  $('vcount').textContent = parts.join(' · ');
+  $('vempty').hidden = matches.length > 0;
 }
 let incoming = null;
 const positions = { before: { x: 0, y: 0 }, after: { x: 0, y: 0 } };
@@ -640,6 +722,7 @@ async function init() {
   renderBrowsers().catch(() => {});
 }
 $('variant').addEventListener('change', () => chooseVariant($('variant').value));
+for (const id of ['vsearch', 'vstatus', 'vsort']) $(id).addEventListener(id === 'vsearch' ? 'input' : 'change', renderComparisonOptions);
 document.querySelectorAll('input[name="width"]').forEach((r) => r.addEventListener('change', applyWidth));
 document.querySelectorAll('input[name="theme"]').forEach((r) => r.addEventListener('change', sendState));
 $('darkos').addEventListener('change', sendState);

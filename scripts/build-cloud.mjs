@@ -6,7 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { labRoot, variants, reportsDir } from '../tools/compare/lib.mjs';
+import { labRoot, variants, issueMeta, reportsDir } from '../tools/compare/lib.mjs';
 import { assertPublic } from '../tools/resource/public.mjs';
 
 const check = process.argv.includes('--check');
@@ -30,7 +30,7 @@ function latestEvidence(v) {
 // The dashboard data crosses a publication boundary. Validate the allowlist here as well as when it is generated.
 const resourceJson = fs.readFileSync(path.join(labRoot, 'reports/resources/summary.json'), 'utf8');
 assertPublic(JSON.parse(resourceJson), 'cloud/resources.json');
-const pick = (v) => ({ slug: v.slug, issue: v.issue, reports: v.reports, label: v.label, description: v.description, comparisonGroup: v.comparisonGroup, comparisonLabel: v.comparisonLabel, before: { label: v.before.label }, after: { label: v.after.label }, steps: v.steps, expected: v.expected, actual: v.actual, setup: v.setup, observe: v.observe, checks: v.checks, pages: v.pages, demo: v.demo, executionEvidence: latestEvidence(v) });
+const pick = (v) => ({ slug: v.slug, issue: v.issue, reports: v.reports, label: v.label, description: v.description, comparisonGroup: v.comparisonGroup, comparisonLabel: v.comparisonLabel, issueMeta: issueMeta(v), before: { label: v.before.label }, after: { label: v.after.label }, steps: v.steps, expected: v.expected, actual: v.actual, setup: v.setup, observe: v.observe, checks: v.checks, pages: v.pages, demo: v.demo, executionEvidence: latestEvidence(v) });
 const files = {
   'media-preferences.mjs': fs.readFileSync(path.join(labRoot, 'tools/compare/media-preferences.mjs'), 'utf8'),
   'browser-handoff.mjs': fs.readFileSync(path.join(labRoot, 'tools/compare/browser-handoff.mjs'), 'utf8'),
