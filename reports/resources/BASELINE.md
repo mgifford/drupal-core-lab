@@ -1,6 +1,6 @@
 # Resource usage baseline
 
-Generated 2026-11-24T01:23:00.453Z. Period: 2026-10-02 to 2026-11-23. Completeness: **partial**. No AI model was called to produce this report.
+Generated 2026-11-24T13:07:54.016Z. Period: 2026-10-02 to 2026-11-23. Completeness: **partial**. No AI model was called to produce this report.
 
 ## Totals
 
@@ -20,40 +20,40 @@ Generated 2026-11-24T01:23:00.453Z. Period: 2026-10-02 to 2026-11-23. Completene
 | CPU-hours | 0.002 h | measured |
 | Peak memory | 355.1 MiB | measured/sampled |
 | GitHub Actions duration | 0.944 h (100 runs / 100 jobs) | provider-reported |
-| Tasks measured | 27 (12 success, 1 failure, 14 unknown) | derived from event outcomes |
-| Collection overhead | 0.002 h CPU, 162.5 MiB peak | measured |
+| Task ids observed | 27 (12 success, 1 failure, 14 unknown) | distinct task ids, including sessions, CI and Docker; declared-task rows are separate |
+| Collection overhead | 0.002 h CPU, 215.4 MiB peak | measured |
 
 ## Consumption by activity
 
 | Activity | Events | Tasks | Tokens | Share | Model requests | CPU-hours | Estimated cost | Method |
 |---|---:|---:|---:|---:|---:|---:|---:|---|
-| patch-development | 593 | 9 | 259,599,082 | 31.9% | 593 | — | $70.11 | request-level-v1 |
-| code-exploration | 673 | 9 | 237,103,821 | 29.2% | 673 | — | $66.37 | request-level-v1 |
-| unknown | 392 | 9 | 135,999,107 | 16.7% | 392 | — | $43.82 | request-level-v1 |
-| environment-setup | 256 | 11 | 79,624,158 | 9.8% | 255 | — | $26.37 | legacy-session-v1, request-level-v1 |
-| validation | 166 | 11 | 30,067,507 | 3.7% | 74 | 0.000 | $8.12 | legacy-session-v1, request-level-v1 |
-| issue-intake | 71 | 7 | 29,681,226 | 3.7% | 70 | — | $8.84 | legacy-session-v1, request-level-v1 |
-| infrastructure | 40 | 11 | 13,529,402 | 1.7% | 32 | 0.002 | $3.12 | legacy-session-v1, request-level-v1 |
-| playwright-testing | 29 | 5 | 8,907,219 | 1.1% | 29 | — | $2.37 | request-level-v1 |
+| patch-development | 564 | 9 | 250,239,550 | 30.8% | 564 | — | $66.79 | request-level-v1 |
+| code-exploration | 661 | 9 | 230,268,498 | 28.3% | 661 | — | $64.53 | request-level-v1 |
+| unknown | 461 | 9 | 164,507,421 | 20.2% | 461 | — | $53.11 | request-level-v1 |
+| environment-setup | 248 | 11 | 75,712,828 | 9.3% | 247 | — | $24.85 | direct-event, request-level-v1 |
+| validation | 157 | 11 | 26,383,834 | 3.2% | 65 | 0.000 | $6.82 | direct-event, request-level-v1 |
+| issue-intake | 63 | 7 | 25,935,131 | 3.2% | 62 | — | $7.88 | direct-event, request-level-v1 |
+| infrastructure | 40 | 11 | 13,529,402 | 1.7% | 32 | 0.002 | $3.12 | direct-event, request-level-v1 |
+| playwright-testing | 27 | 5 | 8,187,259 | 1.0% | 27 | — | $2.12 | request-level-v1 |
 | issue-analysis | 38 | 6 | 7,901,196 | 1.0% | 38 | — | $3.54 | request-level-v1 |
-| model-evaluation | 59 | 2 | 3,503,654 | 0.4% | 59 | — | $2.54 | legacy-session-v1, request-level-v1 |
-| github-actions | 7 | 5 | 2,399,065 | 0.3% | 5 | — | $0.60 | legacy-session-v1, request-level-v1 |
+| model-evaluation | 59 | 2 | 3,503,654 | 0.4% | 59 | — | $2.54 | direct-event, request-level-v1 |
+| github-actions | 7 | 5 | 2,399,065 | 0.3% | 5 | — | $0.60 | direct-event, request-level-v1 |
 | phpunit-execution | 7 | 2 | 1,713,625 | 0.2% | 7 | — | $0.64 | request-level-v1 |
-| resource-measurement | 5 | 4 | 1,241,616 | 0.2% | 3 | — | $0.40 | legacy-session-v1, request-level-v1 |
-| documentation-generation | 10 | 5 | 1,183,994 | 0.1% | 3 | 0.000 | $0.29 | legacy-session-v1, request-level-v1 |
+| resource-measurement | 5 | 4 | 1,241,616 | 0.2% | 3 | — | $0.40 | direct-event, request-level-v1 |
+| documentation-generation | 9 | 4 | 931,593 | 0.1% | 2 | 0.000 | $0.20 | direct-event, request-level-v1 |
 | composer-install | 2 | 1 | 328,536 | 0.0% | 2 | — | $0.07 | request-level-v1 |
 
-Rows mix two accounting methods: request-level activity where a transcript reconciles, and the older session tool-call-share allocation for historical records. The method column above names them per activity; the dashboard keeps them distinguishable. Request-level activity is associated with the request context and is not proof that the activity caused every token in it.
+Rows mix request-level activity, the older session tool-call-share allocation for historical records, and direct events (process, Docker, GitHub Actions) that were never session allocations. The method column above names them per activity; the dashboard keeps them distinguishable. Request-level activity is associated with the request context and is not proof that the activity caused every token in it.
 
 ## Code exploration subcategories
 
 | Subcategory | Events | Tokens | Share |
 |---|---:|---:|---:|
-| source_discovery | 360 | 130,544,003 | 55.1% |
-| symbol_lookup | 209 | 69,613,228 | 29.4% |
-| exploration_other | 46 | 18,407,834 | 7.8% |
-| history_investigation | 40 | 13,042,409 | 5.5% |
-| change_inspection | 17 | 4,885,999 | 2.1% |
+| source_discovery | 354 | 126,141,675 | 54.8% |
+| symbol_lookup | 207 | 69,283,924 | 30.1% |
+| exploration_other | 46 | 18,407,834 | 8.0% |
+| history_investigation | 37 | 11,684,579 | 5.1% |
+| change_inspection | 16 | 4,140,138 | 1.8% |
 | documentation_lookup | 1 | 610,348 | 0.3% |
 
 Subcategories are deterministic from the tool and operation. A repeated lookup is a diagnostic, not proof of waste.
@@ -62,12 +62,13 @@ Subcategories are deterministic from the tool and operation. A repeated lookup i
 
 | Dimension | Measure | Coverage | Basis |
 |---|---:|---:|---|
-| Activity (events) | 1,956 classified / 392 unknown | 83.3% | deterministic rules; Unknown kept explicit |
-| Activity (tokens) | 676,784,101 classified / 135,999,107 unknown | 83.3% | provider tokens with derived activity association |
-| Model requests | 1,843 classified / 392 unknown | 82.5% | one event per observable message id |
-| Tool operations | 2,155 recorded / 164 in Unknown events | 92.4% | provider/client tool records |
+| Activity (events) | 1,887 classified / 461 unknown | 80.4% | deterministic rules; Unknown kept explicit |
+| Activity (tokens) | 648,275,787 classified / 164,507,421 unknown | 79.8% | provider tokens with derived activity association |
+| Model requests | 1,774 classified / 461 unknown | 79.4% | one event per observable message id |
+| Tool operations | 2,155 recorded / 262 in Unknown events | 87.8% | provider/client tool records |
 | Drupal issue | 271 attributed events | 8.4% | independent of activity; missing issue is not Unknown activity |
-| Task (explicit) | 113 attributed events | — | explicit task metadata; session task ids are reported separately |
+| Task (declared) | 0 attributed events | — | declared in tasks.jsonl or carried as explicit task metadata |
+| Task ids (non-session) | 113 attributed events | — | CI, Docker and wrapper ids; not declared development tasks |
 | Task (session id) | 2,181 events, 812,265,879 tokens | — | a session is not one development task |
 | Declared tasks | 1 declared, 1 verified | — | explicit local task records |
 | Outcome | 156 success / 1 failure / 2,191 unknown | — | a command result is not a verified outcome |
@@ -87,7 +88,8 @@ Task keys are hashes of local task ids. Descriptions, evidence paths and session
 | Reason | Events | Tokens | Model requests | Operations |
 |---|---:|---:|---:|---:|
 | model_only_request | 231 | 80,996,080 | 231 | 0 |
-| compound_command | 137 | 44,997,860 | 137 | 140 |
+| compound_command | 138 | 45,415,014 | 138 | 142 |
+| ambiguous_activity | 68 | 28,091,160 | 68 | 96 |
 | unrecognized_command | 24 | 10,005,167 | 24 | 24 |
 
 Unknown is a measurement gap, not waste or a quality score. Missing issue attribution is reported separately above.
@@ -128,13 +130,13 @@ Provider message id deduplication; a session is counted from request events only
 
 | Measure | Value |
 |---|---:|
-| unique targets | 502 |
-| repeated targets | 49 |
-| repeated lookups | 82 |
+| unique targets | 496 |
+| repeated targets | 46 |
+| repeated lookups | 76 |
 | failed searches | 61 |
 | exploration after failure | 32 |
 | exploration after edit | 5 |
-| loop sequences | 21 |
+| loop sequences | 20 |
 | code map calls | 27 |
 | unique files | 73 |
 | result bytes | 4,696,636 |
@@ -143,7 +145,7 @@ Repeated lookups are diagnostics, not proof of waste: a file may have changed, a
 
 ## Classification method versions
 
-Classifier: 2.0.0. Accounting versions: legacy-session-v1, request-level-v1. Request-level activity is the primary operation of a request. It is associated with the request context, not proven to have caused every token in it.
+Classifier: 2.1.0. Accounting versions: direct-event, request-level-v1. Request-level activity is the primary operation of a request when at most one strong activity is present; otherwise it stays Unknown with ambiguous_activity. It is associated with the request context, not proven to have caused every token in it.
 
 ## Resource usage by Drupal issue
 
@@ -224,16 +226,16 @@ Missing values are shown as “—” and are not zero. Sources: claude-transcri
 ### A material share of request context is associated with code exploration
 
 - Priority: **high** · classification: **possible-inefficiency** (derived)
-- Measurement: tokens=237103821, share=0.292, unit=share of provider-reported request tokens
-- Evidence event ids: ec05969d5665, fd52861ac025, 3df48d071623, 7fb267003967, e97b4c0ce9cc, 7beacec31700, 0ec0ebd2b8f8, e0a56a86f13d
+- Measurement: tokens=230268498, share=0.283, unit=share of provider-reported request tokens
+- Evidence event ids: 3b5f86961b21, 0195f387ae53, 1d61a5cce9e9, 8381a2a2e5de, fa9335d33fd0, 9a9b7e42a42c, 25bfc6145699, 30aedbd73c84
 - Recommendation: When a lookup needs several reads, try `node scripts/code-map.mjs <env|folder> <symbol|file>` once before a grep/sed chain; compare the next comparable session before changing instructions.
 - Limitation: Request context is associated with the primary activity, not proven to be caused by it. Complex accessibility work may legitimately need this exploration.
 
 ### A material share of request context has no reliable activity classification
 
 - Priority: **high** · classification: **possible-inefficiency** (derived)
-- Measurement: tokens=135999107, share=0.167, model_requests=392, reasons=model_only_request:80996080, compound_command:44997860, unrecognized_command:10005167, unit=share of provider-reported tokens
-- Evidence event ids: d386045294ac, 877f7f1a8cad, b1c04b92e8ad, 4147b8f5cdb4, 7e10f13effba, 891a7d35b0d2, 61088471a800, aa0279ba24a9
+- Measurement: tokens=164507421, share=0.202, model_requests=461, reasons=model_only_request:80996080, compound_command:45415014, ambiguous_activity:28091160, unrecognized_command:10005167, unit=share of provider-reported tokens
+- Evidence event ids: c0cc699e1f16, 2426f171178a, 73946c80351b, 1e3e06c7e510, 7bb4f96bdc36, 5af3ba38c13a, 7beef850f22b, 2fb0d61bd71e
 - Recommendation: Inspect the reason breakdown in the Unknown view. Model-only requests have no tool evidence; unrecognized commands need a registry rule; compound commands need a clearer script or a narrower single-purpose call.
 - Limitation: Unknown is not waste. It is a measurement gap and can be reduced only by better evidence, not by relabelling.
 
@@ -241,15 +243,15 @@ Missing values are shown as “—” and are not zero. Sources: claude-transcri
 
 - Priority: **high** · classification: **possible-inefficiency** (derived)
 - Measurement: sessions=9, max_start_tokens=81179, max_average_tokens=531038, unit=tokens
-- Evidence event ids: ec05969d5665, fd52861ac025, 3df48d071623, 7fb267003967, e97b4c0ce9cc, 7beacec31700, 0ec0ebd2b8f8, e0a56a86f13d
+- Evidence event ids: 3b5f86961b21, 0195f387ae53, 1d61a5cce9e9, 8381a2a2e5de, fa9335d33fd0, 9a9b7e42a42c, 25bfc6145699, 30aedbd73c84
 - Recommendation: Measure the starting context with `node scripts/context-size.mjs` before changing AGENTS.md, skills or memory files. The client re-reads context on every call, so a smaller start can matter more than a single large result.
 - Limitation: A large context is not waste by itself; it may carry essential evidence. The existing 2026-10-15 option-C work already reduced AGENTS.md from 8.6k to 2.9k tokens.
 
 ### The same environment work appears more than once
 
 - Priority: **medium** · classification: **possible-inefficiency** (derived)
-- Measurement: events=258, unit=activity events with the same activity, variant and commit
-- Evidence event ids: df6f567febc4, ab6343e4c881, 13945756f7a3, 852e2ed49df3, 030f63f7fdab, e238da6eac5f, 20f66e053674, 573fe6c39c66
+- Measurement: events=250, unit=activity events with the same activity, variant and commit
+- Evidence event ids: abaa59d8dff7, e57163c98764, 7ef62aca18a7, f79e4f3d1430, aa4c801f47d5, 64296f787b41, 5b5dac4ca7d5, 57c83fa60bf2
 - Recommendation: Check whether the environment was unchanged before re-running Composer, cache rebuild or setup; `setup.mjs` is resumable and `lab-env.mjs status` shows what exists.
 - Limitation: An activity label does not prove the work was redundant; a failed or partial build can legitimately need a rerun.
 
@@ -264,8 +266,8 @@ Missing values are shown as “—” and are not zero. Sources: claude-transcri
 ### Some sessions repeat a lookup target
 
 - Priority: **low** · classification: **possible-inefficiency** (derived)
-- Measurement: repeated_lookups=82, repeated_targets=49, sessions=10, unit=repeated lookup operations
-- Evidence event ids: ec05969d5665, fd52861ac025, 3df48d071623, 7fb267003967, e97b4c0ce9cc, 7beacec31700, 0ec0ebd2b8f8, e0a56a86f13d
+- Measurement: repeated_lookups=76, repeated_targets=46, sessions=10, unit=repeated lookup operations
+- Evidence event ids: 3b5f86961b21, 0195f387ae53, 1d61a5cce9e9, 8381a2a2e5de, fa9335d33fd0, 9a9b7e42a42c, 25bfc6145699, 30aedbd73c84
 - Recommendation: Check whether the target changed, a test failed, or the second lookup crossed a task boundary. Prefer one `code-map.mjs` call when a symbol must be located and read; do not suppress a necessary re-read after an edit.
 - Limitation: The client transcript records the target and order, not the reason. A repeated lookup after a patch or a new revision can be necessary.
 

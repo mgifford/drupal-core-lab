@@ -19,12 +19,12 @@ earlier single-number view.
 |---|---|---|
 | Token total | 812,783,208 | 812,783,208 (same source total) |
 | Accounting unit | Session; tokens split by tool-call share | One event per provider message id where the source reconciles |
-| Unknown activity | 274,631,430 tokens (33.8%), 688 requests | 135,999,107 tokens (16.7%), 392 requests |
-| Code exploration | 200,426,180 tokens (24.7%) | 237,103,821 tokens (29.2%) |
-| Patch development | 65,585,998 tokens (8.1%) | 259,599,082 tokens (31.9%) |
-| Validation | 109,952,202 tokens (13.5%) | 30,067,507 tokens (3.7%) |
+| Unknown activity | 274,631,430 tokens (33.8%), 688 requests | 164,507,421 tokens (20.2%), 461 requests |
+| Code exploration | 200,426,180 tokens (24.7%) | 230,268,498 tokens (28.3%) |
+| Patch development | 65,585,998 tokens (8.1%) | 250,239,550 tokens (30.8%) |
+| Validation | 109,952,202 tokens (13.5%) | 26,383,834 tokens (3.2%) |
 | Drupal issue unattributed | 744,513,755 tokens | 744,513,755 tokens (same) |
-| Activity basis | Heuristic tool-call-share allocation | Primary operation of each request; all components retained |
+| Activity basis | Heuristic tool-call-share allocation | Primary operation of each request when at most one strong activity is present; otherwise Unknown/`ambiguous_activity`; all components retained |
 
 **The Unknown share fell because the measurement unit and rule set changed, not because fewer tokens were consumed.**
 No token total fell. Request context is associated with the activity happening at that request; it is not proven to be
@@ -37,11 +37,13 @@ session.
 | Reason | Events | Tokens | Model requests | Operations | What it means |
 |---|---:|---:|---:|---:|---|
 | `model_only_request` | 231 | 80,996,080 | 231 | 0 | The provider request contains no tool invocation. It is a real request and stays visible; there is no tool-based activity evidence. |
-| `compound_command` | 137 | 44,997,860 | 137 | 140 | A shell command mixed a resolvable operation with an unresolved one, or a heredoc/inline code body had no determinable purpose. |
+| `compound_command` | 138 | 45,415,014 | 138 | 142 | A shell command mixed a resolvable operation with an unresolved one, or a heredoc/inline code body had no determinable purpose. |
+| `ambiguous_activity` | 68 | 28,091,160 | 68 | 96 | The request or command contains more than one strong activity. No primary is asserted; every component is preserved. |
 | `unrecognized_command` | 24 | 10,005,167 | 24 | 24 | A simple command or script has no registry rule. |
 
-No `parser_error`, `unrecognized_tool`, `ambiguous_activity`, or `missing_usage` remained after the parser fixes in this
-change; the categories stay in the schema for future data.
+No `parser_error`, `unrecognized_tool` or `missing_usage` remained after the parser fixes in this change. `ambiguous_activity`
+is present by design for requests and commands with more than one strong activity; it is a measurement limit, not a parser
+failure. The other categories stay in the schema for future data.
 
 ### Model-only requests are the largest recoverable-looking group, but are not recoverable by a classifier
 
@@ -51,7 +53,7 @@ the next step, drafting the answer, or reconsidering the previous one. The curre
 specific reason. Recovering them would need turn-level task metadata from the client, which the transcript does not
 provide. **Recommendation: keep Unknown; do not add a heuristic attribution solely to lower the share.**
 
-### Compound commands: 45.0M tokens
+### Compound commands: 45.4M tokens
 
 These are not one class. Local inspection of the representative sequences shows:
 
@@ -60,9 +62,10 @@ These are not one class. Local inspection of the representative sequences shows:
 - inline Python/Node heredocs whose write/read/test purpose is not distinguishable from the command line;
 - commands that mix two substantive operations (for example a validation run and a historical lookup).
 
-The deterministic primary-operation rule already resolves the cases where one operation is clearly substantive. The
-remaining cases need either a narrower command, a named lab script, or a rule for a specific program. Candidate fixes,
-ranked by evidence:
+The deterministic primary-operation rule already resolves the cases where one operation is clearly substantive. If two
+strong activities are present, the result stays Unknown with `ambiguous_activity` instead of choosing one. The remaining
+cases need either a narrower command, a named lab script, or a rule for a specific program. Candidate fixes, ranked by
+evidence:
 
 1. **Prefer one lab script per intent** when the same multi-step command recurs. The project already has scripts for most
    of these flows; a chained command is harder to classify and re-reads context after each step.
@@ -79,16 +82,16 @@ tests include negative controls so a new rule cannot silently turn `node` into v
 
 ## Attribution coverage
 
-- Activity: 1,956 of 2,348 counted events classified (83.3% of events and 83.3% of tokens).
-- Model requests: 1,843 of 2,235 classified (82.5%). The difference from the event count is the 54 model-eval requests,
+- Activity: 1,887 of 2,348 counted events classified (80.4% of events and 79.8% of tokens).
+- Model requests: 1,774 of 2,235 classified (79.4%). The difference from the event count is the 54 model-eval requests,
   which are already classified.
-- Tool operations: 2,155 recorded, 164 inside Unknown events (92.4% of operations are in a classified event).
+- Tool operations: 2,155 recorded, 262 inside Unknown events (87.8% of operations are in a classified event).
 - Drupal issue: 8.4% of tokens are attributed to an issue. This is a separate gap and is unchanged from the historical
   report; it is not a classification failure.
 - Explicit task: one local task record now exists (`issue-3619127`, `accessibility-evaluation`, `completed_verified`,
   verified by the owner, no mapped session, expected deliverable `accessibility-findings`). It has zero request events,
   so it appears in the task view with no resource attribution and `data_completeness: unavailable`. 113 events carry
-  non-session task ids from process, CI and model-eval records, but those are not development-task declarations. 2,181
+  non-session task ids from process, CI and Docker records, but those are not development-task declarations. 2,181
   request events are associated with a session task id; a session is not one task. The missing resource association is
   explicit, not zero consumption.
 
