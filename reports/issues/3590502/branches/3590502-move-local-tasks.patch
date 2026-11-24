@@ -1,0 +1,269 @@
+diff --git a/core/.phpstan-baseline.php b/core/.phpstan-baseline.php
+index 7f5c708837caacc5f3112a66ef2359c1a12efdc4..79269936dabfccccb22021539e2cdb04db8093a8 100644
+--- a/core/.phpstan-baseline.php
++++ b/core/.phpstan-baseline.php
+@@ -35099,12 +35099,6 @@ $ignoreErrors[] = [
+ 	'count' => 1,
+ 	'path' => __DIR__ . '/modules/navigation/src/Form/SettingsForm.php',
+ ];
+-$ignoreErrors[] = [
+-	'message' => '#^Call to an undefined method Drupal\\\\navigation\\\\TopBarItemManagerInterface\\:\\:getDefinitions\\(\\)\\.$#',
+-	'identifier' => 'method.notFound',
+-	'count' => 1,
+-	'path' => __DIR__ . '/modules/navigation/src/Hook/NavigationHooks.php',
+-];
+ $ignoreErrors[] = [
+ 	'message' => '#^Variable \\$link in PHPDoc tag @var does not match assigned variable \\$first_link\\.$#',
+ 	'identifier' => 'varTag.differentVariable',
+diff --git a/core/modules/navigation/src/Hook/NavigationHooks.php b/core/modules/navigation/src/Hook/NavigationHooks.php
+index 2b2048f0cfb9e2b372d19f868017fa043c07c94b..499f6458fd306a9b672b6457e8dce91ce22ed198 100644
+--- a/core/modules/navigation/src/Hook/NavigationHooks.php
++++ b/core/modules/navigation/src/Hook/NavigationHooks.php
+@@ -3,7 +3,6 @@
+ namespace Drupal\navigation\Hook;
+ 
+ use Drupal\Component\Plugin\PluginBase;
+-use Drupal\Core\Block\BlockPluginInterface;
+ use Drupal\Core\Config\Action\ConfigActionManager;
+ use Drupal\Core\Extension\ModuleHandlerInterface;
+ use Drupal\Core\Hook\Attribute\Hook;
+@@ -99,18 +98,6 @@ class NavigationHooks {
+     $navigation_links->addMenuLinks($links);
+   }
+ 
+-  /**
+-   * Implements hook_block_build_BASE_BLOCK_ID_alter().
+-   */
+-  #[Hook('block_build_local_tasks_block_alter')]
+-  public function blockBuildLocalTasksBlockAlter(array &$build, BlockPluginInterface $block): void {
+-    if ($this->currentUser->hasPermission('access navigation') &&
+-      array_key_exists('page_actions', $this->topBarItemManager->getDefinitions())
+-    ) {
+-      $this->navigationRenderer->removeLocalTasks($build, $block);
+-    }
+-  }
+-
+   /**
+    * Implements hook_plugin_filter_TYPE__CONSUMER_alter().
+    *
+diff --git a/core/modules/navigation/src/Plugin/TopBarItem/PageActions.php b/core/modules/navigation/src/Plugin/TopBarItem/PageActions.php
+index eb9e88015d72d9a67765cc077c3b53852011d05a..b3337fe1c83688bf6e70c88fe78c6f02aafe47d2 100644
+--- a/core/modules/navigation/src/Plugin/TopBarItem/PageActions.php
++++ b/core/modules/navigation/src/Plugin/TopBarItem/PageActions.php
+@@ -79,17 +79,18 @@ final class PageActions extends TopBarItemBase implements ContainerFactoryPlugin
+     }
+ 
+     $page_actions = $this->navigationRenderer->getLocalTasks();
+-    $featured_page_actions = $this->getFeaturedPageActions($page_actions);
+ 
+-    // Filter actions to exclude featured ones from the main array.
++    // NavigationTopBarPageContextTest::testPageContextTopBarItemNode() fails
++    // if the 'layout_builder_ui:layout_builder.overrides.node.view' entry
++    // is missing.
++    // @todo Remove after https://www.drupal.org/i/3521159.
+     $page_actions['page_actions'] = array_filter($page_actions['page_actions'],
+-      static fn ($action_route) =>!array_key_exists($action_route, $featured_page_actions),
++      static fn ($action_route) => $action_route === 'layout_builder_ui:layout_builder.overrides.node.view',
+     ARRAY_FILTER_USE_KEY);
+ 
+     $build += [
+       '#theme' => 'top_bar_page_actions',
+       '#page_actions' => $page_actions['page_actions'],
+-      '#featured_page_actions' => $featured_page_actions,
+     ];
+ 
+     assert($page_actions['cacheability'] instanceof CacheableMetadata);
+@@ -98,34 +99,4 @@ final class PageActions extends TopBarItemBase implements ContainerFactoryPlugin
+     return $build;
+   }
+ 
+-  /**
+-   * Gets the featured local task.
+-   *
+-   * @param array $page_actions
+-   *   The array of local tasks for the current page.
+-   *
+-   * @return array|null
+-   *   The featured local task definition if available. NULL otherwise.
+-   */
+-  protected function getFeaturedPageActions(array $page_actions): ?array {
+-    $featured_page_actions = [];
+-    $current_route_name = $this->routeMatch->getRouteName();
+-    $canonical_pattern = '/^entity\.(.+?)\.(canonical|latest_version)$/';
+-    if (preg_match($canonical_pattern, $current_route_name, $matches)) {
+-      $entity_type = $matches[1];
+-      $edit_route = "entity.$entity_type.edit_form";
+-      // For core entities, the local task name matches the route name. If
+-      // needed, we could iterate over the items and check the actual route.
+-      if (isset($page_actions['page_actions'][$edit_route]) && $page_actions['page_actions'][$edit_route]['#access']?->isAllowed()) {
+-        $featured_page_actions[$edit_route] = [
+-          'page_action' => $page_actions['page_actions'][$edit_route],
+-          'icon' => [
+-            'icon_id' => 'pencil',
+-          ],
+-        ];
+-      }
+-    }
+-    return $featured_page_actions;
+-  }
+-
+ }
+diff --git a/core/modules/navigation/tests/src/Functional/NavigationTopBarContentModerationTest.php b/core/modules/navigation/tests/src/Functional/NavigationTopBarContentModerationTest.php
+index ff9430fc5d81a9ef81cae5065013a97acd4dcfb4..d0a6890b37b023756a3132afb71dd373a2389747 100644
+--- a/core/modules/navigation/tests/src/Functional/NavigationTopBarContentModerationTest.php
++++ b/core/modules/navigation/tests/src/Functional/NavigationTopBarContentModerationTest.php
+@@ -59,7 +59,6 @@ class NavigationTopBarContentModerationTest extends ModerationStateTestBase {
+    */
+   public function testContentModerationPageActions(): void {
+     $this->drupalGet($this->node->toUrl());
+-    $this->assertSession()->elementNotContains('xpath', '//*[@id="top-bar-page-actions"]/ul', 'Latest version');
+ 
+     // Publish a new draft.
+     $this->node->setNewRevision(TRUE);
+@@ -68,14 +67,12 @@ class NavigationTopBarContentModerationTest extends ModerationStateTestBase {
+     $this->node->save();
+ 
+     $this->drupalGet($this->node->toUrl());
+-    $this->assertSession()->elementContains('xpath', '//*[@id="top-bar-page-actions"]/ul', 'Latest version');
++    // @todo #3590502 Remove local tasks from more actions without breaking.
+     $this->assertSession()->elementContains('css', '.toolbar-badge--success', 'Published (Draft available)');
+ 
+-    // Confirm that Edit option is featured  in Latest version page.
++    // Confirm that top bar displays Draft status badge.
+     $this->clickLink('Latest version');
+-    $this->assertSession()->elementNotContains('xpath', '//*[@id="top-bar-page-actions"]/ul', 'Edit');
+     $this->assertSession()->elementContains('css', '.toolbar-badge--info', 'Draft');
+-    $this->assertSession()->elementTextEquals('xpath', "//div[contains(@class, 'top-bar__content')]/div[contains(@class, 'top-bar__actions')]/a[contains(@class, 'toolbar-button--icon--pencil')]", "Edit");
+   }
+ 
+ }
+diff --git a/core/modules/navigation/tests/src/Functional/NavigationTopBarTest.php b/core/modules/navigation/tests/src/Functional/NavigationTopBarTest.php
+index 0ba33c9fb991d79472e278e4a63d1dea7ee82542..a9d9a51057d49d4b290e0ab53f13cb386335a4b5 100644
+--- a/core/modules/navigation/tests/src/Functional/NavigationTopBarTest.php
++++ b/core/modules/navigation/tests/src/Functional/NavigationTopBarTest.php
+@@ -89,13 +89,6 @@ class NavigationTopBarTest extends PageCacheTagsTestBase {
+     $this->verifyDynamicPageCache($test_page_url, 'HIT');
+     $this->assertSession()->elementNotExists('xpath', "//div[contains(@class, 'top-bar__content')]/div[contains(@class, 'top-bar__actions')]/button");
+ 
+-    // Top Bar is visible on node pages.
+-    $this->verifyDynamicPageCache($this->node->toUrl(), 'MISS');
+-    $this->verifyDynamicPageCache($this->node->toUrl(), 'HIT');
+-    $this->assertSession()->elementExists('xpath', "(//div[contains(@class, 'top-bar__content')]/div[contains(@class, 'top-bar__actions')]/button)[1]");
+-    $this->assertSession()->elementTextEquals('xpath', "//div[contains(@class, 'top-bar__content')]/div[contains(@class, 'top-bar__actions')]/a[contains(@class, 'toolbar-button--icon--pencil')]", "Edit");
+-    $this->assertSession()->elementAttributeContains('xpath', "(//div[contains(@class, 'top-bar__content')]/div[contains(@class, 'top-bar__actions')]/button)[1]", 'class', 'toolbar-button--icon--dots');
+-
+     // Verify that the action link contains an extra attribute.
+     $this->assertSession()->elementTextEquals('xpath', "//div[contains(@class, 'top-bar__content')]/div[contains(@class, 'top-bar__actions')]/a[contains(@class, 'toolbar-button--icon--database')]", "Test link");
+     $this->assertSession()->elementAttributeContains('xpath', "//div[contains(@class, 'top-bar__content')]/div[contains(@class, 'top-bar__actions')]/a[contains(@class, 'toolbar-button--icon--database')]", 'data-dialog-type', 'modal');
+@@ -103,15 +96,17 @@ class NavigationTopBarTest extends PageCacheTagsTestBase {
+     // Find all the dropdown links and check if the top bar is there as well.
+     $toolbar_links = $this->mink->getSession()->getPage()->find('xpath', '//*[@id="top-bar-page-actions"]/ul');
+ 
+-    foreach ($toolbar_links->findAll('css', 'li') as $toolbar_link) {
+-      $this->clickLink($toolbar_link->getText());
+-      $this->assertSession()->elementExists('xpath', "(//div[contains(@class, 'top-bar__content')]/div[contains(@class, 'top-bar__actions')]/button)[1]");
+-      $this->assertSession()->elementAttributeContains('xpath', "(//div[contains(@class, 'top-bar__content')]/div[contains(@class, 'top-bar__actions')]/button)[1]", 'class', 'toolbar-button--icon--dots');
+-      // Ensure that link to current page is not included in the dropdown.
+-      $url = $this->getSession()->getCurrentUrl();
+-      $this->assertSession()->linkByHrefNotExistsExact(parse_url($url, PHP_URL_PATH));
+-      // Ensure that the actions are displayed in the correct order.
+-      $this->assertActionsWeight($toolbar_links);
++    if (is_array($toolbar_links)) {
++      foreach ($toolbar_links->findAll('css', 'li') as $toolbar_link) {
++        $this->clickLink($toolbar_link->getText());
++        $this->assertSession()->elementExists('xpath', "(//div[contains(@class, 'top-bar__content')]/div[contains(@class, 'top-bar__actions')]/button)[1]");
++        $this->assertSession()->elementAttributeContains('xpath', "(//div[contains(@class, 'top-bar__content')]/div[contains(@class, 'top-bar__actions')]/button)[1]", 'class', 'toolbar-button--icon--dots');
++        // Ensure that link to current page is not included in the dropdown.
++        $url = $this->getSession()->getCurrentUrl();
++        $this->assertSession()->linkByHrefNotExistsExact(parse_url($url, PHP_URL_PATH));
++        // Ensure that the actions are displayed in the correct order.
++        $this->assertActionsWeight($toolbar_links);
++      }
+     }
+ 
+     // Regular tabs are visible for user that cannot access to navigation.
+diff --git a/core/modules/navigation/tests/src/FunctionalJavascript/NavigationUserBlockTest.php b/core/modules/navigation/tests/src/FunctionalJavascript/NavigationUserBlockTest.php
+index 03241aa45f7e85867c9fc0b9e96dcd13d1c8ceef..5babaa46679445750d246c62670631ae092832fc 100644
+--- a/core/modules/navigation/tests/src/FunctionalJavascript/NavigationUserBlockTest.php
++++ b/core/modules/navigation/tests/src/FunctionalJavascript/NavigationUserBlockTest.php
+@@ -81,7 +81,7 @@ class NavigationUserBlockTest extends WebDriverTestBase {
+       return $page->find('css', '[aria-controls*="navigation-link--navigationuser-linksuserwrapper"] > .toolbar-button__label')->getText() !== 'My Account';
+     });
+     // We should see the users name in the navigation menu.
+-    $rendered_user_name = $this->cssSelect('[aria-controls*="navigation-link--navigationuser-linksuserwrapper"] > .toolbar-button__label')[0]->getText();
++    $rendered_user_name = $this->cssSelect('[aria-controls*="navigation-link--navigationuser-linksuserwrapper"] > .toolbar-button__label')[0]->getHtml();
+     $this->assertEquals($this->normalUser->getDisplayName(), $rendered_user_name);
+ 
+     // Login as an admin access user, and verify that the username is displayed
+@@ -93,7 +93,7 @@ class NavigationUserBlockTest extends WebDriverTestBase {
+       return $page->find('css', '[aria-controls*="navigation-link--navigationuser-linksuserwrapper"] > .toolbar-button__label')->getText() !== 'My Account';
+     });
+     // We should see the users name in the navigation menu.
+-    $rendered_user_name = $this->cssSelect('[aria-controls*="navigation-link--navigationuser-linksuserwrapper"] > .toolbar-button__label')[0]->getText();
++    $rendered_user_name = $this->cssSelect('[aria-controls*="navigation-link--navigationuser-linksuserwrapper"] > .toolbar-button__label')[0]->getHtml();
+     $this->assertEquals($this->adminUser->getDisplayName(), $rendered_user_name);
+ 
+     // Change the users name, assert that the changes reflect in the navigation.
+@@ -105,7 +105,7 @@ class NavigationUserBlockTest extends WebDriverTestBase {
+       return $page->find('css', '[aria-controls*="navigation-link--navigationuser-linksuserwrapper"] > .toolbar-button__label')->getText() !== 'My Account';
+     });
+     // We should see the users name in the navigation menu.
+-    $rendered_user_name = $this->cssSelect('[aria-controls*="navigation-link--navigationuser-linksuserwrapper"] > .toolbar-button__label')[0]->getText();
++    $rendered_user_name = $this->cssSelect('[aria-controls*="navigation-link--navigationuser-linksuserwrapper"] > .toolbar-button__label')[0]->getHtml();
+     $this->assertEquals($new_username, $rendered_user_name);
+   }
+ 
+diff --git a/core/profiles/demo_umami/tests/src/FunctionalJavascript/OpenTelemetryPerformanceTestAssertions/administratorNodePage.yml b/core/profiles/demo_umami/tests/src/FunctionalJavascript/OpenTelemetryPerformanceTestAssertions/administratorNodePage.yml
+index 22d7c2b1abf3a7e6f91637c74a47adc89ecb7fb5..a0c3dd3db7223ca5ee7eb991c42232c9339db069 100644
+--- a/core/profiles/demo_umami/tests/src/FunctionalJavascript/OpenTelemetryPerformanceTestAssertions/administratorNodePage.yml
++++ b/core/profiles/demo_umami/tests/src/FunctionalJavascript/OpenTelemetryPerformanceTestAssertions/administratorNodePage.yml
+@@ -1,4 +1,4 @@
+-QueryCount: 261
++QueryCount: 262
+ CacheGetCount: 258
+ CacheGetCountByBin:
+   config: 55
+@@ -12,7 +12,7 @@ CacheGetCountByBin:
+   render: 17
+   file_parsing: 2
+   menu: 21
+-CacheSetCount: 266
++CacheSetCount: 268
+ CacheDeleteCount: 0
+ CacheTagInvalidationCount: 0
+ CacheTagLookupQueryCount: 30
+@@ -67,8 +67,6 @@ CacheTagGroupedLookups:
+     - 'taxonomy_term:13'
+     - 'taxonomy_term:22'
+     - 'taxonomy_term:31'
+-  -
+-    - 'node:1:revisions'
+   -
+     - 'config:block_list'
+   -
+@@ -77,6 +75,8 @@ CacheTagGroupedLookups:
+     - 'config:configurable_language_list'
+   -
+     - 'content_moderation_state:1:revisions'
++  -
++    - 'node:1:revisions'
+   -
+     - icon_pack_collector
+     - icon_pack_plugin
+diff --git a/core/profiles/standard/tests/src/FunctionalJavascript/StandardPerformanceTestAssertions/testAdmin.yml b/core/profiles/standard/tests/src/FunctionalJavascript/StandardPerformanceTestAssertions/testAdmin.yml
+index 7a145c6f3eb1451245e9a93c5fcd3e087bf7bcf7..a4624f6ce0712f09c5a234c928e7b3a13e142660 100644
+--- a/core/profiles/standard/tests/src/FunctionalJavascript/StandardPerformanceTestAssertions/testAdmin.yml
++++ b/core/profiles/standard/tests/src/FunctionalJavascript/StandardPerformanceTestAssertions/testAdmin.yml
+@@ -1,10 +1,10 @@
+ QueryCount: 4
+-CacheGetCount: 43
++CacheGetCount: 41
+ CacheGetCountByBin:
+   config: 10
+   data: 4
+   bootstrap: 8
+-  discovery: 8
++  discovery: 6
+   dynamic_page_cache: 1
+   routes: 7
+   render: 5

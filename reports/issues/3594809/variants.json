@@ -1,0 +1,205 @@
+[
+  {
+    "slug": "3594809-pinned",
+    "issue": "3594809",
+    "label": "#3594809: Use standard checkboxes on forms that require submission, pinned core",
+    "description": "Compare ordinary checkboxes on the Core Appearance settings form. Before uses the Default Admin toggle-switch stylesheet; After applies MR !16770 so the same native checkbox controls use the shared checkbox styling.",
+    "status": "draft: imported MR patch preserved; pinned comparison applies, latest comparison needs a separate rebase",
+    "comparisonGroup": "3594809-mr-cleanup",
+    "comparisonLabel": "Core → MR",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "07d6e6935e795a62266697da0286a77b7c94b1a4"
+    },
+    "before": {
+      "env": "baseline-3594809"
+    },
+    "after": {
+      "env": "issue-3594809",
+      "patches": [
+        "reports/issues/3594809/branches/main.patch"
+      ]
+    },
+    "pages": [
+      "/admin/appearance/settings"
+    ],
+    "login": true,
+    "recipe": "repro_3594809",
+    "steps": [
+      {
+        "text": "Use a Standard install with Default Admin as the administration theme.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /admin/appearance/settings in both frames and find the Page element display controls.",
+        "how": "mirror"
+      },
+      {
+        "text": "In each frame, inspect the Shortcut icon checkbox in its checked and unchecked states.",
+        "how": "each",
+        "lookFor": "Before looks like a toggle switch. After looks like an ordinary square checkbox while remaining a native checkbox."
+      },
+      {
+        "text": "Change the checkbox and leave the page without saving, then return and check the persisted value.",
+        "how": "each",
+        "lookFor": "The pending form value is not persisted until Save configuration is activated."
+      },
+      {
+        "text": "Change the checkbox again, use Save configuration, and reload the page.",
+        "how": "each",
+        "lookFor": "The value persists after submission. The MR should change presentation, not form behavior."
+      }
+    ],
+    "expected": "Native checkboxes on submission-based forms use the shared square checkbox presentation. Their values still change only after the form is submitted.",
+    "actual": "Not run in a browser. Static source analysis shows that Before loads the toggle stylesheet and the After stack removes it; live presentation, semantics, and save behavior remain unverified.",
+    "checks": [
+      {
+        "label": "The Appearance settings form and Shortcut icon checkbox are present",
+        "probe": "document.querySelector('form#system-theme-settings') !== null && document.querySelector('input[name=\"toggle_favicon\"]') !== null",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "Shortcut icon remains a native checkbox",
+        "probe": "document.querySelector('input[name=\"toggle_favicon\"]').type === 'checkbox' && document.querySelector('input[name=\"toggle_favicon\"]').getAttribute('role') !== 'switch'",
+        "expect": true,
+        "kind": "regression"
+      },
+      {
+        "label": "The Shortcut icon control uses the shared square checkbox width",
+        "probe": "getComputedStyle(document.querySelector('input[name=\"toggle_favicon\"]')).width === '21px'",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "The checkbox keeps its associated label",
+        "probe": "Boolean(document.querySelector('input[name=\"toggle_favicon\"]').labels && document.querySelector('input[name=\"toggle_favicon\"]').labels.length)",
+        "expect": true,
+        "kind": "regression"
+      },
+      {
+        "label": "The form still requires Save configuration",
+        "probe": "document.querySelector('form#system-theme-settings input[type=\"submit\"]') !== null",
+        "expect": true,
+        "kind": "regression"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Shortcut icon is visually a switch",
+        "expectBefore": true,
+        "expectAfter": false
+      },
+      {
+        "label": "Shortcut icon is visually a standard checkbox with a clear checked state",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Changing the checkbox alone does not persist the setting",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Saving the form persists the selected value",
+        "expectBefore": true,
+        "expectAfter": true
+      }
+    ],
+    "demo": {
+      "start": "/admin/appearance/settings"
+    },
+    "coverage": {
+      "note": "The combinations that count as tested for this issue (scripts/coverage.mjs). Edit to fit the question the issue asks.",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 480
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ],
+      "manual": [
+        "Keyboard Tab and Space interaction with visible focus",
+        "Pointer activation through the checkbox and its associated label",
+        "Forced-colors light and dark palettes, recorded as browser emulation rather than native Windows contrast themes",
+        "Real VoiceOver or NVDA testing is not performed unless requested",
+        "Zoom to 200 and 400 percent and reflow at 320 CSS pixels",
+        "RTL layout, long labels, validation-error styling, and disabled controls"
+      ]
+    }
+  },
+  {
+    "slug": "3594809-corrected",
+    "extends": "3594809-pinned",
+    "label": "#3594809: MR !16770 plus required file deletions",
+    "description": "The same pinned reproduction with a separate corrective patch that deletes the two zero-byte CSS files left by the published MR. The original MR patch remains unchanged.",
+    "comparisonGroup": "3594809-mr-cleanup",
+    "comparisonLabel": "MR + deletion fix",
+    "before": {
+      "env": "baseline-3594809"
+    },
+    "after": {
+      "env": "issue-3594809-corrected",
+      "patches": [
+        "reports/issues/3594809/branches/main.patch",
+        "reports/issues/3594809/branches/delete-empty-stylesheets.patch"
+      ]
+    }
+  },
+  {
+    "slug": "3594809-latest",
+    "extends": "3594809-pinned",
+    "label": "#3594809: same steps against the LATEST core main",
+    "comparisonGroup": null,
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3594809-latest"
+    },
+    "after": {
+      "env": "issue-3594809-latest",
+      "patches": [
+        "reports/issues/3594809/branches/main-rebased-97c6ff8b.patch"
+      ]
+    }
+  }
+]

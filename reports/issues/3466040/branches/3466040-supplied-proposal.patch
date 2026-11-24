@@ -1,0 +1,203 @@
+--- a/core/misc/dialog/dialog.position.js
++++ b/core/misc/dialog/dialog.position.js
+@@ -45,6 +45,44 @@
+     return options;
+   }
+   /**
++   * Keep auto-resizing modal dialogs inside the unobscured visual viewport.
++   *
++   * CSS constrains the dialog and scrolls its content. These values account for
++   * Drupal toolbars and for a smaller visual viewport (e.g. a virtual keyboard).
++   */
++  function constrainModal(dialog) {
++    const viewport = window.visualViewport;
++    const viewportLeft = viewport?.offsetLeft ?? 0;
++    const viewportTop = viewport?.offsetTop ?? 0;
++    const viewportWidth = viewport?.width ?? window.innerWidth;
++    const viewportHeight = viewport?.height ?? window.innerHeight;
++    const offsets = displace.offsets;
++    const gutter = 8;
++
++    const left = viewportLeft + offsets.left + gutter;
++    const right = viewportLeft + viewportWidth - offsets.right - gutter;
++    const top = viewportTop + offsets.top + gutter;
++    const bottom = viewportTop + viewportHeight - offsets.bottom - gutter;
++
++    dialog.style.setProperty(
++      '--drupal-dialog-available-width',
++      `${Math.max(1, right - left)}px`,
++    );
++    dialog.style.setProperty(
++      '--drupal-dialog-available-height',
++      `${Math.max(1, bottom - top)}px`,
++    );
++    dialog.style.setProperty(
++      '--drupal-dialog-center-x',
++      `${(left + right) / 2}px`,
++    );
++    dialog.style.setProperty(
++      '--drupal-dialog-center-y',
++      `${(top + bottom) / 2}px`,
++    );
++  }
++
++  /**
+    * Resets the current options for positioning.
+    *
+    * This is used as a window resize and scroll callback to reposition the
+@@ -74,7 +112,11 @@
+       'position',
+     ];
+     let adjustedOptions = {};
+-    let windowHeight = $(window).height();
++    const viewportHeight = window.visualViewport?.height ?? $(window).height();
++    const availableHeight = Math.max(
++      1,
++      viewportHeight - displace.offsets.top - displace.offsets.bottom,
++    );
+     let option;
+     let optionValue;
+     let adjustedValue;
+@@ -88,11 +130,9 @@
+           optionValue.endsWith('%') &&
+           /height/i.test(option)
+         ) {
+-          // Take offsets in account.
+-          windowHeight -= displace.offsets.top + displace.offsets.bottom;
+-          adjustedValue = parseInt(
+-            0.01 * parseInt(optionValue, 10) * windowHeight,
+-            10,
++          // Compute once using the usable viewport, not once per height option.
++          adjustedValue = Math.floor(
++            (parseFloat(optionValue) / 100) * availableHeight,
+           );
+           // Don't force the dialog to be bigger vertically than needed.
+           if (
+@@ -128,16 +168,46 @@
+         .dialog('option', { resizable: false, draggable: false })
+         .dialog('widget');
+       uiDialog[0].style.position = 'fixed';
+-      // Keep a reference so that a scheduled call can be cancelled on close.
++      const modal = Boolean(settings.modal);
++      if (modal) {
++        uiDialog.addClass('drupal-dialog--viewport-constrained');
++      }
++
++      const resizeHandler = (event) => {
++        if (modal) {
++          constrainModal(uiDialog[0]);
++        }
++        autoResize(event);
++      };
++      const onVisualViewportChange = () => resizeHandler({ data: eventData });
++
++      // Keep the existing resize callback for integrations using this value.
+       $element.data('drupalAutoResize', autoResize);
+-      $(window)
+-        .on('resize.dialogResize scroll.dialogResize', eventData, autoResize)
+-        .trigger('resize.dialogResize');
++      $(window).on(
++        'resize.dialogResize scroll.dialogResize',
++        eventData,
++        resizeHandler,
++      );
+       $(document).on(
+         'drupalViewportOffsetChange.dialogResize',
+         eventData,
+-        autoResize,
++        resizeHandler,
+       );
++      if (modal && window.visualViewport) {
++        window.visualViewport.addEventListener('resize', onVisualViewportChange);
++        window.visualViewport.addEventListener('scroll', onVisualViewportChange);
++      }
++      // Do not remove handlers belonging to other open dialogs on close.
++      $element.data('drupalDialogResizeCleanup', () => {
++        autoResize.cancel();
++        $(window).off('.dialogResize', resizeHandler);
++        $(document).off('.dialogResize', resizeHandler);
++        if (modal && window.visualViewport) {
++          window.visualViewport.removeEventListener('resize', onVisualViewportChange);
++          window.visualViewport.removeEventListener('scroll', onVisualViewportChange);
++        }
++      });
++      resizeHandler({ data: eventData });
+     }
+   });
+   window.addEventListener('dialog:beforeclose', (e) => {
+@@ -145,8 +215,6 @@
+     // scheduled. Closing a dialog removes its element from the DOM, which
+     // destroys the jQuery UI instance, so a call that runs after this point
+     // would act on a destroyed dialog and throw.
+-    $(e.target).data('drupalAutoResize')?.cancel();
+-    $(window).off('.dialogResize');
+-    $(document).off('.dialogResize');
++    $(e.target).data('drupalDialogResizeCleanup')?.();
+   });
+ })(jQuery, Drupal, drupalSettings, Drupal.debounce, Drupal.displace);
+--- /dev/null
++++ b/core/misc/dialog/dialog.viewport.css
+@@ -0,0 +1,56 @@
++/**
++ * @file
++ * Keep auto-resizing modal dialogs inside the available viewport.
++ *
++ * Content scrolls independently of the title bar and action pane. This is
++ * intentionally scoped to modal dialogs managed by Drupal's autoResize API;
++ * draggable non-modal dialogs and off-canvas trays are not affected.
++ */
++
++.ui-dialog.drupal-dialog--viewport-constrained {
++  position: fixed;
++  top: var(--drupal-dialog-center-y, 50%) !important;
++  left: var(--drupal-dialog-center-x, 50%) !important;
++  box-sizing: border-box;
++  display: flex;
++  flex-direction: column;
++  width: auto;
++  max-width: var(--drupal-dialog-available-width, calc(100vw - 1rem));
++  max-height: var(--drupal-dialog-available-height, calc(100dvh - 1rem));
++  min-width: 0;
++  min-height: 0;
++  overflow: hidden;
++  transform: translate(-50%, -50%);
++}
++
++.ui-dialog.drupal-dialog--viewport-constrained .ui-dialog-titlebar {
++  flex: 0 0 auto;
++  min-width: 0;
++}
++
++.ui-dialog.drupal-dialog--viewport-constrained .ui-dialog-content {
++  flex: 1 1 auto;
++  min-width: 0;
++  min-height: 0 !important;
++  overflow: auto;
++}
++
++.ui-dialog.drupal-dialog--viewport-constrained .ui-dialog-buttonpane {
++  flex: 0 0 auto;
++  min-width: 0;
++  max-height: 40dvh;
++  overflow: auto;
++}
++
++.ui-dialog.drupal-dialog--viewport-constrained .ui-dialog-buttonset {
++  display: flex;
++  float: none;
++  flex-wrap: wrap;
++  justify-content: flex-end;
++}
++
++.ui-dialog.drupal-dialog--viewport-constrained .ui-dialog-buttonset button {
++  max-width: 100%;
++  white-space: normal;
++  overflow-wrap: anywhere;
++}
+--- a/core/core.libraries.yml
++++ b/core/core.libraries.yml
+@@ -11,3 +11,4 @@
+       assets/vendor/jquery.ui/themes/base/controlgroup.css: {}
+       assets/vendor/jquery.ui/themes/base/checkboxradio.css: {}
+       assets/vendor/jquery.ui/themes/base/resizable.css: {}
++      misc/dialog/dialog.viewport.css: {}

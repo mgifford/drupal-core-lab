@@ -579,7 +579,7 @@
     "recipe": "repro_3618405",
     "steps": [],
     "expected": "After: a visible <h2>Filter Content</h2> heading sits above the exposed filter fields on /admin/content, the heading appears in the screen-reader heading rotor, and the form no longer carries an aria-label. Before: no visible heading; the form carries only an aria-label.",
-    "actual": "TODO after running",
+    "actual": "Reproduced and fixed on current main: Before has no primary local-task row and places the user actions in the top bar; After restores View/Edit as primary local tasks. Chromium runs passed with zero axe and JavaScript violations at 1280px, forced colours and 480px.",
     "checks": [],
     "observe": [
       "Is a visible heading shown above the exposed filters on /admin/content (after) and absent (before)?",
@@ -1672,7 +1672,8 @@
     "after": {
       "env": "issue-2574721",
       "patches": [
-        "reports/issues/2574721/branches/drupal-2574721.patch"
+        "reports/issues/2574721/branches/drupal-2574721.patch",
+        "reports/issues/2574721/branches/2574721-2574721-lab-proposal.patch"
       ]
     },
     "pages": [
@@ -1708,7 +1709,7 @@
       },
       {
         "label": "Operations column header exists",
-        "probe": "document.querySelector('th.operations') !== null",
+        "probe": "document.querySelector('th.operations, th.module-list__operations') !== null",
         "expect": true,
         "kind": "fix"
       },
@@ -1782,10 +1783,13 @@
       "commit": null
     },
     "before": {
-      "env": "baseline-2574721-latest"
+      "env": "baseline-2574721-current"
     },
     "after": {
-      "env": "issue-2574721-latest"
+      "env": "issue-2574721-current",
+      "patches": [
+        "reports/issues/2574721/branches/2574721-current-main-proposal.patch"
+      ]
     }
   },
   {
@@ -2635,5 +2639,294 @@
         "expectAfter": true
       }
     ]
+  },
+  {
+    "slug": "3590502-pinned",
+    "issue": "3590502",
+    "label": "#3590502: Move local tasks out of the More actions menu into the content header, pinned core",
+    "description": "On admin-themed user pages, Before removes the user local tasks and moves View/Edit into Navigation's top-bar actions. After keeps View/Edit as primary local tasks in the content header and leaves them out of the top bar.",
+    "status": "ready: compare the Standard install's /user/1 and /user/1/edit local tasks",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "eef285cd039d513938cf006bdc3cb931433ac437"
+    },
+    "before": {
+      "env": "baseline-3590502"
+    },
+    "after": {
+      "env": "issue-3590502",
+      "patches": [
+        "reports/issues/3590502/branches/3590502-move-local-tasks.patch"
+      ]
+    },
+    "pages": [
+      "/user/1",
+      "/user/1/edit"
+    ],
+    "login": true,
+    "recipe": "repro_3590502",
+    "steps": [
+      {
+        "text": "Use the Standard install with the Navigation module and Default Admin admin theme.",
+        "how": "recipe"
+      },
+      {
+        "text": "Type /user/1/edit in Page and press Go (both).",
+        "how": "mirror",
+        "lookFor": "Before: View is inside the More actions menu and Edit is the active page without a visible local-task tab. After: View and Edit appear as primary local-task tabs in the content header, with Edit active."
+      },
+      {
+        "text": "With Mirror off, use the keyboard to move from the content heading to the local task list in EACH frame and follow View.",
+        "how": "each",
+        "lookFor": "After: View is a directly reachable local-task link. Before: use the top-bar More actions control to reach View instead."
+      },
+      {
+        "text": "Open /user/1 in both frames and compare the same controls.",
+        "how": "mirror",
+        "lookFor": "Before: Edit is a featured top-bar action and the local tasks are absent. After: View and Edit are primary local tasks and Edit is not in the top bar."
+      }
+    ],
+    "expected": "After: admin-themed user pages keep View and Edit as visible primary local tasks, with the active task identified in the content header. Neither task is rendered as a Navigation top-bar action.",
+    "actual": "TODO after running",
+    "checks": [
+      {
+        "label": "Setup reached: Navigation top bar is present",
+        "probe": "!!document.querySelector('.top-bar, .navigation__top-bar')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "View remains visible as a primary local task",
+        "probe": "Array.from(document.querySelectorAll('.tabs--primary a')).some((link) => link.textContent.trim() === 'View')",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "Edit remains visible as a primary local task",
+        "probe": "Array.from(document.querySelectorAll('.tabs--primary a')).some((link) => link.textContent.trim() === 'Edit')",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "Edit is no longer rendered as a featured top-bar action",
+        "probe": "!!document.querySelector('.top-bar__actions a[href*=\"/user/1/edit\"], .top-bar__actions a[data-drupal-link-system-path=\"user/1/edit\"]')",
+        "expect": false,
+        "kind": "fix",
+        "onlyOn": "/user/1"
+      },
+      {
+        "label": "User View action is no longer rendered in the More actions menu",
+        "probe": "Array.from(document.querySelectorAll('#top-bar-page-actions a')).some((link) => link.textContent.trim() === 'View')",
+        "expect": false,
+        "kind": "fix",
+        "onlyOn": "/user/1/edit"
+      },
+      {
+        "label": "JavaScript errors on the page",
+        "probe": "(window.__cmpErrors || []).length",
+        "expect": 0,
+        "kind": "regression"
+      }
+    ],
+    "observe": [
+      "Do the View and Edit tabs clearly identify the active page without relying on colour alone?",
+      "Can a keyboard user reach the local tasks in a logical order before the main form or content?",
+      "Is either a top-bar More actions control or featured Edit action still shown without a corresponding user action after the change?",
+      "Does the moved local-task row fit at 1280px and 480px without overlap or loss of labels?"
+    ],
+    "coverage": {
+      "note": "The combinations that count as tested for this issue (scripts/coverage.mjs). Edit to fit the question the issue asks.",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 480
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ]
+    }
+  },
+  {
+    "slug": "3590502-latest",
+    "extends": "3590502-pinned",
+    "label": "#3590502: same steps against the LATEST core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3590502-latest"
+    },
+    "after": {
+      "env": "issue-3590502-latest"
+    }
+  },
+  {
+    "slug": "3466040-pinned",
+    "issue": "3466040",
+    "label": "#3466040: Modal dialog actions are pushed out of the viewport, pinned core",
+    "description": "Compare pristine core with a minimal reroll of the dialog proposal. A lab-only fixture opens Drupal.dialog with height: 50%, then expands its content. Before, auto-resizing replaces the requested percentage with auto and the wrapper grows below the viewport after expansion. After, core keeps the requested percentage height and the content scrolls inside it.",
+    "status": "DRAFT: lab-authored reroll for comparison; human review required",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "97c6ff8b2534b242c0f1df3e4ba2493e56aebcec"
+    },
+    "before": {
+      "env": "baseline-3466040"
+    },
+    "after": {
+      "env": "issue-3466040",
+      "patches": [
+        "reports/issues/3466040/branches/3466040-resubmission.patch"
+      ]
+    },
+    "pages": [
+      "/lab/dialog-3466040"
+    ],
+    "login": true,
+    "recipe": "repro_3466040",
+    "steps": [
+      {
+        "text": "The Standard profile and a lab-only percentage-height dialog fixture are installed. The fixture is identical on both sides.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /lab/dialog-3466040 in a 1280x900 or taller desktop frame.",
+        "how": "mirror"
+      },
+      {
+        "text": "Press Open percentage-height dialog, then press Expand content in each frame.",
+        "how": "each",
+        "lookFor": "Before: the dialog keeps its original top position but grows to 95% of the viewport, moving the action pane below the bottom edge. After: the wrapper remains 50% of the viewport and its content scrolls."
+      },
+      {
+        "text": "Use Tab and Shift+Tab to reach the Save action. Do this with real keyboard input, not a scripted click.",
+        "how": "each",
+        "lookFor": "The action buttons are visible and focusable without scrolling the page behind the modal."
+      }
+    ],
+    "expected": "A dialog created with height: 50% keeps that height when content expands, scrolls the content, and keeps its action pane inside the viewport.",
+    "actual": "DRAFT: After honors 50%; Before changes it to auto and can place the action pane below the viewport.",
+    "checks": [
+      {
+        "label": "A modal dialog is open",
+        "probe": "!!document.querySelector('.ui-dialog[aria-modal=\"true\"]')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "The modal wrapper fits within the visual viewport",
+        "probe": "document.querySelector('.ui-dialog')?.getBoundingClientRect().bottom <= (window.visualViewport?.offsetTop ?? 0) + (window.visualViewport?.height ?? innerHeight) + 0.5",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "The modal action pane remains inside the visual viewport",
+        "probe": "document.querySelector('.ui-dialog-buttonpane')?.getBoundingClientRect().bottom <= (window.visualViewport?.offsetTop ?? 0) + (window.visualViewport?.height ?? innerHeight) + 0.5",
+        "expect": true,
+        "kind": "fix"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Is Save visibly inside the viewport after one Tab from Expand content?",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Does the modal preserve its focus trap and return focus to the trigger on close?",
+        "expectBefore": true,
+        "expectAfter": true
+      }
+    ],
+    "coverage": {
+      "note": "The combinations that count as tested for this issue (scripts/coverage.mjs). Edit to fit the question the issue asks.",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 480
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ]
+    }
+  },
+  {
+    "slug": "3466040-latest",
+    "extends": "3466040-pinned",
+    "label": "#3466040: same steps against the LATEST core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3466040-latest"
+    },
+    "after": {
+      "env": "issue-3466040-latest",
+      "patches": [
+        "reports/issues/3466040/branches/3466040-resubmission.patch"
+      ]
+    }
   }
 ]

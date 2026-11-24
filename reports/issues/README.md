@@ -60,12 +60,15 @@ Nothing for the lab to do until the issue moves.
 | [3637339](3637339/SUMMARY.md) | Skip to main content link is not using the selected focus color in light and… | Needs work, updated 2026-11-17 | !17818 opened at `8c4a0e70` | `8c4a0e70` ([how](3637339/REPRODUCE.md)) | Needs work: waiting on the MR |
 | [867830](867830/SUMMARY.md) | "Unpublished" style of rendered entities is not accessible (and looks bad) | Active, updated 2026-11-17 | none found | `0fcbb553` ([how](867830/REPRODUCE.md)) | Active; no MR found |
 
-## Not checked yet (1)
+## Not checked yet (4)
 
 No `status.json` yet: the next weekly check fills these in, or `node scripts/issue-status.mjs <nid> --write` for one.
 
 | Issue | What | Lab tested |
 |---|---|---|
+| [3466040](3466040/SUMMARY.md) | Modal dialog actions are pushed out of the viewport | no MR commit recorded ([how](3466040/REPRODUCE.md)) |
+| [3590502](3590502/SUMMARY.md) | Move local tasks out of the More actions menu into the content header | `091a0f3c` ([how](3590502/REPRODUCE.md)) |
+| [3594809](3594809/SUMMARY.md) | Use standard checkboxes on forms that require submission | `94a48fe8` ([how](3594809/REPRODUCE.md)) |
 | [3636143](3636143/SUMMARY.md) | Reproduce 3636143 with the separate skip-link proposal | `5e5521e4` ([how](3636143/REPRODUCE.md)) |
 
 ## Archived (0)

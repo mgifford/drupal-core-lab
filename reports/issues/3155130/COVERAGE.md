@@ -25,7 +25,7 @@ Run one with, for example: `node tools/playwright/evaluate-3155130.mjs 3155130-p
 | webkit · light · 480px wide | **NOT TESTED** | _not run_ |  |  |
 | webkit · dark · 480px wide | **NOT TESTED** | _not run_ |  |  |
 
-Other runs: chromium · light · undefinedpx wide (2026-11-06, ✓ run recorded (older format)) (record: none, not checked against the current patches).
+Other runs: chromium · light · undefinedpx wide (2026-11-06, ✓ run recorded (older format)) (record: none, not checked against the current patches) [comparison: ``].
 
 ## Manual checks (a person)
 Save the viewer's "Download log" into `reports/issues/3155130/manual/`; it records the environment you tested in.

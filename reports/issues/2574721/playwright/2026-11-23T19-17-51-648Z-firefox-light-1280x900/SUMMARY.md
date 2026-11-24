@@ -1,0 +1,37 @@
+# Playwright evidence: #2574721 (2574721-pinned)
+
+DRAFT. firefox 159.0, light scheme, 1280x900. Real pointer and keyboard input was used on the After operations dropbutton. axe-core uses WCAG 2.0-2.2 A/AA tags.
+
+| Type | Check | Before | After | Result |
+|---|---|---|---|---|
+| precondition | Modules page loaded on both sides | true | true | as expected |
+| fix | Dedicated operations cells | 0 | 66 | as expected |
+| fix | Visible module operation links on After | 0 | 72 | as expected |
+| fix | Description column hidden at this narrow viewport | false | false | as expected |
+| fix | Dropbutton remains inside the viewport | null | true | as expected |
+| fix | Keyboard reaches the dropbutton toggle | null | "dropbutton__toggle" | as expected |
+| fix | Keyboard opens secondary operations | null | true | as expected |
+| fix | Tab reaches a secondary action | null | "Help for Announcements" | as expected |
+| regression | axe violations (elements) | 0 | 0 | as expected |
+| regression | JavaScript errors | 0 | 0 | as expected |
+
+Screenshots: `before-1280x900.png` and `after-1280x900.png`.
+
+## Context
+
+| | Before | After |
+|---|---|---|
+| Core commit | `9e8373659f 2026-09-08` | `9e8373659f 2026-09-08` |
+| Drupal, PHP | 12.0-dev, 8.5.13 | 12.0-dev, 8.5.13 |
+| Profile; default / admin theme (config) | standard; claro / claro | standard; claro / claro |
+| Theme that rendered each page | blank → null<br>/user/1/edit → claro<br>/admin/modules → null | blank → null<br>/user/1/edit → claro<br>/admin/modules → null |
+| Languages (default) | none (en) | none (en) |
+| Modules only on this side | none | none |
+| Enabled modules | 39 | 39 |
+
+CSS build of the After patch stack (core's build:css, separate from accessibility results): **PASS**.
+
+
+axe rules: Before {}, After {}.
+
+This run does not replace a person using a real screen reader or inspecting focus and forced-colour rendering.

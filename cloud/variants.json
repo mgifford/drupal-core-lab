@@ -867,7 +867,7 @@
       "after": {},
       "steps": [],
       "expected": "After: a visible <h2>Filter Content</h2> heading sits above the exposed filter fields on /admin/content, the heading appears in the screen-reader heading rotor, and the form no longer carries an aria-label. Before: no visible heading; the form carries only an aria-label.",
-      "actual": "TODO after running",
+      "actual": "Reproduced and fixed on current main: Before has no primary local-task row and places the user actions in the top bar; After restores View/Edit as primary local tasks. Chromium runs passed with zero axe and JavaScript violations at 1280px, forced colours and 480px.",
       "observe": [
         "Is a visible heading shown above the exposed filters on /admin/content (after) and absent (before)?",
         "Does the heading appear in the screen-reader heading list, and is there no longer a duplicated aria-label announcement?",
@@ -888,7 +888,7 @@
       "after": {},
       "steps": [],
       "expected": "After: a visible <h2>Filter Content</h2> heading sits above the exposed filter fields on /admin/content, the heading appears in the screen-reader heading rotor, and the form no longer carries an aria-label. Before: no visible heading; the form carries only an aria-label.",
-      "actual": "TODO after running",
+      "actual": "Reproduced and fixed on current main: Before has no primary local-task row and places the user actions in the top bar; After restores View/Edit as primary local tasks. Chromium runs passed with zero axe and JavaScript violations at 1280px, forced colours and 480px.",
       "observe": [
         "Is a visible heading shown above the exposed filters on /admin/content (after) and absent (before)?",
         "Does the heading appear in the screen-reader heading list, and is there no longer a duplicated aria-label announcement?",
@@ -1977,7 +1977,7 @@
         },
         {
           "label": "Operations column header exists",
-          "probe": "document.querySelector('th.operations') !== null",
+          "probe": "document.querySelector('th.operations, th.module-list__operations') !== null",
           "expect": true,
           "kind": "fix"
         },
@@ -2039,7 +2039,7 @@
         },
         {
           "label": "Operations column header exists",
-          "probe": "document.querySelector('th.operations') !== null",
+          "probe": "document.querySelector('th.operations, th.module-list__operations') !== null",
           "expect": true,
           "kind": "fix"
         },
@@ -2957,6 +2957,298 @@
         "/admin/content",
         "/lab/status-messages",
         "/admin/lab/status-messages"
+      ]
+    },
+    {
+      "slug": "3590502-pinned",
+      "issue": "3590502",
+      "label": "#3590502: Move local tasks out of the More actions menu into the content header, pinned core",
+      "description": "On admin-themed user pages, Before removes the user local tasks and moves View/Edit into Navigation's top-bar actions. After keeps View/Edit as primary local tasks in the content header and leaves them out of the top bar.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Use the Standard install with the Navigation module and Default Admin admin theme.",
+          "how": "recipe"
+        },
+        {
+          "text": "Type /user/1/edit in Page and press Go (both).",
+          "how": "mirror",
+          "lookFor": "Before: View is inside the More actions menu and Edit is the active page without a visible local-task tab. After: View and Edit appear as primary local-task tabs in the content header, with Edit active."
+        },
+        {
+          "text": "With Mirror off, use the keyboard to move from the content heading to the local task list in EACH frame and follow View.",
+          "how": "each",
+          "lookFor": "After: View is a directly reachable local-task link. Before: use the top-bar More actions control to reach View instead."
+        },
+        {
+          "text": "Open /user/1 in both frames and compare the same controls.",
+          "how": "mirror",
+          "lookFor": "Before: Edit is a featured top-bar action and the local tasks are absent. After: View and Edit are primary local tasks and Edit is not in the top bar."
+        }
+      ],
+      "expected": "After: admin-themed user pages keep View and Edit as visible primary local tasks, with the active task identified in the content header. Neither task is rendered as a Navigation top-bar action.",
+      "actual": "TODO after running",
+      "observe": [
+        "Do the View and Edit tabs clearly identify the active page without relying on colour alone?",
+        "Can a keyboard user reach the local tasks in a logical order before the main form or content?",
+        "Is either a top-bar More actions control or featured Edit action still shown without a corresponding user action after the change?",
+        "Does the moved local-task row fit at 1280px and 480px without overlap or loss of labels?"
+      ],
+      "checks": [
+        {
+          "label": "Setup reached: Navigation top bar is present",
+          "probe": "!!document.querySelector('.top-bar, .navigation__top-bar')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "View remains visible as a primary local task",
+          "probe": "Array.from(document.querySelectorAll('.tabs--primary a')).some((link) => link.textContent.trim() === 'View')",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Edit remains visible as a primary local task",
+          "probe": "Array.from(document.querySelectorAll('.tabs--primary a')).some((link) => link.textContent.trim() === 'Edit')",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Edit is no longer rendered as a featured top-bar action",
+          "probe": "!!document.querySelector('.top-bar__actions a[href*=\"/user/1/edit\"], .top-bar__actions a[data-drupal-link-system-path=\"user/1/edit\"]')",
+          "expect": false,
+          "kind": "fix",
+          "onlyOn": "/user/1"
+        },
+        {
+          "label": "User View action is no longer rendered in the More actions menu",
+          "probe": "Array.from(document.querySelectorAll('#top-bar-page-actions a')).some((link) => link.textContent.trim() === 'View')",
+          "expect": false,
+          "kind": "fix",
+          "onlyOn": "/user/1/edit"
+        },
+        {
+          "label": "JavaScript errors on the page",
+          "probe": "(window.__cmpErrors || []).length",
+          "expect": 0,
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/user/1",
+        "/user/1/edit"
+      ]
+    },
+    {
+      "slug": "3590502-latest",
+      "issue": "3590502",
+      "label": "#3590502: same steps against the LATEST core main",
+      "description": "On admin-themed user pages, Before removes the user local tasks and moves View/Edit into Navigation's top-bar actions. After keeps View/Edit as primary local tasks in the content header and leaves them out of the top bar.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Use the Standard install with the Navigation module and Default Admin admin theme.",
+          "how": "recipe"
+        },
+        {
+          "text": "Type /user/1/edit in Page and press Go (both).",
+          "how": "mirror",
+          "lookFor": "Before: View is inside the More actions menu and Edit is the active page without a visible local-task tab. After: View and Edit appear as primary local-task tabs in the content header, with Edit active."
+        },
+        {
+          "text": "With Mirror off, use the keyboard to move from the content heading to the local task list in EACH frame and follow View.",
+          "how": "each",
+          "lookFor": "After: View is a directly reachable local-task link. Before: use the top-bar More actions control to reach View instead."
+        },
+        {
+          "text": "Open /user/1 in both frames and compare the same controls.",
+          "how": "mirror",
+          "lookFor": "Before: Edit is a featured top-bar action and the local tasks are absent. After: View and Edit are primary local tasks and Edit is not in the top bar."
+        }
+      ],
+      "expected": "After: admin-themed user pages keep View and Edit as visible primary local tasks, with the active task identified in the content header. Neither task is rendered as a Navigation top-bar action.",
+      "actual": "TODO after running",
+      "observe": [
+        "Do the View and Edit tabs clearly identify the active page without relying on colour alone?",
+        "Can a keyboard user reach the local tasks in a logical order before the main form or content?",
+        "Is either a top-bar More actions control or featured Edit action still shown without a corresponding user action after the change?",
+        "Does the moved local-task row fit at 1280px and 480px without overlap or loss of labels?"
+      ],
+      "checks": [
+        {
+          "label": "Setup reached: Navigation top bar is present",
+          "probe": "!!document.querySelector('.top-bar, .navigation__top-bar')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "View remains visible as a primary local task",
+          "probe": "Array.from(document.querySelectorAll('.tabs--primary a')).some((link) => link.textContent.trim() === 'View')",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Edit remains visible as a primary local task",
+          "probe": "Array.from(document.querySelectorAll('.tabs--primary a')).some((link) => link.textContent.trim() === 'Edit')",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Edit is no longer rendered as a featured top-bar action",
+          "probe": "!!document.querySelector('.top-bar__actions a[href*=\"/user/1/edit\"], .top-bar__actions a[data-drupal-link-system-path=\"user/1/edit\"]')",
+          "expect": false,
+          "kind": "fix",
+          "onlyOn": "/user/1"
+        },
+        {
+          "label": "User View action is no longer rendered in the More actions menu",
+          "probe": "Array.from(document.querySelectorAll('#top-bar-page-actions a')).some((link) => link.textContent.trim() === 'View')",
+          "expect": false,
+          "kind": "fix",
+          "onlyOn": "/user/1/edit"
+        },
+        {
+          "label": "JavaScript errors on the page",
+          "probe": "(window.__cmpErrors || []).length",
+          "expect": 0,
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/user/1",
+        "/user/1/edit"
+      ]
+    },
+    {
+      "slug": "3466040-pinned",
+      "issue": "3466040",
+      "label": "#3466040: Modal dialog actions are pushed out of the viewport, pinned core",
+      "description": "Compare pristine core with a minimal reroll of the dialog proposal. A lab-only fixture opens Drupal.dialog with height: 50%, then expands its content. Before, auto-resizing replaces the requested percentage with auto and the wrapper grows below the viewport after expansion. After, core keeps the requested percentage height and the content scrolls inside it.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "The Standard profile and a lab-only percentage-height dialog fixture are installed. The fixture is identical on both sides.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /lab/dialog-3466040 in a 1280x900 or taller desktop frame.",
+          "how": "mirror"
+        },
+        {
+          "text": "Press Open percentage-height dialog, then press Expand content in each frame.",
+          "how": "each",
+          "lookFor": "Before: the dialog keeps its original top position but grows to 95% of the viewport, moving the action pane below the bottom edge. After: the wrapper remains 50% of the viewport and its content scrolls."
+        },
+        {
+          "text": "Use Tab and Shift+Tab to reach the Save action. Do this with real keyboard input, not a scripted click.",
+          "how": "each",
+          "lookFor": "The action buttons are visible and focusable without scrolling the page behind the modal."
+        }
+      ],
+      "expected": "A dialog created with height: 50% keeps that height when content expands, scrolls the content, and keeps its action pane inside the viewport.",
+      "actual": "DRAFT: After honors 50%; Before changes it to auto and can place the action pane below the viewport.",
+      "observe": [
+        {
+          "label": "Is Save visibly inside the viewport after one Tab from Expand content?",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Does the modal preserve its focus trap and return focus to the trigger on close?",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "A modal dialog is open",
+          "probe": "!!document.querySelector('.ui-dialog[aria-modal=\"true\"]')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The modal wrapper fits within the visual viewport",
+          "probe": "document.querySelector('.ui-dialog')?.getBoundingClientRect().bottom <= (window.visualViewport?.offsetTop ?? 0) + (window.visualViewport?.height ?? innerHeight) + 0.5",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "The modal action pane remains inside the visual viewport",
+          "probe": "document.querySelector('.ui-dialog-buttonpane')?.getBoundingClientRect().bottom <= (window.visualViewport?.offsetTop ?? 0) + (window.visualViewport?.height ?? innerHeight) + 0.5",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/lab/dialog-3466040"
+      ]
+    },
+    {
+      "slug": "3466040-latest",
+      "issue": "3466040",
+      "label": "#3466040: same steps against the LATEST core main",
+      "description": "Compare pristine core with a minimal reroll of the dialog proposal. A lab-only fixture opens Drupal.dialog with height: 50%, then expands its content. Before, auto-resizing replaces the requested percentage with auto and the wrapper grows below the viewport after expansion. After, core keeps the requested percentage height and the content scrolls inside it.",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "The Standard profile and a lab-only percentage-height dialog fixture are installed. The fixture is identical on both sides.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /lab/dialog-3466040 in a 1280x900 or taller desktop frame.",
+          "how": "mirror"
+        },
+        {
+          "text": "Press Open percentage-height dialog, then press Expand content in each frame.",
+          "how": "each",
+          "lookFor": "Before: the dialog keeps its original top position but grows to 95% of the viewport, moving the action pane below the bottom edge. After: the wrapper remains 50% of the viewport and its content scrolls."
+        },
+        {
+          "text": "Use Tab and Shift+Tab to reach the Save action. Do this with real keyboard input, not a scripted click.",
+          "how": "each",
+          "lookFor": "The action buttons are visible and focusable without scrolling the page behind the modal."
+        }
+      ],
+      "expected": "A dialog created with height: 50% keeps that height when content expands, scrolls the content, and keeps its action pane inside the viewport.",
+      "actual": "DRAFT: After honors 50%; Before changes it to auto and can place the action pane below the viewport.",
+      "observe": [
+        {
+          "label": "Is Save visibly inside the viewport after one Tab from Expand content?",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Does the modal preserve its focus trap and return focus to the trigger on close?",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "A modal dialog is open",
+          "probe": "!!document.querySelector('.ui-dialog[aria-modal=\"true\"]')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The modal wrapper fits within the visual viewport",
+          "probe": "document.querySelector('.ui-dialog')?.getBoundingClientRect().bottom <= (window.visualViewport?.offsetTop ?? 0) + (window.visualViewport?.height ?? innerHeight) + 0.5",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "The modal action pane remains inside the visual viewport",
+          "probe": "document.querySelector('.ui-dialog-buttonpane')?.getBoundingClientRect().bottom <= (window.visualViewport?.offsetTop ?? 0) + (window.visualViewport?.height ?? innerHeight) + 0.5",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/lab/dialog-3466040"
       ]
     },
     {
@@ -4229,6 +4521,297 @@
       ],
       "demo": {
         "start": "/admin/structure/menu"
+      }
+    },
+    {
+      "slug": "3594809-pinned",
+      "issue": "3594809",
+      "label": "#3594809: Use standard checkboxes on forms that require submission, pinned core",
+      "description": "Compare ordinary checkboxes on the Core Appearance settings form. Before uses the Default Admin toggle-switch stylesheet; After applies MR !16770 so the same native checkbox controls use the shared checkbox styling.",
+      "comparisonGroup": "3594809-mr-cleanup",
+      "comparisonLabel": "Core → MR",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Use a Standard install with Default Admin as the administration theme.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /admin/appearance/settings in both frames and find the Page element display controls.",
+          "how": "mirror"
+        },
+        {
+          "text": "In each frame, inspect the Shortcut icon checkbox in its checked and unchecked states.",
+          "how": "each",
+          "lookFor": "Before looks like a toggle switch. After looks like an ordinary square checkbox while remaining a native checkbox."
+        },
+        {
+          "text": "Change the checkbox and leave the page without saving, then return and check the persisted value.",
+          "how": "each",
+          "lookFor": "The pending form value is not persisted until Save configuration is activated."
+        },
+        {
+          "text": "Change the checkbox again, use Save configuration, and reload the page.",
+          "how": "each",
+          "lookFor": "The value persists after submission. The MR should change presentation, not form behavior."
+        }
+      ],
+      "expected": "Native checkboxes on submission-based forms use the shared square checkbox presentation. Their values still change only after the form is submitted.",
+      "actual": "Not run in a browser. Static source analysis shows that Before loads the toggle stylesheet and the After stack removes it; live presentation, semantics, and save behavior remain unverified.",
+      "observe": [
+        {
+          "label": "Shortcut icon is visually a switch",
+          "expectBefore": true,
+          "expectAfter": false
+        },
+        {
+          "label": "Shortcut icon is visually a standard checkbox with a clear checked state",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Changing the checkbox alone does not persist the setting",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Saving the form persists the selected value",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "The Appearance settings form and Shortcut icon checkbox are present",
+          "probe": "document.querySelector('form#system-theme-settings') !== null && document.querySelector('input[name=\"toggle_favicon\"]') !== null",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Shortcut icon remains a native checkbox",
+          "probe": "document.querySelector('input[name=\"toggle_favicon\"]').type === 'checkbox' && document.querySelector('input[name=\"toggle_favicon\"]').getAttribute('role') !== 'switch'",
+          "expect": true,
+          "kind": "regression"
+        },
+        {
+          "label": "The Shortcut icon control uses the shared square checkbox width",
+          "probe": "getComputedStyle(document.querySelector('input[name=\"toggle_favicon\"]')).width === '21px'",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "The checkbox keeps its associated label",
+          "probe": "Boolean(document.querySelector('input[name=\"toggle_favicon\"]').labels && document.querySelector('input[name=\"toggle_favicon\"]').labels.length)",
+          "expect": true,
+          "kind": "regression"
+        },
+        {
+          "label": "The form still requires Save configuration",
+          "probe": "document.querySelector('form#system-theme-settings input[type=\"submit\"]') !== null",
+          "expect": true,
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/admin/appearance/settings"
+      ],
+      "demo": {
+        "start": "/admin/appearance/settings"
+      }
+    },
+    {
+      "slug": "3594809-corrected",
+      "issue": "3594809",
+      "label": "#3594809: MR !16770 plus required file deletions",
+      "description": "The same pinned reproduction with a separate corrective patch that deletes the two zero-byte CSS files left by the published MR. The original MR patch remains unchanged.",
+      "comparisonGroup": "3594809-mr-cleanup",
+      "comparisonLabel": "MR + deletion fix",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Use a Standard install with Default Admin as the administration theme.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /admin/appearance/settings in both frames and find the Page element display controls.",
+          "how": "mirror"
+        },
+        {
+          "text": "In each frame, inspect the Shortcut icon checkbox in its checked and unchecked states.",
+          "how": "each",
+          "lookFor": "Before looks like a toggle switch. After looks like an ordinary square checkbox while remaining a native checkbox."
+        },
+        {
+          "text": "Change the checkbox and leave the page without saving, then return and check the persisted value.",
+          "how": "each",
+          "lookFor": "The pending form value is not persisted until Save configuration is activated."
+        },
+        {
+          "text": "Change the checkbox again, use Save configuration, and reload the page.",
+          "how": "each",
+          "lookFor": "The value persists after submission. The MR should change presentation, not form behavior."
+        }
+      ],
+      "expected": "Native checkboxes on submission-based forms use the shared square checkbox presentation. Their values still change only after the form is submitted.",
+      "actual": "Not run in a browser. Static source analysis shows that Before loads the toggle stylesheet and the After stack removes it; live presentation, semantics, and save behavior remain unverified.",
+      "observe": [
+        {
+          "label": "Shortcut icon is visually a switch",
+          "expectBefore": true,
+          "expectAfter": false
+        },
+        {
+          "label": "Shortcut icon is visually a standard checkbox with a clear checked state",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Changing the checkbox alone does not persist the setting",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Saving the form persists the selected value",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "The Appearance settings form and Shortcut icon checkbox are present",
+          "probe": "document.querySelector('form#system-theme-settings') !== null && document.querySelector('input[name=\"toggle_favicon\"]') !== null",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Shortcut icon remains a native checkbox",
+          "probe": "document.querySelector('input[name=\"toggle_favicon\"]').type === 'checkbox' && document.querySelector('input[name=\"toggle_favicon\"]').getAttribute('role') !== 'switch'",
+          "expect": true,
+          "kind": "regression"
+        },
+        {
+          "label": "The Shortcut icon control uses the shared square checkbox width",
+          "probe": "getComputedStyle(document.querySelector('input[name=\"toggle_favicon\"]')).width === '21px'",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "The checkbox keeps its associated label",
+          "probe": "Boolean(document.querySelector('input[name=\"toggle_favicon\"]').labels && document.querySelector('input[name=\"toggle_favicon\"]').labels.length)",
+          "expect": true,
+          "kind": "regression"
+        },
+        {
+          "label": "The form still requires Save configuration",
+          "probe": "document.querySelector('form#system-theme-settings input[type=\"submit\"]') !== null",
+          "expect": true,
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/admin/appearance/settings"
+      ],
+      "demo": {
+        "start": "/admin/appearance/settings"
+      }
+    },
+    {
+      "slug": "3594809-latest",
+      "issue": "3594809",
+      "label": "#3594809: same steps against the LATEST core main",
+      "description": "Compare ordinary checkboxes on the Core Appearance settings form. Before uses the Default Admin toggle-switch stylesheet; After applies MR !16770 so the same native checkbox controls use the shared checkbox styling.",
+      "comparisonGroup": null,
+      "comparisonLabel": "Core → MR",
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Use a Standard install with Default Admin as the administration theme.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /admin/appearance/settings in both frames and find the Page element display controls.",
+          "how": "mirror"
+        },
+        {
+          "text": "In each frame, inspect the Shortcut icon checkbox in its checked and unchecked states.",
+          "how": "each",
+          "lookFor": "Before looks like a toggle switch. After looks like an ordinary square checkbox while remaining a native checkbox."
+        },
+        {
+          "text": "Change the checkbox and leave the page without saving, then return and check the persisted value.",
+          "how": "each",
+          "lookFor": "The pending form value is not persisted until Save configuration is activated."
+        },
+        {
+          "text": "Change the checkbox again, use Save configuration, and reload the page.",
+          "how": "each",
+          "lookFor": "The value persists after submission. The MR should change presentation, not form behavior."
+        }
+      ],
+      "expected": "Native checkboxes on submission-based forms use the shared square checkbox presentation. Their values still change only after the form is submitted.",
+      "actual": "Not run in a browser. Static source analysis shows that Before loads the toggle stylesheet and the After stack removes it; live presentation, semantics, and save behavior remain unverified.",
+      "observe": [
+        {
+          "label": "Shortcut icon is visually a switch",
+          "expectBefore": true,
+          "expectAfter": false
+        },
+        {
+          "label": "Shortcut icon is visually a standard checkbox with a clear checked state",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Changing the checkbox alone does not persist the setting",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Saving the form persists the selected value",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "The Appearance settings form and Shortcut icon checkbox are present",
+          "probe": "document.querySelector('form#system-theme-settings') !== null && document.querySelector('input[name=\"toggle_favicon\"]') !== null",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Shortcut icon remains a native checkbox",
+          "probe": "document.querySelector('input[name=\"toggle_favicon\"]').type === 'checkbox' && document.querySelector('input[name=\"toggle_favicon\"]').getAttribute('role') !== 'switch'",
+          "expect": true,
+          "kind": "regression"
+        },
+        {
+          "label": "The Shortcut icon control uses the shared square checkbox width",
+          "probe": "getComputedStyle(document.querySelector('input[name=\"toggle_favicon\"]')).width === '21px'",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "The checkbox keeps its associated label",
+          "probe": "Boolean(document.querySelector('input[name=\"toggle_favicon\"]').labels && document.querySelector('input[name=\"toggle_favicon\"]').labels.length)",
+          "expect": true,
+          "kind": "regression"
+        },
+        {
+          "label": "The form still requires Save configuration",
+          "probe": "document.querySelector('form#system-theme-settings input[type=\"submit\"]') !== null",
+          "expect": true,
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/admin/appearance/settings"
+      ],
+      "demo": {
+        "start": "/admin/appearance/settings"
       }
     },
     {

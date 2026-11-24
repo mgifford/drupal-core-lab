@@ -1,0 +1,112 @@
+diff --git a/core/misc/dialog/dialog.position.js b/core/misc/dialog/dialog.position.js
+index 36f1ccf07ce5034386cc655c2f33bad64fc0bbf8..afeb6584ab89d89bf2a7ec711a45a8015281ecf9 100644
+--- a/core/misc/dialog/dialog.position.js
++++ b/core/misc/dialog/dialog.position.js
+@@ -79,6 +79,7 @@
+     ];
+     let adjustedOptions = {};
+     let windowHeight = $(window).height();
++    windowHeight -= displace.offsets.top + displace.offsets.bottom;
+     let option;
+     let optionValue;
+     let adjustedValue;
+@@ -92,20 +93,10 @@
+           optionValue.endsWith('%') &&
+           /height/i.test(option)
+         ) {
+-          // Take offsets in account.
+-          windowHeight -= displace.offsets.top + displace.offsets.bottom;
+           adjustedValue = parseInt(
+             0.01 * parseInt(optionValue, 10) * windowHeight,
+             10,
+           );
+-          // Don't force the dialog to be bigger vertically than needed.
+-          if (
+-            option === 'height' &&
+-            Math.round(event.data.$element.parent().outerHeight()) <
+-              adjustedValue
+-          ) {
+-            adjustedValue = 'auto';
+-          }
+           adjustedOptions[option] = adjustedValue;
+         }
+       }
+diff --git a/core/tests/Drupal/FunctionalJavascriptTests/Ajax/DialogTest.php b/core/tests/Drupal/FunctionalJavascriptTests/Ajax/DialogTest.php
+index ca3de5e4d127eea42f7d03939644ecf3a811f0a0..8abf127a9228c838b5b28975ef8212dce931f8b8 100644
+--- a/core/tests/Drupal/FunctionalJavascriptTests/Ajax/DialogTest.php
++++ b/core/tests/Drupal/FunctionalJavascriptTests/Ajax/DialogTest.php
+@@ -298,4 +298,74 @@ public function testCloseCancelsScheduledResize(): void {
+     $this->assertSame([], $errors);
+   }
+ 
++  /**
++   * Tests that percentage-height dialogs resize when their content grows.
++   */
++  public function testPercentageHeightDialogResizesAfterContentGrowth(): void {
++    $this->drupalGet('ajax-test/dialog');
++    $this->clickLink('Link 1 (modal)');
++    $dialog = $this->assertSession()->waitForElementVisible('css', '.ui-dialog');
++    $this->assertNotNull($dialog);
++    $close = $dialog->findButton('Close');
++    $this->assertNotNull($close);
++    $close->press();
++
++    $script = <<<'SCRIPT'
++      (function () {
++        const content = document.createElement('div');
++        content.id = 'percentage-height-dialog-content';
++        const expand = document.createElement('button');
++        expand.id = 'expand-percentage-height-dialog';
++        expand.type = 'button';
++        expand.textContent = 'Expand';
++        content.appendChild(expand);
++        document.body.appendChild(content);
++        Drupal.dialog(content, {
++          title: 'Percentage-height dialog',
++          modal: true,
++          height: '50%',
++          width: '50%',
++          buttons: [{ text: 'Save' }],
++        }).showModal();
++        expand.addEventListener('click', function () {
++          const tall = document.createElement('div');
++          tall.style.height = '2000px';
++          content.appendChild(tall);
++        });
++      }())
++      SCRIPT;
++    $this->getSession()->executeScript($script);
++    $dialog = $this->assertSession()->waitForElementVisible('css', '.ui-dialog');
++    $this->assertNotNull($dialog);
++    $expand = $dialog->find('css', '#expand-percentage-height-dialog');
++    $this->assertNotNull($expand);
++    $expand->press();
++
++    $this->assertJsCondition(<<<'SCRIPT'
++      (function () {
++        const content = document.querySelector('#percentage-height-dialog-content');
++        const dialog = content.closest('.ui-dialog');
++        const rect = dialog.getBoundingClientRect();
++        const action = dialog.querySelector('.ui-dialog-buttonpane');
++        const actionRect = action.getBoundingClientRect();
++        const save = action.querySelector('button');
++        const saveRect = save.getBoundingClientRect();
++        return content.scrollHeight > content.clientHeight &&
++          typeof jQuery(content).dialog('option', 'height') === 'number' &&
++          rect.top >= 0 &&
++          rect.left >= 0 &&
++          rect.right <= window.innerWidth &&
++          rect.bottom <= window.innerHeight &&
++          actionRect.top >= 0 &&
++          actionRect.left >= 0 &&
++          actionRect.right <= window.innerWidth &&
++          actionRect.bottom <= window.innerHeight &&
++          saveRect.top >= 0 &&
++          saveRect.left >= 0 &&
++          saveRect.right <= window.innerWidth &&
++          saveRect.bottom <= window.innerHeight;
++      }())
++      SCRIPT);
++  }
++
+ }
