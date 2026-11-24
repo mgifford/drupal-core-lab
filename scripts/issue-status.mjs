@@ -1,6 +1,7 @@
 // Read each issue's state from drupal.org and git.drupalcode.org and compare it with what the lab last tested.
 //   node scripts/issue-status.mjs <nid> [--write] [--force]   one issue, as a status snapshot
-//   node scripts/issue-status.mjs --all [--write]             every issue folder not archived (no ARCHIVED.md), one line each
+//   node scripts/issue-status.mjs --all [--write] [--include-archived]  every issue folder, one line each; archived folders are skipped
+//                                                              unless --include-archived (used to spot a reopened archive)
 // Read-only on the network (https GET on www.drupal.org and git.drupalcode.org only, via tools/compare/pack-prepare.mjs); it never
 // posts or comments. --write keeps reports/issues/<nid>/status.json, rewritten only when something changed (status, comments,
 // merge request, title, priority or tags), so a run that finds nothing new changes no file. A change after an earlier check also
@@ -12,11 +13,11 @@ import { getJson } from '../tools/compare/pack-prepare.mjs';
 import { fetchStatus, saveStatus, readStatus, changes, statusMarkdown, recordedTip, readArchived, nextStep, issueDir, issueNids } from '../tools/compare/issue-tracking.mjs';
 
 const args = process.argv.slice(2);
-const write = args.includes('--write'), force = args.includes('--force'), all = args.includes('--all');
+const write = args.includes('--write'), force = args.includes('--force'), all = args.includes('--all'), includeArchived = args.includes('--include-archived');
 const nidArg = args.find((a) => /^\d{5,8}$/.test(a));
 if (!all && !nidArg) { console.error('usage: node scripts/issue-status.mjs <nid> [--write] [--force] | --all [--write]'); process.exit(2); }
 const today = new Date().toISOString().slice(0, 10), terms = new Map();
-const nids = all ? issueNids(labRoot).filter((nid) => !readArchived(issueDir(labRoot, nid))) : [nidArg];
+const nids = all ? issueNids(labRoot).filter((nid) => includeArchived || !readArchived(issueDir(labRoot, nid))) : [nidArg];
 const failed = [], changed = [], first = [];
 for (const nid of nids) {
   const dir = issueDir(labRoot, nid), rec = recordedTip(labRoot, nid);
