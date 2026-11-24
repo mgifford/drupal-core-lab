@@ -61,14 +61,11 @@ Nothing for the lab to do until the issue moves.
 | [3637163](3637163/SUMMARY.md) | The custom accent color field is in lack of a form validation check | Active, updated 2026-11-19 | none found | no MR commit recorded ([how](3637163/REPRODUCE.md)) | Active; no MR found |
 | [867830](867830/SUMMARY.md) | "Unpublished" style of rendered entities is not accessible (and looks bad) | Active, updated 2026-11-23 | none found | `0fcbb553` ([how](867830/REPRODUCE.md)) | Active; no MR found |
 
-## Not checked yet (2)
+## Not checked yet (0)
 
 No `status.json` yet: the next weekly check fills these in, or `node scripts/issue-status.mjs <nid> --write` for one.
 
-| Issue | What | Lab tested |
-|---|---|---|
-| [3466040](3466040/) | (see folder) | no BRANCHES.md |
-| [3594809](3594809/) | (see folder) | no BRANCHES.md |
+None.
 
 ## Archived (0)
 
