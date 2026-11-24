@@ -51,9 +51,13 @@ test('task summaries count explicit tasks, exclude session pseudo-tasks, and exp
   assert.equal(JSON.stringify(byTask).includes('local only'), false);
   const s = aggregate([e1, e2, pseudo]);
   assert.equal(s.by_task.length, 1);
+  assert.equal(s.attribution.task.events_attributed, 1, 'only the declared/explicit task carries attribution');
+  assert.equal(s.attribution.task.non_session_task_events, 1, 'other non-session ids are reported separately');
+  assert.equal(s.attribution.task.session_task_events, 1);
   const sWithRegistry = aggregate([e1], { tasks });
   assert.equal(sWithRegistry.by_task.length, 1);
   assert.equal(sWithRegistry.by_task[0].events, 1);
+  assert.equal(sWithRegistry.attribution.task.events_attributed, 1);
   const zero = taskSummaries([], { tasks: [{ task_id: 'planned-only', state: 'planned', kind: 'investigation', expected_deliverable: 'investigation-report', sessions: [] }] });
   assert.equal(zero.length, 1);
   assert.equal(zero[0].events, 0);

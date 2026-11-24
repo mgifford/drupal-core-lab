@@ -261,7 +261,8 @@ function renderAttribution() {
     ['Model requests', `${fmt(a.model_requests?.classified)} classified / ${fmt(a.model_requests?.unknown)} unknown`, pct(a.model_requests?.coverage), 'one record per observable provider message id'],
     ['Tool operations', `${fmt(a.tool_operations?.total)} recorded / ${fmt(a.tool_operations?.unknown)} in Unknown events`, pct(a.tool_operations?.coverage), 'client tool records'],
     ['Drupal issue', `${fmt(a.issue?.events_attributed)} attributed events`, pct(a.issue?.coverage), 'independent of activity; a missing issue is not Unknown activity'],
-    ['Task', `${fmt(a.task?.events_attributed)} attributed events`, pct(a.task?.coverage), 'session task ids, not one explicit task per session'],
+    ['Task (declared)', `${fmt(a.task?.events_attributed)} attributed events`, pct(a.task?.coverage), 'declared in tasks.jsonl or carried as explicit task metadata'],
+    ['Task ids (non-session)', `${fmt(a.task?.non_session_task_events)} attributed events`, MISSING, 'CI, Docker and wrapper ids; not declared development tasks'],
     ['Outcome', `${fmt(a.outcome?.success)} success / ${fmt(a.outcome?.failure)} failure / ${fmt(a.outcome?.unknown)} unknown`, MISSING, 'a command result or model claim is not a verified outcome'],
     ['Prompt provenance', `${fmt(DATA.provenance?.prompts)} prompt(s), ${bytes(DATA.provenance?.prompt_bytes)}`, MISSING, DATA.provenance?.capture || 'none'],
   ];
@@ -363,7 +364,7 @@ function render() {
   card('GitHub Actions time', hours(gh), gh == null ? 'unavailable' : `provider-reported; ${fmt(ghRuns)} job(s)`);
   const filtered = ['from', 'to', 'issue', 'activity', 'tool', 'model'].some((id) => $(id).value);
   const overall = DATA.totals.tasks;
-  card('Tasks measured', filtered ? MISSING : fmt(overall.measured), filtered ? 'whole period: ' + fmt(overall.measured) : 'derived from task outcomes', `${fmt(overall.success)} success · ${fmt(overall.failure)} failure · ${fmt(overall.unknown)} unknown`);
+  card('Task ids observed', filtered ? MISSING : fmt(overall.measured), filtered ? 'whole period: ' + fmt(overall.measured) : 'distinct ids; includes sessions, CI and Docker', `${fmt(overall.success)} success · ${fmt(overall.failure)} failure · ${fmt(overall.unknown)} unknown`);
   card('Successful / failed outcomes', `${fmt(outcomes.success || 0)} / ${fmt(outcomes.failure || 0)}`, 'from grouped rows', `${fmt(outcomes.cancelled || 0)} cancelled · ${fmt(outcomes.unknown || 0)} unknown`);
   card('Collection overhead', `${hours(DATA.monitoring?.cpu_seconds)} · ${bytes(DATA.monitoring?.peak_memory_bytes)}`, 'measured separately from activity', `${fmt(DATA.monitoring?.events || 0)} collector event(s); not mixed into activity totals`);
   $('completeness').textContent = `Period ${DATA.period.from || MISSING} to ${DATA.period.to || MISSING}. Data completeness: ${DATA.completeness}. ${ROWS.length} grouped public row(s) shown. Monitoring overhead is reported separately: ${hours(DATA.monitoring?.cpu_seconds)} CPU, ${bytes(DATA.monitoring?.peak_memory_bytes)} peak.`;

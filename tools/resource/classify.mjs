@@ -8,7 +8,7 @@
 import {
   CLASSIFIER_VERSION, RULE_REGISTRY_VERSION, UNKNOWN_REASONS, PROVENANCE, CONFIDENCE,
   EXPLORATION_SUBCATEGORIES, TOOL_RULES, NAVIGATION, PLUMBING, classifyShell, classifyArgv,
-  primaryActivity, isStrongPrimary, dominantSubcategory, scriptRule,
+  primaryActivity, isStrongPrimary, hasMultipleStrong, dominantSubcategory, scriptRule,
 } from './rules.mjs';
 
 export { CLASSIFIER_VERSION, RULE_REGISTRY_VERSION, UNKNOWN_REASONS, PROVENANCE, CONFIDENCE, EXPLORATION_SUBCATEGORIES };
@@ -100,7 +100,12 @@ function combine(results, { source = 'parsed_command' } = {}) {
     const sub = known.find((r) => r.subcategory)?.subcategory || null;
     return finish({ activity: activities[0], subcategory: sub, rule_id: known[0].rule_id, provenance, confidence: 'deterministic', components: known });
   }
-  if (activities.length > 1) return finish({ activity: 'unknown', unknown_reason: 'ambiguous_activity', rule_id: 'combine.mixed', provenance: 'contextual_inference', confidence: 'heuristic', components: [...known, ...unknown], notes: ['The operations support more than one activity; no token split is asserted.'] });
+  if (activities.length > 1) {
+    if (hasMultipleStrong(known)) return finish({ activity: 'unknown', unknown_reason: 'ambiguous_activity', rule_id: 'combine.ambiguous-strong', provenance: 'contextual_inference', confidence: 'heuristic', components: [...known, ...unknown], notes: [`More than one strong activity is present (${activities.join(', ')}); no primary is asserted.`] });
+    const primary = primaryActivity(known);
+    const sub = primary === 'code-exploration' ? dominantSubcategory(known) : (known.find((c) => c.activity === primary)?.subcategory || null);
+    return finish({ activity: primary, subcategory: sub, rule_id: `combine.primary:${known.find((c) => c.activity === primary)?.rule_id || primary}`, provenance: 'contextual_inference', confidence: 'heuristic', components: [...known, ...unknown], notes: [`Primary-operation rule chose ${primary} from ${activities.join(', ')}; no token split is asserted.`] });
+  }
   if (activities.length === 1) return finish({ activity: 'unknown', unknown_reason: 'compound_command', rule_id: 'combine.partial', provenance: 'contextual_inference', confidence: 'heuristic', components: [...known, ...unknown] });
   return finish({ activity: 'unknown', unknown_reason: unknown[0]?.unknown_reason || 'unclassified_other', rule_id: unknown[0]?.rule_id || 'combine.unknown', components: unknown });
 }
@@ -236,6 +241,7 @@ export function classifyRequestOperations(operations = []) {
     return finish({ activity: activities[0], subcategory, rule_id: known[0].rule_id, provenance: [...new Set(known.map((d) => d.provenance))].length === 1 ? known[0].provenance : 'contextual_inference', confidence: 'deterministic', components });
   }
   if (activities.length > 1) {
+    if (hasMultipleStrong(known)) return finish({ activity: 'unknown', unknown_reason: 'ambiguous_activity', rule_id: 'request.ambiguous-strong', provenance: 'contextual_inference', confidence: 'heuristic', components, notes: [`More than one strong activity is present (${activities.join(', ')}); the request's tokens are not divided among tools.`] });
     const primary = primaryActivity(known);
     const subcategory = primary === 'code-exploration' ? dominantSubcategory(known) : null;
     return finish({ activity: primary, subcategory, rule_id: `request.primary:${known.find((d) => d.activity === primary)?.rule_id || primary}`, provenance: 'contextual_inference', confidence: 'heuristic', components, notes: [`Primary-operation rule chose ${primary} from ${activities.join(', ')}; the request's tokens are not divided among tools.`] });

@@ -85,6 +85,36 @@ test('classifier separates operation, tool and provenance instead of matching co
   assert.ok(compound.components.some((c) => c.activity === 'code-exploration'));
   assert.equal(compound.confidence, 'heuristic');
 
+  // Two substantive operations cannot be reduced to one primary without asserting a cause.
+  const ambiguousShell = classifyOperation({ tool: 'Bash', command: 'node scripts/lint.mjs && node scripts/capture-patch.mjs x' });
+  assert.equal(ambiguousShell.activity, 'unknown');
+  assert.equal(ambiguousShell.unknown_reason, 'ambiguous_activity');
+  assert.equal(ambiguousShell.rule_id, 'shell.ambiguous-strong');
+  assert.equal(ambiguousShell.components.filter((c) => c.activity !== 'unknown').length, 2);
+
+  const ambiguousRequest = classifyRequestOperations([
+    { tool: 'Bash', command: 'ddev phpunit core/tests/Drupal/Functional/ExampleTest.php' },
+    { tool: 'Edit', file: 'core/lib/Drupal.php' },
+  ]);
+  assert.equal(ambiguousRequest.activity, 'unknown');
+  assert.equal(ambiguousRequest.unknown_reason, 'ambiguous_activity');
+  assert.equal(ambiguousRequest.rule_id, 'request.ambiguous-strong');
+
+  // With one strong and one weak activity, the primary-operation rule still applies: most operations, then precedence.
+  const oneStrong = classifyRequestOperations([
+    { tool: 'Read', file: 'a.md' },
+    { tool: 'Bash', command: 'node scripts/lint.mjs' },
+  ]);
+  assert.equal(oneStrong.activity, 'validation');
+  assert.equal(oneStrong.confidence, 'heuristic');
+
+  // The label path and the structured path agree for the same two scripts.
+  const ambiguousLabel = classifyLabelDetailed('Bash/lab:lint+capture-patch');
+  assert.equal(ambiguousLabel.activity, 'unknown');
+  assert.equal(ambiguousLabel.unknown_reason, 'ambiguous_activity');
+  const oneStrongLabel = classifyLabelDetailed('Bash/lab:lint+code-map');
+  assert.equal(oneStrongLabel.activity, 'validation');
+
   const unknownTool = classifyOperation({ tool: 'mcp__unknown__thing' });
   assert.equal(unknownTool.activity, 'unknown');
   assert.equal(unknownTool.unknown_reason, 'unrecognized_tool');

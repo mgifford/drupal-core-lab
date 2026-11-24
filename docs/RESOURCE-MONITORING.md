@@ -109,8 +109,10 @@ count, and no usage record may be missing. A mismatch is reported with its delta
 Token formulas for the Claude transcript: `input_total = input + cache_creation + cache_read`;
 `uncached_input = input`; `output` already includes reported thinking tokens, so `reasoning` is shown separately and is
 not added again. A tool-free request is included and stays `unknown` / `model_only_request`. A request with several
-tool operations is not divided equally: if its operations support one activity, that activity is recorded; otherwise it
-stays Unknown with `ambiguous_activity`, and the components are preserved.
+tool operations is not divided equally: if its operations support one activity, that activity is recorded; if more than
+one **strong** activity is present, it stays Unknown with `ambiguous_activity` and the components are preserved;
+otherwise the primary-operation rule chooses the activity with the most operations, using the documented precedence as
+a tie-break.
 
 Activity association is not causation. A validation request’s 300k-token input contains earlier exploration and
 instructions. The event says “this request happened while validating”; it does not say those tokens were caused by
@@ -135,9 +137,11 @@ issue unattributed.
 
 A compound command or multi-tool request is resolved with a documented primary-operation precedence (patch development,
 validation, issue work, environment, exploration). Every component is retained and the result is labelled `heuristic`;
-the rule does not divide the request’s tokens among the operations. Shell parsing is conservative: quotes, `&&`, `||`,
-pipelines, loops, assignments and substitutions are handled without evaluation; a heredoc body is data and is never
-executed. If the line cannot be parsed safely, the operation stays Unknown with `parser_error`.
+the rule does not divide the request’s tokens among the operations. When more than one **strong** activity is present
+(for example a PHPUnit run and an edit in the same request), no primary is asserted: the result stays Unknown with
+`ambiguous_activity`. Shell parsing is conservative: quotes, `&&`, `||`, pipelines, loops, assignments and substitutions
+are handled without evaluation; a heredoc body is data and is never executed. If the line cannot be parsed safely, the
+operation stays Unknown with `parser_error`.
 
 ### Explicit task metadata and outcomes
 
@@ -149,7 +153,7 @@ latest record for a task id wins.
 ```bash
 node scripts/resource-task.mjs start issue-3619127 --kind=accessibility-evaluation \
   --deliverable=accessibility-findings --issue=3619127 --variant=3619127-pinned \
-  --session=<transcript.jsonl> --label="Drupal issue investigation"
+  --session=/absolute/path/to/session.jsonl --label="Drupal issue investigation"
 node scripts/resource-task.mjs update issue-3619127 --state=completed_verified --verified \
   --evidence=reports/issues/3619127/EVIDENCE.md
 node scripts/resource-task.mjs list
@@ -162,6 +166,10 @@ reference counts as verified. Descriptions, evidence paths and session names are
 Limitations: a session maps to at most one explicit task. A session that contains several development tasks cannot be
 split from the transcript alone; its requests stay on the declared task until a finer, explicit boundary exists. Task
 summaries publish only a hash of the task id, the kind/state/deliverable, issue, resource totals and data completeness.
+
+`attribution.task.events_attributed` counts only task ids declared in `tasks.jsonl`, or explicit task metadata carried
+by the event. Non-session ids from CI workflows, Docker samples and wrapper labels are reported separately as
+`non_session_task_events`; they are not development-task declarations. A session id is never counted as a task.
 
 ### Repeated operations and failure fingerprints
 
@@ -304,13 +312,14 @@ keyboard or screen-reader pass. A 320 px reflow defect in the opportunities sect
   `process.resourceUsage()`.
 - The wrapper’s own CPU is separate from the child’s `/usr/bin/time` CPU; the dashboard reports both separately.
 - Run `node scripts/resource.mjs verify` and delete or compact the local ledger when needed; the committed summary
-  remains. Request-level collection makes the local ledger larger than the earlier session-only ledger (10.5 MB on
-  2026-11-23); it stays local and is not published.
+  remains. Request-level collection makes the local ledger larger than the earlier session-only ledger (18.4 MB on
+  2026-11-24 after the classifier 2.1.0 re-collection; superseded snapshots are retained); it stays local and is not
+  published.
 - The public summary is an aggregate; it grows with distinct grouped rows, not with every raw event.
-- Measured on 2026-11-23 after the request-level collection: the local ledger held 2,371 events in 10.5 MB; loading and
-  validating it took about 200 ms, aggregation about 23 ms, public-row construction about 4 ms, and the compact public
-  JSON was about 258 KB. These are host-specific observations, not targets. `node scripts/resource-benchmark.mjs`
-  reproduces them.
+- Measured on 2026-11-24 after the classifier 2.1.0 re-collection: the local ledger held 5,089 lines and 2,374 loaded
+  events in 18.4 MB; loading and validating took about 340 ms, aggregation about 32 ms, public-row construction about
+  5 ms, the compact public JSON was about 267 KB, and the published pretty-printed `cloud/resources.json` was about
+  386 KB. These are host-specific observations, not targets. `node scripts/resource-benchmark.mjs` reproduces them.
 - Re-importing unchanged transcripts added 0 duplicate events (2,191 source events skipped); each collection run still
   appends one `monitoring` event for its own overhead.
 
@@ -384,14 +393,16 @@ samples and measured local commands. Request-level reconciliation matched all 10
 
 The deterministic rules identify possible opportunities, with evidence event ids in the report:
 
-1. **High:** a material share of request context is associated with code exploration (29.2%); try
+1. **High:** a material share of request context is associated with code exploration (28.3%); try
    `scripts/code-map.mjs` for locate-and-read chains, then compare a comparable session.
-2. **High:** 16.7% of request context is Unknown. The reasons are model-only requests (81.0M tokens),
-   compound commands (45.0M) and unrecognized commands (10.0M). This is a measurement gap, not waste.
+2. **High:** 20.2% of request context is Unknown. The reasons are model-only requests (81.0M tokens),
+   compound commands (45.4M), requests or commands with several strong activities (28.1M), and unrecognized commands
+   (10.0M). This is a measurement gap, not waste. The share is higher than the first request-level report because
+   classifier 2.1.0 stopped choosing a primary when two strong activities are present.
 3. **High:** nine sessions had large starting or average contexts (max start 81k, max average 531k tokens); measure
    `scripts/context-size.mjs` before changing instructions.
 4. **Medium:** two GitHub Actions runs overlap a later run; review concurrency, but do not cancel evidence-producing runs.
-5. **Low:** 82 repeated lookups in 49 repeated targets; inspect them locally before changing instructions.
+5. **Low:** 76 repeated lookups in 46 repeated targets; inspect them locally before changing instructions.
 
 The provider token total remains dominated by cache reads (796.8M of 812.8M input-side tokens), so context re-reading is
 the largest lever. That is a measurement, not yet a change in behaviour.
