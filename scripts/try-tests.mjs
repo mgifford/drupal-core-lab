@@ -57,7 +57,8 @@ for (const s of SIDES) {
   if (state !== 'running') die(`${x.env} (${s}) is not running (${state || 'ddev did not answer'}). Start both sites: ${labEnv} start ${slug}`);
   x.commit = spawnSync('git', ['rev-parse', '--short=11', 'HEAD'], { cwd: x.dir, encoding: 'utf8' }).stdout.trim();
 }
-const gitStatus = (dir) => spawnSync('git', ['status', '--short', '--untracked-files=no'], { cwd: dir, encoding: 'utf8' }).stdout.trim();
+const gitStatus = (dir) => spawnSync('git', ['status', '--short', '--untracked-files=all'], { cwd: dir, encoding: 'utf8' }).stdout.trim();
+const gitStatusTracked = (dir) => spawnSync('git', ['status', '--short', '--untracked-files=no'], { cwd: dir, encoding: 'utf8' }).stdout.trim();
 
 // 3. the files to copy: where each goes inside a checkout, and which of them are test classes
 const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).filter((e) => !e.name.startsWith('.')).flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
@@ -127,6 +128,7 @@ const run = (cmd, args, { cwd, timeout }) => new Promise((resolve) => {
   child.on('close', (code) => { clearTimeout(timer); resolve({ status: code ?? 1, out, timedOut }); });
 });
 const pre = Object.fromEntries(SIDES.map((s) => [s, gitStatus(sides[s].dir)]));
+const preTracked = Object.fromEntries(SIDES.map((s) => [s, gitStatusTracked(sides[s].dir)]));
 const copied = [], madeDirs = [];
 cleanups.push(() => { for (const f of copied) fs.rmSync(f, { force: true }); for (const d of madeDirs.sort((a, b) => b.length - a.length)) { try { fs.rmdirSync(d); } catch { /* not empty: not ours to remove */ } } });
 // DDEV with Mutagen syncs the checkout into the container a moment after a file changes (scripts/lab-site.sh waits the same way):
@@ -153,7 +155,6 @@ function ensureChrome() {
 }
 async function settle(s, present) {
   if (!items.length) return true;
-  spawnSync('ddev', ['mutagen', 'sync'], { cwd: sides[s].dir, stdio: 'ignore' });
   const test = items.map((it) => `test ${present ? '-f' : '! -e'} ${q(it.rel)}`).join(' && ');
   for (let i = 0; i < 30; i++) { if (spawnSync('ddev', ['exec', test], { cwd: sides[s].dir }).status === 0) return true; await sleep(1000); }
   return false;
@@ -197,13 +198,13 @@ if (!gone) problems.push('copied files are still in a checkout');
 const state = [];
 for (const s of SIDES) {
   const post = gitStatus(sides[s].dir), x = sides[s];
-  if (post !== pre[s]) { problems.push(`${s} tracked files changed during the run`); state.push(`${x.env}: tracked files CHANGED by the run:\n${post}`); }
-  else if (s === 'before' && pre[s] && !(v.before.patches || []).length) { problems.push('the baseline already had tracked changes before the run'); state.push(`${x.env}: tracked changes that were there before the run, and the variant declares no before.patches:\n${pre[s]}`); }
-  else state.push(`${x.env}: tracked files unchanged${pre[s] ? ' (the patched checkout, as it was)' : ' (clean)'}`);
+  if (post !== pre[s]) { problems.push(`${s} checkout files changed during the run`); state.push(`${x.env}: checkout files CHANGED by the run:\n${post}`); }
+  else if (s === 'before' && preTracked[s] && !(v.before.patches || []).length) { problems.push('the baseline already had tracked changes before the run'); state.push(`${x.env}: tracked changes that were there before the run, and the variant declares no before.patches:\n${preTracked[s]}`); }
+  else state.push(`${x.env}: tracked files unchanged${preTracked[s] ? ' (the patched checkout, as it was)' : ' (clean)'}`);
 }
 const goneInContainers = (await Promise.all(SIDES.map((s) => settle(s, false)))).every(Boolean);
 if (gone && !goneInContainers) problems.push('removed from the checkouts, but a container still has the copies (Mutagen has not synced the removal)');
-state.push(!gone ? 'copied files NOT removed: check git status --short in both checkouts' : goneInContainers ? 'copied files removed from both checkouts (host and container)' : 'copied files removed on the host, still in a container: run ddev mutagen sync in both environments');
+state.push(!gone ? 'copied files NOT removed: check git status --short in both checkouts' : goneInContainers ? 'copied files removed from both checkouts (host and container)' : 'copied files removed on the host, still in a container: inspect git status before any manual sync');
 
 // 8. the result, as sections (printed as text; written as Markdown with --report)
 const short = (p) => path.basename(p);
