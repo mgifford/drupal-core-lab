@@ -53,7 +53,7 @@ deliberate restart/reset (do it only when that environment is not needed for cur
 Active work can be protected with a local lease: `node scripts/lab-env.mjs claim <slug> --task=<id> --operation=review
 --minutes=120`. A lease is runtime coordination (it may name an existing `resource-task` id), not a second task tracker. While it is
 active, `stop`, `reset`, `delete`, `retire` and `chrome stop` refuse unless `--force`; a TTL-only lease must be released or expires.
-`node scripts/lab-env.mjs leases` lists them, and `resources` shows each environment as active, unknown or stale. A missing or expired
+`node scripts/lab-env.mjs leases` lists them, and `resources` shows each environment as active, unknown or stale. Heavy commands can be started through `node scripts/lab-run.mjs <slug> --kind=test -- <command...>`; it checks capacity, claims the lease and registers the operation, then cleans both up. A missing or expired
 lease is **unknown**, never proof of idle.
 
 The add-on also starts a Selenium Chrome container for each environment. The lab's Playwright scripts use the host browser, but
