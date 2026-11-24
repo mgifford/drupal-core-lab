@@ -285,6 +285,10 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
     const availability = Object.fromEntries(list.map(v => [v.slug, ['before', 'after'].every(s => fs.existsSync(path.join(envDir(v[s].env), '.ddev/config.yaml')))]));
     res.end(JSON.stringify({ variants: list, availability, state, repo, origins: { before: SIDES.before.origin, after: SIDES.after.origin }, sites: realSites(), noWindow: noWindow() }));
+  } else if (u.pathname === '/reference/status-messages') {
+    // A fixed read-only reference page (docs/STATUS-MESSAGES.md has the written version); it announces nothing and carries no script.
+    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' });
+    res.end(fs.readFileSync(path.join(labRoot, 'docs/examples/status-messages.html')));
   } else if (['/browser-handoff.mjs', '/media-preferences.mjs'].includes(u.pathname) || /^\/browser-icons\/(chrome|edge|firefox|safari)\.svg$/.test(u.pathname)) {
     const file = path.join(labRoot, 'tools/compare', u.pathname.slice(1));
     res.writeHead(200, { 'content-type': u.pathname.endsWith('.mjs') ? 'text/javascript' : 'image/svg+xml' }); res.end(fs.readFileSync(file));
