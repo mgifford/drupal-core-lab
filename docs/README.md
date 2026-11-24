@@ -9,6 +9,7 @@ Current documentation for this lab (written or verified 2026-10-01), plus a `leg
 | [NEW-ISSUE.md](NEW-ISSUE.md) | Starting a new issue: scaffold, recipe, variant, steps and checks, evidence, and coming back to it later. |
 | [ISSUE-PACK.md](ISSUE-PACK.md) | Bring your own issue: a chat assistant writes one YAML "issue pack" from a Drupal.org issue; the lab validates it (`scripts/issue-pack.mjs`) and imports it as a draft. |
 | [ISSUE-TO-LAB.md](ISSUE-TO-LAB.md) | The shortest path: an issue URL with an open merge request to a built Before/After. The glue (`scripts/issue-from-url.mjs`), AI-drafted recipes (`--ai-recipe`) and the cloud hooks (`--core-url`, `--use-existing-core`). |
+| [STATUS-MESSAGES.md](STATUS-MESSAGES.md) | Every Drupal core status message type (status, warning, error), its ARIA role, accessible name and announcement, and why; with a visual page, [examples/status-messages.html](examples/status-messages.html). |
 | [TESTING-TOOLS.md](TESTING-TOOLS.md) | Each tool (axe-core, Playwright, Guidepup virtual screen reader, the viewer, the diff report, Accessibility Insights) and what it can and cannot tell you. |
 | [CLOUD-PLAN.md](CLOUD-PLAN.md) | Plan and status for running the lab in DDEV Coder workspaces (opt-in; access is gated). Opt-in only; see `../tools/compare/cloud/README.md` for the tested steps. |
 | [CLOUD-QUICKSTART.md](CLOUD-QUICKSTART.md) | Browser-only walkthrough: create a DDEV Coder workspace, bootstrap before/after, open the viewer, handle lifespan/restarts. |
