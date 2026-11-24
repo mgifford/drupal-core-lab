@@ -5,7 +5,7 @@ Not rebased onto current `main`. The MR on drupal.org is the source of truth.
 
 | Patch | Source | Tip | Base | Base date and subject | Files |
 |---|---|---|---|---|---|
-| [`branches/3636143-regression-the-toggle.patch`](branches/3636143-regression-the-toggle.patch) | https://git.drupalcode.org/issue/drupal-3636143.git `3636143-regression-the-toggle` | 5e5521e4 | fea1e49ac3e5 | 2026-11-09 docs: #3422895 (follow-up) Document when ConfigurableLanguageManagerInterface::getLanguageConfigOverride() and LanguageConfigFactoryOverrideInterface::getOverride() return an empty object | 2 |
+| [`branches/3636143-regression-the-toggle.patch`](branches/3636143-regression-the-toggle.patch) | https://git.drupalcode.org/issue/drupal-3636143.git `3636143-regression-the-toggle` | 8779866c | 1dec2b8cc196 | 2026-11-24 task: #3641267 Update Twig to v3.31.1 | 4 |
 
 ## Separate integration with the skip-link proposal
 
@@ -26,4 +26,6 @@ No artifact bytes changed. The skip-link proposal retains its original source ba
 [3637339/BRANCHES.md](../3637339/BRANCHES.md); clean applicability to this newer core is verified separately.
 This stack is not a new patch revision of MR !17738. Do not add the skip-link interdiff on top of its complete patch.
 The existing [MR-tip interdiff](../3637339/branches/3637339-focus-clearance.patch) is for MR !17818, not the navigation MR.
+**2026-11-24:** the MR patch above was refreshed to tip `8779866c` and now contains the hover/focus styling. The lab patch below is **folded into the MR and retired** (kept for history; not used by any variant). The hashes in the integration table above are those of 2026-11-19; the MR patch is now sha256 `a9cc9a43`.
+
 | [`branches/3636143-toggle-hover-focus.patch`](branches/3636143-toggle-hover-focus.patch) | authored in the lab (no merge request), captured from `issue-3636143-latest` on 2026-11-19 with `scripts/capture-patch.mjs`; sha256 be3e8db3 | - | 92e5c3a30476 | - | 2 |

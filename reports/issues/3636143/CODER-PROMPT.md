@@ -43,12 +43,12 @@ Report this checklist to the person before you start:
 **Before (application order):**
 
 1. `reports/issues/3636143/branches/3636143-regression-the-toggle.patch`
-   SHA-256: `08a86e98945acd6afd7039d7674ad5069133d7cf721b2961947cae6aebd32d4f`
+   SHA-256: `a9cc9a436c316848f6b43ddfaeff1d63e73d67d04f85f459e428015cf2ffb5b5`
 
 **After (application order):**
 
 1. `reports/issues/3636143/branches/3636143-regression-the-toggle.patch`
-   SHA-256: `08a86e98945acd6afd7039d7674ad5069133d7cf721b2961947cae6aebd32d4f`
+   SHA-256: `a9cc9a436c316848f6b43ddfaeff1d63e73d67d04f85f459e428015cf2ffb5b5`
 2. `reports/issues/3637339/branches/3637339-focus-clearance-full.patch`
    SHA-256: `a5310458f845c4660dd1d4f6cee34c86904d17dc96e6bc2c2673271f10c0486d`
 

@@ -1,5 +1,7 @@
 # #3636143: navigation toggle hover and keyboard-focus emphasis (lab enhancement over MR !17738)
 
+> **Update 2026-11-24:** MR !17738 (head `8779866c`) now contains this enhancement, so version C below is the MR itself and the separate patch is no longer applied anywhere. Results on the new tip are in [STATUS-2026-11-24.md](STATUS-2026-11-24.md). The text below describes the 2026-11-19 state and its patch hashes.
+
 **DRAFT, AI-assisted; not RTBC.** Automated results from 2026-11-19, Chromium only. No person has reviewed the keyboard behaviour, and no real screen reader or Windows contrast theme was used.
 
 [SUMMARY.md](SUMMARY.md) and [EVIDENCE.md](EVIDENCE.md) in this folder describe a separate integration with #3637339 (`3636143-with-skip-focus`). This file covers the toggle itself.
