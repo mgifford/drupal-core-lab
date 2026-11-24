@@ -1,0 +1,225 @@
+diff --git a/core/modules/system/css/system.admin.css b/core/modules/system/css/system.admin.css
+index ea883e4354..c303ded317 100644
+--- a/core/modules/system/css/system.admin.css
++++ b/core/modules/system/css/system.admin.css
+@@ -89,6 +89,9 @@ small .admin-link::after {
+ .system-modules td.module {
+   width: 25%;
+ }
++.system-modules td.operations {
++  width: 12.5rem;
++}
+ .system-modules td {
+   vertical-align: top;
+ }
+diff --git a/core/modules/system/src/Form/ModulesListForm.php b/core/modules/system/src/Form/ModulesListForm.php
+index 5bf1a54119..41e164a771 100644
+--- a/core/modules/system/src/Form/ModulesListForm.php
++++ b/core/modules/system/src/Form/ModulesListForm.php
+@@ -226,6 +226,7 @@ public function buildForm(array $form, FormStateInterface $form_state) {
+     uasort($form['modules'], ['\Drupal\Component\Utility\SortArray', 'sortByTitleProperty']);
+ 
+     $form['#attached']['library'][] = 'core/drupal.tableresponsive';
++    $form['#attached']['library'][] = 'core/drupal.dropbutton';
+     $form['#attached']['library'][] = 'system/drupal.system.modules';
+     $form['actions'] = ['#type' => 'actions'];
+     $form['actions']['submit'] = [
+@@ -315,6 +316,22 @@ protected function buildRow(array $modules, Extension $module, $distribution) {
+       }
+     }
+ 
++    if (!empty($row['links'])) {
++      $links = [];
++      foreach (array_reverse($row['links'], TRUE) as $name => $link) {
++        $links[$name] = [
++          'title' => $link['#title'],
++          'url' => $link['#url'],
++          'attributes' => $link['#options']['attributes'],
++        ];
++      }
++      $row['operations'] = [
++        '#type' => 'dropbutton',
++        '#dropbutton_type' => 'extrasmall',
++        '#links' => $links,
++      ];
++    }
++
+     // Present a checkbox for installing and indicating the status of a module.
+     $row['enable'] = [
+       '#type' => 'checkbox',
+diff --git a/core/modules/system/templates/system-modules-details.html.twig b/core/modules/system/templates/system-modules-details.html.twig
+index 9726886106..4cfb8ee620 100644
+--- a/core/modules/system/templates/system-modules-details.html.twig
++++ b/core/modules/system/templates/system-modules-details.html.twig
+@@ -30,6 +30,7 @@
+       <th class="checkbox visually-hidden">{{ 'Installed'|t }}</th>
+       <th class="name visually-hidden">{{ 'Name'|t }}</th>
+       <th class="description visually-hidden priority-low">{{ 'Description'|t }}</th>
++      <th class="operations visually-hidden">{{ 'Operations'|t }}</th>
+     </tr>
+   </thead>
+   <tbody>
+@@ -59,17 +60,12 @@
+                     <div class="admin-requirements">{{ 'Required by: @module-list'|t({'@module-list': module.required_by}) }}</div>
+                   {% endif %}
+                 </div>
+-                {% if module.links %}
+-                  <div class="links">
+-                    {% for link_type in ['help', 'permissions', 'configure'] %}
+-                      {{ module.links[link_type] }}
+-                    {% endfor %}
+-                  </div>
+-                {% endif %}
+-              </div>
+             </div>
+           </details>
+         </td>
++        <td class="operations">
++          {{ module.operations }}
++        </td>
+       </tr>
+     {% endfor %}
+   </tbody>
+diff --git a/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php b/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php
+index 8bf0804d21..860667ce83 100644
+--- a/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php
++++ b/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php
+@@ -54,6 +54,12 @@ public function testModuleListForm(): void {
+     // Check that system_test's help link was rendered correctly.
+     $this->assertSession()->elementExists('xpath', "//a[contains(@href, '/admin/help/system_test') and text()='Help ']/span[contains(@class, 'visually-hidden') and text()='for System test']");
+ 
++    // Check that module operations render as a dropbutton in a dedicated cell.
++    $this->assertSession()->elementExists('css', "td.operations .dropbutton-wrapper");
++    $this->assertSession()->elementExists('css', 'td.operations .dropbutton > li:nth-child(1) > a[href="/system-test/configure/bar"]');
++    $this->assertSession()->elementExists('css', 'td.operations .dropbutton > li:nth-child(2) > a[href="/admin/people/permissions/module/system_test"]');
++    $this->assertSession()->elementExists('css', 'td.operations .dropbutton > li:nth-child(3) > a[href="/admin/help/system_test"]');
++
+     // Ensure that the Database Logging module's machine name is printed. This
+     // module is used because its machine name is different than its human
+     // readable name.
+diff --git a/core/themes/claro/css/components/system-admin--modules.css b/core/themes/claro/css/components/system-admin--modules.css
+index 1c566a73b2..f7e641f1bb 100644
+--- a/core/themes/claro/css/components/system-admin--modules.css
++++ b/core/themes/claro/css/components/system-admin--modules.css
+@@ -117,6 +117,10 @@ td.module-list__description {
+   padding-bottom: 0;
+ }
+ 
++td.module-list__operations {
++  width: 12.5rem;
++}
++
+ .claro-details.module-list__module-details {
+   margin: 0;
+ }
+diff --git a/core/themes/claro/css/components/system-admin--modules.pcss.css b/core/themes/claro/css/components/system-admin--modules.pcss.css
+index b442cb0995..83b00cc5ef 100644
+--- a/core/themes/claro/css/components/system-admin--modules.pcss.css
++++ b/core/themes/claro/css/components/system-admin--modules.pcss.css
+@@ -107,6 +107,10 @@ td.module-list__description {
+   padding-bottom: 0;
+ }
+ 
++td.module-list__operations {
++  width: 12.5rem;
++}
++
+ .claro-details.module-list__module-details {
+   margin: 0;
+ }
+diff --git a/core/themes/claro/templates/admin/system-modules-details.html.twig b/core/themes/claro/templates/admin/system-modules-details.html.twig
+index 4f43915d5e..40a65ece1a 100644
+--- a/core/themes/claro/templates/admin/system-modules-details.html.twig
++++ b/core/themes/claro/templates/admin/system-modules-details.html.twig
+@@ -30,6 +30,7 @@
+       <th class="checkbox visually-hidden">{{ 'Installed'|t }}</th>
+       <th class="name visually-hidden">{{ 'Name'|t }}</th>
+       <th class="description visually-hidden priority-low">{{ 'Description'|t }}</th>
++      <th class="module-list__operations visually-hidden">{{ 'Operations'|t }}</th>
+     </tr>
+   </thead>
+   <tbody>
+@@ -58,17 +59,13 @@
+                     <div class="module-details__requirement">{{ 'Required by: @module-list'|t({'@module-list': module.required_by}) }}</div>
+                   {% endif %}
+                 </div>
+-                {% if module.links %}
+-                  <div class="module-details__links">
+-                    {% for link_type in ['help', 'permissions', 'configure'] %}
+-                      {{ module.links[link_type] }}
+-                    {% endfor %}
+-                  </div>
+-                {% endif %}
+               </div>
+             </div>
+           </details>
+         </td>
++        <td class="module-list__operations">
++          {{ module.operations }}
++        </td>
+       </tr>
+     {% endfor %}
+   </tbody>
+diff --git a/core/themes/default_admin/css/components/system-admin--modules.css b/core/themes/default_admin/css/components/system-admin--modules.css
+index 282a4067bf..254ae45f46 100644
+--- a/core/themes/default_admin/css/components/system-admin--modules.css
++++ b/core/themes/default_admin/css/components/system-admin--modules.css
+@@ -98,6 +98,10 @@ td.module-list__description {
+   padding-inline-end: 0;
+ }
+ 
++td.module-list__operations {
++  width: 12.5rem;
++}
++
+ .details.module-list__module-details {
+   margin: 0;
+ }
+diff --git a/core/themes/default_admin/css/components/system-admin--modules.pcss.css b/core/themes/default_admin/css/components/system-admin--modules.pcss.css
+index 7625b1308e..92c30180f7 100644
+--- a/core/themes/default_admin/css/components/system-admin--modules.pcss.css
++++ b/core/themes/default_admin/css/components/system-admin--modules.pcss.css
+@@ -91,6 +91,10 @@ td.module-list__description {
+   padding-inline-end: 0;
+ }
+ 
++td.module-list__operations {
++  width: 12.5rem;
++}
++
+ .details.module-list__module-details {
+   margin: 0;
+ }
+diff --git a/core/themes/default_admin/templates/admin/system-modules-details.html.twig b/core/themes/default_admin/templates/admin/system-modules-details.html.twig
+index 583362dc6b..7e6cb7bee1 100644
+--- a/core/themes/default_admin/templates/admin/system-modules-details.html.twig
++++ b/core/themes/default_admin/templates/admin/system-modules-details.html.twig
+@@ -30,6 +30,7 @@
+       <th class="checkbox visually-hidden">{{ 'Installed'|t }}</th>
+       <th class="name visually-hidden">{{ 'Name'|t }}</th>
+       <th class="description visually-hidden priority-low">{{ 'Description'|t }}</th>
++      <th class="module-list__operations visually-hidden">{{ 'Operations'|t }}</th>
+     </tr>
+   </thead>
+   <tbody>
+@@ -58,17 +59,13 @@
+                     <div class="module-details__requirement">{{ 'Required by: @module-list'|t({'@module-list': module.required_by}) }}</div>
+                   {% endif %}
+                 </div>
+-                {% if module.links %}
+-                  <div class="module-details__links">
+-                    {% for link_type in ['help', 'permissions', 'configure'] %}
+-                      {{ module.links[link_type] }}
+-                    {% endfor %}
+-                  </div>
+-                {% endif %}
+               </div>
+             </div>
+           </details>
+         </td>
++        <td class="module-list__operations">
++          {{ module.operations }}
++        </td>
+       </tr>
+     {% endfor %}
+   </tbody>

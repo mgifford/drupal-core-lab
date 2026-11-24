@@ -1,89 +1,34 @@
-# Reproduce #2574721: Issue 2574721
+# Reproduce #2574721: module operations on narrow screens
 
-**DRAFT: setup instructions, not evidence that the barrier or correction has been verified.**
+**DRAFT.** Reproduction and comparison are based on recorded runs from 2026-11-23.
 
-Issue: https://www.drupal.org/project/drupal/issues/2574721
-Pinned core: `9e8373659f26` (selected base; not a verification claim).
-Prepared: 2026-10-20. Last verified: never. Replace this only with a dated run reference.
+Issue: [#2574721](https://www.drupal.org/project/drupal/issues/2574721)
 
 ## Task and barrier
 
-Describe the task, reported obstacle, consequence and any workaround.
-Distinguish user reports, manual observations, tool results and inference. State evidence limits.
-WCAG mapping is optional; a missing mapping does not invalidate a report.
+An administrator needs Help, Permissions, and Configure actions for installed modules.
+On screens narrower than 60em, the responsive table hides the description column containing those links.
 
-## Preconditions and comparison identity
+Expected: the links remain available in an operations cell and use Drupal’s dropbutton interaction.
 
-- Selected variant: `2574721-pinned`; latest variant: `2574721-latest`.
-- Before/After environments: record the resolved variant's environment names.
-- Core: record the full resolved commit on BOTH sides.
-- Recipe: record its path and optional `apply.sh`, or explicitly state plain Standard install.
-- Patches: list application order and hashes on each side. Separate the MR from local follow-ups.
-- Page and state: record the safe route, account role, data and state needed to reach the barrier.
-- Environment: record relevant browser, OS, assistive technology, input, viewport, zoom, preferences and locale.
+## Comparison identity
 
-Confirm preconditions on both sides before assessing the change. Do not include credentials or live login tokens.
+- Latest variant: `2574721-latest`.
+- Before: `baseline-2574721-current`, pristine core `97c6ff8b2534b242c0f1df3e4ba2493e56aebcec`.
+- After: `issue-2574721-current`, the same core commit plus [`2574721-current-main-proposal.patch`](branches/2574721-current-main-proposal.patch).
+- Recipe: [`recipes/repro_2574721/recipe.yml`](../../../recipes/repro_2574721/recipe.yml).
+- Page: `/admin/modules`.
+- Account: administrator after the Standard install.
+- Environment: local DDEV, PHP 8.5.13, Drupal 12.0-dev, `default_admin`.
 
-## Start locally
+The pinned stack uses:
 
-Run from the Lab repository root with Docker and DDEV available. Keep every command block safe to paste into zsh as well as bash:
-no `#` comments (zsh reads them as comments only with `setopt interactivecomments`), no `!` (zsh history expansion: `!16335` gives
-"no such event" and stops the whole paste), and no `<placeholder>` or `a|b` choices on a command line. Explain the commands in a list
-under the block, and give real environment names and URLs.
+1. [`drupal-2574721.patch`](branches/drupal-2574721.patch), MR `ed3917f4`.
+2. [`2574721-2574721-lab-proposal.patch`](branches/2574721-2574721-lab-proposal.patch), the lab follow-up.
 
-```bash
-node tools/compare/setup.mjs 2574721-pinned --check-patches
-node tools/compare/setup.mjs 2574721-pinned
-node scripts/lab-env.mjs start 2574721-pinned
-```
+## Start
 
-Open the viewer and log in both frames. Use this issue's actual evaluator if one exists.
-`tools/playwright/walkthrough.mjs` is specific to #3619127, not a generic evaluator.
-If no evaluator exists, record that gap and perform the manual steps below.
-
-## Start in DDEV Coder
-
-Read `docs/CLOUD-QUICKSTART.md` and `tools/compare/cloud/README.md` first.
-In the Freeform workspace form, DDEV project names must be:
-`drupal-compare,drupal-compare-before,drupal-compare-after`.
-The repository's copyable value comes from `node tools/compare/cloud/config.mjs --project-names`.
-In the workspace repository root:
-
-```bash
-node scripts/cloud-bootstrap.mjs 2574721-pinned --check --core-url=https://github.com/drupal/drupal.git
-node scripts/cloud-bootstrap.mjs 2574721-pinned --install-autostart --core-url=https://github.com/drupal/drupal.git
-```
-
-Open the printed viewer URL in a browser signed in to Coder. Confirm both real Coder frames and login yourself;
-the smoke check cannot verify that authenticated browser interaction. Record setup and browser results separately.
-
-## Shortest reproduction
-
-Complete these steps before calling the comparison ready for evaluation:
-
-| Step and input | Expected user outcome | Observed Before | Observed After |
-|---|---|---|---|
-| Reach the required page/state | State is available on both sides | Not tested | Not tested |
-| Perform the action under test with Mirror off in each frame | Describe the correction in user terms | Not tested | Not tested |
-| Repeat the relevant adjacent interaction or state | Describe the regression guard | Not tested | Not tested |
-
-Use real input for focus and activation. Describe what to inspect, not just what to click.
-Label scripted results separately from a person's keyboard or assistive technology evaluation.
-
-## Evidence and investigation
-
-Record reproduction status (reproduced / intermittent / not observed / not tested / needs evidence), attempts and dated run links.
-If direct reproduction is unavailable, preserve supporting evidence, limits and the next investigative action.
-Keep raw tool outcomes separate from human interpretation. Describe visual attachments and redact sensitive details.
-Put results in `EVIDENCE.md`; preserve earlier runs when a patch or recipe changes.
-
-## Acceptance and verification plan
-
-Define measurable user-facing outcomes. Repeat the original interaction and assess relevant regressions.
-Record automated checks, manual evaluation and any planned testing with disabled people separately, with scope and limitations.
-Record why each method is required or unnecessary. Do not infer conformance or RTBC from setup or automated passes.
-
-## Try current core
+Run from the repository root:
 
 ```bash
 node tools/compare/setup.mjs 2574721-latest --check-patches
@@ -91,15 +36,38 @@ node tools/compare/setup.mjs 2574721-latest
 node scripts/lab-env.mjs start 2574721-latest
 ```
 
-For Coder use the same bootstrap procedure with `2574721-latest`. Repeat the steps and record the resolved commit.
-If a patch does not apply, inspect changed files and provenance before proposing a reroll; do not silently alter the stack.
-If Before no longer fails, check the scenario, setup and upstream history before concluding that it was fixed.
-If After still fails, distinguish setup failures from a remaining barrier. Preserve credible user reports after a failed rerun.
+## Reproduction
 
-Re-pin only after reviewing the current-core evidence. Update the registered pinned variant where it is defined,
-record the new revision and rerun; retain the old evidence with its original identity.
+1. Open the comparison viewer and log in both frames.
+2. Go to `/admin/modules` in both frames.
+3. Resize the browser to 480px wide.
+4. Confirm that Before has no visible operations cell and that its description column is hidden.
+5. In After, find an installed module with multiple operations.
+6. Confirm that Configure, Permissions, or Help remains in an operations cell.
+7. With the pointer, open the dropbutton and inspect every secondary link.
+8. With the keyboard, focus the primary link, press Tab to reach the toggle, press Enter, and press Tab to reach a secondary link.
 
-## Reporting guidance
+## Recorded results
 
-See [Accessibility Bug Reporting Best Practices](https://github.com/mgifford/ACCESSIBILITY.md/blob/main/examples/ACCESSIBILITY_BUG_REPORTING_BEST_PRACTICES.md).
-Use applicable fields; incomplete intake remains valid even when evaluation or remediation needs more investigation.
+At 480px in Chromium, Before had 0 operations cells. After had 61 operations cells and 72 operation links.
+The sampled dropbutton remained inside the viewport.
+The toggle opened with real keyboard input, and Tab reached “Help for Announcements”.
+
+The issue also reproduces at 1280px as a discoverability problem: Before places operations inside collapsed module details.
+After exposes the primary action in the row and keeps additional actions in the dropbutton.
+
+## Automated checks
+
+```bash
+node scripts/lint.mjs 2574721-latest
+node tools/playwright/evaluate-2574721.mjs 2574721-latest --viewport=480x900
+node tools/playwright/evaluate-2574721.mjs 2574721-latest --viewport=1280x900
+node tools/playwright/tree-diff.mjs 2574721-latest --viewport=480x900
+```
+
+## Not verified
+
+- A person’s screen-reader pass was not run.
+- Safari Full Keyboard Access was not available in Playwright WebKit.
+- The 400% zoom and direct 320px CSS viewport checks were not run.
+- Drupal.org CI was not run.

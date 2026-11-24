@@ -25,7 +25,10 @@ const res = analyze({ slug, side, build: flag('build'), corrective: flag('correc
 
 // Stylelint: a separate step on the affected files, with core's own configuration.
 res.stylelint = { result: 'NOT VERIFIED', detail: 'Not run here. node scripts/lint.mjs runs core\'s Stylelint on the patched files.' };
-if (flag('stylelint') && ['PASS', 'FAIL'].includes(res.overall)) {
+if (flag('stylelint') && res.overall === 'SKIPPED' && res.entries.length > 0 && res.entries.every((e) => e.sourceState === 'deleted' && e.compiledInStack === 'deleted')) {
+  res.stylelint = { result: 'SKIPPED', detail: 'No retained CSS files to lint: the PostCSS source and compiled file are deleted.' };
+}
+else if (flag('stylelint') && ['PASS', 'FAIL'].includes(res.overall)) {
   const v = variants().find((x) => x.slug === slug), dir = envDir(v[side].env), useDdev = res.runtime === 'DDEV web container';
   const inEnv = makeInEnv({ dir, useDdev }), yarn = resolveYarn({ dir, inEnv, useDdev, binDir: '.lab-css/bin' });
   const files = res.entries.filter((e) => e.sourceState !== 'deleted').flatMap((e) => [e.source, e.compiled]).filter((f) => fs.existsSync(path.join(dir, f)));

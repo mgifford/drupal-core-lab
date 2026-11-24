@@ -1,0 +1,294 @@
+diff --git a/core/modules/system/css/system.admin.css b/core/modules/system/css/system.admin.css
+index ea883e43546462be51bbe79f7c70150adefb48a2..c303ded31714a0ceba0397f64219e65dcfc755ea 100644
+--- a/core/modules/system/css/system.admin.css
++++ b/core/modules/system/css/system.admin.css
+@@ -89,6 +89,9 @@ small .admin-link::after {
+ .system-modules td.module {
+   width: 25%;
+ }
++.system-modules td.operations {
++  width: 12.5rem;
++}
+ .system-modules td {
+   vertical-align: top;
+ }
+diff --git a/core/modules/system/src/Form/ModulesListForm.php b/core/modules/system/src/Form/ModulesListForm.php
+index 5bf1a54119b605372f509da913f27e91d62dd1e6..41e164a771db32ec8f3f6ad4f7af42d15449d481 100644
+--- a/core/modules/system/src/Form/ModulesListForm.php
++++ b/core/modules/system/src/Form/ModulesListForm.php
+@@ -226,6 +226,7 @@ public function buildForm(array $form, FormStateInterface $form_state) {
+     uasort($form['modules'], ['\Drupal\Component\Utility\SortArray', 'sortByTitleProperty']);
+ 
+     $form['#attached']['library'][] = 'core/drupal.tableresponsive';
++    $form['#attached']['library'][] = 'core/drupal.dropbutton';
+     $form['#attached']['library'][] = 'system/drupal.system.modules';
+     $form['actions'] = ['#type' => 'actions'];
+     $form['actions']['submit'] = [
+@@ -315,6 +316,22 @@ protected function buildRow(array $modules, Extension $module, $distribution) {
+       }
+     }
+ 
++    if (!empty($row['links'])) {
++      $links = [];
++      foreach (array_reverse($row['links'], TRUE) as $name => $link) {
++        $links[$name] = [
++          'title' => $link['#title'],
++          'url' => $link['#url'],
++          'attributes' => $link['#options']['attributes'],
++        ];
++      }
++      $row['operations'] = [
++        '#type' => 'dropbutton',
++        '#dropbutton_type' => 'extrasmall',
++        '#links' => $links,
++      ];
++    }
++
+     // Present a checkbox for installing and indicating the status of a module.
+     $row['enable'] = [
+       '#type' => 'checkbox',
+diff --git a/core/modules/system/templates/system-modules-details.html.twig b/core/modules/system/templates/system-modules-details.html.twig
+index 07df2ce1e60ce4a252ff4246016e583492574f7c..4cfb8ee62081ae083f97f6a910c5f3fa21db810d 100644
+--- a/core/modules/system/templates/system-modules-details.html.twig
++++ b/core/modules/system/templates/system-modules-details.html.twig
+@@ -24,7 +24,6 @@
+  * @ingroup themeable
+  */
+ #}
+-{{ attach_library('core/drupal.dropbutton') }}
+ <table class="responsive-enabled">
+   <thead>
+     <tr>
+@@ -65,42 +64,7 @@
+           </details>
+         </td>
+         <td class="operations">
+-          {% if module.links %}
+-            {% set link_count = 0 %}
+-            {% set first_link = null %}
+-            {% set other_links = [] %}
+-            {% for link_type in ['configure', 'permissions', 'help'] %}
+-              {% if module.links[link_type] %}
+-                {% set link_count = link_count + 1 %}
+-                {% if first_link is null %}
+-                  {% set first_link = module.links[link_type] %}
+-                {% else %}
+-                  {% set other_links = other_links|merge([module.links[link_type]]) %}
+-                {% endif %}
+-              {% endif %}
+-            {% endfor %}
+-            
+-            {% if link_count == 1 %}
+-              <div class="links">
+-                {{ first_link }}
+-              </div>
+-            {% elseif link_count > 1 %}
+-              <div class="dropbutton-wrapper dropbutton-multiple">
+-                <div class="dropbutton-widget">
+-                  <ul class="dropbutton dropbutton--extrasmall dropbutton--multiple">
+-                    <li class="dropbutton__item dropbutton-action">
+-                      {{ first_link }}
+-                    </li>
+-                    {% for link in other_links %}
+-                      <li class="dropbutton__item dropbutton-action secondary-action">
+-                        {{ link }}
+-                      </li>
+-                    {% endfor %}
+-                  </ul>
+-                </div>
+-              </div>
+-            {% endif %}
+-          {% endif %}
++          {{ module.operations }}
+         </td>
+       </tr>
+     {% endfor %}
+diff --git a/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php b/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php
+index 8bf0804d215629042fca9003a70744786098f38a..860667ce830f1948c9b593a7fada712fbe0bafc8 100644
+--- a/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php
++++ b/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php
+@@ -54,6 +54,12 @@ public function testModuleListForm(): void {
+     // Check that system_test's help link was rendered correctly.
+     $this->assertSession()->elementExists('xpath', "//a[contains(@href, '/admin/help/system_test') and text()='Help ']/span[contains(@class, 'visually-hidden') and text()='for System test']");
+ 
++    // Check that module operations render as a dropbutton in a dedicated cell.
++    $this->assertSession()->elementExists('css', "td.operations .dropbutton-wrapper");
++    $this->assertSession()->elementExists('css', 'td.operations .dropbutton > li:nth-child(1) > a[href="/system-test/configure/bar"]');
++    $this->assertSession()->elementExists('css', 'td.operations .dropbutton > li:nth-child(2) > a[href="/admin/people/permissions/module/system_test"]');
++    $this->assertSession()->elementExists('css', 'td.operations .dropbutton > li:nth-child(3) > a[href="/admin/help/system_test"]');
++
+     // Ensure that the Database Logging module's machine name is printed. This
+     // module is used because its machine name is different than its human
+     // readable name.
+diff --git a/core/themes/claro/css/components/system-admin--modules.css b/core/themes/claro/css/components/system-admin--modules.css
+index 1c566a73b20e6daa050bb0458e7b4cf8da4ce41b..f7e641f1bb429d385aa422c096db9c17878c2b27 100644
+--- a/core/themes/claro/css/components/system-admin--modules.css
++++ b/core/themes/claro/css/components/system-admin--modules.css
+@@ -117,6 +117,10 @@ td.module-list__description {
+   padding-bottom: 0;
+ }
+ 
++td.module-list__operations {
++  width: 12.5rem;
++}
++
+ .claro-details.module-list__module-details {
+   margin: 0;
+ }
+diff --git a/core/themes/claro/css/components/system-admin--modules.pcss.css b/core/themes/claro/css/components/system-admin--modules.pcss.css
+index b442cb09954379469c3051eabcadabfb642c8c99..83b00cc5ef4d8a8479111459e2ad5b1c2ec55db9 100644
+--- a/core/themes/claro/css/components/system-admin--modules.pcss.css
++++ b/core/themes/claro/css/components/system-admin--modules.pcss.css
+@@ -107,6 +107,10 @@ td.module-list__description {
+   padding-bottom: 0;
+ }
+ 
++td.module-list__operations {
++  width: 12.5rem;
++}
++
+ .claro-details.module-list__module-details {
+   margin: 0;
+ }
+diff --git a/core/themes/claro/templates/admin/system-modules-details.html.twig b/core/themes/claro/templates/admin/system-modules-details.html.twig
+index 45bb6fb8f63c48ff59139c64fbd74ffe50ad81fe..40a65ece1ac503cfd0887acf9061ee933cc20a9a 100644
+--- a/core/themes/claro/templates/admin/system-modules-details.html.twig
++++ b/core/themes/claro/templates/admin/system-modules-details.html.twig
+@@ -24,7 +24,6 @@
+  * @ingroup themeable
+  */
+ #}
+-{{ attach_library('core/drupal.dropbutton') }}
+ <table class="responsive-enabled module-list">
+   <thead>
+     <tr>
+@@ -65,42 +64,7 @@
+           </details>
+         </td>
+         <td class="module-list__operations">
+-          {% if module.links %}
+-            {% set link_count = 0 %}
+-            {% set first_link = null %}
+-            {% set other_links = [] %}
+-            {% for link_type in ['configure', 'permissions', 'help'] %}
+-              {% if module.links[link_type] %}
+-                {% set link_count = link_count + 1 %}
+-                {% if first_link is null %}
+-                  {% set first_link = module.links[link_type] %}
+-                {% else %}
+-                  {% set other_links = other_links|merge([module.links[link_type]]) %}
+-                {% endif %}
+-              {% endif %}
+-            {% endfor %}
+-            
+-            {% if link_count == 1 %}
+-              <div class="module-details__links">
+-                {{ first_link }}
+-              </div>
+-            {% elseif link_count > 1 %}
+-              <div class="dropbutton-wrapper dropbutton-multiple">
+-                <div class="dropbutton-widget">
+-                  <ul class="dropbutton dropbutton--extrasmall dropbutton--multiple">
+-                    <li class="dropbutton__item dropbutton-action">
+-                      {{ first_link }}
+-                    </li>
+-                    {% for link in other_links %}
+-                      <li class="dropbutton__item dropbutton-action secondary-action">
+-                        {{ link }}
+-                      </li>
+-                    {% endfor %}
+-                  </ul>
+-                </div>
+-              </div>
+-            {% endif %}
+-          {% endif %}
++          {{ module.operations }}
+         </td>
+       </tr>
+     {% endfor %}
+diff --git a/core/themes/default_admin/css/components/system-admin--modules.css b/core/themes/default_admin/css/components/system-admin--modules.css
+index 282a4067bf5b567f31e6691413fa92838176efaf..254ae45f463b3e5c0c138cfe974785bb7ee02a60 100644
+--- a/core/themes/default_admin/css/components/system-admin--modules.css
++++ b/core/themes/default_admin/css/components/system-admin--modules.css
+@@ -98,6 +98,10 @@ td.module-list__description {
+   padding-inline-end: 0;
+ }
+ 
++td.module-list__operations {
++  width: 12.5rem;
++}
++
+ .details.module-list__module-details {
+   margin: 0;
+ }
+diff --git a/core/themes/default_admin/css/components/system-admin--modules.pcss.css b/core/themes/default_admin/css/components/system-admin--modules.pcss.css
+index 7625b1308e1e676f6fdd33117b15a38bf67240fd..92c30180f76e6ead5743e1b23a29018346ece668 100644
+--- a/core/themes/default_admin/css/components/system-admin--modules.pcss.css
++++ b/core/themes/default_admin/css/components/system-admin--modules.pcss.css
+@@ -91,6 +91,10 @@ td.module-list__description {
+   padding-inline-end: 0;
+ }
+ 
++td.module-list__operations {
++  width: 12.5rem;
++}
++
+ .details.module-list__module-details {
+   margin: 0;
+ }
+diff --git a/core/themes/default_admin/templates/admin/system-modules-details.html.twig b/core/themes/default_admin/templates/admin/system-modules-details.html.twig
+index 38ed969b268c10094483f28e3a3606ee6d8c474d..7e6cb7bee1a200a161d4117b6a813829eb23fe9d 100644
+--- a/core/themes/default_admin/templates/admin/system-modules-details.html.twig
++++ b/core/themes/default_admin/templates/admin/system-modules-details.html.twig
+@@ -24,7 +24,6 @@
+  * @ingroup themeable
+  */
+ #}
+-{{ attach_library('core/drupal.dropbutton') }}
+ <table class="responsive-enabled module-list">
+   <thead>
+     <tr>
+@@ -65,42 +64,7 @@
+           </details>
+         </td>
+         <td class="module-list__operations">
+-          {% if module.links %}
+-            {% set link_count = 0 %}
+-            {% set first_link = null %}
+-            {% set other_links = [] %}
+-            {% for link_type in ['configure', 'permissions', 'help'] %}
+-              {% if module.links[link_type] %}
+-                {% set link_count = link_count + 1 %}
+-                {% if first_link is null %}
+-                  {% set first_link = module.links[link_type] %}
+-                {% else %}
+-                  {% set other_links = other_links|merge([module.links[link_type]]) %}
+-                {% endif %}
+-              {% endif %}
+-            {% endfor %}
+-            
+-            {% if link_count == 1 %}
+-              <div class="module-details__links">
+-                {{ first_link }}
+-              </div>
+-            {% elseif link_count > 1 %}
+-              <div class="dropbutton-wrapper dropbutton-multiple">
+-                <div class="dropbutton-widget">
+-                  <ul class="dropbutton dropbutton--extrasmall dropbutton--multiple">
+-                    <li class="dropbutton__item dropbutton-action">
+-                      {{ first_link }}
+-                    </li>
+-                    {% for link in other_links %}
+-                      <li class="dropbutton__item dropbutton-action secondary-action">
+-                        {{ link }}
+-                      </li>
+-                    {% endfor %}
+-                  </ul>
+-                </div>
+-              </div>
+-            {% endif %}
+-          {% endif %}
++          {{ module.operations }}
+         </td>
+       </tr>
+     {% endfor %}

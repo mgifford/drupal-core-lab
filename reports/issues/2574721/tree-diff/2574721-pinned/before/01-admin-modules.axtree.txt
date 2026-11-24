@@ -1,0 +1,618 @@
+RootWebArea "Extend | Drupal core test site" focusable focused url=https://HOST/admin/modules
+  link "Skip to main content" focusable url=https://HOST/admin/modules#main-content
+  navigation "Administrative sidebar"
+    heading "Administrative sidebar" level=2
+    link "Home page" focusable url=https://HOST/
+    heading "Content" level=3
+    list
+      listitem level=1
+        link "Create" focusable url=https://HOST/node/add
+      listitem level=1
+        link "Blocks" focusable url=https://HOST/admin/content/block
+      listitem level=1
+        link "Content" focusable url=https://HOST/admin/content
+      listitem level=1
+        link "Files" focusable url=https://HOST/admin/content/files
+    heading "Administration" level=3
+    list
+      listitem level=1
+        link "Welcome" description="Learn about Drupal Core and Drupal CMS." focusable url=https://HOST/admin/welcome
+      listitem level=1
+        button "Extend Structure" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-structure-RANDOM
+          text "Extend"
+          text "Structure"
+      listitem level=1
+        link "Appearance" description="Select and configure themes." focusable url=https://HOST/admin/appearance
+      listitem level=1
+        link "Extend" description="Add and install modules to extend site functionality." focusable url=https://HOST/admin/modules
+      listitem level=1
+        button "Extend Configuration" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-config-RANDOM
+          text "Extend"
+          text "Configuration"
+      listitem level=1
+        link "People" description="Manage user accounts, roles, and permissions." focusable url=https://HOST/admin/people
+      listitem level=1
+        button "Extend Reports" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-reports-RANDOM
+          text "Extend"
+          text "Reports"
+      listitem level=1
+        link "Announcements" description="Displays announcements from the Drupal community." focusable url=https://HOST/admin/announcements_feed
+    heading "Help" level=3
+    list
+      listitem level=1
+        link "Help" focusable url=https://HOST/admin/help
+    heading "User" level=3
+    list
+      listitem level=1
+        button "Extend admin" invalid=false focusable expanded=false controls=#navigation-link--navigationuser-linksuserwrapper-RANDOM
+          text "Extend"
+          text "admin"
+    button "Collapse sidebar" invalid=false focusable expanded
+  main
+    generic focusable
+    sectionheader
+      navigation "Breadcrumb"
+        heading "Breadcrumb" level=2
+        list
+          listitem level=1
+            link "Home" focusable url=https://HOST/
+          listitem level=1
+            image
+            link "Administration" focusable url=https://HOST/admin
+      heading "Extend" level=1
+      heading "Primary tabs" level=2
+      navigation "Primary tabs"
+        list
+          listitem level=1
+            link "List" focusable url=https://HOST/admin/modules
+          listitem level=1
+            link "Uninstall" focusable url=https://HOST/admin/modules/uninstall
+    alert "Error message" live=assertive atomic relevant="additions text"
+      heading "Error message" level=2
+      text "Your version of Drupal is no longer supported. Upgrading is strongly recommended! See the"
+      link "available updates" focusable url=https://HOST/admin/reports/updates
+      text "page for more information."
+    complementary
+      paragraph
+        text "Add"
+        link "contributed modules" focusable url=https://www.drupal.org/project/project_module
+        text "to extend your site's functionality."
+      paragraph
+        text "Regularly review"
+        link "available updates" focusable url=https://HOST/admin/reports/updates
+        text "and update as required to maintain a secure and current site. Always run the"
+        link "update script" focusable url=https://HOST/update.php
+        text "each time you update software."
+    form
+      LabelText
+        text "Filter"
+      searchbox "Filter" description="Enter a part of the module name or description" invalid=false focusable
+      text "Enter a part of the module name or description"
+      group
+        button "Core" focusable expanded controls=#edit-modules-core
+        table
+          rowgroup
+            row
+              columnheader "Installed" readonly=false required=false
+              columnheader "Name" readonly=false required=false
+              columnheader "Description" readonly=false required=false
+          row
+            cell "Announcements"
+              checkbox "Announcements" disabled invalid=false checked
+            cell "Announcements"
+            cell "Displays announcements from the Drupal community."
+              group
+                button "Displays announcements from the Drupal community." focusable expanded=false controls=#edit-modules-announcements-feed-enable-description
+          row
+            cell "Automated Cron"
+              checkbox "Automated Cron" disabled invalid=false checked
+            cell "Automated Cron"
+            cell "Provides an automated way to run cron jobs, by executing them at the end of a server response."
+              group
+                button "Provides an automated way to run cron jobs, by executing them at the end of a server response." focusable expanded=false controls=#edit-modules-automated-cron-enable-description
+          row
+            cell "BigPipe"
+              checkbox "BigPipe" disabled invalid=false checked
+            cell "BigPipe"
+            cell "Sends pages using the BigPipe technique that allows browsers to show them much faster."
+              group
+                button "Sends pages using the BigPipe technique that allows browsers to show them much faster." focusable expanded=false controls=#edit-modules-big-pipe-enable-description
+          row
+            cell "Block"
+              checkbox "Block" disabled invalid=false checked
+            cell "Block"
+            cell "Allows users to configure blocks (containing content, forms, etc.) and to place them in the regions of a theme."
+              group
+                button "Allows users to configure blocks (containing content, forms, etc.) and to place them in the regions of a theme." focusable expanded=false controls=#edit-modules-block-enable-description
+          row
+            cell "Block Content"
+              checkbox "Block Content" disabled invalid=false checked
+            cell "Block Content"
+            cell "Allows the creation of content blocks and block types."
+              group
+                button "Allows the creation of content blocks and block types." focusable expanded=false controls=#edit-modules-block-content-enable-description
+          row
+            cell "Breakpoint"
+              checkbox "Breakpoint" disabled invalid=false checked
+            cell "Breakpoint"
+            cell "Manages breakpoints and breakpoint groups for responsive designs."
+              group
+                button "Manages breakpoints and breakpoint groups for responsive designs." focusable expanded=false controls=#edit-modules-breakpoint-enable-description
+          row
+            cell "CKEditor 5"
+              checkbox "CKEditor 5" disabled invalid=false checked
+            cell "CKEditor 5"
+            cell "Provides the CKEditor 5 rich text editor."
+              group
+                button "Provides the CKEditor 5 rich text editor." focusable expanded=false controls=#edit-modules-ckeditor5-enable-description
+          row
+            cell "Comment"
+              checkbox "Comment" invalid=false focusable checked=false
+            cell "Comment"
+            cell "Allows users to comment on content."
+              group
+                button "Allows users to comment on content." focusable expanded=false controls=#edit-modules-comment-enable-description
+          row
+            cell "Configuration Manager"
+              checkbox "Configuration Manager" disabled invalid=false checked
+            cell "Configuration Manager"
+            cell "Allows importing and exporting configuration changes."
+              group
+                button "Allows importing and exporting configuration changes." focusable expanded=false controls=#edit-modules-config-enable-description
+          row
+            cell "Content Moderation"
+              checkbox "Content Moderation" invalid=false focusable checked=false
+            cell "Content Moderation"
+            cell "Provides additional publication states that can be used by other modules to moderate content."
+              group
+                button "Provides additional publication states that can be used by other modules to moderate content." focusable expanded=false controls=#edit-modules-content-moderation-enable-description
+          row
+            cell "Contextual Links"
+              checkbox "Contextual Links" disabled invalid=false checked
+            cell "Contextual Links"
+            cell "Provides contextual links to directly access tasks related to page elements."
+              group
+                button "Provides contextual links to directly access tasks related to page elements." focusable expanded=false controls=#edit-modules-contextual-enable-description
+          row
+            cell "Custom Menu Links"
+              checkbox "Custom Menu Links" disabled invalid=false checked
+            cell "Custom Menu Links"
+            cell "Allows users to create menu links."
+              group
+                button "Allows users to create menu links." focusable expanded=false controls=#edit-modules-menu-link-content-enable-description
+          row
+            cell "Database Logging"
+              checkbox "Database Logging" disabled invalid=false checked
+            cell "Database Logging"
+            cell "Logs system events in the database."
+              group
+                button "Logs system events in the database." focusable expanded=false controls=#edit-modules-dblog-enable-description
+          row
+            cell "Field"
+              checkbox "Field" disabled invalid=false checked
+            cell "Field"
+            cell "Provides the capabilities to add fields to entities."
+              group
+                button "Provides the capabilities to add fields to entities." focusable expanded=false controls=#edit-modules-field-enable-description
+          row
+            cell "Field UI"
+              checkbox "Field UI" disabled invalid=false checked
+            cell "Field UI"
+            cell "Provides a user interface for the Field module."
+              group
+                button "Provides a user interface for the Field module." focusable expanded=false controls=#edit-modules-field-ui-enable-description
+          row
+            cell "Filter"
+              checkbox "Filter" disabled invalid=false checked
+            cell "Filter"
+            cell "Filters text content in preparation for display."
+              group
+                button "Filters text content in preparation for display." focusable expanded=false controls=#edit-modules-filter-enable-description
+          row
+            cell "Help"
+              checkbox "Help" disabled invalid=false checked
+            cell "Help"
+            cell "Generates help pages and provides a Help block with page-level help."
+              group
+                button "Generates help pages and provides a Help block with page-level help." focusable expanded=false controls=#edit-modules-help-enable-description
+          row
+            cell "Inline Form Errors"
+              checkbox "Inline Form Errors" invalid=false focusable checked=false
+            cell "Inline Form Errors"
+            cell "Places error messages adjacent to form inputs, for improved usability and accessibility."
+              group
+                button "Places error messages adjacent to form inputs, for improved usability and accessibility." focusable expanded=false controls=#edit-modules-inline-form-errors-enable-description
+          row
+            cell "Internal Dynamic Page Cache"
+              checkbox "Internal Dynamic Page Cache" disabled invalid=false checked
+            cell "Internal Dynamic Page Cache"
+            cell "Caches pages, including those with dynamic content, for all users."
+              group
+                button "Caches pages, including those with dynamic content, for all users." focusable expanded=false controls=#edit-modules-dynamic-page-cache-enable-description
+          row
+            cell "Internal Page Cache"
+              checkbox "Internal Page Cache" disabled invalid=false checked
+            cell "Internal Page Cache"
+            cell "Caches pages for anonymous users and can be used when external page cache is not available."
+              group
+                button "Caches pages for anonymous users and can be used when external page cache is not available." focusable expanded=false controls=#edit-modules-page-cache-enable-description
+          row
+            cell "Layout Builder"
+              checkbox "Layout Builder" disabled invalid=false checked
+            cell "Layout Builder"
+            cell "Allows users to add and arrange blocks and content fields directly on the content."
+              group
+                button "Allows users to add and arrange blocks and content fields directly on the content." focusable expanded=false controls=#edit-modules-layout-builder-enable-description
+          row
+            cell "Layout Discovery"
+              checkbox "Layout Discovery" disabled invalid=false checked
+            cell "Layout Discovery"
+            cell "Provides a way for modules or themes to register layouts."
+              group
+                button "Provides a way for modules or themes to register layouts." focusable expanded=false controls=#edit-modules-layout-discovery-enable-description
+          row
+            cell "Media"
+              checkbox "Media" invalid=false focusable checked=false
+            cell "Media"
+            cell "Manages the creation, configuration, and display of media items."
+              group
+                button "Manages the creation, configuration, and display of media items." focusable expanded=false controls=#edit-modules-media-enable-description
+          row
+            cell "Media Library"
+              checkbox "Media Library" invalid=false focusable checked=false
+            cell "Media Library"
+            cell "Enhances the media list with additional features to more easily find and use existing media items."
+              group
+                button "Enhances the media list with additional features to more easily find and use existing media items." focusable expanded=false controls=#edit-modules-media-library-enable-description
+          row
+            cell "Menu UI"
+              checkbox "Menu UI" disabled invalid=false checked
+            cell "Menu UI"
+            cell "Provides a user interface for managing menus."
+              group
+                button "Provides a user interface for managing menus." focusable expanded=false controls=#edit-modules-menu-ui-enable-description
+          row
+            cell "MySQL"
+              checkbox "MySQL" invalid=false focusable checked=false
+            cell "MySQL"
+            cell "Provides the MySQL database driver."
+              group
+                button "Provides the MySQL database driver." focusable expanded=false controls=#edit-modules-mysql-enable-description
+          row
+            cell "Navigation"
+              checkbox "Navigation" disabled invalid=false checked
+            cell "Navigation"
+            cell "Provides a sidebar navigation for site administration."
+              group
+                button "Provides a sidebar navigation for site administration." focusable expanded=false controls=#edit-modules-navigation-enable-description
+          row
+            cell "Node"
+              checkbox "Node" disabled invalid=false checked
+            cell "Node"
+            cell "Manages the creation, configuration, and display of the main site content."
+              group
+                button "Manages the creation, configuration, and display of the main site content." focusable expanded=false controls=#edit-modules-node-enable-description
+          row
+            cell "Password Compatibility"
+              checkbox "Password Compatibility" invalid=false focusable checked=false
+            cell "Password Compatibility"
+            cell "Provides the password checking algorithm for user accounts created with Drupal prior to version 10.1.0."
+              group
+                button "Provides the password checking algorithm for user accounts created with Drupal prior to version 10.1.0." focusable expanded=false controls=#edit-modules-phpass-enable-description
+          row
+            cell "Path"
+              checkbox "Path" disabled invalid=false checked
+            cell "Path"
+            cell "Allows users to create custom URLs for existing paths on the site."
+              group
+                button "Allows users to create custom URLs for existing paths on the site." focusable expanded=false controls=#edit-modules-path-enable-description
+          row
+            cell "PostgreSQL"
+              checkbox "PostgreSQL" invalid=false focusable checked=false
+            cell "PostgreSQL"
+            cell "Provides the PostgreSQL database driver."
+              group
+                button "Provides the PostgreSQL database driver." focusable expanded=false controls=#edit-modules-pgsql-enable-description
+          row
+            cell "Responsive Image"
+              checkbox "Responsive Image" invalid=false focusable checked=false
+            cell "Responsive Image"
+            cell "Provides functionality to output responsive images using the HTML5 picture tag."
+              group
+                button "Provides functionality to output responsive images using the HTML5 picture tag." focusable expanded=false controls=#edit-modules-responsive-image-enable-description
+          row
+            cell "Search View information on the Deprecated status of the module Search"
+              checkbox "Search View information on the Deprecated status of the module Search" invalid=false focusable checked=false
+            cell "Search View information on the Deprecated status of the module Search"
+              LabelText
+                text "Search"
+                link "View information on the Deprecated status of the module Search" focusable url=https://www.drupal.org/node/3223395#s-search
+                  text "(Deprecated)"
+            cell "Allows users to create search pages based on plugins provided by other modules."
+              group
+                button "Allows users to create search pages based on plugins provided by other modules." focusable expanded=false controls=#edit-modules-search-enable-description
+          row
+            cell "Search help View information on the Deprecated status of the module Search help"
+              checkbox "Search help View information on the Deprecated status of the module Search help" invalid=false focusable checked=false
+            cell "Search help View information on the Deprecated status of the module Search help"
+              LabelText
+                text "Search help"
+                link "View information on the Deprecated status of the module Search help" focusable url=https://www.drupal.org/node/3223395#s-search
+                  text "(Deprecated)"
+            cell "Provides a search plugin for searching site help."
+              group
+                button "Provides a search plugin for searching site help." focusable expanded=false controls=#edit-modules-search-help-enable-description
+          row
+            cell "Search node View information on the Deprecated status of the module Search node"
+              checkbox "Search node View information on the Deprecated status of the module Search node" invalid=false focusable checked=false
+            cell "Search node View information on the Deprecated status of the module Search node"
+              LabelText
+                text "Search node"
+                link "View information on the Deprecated status of the module Search node" focusable url=https://www.drupal.org/node/3223395#s-search
+                  text "(Deprecated)"
+            cell "Provides a search plugin for searching content."
+              group
+                button "Provides a search plugin for searching content." focusable expanded=false controls=#edit-modules-search-node-enable-description
+          row
+            cell "Search user View information on the Deprecated status of the module Search user"
+              checkbox "Search user View information on the Deprecated status of the module Search user" invalid=false focusable checked=false
+            cell "Search user View information on the Deprecated status of the module Search user"
+              LabelText
+                text "Search user"
+                link "View information on the Deprecated status of the module Search user" focusable url=https://www.drupal.org/node/3223395#s-search
+                  text "(Deprecated)"
+            cell "Provides a search plugin for searching users."
+              group
+                button "Provides a search plugin for searching users." focusable expanded=false controls=#edit-modules-search-user-enable-description
+          row
+            cell "SQLite"
+              checkbox "SQLite" disabled invalid=false checked
+            cell "SQLite"
+            cell "Provides the SQLite database driver."
+              group
+                button "Provides the SQLite database driver." focusable expanded=false controls=#edit-modules-sqlite-enable-description
+          row
+            cell "Syslog"
+              checkbox "Syslog" invalid=false focusable checked=false
+            cell "Syslog"
+            cell "Logs events to the web server's system log."
+              group
+                button "Logs events to the web server's system log." focusable expanded=false controls=#edit-modules-syslog-enable-description
+          row
+            cell "System"
+              checkbox "System" disabled invalid=false checked
+            cell "System"
+            cell "Provides user interfaces for core systems."
+              group
+                button "Provides user interfaces for core systems." focusable expanded=false controls=#edit-modules-system-enable-description
+          row
+            cell "Taxonomy"
+              checkbox "Taxonomy" disabled invalid=false checked
+            cell "Taxonomy"
+            cell "Enables the categorization of content."
+              group
+                button "Enables the categorization of content." focusable expanded=false controls=#edit-modules-taxonomy-enable-description
+          row
+            cell "Text Editor"
+              checkbox "Text Editor" disabled invalid=false checked
+            cell "Text Editor"
+            cell "Provides a framework to associate text editors (like WYSIWYGs) and toolbars with text formats."
+              group
+                button "Provides a framework to associate text editors (like WYSIWYGs) and toolbars with text formats." focusable expanded=false controls=#edit-modules-editor-enable-description
+          row
+            cell "Toolbar"
+              checkbox "Toolbar" invalid=false focusable checked=false
+            cell "Toolbar"
+            cell "Provides an administration toolbar to display links provided by modules."
+              group
+                button "Provides an administration toolbar to display links provided by modules." focusable expanded=false controls=#edit-modules-toolbar-enable-description
+          row
+            cell "Update Status"
+              checkbox "Update Status" disabled invalid=false checked
+            cell "Update Status"
+            cell "Checks for updates and can notify users if there are new releases available."
+              group
+                button "Checks for updates and can notify users if there are new releases available." focusable expanded=false controls=#edit-modules-update-enable-description
+          row
+            cell "User"
+              checkbox "User" disabled invalid=false checked
+            cell "User"
+            cell "Allows users to register and log in, and manages user roles and permissions."
+              group
+                button "Allows users to register and log in, and manages user roles and permissions." focusable expanded=false controls=#edit-modules-user-enable-description
+          row
+            cell "Views"
+              checkbox "Views" disabled invalid=false checked
+            cell "Views"
+            cell "Provides a framework to fetch information from the database and to display it in different formats."
+              group
+                button "Provides a framework to fetch information from the database and to display it in different formats." focusable expanded=false controls=#edit-modules-views-enable-description
+          row
+            cell "Views UI"
+              checkbox "Views UI" disabled invalid=false checked
+            cell "Views UI"
+            cell "Provides a user interface for creating and managing views."
+              group
+                button "Provides a user interface for creating and managing views." focusable expanded=false controls=#edit-modules-views-ui-enable-description
+          row
+            cell "Workflows"
+              checkbox "Workflows" invalid=false focusable checked=false
+            cell "Workflows"
+            cell "Provides an interface to create workflows with transitions between different states (for example publication or user status) provided by other modules."
+              group
+                button "Provides an interface to create workflows with transitions between different states (for example publication or user status) provided by other modules." focusable expanded=false controls=#edit-modules-workflows-enable-description
+          row
+            cell "Workspaces"
+              checkbox "Workspaces" invalid=false focusable checked=false
+            cell "Workspaces"
+            cell "Provides an API for staging and previewing content in a full site context."
+              group
+                button "Provides an API for staging and previewing content in a full site context." focusable expanded=false controls=#edit-modules-workspaces-enable-description
+          row
+            cell "Workspaces UI"
+              checkbox "Workspaces UI" invalid=false focusable checked=false
+            cell "Workspaces UI"
+            cell "Provides a user interface for creating and managing workspaces."
+              group
+                button "Provides a user interface for creating and managing workspaces." focusable expanded=false controls=#edit-modules-workspaces-ui-enable-description
+      group
+        button "Core (Experimental)" focusable expanded controls=#edit-modules-core-experimental
+        table
+          rowgroup
+            row
+              columnheader "Installed" readonly=false required=false
+              columnheader "Name" readonly=false required=false
+              columnheader "Description" readonly=false required=false
+          row
+            cell "Mailer"
+              checkbox "Mailer" invalid=false focusable checked=false
+            cell "Mailer"
+            cell "Provides an experimental API to build and deliver email messages."
+              group
+                button "Provides an experimental API to build and deliver email messages." focusable expanded=false controls=#edit-modules-mailer-enable-description
+      group
+        button "Field types" focusable expanded controls=#edit-modules-field-types
+        table
+          rowgroup
+            row
+              columnheader "Installed" readonly=false required=false
+              columnheader "Name" readonly=false required=false
+              columnheader "Description" readonly=false required=false
+          row
+            cell "Datetime"
+              checkbox "Datetime" disabled invalid=false checked
+            cell "Datetime"
+            cell "Defines field types for storing dates and times."
+              group
+                button "Defines field types for storing dates and times." focusable expanded=false controls=#edit-modules-datetime-enable-description
+          row
+            cell "Datetime Range"
+              checkbox "Datetime Range" invalid=false focusable checked=false
+            cell "Datetime Range"
+            cell "Provides the ability to store end dates."
+              group
+                button "Provides the ability to store end dates." focusable expanded=false controls=#edit-modules-datetime-range-enable-description
+          row
+            cell "File"
+              checkbox "File" disabled invalid=false checked
+            cell "File"
+            cell "Provides a field type for files and defines a \"managed_file\" Form API element."
+              group
+                button "Provides a field type for files and defines a \"managed_file\" Form API element." focusable expanded=false controls=#edit-modules-file-enable-description
+          row
+            cell "Image"
+              checkbox "Image" disabled invalid=false checked
+            cell "Image"
+            cell "Defines a field type for image media and provides display configuration tools."
+              group
+                button "Defines a field type for image media and provides display configuration tools." focusable expanded=false controls=#edit-modules-image-enable-description
+          row
+            cell "Link"
+              checkbox "Link" disabled invalid=false checked
+            cell "Link"
+            cell "Provides a field type for internal and external URLs."
+              group
+                button "Provides a field type for internal and external URLs." focusable expanded=false controls=#edit-modules-link-enable-description
+          row
+            cell "Options"
+              checkbox "Options" disabled invalid=false checked
+            cell "Options"
+            cell "Defines field types with select lists, checkboxes, and radio buttons to select values from fixed lists of options."
+              group
+                button "Defines field types with select lists, checkboxes, and radio buttons to select values from fixed lists of options." focusable expanded=false controls=#edit-modules-options-enable-description
+          row
+            cell "Text"
+              checkbox "Text" disabled invalid=false checked
+            cell "Text"
+            cell "Defines field types for short and long text with optional summaries."
+              group
+                button "Defines field types for short and long text with optional summaries." focusable expanded=false controls=#edit-modules-text-enable-description
+      group
+        button "Migration" focusable expanded controls=#edit-modules-migration
+        table
+          rowgroup
+            row
+              columnheader "Installed" readonly=false required=false
+              columnheader "Name" readonly=false required=false
+              columnheader "Description" readonly=false required=false
+          row
+            cell "Migrate"
+              checkbox "Migrate" invalid=false focusable checked=false
+            cell "Migrate"
+            cell "Provides a framework for migrating data to Drupal."
+              group
+                button "Provides a framework for migrating data to Drupal." focusable expanded=false controls=#edit-modules-migrate-enable-description
+      group
+        button "Multilingual" focusable expanded controls=#edit-modules-multilingual
+        table
+          rowgroup
+            row
+              columnheader "Installed" readonly=false required=false
+              columnheader "Name" readonly=false required=false
+              columnheader "Description" readonly=false required=false
+          row
+            cell "Configuration Translation"
+              checkbox "Configuration Translation" invalid=false focusable checked=false
+            cell "Configuration Translation"
+            cell "Allows users to translate configuration text."
+              group
+                button "Allows users to translate configuration text." focusable expanded=false controls=#edit-modules-config-translation-enable-description
+          row
+            cell "Content Translation"
+              checkbox "Content Translation" invalid=false focusable checked=false
+            cell "Content Translation"
+            cell "Allows users to translate content."
+              group
+                button "Allows users to translate content." focusable expanded=false controls=#edit-modules-content-translation-enable-description
+          row
+            cell "Interface Translation"
+              checkbox "Interface Translation" invalid=false focusable checked=false
+            cell "Interface Translation"
+            cell "Allows users to translate interface text and to switch between interface languages."
+              group
+                button "Allows users to translate interface text and to switch between interface languages." focusable expanded=false controls=#edit-modules-locale-enable-description
+          row
+            cell "Language"
+              checkbox "Language" invalid=false focusable checked=false
+            cell "Language"
+            cell "Allows users to configure available languages."
+              group
+                button "Allows users to configure available languages." focusable expanded=false controls=#edit-modules-language-enable-description
+      group
+        button "Web services" focusable expanded controls=#edit-modules-web-services
+        table
+          rowgroup
+            row
+              columnheader "Installed" readonly=false required=false
+              columnheader "Name" readonly=false required=false
+              columnheader "Description" readonly=false required=false
+          row
+            cell "HTTP Basic Authentication"
+              checkbox "HTTP Basic Authentication" invalid=false focusable checked=false
+            cell "HTTP Basic Authentication"
+            cell "Provides an HTTP Basic authentication provider."
+              group
+                button "Provides an HTTP Basic authentication provider." focusable expanded=false controls=#edit-modules-basic-auth-enable-description
+          row
+            cell "JSON:API"
+              checkbox "JSON:API" invalid=false focusable checked=false
+            cell "JSON:API"
+            cell "Exposes entities as a JSON:API-specification-compliant web API."
+              group
+                button "Exposes entities as a JSON:API-specification-compliant web API." focusable expanded=false controls=#edit-modules-jsonapi-enable-description
+          row
+            cell "RESTful Web Services"
+              checkbox "RESTful Web Services" invalid=false focusable checked=false
+            cell "RESTful Web Services"
+            cell "Provides a framework for exposing REST resources."
+              group
+                button "Provides a framework for exposing REST resources." focusable expanded=false controls=#edit-modules-rest-enable-description
+          row
+            cell "Serialization"
+              checkbox "Serialization" invalid=false focusable checked=false
+            cell "Serialization"
+            cell "Provides a service for converting data to and from formats such as JSON and XML."
+              group
+                button "Provides a service for converting data to and from formats such as JSON and XML." focusable expanded=false controls=#edit-modules-serialization-enable-description
+      button "Install" invalid=false focusable
+  generic live=polite atomic=false relevant="additions text"
