@@ -1,25 +1,28 @@
 # Infrastructure architecture audit: multiple comparisons on macOS
 
-Read-only Stage 1 review. No environment was started, stopped, reset, deleted or edited. No patch, baseline or worktree was changed.
-Prepared 2026-11-24.
+Stage 1 review. Docker was initially down and the snapshot's six environments were absent. With owner approval, Docker
+Desktop and the existing stopped `baseline-main` + `issue-3619127-vanilla` pair were started for measurement. No configuration,
+patch, baseline or worktree was changed on that pair. A separate throwaway copy was used for the `upload_dirs` experiment and
+then deleted. Prepared 2026-11-24.
 
-## Status first: the live baseline cannot be reproduced in this checkout
+## Status first: the three-pair baseline cannot be reproduced in this checkout
 
 The investigation was asked to start from the running snapshot: three comparison pairs
 (`2574721-current`, `3466040-latest`, `3590502-latest`), six web containers and six Chrome containers.
 
-In this checkout at 2026-11-24 08:45 America/Toronto:
+At 2026-11-24 08:45 America/Toronto, before owner approval:
 
-- `docker info` cannot reach the Docker daemon (`Cannot connect ... docker.sock`).
-- `~/.ddev/project_list.yaml` has only `drupal-compare`, `repro-baseline-main` and
+- `docker info` could not reach the Docker daemon (`Cannot connect ... docker.sock`).
+- `~/.ddev/project_list.yaml` had only `drupal-compare`, `repro-baseline-main` and
   `repro-issue-3619127-vanilla`.
-- `envs/` contains only `baseline-main`, `issue-3619127-vanilla` and the shared `core.git`.
-- `git -C envs/core.git worktree list` lists only those two worktrees.
-- `pgrep -fl mutagen` finds no host Mutagen process; no web container is available to inspect its agent.
+- `envs/` contained only `baseline-main`, `issue-3619127-vanilla` and the shared `core.git`.
+- `git -C envs/core.git worktree list` listed only those two worktrees.
+- No host Mutagen process and no web container were available to inspect.
 
-So the six environments in the snapshot are **not present here**. They may be in another checkout, were deleted, or the snapshot
-was taken on another machine. The observations in the task are treated as owner-reported, not as verified measurements, and all
-live numbers below are marked as pending. The static findings do not depend on them.
+After approval, Docker Desktop was started and the existing pair was started for measurement. The six environments in the
+snapshot are still **not present here**. They may be in another checkout, were deleted, or the snapshot was taken on another
+machine. The snapshot's six-container readings are therefore owner-reported; the live measurements below cover one pair only.
+The static findings do not depend on the missing pair.
 
 ## Host and repository baseline (measured)
 
@@ -28,7 +31,7 @@ live numbers below are marked as pending. The static findings do not depend on t
 | Host | macOS 27.2.1, arm64, 8 CPUs, 16 GiB RAM |
 | Free disk | 28 GiB of 228 GiB (87% used) |
 | Docker Desktop disk image | 31 GiB actual (`Docker.raw`, sparse, 228 GB nominal) |
-| DDEV | v1.25.3, arm64; Docker provider unreachable |
+| DDEV | v1.25.3, arm64; Docker 29.8.2 with 8 CPUs / 7.75 GiB VM |
 | DDEV global performance mode | `mutagen` |
 | DDEV registered projects | 3 (viewer + one pair) |
 | Lab environments | 2 worktrees, 626 MB each; 1.3 GB total |
@@ -37,6 +40,97 @@ live numbers below are marked as pending. The static findings do not depend on t
 | Recipes | 54 entries, 828 KB; 26 issue recipes (`recipes/repro_*`) |
 | Variants | 69 registered, 67 with a drupal.org issue; 32 in `tools/compare/variants.json`, the rest in issue `variants.json` |
 | Issues tracked | 41 `reports/issues/<nid>/` folders, all with `status.json` |
+
+## Live baseline: one pair, 2026-11-24 09:00-09:45
+
+Started with `node scripts/lab-env.mjs start 3619127-pinned`. The pair is not the owner's three active issues; it is the only
+pair present in this checkout. No configuration was changed.
+
+### Idle CPU: the Mutagen agent, not PHP-FPM
+
+Three 10-second cgroup/process deltas per web container after startup:
+
+| Environment | Total web CPU | Mutagen agent | php-fpm | nginx | mailpit | supervisord |
+|---|---:|---:|---:|---:|---:|---:|
+| baseline-main (first 30 s) | 3.7% → 1.2% | 3.2% → 1.0% | 0.0% | 0.0% | 0.0% | 0.0% |
+| issue-3619127-vanilla (first 30 s) | 7.0% → 1.0% | 3.5% → 0.9% | 0.0-0.1% | 0.0% | 0.0-0.3% | 0.0-0.1% |
+
+A 60-second `docker stats` sample had baseline web at 5.99% average (43.57% peak) and issue web at 9.36% average (46.71%
+peak). The peaks are periodic Mutagen scans, not PHP requests: php-fpm was 0.0% throughout. Both agents report the same
+session shape: `Watching for changes`, portable watch with a 10-second polling interval.
+
+### Idle memory and service roles
+
+| Container | Baseline | Issue | Role |
+|---|---:|---:|---|
+| web | 636 MiB | 307 MiB | nginx + php-fpm + Mutagen agent + mailpit |
+| chrome | 467 MiB | 267 MiB | Selenium standalone; **0 browser processes and 0 sessions** |
+| otel-collector | 381 MiB | 45 MiB | optional tracing |
+| drupal-compare web | 175 MiB (shared) | — | viewer address/proxy |
+| ddev-router | 26 MiB (shared) | — | shared |
+| ddev-ssh-agent | 17 MiB (shared) | — | shared |
+
+One pair plus the viewer used roughly **2.2 GiB** of the Docker VM's 7.75 GiB with no browser or test running. Chrome and the
+baseline OTEL collector alone were about **0.85 GiB** of that. The baseline OTEL collector was unexpectedly much larger than
+the issue one (381 vs 45 MiB) while doing no work; this needs its own check before it is called a leak.
+
+### Chrome on demand
+
+`docker stop ddev-repro-issue-3619127-vanilla-chrome` freed **246 MiB** and about 1% CPU; the Drupal web container stayed up.
+`docker start` brought Selenium back (`"Selenium Grid ready."`). This is the measured basis for Option B. It was restored
+immediately.
+
+### Mutagen sync size
+
+| Environment | Synchronized files | Synchronized bytes | Mutagen volume |
+|---|---:|---:|---:|
+| repro-baseline-main | 67,746 | 460 MB | 438.3 MB |
+| repro-issue-3619127-vanilla | 67,750 | 460 MB | 438.3 MB |
+
+`ddev utility mutagen-diagnose` on **both** environments returned one warning:
+
+```
+node_modules directory exists but is not excluded from sync
+→ upload_dirs: [.ddev/tmp, core/node_modules]
+→ ddev restart
+```
+
+This is DDEV's own supported recommendation, not an inference from file counts alone.
+
+### Controlled `upload_dirs` probe
+
+A throwaway copy of `baseline-main` was made at `envs/zz-mutagen-probe`, its project name changed, and
+`core/node_modules` added to `upload_dirs` in the copy's add-on config. It was started, measured, stopped and deleted; the
+active pair was not touched.
+
+| Measure | Without exclusion (baseline) | With `core/node_modules` excluded | Change |
+|---|---:|---:|---:|
+| Synchronized files | 67,746 | 24,870 | **-63%** |
+| Synchronized bytes | 460 MB | 178 MB | **-61%** |
+| Mutagen volume | 438.3 MB | 169.7 MB | **-61%** |
+| `mutagen-diagnose` | warning | **no issues found** | fixed |
+| `core/node_modules` inside container | present | present (bind mount) | unchanged |
+| Internal `/user/login` | 200 | 200 (0.35 s first request) | works |
+
+The probe's idle web CPU was 0.04% in the one `docker stats` snapshot after sync; the baseline and issue webs were 0.08% and
+0.04% in the same snapshot. A longer matched idle run is still needed; the file/byte/volume reduction and the removal of
+DDEV's warning are measured.
+
+**Operational note:** starting the probe recreated the shared router and twice left HTTPS reset (HTTP worked). Restarting
+only `ddev-router` restored HTTPS; the active pair and viewer are 200 again. The probe was then deleted. This router
+sensitivity is itself a lifecycle risk for starting/stopping many pairs.
+
+### Docker disk and stale state
+
+| Item | Size | Reclaimable |
+|---|---:|---:|
+| Images | 13.93 GB | 4.86 GB |
+| Volumes | 9.18 GB | 5.04 GB |
+| Build cache | 6.19 GB | 0.96 GB |
+| Mutagen volumes | 7.6 GB across 19 projects | 17 of 19 belong to projects not in the current DDEV list |
+
+Only two Mutagen volumes are in active use; **7.6 GB across 19 projects** remains. `docker system df` shows 5.04 GB of
+reclaimable volumes and 4.86 GB of reclaimable images. None of it was deleted; cleanup is a separate, authorized action.
 
 ## What each comparison actually is
 
@@ -216,25 +310,29 @@ These are implementation targets after the live baseline, not changes made now.
 - No cooperative queue, priority or queue timeout for expensive operations.
 - No task/environment association in `lab-env`; `resource-task.mjs` exists but is not consulted by lifecycle commands.
 
-## Ranked hypotheses (to test, not yet proven)
+## What the live baseline confirms, and what remains
 
-1. **Mutagen syncing `core/node_modules` (393 MB, 42,893 files) and `vendor` (103 MB, 8,447 files) in every environment.**
-   Highest expected idle-CPU reduction; supported `upload_dirs` fix; test node_modules first.
-2. **Chrome always on.** ~180 MiB each, six containers for three pairs; no CPU/memory limit; likely unused during most editing.
-   On-demand stop expected to save about 1.1 GiB and some idle CPU; must preserve FunctionalJavascript tests.
-3. **Web-container CPU is being read as PHP-FPM CPU when much of it may be the Mutagen agent.** Separate per-process CPU before
-   tuning PHP-FPM or adding hard limits.
-4. **Drupal-generated files under `sites/default/files` are synced**, including Twig cache and the SQLite database; page requests and
-   cache rebuilds write there. Small today, but a possible feedback loop. Test separately because excluding it moves SQLite to a
-   bind mount.
-5. **Disk pressure.** 28 GiB free with 31 GiB Docker image, 1.3 GB of worktrees, 1.0 GB of reports and a 122 MB Mutagen data
-   directory. Deleting environments is not the first answer; `trim`, Docker build-cache pruning and archiving closed issues are.
-6. **No infrastructure visibility.** The collector cannot show Chrome/router/Mutagen or associate services with variants; this is a
-   measurement gap before it is an optimization.
+1. **Confirmed: Mutagen syncs 67,746 files / 460 MB per environment, including `core/node_modules` (393 MB, 42,893 files).**
+   DDEV's own diagnostic warns on both environments. Excluding `core/node_modules` in the disposable probe reduced the
+   synchronized set by 63% of files and 61% of bytes and removed the warning. Idle CPU was Mutagen, not php-fpm.
+2. **Confirmed: Chrome is always on and idle.** A Chrome container had **0 browser processes and 0 sessions**; stopping it
+   freed 246 MiB and about 1% CPU without affecting the Drupal web container. The supplied six-container 1.09 GiB total is
+   owner-reported; the measured two containers were 467 + 267 MiB.
+3. **Confirmed: web CPU was overwhelmingly Mutagen.** In 10-second deltas, php-fpm, nginx, mailpit and supervisord were ~0%;
+   the Mutagen agent accounted for 0.9-3.5% per web container, with periodic 40%+ `docker stats` spikes.
+4. **Not yet tested: `sites/default/files`.** It holds the live SQLite DB (6.4 MB) plus Twig cache. Excluding it would move the
+   database to a macOS bind mount; test separately, with a backup, or not at all.
+5. **Confirmed disk pressure / stale state.** 7.6 GB of Mutagen volumes across 19 projects, 5.04 GB reclaimable volumes,
+   4.86 GB reclaimable images and 0.96 GB reclaimable build cache; 28 GiB free. Cleanup is separate and authorized.
+6. **Confirmed visibility gap.** The collector cannot show Chrome/router/Mutagen or associate services with variants.
 
-## Measurement plan (needs Docker and the missing environments)
+**Still missing:** the three-pair baseline (the environments are absent), a matched idle CPU run after the probe change, Composer,
+PHPUnit/FunctionalJavascript, large-file sync, non-Mutagen mode, and the WebKit/Firefox browser paths. The probe's router restart
+also exposed a lifecycle risk: creating a project can disturb the shared router and HTTPS for other pairs.
 
-Read-only, no configuration changes:
+## Remaining measurement plan (needs the three pairs or a disposable set)
+
+Read-only unless a disposable environment is explicitly created:
 
 1. `docker version`, `docker info`, `ddev version`, `ddev list -j`, `ddev utility mutagen-diagnose --all`,
    `ddev mutagen status -l` for each project.
@@ -255,12 +353,13 @@ whether both sides still match their patches.
 
 ## Proposed safe changes, in order
 
-1. **Measure first.** No config change until the baseline above is recorded.
-2. **`core/node_modules` upload_dir** on a disposable environment: add `core/node_modules` to `upload_dirs` alongside `.ddev/tmp`,
-   `ddev restart`/`ddev mutagen reset`, verify `yarn run build:css`, lint, and a page request; then measure idle CPU. If it wins,
-   apply to new environments through a lab-owned `config.lab.yaml` (not the add-on's generated file) and document how to remove it.
+1. **Baseline partly recorded.** One pair idle and the Mutagen/node_modules probe are measured above; the three-pair baseline
+   still needs the missing environments.
+2. **Apply the `core/node_modules` upload_dir** to new environments through a lab-owned `config.lab.yaml` (not the add-on's
+   generated file), after `yarn run build:css`, lint and a page request pass on a disposable copy. Do not apply it to a running
+   pair until it is not needed; DDEV requires a restart/reset. Document removal.
 3. **Chrome on demand:** add an explicit `lab-env.mjs chrome <slug> stop|start` and a browser-test wrapper that starts Chrome and
-   fails clearly if it is unavailable. Do not stop Chrome automatically for an environment with an active browser test.
+   fails clearly if it is unavailable. The measured stop/start works; the wrapper and FunctionalJavascript test are not built.
 4. **Resource accounting:** extend the Docker adapter to use labels and include Chrome/router/ssh-agent/viewer; add cgroup deltas,
    Mutagen status, and container-role classification; keep sampling on demand. Add fixtures/tests without Docker.
 5. **`lab-env.mjs resources`:** read-only summary of DDEV state, containers, Chrome, Mutagen, CPU/memory, task association and
@@ -283,10 +382,30 @@ whether both sides still match their patches.
 - Mutagen reset on an active environment discards and recreates the sync volume; defer until the environment is not needed.
 - Docker Desktop restart can start unrelated projects (Primero). Identify by labels and never stop/delete them.
 
-## What is not verified
+## What is verified, and what is not
 
-Everything that needs a running Docker daemon: current container CPU/memory, Chrome memory, Mutagen agent CPU, sync status, file
-change rates, sync completion, response times, and the three-pair baseline. The six environments in the task snapshot are absent from
-this checkout and DDEV registry; their names, service counts and resource readings were not reproduced. No optimization has been
-claimed or applied. The next step is to restore the Docker daemon and the three pairs (or point this work at the checkout that has
-them) and run the measurement plan above before changing a configuration.
+Verified on 2026-11-24 with the one pair present in this checkout:
+
+- Idle web CPU is overwhelmingly the Mutagen agent (0.9-3.5% per web in 10-second deltas; php-fpm/nginx/mailpit ~0).
+- Both environments sync 67,746/67,750 files and 460 MB; DDEV's diagnostic warns about `core/node_modules` on both.
+- Excluding `core/node_modules` in the disposable probe cut synchronized files 63%, bytes 61% and the Mutagen volume 61%, removed
+  the warning, and kept `core/node_modules` available in the container. Internal `/user/login` returned 200.
+- Chrome had 0 browser processes and 0 sessions; stopping it freed 246 MiB and ~1% CPU without affecting the web container. It was
+  restored and Selenium reported ready.
+- One pair plus viewer used about 2.2 GiB; Chrome and baseline OTEL alone were about 0.85 GiB; baseline OTEL was 381 MiB.
+- Docker holds 5.04 GB reclaimable volumes, 4.86 GB reclaimable images, 0.96 GB reclaimable build cache; 7.6 GB of Mutagen volumes
+  across 19 projects, 17 not in the current DDEV list.
+- The active pair and viewer are back on HTTPS after the probe was stopped and `ddev-router` was restarted. No configuration,
+  patch, baseline or worktree of the active pair was changed.
+
+Not verified:
+
+- The three-pair baseline and the six-container readings in the owner's snapshot; those environments are absent here.
+- A matched idle CPU run after `upload_dirs` (same pair, same duration) and the effect on initial sync/response time.
+- Composer, PHPUnit, FunctionalJavascript/Nightwatch and the Chrome-on-demand wrapper; the probe did not run `yarn build:css`,
+  lint or PHPUnit.
+- Large-file sync, simultaneous changes in two environments, non-Mutagen mode, WebKit/Firefox paths, and long-running stability.
+- Whether the router TLS failure seen when the probe started recurs with normal multi-pair starts.
+- `sites/default/files` exclusion (SQLite/Twig) was not tested and is not recommended without a dedicated backup/test.
+- No resource-accounting, scheduler or dashboard code was changed in Stage 1. The report and probe are the deliverables; the next
+  implementation stage still needs the three-pair baseline or a disposable set.
