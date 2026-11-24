@@ -59,7 +59,7 @@ lease is **unknown**, never proof of idle.
 The add-on also starts a Selenium Chrome container for each environment. The lab's Playwright scripts use the host browser, but
 `ddev phpunit` FunctionalJavascript tests and `ddev nightwatch` need this container. `node scripts/lab-env.mjs chrome <slug>
 stop` stops only the pair's Chrome containers (Drupal stays up); `chrome <slug> start` waits for Selenium before it reports
-success. Browser tests must be run only after Chrome is started.
+success. `scripts/try-tests.mjs` detects FunctionalJavascript tests and starts Chrome on both sides; `ddev nightwatch` still needs an explicit `chrome <slug> start`.
 
 Never add Drush or other dependencies to a core checkout, and never commit `composer.lock` changes there.
 

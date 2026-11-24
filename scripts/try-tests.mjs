@@ -17,6 +17,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync, execFileSync } from 'node:child_process';
 import { labRoot, variants } from '../tools/compare/lib.mjs';
+import { needsChrome, chromeContainerName } from '../tools/compare/browser-tests.mjs';
 import { parsePhpunit, summaryLine, testMethods, methodStatus, verdictFor, verdictExisting, classifyLint, renderTable, renderMarkdownTable } from '../tools/compare/phpunit-output.mjs';
 
 const USAGE = 'usage: node scripts/try-tests.mjs <slug> <test file or folder...> [--existing <core test path...>] [--patch-out <file>] [--mr-ref <git ref>] [--report <file>]';
@@ -75,6 +76,14 @@ items.sort((a, b) => a.rel.localeCompare(b.rel));
 for (const it of items) for (const s of SIDES) if (fs.existsSync(path.join(sides[s].dir, it.rel))) die(`${it.rel} already exists in ${sides[s].env}. This run removes what it copies, so it will not overwrite a file; move or rename the proposed one.`);
 for (const e of existing) for (const s of SIDES) if (!fs.existsSync(path.join(sides[s].dir, e))) die(`--existing ${e}: not found in ${sides[s].env}. Give the path inside the checkout, e.g. core/modules/file/tests/src/Kernel/ManagedFileTest.php`);
 const classes = items.filter((it) => /Test\.php$/.test(it.rel)).map((it) => { const php = fs.readFileSync(it.src, 'utf8'); return { ...it, short: path.basename(it.rel, '.php'), methods: testMethods(php), provider: /DataProvider/.test(php) }; });
+const browserTest = needsChrome({
+  paths: [...items.map((it) => it.rel), ...existing],
+  contents: [
+    ...classes.map((it) => fs.readFileSync(it.src, 'utf8')),
+    ...existing.map((e) => { try { return fs.readFileSync(path.join(sides.before.dir, e), 'utf8'); } catch { return ''; } }),
+  ],
+});
+if (browserTest) ensureChrome();
 const lintable = items.filter((it) => /\.(php|module|inc|install|theme|profile|engine)$/.test(it.rel));
 
 // 4. cleanup registry: the copies are removed on every way out (normal end, an exception, Ctrl-C)
@@ -123,6 +132,25 @@ cleanups.push(() => { for (const f of copied) fs.rmSync(f, { force: true }); for
 // DDEV with Mutagen syncs the checkout into the container a moment after a file changes (scripts/lab-site.sh waits the same way):
 // a test copied in is not there to run until it has arrived, and a removed one is still there until the removal has.
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Browser tests need the add-on's Chrome; starting it here is explicit and leaves it running for the next browser run.
+function ensureChrome() {
+  note('browser test detected: ensuring Selenium Chrome on both sides');
+  const failures = [];
+  for (const s of SIDES) {
+    const env = sides[s].env, name = chromeContainerName(env);
+    if (spawnSync('docker', ['inspect', name], { stdio: 'ignore' }).status !== 0) { failures.push(`${env}: Chrome container ${name} does not exist`); continue; }
+    let running = spawnSync('docker', ['inspect', '--format', '{{.State.Running}}', name], { encoding: 'utf8' }).stdout?.trim() === 'true';
+    if (!running) spawnSync('docker', ['start', name], { stdio: 'ignore' });
+    for (let i = 0; i < 30 && !running; i++) { spawnSync('sleep', ['1']); running = spawnSync('docker', ['inspect', '--format', '{{.State.Running}}', name], { encoding: 'utf8' }).stdout?.trim() === 'true'; }
+    if (!running) { failures.push(`${env}: Chrome container ${name} is missing or would not start`); continue; }
+    let ready = false;
+    for (let i = 0; i < 20 && !ready; i++) { ready = spawnSync('docker', ['exec', name, 'sh', '-c', 'curl -sf http://localhost:4444/status >/dev/null 2>&1'], { stdio: 'ignore' }).status === 0; if (!ready) spawnSync('sleep', ['1']); }
+    if (!ready) failures.push(`${env}: ${name} is running but Selenium did not answer on port 4444`);
+    else note(`Chrome ready for ${env} (${name})`);
+  }
+  if (failures.length) die(`Browser tests cannot run:\n  ${failures.join('\n  ')}\nStart the pair with \`node scripts/lab-env.mjs start ${slug}\` or run \`node scripts/lab-env.mjs chrome ${slug} start\`.`, 3);
+}
 async function settle(s, present) {
   if (!items.length) return true;
   spawnSync('ddev', ['mutagen', 'sync'], { cwd: sides[s].dir, stdio: 'ignore' });
