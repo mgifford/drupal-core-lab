@@ -1,5 +1,7 @@
 # Drupal 3636143: navigation border and separate skip-link integration
 
+> **2026-11-24:** the MR changed (new head `8779866c`, now includes the hover/focus styling). Current state: [STATUS-2026-11-24.md](STATUS-2026-11-24.md). The integration below was run against the previous MR tip and has not been re-run.
+>
 > The toggle's own evaluation (versions A, B and C, the enhancement patch, interdiff and measurements) is in [TOGGLE-ENHANCEMENT.md](TOGGLE-ENHANCEMENT.md). This page covers the separate skip-link integration.
 
 **DRAFT, AI-assisted; not RTBC.** Automated integration checked 2026-11-19. No human accessibility sign-off.
