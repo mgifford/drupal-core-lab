@@ -23,6 +23,7 @@ const server = http.createServer((req, res) => {
   const pathname = new URL(req.url, 'http://localhost').pathname;
   if (pathname === '/') { res.setHeader('content-type', 'text/html'); res.end(html); return; }
   if (pathname === '/browser-handoff.mjs') { res.setHeader('content-type', 'text/javascript'); res.end(fs.readFileSync(new URL('../compare/browser-handoff.mjs', import.meta.url))); return; }
+  if (pathname === '/media-preferences.mjs') { res.setHeader('content-type', 'text/javascript'); res.end(fs.readFileSync(new URL('../compare/media-preferences.mjs', import.meta.url))); return; }
   if (pathname.startsWith('/browser-icons/')) { res.setHeader('content-type', 'image/svg+xml'); res.end(fs.readFileSync(new URL('../compare' + pathname, import.meta.url))); return; }
   res.setHeader('content-type', 'application/json');
   if (pathname === '/variants.json') { res.end(JSON.stringify({ variants, availability: { '3615469-pinned': true, 'not-built': false }, origins: { before: frameOrigins.before, after: frameOrigins.after }, state: { slug: '3615469-pinned', theme: 'auto', darkos: false } })); return; }

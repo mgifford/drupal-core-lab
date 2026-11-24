@@ -54,8 +54,17 @@ in step.
 
 **Switch comparisons.** The Comparison menu groups the built pairs by
 issue number, with latest, pinned and other variants under each issue. A pair
-whose environments do not exist is not listed (the last row counts them). Build it with `node tools/compare/setup.mjs <slug>`, then start it
+whose environments do not exist is not listed (the line under the controls counts them). Build it with `node tools/compare/setup.mjs <slug>`, then start it
 with `node scripts/lab-env.mjs start <slug>`.
+
+Use **Find a comparison** to filter by issue number, title, status, priority or
+tag. **Issue status** limits the list to RTBC, needs review, needs work, active,
+postponed/other, closed, status unknown or no-issue (lab-only) comparisons.
+**Order** puts RTBC and needs review first (the default), restores issue-number
+order, or sorts by the date drupal.org says the issue last changed. The count
+line says how many built comparisons match and how many are not built. Status
+comes from `reports/issues/<nid>/status.json`, refreshed by the weekly issue
+check; an issue the lab has not checked shows **Status unknown**.
 
 Some reviews compare more than pristine core against one finished patch. For
 example, a review may need Core to MR, MR to MR plus interdiff, and Core to MR

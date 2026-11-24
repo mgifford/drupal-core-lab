@@ -1,16 +1,17 @@
-<!-- DRAFT for a human to review and post. Do not post automatically.
-     Follows Drupal core's AGENTS.md rules for drupal.org prose (in any core checkout: AGENTS.md, "Operator Rules for LLM Tools"):
-     rewrite it in your own words before posting; at most 180 words; sentences of at most 25 words; plain facts, no
-     interpretation, recommendations or hedging; no headers; no restating the issue or earlier comments; no tool or model names;
-     end with the disclosure line exactly as below. Check it with: node scripts/check-draft.mjs 2574721
-     Every sentence must match a recorded result in EVIDENCE.md. Delete this comment block when you post. -->
+<!-- DRAFT for a human to review and post. -->
 
-Tested on main (<commit>) with <theme, browser>. <What was set up, in one sentence.>
+Tested the proposal on Drupal core main (`97c6ff8b253`) with the Standard profile and the default admin theme.
 
-Without the MR, <what happens>.
+At 480px, Before had no operations cells and hid the description column containing the module links.
 
-With the MR, <what happens>. <Tests and checks that ran, and their result.>
+After had 61 operations cells and 72 links, and the sampled dropbutton stayed inside the viewport.
 
-<What was not tested, in one sentence.>
+Pointer and keyboard input opened secondary actions, and Tab reached them in Chromium and Firefox.
+
+CSpell, PHPStan, PHPCS, TwigCS, Stylelint, generated CSS checks, and the focused functional test passed.
+
+Chromium, Firefox, and WebKit showed no new automated accessibility violations or JavaScript errors.
+
+A person still needs to verify 400% zoom, Safari keyboard preferences, focus appearance, and a real screen reader.
 
 Generated with the help of an LLM.

@@ -1,59 +1,48 @@
-# #2574721: Issue 2574721
+# #2574721: Module operations on narrow screens
 
-**DRAFT.** Prepared by the Lab scaffold. Reproduction, checks and user-facing outcomes have not been verified by this generation step.
+**DRAFT.** Evidence is recorded, but a person has not reviewed it or posted anything to drupal.org.
 
-Issue: https://www.drupal.org/project/drupal/issues/2574721
-Selected base: `9e8373659f265e141b254eeccab68b8897e78ec5`. Prepared: 2026-10-20.
-Fork branch: drupal-2574721.
+Issue: [#2574721](https://www.drupal.org/project/drupal/issues/2574721)
 
-## Barrier, task and expected outcome
+## Result
 
-Describe the task, barrier, reported result and desired user-facing behaviour. Separate observations from explanations and proposed changes.
+The issue reproduces on core `main`. At 480px, the description column and its action links disappear from the module table.
 
-## People affected and evidence basis
+MR !17049 at `ed3917f4` moves the links into an operations cell, but its implementation manually rebuilds Drupal dropbutton markup in Twig.
+It also has Twig whitespace failures and no PHP, CSS, or test coverage.
 
-Record the task consequence, relevant interaction methods, workaround and its cost.
-Distinguish user testimony, evaluation with disabled participants, manual inspection, tool output and inference.
-State uncertainty; do not infer diagnoses or claim participant testing that did not occur.
-These details have not been assessed by this generation step. Preserve credible reports while investigating missing evidence.
+The lab proposal addresses those concerns by building the operations as a `#type => 'dropbutton'` render array in `ModulesListForm`,
+rendering that array in a dedicated cell, adding responsive widths, and testing the order and placement of the links.
 
-## Reproduction and comparison
+On core `97c6ff8b2534b242c0f1df3e4ba2493e56aebcec`, the proposal passed at 1280px and 480px in Chromium,
+including dark mode and forced colours. Firefox and WebKit also completed the visible and interaction checks.
 
-Complete `REPRODUCE.md`: selected slug, core revision, recipe or Standard-install preconditions,
-and ordered Before/After patches. Identify local follow-ups separately from the MR.
-Keep expected behaviour separate from what each run showed; link the issue's Coder handoff when available.
+## Proposal artifacts
 
-## Evidence and readiness
+- MR patch under review: [`branches/drupal-2574721.patch`](branches/drupal-2574721.patch), tip `ed3917f4`, base `9e8373659f26`.
+- Full replacement patch on the MR base: [`branches/2574721-full-proposal-9e837365.patch`](branches/2574721-full-proposal-9e837365.patch).
+- Interdiff from the MR: [`branches/2574721-2574721-lab-proposal.patch`](branches/2574721-2574721-lab-proposal.patch).
+- Current-main patch: [`branches/2574721-current-main-proposal.patch`](branches/2574721-current-main-proposal.patch), based on `97c6ff8b253`.
 
-Use `EVIDENCE.md` for dated observations and run references. Record reproduction status:
-reproduced, intermittent, not observed, not tested, or needs evidence. A failed rerun does not invalidate a user report.
-Distinguish intake, investigation, remediation readiness and verified correction.
-An automated pass establishes neither conformance nor RTBC.
+## Evidence
 
-## Sources
+- `ModulesListFormWebTest::testModuleListForm`: 11 assertions on Before and 15 on After; both passed.
+- Core checks: CSpell, PHPStan, PHPCS, TwigCS, Stylelint, and generated CSS consistency passed.
+- Chromium 480px: Before had 0 operations cells; After had 61 cells and 72 links.
+- After kept the sampled dropbutton inside the viewport and supported pointer and keyboard opening.
+- Chromium 480px accessibility-tree evidence exposed the Operations header, action links, and “List additional actions” button.
+- No unresolved ARIA ID references, new axe violations, or JavaScript errors were recorded.
+- See [EVIDENCE.md](EVIDENCE.md) and the [playwright runs](playwright/).
 
-Sources and dated issue/MR discussion references have not yet been recorded.
+## Outstanding concerns
 
+- A person must verify the rendered design, keyboard use, 400% zoom, and screen-reader announcement quality.
+- WebKit Playwright did not reproduce Safari’s macOS Full Keyboard Access preference; a person must verify link traversal in Safari.
+- Forced colours retained one pre-existing `color-contrast` axe finding on both sides; the proposal added none.
+- No real VoiceOver or NVDA pass was run.
+- The generated proposal has not been posted to the merge request or tested by drupal.org CI.
 
+## Next action
 
-## Not verified and next actions
-
-- Reproduction steps, setup and checks have not yet been verified.
-
-Record outstanding issue/MR feedback, the next investigative action, an owner and a follow-up date where known.
-
-## Acceptance and verification
-
-Define observable user outcomes. Record which checks are planned, completed, blocked or unnecessary and why.
-Repeat the original interaction in the relevant environment and assess adjacent states and regressions.
-Record separately whether evaluation with disabled people is required, with the rationale and limitations.
-WCAG mapping, suspected cause, severity and priority are optional assessments supported by evidence.
-Keep severity (task impact) separate from priority (when to act).
-
-
-
-## Reporting guidance
-
-Adapted for Lab issue evaluation from
-[Accessibility Bug Reporting Best Practices](https://github.com/mgifford/ACCESSIBILITY.md/blob/main/examples/ACCESSIBILITY_BUG_REPORTING_BEST_PRACTICES.md).
-Use relevant environment details, redact private content and credentials, and describe visual evidence in text.
+Human reviewer: inspect the full patch and interdiff, then decide whether to replace the MR contents and update its description.
+The lab did not push, post, comment, or change the MR.

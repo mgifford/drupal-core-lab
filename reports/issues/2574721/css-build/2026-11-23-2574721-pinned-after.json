@@ -1,0 +1,82 @@
+{
+  "slug": "2574721-pinned",
+  "side": "after",
+  "env": "issue-2574721",
+  "generated": "2026-11-23T17:12:29.267Z",
+  "commands": [
+    "cd core && yarn run build:css --check --file themes/claro/css/components/system-admin--modules.pcss.css",
+    "cd core && yarn run build:css --check --file themes/default_admin/css/components/system-admin--modules.pcss.css"
+  ],
+  "notes": [],
+  "entries": [
+    {
+      "source": "core/themes/claro/css/components/system-admin--modules.pcss.css",
+      "compiled": "core/themes/claro/css/components/system-admin--modules.css",
+      "sourceState": "present",
+      "origin": "edit",
+      "compiledInStack": "present",
+      "state": "ok",
+      "result": "PASS",
+      "detail": "The compiled file matches its source.",
+      "inPatch": true
+    },
+    {
+      "source": "core/themes/default_admin/css/components/system-admin--modules.pcss.css",
+      "compiled": "core/themes/default_admin/css/components/system-admin--modules.css",
+      "sourceState": "present",
+      "origin": "edit",
+      "compiledInStack": "present",
+      "state": "ok",
+      "result": "PASS",
+      "detail": "The compiled file matches its source.",
+      "inPatch": true
+    },
+    {
+      "source": "core/modules/system/css/system.admin.pcss.css",
+      "compiled": "core/modules/system/css/system.admin.css",
+      "sourceState": "absent",
+      "origin": "edit",
+      "compiledInStack": "present",
+      "state": "no-source",
+      "result": "SKIPPED",
+      "detail": "core/modules/system/css/system.admin.css has no .pcss.css source in core, so there is nothing to compile.",
+      "inPatch": true
+    }
+  ],
+  "built": [],
+  "overall": "PASS",
+  "ready": true,
+  "patches": [
+    {
+      "path": "reports/issues/2574721/branches/drupal-2574721.patch",
+      "sha256": "bc22c415378b02a6ef7b259dc7b0028a5fc50e40347fb0faaf2de64ceb7d9808",
+      "authored": false
+    }
+  ],
+  "coreCommit": "9e8373659f26",
+  "editsBeyondPatches": 10,
+  "relevant": true,
+  "runtime": "host",
+  "tools": {
+    "node": "v24.22.0",
+    "yarn": "4.18.0",
+    "yarnWanted": "4.18.0",
+    "corepack": true
+  },
+  "cache": "miss",
+  "stylelint": {
+    "result": "NOT VERIFIED",
+    "detail": "Not run here. node scripts/lint.mjs runs core's Stylelint on the patched files."
+  },
+  "table": {
+    "PostCSS source detected": "YES",
+    "Affected source files": "2",
+    "Compiled output present": "YES",
+    "Rebuild required": "NO",
+    "Compilation completed": "SKIPPED (nothing needed building)",
+    "Source/output consistency": "PASS",
+    "Stylelint": "NOT VERIFIED",
+    "Patch includes generated CSS": "PASS",
+    "Ready for submission": "YES"
+  }
+}

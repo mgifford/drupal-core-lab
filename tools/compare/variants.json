@@ -1672,7 +1672,8 @@
     "after": {
       "env": "issue-2574721",
       "patches": [
-        "reports/issues/2574721/branches/drupal-2574721.patch"
+        "reports/issues/2574721/branches/drupal-2574721.patch",
+        "reports/issues/2574721/branches/2574721-2574721-lab-proposal.patch"
       ]
     },
     "pages": [
@@ -1708,7 +1709,7 @@
       },
       {
         "label": "Operations column header exists",
-        "probe": "document.querySelector('th.operations') !== null",
+        "probe": "document.querySelector('th.operations, th.module-list__operations') !== null",
         "expect": true,
         "kind": "fix"
       },
@@ -1782,10 +1783,13 @@
       "commit": null
     },
     "before": {
-      "env": "baseline-2574721-latest"
+      "env": "baseline-2574721-current"
     },
     "after": {
-      "env": "issue-2574721-latest"
+      "env": "issue-2574721-current",
+      "patches": [
+        "reports/issues/2574721/branches/2574721-current-main-proposal.patch"
+      ]
     }
   },
   {
