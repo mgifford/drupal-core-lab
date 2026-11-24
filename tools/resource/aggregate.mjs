@@ -206,6 +206,17 @@ export function aggregate(events, { now = new Date(), tasks = [] } = {}) {
     }).sort((a, b) => (b.cpu_seconds ?? -1) - (a.cpu_seconds ?? -1) || a.role.localeCompare(b.role)),
     note: 'Container statistics are sampled. CPU-seconds are derived from CPUPerc over the sample interval; memory is container usage. Mutagen file counts, Chrome on/off and Docker disk are reported by the local `lab-env resources` command, not this public page.',
   };
+  const mutagenEvents = countedData.filter((e) => e.tool === 'ddev-mutagen' && e.measurements.mutagen);
+  const latestMutagen = new Map();
+  for (const e of mutagenEvents.sort((a, b) => String(a.occurred_at).localeCompare(String(b.occurred_at)))) {
+    const key = e.variant || (e.issue ? `issue-${e.issue}` : 'baseline');
+    latestMutagen.set(key, { label: key, files: e.measurements.mutagen.files, bytes: e.measurements.mutagen.bytes, sessions: e.measurements.mutagen.sessions, measurement: e.measurements.mutagen.measurement, occurred_at: e.occurred_at });
+  }
+  infrastructure.mutagen = {
+    samples: mutagenEvents.length,
+    snapshots: [...latestMutagen.values()].sort((a, b) => a.label.localeCompare(b.label)),
+    note: 'The latest sampled Mutagen session per variant. File counts and content sizes are Mutagen session values, not a directory walk or disk usage; a flush or reset can change them.',
+  };
 
   const trendMap = new Map();
   for (const e of countedData) {

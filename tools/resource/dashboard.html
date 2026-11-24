@@ -109,7 +109,9 @@
     <h2 id="infrastructure-h">Infrastructure efficiency (sampled)</h2>
     <p class="note">Container samples only; this is a historical snapshot, not a live view. CPU-seconds are derived from Docker's sampled percentage over the sample interval, and memory is container usage. Mutagen file counts, Chrome on/off and Docker disk are local-only: run <code>node scripts/lab-env.mjs resources</code>.</p>
     <div class="tablewrap" role="region" aria-label="Infrastructure services table" tabindex="0"><table id="infrastructure-table"></table></div>
+    <div class="tablewrap" role="region" aria-label="Mutagen snapshots table" tabindex="0"><table id="mutagen-table"></table></div>
     <p id="infrastructure-note" class="note" hidden></p>
+    <p id="mutagen-note" class="note" hidden></p>
   </section>
 
   <section id="exploration-section" hidden aria-labelledby="exploration-h">
@@ -308,9 +310,13 @@ function renderInfrastructure() {
   const i = DATA.infrastructure || {};
   const rows = (i.roles || []).map((r) => [r.role, r.containers, r.events, fmt(r.cpu_seconds, 2), bytes(r.peak_memory_bytes)]);
   table($('infrastructure-table'), 'Sampled Lab containers by service role', ['Service', 'Containers', 'Samples', 'CPU-seconds', 'Peak memory'], rows);
+  const mut = (i.mutagen && i.mutagen.snapshots) || [];
+  table($('mutagen-table'), 'Latest sampled Mutagen session per variant', ['Variant', 'Files', 'Contents', 'Sessions', 'Sampled'], mut.map((m) => [m.label, fmt(m.files), bytes(m.bytes), m.sessions, m.occurred_at]));
   $('infrastructure-note').hidden = rows.length > 0;
   $('infrastructure-note').textContent = rows.length ? '' : 'No container samples have been collected yet. Run node scripts/resource.mjs collect --source=docker --samples=2 --interval=5000.';
-  $('infrastructure-section').hidden = rows.length === 0;
+  $('mutagen-note').hidden = mut.length > 0;
+  $('mutagen-note').textContent = mut.length ? '' : 'No Mutagen snapshots have been collected yet. Run node scripts/resource.mjs collect --source=mutagen.';
+  $('infrastructure-section').hidden = rows.length === 0 && mut.length === 0;
 }
 
 function renderExploration() {

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Deterministic resource accounting CLI.
-//   node scripts/resource.mjs collect [--source=claude,model-eval,measure-resources,github,docker|all]
+//   node scripts/resource.mjs collect [--source=claude,model-eval,measure-resources,github,docker,mutagen|all]
 //        [--activity=...] [--issue=...] [--variant=...] [--since=YYYY-MM-DD] [--samples=3] [--interval=1000] [--dry-run] [--json]
 //        [--prompt-content] [--inspect-artifacts]   prompt/artifact metadata is the default; content and ZIP/patch reads are opt-in
 //   node scripts/resource.mjs recent [--limit=20] [--json]
@@ -24,6 +24,7 @@ import { collectModelEval } from '../tools/resource/adapters/model-eval.mjs';
 import { collectMeasureResources } from '../tools/resource/adapters/measure-resources.mjs';
 import { collectDocker } from '../tools/resource/adapters/docker.mjs';
 import { collectGithubActions } from '../tools/resource/adapters/github-actions.mjs';
+import { collectMutagen } from '../tools/resource/adapters/mutagen.mjs';
 
 const args = process.argv.slice(2), cmd = args[0];
 const val = (n, d = null) => {
@@ -45,6 +46,7 @@ async function collect() {
   if (wants('measure-resources')) { const r = collectMeasureResources({ issue: val('issue'), variant: val('variant') }); all.push(...r.events); errors.push(...r.errors); metadata.measureResources = r.metadata; }
   if (wants('github')) { const r = await collectGithubActions({ limit: Number(val('limit', '100')), jobsFor: Number(val('jobs', '20')), issue: val('issue'), variant: val('variant') }); all.push(...r.events); errors.push(...r.errors); metadata.github = r.metadata; }
   if (wants('docker')) { const r = await collectDocker({ samples: Number(val('samples', '1')), intervalMs: Number(val('interval', '1000')), issue: val('issue'), variant: val('variant') }); all.push(...r.events); errors.push(...r.errors); metadata.docker = r.metadata; }
+  if (wants('mutagen')) { const r = collectMutagen(); all.push(...r.events); errors.push(...r.errors); metadata.mutagen = r.metadata; }
   // Explicit labels are a deliberate human override; otherwise the adapter's deterministic classification stands.
   const label = val('activity'), issue = val('issue'), variant = val('variant');
   const events = all.filter((e) => !val('since') || String(e.occurred_at).slice(0, 10) >= val('since'))
@@ -162,6 +164,11 @@ function markdown(s, baseline = false) {
     md += `## Infrastructure services (sampled)\n\nContainer statistics are sampled, not a live view. ${n(s.infrastructure.samples)} role-labelled sample(s) across ${n(s.infrastructure.containers)} container(s)${s.infrastructure.unclassified_samples ? `; ${n(s.infrastructure.unclassified_samples)} older sample(s) have no role and stay in By tool only` : ''}. CPU-seconds are derived from CPUPerc over the sample interval; memory is container usage. Mutagen file counts, Chrome on/off and Docker disk are local-only (\`lab-env resources\`).\n\n| Service | Containers | Samples | CPU-seconds | Peak memory |\n|---|---:|---:|---:|---:|\n`;
     for (const r of s.infrastructure.roles) md += `| ${r.role} | ${n(r.containers)} | ${n(r.events)} | ${n(r.cpu_seconds, 2)} | ${formatBytes(r.peak_memory_bytes)} |\n`;
     md += '\n';
+    if (s.infrastructure.mutagen?.snapshots?.length) {
+      md += `### Mutagen snapshots\n\nThe latest sampled Mutagen session per variant. These are session file counts and content sizes, not a directory walk or disk usage.\n\n| Variant | Files | Contents | Sessions | Sampled |\n|---|---:|---:|---:|---|\n`;
+      for (const m of s.infrastructure.mutagen.snapshots) md += `| ${m.label} | ${n(m.files)} | ${formatBytes(m.bytes)} | ${n(m.sessions)} | ${m.occurred_at} |\n`;
+      md += '\n';
+    }
   }
   if (s.by_exploration_subcategory?.length) {
     md += `## Code exploration subcategories\n\n| Subcategory | Events | Tokens | Share |\n|---|---:|---:|---:|\n`;
