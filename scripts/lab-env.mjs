@@ -3,6 +3,7 @@
 //   node scripts/lab-env.mjs status                 what exists, what is running, which variant uses it
 //   node scripts/lab-env.mjs resources [--json]    read-only: containers, Chrome, Mutagen, memory/CPU and task association
 //   node scripts/lab-env.mjs chrome <slug> start|stop  start or stop only the pair's Chrome services (Drupal keeps running)
+//   node scripts/lab-env.mjs capacity [--kind=test] [--json]  observe-only advice from active leases, wrapped operations and Docker memory
 //   node scripts/lab-env.mjs start <slug> [--browser]  start both environments AND the side-by-side viewer (retries DDEV's router flake);
 //                                                   --browser also opens the viewer in the lab browser (forced-colours switch built in, own profile in .lab-browser)
 //   node scripts/lab-env.mjs browser [--reset]      open the viewer in the lab browser (needs the viewer running); --reset deletes its saved profile
@@ -27,7 +28,8 @@ import { claimLease, releaseLease, leaseRows, protectionMessage } from '../tools
 import { dockerContainers } from '../tools/resource/adapters/docker.mjs';
 import { parsePair } from '../tools/resource/units.mjs';
 import { loadTasks } from '../tools/resource/tasks.mjs';
-import { readRunning } from '../tools/resource/budgets.mjs';
+import { readRunning, loadBudgets } from '../tools/resource/budgets.mjs';
+import { capacityDecision } from '../tools/compare/scheduler.mjs';
 
 const [cmd, target, action] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const yes = process.argv.includes('--yes');
@@ -161,6 +163,25 @@ function leases() {
   if (!rows.length) { console.log('No leases. Activity is unknown, not idle.'); return; }
   for (const l of rows) console.log(`${l.slug}	${l.status}	${l.operation}	${l.task || '—'}	pid ${l.pid}	expires ${l.expires_at}`);
 }
+function capacity() {
+  const kind = (process.argv.find((a) => a.startsWith('--kind='))?.slice('--kind='.length)) || 'test';
+  const budgets = loadBudgets();
+  const running = readRunning();
+  const leases = leaseRows(LEASE_FILE);
+  const containers = dockerContainers();
+  const stats = containerStats(containers);
+  const mem = dockerMemory();
+  const labMemory = containers.reduce((n, c) => n + (stats[c.name]?.memory || 0), 0);
+  const memoryPercent = mem.total && labMemory ? Math.round((1000 * labMemory) / mem.total) / 10 : null;
+  const decision = capacityDecision({ running, leases, kind, mode: budgets.config.mode, limit: budgets.config.limits.max_concurrent_cpu_jobs, memoryPercent });
+  if (process.argv.includes('--json')) { console.log(JSON.stringify(decision, null, 2)); return; }
+  console.log(`Capacity advice (${decision.mode}, not enforced here): ${decision.action} for kind=${kind}`);
+  console.log(`Heavy work: ${decision.active_count}/${decision.limit || '—'} (${decision.active.map((a) => `${a.source}:${a.activity}${a.task ? `/${a.task}` : ''}`).join(', ') || 'none'}).`);
+  if (memoryPercent != null) console.log(`Docker memory: ${memoryPercent}% of the VM (${Math.round(labMemory / 1048576)} MiB lab containers).`);
+  for (const r of decision.reasons) console.log(`  ${r}`);
+  console.log('This is advice only; no operation was started, stopped or refused. Leases and resource-run operations are the only work it can see.');
+}
+
 function resources() {
   const json = process.argv.includes('--json');
   const dockerOk = dockerAvailable();
@@ -261,6 +282,7 @@ function status() {
 switch (cmd) {
   case 'status': case undefined: status(); break;
   case 'resources': resources(); break;
+  case 'capacity': capacity(); break;
   case 'claim': claim(); break;
   case 'release': release(); break;
   case 'leases': leases(); break;
