@@ -3,7 +3,8 @@
 Stage 1 review. Docker was initially down and the snapshot's six environments were absent. With owner approval, Docker
 Desktop and the existing stopped `baseline-main` + `issue-3619127-vanilla` pair were started for measurement. No configuration,
 patch, baseline or worktree was changed on that pair. A separate throwaway copy was used for the `upload_dirs` experiment and
-then deleted. Prepared 2026-11-24.
+then deleted. Stage 2 implementation and its validation are in
+[HANDOFF-2026-11-24.md](HANDOFF-2026-11-24.md). Prepared 2026-11-24.
 
 ## Status first: the three-pair baseline cannot be reproduced in this checkout
 
