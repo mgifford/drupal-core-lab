@@ -35,11 +35,18 @@ and a headless Chrome, with no Drush and SQLite instead of MariaDB. Roughly:
     ddev config --project-type=drupal12 --omit-containers=db --disable-settings-management
     ddev start && ddev composer install --no-interaction
     ddev add-on get justafish/ddev-drupal-core-dev --version v1.2.5 && ddev restart   # version pinned in tools/compare/ddev-build-failure.mjs
+    # setup also writes .ddev/config.lab.yaml: upload_dirs .ddev/tmp + core/node_modules
     cp .ddev/core-dev/.env core/.env                  # `ddev phpunit` sources it; without it every run errors before its first assertion
     ddev drupal install standard --password=admin
     scripts/lab-site.sh apply <env>                   # the variant's recipe, aggregation off, one site name for both sites
 
 `scripts/lab-site.sh reset <env>` reinstalls a site from scratch (snapshots first). Useful commands inside an environment:
+
+`core/node_modules` is needed only for CSS/JS builds and lint, so `setup.mjs` writes a lab-owned `.ddev/config.lab.yaml`
+with `upload_dirs: [.ddev/tmp, core/node_modules]`. DDEV merges it after the add-on file; the effective config was checked
+with `ddev utility configyaml`. This removes ~43,000 files from Mutagen per environment. Existing environments are **not**
+rewritten; `node scripts/lab-env.mjs resources` warns when `core/node_modules` is still synced, and applying the change needs a
+deliberate restart/reset (do it only when that environment is not needed for current work).
 
     ddev drupal cache | ddev drupal login | ddev phpunit <path-to-test> | ddev exec php core/scripts/dr cache:rebuild
 

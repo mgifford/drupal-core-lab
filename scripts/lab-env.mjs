@@ -1,6 +1,7 @@
 // Start, stop and inspect the lab's DDEV environments by variant name. Two sites at a time is the normal state:
 // a core, and the same core with an issue's patch.
 //   node scripts/lab-env.mjs status                 what exists, what is running, which variant uses it
+//   node scripts/lab-env.mjs resources [--json]    read-only: containers, Chrome, Mutagen, memory/CPU and task association
 //   node scripts/lab-env.mjs start <slug> [--browser]  start both environments AND the side-by-side viewer (retries DDEV's router flake);
 //                                                   --browser also opens the viewer in the lab browser (forced-colours switch built in, own profile in .lab-browser)
 //   node scripts/lab-env.mjs browser [--reset]      open the viewer in the lab browser (needs the viewer running); --reset deletes its saved profile
@@ -14,12 +15,17 @@
 //   node scripts/lab-env.mjs disk                   free space, what each environment uses, and what is safe to remove
 // `stop all` stops every lab environment but leaves the small drupal-compare address project running.
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
 import { spawnSync, execFileSync, spawn } from 'node:child_process';
 import { labRoot, variants, envDir, reportsDir } from '../tools/compare/lib.mjs';
 import { identity, headOf } from '../tools/compare/env-state.mjs';
 import { sideState } from '../tools/compare/contrib-state.mjs';
+import { dockerContainers } from '../tools/resource/adapters/docker.mjs';
+import { parsePair } from '../tools/resource/units.mjs';
+import { loadTasks } from '../tools/resource/tasks.mjs';
+import { readRunning } from '../tools/resource/budgets.mjs';
 
 const [cmd, target] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const yes = process.argv.includes('--yes');
@@ -58,6 +64,105 @@ function startViewer(slug) {
 }
 const state = () => { try { const raw = JSON.parse(execFileSync('ddev', ['list', '-j'], { encoding: 'utf8' })).raw; return Object.fromEntries(raw.filter((p) => p.approot).map((p) => [p.approot, p])); } catch { return {}; } };
 
+// Read-only resource view. It never starts or stops anything and classifies an environment as unknown when it cannot tell.
+const dockerAvailable = () => { try { execFileSync('docker', ['info'], { stdio: 'ignore', timeout: 15000 }); return true; } catch { return false; } };
+const dockerMemory = () => { try { const out = execFileSync('docker', ['info', '--format', '{{.MemTotal}}|{{.NCPU}}'], { encoding: 'utf8', timeout: 15000 }).trim().split('|'); return { total: Number(out[0]) || null, cpus: Number(out[1]) || null }; } catch { return { total: null, cpus: null }; } };
+function dockerDisk() { try { return execFileSync('docker', ['system', 'df', '--format', '{{json .}}'], { encoding: 'utf8', timeout: 30000 }).split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); } catch { return null; } }
+function containerStats(containers) {
+  const out = {};
+  if (!containers.length) return out;
+  try {
+    const text = execFileSync('docker', ['stats', '--no-stream', '--format', '{{json .}}', ...containers.map((c) => c.name)], { encoding: 'utf8', timeout: 60000, maxBuffer: 8 * 1024 * 1024 });
+    for (const line of text.split('\n').filter(Boolean)) {
+      try {
+        const r = JSON.parse(line), mem = parsePair(r.MemUsage);
+        out[r.Name] = { cpu: Number.parseFloat(String(r.CPUPerc || '').replace('%', '')), memory: mem ? mem[0] : null };
+      } catch { /* skip a malformed stats row */ }
+    }
+  } catch { /* Docker stats are optional; the rest of the view still works */ }
+  return out;
+}
+function mutagenOf(dir) {
+  const r = spawnSync('ddev', ['mutagen', 'status', '-l'], { cwd: dir, encoding: 'utf8', timeout: 20000 });
+  if (r.status !== 0) return null;
+  const text = r.stdout || '';
+  const files = text.match(/^\s*([\d,]+) files \(([^)]+)\)/m);
+  let config = '';
+  try { config = fs.readdirSync(path.join(dir, '.ddev')).filter((f) => /^config(\..+)?\.yaml$/.test(f)).map((f) => fs.readFileSync(path.join(dir, '.ddev', f), 'utf8')).join('\n'); } catch { /* no config */ }
+  return {
+    status: (text.match(/^Status:\s*(.+)$/m) || [])[1] || null,
+    files: files ? Number(files[1].replace(/,/g, '')) : null,
+    size: files ? files[2] : null,
+    node_modules_excluded: /core\/node_modules/.test(config),
+  };
+}
+function resources() {
+  const json = process.argv.includes('--json');
+  const dockerOk = dockerAvailable();
+  const containers = dockerContainers();
+  const stats = containerStats(containers);
+  const memInfo = dockerMemory();
+  const disk = dockerDisk();
+  const st = state();
+  const ops = readRunning();
+  const tasks = loadTasks();
+  const sum = (xs) => { const v = xs.filter((x) => typeof x === 'number' && Number.isFinite(x)); return v.length ? v.reduce((a, b) => a + b, 0) : null; };
+  const envRows = allEnvs.map((e) => {
+    const p = st[envDir(e)] || {};
+    const mine = containers.filter((c) => c.env === e);
+    const by = (role) => mine.find((c) => c.role === role);
+    const used = vs.filter((v) => v.before.env === e || v.after.env === e).map((v) => v.slug);
+    const mem = sum(mine.map((c) => stats[c.name]?.memory));
+    const cpu = sum(mine.map((c) => stats[c.name]?.cpu));
+    return {
+      env: e, state: p.status || 'unknown', core: headOf(envDir(e)).slice(0, 11) || null, variants: used,
+      web: by('web')?.name || null, chrome: by('chrome')?.name || null, otel: by('otel-collector')?.name || null,
+      memory_bytes: mem, cpu_percent: cpu, mutagen: p.status === 'running' ? mutagenOf(envDir(e)) : null,
+      task: (() => { const t = tasks.find((x) => x.issue && used.some((s) => s.startsWith(`${x.issue}-`))); return t ? { id: t.task_id, state: t.state, sessions: (t.sessions || []).length } : null; })(),
+      activity: 'unknown (no active-task lease)',
+    };
+  });
+  const shared = containers.filter((c) => ['viewer', 'router', 'ssh-agent'].includes(c.role)).map((c) => ({ role: c.role, name: c.name, site: c.site || null, ...stats[c.name] }));
+  const out = {
+    generated_at: new Date().toISOString(), docker: { available: dockerOk, cpus: memInfo.cpus, memory_total_bytes: memInfo.total },
+    host: { cpus: os.cpus().length, load_1m: os.loadavg()[0], memory_total_bytes: os.totalmem() },
+    environments: envRows, shared, running_operations: ops, declared_tasks: tasks.map((t) => ({ task_id: t.task_id, issue: t.issue, state: t.state })), disk,
+    lab_memory_bytes: sum(containers.map((c) => stats[c.name]?.memory)), lab_cpu_percent: sum(containers.map((c) => stats[c.name]?.cpu)),
+    unregistered: dockerOk ? allEnvs.filter((e) => !st[envDir(e)]) : [],
+    note: 'Read-only. No environment is started or stopped. Activity is unknown without a task lease; do not treat it as idle.',
+  };
+  if (json) { console.log(JSON.stringify(out, null, 2)); return; }
+  const mb = (n) => (n == null ? '—' : `${Math.round(n / 1048576)} MiB`);
+  const pct = (n) => (n == null ? '—' : `${n.toFixed(1)}%`);
+  console.log('Lab resources (read-only; nothing is started or stopped)');
+  console.log(`Host: ${out.host.cpus} CPU, load ${out.host.load_1m.toFixed(2)}, ${mb(out.host.memory_total_bytes)} RAM`);
+  console.log(`Docker: ${dockerOk ? `${memInfo.cpus ?? '?'} CPU / ${mb(memInfo.total)}` : 'unavailable'}${out.lab_memory_bytes != null ? `, lab containers ${mb(out.lab_memory_bytes)}` : ''}`);
+  if (disk) for (const d of disk) console.log(`  ${d.Type}: ${d.Size}${d.Reclaimable ? ` (${d.Reclaimable} reclaimable)` : ''}`);
+  console.log('\nEnvironments');
+  console.log('Environment                    State     Core         Variants                         Web   Chrome       OTel        Mutagen                         Mem     CPU     Declared task');
+  for (const r of envRows) {
+    const mut = r.mutagen ? `${r.mutagen.files ?? '?'} files / ${r.mutagen.size || '?'} (${r.mutagen.status || '?'})` : '—';
+    const cm = r.chrome ? stats[r.chrome]?.memory : null;
+    const om = r.otel ? stats[r.otel]?.memory : null;
+    const task = r.task ? `${r.task.id} (${r.task.state}${r.task.sessions ? '' : ', no session'})` : 'none declared';
+    console.log(`${r.env.padEnd(30)} ${r.state.padEnd(9)} ${(r.core || '—').padEnd(12)} ${(r.variants.join(', ') || '—').padEnd(33)} ${(r.web ? 'yes' : '—').padEnd(5)} ${(r.chrome ? `yes ${mb(cm)}` : '—').padEnd(12)} ${(r.otel ? `yes ${mb(om)}` : '—').padEnd(11)} ${mut.padEnd(31)} ${mb(r.memory_bytes).padEnd(7)} ${pct(r.cpu_percent).padEnd(7)} ${task}`);
+  }
+  const unfixed = envRows.filter((r) => r.mutagen && !r.mutagen.node_modules_excluded && fs.existsSync(path.join(envDir(r.env), 'core/node_modules')));
+  if (unfixed.length) console.log(`\nMutagen warning: core/node_modules is not excluded in ${unfixed.map((r) => r.env).join(', ')}. New builds get the lab override; an existing environment needs a deliberate restart/reset to apply it.`);
+  if (shared.length) {
+    console.log('\nShared services');
+    console.log('Role          Container                    Site                 CPU     Mem');
+    for (const s of shared) console.log(`${s.role.padEnd(13)} ${s.name.padEnd(28)} ${(s.site || '—').padEnd(20)} ${pct(s.cpu).padEnd(7)} ${mb(s.memory)}`);
+  }
+  if (ops.length) { console.log('\nRunning wrapped operations'); for (const o of ops) console.log(`  pid ${o.pid} ${o.activity} task=${o.task} since ${o.started_at}`); }
+  else console.log('\nRunning wrapped operations: none recorded.');
+  console.log(`\nDeclared tasks: ${tasks.length ? tasks.map((t) => `${t.task_id} (${t.state})`).join(', ') : 'none'}.`);
+  console.log('Activity: unknown for every environment; there is no task lease. The declared task is matched by issue only, not proof of current work. Review before stopping anything.');
+  if (out.unregistered.length) console.log(`Environments not in ddev list: ${out.unregistered.join(', ')}`);
+  const pressure = memInfo.total && out.lab_memory_bytes != null && out.lab_memory_bytes / memInfo.total >= 0.75;
+  if (pressure) console.log(`WARNING: lab containers use ${Math.round(100 * out.lab_memory_bytes / memInfo.total)}% of the Docker VM memory.`);
+}
+
 function status() {
   const st = state(); const usedBy = {};
   for (const v of vs) for (const e of [v.before.env, v.after.env]) (usedBy[e] ||= []).push(v.slug);
@@ -81,6 +186,7 @@ function status() {
 
 switch (cmd) {
   case 'status': case undefined: status(); break;
+  case 'resources': resources(); break;
   case 'start': {
     if (!target) { console.error('usage: start <slug>'); process.exit(2); }
     for (const e of envsOf(target)) {
@@ -155,5 +261,5 @@ switch (cmd) {
     const list = present(envsOf(target)); if (!yes) { console.error(`This DELETES ${list.join(' and ')} (containers, database and worktree). Evidence in reports/ is kept. Re-run with --yes.`); process.exit(2); }
     for (const e of list) { ddev(envDir(e), ['delete', '--omit-snapshot', '--yes']); spawnSync('git', ['-C', path.join(envsDir, 'core.git'), 'worktree', 'remove', '--force', envDir(e)], { stdio: 'inherit' }); }
     break; }
-  default: console.error('usage: lab-env.mjs status | disk | start <slug> [--browser] | browser [--reset] | stop <slug|all> | reset <slug> --yes | trim <slug|all> [--deep] | delete <slug> --yes | retire <slug> --yes [--force]'); process.exit(2);
+  default: console.error('usage: lab-env.mjs status | resources [--json] | disk | start <slug> [--browser] | browser [--reset] | stop <slug|all> | reset <slug> --yes | trim <slug|all> [--deep] | delete <slug> --yes | retire <slug> --yes [--force]'); process.exit(2);
 }

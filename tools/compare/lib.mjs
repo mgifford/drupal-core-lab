@@ -179,3 +179,14 @@ export function assetsOf(html) {
     return { key, fetchPath: p.pathname + p.search };
   });
 }
+
+// A lab-owned DDEV override that survives add-on updates. `core/node_modules` is needed only for CSS/JS builds and lint, so it
+// is bind-mounted through upload_dirs instead of being synced by Mutagen (DDEV's own recommendation; measured in the 2026-11-24
+// infrastructure audit). Keep `.ddev/tmp` because the add-on sets it, and do not add sites/default/files: the SQLite database
+// lives there and should stay on the Mutagen volume.
+export const LAB_DDEV_CONFIG = `# lab-managed: written by tools/compare/setup.mjs. Overrides the add-on's upload_dirs.
+# core/node_modules is needed only for CSS/JS builds and lint; excluding it removes ~43k files from Mutagen.
+upload_dirs:
+  - .ddev/tmp
+  - core/node_modules
+`;

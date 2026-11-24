@@ -25,7 +25,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { labRoot, variants, envDir, ddevName } from './lib.mjs';
+import { labRoot, variants, envDir, ddevName, LAB_DDEV_CONFIG } from './lib.mjs';
 import { ensurePatches } from './patch-state.mjs';
 import { identity, blockMessage, headOf, recipeStatus } from './env-state.mjs';
 import { ensureContrib } from './contrib-state.mjs';
@@ -210,6 +210,12 @@ for (const [side, spec] of sides) {
   }
   runRetry('ddev', ['start'], { cwd: dir });
   if (!have(path.join(dir, 'vendor/autoload.php'))) run('ddev', ['composer', 'install', '--no-interaction'], { cwd: dir });
+  // Lab-owned, so an add-on update cannot silently reintroduce the 43k-file node_modules sync. New environments only; an
+  // existing environment keeps its current Mutagen session until it is rebuilt/restarted deliberately.
+  if (!dry) {
+    const labConfig = path.join(dir, '.ddev/config.lab.yaml');
+    if (!have(labConfig) || fs.readFileSync(labConfig, 'utf8') !== LAB_DDEV_CONFIG) fs.writeFileSync(labConfig, LAB_DDEV_CONFIG);
+  }
   if (!have(path.join(dir, '.ddev/commands/web/drupal'))) {
     // The add-on's own post-install restart can hit the router flake; the files are in place by then.
     console.log(`$ ddev add-on get ${ADDON} --version ${ADDON_VERSION}`);
