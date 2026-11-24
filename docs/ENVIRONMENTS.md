@@ -50,6 +50,11 @@ deliberate restart/reset (do it only when that environment is not needed for cur
 
     ddev drupal cache | ddev drupal login | ddev phpunit <path-to-test> | ddev exec php core/scripts/dr cache:rebuild
 
+The add-on also starts a Selenium Chrome container for each environment. The lab's Playwright scripts use the host browser, but
+`ddev phpunit` FunctionalJavascript tests and `ddev nightwatch` need this container. `node scripts/lab-env.mjs chrome <slug>
+stop` stops only the pair's Chrome containers (Drupal stays up); `chrome <slug> start` waits for Selenium before it reports
+success. Browser tests must be run only after Chrome is started.
+
 Never add Drush or other dependencies to a core checkout, and never commit `composer.lock` changes there.
 
 ## Fallback: manual setup (verified 2026-10-01, MariaDB)

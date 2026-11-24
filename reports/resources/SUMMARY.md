@@ -1,6 +1,6 @@
 # Resource usage
 
-Generated 2026-11-24T13:07:54.016Z. Period: 2026-10-02 to 2026-11-23. Completeness: **partial**. No AI model was called to produce this report.
+Generated 2026-11-24T17:08:11.752Z. Period: 2026-10-02 to 2026-11-24. Completeness: **partial**. No AI model was called to produce this report.
 
 ## Totals
 
@@ -16,11 +16,11 @@ Generated 2026-11-24T13:07:54.016Z. Period: 2026-10-02 to 2026-11-23. Completene
 | Model requests | 2,235 | provider-reported |
 | Estimated AI cost | $237.19 (estimate) | client-reported-estimate; not an invoice |
 | Provider-reported AI cost | — | unavailable |
-| Process CPU-seconds | 7.97 | measured |
-| CPU-hours | 0.002 h | measured |
+| Process CPU-seconds | 9.49 | measured |
+| CPU-hours | 0.003 h | measured |
 | Peak memory | 355.1 MiB | measured/sampled |
 | GitHub Actions duration | 0.944 h (100 runs / 100 jobs) | provider-reported |
-| Task ids observed | 27 (12 success, 1 failure, 14 unknown) | distinct task ids, including sessions, CI and Docker; declared-task rows are separate |
+| Task ids observed | 32 (12 success, 1 failure, 19 unknown) | distinct task ids, including sessions, CI and Docker; declared-task rows are separate |
 | Collection overhead | 0.002 h CPU, 215.4 MiB peak | measured |
 
 ## Consumption by activity
@@ -33,7 +33,7 @@ Generated 2026-11-24T13:07:54.016Z. Period: 2026-10-02 to 2026-11-23. Completene
 | environment-setup | 248 | 11 | 75,712,828 | 9.3% | 247 | — | $24.85 | direct-event, request-level-v1 |
 | validation | 157 | 11 | 26,383,834 | 3.2% | 65 | 0.000 | $6.82 | direct-event, request-level-v1 |
 | issue-intake | 63 | 7 | 25,935,131 | 3.2% | 62 | — | $7.88 | direct-event, request-level-v1 |
-| infrastructure | 40 | 11 | 13,529,402 | 1.7% | 32 | 0.002 | $3.12 | direct-event, request-level-v1 |
+| infrastructure | 67 | 16 | 13,529,402 | 1.7% | 32 | 0.002 | $3.12 | direct-event, request-level-v1 |
 | playwright-testing | 27 | 5 | 8,187,259 | 1.0% | 27 | — | $2.12 | request-level-v1 |
 | issue-analysis | 38 | 6 | 7,901,196 | 1.0% | 38 | — | $3.54 | request-level-v1 |
 | model-evaluation | 59 | 2 | 3,503,654 | 0.4% | 59 | — | $2.54 | direct-event, request-level-v1 |
@@ -44,6 +44,19 @@ Generated 2026-11-24T13:07:54.016Z. Period: 2026-10-02 to 2026-11-23. Completene
 | composer-install | 2 | 1 | 328,536 | 0.0% | 2 | — | $0.07 | request-level-v1 |
 
 Rows mix request-level activity, the older session tool-call-share allocation for historical records, and direct events (process, Docker, GitHub Actions) that were never session allocations. The method column above names them per activity; the dashboard keeps them distinguishable. Request-level activity is associated with the request context and is not proof that the activity caused every token in it.
+
+## Infrastructure services (sampled)
+
+Container statistics are sampled, not a live view. 27 role-labelled sample(s) across 9 container(s); 8 older sample(s) have no role and stay in By tool only. CPU-seconds are derived from CPUPerc over the sample interval; memory is container usage. Mutagen file counts, Chrome on/off and Docker disk are local-only (`lab-env resources`).
+
+| Service | Containers | Samples | CPU-seconds | Peak memory |
+|---|---:|---:|---:|---:|
+| viewer | 1 | 3 | 1.2 | 84.6 MiB |
+| chrome | 2 | 6 | 0.31 | 285.2 MiB |
+| otel-collector | 2 | 6 | 0.01 | 46.2 MiB |
+| web | 2 | 6 | 0.01 | 351.1 MiB |
+| router | 1 | 3 | 0 | 49.4 MiB |
+| ssh-agent | 1 | 3 | 0 | 3.9 MiB |
 
 ## Code exploration subcategories
 
@@ -62,16 +75,16 @@ Subcategories are deterministic from the tool and operation. A repeated lookup i
 
 | Dimension | Measure | Coverage | Basis |
 |---|---:|---:|---|
-| Activity (events) | 1,887 classified / 461 unknown | 80.4% | deterministic rules; Unknown kept explicit |
+| Activity (events) | 1,914 classified / 461 unknown | 80.6% | deterministic rules; Unknown kept explicit |
 | Activity (tokens) | 648,275,787 classified / 164,507,421 unknown | 79.8% | provider tokens with derived activity association |
 | Model requests | 1,774 classified / 461 unknown | 79.4% | one event per observable message id |
 | Tool operations | 2,155 recorded / 262 in Unknown events | 87.8% | provider/client tool records |
-| Drupal issue | 271 attributed events | 8.4% | independent of activity; missing issue is not Unknown activity |
+| Drupal issue | 280 attributed events | 8.4% | independent of activity; missing issue is not Unknown activity |
 | Task (declared) | 0 attributed events | — | declared in tasks.jsonl or carried as explicit task metadata |
-| Task ids (non-session) | 113 attributed events | — | CI, Docker and wrapper ids; not declared development tasks |
+| Task ids (non-session) | 140 attributed events | — | CI, Docker and wrapper ids; not declared development tasks |
 | Task (session id) | 2,181 events, 812,265,879 tokens | — | a session is not one development task |
 | Declared tasks | 1 declared, 1 verified | — | explicit local task records |
-| Outcome | 156 success / 1 failure / 2,191 unknown | — | a command result is not a verified outcome |
+| Outcome | 156 success / 1 failure / 2,218 unknown | — | a command result is not a verified outcome |
 
 Request-level sessions: 10; legacy sessions: 0. Uncounted roll-up events: 10. Their token fields are null; they are not added to the totals.
 
@@ -151,13 +164,13 @@ Classifier: 2.1.0. Accounting versions: direct-event, request-level-v1. Request-
 
 | Issue | Events | Tasks | Tokens | Model requests | CPU-hours | Duration (h) | Peak memory | Estimated cost | Success / failure |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Unattributed | 2,077 | 22 | 744,513,755 | 2,002 | 0.001 | 0.784 | 355.1 MiB | 196.80 | 122 / 1 |
+| Unattributed | 2,095 | 26 | 744,513,755 | 2,002 | 0.002 | 0.809 | 355.1 MiB | 196.80 | 122 / 1 |
 | 3618230 | 233 | 1 | 68,269,453 | 233 | — | — | — | 40.40 | 0 / 0 |
 | 3593502 | 2 | 2 | — | — | — | 0.000 | 7.3 MiB | — | 2 / 0 |
 | 3636143 | 4 | 2 | — | — | — | 0.039 | — | — | 4 / 0 |
 | 3637163 | 17 | 3 | — | — | — | 0.161 | — | — | 17 / 0 |
 | 2942404 | 11 | 3 | — | — | — | 0.105 | — | — | 11 / 0 |
-| 3619127 | 4 | 2 | — | — | 0.001 | 0.001 | 354.1 MiB | — | 0 / 0 |
+| 3619127 | 13 | 3 | — | — | 0.001 | 0.014 | 354.1 MiB | — | 0 / 0 |
 
 ## By model
 
@@ -176,6 +189,12 @@ Classifier: 2.1.0. Accounting versions: direct-event, request-level-v1. Request-
 | github-actions | 100 | — | — | — | — |
 | docker | 8 | — | 0.002 | — | — |
 | node | 3 | — | 0.000 | — | — |
+| ddev-web | 6 | — | 0.000 | — | — |
+| ddev-viewer | 3 | — | 0.000 | — | — |
+| ddev-chrome | 6 | — | 0.000 | — | — |
+| ddev-otel-collector | 6 | — | 0.000 | — | — |
+| ddev-router | 3 | — | 0.000 | — | — |
+| ddev-ssh-agent | 3 | — | 0.000 | — | — |
 
 ## Trend
 
@@ -194,6 +213,7 @@ Classifier: 2.1.0. Accounting versions: direct-event, request-level-v1. Request-
 | 2026-11-19 | 39 | — | — | — | — | 0.385 |
 | 2026-11-20 | 24 | — | — | — | — | 0.222 |
 | 2026-11-23 | 30 | — | — | 0.002 | — | 0.178 |
+| 2026-11-24 | 27 | — | — | 0.000 | — | — |
 
 ## GitHub Actions by workflow
 
@@ -215,11 +235,11 @@ Classifier: 2.1.0. Accounting versions: direct-event, request-level-v1. Request-
 |---|---|---:|---|
 | tokens | provider-reported | 2235 | Provider-reported token counts; estimated prompt bytes are kept separate and are never shown as exact tokens. |
 | cost | client-reported-estimate | 2235 | Client-reported estimates may reflect subscription allowance, not an invoice. Per-request cost is derived from the session cost-state by token share and is labelled estimated. Missing cost is not zero. |
-| cpu | measured | 11 | CPU-seconds are measured by the process wrapper, or derived from sampled container percentages. They are not hardware cycle counts. |
-| memory | measured/sampled | 13 | Peak RSS and container peaks are different measurements; PHP peak is per request. |
+| cpu | measured | 38 | CPU-seconds are measured by the process wrapper, or derived from sampled container percentages. They are not hardware cycle counts. |
+| memory | measured/sampled | 40 | Peak RSS and container peaks are different measurements; PHP peak is per request. |
 | github | provider-reported | 100 | Durations and conclusions come from the GitHub API; billable minutes and runner CPU are unavailable. |
 
-Missing values are shown as “—” and are not zero. Sources: claude-transcripts:provider-reported (2181), docker-stats:measured (8), github-actions:provider-reported (100), measure-resources:measured (2), model-eval-trials:provider-reported (54), process-wrapper:measured (3).
+Missing values are shown as “—” and are not zero. Sources: claude-transcripts:provider-reported (2181), docker-stats:measured (35), github-actions:provider-reported (100), measure-resources:measured (2), model-eval-trials:provider-reported (54), process-wrapper:measured (3).
 
 ## Possible opportunities
 

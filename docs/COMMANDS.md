@@ -11,7 +11,7 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/doctor.mjs <slug> --network [--core-url=<mirror>]   # can the hosts a build of that variant needs be reached (core, contrib, Composer, GitHub, npm)? Run it before a build under filtered egress
     node scripts/lab-env.mjs reset <slug> --yes          # cheapest reset: reinstall both SITES (database, files, recipe, languages); keeps checkout and patches
     node scripts/lab-env.mjs disk | trim <slug|all> [--deep]   # what uses disk; free regenerable space (--deep also removes core/node_modules, ~400 MB each)
-    node scripts/lab-env.mjs status | resources [--json] | start <slug> | stop <slug|all> | delete <slug> --yes   # manage environments; start also launches the viewer; status shows core/variant state; resources is read-only containers, Chrome/Mutagen, memory/CPU, disk and declared tasks
+    node scripts/lab-env.mjs status | resources [--json] | chrome <slug> start|stop | start <slug> | stop <slug|all> | delete <slug> --yes   # manage environments; start also launches the viewer; status shows core/variant state; resources is read-only containers, Chrome/Mutagen, memory/CPU, disk and declared tasks; chrome stops/starts only this pair's browser service
     node tools/compare/setup.mjs <slug>                  # build Before and After from scratch (resumable, idempotent)
     node tools/compare/setup.mjs <slug> --check-patches  # only: do the patches still apply to that core?
     node tools/compare/setup.mjs <slug> --refresh-patches  # patched files (or contrib module/theme) no longer match the patch files (setup said BLOCKED, exit 4): restore them, apply the current patches; a contrib project is extracted again, the old folder kept as a backup

@@ -158,6 +158,11 @@ function markdown(s, baseline = false) {
   md += `## Consumption by activity\n\n| Activity | Events | Tasks | Tokens | Share | Model requests | CPU-hours | Estimated cost | Method |\n|---|---:|---:|---:|---:|---:|---:|---:|---|\n`;
   for (const a of s.by_activity) md += `| ${a.activity} | ${n(a.events)} | ${n(a.tasks)} | ${n(a.tokens)} | ${pct(a.share)} | ${n(a.model_requests)} | ${a.cpu_seconds == null ? '—' : (a.cpu_seconds / 3600).toFixed(3)} | ${a.cost_usd == null ? '—' : `$${a.cost_usd.toFixed(2)}`} | ${a.method || '—'} |\n`;
   md += `\nRows mix request-level activity, the older session tool-call-share allocation for historical records, and direct events (process, Docker, GitHub Actions) that were never session allocations. The method column above names them per activity; the dashboard keeps them distinguishable. Request-level activity is associated with the request context and is not proof that the activity caused every token in it.\n\n`;
+  if (s.infrastructure?.roles?.length) {
+    md += `## Infrastructure services (sampled)\n\nContainer statistics are sampled, not a live view. ${n(s.infrastructure.samples)} role-labelled sample(s) across ${n(s.infrastructure.containers)} container(s)${s.infrastructure.unclassified_samples ? `; ${n(s.infrastructure.unclassified_samples)} older sample(s) have no role and stay in By tool only` : ''}. CPU-seconds are derived from CPUPerc over the sample interval; memory is container usage. Mutagen file counts, Chrome on/off and Docker disk are local-only (\`lab-env resources\`).\n\n| Service | Containers | Samples | CPU-seconds | Peak memory |\n|---|---:|---:|---:|---:|\n`;
+    for (const r of s.infrastructure.roles) md += `| ${r.role} | ${n(r.containers)} | ${n(r.events)} | ${n(r.cpu_seconds, 2)} | ${formatBytes(r.peak_memory_bytes)} |\n`;
+    md += '\n';
+  }
   if (s.by_exploration_subcategory?.length) {
     md += `## Code exploration subcategories\n\n| Subcategory | Events | Tokens | Share |\n|---|---:|---:|---:|\n`;
     for (const x of s.by_exploration_subcategory) md += `| ${x.subcategory} | ${n(x.events)} | ${n(x.tokens)} | ${pct(x.share)} |\n`;

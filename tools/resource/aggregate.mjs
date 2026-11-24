@@ -187,6 +187,26 @@ export function aggregate(events, { now = new Date(), tasks = [] } = {}) {
     return { tool, events: es.length, tokens: sumOrNull(es.map(tokensOf)), cpu_seconds: round(sumOrNull(es.map(cpuSecondsOf))), model_requests: sumOrNull(es.map((e) => e.measurements.tokens.model_requests)), cost_usd: round(sumOrNull(es.map((e) => costOf(e).usd))) };
   }).sort((a, b) => (b.tokens ?? -1) - (a.tokens ?? -1));
 
+  // Container samples are a separate infrastructure view: service role, sample count, CPU and memory. They are sampled, not a
+  // live view; the dashboard says so. Mutagen file counts and Docker disk are local-only (lab-env resources).
+  const allContainerEvents = countedData.filter((e) => e.event_type === 'container');
+  // Only role-labelled samples (the 2026-11-24 adapter) belong in the infrastructure view. Older samples have no role; keeping
+  // them here would pool web, database and collector memory under a misleading "docker" role.
+  const containerEvents = allContainerEvents.filter((e) => e.private?.role);
+  const infrastructure = {
+    samples: containerEvents.length,
+    containers: new Set(containerEvents.map((e) => e.private?.container).filter(Boolean)).size,
+    unclassified_samples: allContainerEvents.length - containerEvents.length,
+    roles: [...new Set(containerEvents.map((e) => e.private.role))].map((role) => {
+      const es = containerEvents.filter((e) => e.private.role === role);
+      return {
+        role, containers: new Set(es.map((e) => e.private?.container).filter(Boolean)).size,
+        events: es.length, cpu_seconds: round(sumOrNull(es.map(cpuSecondsOf))), peak_memory_bytes: maxOrNull(es.map(memoryOf)),
+      };
+    }).sort((a, b) => (b.cpu_seconds ?? -1) - (a.cpu_seconds ?? -1) || a.role.localeCompare(b.role)),
+    note: 'Container statistics are sampled. CPU-seconds are derived from CPUPerc over the sample interval; memory is container usage. Mutagen file counts, Chrome on/off and Docker disk are reported by the local `lab-env resources` command, not this public page.',
+  };
+
   const trendMap = new Map();
   for (const e of countedData) {
     const date = String(e.occurred_at).slice(0, 10);
@@ -234,7 +254,7 @@ export function aggregate(events, { now = new Date(), tasks = [] } = {}) {
     },
     period: { from: dates[0] || null, to: dates.at(-1) || null },
     completeness: quality.events.partial + quality.events.unavailable > 0 ? 'partial' : 'complete',
-    totals, by_activity: activityRows, by_issue: issueRows, by_model: modelRows, by_tool: toolRows, github_workflows: githubWorkflows, trend,
+    totals, by_activity: activityRows, by_issue: issueRows, by_model: modelRows, by_tool: toolRows, github_workflows: githubWorkflows, trend, infrastructure,
     attribution, by_task: byTask, by_unknown_reason: byUnknownReason, by_exploration_subcategory: byExploration,
     repetition: { ...repetition.summary, groups: repetitionRows(countedData) }, reconciliation, provenance, exploration,
     quality,

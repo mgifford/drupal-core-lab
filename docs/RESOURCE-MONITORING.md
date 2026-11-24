@@ -290,7 +290,8 @@ override.
 `tools/resource/dashboard.html` becomes `cloud/resources.html`; `reports/resources/summary.json` becomes
 `cloud/resources.json`. Both are generated and committed; GitHub Pages remains static. The dashboard:
 
-- shows totals, activity shares, daily trend, cost by model, CPU by tool, GitHub Actions time and per-issue totals;
+- shows totals, activity shares, daily trend, cost by model, CPU by tool, GitHub Actions time, per-issue totals and a sampled **Infrastructure efficiency** table by container role (web, Chrome, OTEL, viewer, router, SSH agent);
+- labels container CPU/memory as sampled and keeps Mutagen file counts and Docker disk in the local `lab-env resources` command, not the public page;
 - supports date, issue, activity, tool and model filters with native controls;
 - gives every chart a visible table equivalent; wide tables scroll inside focusable `role="region"` wrappers;
 - works in light, dark, forced-colours, reduced-motion, 320 px and 200% text contexts;

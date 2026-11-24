@@ -2,6 +2,7 @@
 // a core, and the same core with an issue's patch.
 //   node scripts/lab-env.mjs status                 what exists, what is running, which variant uses it
 //   node scripts/lab-env.mjs resources [--json]    read-only: containers, Chrome, Mutagen, memory/CPU and task association
+//   node scripts/lab-env.mjs chrome <slug> start|stop  start or stop only the pair's Chrome services (Drupal keeps running)
 //   node scripts/lab-env.mjs start <slug> [--browser]  start both environments AND the side-by-side viewer (retries DDEV's router flake);
 //                                                   --browser also opens the viewer in the lab browser (forced-colours switch built in, own profile in .lab-browser)
 //   node scripts/lab-env.mjs browser [--reset]      open the viewer in the lab browser (needs the viewer running); --reset deletes its saved profile
@@ -19,7 +20,7 @@ import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
 import { spawnSync, execFileSync, spawn } from 'node:child_process';
-import { labRoot, variants, envDir, reportsDir } from '../tools/compare/lib.mjs';
+import { labRoot, variants, envDir, reportsDir, ddevName } from '../tools/compare/lib.mjs';
 import { identity, headOf } from '../tools/compare/env-state.mjs';
 import { sideState } from '../tools/compare/contrib-state.mjs';
 import { dockerContainers } from '../tools/resource/adapters/docker.mjs';
@@ -27,7 +28,7 @@ import { parsePair } from '../tools/resource/units.mjs';
 import { loadTasks } from '../tools/resource/tasks.mjs';
 import { readRunning } from '../tools/resource/budgets.mjs';
 
-const [cmd, target] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+const [cmd, target, action] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const yes = process.argv.includes('--yes');
 const wantBrowser = process.argv.includes('--browser');
 const viewerApi = (body) => new Promise((resolve, reject) => { const q = http.request({ host: 'localhost', port: 8100, path: '/api/emulation', method: 'POST', timeout: 60000 }, (r) => { let b = ''; r.on('data', (c) => (b += c)); r.on('end', () => { if (r.statusCode === 200) resolve(b); else { const e = new Error(b || `HTTP ${r.statusCode}`); e.http = true; reject(e); } }); }); q.on('error', reject); q.on('timeout', () => q.destroy(new Error('timed out'))); q.end(JSON.stringify(body)); });
@@ -96,6 +97,43 @@ function mutagenOf(dir) {
     node_modules_excluded: /core\/node_modules/.test(config),
   };
 }
+function chromeLifecycle() {
+  if (!target || !['start', 'stop'].includes(action)) {
+    console.error('usage: node scripts/lab-env.mjs chrome <slug> start|stop');
+    process.exit(2);
+  }
+  const envs = present(envsOf(target));
+  if (!envs.length) { console.error(`No built environment for ${target}.`); process.exit(1); }
+  let failed = false;
+  for (const e of envs) {
+    const name = `ddev-${ddevName(e)}-chrome`;
+    const exists = spawnSync('docker', ['inspect', name], { stdio: 'ignore' }).status === 0;
+    if (!exists) { console.error(`No Chrome container for ${e} (${name}). Start the environment first.`); failed = true; continue; }
+    const r = spawnSync('docker', [action, name], { stdio: 'inherit' });
+    if (r.status !== 0) { console.error(`Could not ${action} ${name}.`); failed = true; continue; }
+    // docker start/stop return before the container has settled. Wait so the command's report is true.
+    let running = null;
+    for (let i = 0; i < 30; i++) {
+      running = spawnSync('docker', ['inspect', '--format', '{{.State.Running}}', name], { encoding: 'utf8' }).stdout?.trim() === 'true';
+      if ((action === 'start' && running) || (action === 'stop' && !running)) break;
+      spawnSync('sleep', ['1']);
+    }
+    if (action === 'start' && running) {
+      let ready = false;
+      for (let i = 0; i < 20; i++) {
+        const probe = spawnSync('docker', ['exec', name, 'sh', '-c', 'curl -sf http://localhost:4444/status >/dev/null 2>&1'], { stdio: 'ignore' });
+        if (probe.status === 0) { ready = true; break; }
+        spawnSync('sleep', ['1']);
+      }
+      console.log(`Started ${name}${ready ? '; Selenium ready' : '; container running, Selenium not ready yet (check `docker logs ' + name + '`)'}.`);
+    } else if (action === 'stop' && !running) console.log(`Stopped ${name}.`);
+    else { console.error(`${name} did not become ${action === 'start' ? 'running' : 'stopped'} within 30 s.`); failed = true; }
+  }
+  if (failed) process.exit(1);
+  if (action === 'stop') console.log('Chrome is off; Drupal stays up. Browser tests (ddev phpunit FunctionalJavascript, ddev nightwatch) need it: run chrome <slug> start first.');
+  else console.log('Chrome is available to this pair only; browser preferences and sessions stay isolated in its container.');
+}
+
 function resources() {
   const json = process.argv.includes('--json');
   const dockerOk = dockerAvailable();
@@ -187,6 +225,7 @@ function status() {
 switch (cmd) {
   case 'status': case undefined: status(); break;
   case 'resources': resources(); break;
+  case 'chrome': chromeLifecycle(); break;
   case 'start': {
     if (!target) { console.error('usage: start <slug>'); process.exit(2); }
     for (const e of envsOf(target)) {
@@ -261,5 +300,5 @@ switch (cmd) {
     const list = present(envsOf(target)); if (!yes) { console.error(`This DELETES ${list.join(' and ')} (containers, database and worktree). Evidence in reports/ is kept. Re-run with --yes.`); process.exit(2); }
     for (const e of list) { ddev(envDir(e), ['delete', '--omit-snapshot', '--yes']); spawnSync('git', ['-C', path.join(envsDir, 'core.git'), 'worktree', 'remove', '--force', envDir(e)], { stdio: 'inherit' }); }
     break; }
-  default: console.error('usage: lab-env.mjs status | resources [--json] | disk | start <slug> [--browser] | browser [--reset] | stop <slug|all> | reset <slug> --yes | trim <slug|all> [--deep] | delete <slug> --yes | retire <slug> --yes [--force]'); process.exit(2);
+  default: console.error('usage: lab-env.mjs status | resources [--json] | chrome <slug> start|stop | disk | start <slug> [--browser] | browser [--reset] | stop <slug|all> | reset <slug> --yes | trim <slug|all> [--deep] | delete <slug> --yes | retire <slug> --yes [--force]'); process.exit(2);
 }

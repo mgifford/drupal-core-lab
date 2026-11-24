@@ -105,6 +105,13 @@
     <p id="task-note" class="note" hidden></p>
   </section>
 
+  <section id="infrastructure-section" hidden aria-labelledby="infrastructure-h">
+    <h2 id="infrastructure-h">Infrastructure efficiency (sampled)</h2>
+    <p class="note">Container samples only; this is a historical snapshot, not a live view. CPU-seconds are derived from Docker's sampled percentage over the sample interval, and memory is container usage. Mutagen file counts, Chrome on/off and Docker disk are local-only: run <code>node scripts/lab-env.mjs resources</code>.</p>
+    <div class="tablewrap" role="region" aria-label="Infrastructure services table" tabindex="0"><table id="infrastructure-table"></table></div>
+    <p id="infrastructure-note" class="note" hidden></p>
+  </section>
+
   <section id="exploration-section" hidden aria-labelledby="exploration-h">
     <h2 id="exploration-h">Code exploration</h2>
     <p class="note">Exploration is a legitimate deliverable. Repeated lookups and loops are diagnostics for investigation, not automatic findings of waste: a file may have changed, a test may have failed, or a new task may need the same evidence. Lookup targets remain local.</p>
@@ -297,6 +304,15 @@ function renderTasks() {
   note.textContent = rows.length ? '' : 'No explicit task has been declared yet. Use the local resource-task command; see the method section.';
 }
 
+function renderInfrastructure() {
+  const i = DATA.infrastructure || {};
+  const rows = (i.roles || []).map((r) => [r.role, r.containers, r.events, fmt(r.cpu_seconds, 2), bytes(r.peak_memory_bytes)]);
+  table($('infrastructure-table'), 'Sampled Lab containers by service role', ['Service', 'Containers', 'Samples', 'CPU-seconds', 'Peak memory'], rows);
+  $('infrastructure-note').hidden = rows.length > 0;
+  $('infrastructure-note').textContent = rows.length ? '' : 'No container samples have been collected yet. Run node scripts/resource.mjs collect --source=docker --samples=2 --interval=5000.';
+  $('infrastructure-section').hidden = rows.length === 0;
+}
+
 function renderExploration() {
   const rows = (DATA.by_exploration_subcategory || []).map((x) => [x.subcategory, x.events, x.tokens, pct(x.share)]);
   table($('exploration-table'), 'Code exploration tokens by subcategory', ['Subcategory', 'Events', 'Tokens', 'Share'], rows);
@@ -415,6 +431,7 @@ function render() {
   table($('rows-table'), 'Grouped public rows after filters', ['Date', 'Activity', 'Issue', 'Tool', 'Model', 'Grouped events', 'Tokens', 'Model requests', 'CPU (s)', 'Estimated cost', 'Outcomes'], ROWS.map((r) => [r.date, r.activity, r.issue || 'Unattributed', r.tool, r.model || MISSING, r.events, r.tokens, r.model_requests, r.cpu_seconds, money(r.cost_usd), Object.entries(r.outcomes || {}).filter(([, n]) => n).map(([k, n]) => `${k}: ${n}`).join(', ')]));
 
   renderAttribution();
+  renderInfrastructure();
   renderTasks();
   renderExploration();
   renderRepetition();
@@ -454,7 +471,7 @@ async function init() {
     ROWS = Array.isArray(DATA.events) ? DATA.events : [];
     if (!ROWS.length) { setStatus('No resource events have been collected yet. Missing data is not the same as zero consumption.', 'warn'); $('summary').hidden = false; $('period').textContent = `Period ${DATA.period?.from || MISSING} to ${DATA.period?.to || MISSING}.`; return; }
     setStatus(`Loaded ${ROWS.length} grouped public row(s), ${DATA.period?.from || MISSING} to ${DATA.period?.to || MISSING}.`, '');
-    $('summary').hidden = false; $('filters-section').hidden = false; $('attribution-section').hidden = false; $('tasks-section').hidden = false; $('exploration-section').hidden = false; $('repetition-section').hidden = false; $('provenance-section').hidden = false; $('charts').hidden = false; $('quality').hidden = false; $('opportunities').hidden = false; $('method').hidden = false;
+    $('summary').hidden = false; $('filters-section').hidden = false; $('attribution-section').hidden = false; $('infrastructure-section').hidden = false; $('tasks-section').hidden = false; $('exploration-section').hidden = false; $('repetition-section').hidden = false; $('provenance-section').hidden = false; $('charts').hidden = false; $('quality').hidden = false; $('opportunities').hidden = false; $('method').hidden = false;
     $('period').textContent = `Period ${DATA.period?.from || MISSING} to ${DATA.period?.to || MISSING}. Generated ${DATA.generated_at || MISSING}. Completeness: ${DATA.completeness || 'unknown'}.`;
     options($('issue'), ROWS.map((r) => ({ value: r.issue || '__none', label: r.issue || 'Unattributed' })), 'All issues');
     options($('activity'), ROWS.map((r) => ({ value: r.activity, label: r.activity })), 'All activities');
