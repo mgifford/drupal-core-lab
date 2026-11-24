@@ -112,6 +112,13 @@
     <div class="tablewrap" role="region" aria-label="Exploration diagnostics table" tabindex="0"><table id="exploration-diagnostics-table"></table></div>
   </section>
 
+  <section id="repetition-section" hidden aria-labelledby="repetition-h">
+    <h2 id="repetition-h">Repeated operations</h2>
+    <p class="note">A repetition means the same measured command, revision, patch, environment and result signature. A repeated success may be a deliberate repeatability check; a repeated failure may be a real iteration. Inspect before calling either waste.</p>
+    <div class="tablewrap" role="region" aria-label="Repeated operations table" tabindex="0"><table id="repetition-table"></table></div>
+    <p id="repetition-note" class="note" hidden></p>
+  </section>
+
   <section id="provenance-section" hidden aria-labelledby="provenance-h">
     <h2 id="provenance-h">Prompt and artifact provenance</h2>
     <p class="note">Metadata only by default: sizes, purpose, content types, fingerprints and artifact references. Prompt text, attachments, local paths and fingerprints are never published. A reference does not prove that a model received or read an artifact.</p>
@@ -307,6 +314,16 @@ function renderExploration() {
   ]);
 }
 
+function renderRepetition() {
+  const rows = (DATA.repetition?.groups || []).map((r) => [
+    r.group_hash, r.activity, r.runs, r.success, r.failure, r.repeated_runs, r.unchanged_failures, r.unchanged_successes, r.first, r.last,
+  ]);
+  table($('repetition-table'), 'Repeated measured operations under identical conditions', ['Group', 'Activity', 'Runs', 'Success', 'Failure', 'Repeated runs', 'Unchanged failures', 'Unchanged successes', 'First', 'Last'], rows);
+  const note = $('repetition-note');
+  note.hidden = rows.length > 0;
+  note.textContent = rows.length ? '' : 'No repeated process operation with identical conditions was recorded. That is not proof that no repetition happened; only measured commands are included.';
+}
+
 function renderProvenance() {
   const p = DATA.provenance || {};
   table($('prompt-table'), 'Prompt composition, whole period', ['Measure', 'Value'], [
@@ -399,6 +416,7 @@ function render() {
   renderAttribution();
   renderTasks();
   renderExploration();
+  renderRepetition();
   renderProvenance();
 
   const q = DATA.quality || {};
@@ -435,7 +453,7 @@ async function init() {
     ROWS = Array.isArray(DATA.events) ? DATA.events : [];
     if (!ROWS.length) { setStatus('No resource events have been collected yet. Missing data is not the same as zero consumption.', 'warn'); $('summary').hidden = false; $('period').textContent = `Period ${DATA.period?.from || MISSING} to ${DATA.period?.to || MISSING}.`; return; }
     setStatus(`Loaded ${ROWS.length} grouped public row(s), ${DATA.period?.from || MISSING} to ${DATA.period?.to || MISSING}.`, '');
-    $('summary').hidden = false; $('filters-section').hidden = false; $('attribution-section').hidden = false; $('tasks-section').hidden = false; $('exploration-section').hidden = false; $('provenance-section').hidden = false; $('charts').hidden = false; $('quality').hidden = false; $('opportunities').hidden = false; $('method').hidden = false;
+    $('summary').hidden = false; $('filters-section').hidden = false; $('attribution-section').hidden = false; $('tasks-section').hidden = false; $('exploration-section').hidden = false; $('repetition-section').hidden = false; $('provenance-section').hidden = false; $('charts').hidden = false; $('quality').hidden = false; $('opportunities').hidden = false; $('method').hidden = false;
     $('period').textContent = `Period ${DATA.period?.from || MISSING} to ${DATA.period?.to || MISSING}. Generated ${DATA.generated_at || MISSING}. Completeness: ${DATA.completeness || 'unknown'}.`;
     options($('issue'), ROWS.map((r) => ({ value: r.issue || '__none', label: r.issue || 'Unattributed' })), 'All issues');
     options($('activity'), ROWS.map((r) => ({ value: r.activity, label: r.activity })), 'All activities');

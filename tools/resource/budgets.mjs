@@ -5,6 +5,7 @@ import path from 'node:path';
 import { parseConfig } from '../compare/lab-config.mjs';
 import { labRoot, LEDGER_DIR, appendEvents } from './ledger.mjs';
 import { makeEvent, iso } from './events.mjs';
+import { repetitionGroups } from './repetition.mjs';
 
 export const BUDGET_FILE = path.join(labRoot, 'resource-budgets.yml');
 export const RUNNING_FILE = path.join(LEDGER_DIR, 'running.json');
@@ -94,16 +95,23 @@ export function evaluateBudget({ config, events, task = null, issue = null, acti
     ai_requests: (() => { const base = sum(selected.map((e) => e.measurements.tokens.model_requests)); return base == null && !additionalAiRequests ? null : (base || 0) + additionalAiRequests; })(),
     tokens: sum(selected.map(totalTokens)),
     spend_usd: sum(selected.map(cost)),
-    repeated_exploratory: sum(selected.map((e) => e.measurements.tools.repeated_reads)),
+    repeated_exploratory: (() => {
+      const reads = sum(selected.map((e) => e.measurements.tools.repeated_reads));
+      const lookups = sum(selected.map((e) => e.measurements.exploration?.repeated_lookups));
+      return reads == null && lookups == null ? null : (reads || 0) + (lookups || 0);
+    })(),
     unsuccessful_iterations: selected.filter((e) => e.outcome === 'failure').length,
     process_duration_seconds: selected.length ? Math.max(...selected.map((e) => (typeof e.duration_ms === 'number' ? e.duration_ms / 1000 : 0))) : null,
     concurrent_cpu_jobs: running.length + (starting ? 1 : 0),
     test_repetitions: (() => {
       const tests = selected.filter((e) => ['phpunit-execution', 'playwright-testing', 'validation'].includes(e.activity) && e.private?.command_hash);
       if (!tests.length) return null;
-      const groups = new Map();
-      for (const e of tests) { const k = `${e.private.command_hash}|${e.commit || ''}`; groups.set(k, (groups.get(k) || 0) + 1); }
-      return Math.max(...groups.values());
+      const { groups } = repetitionGroups(tests);
+      return groups.length ? Math.max(...groups.map((g) => g.runs)) : null;
+    })(),
+    repeated_unchanged_failures: (() => {
+      const { summary } = repetitionGroups(selected);
+      return summary.process_operations ? summary.unchanged_failure_runs : null;
     })(),
   };
   const checks = [];
@@ -140,5 +148,6 @@ export function formatBudget(result) {
     if (c.status === 'not-set') continue;
     lines.push(`  ${c.status === 'exceeded' ? 'EXCEEDED' : c.status === 'unavailable' ? 'unavailable' : 'ok'} ${c.key}: ${c.observed ?? '—'} / ${c.limit ?? '—'}${c.note ? ` (${c.note})` : ''}`);
   }
+  if (result.observed?.repeated_unchanged_failures) lines.push(`  info repeated_unchanged_failures: ${result.observed.repeated_unchanged_failures} (identical command/revision/patch/environment/result; inspect before calling it waste)`);
   return lines.join('\n');
 }

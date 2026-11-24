@@ -18,6 +18,7 @@ The local ledger is intended to answer “where did resources go?” without kee
 | Task/execution identifiers, transcript filename, session title, command hash, local file path, run URL, branch name, raw command | Local ledger only | **No** |
 | Prompt metadata: origin, purpose, byte size, content types, size bucket, SHA-256 fingerprint, artifact references | Local ledger `private` and a local provenance file; aggregate counts in reports | Aggregates only; no fingerprint, reference or text |
 | Task record: id, description, evidence references, session filenames | `.lab-cache/resource-ledger/tasks.jsonl` | Only a task-id hash, kind, state, deliverable, issue and resource totals |
+| Repetition fingerprint: command hash, result signature, test ids, precise first/last time | Local event `private` | Only a group hash, activity, run/result counts and day-level dates |
 | Raw prompt text | Only in an explicitly requested local directory (`.lab-cache/resource-ledger/prompt-content/`, mode 0600) | **No** |
 | Responses, message text, request bodies, cookies, authorization headers, API keys, account identifiers | Not collected | **No** |
 | Raw Claude Code session transcripts | Stay in `~/.claude/projects/`; not copied | **No** |

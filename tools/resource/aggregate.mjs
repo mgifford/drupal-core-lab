@@ -4,6 +4,7 @@
 import { totalTokens } from './events.mjs';
 import { CLASSIFIER_VERSION, RULE_REGISTRY_VERSION } from './rules.mjs';
 import { taskSummaries } from './tasks.mjs';
+import { repetitionGroups, repetitionRows } from './repetition.mjs';
 
 const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 export function sumOrNull(values) { const v = values.map(num).filter((x) => x !== null); return v.length ? v.reduce((a, b) => a + b, 0) : null; }
@@ -216,6 +217,7 @@ export function aggregate(events, { now = new Date(), tasks = [] } = {}) {
   attribution.task.task_states = Object.fromEntries([...new Set(byTask.map((t) => t.state))].sort().map((s) => [s, byTask.filter((t) => t.state === s).length]));
   const byUnknownReason = attribution.unknown.reasons;
   const byExploration = explorationSummary(countedData);
+  const repetition = repetitionGroups(countedData);
   const reconciliation = reconciliationSummary(sessions);
   const provenance = provenanceTotals(sessions);
   const exploration = explorationTotals(sessions);
@@ -234,7 +236,7 @@ export function aggregate(events, { now = new Date(), tasks = [] } = {}) {
     completeness: quality.events.partial + quality.events.unavailable > 0 ? 'partial' : 'complete',
     totals, by_activity: activityRows, by_issue: issueRows, by_model: modelRows, by_tool: toolRows, github_workflows: githubWorkflows, trend,
     attribution, by_task: byTask, by_unknown_reason: byUnknownReason, by_exploration_subcategory: byExploration,
-    reconciliation, provenance, exploration,
+    repetition: { ...repetition.summary, groups: repetitionRows(countedData) }, reconciliation, provenance, exploration,
     quality,
   };
   const priorityRank = { high: 0, medium: 1, low: 2 };

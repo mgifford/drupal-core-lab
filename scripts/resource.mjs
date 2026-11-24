@@ -185,6 +185,11 @@ function markdown(s, baseline = false) {
     for (const r of s.by_unknown_reason) md += `| ${r.unknown_reason} | ${n(r.events)} | ${n(r.tokens)} | ${n(r.model_requests)} | ${n(r.operations)} |\n`;
     md += `\nUnknown is a measurement gap, not waste or a quality score. Missing issue attribution is reported separately above.\n\n`;
   }
+  if (s.repetition?.groups?.length) {
+    md += `## Repeated operations\n\nA repetition means the same command, revision, patch, environment and result signature. It is a diagnostic, not proof of waste.\n\n| Group | Activity | Runs | Success | Failure | Repeated runs | Unchanged failures | Unchanged successes | First | Last |\n|---|---|---:|---:|---:|---:|---:|---:|---|---|\n`;
+    for (const r of s.repetition.groups) md += `| ${r.group_hash} | ${r.activity} | ${n(r.runs)} | ${n(r.success)} | ${n(r.failure)} | ${n(r.repeated_runs)} | ${n(r.unchanged_failures)} | ${n(r.unchanged_successes)} | ${r.first} | ${r.last} |\n`;
+    md += `\n${s.repetition.note}\n\n`;
+  }
   if (s.provenance?.prompts) {
     md += `## Prompt and artifact provenance\n\n| Measure | Value |\n|---|---:|\n`;
     md += `| Prompts recorded | ${n(s.provenance.prompts)} |\n| Prompt bytes (recorded text) | ${n(s.provenance.prompt_bytes)} |\n| Repeated prompts within a session | ${n(s.provenance.repeated_prompts)} |\n| Artifact references | ${n(s.provenance.artifacts)} |\n| Artifacts inspected locally | ${n(s.provenance.artifacts_inspected)} |\n| Capture mode | ${s.provenance.capture} |\n\n`;
@@ -248,7 +253,7 @@ function audit() {
   const out = {
     generated_at: iso(), period: s.period, methodology: s.methodology,
     totals: s.totals.ai, attribution: s.attribution, by_task: s.by_task, by_unknown_reason: s.by_unknown_reason,
-    by_exploration_subcategory: s.by_exploration_subcategory, reconciliation: s.reconciliation,
+    by_exploration_subcategory: s.by_exploration_subcategory, repetition: s.repetition, reconciliation: s.reconciliation,
     exploration: s.exploration, provenance: s.provenance, quality: s.quality,
   };
   assertPublic(out, 'resource attribution audit');
@@ -265,7 +270,10 @@ function audit() {
   say(`  requests ${n(s.reconciliation.request_count)} / expected ${n(s.reconciliation.expected_requests)}; missing usage ${n(s.reconciliation.missing_usage)}; duplicate records collapsed ${n(s.reconciliation.duplicate_usage_records)}.`);
   say('\nExploration:');
   for (const k of ['unique_targets', 'repeated_targets', 'repeated_lookups', 'failed_searches', 'exploration_after_failure', 'exploration_after_edit', 'loop_sequences', 'code_map_calls', 'unique_files', 'result_bytes']) if (s.exploration[k] != null) say(`  ${k.replace(/_/g, ' ').padEnd(28)} ${n(s.exploration[k])}`);
+  say('\nRepeated operations:');
+  say(`  process operations ${n(s.repetition.process_operations)}; repeated groups ${n(s.repetition.repeated_groups)}; unchanged failure runs ${n(s.repetition.unchanged_failure_runs)}; unchanged success runs ${n(s.repetition.unchanged_success_runs)}.`);
   say('\nPrompt provenance:');
+
   say(`  prompts ${n(s.provenance.prompts)}; bytes ${n(s.provenance.prompt_bytes)}; capture ${s.provenance.capture}; artifacts referenced ${n(s.provenance.artifacts)}; inspected locally ${n(s.provenance.artifacts_inspected)}.`);
   say(`  purposes: ${Object.entries(s.provenance.purposes).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k}=${v}`).join(', ') || '—'}`);
   if (invalid.length) say(`\nWARNING: ${invalid.length} invalid ledger line(s) skipped; run verify.`);

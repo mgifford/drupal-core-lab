@@ -77,7 +77,7 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/resource-task.mjs start|update|list|show ...   # local explicit task identity, state, deliverable and verification; descriptions/evidence are local-only
     node scripts/resource-benchmark.mjs [--json=<file>]   # timings and sizes for ledger parse, aggregation and the public JSON
     node scripts/resource-exploration.mjs [--json=<file>] [<transcript>...]   # LOCAL ONLY: repeated lookup targets and after-edit/after-failure flags; never publish
-    node scripts/resource-run.mjs --activity=<category> [--issue=<nid>] [--task=<id>] [--approve --reason="..."] -- <command...>   # measure one command under /usr/bin/time, record it, apply the budget; never kills unless --timeout is explicit
+    node scripts/resource-run.mjs --activity=<category> [--issue=<nid>] [--task=<id>] [--test-id=<id>] [--result-signature=<stable>] [--patch=<ref>] [--approve --reason="..."] -- <command...>   # measure one command under /usr/bin/time, record it, apply the budget; never kills unless --timeout is explicit
     node scripts/resource-budget.mjs [--task=<id>] [--issue=<nid>] [--mode=observe|warn|enforce] [--json]   # read-only budget check; exit 3 only when enforce refuses
 
 Details: `tools/compare/README.md`, `tools/playwright/README.md`, `docs/TESTING-TOOLS.md`. Each run is a **pinned** variant (exactly as

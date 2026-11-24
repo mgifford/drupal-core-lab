@@ -109,6 +109,9 @@ tests include negative controls so a new rule cannot silently turn `node` into v
 - Attachments: only references are captured by default; a ZIP or patch is not inspected unless explicitly requested,
   and inspection does not prove model ingestion.
 - Verified outcomes: a successful command is not a verified task outcome; evidence review remains human.
+- Repeated operations: the fingerprint layer is tested, but the current ledger has no identical repeat group, so the
+  public repeated-operations table is empty. That is not proof that no repetition happened; only measured commands with
+  a command hash are included.
 
 ## Reproduce a case
 

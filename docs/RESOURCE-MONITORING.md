@@ -163,6 +163,22 @@ Limitations: a session maps to at most one explicit task. A session that contain
 split from the transcript alone; its requests stay on the declared task until a finer, explicit boundary exists. Task
 summaries publish only a hash of the task id, the kind/state/deliverable, issue, resource totals and data completeness.
 
+### Repeated operations and failure fingerprints
+
+A repetition is deliberately narrow: the same measured command, Git revision, patch identity, execution environment,
+test identifiers and result signature. `tools/resource/repetition.mjs` computes it deterministically; it never reads a
+failure log to guess a cause. A repeat under a changed revision, patch or environment is a separate group, not waste.
+
+`scripts/resource-run.mjs` accepts `--test-id=<id>` (repeatable), `--result-signature=<stable>` and `--patch=<ref>` so a
+caller can make the identity precise. Without a result signature, the exit status, signal, timeout and error flag form a
+coarse signature. The wrapper marks `validation` as passed/failed/unknown only from the exit result; it does not claim
+that an accessibility evaluation passed.
+
+The budget check uses the same groups for `max_test_repetitions`. `evaluateBudget()` also exposes
+`repeated_unchanged_failures` as a diagnostic; it is not a new enforced limit. The public report and dashboard show
+repeated groups with a group hash, activity, run counts, result counts and day-level dates. Command hashes, precise
+times and result signatures stay local.
+
 ### Prompt and artifact provenance
 
 Prompt capture is metadata-first. `scripts/session-usage.mjs --provenance <file>` writes, per prompt: a stable local id,

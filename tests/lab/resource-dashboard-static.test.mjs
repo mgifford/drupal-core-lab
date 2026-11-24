@@ -42,12 +42,13 @@ test('the dashboard keeps native controls and the promised preference modes', ()
 });
 
 test('new views are present: attribution, unknown reasons, exploration, prompts and reconciliation', () => {
-  for (const id of ['attribution-table', 'unknown-table', 'reconciliation-table', 'task-table', 'exploration-table', 'exploration-diagnostics-table', 'prompt-table', 'purpose-table', 'artifact-table']) {
+  for (const id of ['attribution-table', 'unknown-table', 'reconciliation-table', 'task-table', 'exploration-table', 'repetition-table', 'exploration-diagnostics-table', 'prompt-table', 'purpose-table', 'artifact-table']) {
     assert.ok(ids.has(id), `missing new view: ${id}`);
     assert.ok(html.includes(`table:not([hidden])`) || html.includes(`id="${id}"`));
   }
   assert.match(html, /function renderAttribution\(/);
   assert.match(html, /function renderTasks\(/);
+  assert.match(html, /function renderRepetition\(/);
   assert.match(html, /function renderExploration\(/);
   assert.match(html, /function renderProvenance\(/);
 });

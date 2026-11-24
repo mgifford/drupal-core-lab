@@ -3,7 +3,7 @@
 // actually refuse to start work; it never kills a running process unless the person explicitly passes --timeout.
 //
 //   node scripts/resource-run.mjs --activity=phpunit-execution --issue=3619127 --variant=3619127-pinned \
-//     [--task=phpunit] [--timeout=900] [--approve --reason="..."] -- ddev phpunit path/to/Test.php
+//     [--task=phpunit] [--timeout=900] [--test-id=<id>] [--result-signature=<stable>] [--patch=<ref>] [--approve --reason="..."] -- ddev phpunit path/to/Test.php
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -18,6 +18,7 @@ const sep = argv.indexOf('--');
 const flags = sep >= 0 ? argv.slice(0, sep) : argv.filter((a) => a.startsWith('--'));
 const command = sep >= 0 ? argv.slice(sep + 1) : argv.filter((a) => !a.startsWith('--'));
 const val = (name, fallback = null) => { const a = flags.find((x) => x.startsWith(`--${name}=`)); return a ? a.slice(name.length + 3) : fallback; };
+const all = (name) => flags.filter((x) => x.startsWith(`--${name}=`)).map((x) => x.slice(name.length + 3)).concat(flags.flatMap((x, i) => x === `--${name}` && flags[i + 1] && !flags[i + 1].startsWith('--') ? [flags[i + 1]] : []));
 const has = (name) => flags.some((x) => x === `--${name}` || x.startsWith(`--${name}=`));
 if (!command.length || has('help')) {
   console.error('usage: node scripts/resource-run.mjs --activity=<category> [--issue=<nid>] [--variant=<slug>] [--task=<id>] [--timeout=<seconds>] [--approve --reason="..."] -- <command...>');
@@ -28,6 +29,9 @@ const issue = val('issue', issueFromText(command.join(' ')));
 const variant = val('variant', null);
 const taskId = val('task', `run:${new Date().toISOString().replace(/[:.]/g, '-')}`);
 const label = val('label', command.slice(0, 2).map((x) => path.basename(x)).join(' '));
+const testIds = all('test-id').map((x) => x.trim()).filter(Boolean);
+const resultSignature = val('result-signature', null);
+const patchRef = val('patch', null);
 const timeoutSeconds = Number(val('timeout', '0')) || 0;
 const approve = has('approve');
 const reason = val('reason', '');
@@ -74,6 +78,8 @@ try {
 }
 const totalCpu = result.user_seconds == null || result.system_seconds == null ? null : result.user_seconds + result.system_seconds;
 const outcome = result.timedOut ? 'cancelled' : (result.status === 0 ? 'success' : 'failure');
+const validationActivities = new Set(['phpunit-execution', 'playwright-testing', 'validation', 'accessibility-scanning', 'lighthouse-testing']);
+const validation = validationActivities.has(activity) ? (outcome === 'success' ? 'passed' : outcome === 'failure' ? 'failed' : 'unknown') : 'not-run';
 const commit = (() => { try { return execFileSync('git', ['-C', labRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(); } catch { return null; } })();
 const missing = [];
 if (result.time_format === 'none') missing.push('cpu', 'memory');
@@ -84,7 +90,7 @@ const event = makeEvent({
   issue, variant, task: { id: taskId, label, execution_id: `run:${startedAt}` },
   activity, tool: path.basename(command[0]) || 'command', model: null, provider: null,
   environment: { os: `${process.platform} ${process.arch}`, node: process.version, runner: 'local', ddev: null, docker: null },
-  outcome, validation: 'not-run', commit, patch: null,
+  outcome, validation, commit, patch: patchRef || null,
   source: { adapter: 'process-wrapper', method: '/usr/bin/time -l|-v plus wall clock', confidence: result.time_format === 'none' ? 'unavailable' : 'measured', reference: null },
   measurements: {
     cpu: { user_seconds: result.user_seconds, system_seconds: result.system_seconds, total_seconds: totalCpu, cpu_percent: totalCpu != null && result.wall_ms ? Math.round(100 * totalCpu / (result.wall_ms / 1000) * 100) / 100 : null, measurement: totalCpu == null ? 'unavailable' : 'measured', source: result.time_format === 'none' ? null : '/usr/bin/time' },
@@ -93,7 +99,7 @@ const event = makeEvent({
     network: { rx_bytes: null, tx_bytes: null, measurement: 'unavailable' },
   },
   quality: { completeness: totalCpu != null && result.max_rss_bytes != null ? 'complete' : 'partial', missing, notes: ['Block I/O is recorded as operations, not bytes. Network, tokens and cost are not measured by this wrapper.'] },
-  private: { command_hash: sha256(command.join('\0') + '\0' + process.cwd()), command_label: label, exit_status: result.status, signal: result.signal, timed_out: result.timedOut, error: result.error, budget_mode: budget.mode },
+  private: { command_hash: sha256(command.join('\0') + '\0' + process.cwd()), command_label: label, test_ids: testIds, result_signature: resultSignature ? sha256(resultSignature) : null, exit_status: result.status, signal: result.signal, timed_out: result.timedOut, error: result.error, budget_mode: budget.mode },
 });
 if (!noRecord) {
   appendEvents([event]);
