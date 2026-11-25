@@ -1,0 +1,222 @@
+RootWebArea "Media | Drupal core test site" focusable focused url=https://HOST/admin/content/media
+  link "Skip to main content" focusable url=https://HOST/admin/content/media#main-content
+  navigation "Administrative sidebar"
+    heading "Administrative sidebar" level=2
+    link "Home page" focusable url=https://HOST/
+    heading "Content" level=3
+    list
+      listitem level=1
+        button "Extend Create" invalid=false focusable expanded=false controls=#navigation-link--navigationcreate-RANDOM
+          text "Extend"
+          text "Create"
+      listitem level=1
+        link "Blocks" focusable url=https://HOST/admin/content/block
+      listitem level=1
+        link "Content" focusable url=https://HOST/admin/content
+      listitem level=1
+        link "Files" focusable url=https://HOST/admin/content/files
+      listitem level=1
+        link "Media" focusable url=https://HOST/admin/content/media
+    heading "Administration" level=3
+    list
+      listitem level=1
+        link "Welcome" description="Learn about Drupal Core and Drupal CMS." focusable url=https://HOST/admin/welcome
+      listitem level=1
+        button "Extend Structure" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-structure-RANDOM
+          text "Extend"
+          text "Structure"
+      listitem level=1
+        link "Appearance" description="Select and configure themes." focusable url=https://HOST/admin/appearance
+      listitem level=1
+        link "Extend" description="Add and install modules to extend site functionality." focusable url=https://HOST/admin/modules
+      listitem level=1
+        button "Extend Configuration" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-config-RANDOM
+          text "Extend"
+          text "Configuration"
+      listitem level=1
+        link "People" description="Manage user accounts, roles, and permissions." focusable url=https://HOST/admin/people
+      listitem level=1
+        button "Extend Reports" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-reports-RANDOM
+          text "Extend"
+          text "Reports"
+      listitem level=1
+        link "Announcements" description="Displays announcements from the Drupal community." focusable url=https://HOST/admin/announcements_feed
+    heading "Help" level=3
+    list
+      listitem level=1
+        link "Help" focusable url=https://HOST/admin/help
+    heading "User" level=3
+    list
+      listitem level=1
+        button "Extend admin" invalid=false focusable expanded=false controls=#navigation-link--navigationuser-linksuserwrapper-RANDOM
+          text "Extend"
+          text "admin"
+    button "Collapse sidebar" invalid=false focusable expanded
+  region "Administrative top bar"
+    navigation "Breadcrumb"
+      heading "Breadcrumb" level=2
+      list
+        listitem level=1
+          link "Back to site" description="Return to site content" focusable url=https://HOST/
+        listitem level=1
+          link "Administration" focusable url=https://HOST/admin
+        listitem level=1
+          link "Content" focusable url=https://HOST/admin/content
+    list
+      listitem level=1
+        link "+ Add media" focusable url=https://HOST/media/add
+          text "+"
+          text "Add media"
+  banner
+    heading "Media" level=1
+  navigation "Primary tabs"
+    heading "Primary tabs" level=2
+    list
+      listitem level=1
+        link "Content" focusable url=https://HOST/admin/content
+      listitem level=1
+        link "Blocks" focusable url=https://HOST/admin/content/block
+      listitem level=1
+        link "Files" focusable url=https://HOST/admin/content/files
+      listitem level=1
+        link "Media" focusable url=https://HOST/admin/content/media
+  navigation "Secondary tabs"
+    heading "Secondary tabs" level=2
+    list
+      listitem level=1
+        link "Table" focusable url=https://HOST/admin/content/media
+      listitem level=1
+        link "Grid" focusable url=https://HOST/admin/content/media-grid
+  main
+    generic focusable
+    button "Open configuration options" invalid=false focusable pressed=false
+    form "Filter the contents of the Media view"
+      LabelText
+        text "Media name"
+      textbox "Media name" invalid=false focusable multiline=false readonly=false required=false
+      LabelText
+        text "Type"
+      combobox "Type" value="- Any -" invalid=false focusable hasPopup=menu expanded=false
+        MenuListPopup
+          option "- Any -" focusable selected
+          option "Image" focusable selected=false
+      LabelText
+        text "Published status"
+      combobox "Published status" value="- Any -" invalid=false focusable hasPopup=menu expanded=false
+        MenuListPopup
+          option "- Any -" focusable selected
+          option "Published" focusable selected=false
+          option "Unpublished" focusable selected=false
+      LabelText
+        text "Language"
+      combobox "Language" value="- Any -" invalid=false focusable hasPopup=menu expanded=false
+        MenuListPopup
+          option "- Any -" focusable selected
+          option "Site's default language (English)" focusable selected=false
+          option "Interface text language selected for page" focusable selected=false
+          option "English" focusable selected=false
+          option "Persian, Farsi" focusable selected=false
+          option "Not specified" focusable selected=false
+          option "Not applicable" focusable selected=false
+      button "Filter" invalid=false focusable
+    form
+      table
+        rowgroup
+          row
+            columnheader "Select all rows in this table" readonly=false required=false
+              checkbox "Select all rows in this table" invalid=false focusable checked=false
+            columnheader "Thumbnail" readonly=false required=false
+            columnheader "Media name" readonly=false required=false
+              link "Media name" description="sort by Media name" focusable url="https://HOST/admin/content/media?type=All&status=All&order=name&sort=asc"
+            columnheader "Type" readonly=false required=false
+              link "Type" description="sort by Type" focusable url="https://HOST/admin/content/media?type=All&status=All&order=bundle&sort=asc"
+            columnheader "Author" readonly=false required=false
+            columnheader "Status" readonly=false required=false
+              link "Status" description="sort by Status" focusable url="https://HOST/admin/content/media?type=All&status=All&order=status&sort=asc"
+            columnheader "Updated Sort ascending" readonly=false required=false
+              link "Updated Sort ascending" description="sort by Updated" focusable url="https://HOST/admin/content/media?type=All&status=All&order=changed&sort=asc"
+                text "Updated"
+                text "Sort ascending"
+            columnheader "Operations" readonly=false required=false
+        row
+          cell "Update this item"
+            checkbox "Update this item" invalid=false focusable checked=false
+          cell "Sample image 1"
+            image "Sample image 1" url="https://HOST/sites/default/files/styles/thumbnail/public/lab-checkbox-repro-1.png.avif?itok=ZFPolWSI"
+          cell "Checkbox repro image 1"
+            link "Checkbox repro image 1" focusable url=https://HOST/media/1/edit
+          cell "Image"
+          cell "admin"
+            link "admin" focusable url=https://HOST/user/1
+          cell "Published"
+          cell "24 Nov 2026 - 18:10"
+            time description="Tuesday, 24 November 2026 - 18:10"
+              text "24 Nov 2026 - 18:10"
+          cell "Edit Checkbox repro image 1 List additional actions"
+            list
+              listitem level=1
+                link "Edit Checkbox repro image 1" focusable url="https://HOST/media/1/edit?destination=/admin/content/media"
+                  text "Edit"
+              listitem level=1
+                button "List additional actions" invalid=false focusable
+        row
+          cell "Update this item"
+            checkbox "Update this item" invalid=false focusable checked=false
+          cell "Sample image 2"
+            image "Sample image 2" url="https://HOST/sites/default/files/styles/thumbnail/public/lab-checkbox-repro-2.png.avif?itok=ML0Wa7Kq"
+          cell "Checkbox repro image 2"
+            link "Checkbox repro image 2" focusable url=https://HOST/media/2/edit
+          cell "Image"
+          cell "admin"
+            link "admin" focusable url=https://HOST/user/1
+          cell "Published"
+          cell "24 Nov 2026 - 18:10"
+            time description="Tuesday, 24 November 2026 - 18:10"
+              text "24 Nov 2026 - 18:10"
+          cell "Edit Checkbox repro image 2 List additional actions"
+            list
+              listitem level=1
+                link "Edit Checkbox repro image 2" focusable url="https://HOST/media/2/edit?destination=/admin/content/media"
+                  text "Edit"
+              listitem level=1
+                button "List additional actions" invalid=false focusable
+        row
+          cell "Update this item"
+            checkbox "Update this item" invalid=false focusable checked=false
+          cell "Sample image 3"
+            image "Sample image 3" url="https://HOST/sites/default/files/styles/thumbnail/public/lab-checkbox-repro-3.png.avif?itok=SvxnPDyc"
+          cell "Checkbox repro image 3"
+            link "Checkbox repro image 3" focusable url=https://HOST/media/3/edit
+          cell "Image"
+          cell "admin"
+            link "admin" focusable url=https://HOST/user/1
+          cell "Published"
+          cell "24 Nov 2026 - 18:10"
+            time description="Tuesday, 24 November 2026 - 18:10"
+              text "24 Nov 2026 - 18:10"
+          cell "Edit Checkbox repro image 3 List additional actions"
+            list
+              listitem level=1
+                link "Edit Checkbox repro image 3" focusable url="https://HOST/media/3/edit?destination=/admin/content/media"
+                  text "Edit"
+              listitem level=1
+                button "List additional actions" invalid=false focusable
+      group "Perform actions on the selected items in the Media view"
+        text "Perform actions on the selected items in the"
+        emphasis
+          text "Media"
+        text "view"
+        text "No items selected"
+        LabelText
+          text "Action"
+          text ":"
+        combobox "Action:" value="- Select -" invalid=false focusable hasPopup=menu expanded=false
+          MenuListPopup
+            option "- Select -" focusable selected
+            option "Delete media" focusable selected=false
+            option "Publish media" focusable selected=false
+            option "Save media" focusable selected=false
+            option "Unpublish media" focusable selected=false
+        button "Apply to selected items" invalid=false focusable
+  generic live=polite atomic=false relevant="additions text"
+    text "No items selected"

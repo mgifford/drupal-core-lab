@@ -1,0 +1,298 @@
+[
+  {
+    "slug": "3594809-pinned",
+    "issue": "3594809",
+    "label": "#3594809: Use standard checkboxes on forms that require submission, pinned core",
+    "description": "Compare ordinary Form API checkboxes in Default Admin. Before loads form--checkbox-toggle.css, which presents a single checkbox as a switch; After removes that stylesheet so the same native checkbox uses the existing checkbox styling. The lab fixture at /admin/lab/checkboxes shows each state; the other pages are real administration forms.",
+    "status": "draft: MR !16770 as published (it empties the two stylesheets instead of deleting them); see 3594809-latest for the proposal on current core",
+    "comparisonGroup": "3594809-mr-cleanup",
+    "comparisonLabel": "Core → MR",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "07d6e6935e795a62266697da0286a77b7c94b1a4"
+    },
+    "before": {
+      "env": "baseline-3594809",
+      "label": "Before: automatic switch styling"
+    },
+    "after": {
+      "env": "issue-3594809",
+      "patches": [
+        "reports/issues/3594809/branches/main.patch"
+      ],
+      "label": "After: conventional checkbox styling"
+    },
+    "pages": [
+      "/admin/lab/checkboxes",
+      "/admin/appearance/settings",
+      "/admin/appearance/settings/default_admin",
+      "/admin/modules",
+      "/admin/people/permissions",
+      "/admin/structure/types/manage/article",
+      "/admin/structure/views",
+      "/admin/config/content/formats",
+      "/admin/content",
+      "/admin/content/media",
+      "/admin/content/media-grid",
+      "/node/add/article",
+      "/fa/admin/lab/checkboxes"
+    ],
+    "login": true,
+    "recipe": "repro_3594809",
+    "steps": [
+      {
+        "text": "Standard install (Default Admin is the administration theme) plus an Article content type, an Image media type, sample content and the lab fixture form.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /admin/lab/checkboxes in both frames.",
+        "how": "mirror"
+      },
+      {
+        "text": "Compare the \"Standalone checkboxes\" fieldset with the \"Checkbox group\" below it.",
+        "how": "each",
+        "lookFor": "Before: each standalone control is a pill-shaped switch, unlike the square boxes in the group. After: both are square checkboxes with a check mark when checked."
+      },
+      {
+        "text": "Tab to \"Default, unchecked\" and press Space.",
+        "how": "each",
+        "lookFor": "A visible focus indicator on the control, and the checked state changes. Nothing is saved yet."
+      },
+      {
+        "text": "Reload the page without saving.",
+        "how": "each",
+        "lookFor": "The control is back to its saved value: the change needed Save configuration."
+      },
+      {
+        "text": "Change \"Default, unchecked\", use Save configuration, then reload.",
+        "how": "each",
+        "lookFor": "The saved value is kept after the reload, on both sides."
+      },
+      {
+        "text": "Use Show validation errors.",
+        "how": "each",
+        "lookFor": "Both \"Validation error\" examples are marked invalid and are still recognisable as checked or unchecked."
+      },
+      {
+        "text": "Check \"Controlling checkbox\", use Replace checkbox with AJAX, then Open checkboxes in a dialog.",
+        "how": "each",
+        "lookFor": "The dependent checkboxes appear, become enabled and become checked; the replaced checkbox and the dialog checkboxes have the same presentation as the other standalone ones on that side."
+      },
+      {
+        "text": "Visit the real forms: /admin/appearance/settings, /admin/appearance/settings/default_admin, /admin/structure/types/manage/article, /node/add/article, /admin/config/content/formats, /admin/structure/views, then the tables at /admin/modules, /admin/people/permissions, /admin/content and /admin/content/media-grid.",
+        "how": "mirror",
+        "lookFor": "Single settings differ (switch Before, checkbox After). Table, grid and bulk-selection checkboxes look the same on both sides."
+      },
+      {
+        "text": "Open /fa/admin/lab/checkboxes (right to left).",
+        "how": "mirror",
+        "lookFor": "The control sits at the inline start (right) of its label and long labels wrap without overlapping it."
+      }
+    ],
+    "expected": "Native checkboxes on forms that need Save use the existing square checkbox presentation, with the same accessible name, role, state, keyboard and pointer behaviour as before. Checkbox groups, table checkboxes and radios are unchanged.",
+    "actual": "Before: Default Admin presents every standalone checkbox as a 40 by 24 pixel switch, although the value is only kept after the form is submitted. After: the same input is a 21 by 21 pixel checkbox. See EVIDENCE.md for what was measured and what a person still has to check.",
+    "checks": [
+      {
+        "label": "The fixture form and its first checkbox are present",
+        "probe": "document.querySelector('form[data-drupal-selector=\"lab-checkbox-fixture-form\"]') !== null && document.querySelector('input[name=\"default_unchecked\"]') !== null",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "The automatic switch rule (form--checkbox-toggle) is not in any loaded stylesheet",
+        "probe": "![...document.styleSheets].some((s) => { try { return [...s.cssRules].some((r) => (r.selectorText || '').includes(':not(.form-checkboxes') && (r.selectorText || '').includes('> .form-type--checkbox')); } catch (e) { return false; } })",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "A standalone checkbox has the same box size as a checkbox in a group",
+        "probe": "((a, b) => a.width === b.width && a.height === b.height)(getComputedStyle(document.querySelector('input[name=\"default_unchecked\"]')), getComputedStyle(document.querySelector('input[name=\"group[one]\"]')))",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "Every checkbox on the page is a native checkbox with no role attribute",
+        "probe": "[...document.querySelectorAll('input[type=\"checkbox\"]')].every((i) => !i.hasAttribute('role'))",
+        "expect": true,
+        "kind": "regression"
+      },
+      {
+        "label": "The standalone checkbox keeps exactly one associated label",
+        "probe": "document.querySelector('input[name=\"default_unchecked\"]').labels.length",
+        "expect": 1,
+        "kind": "regression"
+      },
+      {
+        "label": "The description is still referenced by aria-describedby",
+        "probe": "((i) => Boolean(i.getAttribute('aria-describedby') && document.getElementById(i.getAttribute('aria-describedby').split(' ')[0])))(document.querySelector('input[name=\"with_description\"]'))",
+        "expect": true,
+        "kind": "regression"
+      },
+      {
+        "label": "The disabled checked example is disabled and checked",
+        "probe": "document.querySelector('input[name=\"disabled_checked\"]').disabled && document.querySelector('input[name=\"disabled_checked\"]').checked",
+        "expect": true,
+        "kind": "regression"
+      },
+      {
+        "label": "The size of a checkbox in a group is the same on both sides",
+        "probe": "getComputedStyle(document.querySelector('input[name=\"group[one]\"]')).width + ' x ' + getComputedStyle(document.querySelector('input[name=\"group[one]\"]')).height",
+        "expect": "same",
+        "kind": "regression"
+      },
+      {
+        "label": "The form still has a Save configuration button",
+        "probe": "document.querySelector('form[data-drupal-selector=\"lab-checkbox-fixture-form\"] input[type=\"submit\"][value=\"Save configuration\"]') !== null",
+        "expect": true,
+        "kind": "regression"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Standalone checkboxes look like switches",
+        "expectBefore": true,
+        "expectAfter": false
+      },
+      {
+        "label": "Standalone checkboxes look like the checkboxes in the group, with a clear check mark when checked",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Keyboard focus on a standalone checkbox is clearly visible",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "A change is kept only after Save configuration",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Table, bulk-selection and media grid checkboxes look the same as on the other side",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Long labels wrap without overlapping the control, left to right and right to left",
+        "expectBefore": true,
+        "expectAfter": true
+      }
+    ],
+    "demo": {
+      "start": "/admin/lab/checkboxes"
+    },
+    "coverage": {
+      "note": "The combinations that count as tested for this issue (scripts/coverage.mjs). Edit to fit the question the issue asks.",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 768
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 640
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 320
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ],
+      "manual": [
+        "Keyboard pass by a person: Tab order, Space, visible focus, focus not obscured",
+        "Pointer pass by a person: the control and its label, disabled controls",
+        "Windows High Contrast (forced colours) on a real Windows system; the lab only emulates forced-colors in Chromium",
+        "Real VoiceOver or NVDA: not run by the lab unless requested",
+        "Browser zoom at 200 and 400 percent by a person; the lab emulates the equivalent CSS viewport widths",
+        "Review of the check mark and border contrast in light and dark mode by a person"
+      ]
+    },
+    "languages": [
+      "fa"
+    ]
+  },
+  {
+    "slug": "3594809-corrected",
+    "extends": "3594809-pinned",
+    "label": "#3594809: MR !16770 plus required file deletions",
+    "description": "The same pinned reproduction with a separate corrective patch that deletes the two zero-byte CSS files left by the published MR. The original MR patch remains unchanged.",
+    "comparisonGroup": "3594809-mr-cleanup",
+    "comparisonLabel": "MR + deletion fix",
+    "before": {
+      "env": "baseline-3594809",
+      "label": "Before: automatic switch styling"
+    },
+    "after": {
+      "env": "issue-3594809-corrected",
+      "patches": [
+        "reports/issues/3594809/branches/main.patch",
+        "reports/issues/3594809/branches/delete-empty-stylesheets.patch"
+      ],
+      "label": "After: MR !16770 plus file deletions"
+    }
+  },
+  {
+    "slug": "3594809-latest",
+    "extends": "3594809-pinned",
+    "label": "#3594809: standard checkboxes in Default Admin, on current core main",
+    "comparisonGroup": null,
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3594809-latest",
+      "label": "Before: automatic switch styling"
+    },
+    "after": {
+      "env": "issue-3594809-latest",
+      "patches": [
+        "reports/issues/3594809/branches/main-rebased-97c6ff8b.patch"
+      ],
+      "label": "After: conventional checkbox styling"
+    },
+    "status": "draft: lab rebase of MR !16770 onto current core main; this is the day-to-day comparison"
+  }
+]

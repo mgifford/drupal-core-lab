@@ -1,0 +1,148 @@
+RootWebArea "Edit Article content type | Drupal core test site" focusable focused url=https://HOST/admin/structure/types/manage/article
+  link "Skip to main content" focusable url=https://HOST/admin/structure/types/manage/article#main-content
+  navigation "Administrative sidebar"
+    heading "Administrative sidebar" level=2
+    link "Home page" focusable url=https://HOST/
+    heading "Content" level=3
+    list
+      listitem level=1
+        button "Extend Create" invalid=false focusable expanded=false controls=#navigation-link--navigationcreate-RANDOM
+          text "Extend"
+          text "Create"
+      listitem level=1
+        link "Blocks" focusable url=https://HOST/admin/content/block
+      listitem level=1
+        link "Content" focusable url=https://HOST/admin/content
+      listitem level=1
+        link "Files" focusable url=https://HOST/admin/content/files
+      listitem level=1
+        link "Media" focusable url=https://HOST/admin/content/media
+    heading "Administration" level=3
+    list
+      listitem level=1
+        link "Welcome" description="Learn about Drupal Core and Drupal CMS." focusable url=https://HOST/admin/welcome
+      listitem level=1
+        button "Extend Structure" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-structure-RANDOM
+          text "Extend"
+          text "Structure"
+      listitem level=1
+        link "Appearance" description="Select and configure themes." focusable url=https://HOST/admin/appearance
+      listitem level=1
+        link "Extend" description="Add and install modules to extend site functionality." focusable url=https://HOST/admin/modules
+      listitem level=1
+        button "Extend Configuration" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-config-RANDOM
+          text "Extend"
+          text "Configuration"
+      listitem level=1
+        link "People" description="Manage user accounts, roles, and permissions." focusable url=https://HOST/admin/people
+      listitem level=1
+        button "Extend Reports" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-reports-RANDOM
+          text "Extend"
+          text "Reports"
+      listitem level=1
+        link "Announcements" description="Displays announcements from the Drupal community." focusable url=https://HOST/admin/announcements_feed
+    heading "Help" level=3
+    list
+      listitem level=1
+        link "Help" focusable url=https://HOST/admin/help
+    heading "User" level=3
+    list
+      listitem level=1
+        button "Extend admin" invalid=false focusable expanded=false controls=#navigation-link--navigationuser-linksuserwrapper-RANDOM
+          text "Extend"
+          text "admin"
+    button "Collapse sidebar" invalid=false focusable expanded
+  region "Administrative top bar"
+    navigation "Breadcrumb"
+      heading "Breadcrumb" level=2
+      list
+        listitem level=1
+          link "Back to site" description="Return to site content" focusable url=https://HOST/
+        listitem level=1
+          link "Administration" focusable url=https://HOST/admin
+        listitem level=1
+          link "Structure" focusable url=https://HOST/admin/structure
+        listitem level=1
+          link "Content types" focusable url=https://HOST/admin/structure/types
+  banner
+    heading "Edit Article content type" level=1
+      text "Edit"
+      emphasis
+        text "Article"
+      text "content type"
+  navigation "Primary tabs"
+    heading "Primary tabs" level=2
+    list
+      listitem level=1
+        link "Edit" focusable url=https://HOST/admin/structure/types/manage/article
+      listitem level=1
+        link "Manage fields" focusable url=https://HOST/admin/structure/types/manage/article/fields
+      listitem level=1
+        link "Manage form display" focusable url=https://HOST/admin/structure/types/manage/article/form-display
+      listitem level=1
+        link "Manage display" focusable url=https://HOST/admin/structure/types/manage/article/display
+      listitem level=1
+        link "Manage permissions" focusable url=https://HOST/admin/structure/types/manage/article/permissions
+  main
+    generic focusable
+    form
+      LabelText
+        text "Name"
+        text "*"
+      textbox "Name *" description="The human-readable name for this content type, displayed on the Content types page." value="Article" invalid=false focusable multiline=false readonly=false required
+        text "Article"
+      text "Machine name:"
+      text "article"
+      text "The human-readable name for this content type, displayed on the"
+      emphasis
+        text "Content types"
+      text "page."
+      LabelText
+        text "Description"
+      textbox "Description" description="Displays on the Content types page." value="Use <em>articles</em> for time-sensitive content like news, press releases or blog posts." invalid=false focusable multiline readonly=false required=false
+        text "Use <em>articles</em> for time-sensitive content like news, press releases or blog posts."
+      text "Displays on the"
+      emphasis
+        text "Content types"
+      text "page."
+      LabelText
+        text "Vertical Tabs"
+      list
+        listitem focusable level=1
+          link "Submission form settings Title (active tab)" focusable url=https://HOST/admin/structure/types/manage/article#edit-submission
+            text "Submission form settings"
+            text "Title"
+            text "(active tab)"
+        listitem focusable level=1
+          link "Publishing options Published, Promoted, Create new revision" focusable url=https://HOST/admin/structure/types/manage/article#edit-workflow
+            text "Publishing options"
+            text "Published, Promoted, Create new revision"
+        listitem focusable level=1
+          link "Language settings Site's default language (English)" focusable url=https://HOST/admin/structure/types/manage/article#edit-language
+            text "Language settings"
+            text "Site's default language (English)"
+        listitem focusable level=1
+          link "Display settings Display author and date information" focusable url=https://HOST/admin/structure/types/manage/article#edit-display
+            text "Display settings"
+            text "Display author and date information"
+        listitem focusable level=1
+          link "Menu settings" focusable url=https://HOST/admin/structure/types/manage/article#edit-menu
+      group
+        LabelText
+          text "Title field label"
+          text "*"
+        textbox "Title field label *" value="Title" invalid=false focusable multiline=false readonly=false required
+          text "Title"
+        group "Preview before submitting" invalid=false
+          Legend
+            text "Preview before submitting"
+          radio "Disabled" invalid=false focusable checked=false
+          radio "Optional" invalid=false focusable checked
+          radio "Required" invalid=false focusable checked=false
+        LabelText
+          text "Explanation or submission guidelines"
+        textbox "Explanation or submission guidelines" description="This text will be displayed at the top of the page when creating or editing content of this type." invalid=false focusable multiline readonly=false required=false
+        text "This text will be displayed at the top of the page when creating or editing content of this type."
+      button "Save" invalid=false focusable
+      link "Delete" focusable url=https://HOST/admin/structure/types/manage/article/delete
+  generic live=polite atomic=false relevant="additions text"

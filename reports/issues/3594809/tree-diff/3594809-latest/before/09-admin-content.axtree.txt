@@ -1,0 +1,291 @@
+RootWebArea "Content | Drupal core test site" focusable focused url=https://HOST/admin/content
+  link "Skip to main content" focusable url=https://HOST/admin/content#main-content
+  navigation "Administrative sidebar"
+    heading "Administrative sidebar" level=2
+    link "Home page" focusable url=https://HOST/
+    heading "Content" level=3
+    list
+      listitem level=1
+        button "Extend Create" invalid=false focusable expanded=false controls=#navigation-link--navigationcreate-RANDOM
+          text "Extend"
+          text "Create"
+      listitem level=1
+        link "Blocks" focusable url=https://HOST/admin/content/block
+      listitem level=1
+        link "Content" focusable url=https://HOST/admin/content
+      listitem level=1
+        link "Files" focusable url=https://HOST/admin/content/files
+      listitem level=1
+        link "Media" focusable url=https://HOST/admin/content/media
+    heading "Administration" level=3
+    list
+      listitem level=1
+        link "Welcome" description="Learn about Drupal Core and Drupal CMS." focusable url=https://HOST/admin/welcome
+      listitem level=1
+        button "Extend Structure" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-structure-RANDOM
+          text "Extend"
+          text "Structure"
+      listitem level=1
+        link "Appearance" description="Select and configure themes." focusable url=https://HOST/admin/appearance
+      listitem level=1
+        link "Extend" description="Add and install modules to extend site functionality." focusable url=https://HOST/admin/modules
+      listitem level=1
+        button "Extend Configuration" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-config-RANDOM
+          text "Extend"
+          text "Configuration"
+      listitem level=1
+        link "People" description="Manage user accounts, roles, and permissions." focusable url=https://HOST/admin/people
+      listitem level=1
+        button "Extend Reports" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-reports-RANDOM
+          text "Extend"
+          text "Reports"
+      listitem level=1
+        link "Announcements" description="Displays announcements from the Drupal community." focusable url=https://HOST/admin/announcements_feed
+    heading "Help" level=3
+    list
+      listitem level=1
+        link "Help" focusable url=https://HOST/admin/help
+    heading "User" level=3
+    list
+      listitem level=1
+        button "Extend admin" invalid=false focusable expanded=false controls=#navigation-link--navigationuser-linksuserwrapper-RANDOM
+          text "Extend"
+          text "admin"
+    button "Collapse sidebar" invalid=false focusable expanded
+  region "Administrative top bar"
+    navigation "Breadcrumb"
+      heading "Breadcrumb" level=2
+      list
+        listitem level=1
+          link "Back to site" description="Return to site content" focusable url=https://HOST/
+        listitem level=1
+          link "Administration" focusable url=https://HOST/admin
+    list
+      listitem level=1
+        link "+ Add content" focusable url=https://HOST/node/add
+          text "+"
+          text "Add content"
+  banner
+    heading "Content" level=1
+  navigation "Primary tabs"
+    heading "Primary tabs" level=2
+    list
+      listitem level=1
+        link "Content" focusable url=https://HOST/admin/content
+      listitem level=1
+        link "Blocks" focusable url=https://HOST/admin/content/block
+      listitem level=1
+        link "Files" focusable url=https://HOST/admin/content/files
+      listitem level=1
+        link "Media" focusable url=https://HOST/admin/content/media
+  main
+    generic focusable
+    form "Filter the contents of the Content view"
+      LabelText
+        text "Title"
+      textbox "Title" invalid=false focusable multiline=false readonly=false required=false
+      LabelText
+        text "Content type"
+      combobox "Content type" value="- Any -" invalid=false focusable hasPopup=menu expanded=false
+        MenuListPopup
+          option "- Any -" focusable selected
+          option "Article" focusable selected=false
+      LabelText
+        text "Published status"
+      combobox "Published status" value="- Any -" invalid=false focusable hasPopup=menu expanded=false
+        MenuListPopup
+          option "- Any -" focusable selected
+          option "Published" focusable selected=false
+          option "Unpublished" focusable selected=false
+      LabelText
+        text "Language"
+      combobox "Language" value="- Any -" invalid=false focusable hasPopup=menu expanded=false
+        MenuListPopup
+          option "- Any -" focusable selected
+          option "Site's default language (English)" focusable selected=false
+          option "Interface text language selected for page" focusable selected=false
+          option "English" focusable selected=false
+          option "Persian, Farsi" focusable selected=false
+          option "Not specified" focusable selected=false
+          option "Not applicable" focusable selected=false
+      button "Filter" invalid=false focusable
+    form
+      table
+        rowgroup
+          row
+            columnheader "Select all rows in this table" readonly=false required=false
+              checkbox "Select all rows in this table" invalid=false focusable checked=false
+            columnheader "Title" readonly=false required=false
+              link "Title" description="sort by Title" focusable url="https://HOST/admin/content?order=title&sort=asc"
+            columnheader "Content type" readonly=false required=false
+              link "Content type" description="sort by Content type" focusable url="https://HOST/admin/content?order=type&sort=asc"
+            columnheader "Author" readonly=false required=false
+            columnheader "Status" readonly=false required=false
+              link "Status" description="sort by Status" focusable url="https://HOST/admin/content?order=status&sort=asc"
+            columnheader "Updated Sort ascending" readonly=false required=false
+              link "Updated Sort ascending" description="sort by Updated" focusable url="https://HOST/admin/content?order=changed&sort=asc"
+                text "Updated"
+                text "Sort ascending"
+            columnheader "Language" readonly=false required=false
+            columnheader "Operations" readonly=false required=false
+      table
+        rowgroup
+          row
+            columnheader "Select all rows in this table" readonly=false required=false
+              checkbox "Select all rows in this table" invalid=false focusable checked=false
+            columnheader "Title" readonly=false required=false
+              link "Title" description="sort by Title" focusable url="https://HOST/admin/content?order=title&sort=asc"
+            columnheader "Content type" readonly=false required=false
+              link "Content type" description="sort by Content type" focusable url="https://HOST/admin/content?order=type&sort=asc"
+            columnheader "Author" readonly=false required=false
+            columnheader "Status" readonly=false required=false
+              link "Status" description="sort by Status" focusable url="https://HOST/admin/content?order=status&sort=asc"
+            columnheader "Updated Sort ascending" readonly=false required=false
+              link "Updated Sort ascending" description="sort by Updated" focusable url="https://HOST/admin/content?order=changed&sort=asc"
+                text "Updated"
+                text "Sort ascending"
+            columnheader "Language" readonly=false required=false
+            columnheader "Operations" readonly=false required=false
+        row
+          cell "Update this item"
+            checkbox "Update this item" invalid=false focusable checked=false
+          cell "Checkbox repro article 6"
+            link "Checkbox repro article 6" focusable url=https://HOST/node/6
+          cell "Article"
+          cell "admin"
+            link "admin" description="View user profile." focusable url=https://HOST/user/1
+          cell "Unpublished"
+          cell "24 Nov 2026 - 18:07"
+            time description="Tuesday, 24 November 2026 - 18:07"
+              text "24 Nov 2026 - 18:07"
+          cell "English"
+          cell "Edit Checkbox repro article 6 List additional actions"
+            list
+              listitem level=1
+                link "Edit Checkbox repro article 6" focusable url="https://HOST/node/6/edit?destination=/admin/content"
+                  text "Edit"
+              listitem level=1
+                button "List additional actions" invalid=false focusable
+        row
+          cell "Update this item"
+            checkbox "Update this item" invalid=false focusable checked=false
+          cell "Checkbox repro article 5"
+            link "Checkbox repro article 5" focusable url=https://HOST/node/5
+          cell "Article"
+          cell "admin"
+            link "admin" description="View user profile." focusable url=https://HOST/user/1
+          cell "Unpublished"
+          cell "24 Nov 2026 - 18:07"
+            time description="Tuesday, 24 November 2026 - 18:07"
+              text "24 Nov 2026 - 18:07"
+          cell "English"
+          cell "Edit Checkbox repro article 5 List additional actions"
+            list
+              listitem level=1
+                link "Edit Checkbox repro article 5" focusable url="https://HOST/node/5/edit?destination=/admin/content"
+                  text "Edit"
+              listitem level=1
+                button "List additional actions" invalid=false focusable
+        row
+          cell "Update this item"
+            checkbox "Update this item" invalid=false focusable checked=false
+          cell "Checkbox repro article 4"
+            link "Checkbox repro article 4" focusable url=https://HOST/node/4
+          cell "Article"
+          cell "admin"
+            link "admin" description="View user profile." focusable url=https://HOST/user/1
+          cell "Published"
+          cell "24 Nov 2026 - 18:07"
+            time description="Tuesday, 24 November 2026 - 18:07"
+              text "24 Nov 2026 - 18:07"
+          cell "English"
+          cell "Edit Checkbox repro article 4 List additional actions"
+            list
+              listitem level=1
+                link "Edit Checkbox repro article 4" focusable url="https://HOST/node/4/edit?destination=/admin/content"
+                  text "Edit"
+              listitem level=1
+                button "List additional actions" invalid=false focusable
+        row
+          cell "Update this item"
+            checkbox "Update this item" invalid=false focusable checked=false
+          cell "Checkbox repro article 3"
+            link "Checkbox repro article 3" focusable url=https://HOST/node/3
+          cell "Article"
+          cell "admin"
+            link "admin" description="View user profile." focusable url=https://HOST/user/1
+          cell "Published"
+          cell "24 Nov 2026 - 18:07"
+            time description="Tuesday, 24 November 2026 - 18:07"
+              text "24 Nov 2026 - 18:07"
+          cell "English"
+          cell "Edit Checkbox repro article 3 List additional actions"
+            list
+              listitem level=1
+                link "Edit Checkbox repro article 3" focusable url="https://HOST/node/3/edit?destination=/admin/content"
+                  text "Edit"
+              listitem level=1
+                button "List additional actions" invalid=false focusable
+        row
+          cell "Update this item"
+            checkbox "Update this item" invalid=false focusable checked=false
+          cell "Checkbox repro article 2"
+            link "Checkbox repro article 2" focusable url=https://HOST/node/2
+          cell "Article"
+          cell "admin"
+            link "admin" description="View user profile." focusable url=https://HOST/user/1
+          cell "Published"
+          cell "24 Nov 2026 - 18:07"
+            time description="Tuesday, 24 November 2026 - 18:07"
+              text "24 Nov 2026 - 18:07"
+          cell "English"
+          cell "Edit Checkbox repro article 2 List additional actions"
+            list
+              listitem level=1
+                link "Edit Checkbox repro article 2" focusable url="https://HOST/node/2/edit?destination=/admin/content"
+                  text "Edit"
+              listitem level=1
+                button "List additional actions" invalid=false focusable
+        row
+          cell "Update this item"
+            checkbox "Update this item" invalid=false focusable checked=false
+          cell "Checkbox repro article 1"
+            link "Checkbox repro article 1" focusable url=https://HOST/node/1
+          cell "Article"
+          cell "admin"
+            link "admin" description="View user profile." focusable url=https://HOST/user/1
+          cell "Published"
+          cell "24 Nov 2026 - 18:07"
+            time description="Tuesday, 24 November 2026 - 18:07"
+              text "24 Nov 2026 - 18:07"
+          cell "English"
+          cell "Edit Checkbox repro article 1 List additional actions"
+            list
+              listitem level=1
+                link "Edit Checkbox repro article 1" focusable url="https://HOST/node/1/edit?destination=/admin/content"
+                  text "Edit"
+              listitem level=1
+                button "List additional actions" invalid=false focusable
+      group "Perform actions on the selected items in the Content view"
+        text "Perform actions on the selected items in the"
+        emphasis
+          text "Content"
+        text "view"
+        text "No items selected"
+        LabelText
+          text "Action"
+          text ":"
+        combobox "Action:" value="- Select -" invalid=false focusable hasPopup=menu expanded=false
+          MenuListPopup
+            option "- Select -" focusable selected
+            option "Delete content" focusable selected=false
+            option "Make content sticky" focusable selected=false
+            option "Make content unsticky" focusable selected=false
+            option "Promote content" focusable selected=false
+            option "Publish content" focusable selected=false
+            option "Save content" focusable selected=false
+            option "Unpromote content" focusable selected=false
+            option "Unpublish content" focusable selected=false
+        button "Apply to selected items" invalid=false focusable
+  generic live=polite atomic=false relevant="additions text"
+    text "No items selected"

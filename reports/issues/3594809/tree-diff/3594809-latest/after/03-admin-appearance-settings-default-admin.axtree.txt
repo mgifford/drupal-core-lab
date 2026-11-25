@@ -1,0 +1,156 @@
+RootWebArea "Default Admin | Drupal core test site" focusable focused url=https://HOST/admin/appearance/settings/default_admin
+  link "Skip to main content" focusable url=https://HOST/admin/appearance/settings/default_admin#main-content
+  navigation "Administrative sidebar"
+    heading "Administrative sidebar" level=2
+    link "Home page" focusable url=https://HOST/
+    heading "Content" level=3
+    list
+      listitem level=1
+        button "Extend Create" invalid=false focusable expanded=false controls=#navigation-link--navigationcreate-RANDOM
+          text "Extend"
+          text "Create"
+      listitem level=1
+        link "Blocks" focusable url=https://HOST/admin/content/block
+      listitem level=1
+        link "Content" focusable url=https://HOST/admin/content
+      listitem level=1
+        link "Files" focusable url=https://HOST/admin/content/files
+      listitem level=1
+        link "Media" focusable url=https://HOST/admin/content/media
+    heading "Administration" level=3
+    list
+      listitem level=1
+        link "Welcome" description="Learn about Drupal Core and Drupal CMS." focusable url=https://HOST/admin/welcome
+      listitem level=1
+        button "Extend Structure" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-structure-RANDOM
+          text "Extend"
+          text "Structure"
+      listitem level=1
+        link "Appearance" description="Select and configure themes." focusable url=https://HOST/admin/appearance
+      listitem level=1
+        link "Extend" description="Add and install modules to extend site functionality." focusable url=https://HOST/admin/modules
+      listitem level=1
+        button "Extend Configuration" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-config-RANDOM
+          text "Extend"
+          text "Configuration"
+      listitem level=1
+        link "People" description="Manage user accounts, roles, and permissions." focusable url=https://HOST/admin/people
+      listitem level=1
+        button "Extend Reports" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-reports-RANDOM
+          text "Extend"
+          text "Reports"
+      listitem level=1
+        link "Announcements" description="Displays announcements from the Drupal community." focusable url=https://HOST/admin/announcements_feed
+    heading "Help" level=3
+    list
+      listitem level=1
+        link "Help" focusable url=https://HOST/admin/help
+    heading "User" level=3
+    list
+      listitem level=1
+        button "Extend admin" invalid=false focusable expanded=false controls=#navigation-link--navigationuser-linksuserwrapper-RANDOM
+          text "Extend"
+          text "admin"
+    button "Collapse sidebar" invalid=false focusable expanded
+  region "Administrative top bar"
+    navigation "Breadcrumb"
+      heading "Breadcrumb" level=2
+      list
+        listitem level=1
+          link "Back to site" description="Return to site content" focusable url=https://HOST/
+        listitem level=1
+          link "Administration" focusable url=https://HOST/admin
+        listitem level=1
+          link "Appearance" focusable url=https://HOST/admin/appearance
+        listitem level=1
+          link "Appearance settings" focusable url=https://HOST/admin/appearance/settings
+  banner
+    heading "Default Admin" level=1
+  navigation "Primary tabs"
+    heading "Primary tabs" level=2
+    list
+      listitem level=1
+        link "List" focusable url=https://HOST/admin/appearance
+      listitem level=1
+        link "Settings" focusable url=https://HOST/admin/appearance/settings
+  navigation "Secondary tabs"
+    heading "Secondary tabs" level=2
+    list
+      listitem level=1
+        link "Global settings" focusable url=https://HOST/admin/appearance/settings
+      listitem level=1
+        link "Default Admin" focusable url=https://HOST/admin/appearance/settings/default_admin
+  main
+    generic focusable
+    complementary
+      paragraph
+        text "These options control the display settings for the"
+        emphasis
+          text "Default Admin"
+        text "theme. When your site is displayed using this theme, these settings will be used."
+    form
+      group
+        button "Settings" focusable expanded controls=#edit-custom-settings
+        group "Appearance" description="Enables dark mode for the administration interface." invalid=false
+          Legend
+            text "Appearance"
+          radio "Auto" invalid=false focusable checked
+          LabelText
+            text "Auto"
+          radio "Light" invalid=false focusable checked=false
+          LabelText
+            text "Light"
+          radio "Dark" invalid=false focusable checked=false
+          LabelText
+            text "Dark"
+          text "Enables dark mode for the administration interface."
+        group "Accent color" invalid=false
+          Legend
+            text "Accent color"
+          radio "Blue (Default)" invalid=false focusable checked
+          radio "Light Blue" invalid=false focusable checked=false
+          radio "Dark Purple" invalid=false focusable checked=false
+          radio "Purple" invalid=false focusable checked=false
+          radio "Teal" invalid=false focusable checked=false
+          radio "Green" invalid=false focusable checked=false
+          radio "Pink" invalid=false focusable checked=false
+          radio "Red" invalid=false focusable checked=false
+          radio "Orange" invalid=false focusable checked=false
+          radio "Yellow" invalid=false focusable checked=false
+          radio "Neutral" invalid=false focusable checked=false
+          radio "Custom" invalid=false focusable checked=false
+        LabelText
+          text "Focus color"
+        combobox "Focus color" value="Default Admin Focus color (Default)" invalid=false focusable hasPopup=menu expanded=false
+          MenuListPopup
+            option "Default Admin Focus color (Default)" focusable selected
+            option "Green" focusable selected=false
+            option "Legacy green" focusable selected=false
+            option "Orange" focusable selected=false
+            option "Neutral" focusable selected=false
+            option "Same as Accent color" focusable selected=false
+            option "Custom" focusable selected=false
+        checkbox "Increase contrast Experimental" description="Enables high contrast mode." invalid=false focusable checked=false
+        LabelText
+          text "Increase contrast"
+          text "Experimental"
+        text "Enables high contrast mode."
+        group "Layout density" description="Changes the layout density for tables in the admin interface." invalid=false
+          Legend
+            text "Layout density"
+          radio "Default" invalid=false focusable checked
+          radio "Compact" invalid=false focusable checked=false
+          radio "Narrow" invalid=false focusable checked=false
+          text "Changes the layout density for tables in the admin interface."
+        checkbox "Enable form description toggle" description="Show a help icon to show/hide form descriptions on content forms." invalid=false focusable checked=false
+        text "Show a help icon to show/hide form descriptions on content forms."
+        checkbox "Users can override Default Admin settings" description="Expose the Default Admin theme settings to users." invalid=false focusable checked=false
+        text "Expose the Default Admin theme settings to users."
+      group
+        button "Logo image" focusable expanded=false controls=#edit-logo
+      group
+        button "Favicon" focusable expanded=false controls=#edit-favicon
+      group
+        button "Page element display" focusable expanded=false controls=#edit-theme-settings
+      button "Save configuration" invalid=false focusable
+  generic live=polite atomic=false relevant="additions text"

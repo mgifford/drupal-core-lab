@@ -39,5 +39,18 @@
     "status": "duplicate",
     "count": 1,
     "note": "same as F001; run 3 measured that the dismissed error is still in the accessibility tree"
+  },
+  {
+    "id": "F004",
+    "found": "2026-11-25",
+    "issue": "3594809",
+    "where": "Default Admin theme, any checkbox whose indeterminate property is set (lab fixture /admin/lab/checkboxes)",
+    "what": "A checkbox in the indeterminate (mixed) state looks the same as an unchecked one in light and dark mode: appearance is none and there is no :indeterminate style, so a sighted user cannot tell it is mixed. The state is exposed to assistive technology (checked=mixed). Same before and after #3594809. In emulated forced colours the conventional checkbox shows the browser's own dash. Core's tableselect does not set indeterminate, so this affects contributed and custom code. From computed styles and screenshots, not yet checked by a person.",
+    "source": "code",
+    "wcag": null,
+    "evidence": "reports/issues/3594809/playwright/2026-11-25T12-02-03-679Z-chromium-light-1280x900/after-state-indeterminate.png",
+    "file": "core/themes/default_admin/css/components/form--checkbox-radio.pcss.css:17",
+    "status": "unconfirmed",
+    "count": 1
   }
 ]

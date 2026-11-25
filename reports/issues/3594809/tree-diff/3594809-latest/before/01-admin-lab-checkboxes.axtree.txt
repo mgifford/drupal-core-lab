@@ -1,0 +1,142 @@
+RootWebArea "Checkbox fixture | Drupal core test site" focusable focused url=https://HOST/admin/lab/checkboxes
+  link "Skip to main content" focusable url=https://HOST/admin/lab/checkboxes#main-content
+  navigation "Administrative sidebar"
+    heading "Administrative sidebar" level=2
+    link "Home page" focusable url=https://HOST/
+    heading "Content" level=3
+    list
+      listitem level=1
+        button "Extend Create" invalid=false focusable expanded=false controls=#navigation-link--navigationcreate-RANDOM
+          text "Extend"
+          text "Create"
+      listitem level=1
+        link "Blocks" focusable url=https://HOST/admin/content/block
+      listitem level=1
+        link "Content" focusable url=https://HOST/admin/content
+      listitem level=1
+        link "Files" focusable url=https://HOST/admin/content/files
+      listitem level=1
+        link "Media" focusable url=https://HOST/admin/content/media
+    heading "Administration" level=3
+    list
+      listitem level=1
+        link "Welcome" description="Learn about Drupal Core and Drupal CMS." focusable url=https://HOST/admin/welcome
+      listitem level=1
+        button "Extend Structure" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-structure-RANDOM
+          text "Extend"
+          text "Structure"
+      listitem level=1
+        link "Appearance" description="Select and configure themes." focusable url=https://HOST/admin/appearance
+      listitem level=1
+        link "Extend" description="Add and install modules to extend site functionality." focusable url=https://HOST/admin/modules
+      listitem level=1
+        button "Extend Configuration" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-config-RANDOM
+          text "Extend"
+          text "Configuration"
+      listitem level=1
+        link "People" description="Manage user accounts, roles, and permissions." focusable url=https://HOST/admin/people
+      listitem level=1
+        button "Extend Reports" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-reports-RANDOM
+          text "Extend"
+          text "Reports"
+      listitem level=1
+        link "Announcements" description="Displays announcements from the Drupal community." focusable url=https://HOST/admin/announcements_feed
+    heading "Help" level=3
+    list
+      listitem level=1
+        link "Help" focusable url=https://HOST/admin/help
+    heading "User" level=3
+    list
+      listitem level=1
+        button "Extend admin" invalid=false focusable expanded=false controls=#navigation-link--navigationuser-linksuserwrapper-RANDOM
+          text "Extend"
+          text "admin"
+    button "Collapse sidebar" invalid=false focusable expanded
+  region "Administrative top bar"
+    navigation "Breadcrumb"
+      heading "Breadcrumb" level=2
+      list
+        listitem level=1
+          link "Back to site" description="Return to site content" focusable url=https://HOST/
+        listitem level=1
+          link "Administration" focusable url=https://HOST/admin
+  banner
+    heading "Checkbox fixture" level=1
+  main
+    generic focusable
+    form
+      paragraph
+        text "Lab fixture for #3594809. Nothing here takes effect until Save configuration is used."
+      group "Standalone checkboxes" invalid=false
+        Legend
+          text "Standalone checkboxes"
+        checkbox "Default, unchecked" invalid=false focusable checked=false
+        checkbox "Default, checked" invalid=false focusable checked
+        checkbox "Disabled, unchecked" disabled invalid=false checked=false
+        checkbox "Disabled, checked" disabled invalid=false checked
+        checkbox "Required *" invalid=false focusable checked
+        text "*"
+        checkbox "With a description" description="The description belongs to this checkbox and is referenced by aria-describedby." invalid=false focusable checked=false
+        text "The description belongs to this checkbox and is referenced by aria-describedby."
+        checkbox "A long label that has to wrap onto several lines at ordinary widths, so that the alignment of the control with the first line of its label and the indent of the following lines can be compared between the two environments at desktop, tablet and mobile sizes and at 200% and 400% zoom" description="A long label with a description under it." invalid=false focusable checked=false
+        text "A long label with a description under it."
+        checkbox "Indeterminate" invalid=false focusable checked=mixed
+      group "Validation errors" description="Show validation errors marks both of these as invalid without saving anything." invalid=false
+        Legend
+          text "Validation errors"
+        checkbox "Validation error, unchecked" invalid=false focusable checked=false
+        checkbox "Validation error, checked" invalid=false focusable checked
+        text "Show validation errors marks both of these as invalid without saving anything."
+      group "Checkbox group" description="A checkboxes element. These were not styled as switches before the change." invalid=false
+        Legend
+          text "Checkbox group"
+        checkbox "First option" invalid=false focusable checked=false
+        checkbox "Second option, checked" invalid=false focusable checked
+        checkbox "Third option, disabled" disabled invalid=false checked=false
+        text "A checkboxes element. These were not styled as switches before the change."
+      group "Radio group" description="Radios share a stylesheet with checkboxes; they must not change." invalid=false
+        Legend
+          text "Radio group"
+        radio "First choice" invalid=false focusable checked=false
+        radio "Second choice, selected" invalid=false focusable checked
+        text "Radios share a stylesheet with checkboxes; they must not change."
+      table "Checkboxes in a table, with select all"
+        caption
+          text "Checkboxes in a table, with select all"
+        rowgroup
+          row
+            columnheader "Select all rows in this table" readonly=false required=false
+              checkbox "Select all rows in this table" invalid=false focusable checked=false
+            columnheader "Name" readonly=false required=false
+            columnheader "Kind" readonly=false required=false
+        row
+          cell "Update Row one"
+            checkbox "Update Row one" invalid=false focusable checked=false
+          cell "Row one"
+          cell "Sample"
+        row
+          cell "Update Row two"
+            checkbox "Update Row two" invalid=false focusable checked
+          cell "Row two"
+          cell "Sample"
+        row
+          cell "Update Row three"
+            checkbox "Update Row three" invalid=false focusable checked=false
+          cell "Row three"
+          cell "Sample"
+      group "Form API #states" invalid=false
+        Legend
+          text "Form API #states"
+        checkbox "Controlling checkbox" invalid=false focusable checked=false
+        checkbox "Enabled only while the controlling checkbox is checked" disabled invalid=false checked=false
+        checkbox "Checked while the controlling checkbox is checked" invalid=false focusable checked=false
+      group "AJAX replacement" invalid=false
+        Legend
+          text "AJAX replacement"
+        button "Replace checkbox with AJAX" invalid=false focusable
+        checkbox "Checkbox replaced by AJAX 0 times" invalid=false focusable checked
+      link "Open checkboxes in a dialog" focusable url=https://HOST/admin/lab/checkboxes/dialog
+      button "Save configuration" invalid=false focusable
+      button "Show validation errors" invalid=false focusable
+      button "Reset saved values" invalid=false focusable
+  generic live=polite atomic=false relevant="additions text"

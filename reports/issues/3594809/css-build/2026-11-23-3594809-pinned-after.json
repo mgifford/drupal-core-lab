@@ -1,0 +1,61 @@
+{
+  "slug": "3594809-pinned",
+  "side": "after",
+  "env": "issue-3594809",
+  "generated": "2026-11-23T20:56:48.183Z",
+  "commands": [
+    "cd core && yarn install --immutable",
+    "cd core && yarn run build:css --check --file themes/default_admin/css/components/form--checkbox-toggle.pcss.css",
+    "cd core && yarn stylelint 'themes/default_admin/css/components/form--checkbox-toggle.pcss.css' 'themes/default_admin/css/components/form--checkbox-toggle.css'"
+  ],
+  "notes": [],
+  "entries": [
+    {
+      "source": "core/themes/default_admin/css/components/form--checkbox-toggle.pcss.css",
+      "compiled": "core/themes/default_admin/css/components/form--checkbox-toggle.css",
+      "sourceState": "present",
+      "origin": "imported",
+      "compiledInStack": "present",
+      "state": "stale",
+      "result": "FAIL",
+      "detail": "form--checkbox-toggle.pcss.css was changed, but form--checkbox-toggle.css does not match what core's build produces.",
+      "inPatch": true
+    }
+  ],
+  "built": [],
+  "overall": "FAIL",
+  "ready": false,
+  "patches": [
+    {
+      "path": "reports/issues/3594809/branches/main.patch",
+      "sha256": "37cf48a602eb6cdb95c8105ab0ddfefc56b70a5266c063b1a9c8bc1ace37a2ce",
+      "authored": false
+    }
+  ],
+  "coreCommit": "07d6e6935e79",
+  "editsBeyondPatches": 0,
+  "relevant": true,
+  "runtime": "host",
+  "tools": {
+    "node": "v24.22.0",
+    "yarn": "4.9.1",
+    "yarnWanted": "4.9.1",
+    "corepack": true
+  },
+  "cache": "miss",
+  "stylelint": {
+    "result": "FAIL",
+    "detail": "themes/default_admin/css/components/form--checkbox-toggle.pcss.css\n  1:1  ✖  Unexpected empty source  no-empty-source\n\nthemes/default_admin/css/components/form--checkbox-toggle.css\n  1:1  ✖  Unexpected empty source  no-empty-source\n\n✖ 2 problems (2 errors, 0 warnings)"
+  },
+  "table": {
+    "PostCSS source detected": "YES",
+    "Affected source files": "1",
+    "Compiled output present": "YES",
+    "Rebuild required": "YES (1)",
+    "Compilation completed": "SKIPPED (check only; use --build)",
+    "Source/output consistency": "FAIL",
+    "Stylelint": "FAIL",
+    "Patch includes generated CSS": "PASS",
+    "Ready for submission": "NO"
+  }
+}

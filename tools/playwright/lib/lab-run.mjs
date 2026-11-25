@@ -71,7 +71,7 @@ export async function launch(a) {
   try {
     const css = cssAnalyze({ slug: a.v.slug, side: 'after', mode: 'host', install: false });
     a.cssBuild = css.relevant ? { overall: css.overall, files: css.entries.map((e) => ({ source: e.source, state: e.state, origin: e.origin })) } : { overall: 'SKIPPED', files: [] };
-    if (css.relevant && css.overall !== 'PASS') console.warn(`WARNING: CSS build ${css.overall} for ${a.v.slug} (After): ${css.entries.filter((e) => e.result !== 'PASS').map((e) => `${path.basename(e.source)} ${e.state}`).join(', ') || css.notes.join(' ')}. The browser may not be testing the CSS this patch's source produces, so this run does not validate the submitted patch. Details: node scripts/css-build.mjs ${a.v.slug}`);
+    if (css.relevant && !['PASS', 'SKIPPED'].includes(css.overall)) console.warn(`WARNING: CSS build ${css.overall} for ${a.v.slug} (After): ${css.entries.filter((e) => e.result !== 'PASS').map((e) => `${path.basename(e.source)} ${e.state}`).join(', ') || css.notes.join(' ')}. The browser may not be testing the CSS this patch's source produces, so this run does not validate the submitted patch. Details: node scripts/css-build.mjs ${a.v.slug}`);
   } catch (e) { a.cssBuild = { overall: 'NOT VERIFIED', files: [], error: String(e.message).slice(0, 160) }; }
   const b = await BROWSERS[a.browser].launch({ handleSIGINT: false, handleSIGTERM: false, handleSIGHUP: false, ...(a.executablePath ? { executablePath: a.executablePath } : {}) });   // executablePath: tree-diff.mjs --chromium=
   const environment = { browser: a.browser, browserVersion: b.version(), colorScheme: a.scheme, forcedColors: a.forced, viewport: a.viewport, os: `${process.platform} ${process.arch}` };

@@ -1,0 +1,2291 @@
+RootWebArea "Permissions | Drupal core test site" focusable focused url=https://HOST/admin/people/permissions
+  link "Skip to main content" focusable url=https://HOST/admin/people/permissions#main-content
+  navigation "Administrative sidebar"
+    heading "Administrative sidebar" level=2
+    link "Home page" focusable url=https://HOST/
+    heading "Content" level=3
+    list
+      listitem level=1
+        button "Extend Create" invalid=false focusable expanded=false controls=#navigation-link--navigationcreate-RANDOM
+          text "Extend"
+          text "Create"
+      listitem level=1
+        link "Blocks" focusable url=https://HOST/admin/content/block
+      listitem level=1
+        link "Content" focusable url=https://HOST/admin/content
+      listitem level=1
+        link "Files" focusable url=https://HOST/admin/content/files
+      listitem level=1
+        link "Media" focusable url=https://HOST/admin/content/media
+    heading "Administration" level=3
+    list
+      listitem level=1
+        link "Welcome" description="Learn about Drupal Core and Drupal CMS." focusable url=https://HOST/admin/welcome
+      listitem level=1
+        button "Extend Structure" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-structure-RANDOM
+          text "Extend"
+          text "Structure"
+      listitem level=1
+        link "Appearance" description="Select and configure themes." focusable url=https://HOST/admin/appearance
+      listitem level=1
+        link "Extend" description="Add and install modules to extend site functionality." focusable url=https://HOST/admin/modules
+      listitem level=1
+        button "Extend Configuration" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-config-RANDOM
+          text "Extend"
+          text "Configuration"
+      listitem level=1
+        link "People" description="Manage user accounts, roles, and permissions." focusable url=https://HOST/admin/people
+      listitem level=1
+        button "Extend Reports" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-reports-RANDOM
+          text "Extend"
+          text "Reports"
+      listitem level=1
+        link "Announcements" description="Displays announcements from the Drupal community." focusable url=https://HOST/admin/announcements_feed
+    heading "Help" level=3
+    list
+      listitem level=1
+        link "Help" focusable url=https://HOST/admin/help
+    heading "User" level=3
+    list
+      listitem level=1
+        button "Extend admin" invalid=false focusable expanded=false controls=#navigation-link--navigationuser-linksuserwrapper-RANDOM
+          text "Extend"
+          text "admin"
+    button "Collapse sidebar" invalid=false focusable expanded
+  region "Administrative top bar"
+    navigation "Breadcrumb"
+      heading "Breadcrumb" level=2
+      list
+        listitem level=1
+          link "Back to site" description="Return to site content" focusable url=https://HOST/
+        listitem level=1
+          link "Administration" focusable url=https://HOST/admin
+        listitem level=1
+          link "People" focusable url=https://HOST/admin/people
+  banner
+    heading "Permissions" level=1
+  navigation "Primary tabs"
+    heading "Primary tabs" level=2
+    list
+      listitem level=1
+        link "List" focusable url=https://HOST/admin/people
+      listitem level=1
+        link "Permissions" focusable url=https://HOST/admin/people/permissions
+      listitem level=1
+        link "Roles" focusable url=https://HOST/admin/people/roles
+      listitem level=1
+        link "Role settings" focusable url=https://HOST/admin/people/role-settings
+  main
+    generic focusable
+    complementary
+      paragraph
+        text "Permissions let you control what users can do and see on your site. You can define a specific set of permissions for each role. (See the"
+        link "Roles" focusable url=https://HOST/admin/people/roles
+        text "page to create a role.) Any permissions granted to the Authenticated user role will be given to any user who is logged in to your site. On the"
+        link "Role settings" focusable url=https://HOST/admin/people/role-settings
+        text "page, you can make any role into an Administrator role for the site, meaning that role will be granted all permissions. You should be careful to ensure that only trusted users are given this access and level of control of your site."
+    form
+      link "Hide descriptions" description="Compress layout by hiding descriptions." focusable url=https://HOST/admin/people/permissions#?
+      LabelText
+        text "Filter"
+      searchbox "Filter" description="Enter permission name" invalid=false focusable
+      text "Enter permission name"
+      table
+        rowgroup
+          row
+            columnheader "Permission" readonly=false required=false
+            columnheader "Anonymous user" readonly=false required=false
+            columnheader "Authenticated user" readonly=false required=false
+            columnheader "Content editor" readonly=false required=false
+            columnheader "Administrator" readonly=false required=false
+      table
+        rowgroup
+          row
+            columnheader "Permission" readonly=false required=false
+            columnheader "Anonymous user" readonly=false required=false
+            columnheader "Authenticated user" readonly=false required=false
+            columnheader "Content editor" readonly=false required=false
+            columnheader "Administrator" readonly=false required=false
+        row
+          cell "Announcements"
+        row
+          cell "View official announcements related to Drupal"
+          cell "Anonymous user: View official announcements related to Drupal"
+            checkbox "Anonymous user: View official announcements related to Drupal" invalid=false focusable checked=false
+          cell "Authenticated user: View official announcements related to Drupal"
+            checkbox "Authenticated user: View official announcements related to Drupal" invalid=false focusable checked=false
+          cell "Content editor: View official announcements related to Drupal"
+            checkbox "Content editor: View official announcements related to Drupal" invalid=false focusable checked=false
+          cell "Administrator: View official announcements related to Drupal"
+            checkbox "Administrator: View official announcements related to Drupal" disabled invalid=false checked
+        row
+          cell "Block"
+        row
+          cell "Administer blocks"
+          cell "Anonymous user: Administer blocks"
+            checkbox "Anonymous user: Administer blocks" invalid=false focusable checked=false
+          cell "Authenticated user: Administer blocks"
+            checkbox "Authenticated user: Administer blocks" invalid=false focusable checked=false
+          cell "Content editor: Administer blocks"
+            checkbox "Content editor: Administer blocks" invalid=false focusable checked=false
+          cell "Administrator: Administer blocks"
+            checkbox "Administrator: Administer blocks" disabled invalid=false checked
+        row
+          cell "Block Content"
+        row
+          cell "Basic block: Create new content block"
+            emphasis
+              text "Basic block"
+            text ": Create new content block"
+          cell "Anonymous user: Basic block: Create new content block"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Basic block"
+              text ": Create new content block"
+            checkbox "Anonymous user: Basic block: Create new content block" invalid=false focusable checked=false
+          cell "Authenticated user: Basic block: Create new content block"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Basic block"
+              text ": Create new content block"
+            checkbox "Authenticated user: Basic block: Create new content block" invalid=false focusable checked=false
+          cell "Content editor: Basic block: Create new content block"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Basic block"
+              text ": Create new content block"
+            checkbox "Content editor: Basic block: Create new content block" invalid=false focusable checked=false
+          cell "Administrator: Basic block: Create new content block"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Basic block"
+              text ": Create new content block"
+            checkbox "Administrator: Basic block: Create new content block" disabled invalid=false checked
+        row
+          cell "Basic block: Delete content block"
+            emphasis
+              text "Basic block"
+            text ": Delete content block"
+          cell "Anonymous user: Basic block: Delete content block"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Basic block"
+              text ": Delete content block"
+            checkbox "Anonymous user: Basic block: Delete content block" invalid=false focusable checked=false
+          cell "Authenticated user: Basic block: Delete content block"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Basic block"
+              text ": Delete content block"
+            checkbox "Authenticated user: Basic block: Delete content block" invalid=false focusable checked=false
+          cell "Content editor: Basic block: Delete content block"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Basic block"
+              text ": Delete content block"
+            checkbox "Content editor: Basic block: Delete content block" invalid=false focusable checked=false
+          cell "Administrator: Basic block: Delete content block"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Basic block"
+              text ": Delete content block"
+            checkbox "Administrator: Basic block: Delete content block" disabled invalid=false checked
+        row
+          cell "Basic block: Delete content block revisions"
+            emphasis
+              text "Basic block"
+            text ": Delete content block revisions"
+          cell "Anonymous user: Basic block: Delete content block revisions"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Basic block"
+              text ": Delete content block revisions"
+            checkbox "Anonymous user: Basic block: Delete content block revisions" invalid=false focusable checked=false
+          cell "Authenticated user: Basic block: Delete content block revisions"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Basic block"
+              text ": Delete content block revisions"
+            checkbox "Authenticated user: Basic block: Delete content block revisions" invalid=false focusable checked=false
+          cell "Content editor: Basic block: Delete content block revisions"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Basic block"
+              text ": Delete content block revisions"
+            checkbox "Content editor: Basic block: Delete content block revisions" invalid=false focusable checked=false
+          cell "Administrator: Basic block: Delete content block revisions"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Basic block"
+              text ": Delete content block revisions"
+            checkbox "Administrator: Basic block: Delete content block revisions" disabled invalid=false checked
+        row
+          cell "Basic block: Edit content block"
+            emphasis
+              text "Basic block"
+            text ": Edit content block"
+          cell "Anonymous user: Basic block: Edit content block"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Basic block"
+              text ": Edit content block"
+            checkbox "Anonymous user: Basic block: Edit content block" invalid=false focusable checked=false
+          cell "Authenticated user: Basic block: Edit content block"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Basic block"
+              text ": Edit content block"
+            checkbox "Authenticated user: Basic block: Edit content block" invalid=false focusable checked=false
+          cell "Content editor: Basic block: Edit content block"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Basic block"
+              text ": Edit content block"
+            checkbox "Content editor: Basic block: Edit content block" invalid=false focusable checked=false
+          cell "Administrator: Basic block: Edit content block"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Basic block"
+              text ": Edit content block"
+            checkbox "Administrator: Basic block: Edit content block" disabled invalid=false checked
+        row
+          cell "Basic block: Revert content block revisions"
+            emphasis
+              text "Basic block"
+            text ": Revert content block revisions"
+          cell "Anonymous user: Basic block: Revert content block revisions"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Basic block"
+              text ": Revert content block revisions"
+            checkbox "Anonymous user: Basic block: Revert content block revisions" invalid=false focusable checked=false
+          cell "Authenticated user: Basic block: Revert content block revisions"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Basic block"
+              text ": Revert content block revisions"
+            checkbox "Authenticated user: Basic block: Revert content block revisions" invalid=false focusable checked=false
+          cell "Content editor: Basic block: Revert content block revisions"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Basic block"
+              text ": Revert content block revisions"
+            checkbox "Content editor: Basic block: Revert content block revisions" invalid=false focusable checked=false
+          cell "Administrator: Basic block: Revert content block revisions"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Basic block"
+              text ": Revert content block revisions"
+            checkbox "Administrator: Basic block: Revert content block revisions" disabled invalid=false checked
+        row
+          cell "Basic block: View content block history pages"
+            emphasis
+              text "Basic block"
+            text ": View content block history pages"
+          cell "Anonymous user: Basic block: View content block history pages"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Basic block"
+              text ": View content block history pages"
+            checkbox "Anonymous user: Basic block: View content block history pages" invalid=false focusable checked=false
+          cell "Authenticated user: Basic block: View content block history pages"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Basic block"
+              text ": View content block history pages"
+            checkbox "Authenticated user: Basic block: View content block history pages" invalid=false focusable checked=false
+          cell "Content editor: Basic block: View content block history pages"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Basic block"
+              text ": View content block history pages"
+            checkbox "Content editor: Basic block: View content block history pages" invalid=false focusable checked=false
+          cell "Administrator: Basic block: View content block history pages"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Basic block"
+              text ": View content block history pages"
+            checkbox "Administrator: Basic block: View content block history pages" disabled invalid=false checked
+        row
+          cell "Access the Content blocks overview page Get an overview of all content blocks."
+            text "Access the Content blocks overview page"
+            text "Get an overview of all content blocks."
+          cell "Anonymous user: Access the Content blocks overview page"
+            checkbox "Anonymous user: Access the Content blocks overview page" invalid=false focusable checked=false
+          cell "Authenticated user: Access the Content blocks overview page"
+            checkbox "Authenticated user: Access the Content blocks overview page" invalid=false focusable checked=false
+          cell "Content editor: Access the Content blocks overview page"
+            checkbox "Content editor: Access the Content blocks overview page" invalid=false focusable checked=false
+          cell "Administrator: Access the Content blocks overview page"
+            checkbox "Administrator: Access the Content blocks overview page" disabled invalid=false checked
+        row
+          cell "Administer block content Warning: Give to trusted roles only; this permission has security implications. View, edit and delete all block content regardless of permission restrictions."
+            text "Administer block content"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+            text "View, edit and delete all block content regardless of permission restrictions."
+          cell "Anonymous user: Administer block content"
+            checkbox "Anonymous user: Administer block content" invalid=false focusable checked=false
+          cell "Authenticated user: Administer block content"
+            checkbox "Authenticated user: Administer block content" invalid=false focusable checked=false
+          cell "Content editor: Administer block content"
+            checkbox "Content editor: Administer block content" invalid=false focusable checked=false
+          cell "Administrator: Administer block content"
+            checkbox "Administrator: Administer block content" disabled invalid=false checked
+        row
+          cell "Administer block types Warning: Give to trusted roles only; this permission has security implications. Maintain the block types of block content available and the fields that are associated with those types."
+            text "Administer block types"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+            text "Maintain the block types of block content available and the fields that are associated with those types."
+          cell "Anonymous user: Administer block types"
+            checkbox "Anonymous user: Administer block types" invalid=false focusable checked=false
+          cell "Authenticated user: Administer block types"
+            checkbox "Authenticated user: Administer block types" invalid=false focusable checked=false
+          cell "Content editor: Administer block types"
+            checkbox "Content editor: Administer block types" invalid=false focusable checked=false
+          cell "Administrator: Administer block types"
+            checkbox "Administrator: Administer block types" disabled invalid=false checked
+        row
+          cell "View unpublished block content Allows viewing unpublished block content"
+            text "View unpublished block content"
+            text "Allows viewing unpublished block content"
+          cell "Anonymous user: View unpublished block content"
+            checkbox "Anonymous user: View unpublished block content" invalid=false focusable checked=false
+          cell "Authenticated user: View unpublished block content"
+            checkbox "Authenticated user: View unpublished block content" invalid=false focusable checked=false
+          cell "Content editor: View unpublished block content"
+            checkbox "Content editor: View unpublished block content" invalid=false focusable checked=false
+          cell "Administrator: View unpublished block content"
+            checkbox "Administrator: View unpublished block content" disabled invalid=false checked
+        row
+          cell "Configuration Manager"
+        row
+          cell "Export configuration Warning: Give to trusted roles only; this permission has security implications."
+            text "Export configuration"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: Export configuration"
+            checkbox "Anonymous user: Export configuration" invalid=false focusable checked=false
+          cell "Authenticated user: Export configuration"
+            checkbox "Authenticated user: Export configuration" invalid=false focusable checked=false
+          cell "Content editor: Export configuration"
+            checkbox "Content editor: Export configuration" invalid=false focusable checked=false
+          cell "Administrator: Export configuration"
+            checkbox "Administrator: Export configuration" disabled invalid=false checked
+        row
+          cell "Import configuration Warning: Give to trusted roles only; this permission has security implications."
+            text "Import configuration"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: Import configuration"
+            checkbox "Anonymous user: Import configuration" invalid=false focusable checked=false
+          cell "Authenticated user: Import configuration"
+            checkbox "Authenticated user: Import configuration" invalid=false focusable checked=false
+          cell "Content editor: Import configuration"
+            checkbox "Content editor: Import configuration" invalid=false focusable checked=false
+          cell "Administrator: Import configuration"
+            checkbox "Administrator: Import configuration" disabled invalid=false checked
+        row
+          cell "Synchronize configuration Warning: Give to trusted roles only; this permission has security implications."
+            text "Synchronize configuration"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: Synchronize configuration"
+            checkbox "Anonymous user: Synchronize configuration" invalid=false focusable checked=false
+          cell "Authenticated user: Synchronize configuration"
+            checkbox "Authenticated user: Synchronize configuration" invalid=false focusable checked=false
+          cell "Content editor: Synchronize configuration"
+            checkbox "Content editor: Synchronize configuration" invalid=false focusable checked=false
+          cell "Administrator: Synchronize configuration"
+            checkbox "Administrator: Synchronize configuration" disabled invalid=false checked
+        row
+          cell "Contextual Links"
+        row
+          cell "Use contextual links"
+          cell "Anonymous user: Use contextual links"
+            checkbox "Anonymous user: Use contextual links" invalid=false focusable checked=false
+          cell "Authenticated user: Use contextual links"
+            checkbox "Authenticated user: Use contextual links" invalid=false focusable checked=false
+          cell "Content editor: Use contextual links"
+            checkbox "Content editor: Use contextual links" invalid=false focusable checked
+          cell "Administrator: Use contextual links"
+            checkbox "Administrator: Use contextual links" disabled invalid=false checked
+        row
+          cell "Field UI"
+        row
+          cell "Content: Administer display"
+            emphasis
+              text "Content"
+            text ": Administer display"
+          cell "Anonymous user: Content: Administer display"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Content"
+              text ": Administer display"
+            checkbox "Anonymous user: Content: Administer display" invalid=false focusable checked=false
+          cell "Authenticated user: Content: Administer display"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Content"
+              text ": Administer display"
+            checkbox "Authenticated user: Content: Administer display" invalid=false focusable checked=false
+          cell "Content editor: Content: Administer display"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Content"
+              text ": Administer display"
+            checkbox "Content editor: Content: Administer display" invalid=false focusable checked=false
+          cell "Administrator: Content: Administer display"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Content"
+              text ": Administer display"
+            checkbox "Administrator: Content: Administer display" disabled invalid=false checked
+        row
+          cell "Content block: Administer display"
+            emphasis
+              text "Content block"
+            text ": Administer display"
+          cell "Anonymous user: Content block: Administer display"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Content block"
+              text ": Administer display"
+            checkbox "Anonymous user: Content block: Administer display" invalid=false focusable checked=false
+          cell "Authenticated user: Content block: Administer display"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Content block"
+              text ": Administer display"
+            checkbox "Authenticated user: Content block: Administer display" invalid=false focusable checked=false
+          cell "Content editor: Content block: Administer display"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Content block"
+              text ": Administer display"
+            checkbox "Content editor: Content block: Administer display" invalid=false focusable checked=false
+          cell "Administrator: Content block: Administer display"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Content block"
+              text ": Administer display"
+            checkbox "Administrator: Content block: Administer display" disabled invalid=false checked
+        row
+          cell "Media: Administer display"
+            emphasis
+              text "Media"
+            text ": Administer display"
+          cell "Anonymous user: Media: Administer display"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Media"
+              text ": Administer display"
+            checkbox "Anonymous user: Media: Administer display" invalid=false focusable checked=false
+          cell "Authenticated user: Media: Administer display"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Media"
+              text ": Administer display"
+            checkbox "Authenticated user: Media: Administer display" invalid=false focusable checked=false
+          cell "Content editor: Media: Administer display"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Media"
+              text ": Administer display"
+            checkbox "Content editor: Media: Administer display" invalid=false focusable checked=false
+          cell "Administrator: Media: Administer display"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Media"
+              text ": Administer display"
+            checkbox "Administrator: Media: Administer display" disabled invalid=false checked
+        row
+          cell "Taxonomy term: Administer display"
+            emphasis
+              text "Taxonomy term"
+            text ": Administer display"
+          cell "Anonymous user: Taxonomy term: Administer display"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Taxonomy term"
+              text ": Administer display"
+            checkbox "Anonymous user: Taxonomy term: Administer display" invalid=false focusable checked=false
+          cell "Authenticated user: Taxonomy term: Administer display"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Taxonomy term"
+              text ": Administer display"
+            checkbox "Authenticated user: Taxonomy term: Administer display" invalid=false focusable checked=false
+          cell "Content editor: Taxonomy term: Administer display"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Taxonomy term"
+              text ": Administer display"
+            checkbox "Content editor: Taxonomy term: Administer display" invalid=false focusable checked=false
+          cell "Administrator: Taxonomy term: Administer display"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Taxonomy term"
+              text ": Administer display"
+            checkbox "Administrator: Taxonomy term: Administer display" disabled invalid=false checked
+        row
+          cell "User: Administer display"
+            emphasis
+              text "User"
+            text ": Administer display"
+          cell "Anonymous user: User: Administer display"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "User"
+              text ": Administer display"
+            checkbox "Anonymous user: User: Administer display" invalid=false focusable checked=false
+          cell "Authenticated user: User: Administer display"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "User"
+              text ": Administer display"
+            checkbox "Authenticated user: User: Administer display" invalid=false focusable checked=false
+          cell "Content editor: User: Administer display"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "User"
+              text ": Administer display"
+            checkbox "Content editor: User: Administer display" invalid=false focusable checked=false
+          cell "Administrator: User: Administer display"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "User"
+              text ": Administer display"
+            checkbox "Administrator: User: Administer display" disabled invalid=false checked
+        row
+          cell "Content: Administer fields Warning: Give to trusted roles only; this permission has security implications."
+            emphasis
+              text "Content"
+            text ": Administer fields"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: Content: Administer fields"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Content"
+              text ": Administer fields"
+            checkbox "Anonymous user: Content: Administer fields" invalid=false focusable checked=false
+          cell "Authenticated user: Content: Administer fields"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Content"
+              text ": Administer fields"
+            checkbox "Authenticated user: Content: Administer fields" invalid=false focusable checked=false
+          cell "Content editor: Content: Administer fields"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Content"
+              text ": Administer fields"
+            checkbox "Content editor: Content: Administer fields" invalid=false focusable checked=false
+          cell "Administrator: Content: Administer fields"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Content"
+              text ": Administer fields"
+            checkbox "Administrator: Content: Administer fields" disabled invalid=false checked
+        row
+          cell "Content block: Administer fields Warning: Give to trusted roles only; this permission has security implications."
+            emphasis
+              text "Content block"
+            text ": Administer fields"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: Content block: Administer fields"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Content block"
+              text ": Administer fields"
+            checkbox "Anonymous user: Content block: Administer fields" invalid=false focusable checked=false
+          cell "Authenticated user: Content block: Administer fields"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Content block"
+              text ": Administer fields"
+            checkbox "Authenticated user: Content block: Administer fields" invalid=false focusable checked=false
+          cell "Content editor: Content block: Administer fields"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Content block"
+              text ": Administer fields"
+            checkbox "Content editor: Content block: Administer fields" invalid=false focusable checked=false
+          cell "Administrator: Content block: Administer fields"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Content block"
+              text ": Administer fields"
+            checkbox "Administrator: Content block: Administer fields" disabled invalid=false checked
+        row
+          cell "Media: Administer fields Warning: Give to trusted roles only; this permission has security implications."
+            emphasis
+              text "Media"
+            text ": Administer fields"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: Media: Administer fields"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Media"
+              text ": Administer fields"
+            checkbox "Anonymous user: Media: Administer fields" invalid=false focusable checked=false
+          cell "Authenticated user: Media: Administer fields"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Media"
+              text ": Administer fields"
+            checkbox "Authenticated user: Media: Administer fields" invalid=false focusable checked=false
+          cell "Content editor: Media: Administer fields"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Media"
+              text ": Administer fields"
+            checkbox "Content editor: Media: Administer fields" invalid=false focusable checked=false
+          cell "Administrator: Media: Administer fields"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Media"
+              text ": Administer fields"
+            checkbox "Administrator: Media: Administer fields" disabled invalid=false checked
+        row
+          cell "Taxonomy term: Administer fields Warning: Give to trusted roles only; this permission has security implications."
+            emphasis
+              text "Taxonomy term"
+            text ": Administer fields"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: Taxonomy term: Administer fields"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Taxonomy term"
+              text ": Administer fields"
+            checkbox "Anonymous user: Taxonomy term: Administer fields" invalid=false focusable checked=false
+          cell "Authenticated user: Taxonomy term: Administer fields"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Taxonomy term"
+              text ": Administer fields"
+            checkbox "Authenticated user: Taxonomy term: Administer fields" invalid=false focusable checked=false
+          cell "Content editor: Taxonomy term: Administer fields"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Taxonomy term"
+              text ": Administer fields"
+            checkbox "Content editor: Taxonomy term: Administer fields" invalid=false focusable checked=false
+          cell "Administrator: Taxonomy term: Administer fields"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Taxonomy term"
+              text ": Administer fields"
+            checkbox "Administrator: Taxonomy term: Administer fields" disabled invalid=false checked
+        row
+          cell "User: Administer fields Warning: Give to trusted roles only; this permission has security implications."
+            emphasis
+              text "User"
+            text ": Administer fields"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: User: Administer fields"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "User"
+              text ": Administer fields"
+            checkbox "Anonymous user: User: Administer fields" invalid=false focusable checked=false
+          cell "Authenticated user: User: Administer fields"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "User"
+              text ": Administer fields"
+            checkbox "Authenticated user: User: Administer fields" invalid=false focusable checked=false
+          cell "Content editor: User: Administer fields"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "User"
+              text ": Administer fields"
+            checkbox "Content editor: User: Administer fields" invalid=false focusable checked=false
+          cell "Administrator: User: Administer fields"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "User"
+              text ": Administer fields"
+            checkbox "Administrator: User: Administer fields" disabled invalid=false checked
+        row
+          cell "Content: Administer form display"
+            emphasis
+              text "Content"
+            text ": Administer form display"
+          cell "Anonymous user: Content: Administer form display"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Content"
+              text ": Administer form display"
+            checkbox "Anonymous user: Content: Administer form display" invalid=false focusable checked=false
+          cell "Authenticated user: Content: Administer form display"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Content"
+              text ": Administer form display"
+            checkbox "Authenticated user: Content: Administer form display" invalid=false focusable checked=false
+          cell "Content editor: Content: Administer form display"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Content"
+              text ": Administer form display"
+            checkbox "Content editor: Content: Administer form display" invalid=false focusable checked=false
+          cell "Administrator: Content: Administer form display"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Content"
+              text ": Administer form display"
+            checkbox "Administrator: Content: Administer form display" disabled invalid=false checked
+        row
+          cell "Content block: Administer form display"
+            emphasis
+              text "Content block"
+            text ": Administer form display"
+          cell "Anonymous user: Content block: Administer form display"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Content block"
+              text ": Administer form display"
+            checkbox "Anonymous user: Content block: Administer form display" invalid=false focusable checked=false
+          cell "Authenticated user: Content block: Administer form display"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Content block"
+              text ": Administer form display"
+            checkbox "Authenticated user: Content block: Administer form display" invalid=false focusable checked=false
+          cell "Content editor: Content block: Administer form display"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Content block"
+              text ": Administer form display"
+            checkbox "Content editor: Content block: Administer form display" invalid=false focusable checked=false
+          cell "Administrator: Content block: Administer form display"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Content block"
+              text ": Administer form display"
+            checkbox "Administrator: Content block: Administer form display" disabled invalid=false checked
+        row
+          cell "Media: Administer form display"
+            emphasis
+              text "Media"
+            text ": Administer form display"
+          cell "Anonymous user: Media: Administer form display"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Media"
+              text ": Administer form display"
+            checkbox "Anonymous user: Media: Administer form display" invalid=false focusable checked=false
+          cell "Authenticated user: Media: Administer form display"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Media"
+              text ": Administer form display"
+            checkbox "Authenticated user: Media: Administer form display" invalid=false focusable checked=false
+          cell "Content editor: Media: Administer form display"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Media"
+              text ": Administer form display"
+            checkbox "Content editor: Media: Administer form display" invalid=false focusable checked=false
+          cell "Administrator: Media: Administer form display"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Media"
+              text ": Administer form display"
+            checkbox "Administrator: Media: Administer form display" disabled invalid=false checked
+        row
+          cell "Taxonomy term: Administer form display"
+            emphasis
+              text "Taxonomy term"
+            text ": Administer form display"
+          cell "Anonymous user: Taxonomy term: Administer form display"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Taxonomy term"
+              text ": Administer form display"
+            checkbox "Anonymous user: Taxonomy term: Administer form display" invalid=false focusable checked=false
+          cell "Authenticated user: Taxonomy term: Administer form display"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Taxonomy term"
+              text ": Administer form display"
+            checkbox "Authenticated user: Taxonomy term: Administer form display" invalid=false focusable checked=false
+          cell "Content editor: Taxonomy term: Administer form display"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Taxonomy term"
+              text ": Administer form display"
+            checkbox "Content editor: Taxonomy term: Administer form display" invalid=false focusable checked=false
+          cell "Administrator: Taxonomy term: Administer form display"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Taxonomy term"
+              text ": Administer form display"
+            checkbox "Administrator: Taxonomy term: Administer form display" disabled invalid=false checked
+        row
+          cell "User: Administer form display"
+            emphasis
+              text "User"
+            text ": Administer form display"
+          cell "Anonymous user: User: Administer form display"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "User"
+              text ": Administer form display"
+            checkbox "Anonymous user: User: Administer form display" invalid=false focusable checked=false
+          cell "Authenticated user: User: Administer form display"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "User"
+              text ": Administer form display"
+            checkbox "Authenticated user: User: Administer form display" invalid=false focusable checked=false
+          cell "Content editor: User: Administer form display"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "User"
+              text ": Administer form display"
+            checkbox "Content editor: User: Administer form display" invalid=false focusable checked=false
+          cell "Administrator: User: Administer form display"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "User"
+              text ": Administer form display"
+            checkbox "Administrator: User: Administer form display" disabled invalid=false checked
+        row
+          cell "Add, edit, and delete custom display modes."
+          cell "Anonymous user: Add, edit, and delete custom display modes."
+            checkbox "Anonymous user: Add, edit, and delete custom display modes." invalid=false focusable checked=false
+          cell "Authenticated user: Add, edit, and delete custom display modes."
+            checkbox "Authenticated user: Add, edit, and delete custom display modes." invalid=false focusable checked=false
+          cell "Content editor: Add, edit, and delete custom display modes."
+            checkbox "Content editor: Add, edit, and delete custom display modes." invalid=false focusable checked=false
+          cell "Administrator: Add, edit, and delete custom display modes."
+            checkbox "Administrator: Add, edit, and delete custom display modes." disabled invalid=false checked
+        row
+          cell "File"
+        row
+          cell "Access the Files overview page"
+          cell "Anonymous user: Access the Files overview page"
+            checkbox "Anonymous user: Access the Files overview page" invalid=false focusable checked=false
+          cell "Authenticated user: Access the Files overview page"
+            checkbox "Authenticated user: Access the Files overview page" invalid=false focusable checked=false
+          cell "Content editor: Access the Files overview page"
+            checkbox "Content editor: Access the Files overview page" invalid=false focusable checked
+          cell "Administrator: Access the Files overview page"
+            checkbox "Administrator: Access the Files overview page" disabled invalid=false checked
+        row
+          cell "Delete any file Warning: Give to trusted roles only; this permission has security implications."
+            text "Delete any file"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: Delete any file"
+            checkbox "Anonymous user: Delete any file" invalid=false focusable checked=false
+          cell "Authenticated user: Delete any file"
+            checkbox "Authenticated user: Delete any file" invalid=false focusable checked=false
+          cell "Content editor: Delete any file"
+            checkbox "Content editor: Delete any file" invalid=false focusable checked=false
+          cell "Administrator: Delete any file"
+            checkbox "Administrator: Delete any file" disabled invalid=false checked
+        row
+          cell "Delete own files"
+          cell "Anonymous user: Delete own files"
+            checkbox "Anonymous user: Delete own files" invalid=false focusable checked=false
+          cell "Authenticated user: Delete own files"
+            checkbox "Authenticated user: Delete own files" invalid=false focusable checked
+          cell "Content editor: Delete own files"
+            checkbox "Content editor: Delete own files" invalid=false focusable checked
+          cell "Administrator: Delete own files"
+            checkbox "Administrator: Delete own files" disabled invalid=false checked
+        row
+          cell "Filter"
+        row
+          cell "Administer text formats and filters Warning: Give to trusted roles only; this permission has security implications. Define how text is handled by combining filters into text formats."
+            text "Administer text formats and filters"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+            text "Define how text is handled by combining filters into text formats."
+          cell "Anonymous user: Administer text formats and filters"
+            checkbox "Anonymous user: Administer text formats and filters" invalid=false focusable checked=false
+          cell "Authenticated user: Administer text formats and filters"
+            checkbox "Authenticated user: Administer text formats and filters" invalid=false focusable checked=false
+          cell "Content editor: Administer text formats and filters"
+            checkbox "Content editor: Administer text formats and filters" invalid=false focusable checked=false
+          cell "Administrator: Administer text formats and filters"
+            checkbox "Administrator: Administer text formats and filters" disabled invalid=false checked
+        row
+          cell "Use the Basic HTML text format Warning: This permission may have security implications depending on how the text format is configured."
+            text "Use the Basic HTML text format"
+            emphasis
+              text "Warning: This permission may have security implications depending on how the text format is configured."
+          cell "Anonymous user: Use the Basic HTML text format"
+            checkbox "Anonymous user: Use the Basic HTML text format" invalid=false focusable checked=false
+          cell "Authenticated user: Use the Basic HTML text format"
+            checkbox "Authenticated user: Use the Basic HTML text format" invalid=false focusable checked
+          cell "Content editor: Use the Basic HTML text format"
+            checkbox "Content editor: Use the Basic HTML text format" invalid=false focusable checked=false
+          cell "Administrator: Use the Basic HTML text format"
+            checkbox "Administrator: Use the Basic HTML text format" disabled invalid=false checked
+        row
+          cell "Use the Full HTML text format Warning: This permission may have security implications depending on how the text format is configured."
+            text "Use the Full HTML text format"
+            emphasis
+              text "Warning: This permission may have security implications depending on how the text format is configured."
+          cell "Anonymous user: Use the Full HTML text format"
+            checkbox "Anonymous user: Use the Full HTML text format" invalid=false focusable checked=false
+          cell "Authenticated user: Use the Full HTML text format"
+            checkbox "Authenticated user: Use the Full HTML text format" invalid=false focusable checked=false
+          cell "Content editor: Use the Full HTML text format"
+            checkbox "Content editor: Use the Full HTML text format" invalid=false focusable checked=false
+          cell "Administrator: Use the Full HTML text format"
+            checkbox "Administrator: Use the Full HTML text format" disabled invalid=false checked
+        row
+          cell "Use the Restricted HTML text format Warning: This permission may have security implications depending on how the text format is configured."
+            text "Use the Restricted HTML text format"
+            emphasis
+              text "Warning: This permission may have security implications depending on how the text format is configured."
+          cell "Anonymous user: Use the Restricted HTML text format"
+            checkbox "Anonymous user: Use the Restricted HTML text format" invalid=false focusable checked
+          cell "Authenticated user: Use the Restricted HTML text format"
+            checkbox "Authenticated user: Use the Restricted HTML text format" invalid=false focusable checked=false
+          cell "Content editor: Use the Restricted HTML text format"
+            checkbox "Content editor: Use the Restricted HTML text format" invalid=false focusable checked=false
+          cell "Administrator: Use the Restricted HTML text format"
+            checkbox "Administrator: Use the Restricted HTML text format" disabled invalid=false checked
+        row
+          cell "Help"
+        row
+          cell "Use help pages"
+          cell "Anonymous user: Use help pages"
+            checkbox "Anonymous user: Use help pages" invalid=false focusable checked=false
+          cell "Authenticated user: Use help pages"
+            checkbox "Authenticated user: Use help pages" invalid=false focusable checked=false
+          cell "Content editor: Use help pages"
+            checkbox "Content editor: Use help pages" invalid=false focusable checked=false
+          cell "Administrator: Use help pages"
+            checkbox "Administrator: Use help pages" disabled invalid=false checked
+        row
+          cell "Image"
+        row
+          cell "Administer image styles"
+          cell "Anonymous user: Administer image styles"
+            checkbox "Anonymous user: Administer image styles" invalid=false focusable checked=false
+          cell "Authenticated user: Administer image styles"
+            checkbox "Authenticated user: Administer image styles" invalid=false focusable checked=false
+          cell "Content editor: Administer image styles"
+            checkbox "Content editor: Administer image styles" invalid=false focusable checked=false
+          cell "Administrator: Administer image styles"
+            checkbox "Administrator: Administer image styles" disabled invalid=false checked
+        row
+          cell "Language"
+        row
+          cell "Administer languages Warning: Give to trusted roles only; this permission has security implications."
+            text "Administer languages"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: Administer languages"
+            checkbox "Anonymous user: Administer languages" invalid=false focusable checked=false
+          cell "Authenticated user: Administer languages"
+            checkbox "Authenticated user: Administer languages" invalid=false focusable checked=false
+          cell "Content editor: Administer languages"
+            checkbox "Content editor: Administer languages" invalid=false focusable checked=false
+          cell "Administrator: Administer languages"
+            checkbox "Administrator: Administer languages" disabled invalid=false checked
+        row
+          cell "Layout Builder"
+        row
+          cell "Configure any layout Warning: Give to trusted roles only; this permission has security implications."
+            text "Configure any layout"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: Configure any layout"
+            checkbox "Anonymous user: Configure any layout" invalid=false focusable checked=false
+          cell "Authenticated user: Configure any layout"
+            checkbox "Authenticated user: Configure any layout" invalid=false focusable checked=false
+          cell "Content editor: Configure any layout"
+            checkbox "Content editor: Configure any layout" invalid=false focusable checked=false
+          cell "Administrator: Configure any layout"
+            checkbox "Administrator: Configure any layout" disabled invalid=false checked
+        row
+          cell "Create and edit content blocks Manage the single-use blocks within the Layout Builder"
+            text "Create and edit content blocks"
+            text "Manage the single-use blocks within the Layout Builder"
+          cell "Anonymous user: Create and edit content blocks"
+            checkbox "Anonymous user: Create and edit content blocks" invalid=false focusable checked=false
+          cell "Authenticated user: Create and edit content blocks"
+            checkbox "Authenticated user: Create and edit content blocks" invalid=false focusable checked=false
+          cell "Content editor: Create and edit content blocks"
+            checkbox "Content editor: Create and edit content blocks" invalid=false focusable checked=false
+          cell "Administrator: Create and edit content blocks"
+            checkbox "Administrator: Create and edit content blocks" disabled invalid=false checked
+        row
+          cell "Media"
+        row
+          cell "Image: Create new media"
+            emphasis
+              text "Image"
+            text ": Create new media"
+          cell "Anonymous user: Image: Create new media"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Image"
+              text ": Create new media"
+            checkbox "Anonymous user: Image: Create new media" invalid=false focusable checked=false
+          cell "Authenticated user: Image: Create new media"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Image"
+              text ": Create new media"
+            checkbox "Authenticated user: Image: Create new media" invalid=false focusable checked=false
+          cell "Content editor: Image: Create new media"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Image"
+              text ": Create new media"
+            checkbox "Content editor: Image: Create new media" invalid=false focusable checked=false
+          cell "Administrator: Image: Create new media"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Image"
+              text ": Create new media"
+            checkbox "Administrator: Image: Create new media" disabled invalid=false checked
+        row
+          cell "Image: Delete any media"
+            emphasis
+              text "Image"
+            text ": Delete any media"
+          cell "Anonymous user: Image: Delete any media"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Image"
+              text ": Delete any media"
+            checkbox "Anonymous user: Image: Delete any media" invalid=false focusable checked=false
+          cell "Authenticated user: Image: Delete any media"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Image"
+              text ": Delete any media"
+            checkbox "Authenticated user: Image: Delete any media" invalid=false focusable checked=false
+          cell "Content editor: Image: Delete any media"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Image"
+              text ": Delete any media"
+            checkbox "Content editor: Image: Delete any media" invalid=false focusable checked=false
+          cell "Administrator: Image: Delete any media"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Image"
+              text ": Delete any media"
+            checkbox "Administrator: Image: Delete any media" disabled invalid=false checked
+        row
+          cell "Image: Delete own media"
+            emphasis
+              text "Image"
+            text ": Delete own media"
+          cell "Anonymous user: Image: Delete own media"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Image"
+              text ": Delete own media"
+            checkbox "Anonymous user: Image: Delete own media" invalid=false focusable checked=false
+          cell "Authenticated user: Image: Delete own media"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Image"
+              text ": Delete own media"
+            checkbox "Authenticated user: Image: Delete own media" invalid=false focusable checked=false
+          cell "Content editor: Image: Delete own media"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Image"
+              text ": Delete own media"
+            checkbox "Content editor: Image: Delete own media" invalid=false focusable checked=false
+          cell "Administrator: Image: Delete own media"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Image"
+              text ": Delete own media"
+            checkbox "Administrator: Image: Delete own media" disabled invalid=false checked
+        row
+          cell "Image: Edit any media"
+            emphasis
+              text "Image"
+            text ": Edit any media"
+          cell "Anonymous user: Image: Edit any media"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Image"
+              text ": Edit any media"
+            checkbox "Anonymous user: Image: Edit any media" invalid=false focusable checked=false
+          cell "Authenticated user: Image: Edit any media"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Image"
+              text ": Edit any media"
+            checkbox "Authenticated user: Image: Edit any media" invalid=false focusable checked=false
+          cell "Content editor: Image: Edit any media"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Image"
+              text ": Edit any media"
+            checkbox "Content editor: Image: Edit any media" invalid=false focusable checked=false
+          cell "Administrator: Image: Edit any media"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Image"
+              text ": Edit any media"
+            checkbox "Administrator: Image: Edit any media" disabled invalid=false checked
+        row
+          cell "Image: Edit own media"
+            emphasis
+              text "Image"
+            text ": Edit own media"
+          cell "Anonymous user: Image: Edit own media"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Image"
+              text ": Edit own media"
+            checkbox "Anonymous user: Image: Edit own media" invalid=false focusable checked=false
+          cell "Authenticated user: Image: Edit own media"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Image"
+              text ": Edit own media"
+            checkbox "Authenticated user: Image: Edit own media" invalid=false focusable checked=false
+          cell "Content editor: Image: Edit own media"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Image"
+              text ": Edit own media"
+            checkbox "Content editor: Image: Edit own media" invalid=false focusable checked=false
+          cell "Administrator: Image: Edit own media"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Image"
+              text ": Edit own media"
+            checkbox "Administrator: Image: Edit own media" disabled invalid=false checked
+        row
+          cell "Image: View any media revision pages"
+            emphasis
+              text "Image"
+            text ": View any media revision pages"
+          cell "Anonymous user: Image: View any media revision pages"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Image"
+              text ": View any media revision pages"
+            checkbox "Anonymous user: Image: View any media revision pages" invalid=false focusable checked=false
+          cell "Authenticated user: Image: View any media revision pages"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Image"
+              text ": View any media revision pages"
+            checkbox "Authenticated user: Image: View any media revision pages" invalid=false focusable checked=false
+          cell "Content editor: Image: View any media revision pages"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Image"
+              text ": View any media revision pages"
+            checkbox "Content editor: Image: View any media revision pages" invalid=false focusable checked=false
+          cell "Administrator: Image: View any media revision pages"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Image"
+              text ": View any media revision pages"
+            checkbox "Administrator: Image: View any media revision pages" disabled invalid=false checked
+        row
+          cell "Access media overview Users with this permission can access the media overview page."
+            text "Access media overview"
+            text "Users with this permission can access the media overview page."
+          cell "Anonymous user: Access media overview"
+            checkbox "Anonymous user: Access media overview" invalid=false focusable checked=false
+          cell "Authenticated user: Access media overview"
+            checkbox "Authenticated user: Access media overview" invalid=false focusable checked=false
+          cell "Content editor: Access media overview"
+            checkbox "Content editor: Access media overview" invalid=false focusable checked=false
+          cell "Administrator: Access media overview"
+            checkbox "Administrator: Access media overview" disabled invalid=false checked
+        row
+          cell "Administer media Warning: Give to trusted roles only; this permission has security implications."
+            text "Administer media"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: Administer media"
+            checkbox "Anonymous user: Administer media" invalid=false focusable checked=false
+          cell "Authenticated user: Administer media"
+            checkbox "Authenticated user: Administer media" invalid=false focusable checked=false
+          cell "Content editor: Administer media"
+            checkbox "Content editor: Administer media" invalid=false focusable checked=false
+          cell "Administrator: Administer media"
+            checkbox "Administrator: Administer media" disabled invalid=false checked
+        row
+          cell "Administer media types Warning: Give to trusted roles only; this permission has security implications."
+            text "Administer media types"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: Administer media types"
+            checkbox "Anonymous user: Administer media types" invalid=false focusable checked=false
+          cell "Authenticated user: Administer media types"
+            checkbox "Authenticated user: Administer media types" invalid=false focusable checked=false
+          cell "Content editor: Administer media types"
+            checkbox "Content editor: Administer media types" invalid=false focusable checked=false
+          cell "Administrator: Administer media types"
+            checkbox "Administrator: Administer media types" disabled invalid=false checked
+        row
+          cell "Create media"
+          cell "Anonymous user: Create media"
+            checkbox "Anonymous user: Create media" invalid=false focusable checked=false
+          cell "Authenticated user: Create media"
+            checkbox "Authenticated user: Create media" invalid=false focusable checked=false
+          cell "Content editor: Create media"
+            checkbox "Content editor: Create media" invalid=false focusable checked=false
+          cell "Administrator: Create media"
+            checkbox "Administrator: Create media" disabled invalid=false checked
+        row
+          cell "Delete Image: Delete media revisions"
+            text "Delete"
+            emphasis
+              text "Image"
+            text ": Delete media revisions"
+          cell "Anonymous user: Delete Image: Delete media revisions"
+            LabelText
+              text "Anonymous user: Delete"
+              emphasis
+                text "Image"
+              text ": Delete media revisions"
+            checkbox "Anonymous user: Delete Image: Delete media revisions" invalid=false focusable checked=false
+          cell "Authenticated user: Delete Image: Delete media revisions"
+            LabelText
+              text "Authenticated user: Delete"
+              emphasis
+                text "Image"
+              text ": Delete media revisions"
+            checkbox "Authenticated user: Delete Image: Delete media revisions" invalid=false focusable checked=false
+          cell "Content editor: Delete Image: Delete media revisions"
+            LabelText
+              text "Content editor: Delete"
+              emphasis
+                text "Image"
+              text ": Delete media revisions"
+            checkbox "Content editor: Delete Image: Delete media revisions" invalid=false focusable checked=false
+          cell "Administrator: Delete Image: Delete media revisions"
+            LabelText
+              text "Administrator: Delete"
+              emphasis
+                text "Image"
+              text ": Delete media revisions"
+            checkbox "Administrator: Delete Image: Delete media revisions" disabled invalid=false checked
+        row
+          cell "Delete any media"
+          cell "Anonymous user: Delete any media"
+            checkbox "Anonymous user: Delete any media" invalid=false focusable checked=false
+          cell "Authenticated user: Delete any media"
+            checkbox "Authenticated user: Delete any media" invalid=false focusable checked=false
+          cell "Content editor: Delete any media"
+            checkbox "Content editor: Delete any media" invalid=false focusable checked=false
+          cell "Administrator: Delete any media"
+            checkbox "Administrator: Delete any media" disabled invalid=false checked
+        row
+          cell "Delete own media"
+          cell "Anonymous user: Delete own media"
+            checkbox "Anonymous user: Delete own media" invalid=false focusable checked=false
+          cell "Authenticated user: Delete own media"
+            checkbox "Authenticated user: Delete own media" invalid=false focusable checked=false
+          cell "Content editor: Delete own media"
+            checkbox "Content editor: Delete own media" invalid=false focusable checked=false
+          cell "Administrator: Delete own media"
+            checkbox "Administrator: Delete own media" disabled invalid=false checked
+        row
+          cell "Revert Image: Revert media revisions"
+            text "Revert"
+            emphasis
+              text "Image"
+            text ": Revert media revisions"
+          cell "Anonymous user: Revert Image: Revert media revisions"
+            LabelText
+              text "Anonymous user: Revert"
+              emphasis
+                text "Image"
+              text ": Revert media revisions"
+            checkbox "Anonymous user: Revert Image: Revert media revisions" invalid=false focusable checked=false
+          cell "Authenticated user: Revert Image: Revert media revisions"
+            LabelText
+              text "Authenticated user: Revert"
+              emphasis
+                text "Image"
+              text ": Revert media revisions"
+            checkbox "Authenticated user: Revert Image: Revert media revisions" invalid=false focusable checked=false
+          cell "Content editor: Revert Image: Revert media revisions"
+            LabelText
+              text "Content editor: Revert"
+              emphasis
+                text "Image"
+              text ": Revert media revisions"
+            checkbox "Content editor: Revert Image: Revert media revisions" invalid=false focusable checked=false
+          cell "Administrator: Revert Image: Revert media revisions"
+            LabelText
+              text "Administrator: Revert"
+              emphasis
+                text "Image"
+              text ": Revert media revisions"
+            checkbox "Administrator: Revert Image: Revert media revisions" disabled invalid=false checked
+        row
+          cell "Update any media"
+          cell "Anonymous user: Update any media"
+            checkbox "Anonymous user: Update any media" invalid=false focusable checked=false
+          cell "Authenticated user: Update any media"
+            checkbox "Authenticated user: Update any media" invalid=false focusable checked=false
+          cell "Content editor: Update any media"
+            checkbox "Content editor: Update any media" invalid=false focusable checked=false
+          cell "Administrator: Update any media"
+            checkbox "Administrator: Update any media" disabled invalid=false checked
+        row
+          cell "Update own media"
+          cell "Anonymous user: Update own media"
+            checkbox "Anonymous user: Update own media" invalid=false focusable checked=false
+          cell "Authenticated user: Update own media"
+            checkbox "Authenticated user: Update own media" invalid=false focusable checked=false
+          cell "Content editor: Update own media"
+            checkbox "Content editor: Update own media" invalid=false focusable checked=false
+          cell "Administrator: Update own media"
+            checkbox "Administrator: Update own media" disabled invalid=false checked
+        row
+          cell "View all media revisions To view a revision, you also need permission to view the media item."
+            text "View all media revisions"
+            text "To view a revision, you also need permission to view the media item."
+          cell "Anonymous user: View all media revisions"
+            checkbox "Anonymous user: View all media revisions" invalid=false focusable checked=false
+          cell "Authenticated user: View all media revisions"
+            checkbox "Authenticated user: View all media revisions" invalid=false focusable checked=false
+          cell "Content editor: View all media revisions"
+            checkbox "Content editor: View all media revisions" invalid=false focusable checked=false
+          cell "Administrator: View all media revisions"
+            checkbox "Administrator: View all media revisions" disabled invalid=false checked
+        row
+          cell "View media"
+          cell "Anonymous user: View media"
+            checkbox "Anonymous user: View media" invalid=false focusable checked
+          cell "Authenticated user: View media"
+            checkbox "Authenticated user: View media" invalid=false focusable checked
+          cell "Content editor: View media"
+            checkbox "Content editor: View media" invalid=false focusable checked=false
+          cell "Administrator: View media"
+            checkbox "Administrator: View media" disabled invalid=false checked
+        row
+          cell "View own unpublished media"
+          cell "Anonymous user: View own unpublished media"
+            checkbox "Anonymous user: View own unpublished media" invalid=false focusable checked=false
+          cell "Authenticated user: View own unpublished media"
+            checkbox "Authenticated user: View own unpublished media" invalid=false focusable checked=false
+          cell "Content editor: View own unpublished media"
+            checkbox "Content editor: View own unpublished media" invalid=false focusable checked=false
+          cell "Administrator: View own unpublished media"
+            checkbox "Administrator: View own unpublished media" disabled invalid=false checked
+        row
+          cell "Navigation"
+        row
+          cell "Access navigation bar"
+          cell "Anonymous user: Access navigation bar"
+            checkbox "Anonymous user: Access navigation bar" invalid=false focusable checked=false
+          cell "Authenticated user: Access navigation bar"
+            checkbox "Authenticated user: Access navigation bar" invalid=false focusable checked=false
+          cell "Content editor: Access navigation bar"
+            checkbox "Content editor: Access navigation bar" invalid=false focusable checked
+          cell "Administrator: Access navigation bar"
+            checkbox "Administrator: Access navigation bar" disabled invalid=false checked
+        row
+          cell "Configure navigation layout"
+          cell "Anonymous user: Configure navigation layout"
+            checkbox "Anonymous user: Configure navigation layout" invalid=false focusable checked=false
+          cell "Authenticated user: Configure navigation layout"
+            checkbox "Authenticated user: Configure navigation layout" invalid=false focusable checked=false
+          cell "Content editor: Configure navigation layout"
+            checkbox "Content editor: Configure navigation layout" invalid=false focusable checked=false
+          cell "Administrator: Configure navigation layout"
+            checkbox "Administrator: Configure navigation layout" disabled invalid=false checked
+        row
+          cell "Node"
+        row
+          cell "Article: Create new content"
+            emphasis
+              text "Article"
+            text ": Create new content"
+          cell "Anonymous user: Article: Create new content"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Article"
+              text ": Create new content"
+            checkbox "Anonymous user: Article: Create new content" invalid=false focusable checked=false
+          cell "Authenticated user: Article: Create new content"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Article"
+              text ": Create new content"
+            checkbox "Authenticated user: Article: Create new content" invalid=false focusable checked=false
+          cell "Content editor: Article: Create new content"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Article"
+              text ": Create new content"
+            checkbox "Content editor: Article: Create new content" invalid=false focusable checked=false
+          cell "Administrator: Article: Create new content"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Article"
+              text ": Create new content"
+            checkbox "Administrator: Article: Create new content" disabled invalid=false checked
+        row
+          cell "Article: Delete any content"
+            emphasis
+              text "Article"
+            text ": Delete any content"
+          cell "Anonymous user: Article: Delete any content"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Article"
+              text ": Delete any content"
+            checkbox "Anonymous user: Article: Delete any content" invalid=false focusable checked=false
+          cell "Authenticated user: Article: Delete any content"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Article"
+              text ": Delete any content"
+            checkbox "Authenticated user: Article: Delete any content" invalid=false focusable checked=false
+          cell "Content editor: Article: Delete any content"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Article"
+              text ": Delete any content"
+            checkbox "Content editor: Article: Delete any content" invalid=false focusable checked=false
+          cell "Administrator: Article: Delete any content"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Article"
+              text ": Delete any content"
+            checkbox "Administrator: Article: Delete any content" disabled invalid=false checked
+        row
+          cell "Article: Delete own content Note that anonymous users with this permission are able to delete any content created by any anonymous user."
+            emphasis
+              text "Article"
+            text ": Delete own content"
+            text "Note that anonymous users with this permission are able to delete any content created by any anonymous user."
+          cell "Anonymous user: Article: Delete own content"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Article"
+              text ": Delete own content"
+            checkbox "Anonymous user: Article: Delete own content" invalid=false focusable checked=false
+          cell "Authenticated user: Article: Delete own content"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Article"
+              text ": Delete own content"
+            checkbox "Authenticated user: Article: Delete own content" invalid=false focusable checked=false
+          cell "Content editor: Article: Delete own content"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Article"
+              text ": Delete own content"
+            checkbox "Content editor: Article: Delete own content" invalid=false focusable checked=false
+          cell "Administrator: Article: Delete own content"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Article"
+              text ": Delete own content"
+            checkbox "Administrator: Article: Delete own content" disabled invalid=false checked
+        row
+          cell "Article: Delete revisions To delete a revision, you also need permission to delete the content item."
+            emphasis
+              text "Article"
+            text ": Delete revisions"
+            text "To delete a revision, you also need permission to delete the content item."
+          cell "Anonymous user: Article: Delete revisions"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Article"
+              text ": Delete revisions"
+            checkbox "Anonymous user: Article: Delete revisions" invalid=false focusable checked=false
+          cell "Authenticated user: Article: Delete revisions"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Article"
+              text ": Delete revisions"
+            checkbox "Authenticated user: Article: Delete revisions" invalid=false focusable checked=false
+          cell "Content editor: Article: Delete revisions"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Article"
+              text ": Delete revisions"
+            checkbox "Content editor: Article: Delete revisions" invalid=false focusable checked=false
+          cell "Administrator: Article: Delete revisions"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Article"
+              text ": Delete revisions"
+            checkbox "Administrator: Article: Delete revisions" disabled invalid=false checked
+        row
+          cell "Article: Edit any content"
+            emphasis
+              text "Article"
+            text ": Edit any content"
+          cell "Anonymous user: Article: Edit any content"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Article"
+              text ": Edit any content"
+            checkbox "Anonymous user: Article: Edit any content" invalid=false focusable checked=false
+          cell "Authenticated user: Article: Edit any content"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Article"
+              text ": Edit any content"
+            checkbox "Authenticated user: Article: Edit any content" invalid=false focusable checked=false
+          cell "Content editor: Article: Edit any content"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Article"
+              text ": Edit any content"
+            checkbox "Content editor: Article: Edit any content" invalid=false focusable checked=false
+          cell "Administrator: Article: Edit any content"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Article"
+              text ": Edit any content"
+            checkbox "Administrator: Article: Edit any content" disabled invalid=false checked
+        row
+          cell "Article: Edit own content Note that anonymous users with this permission are able to edit any content created by any anonymous user."
+            emphasis
+              text "Article"
+            text ": Edit own content"
+            text "Note that anonymous users with this permission are able to edit any content created by any anonymous user."
+          cell "Anonymous user: Article: Edit own content"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Article"
+              text ": Edit own content"
+            checkbox "Anonymous user: Article: Edit own content" invalid=false focusable checked=false
+          cell "Authenticated user: Article: Edit own content"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Article"
+              text ": Edit own content"
+            checkbox "Authenticated user: Article: Edit own content" invalid=false focusable checked=false
+          cell "Content editor: Article: Edit own content"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Article"
+              text ": Edit own content"
+            checkbox "Content editor: Article: Edit own content" invalid=false focusable checked=false
+          cell "Administrator: Article: Edit own content"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Article"
+              text ": Edit own content"
+            checkbox "Administrator: Article: Edit own content" disabled invalid=false checked
+        row
+          cell "Article: Revert revisions To revert a revision, you also need permission to edit the content item."
+            emphasis
+              text "Article"
+            text ": Revert revisions"
+            text "To revert a revision, you also need permission to edit the content item."
+          cell "Anonymous user: Article: Revert revisions"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Article"
+              text ": Revert revisions"
+            checkbox "Anonymous user: Article: Revert revisions" invalid=false focusable checked=false
+          cell "Authenticated user: Article: Revert revisions"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Article"
+              text ": Revert revisions"
+            checkbox "Authenticated user: Article: Revert revisions" invalid=false focusable checked=false
+          cell "Content editor: Article: Revert revisions"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Article"
+              text ": Revert revisions"
+            checkbox "Content editor: Article: Revert revisions" invalid=false focusable checked=false
+          cell "Administrator: Article: Revert revisions"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Article"
+              text ": Revert revisions"
+            checkbox "Administrator: Article: Revert revisions" disabled invalid=false checked
+        row
+          cell "Article: View revisions To view a revision, you also need permission to view the content item."
+            emphasis
+              text "Article"
+            text ": View revisions"
+            text "To view a revision, you also need permission to view the content item."
+          cell "Anonymous user: Article: View revisions"
+            LabelText
+              text "Anonymous user:"
+              emphasis
+                text "Article"
+              text ": View revisions"
+            checkbox "Anonymous user: Article: View revisions" invalid=false focusable checked=false
+          cell "Authenticated user: Article: View revisions"
+            LabelText
+              text "Authenticated user:"
+              emphasis
+                text "Article"
+              text ": View revisions"
+            checkbox "Authenticated user: Article: View revisions" invalid=false focusable checked=false
+          cell "Content editor: Article: View revisions"
+            LabelText
+              text "Content editor:"
+              emphasis
+                text "Article"
+              text ": View revisions"
+            checkbox "Content editor: Article: View revisions" invalid=false focusable checked=false
+          cell "Administrator: Article: View revisions"
+            LabelText
+              text "Administrator:"
+              emphasis
+                text "Article"
+              text ": View revisions"
+            checkbox "Administrator: Article: View revisions" disabled invalid=false checked
+        row
+          cell "Access the Content overview page"
+          cell "Anonymous user: Access the Content overview page"
+            checkbox "Anonymous user: Access the Content overview page" invalid=false focusable checked=false
+          cell "Authenticated user: Access the Content overview page"
+            checkbox "Authenticated user: Access the Content overview page" invalid=false focusable checked=false
+          cell "Content editor: Access the Content overview page"
+            checkbox "Content editor: Access the Content overview page" invalid=false focusable checked
+          cell "Administrator: Access the Content overview page"
+            checkbox "Administrator: Access the Content overview page" disabled invalid=false checked
+        row
+          cell "Administer content Warning: Give to trusted roles only; this permission has security implications. Promote, change ownership, edit revisions, and perform other tasks across all content types."
+            text "Administer content"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+            text "Promote, change ownership, edit revisions, and perform other tasks across all content types."
+          cell "Anonymous user: Administer content"
+            checkbox "Anonymous user: Administer content" invalid=false focusable checked=false
+          cell "Authenticated user: Administer content"
+            checkbox "Authenticated user: Administer content" invalid=false focusable checked=false
+          cell "Content editor: Administer content"
+            checkbox "Content editor: Administer content" invalid=false focusable checked=false
+          cell "Administrator: Administer content"
+            checkbox "Administrator: Administer content" disabled invalid=false checked
+        row
+          cell "Administer content types Warning: Give to trusted roles only; this permission has security implications. Maintain the types of content available and the fields that are associated with those types."
+            text "Administer content types"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+            text "Maintain the types of content available and the fields that are associated with those types."
+          cell "Anonymous user: Administer content types"
+            checkbox "Anonymous user: Administer content types" invalid=false focusable checked=false
+          cell "Authenticated user: Administer content types"
+            checkbox "Authenticated user: Administer content types" invalid=false focusable checked=false
+          cell "Content editor: Administer content types"
+            checkbox "Content editor: Administer content types" invalid=false focusable checked=false
+          cell "Administrator: Administer content types"
+            checkbox "Administrator: Administer content types" disabled invalid=false checked
+        row
+          cell "Administer node published status Warning: Give to trusted roles only; this permission has security implications. Edit the published status of a node across all content types."
+            text "Administer node published status"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+            text "Edit the published status of a node across all content types."
+          cell "Anonymous user: Administer node published status"
+            checkbox "Anonymous user: Administer node published status" invalid=false focusable checked=false
+          cell "Authenticated user: Administer node published status"
+            checkbox "Authenticated user: Administer node published status" invalid=false focusable checked=false
+          cell "Content editor: Administer node published status"
+            checkbox "Content editor: Administer node published status" invalid=false focusable checked=false
+          cell "Administrator: Administer node published status"
+            checkbox "Administrator: Administer node published status" disabled invalid=false checked
+        row
+          cell "Bypass content access control Warning: Give to trusted roles only; this permission has security implications. View, edit and delete all content regardless of permission restrictions."
+            text "Bypass content access control"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+            text "View, edit and delete all content regardless of permission restrictions."
+          cell "Anonymous user: Bypass content access control"
+            checkbox "Anonymous user: Bypass content access control" invalid=false focusable checked=false
+          cell "Authenticated user: Bypass content access control"
+            checkbox "Authenticated user: Bypass content access control" invalid=false focusable checked=false
+          cell "Content editor: Bypass content access control"
+            checkbox "Content editor: Bypass content access control" invalid=false focusable checked=false
+          cell "Administrator: Bypass content access control"
+            checkbox "Administrator: Bypass content access control" disabled invalid=false checked
+        row
+          cell "Delete all revisions To delete a revision, you also need permission to delete the content item."
+            text "Delete all revisions"
+            text "To delete a revision, you also need permission to delete the content item."
+          cell "Anonymous user: Delete all revisions"
+            checkbox "Anonymous user: Delete all revisions" invalid=false focusable checked=false
+          cell "Authenticated user: Delete all revisions"
+            checkbox "Authenticated user: Delete all revisions" invalid=false focusable checked=false
+          cell "Content editor: Delete all revisions"
+            checkbox "Content editor: Delete all revisions" invalid=false focusable checked=false
+          cell "Administrator: Delete all revisions"
+            checkbox "Administrator: Delete all revisions" disabled invalid=false checked
+        row
+          cell "Rebuild content access permissions Warning: Give to trusted roles only; this permission has security implications. Trigger a content access permission rebuild. This can be a potentially long and disruptive process."
+            text "Rebuild content access permissions"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+            text "Trigger a content access permission rebuild. This can be a potentially long and disruptive process."
+          cell "Anonymous user: Rebuild content access permissions"
+            checkbox "Anonymous user: Rebuild content access permissions" invalid=false focusable checked=false
+          cell "Authenticated user: Rebuild content access permissions"
+            checkbox "Authenticated user: Rebuild content access permissions" invalid=false focusable checked=false
+          cell "Content editor: Rebuild content access permissions"
+            checkbox "Content editor: Rebuild content access permissions" invalid=false focusable checked=false
+          cell "Administrator: Rebuild content access permissions"
+            checkbox "Administrator: Rebuild content access permissions" disabled invalid=false checked
+        row
+          cell "Revert all revisions To revert a revision, you also need permission to edit the content item."
+            text "Revert all revisions"
+            text "To revert a revision, you also need permission to edit the content item."
+          cell "Anonymous user: Revert all revisions"
+            checkbox "Anonymous user: Revert all revisions" invalid=false focusable checked=false
+          cell "Authenticated user: Revert all revisions"
+            checkbox "Authenticated user: Revert all revisions" invalid=false focusable checked=false
+          cell "Content editor: Revert all revisions"
+            checkbox "Content editor: Revert all revisions" invalid=false focusable checked
+          cell "Administrator: Revert all revisions"
+            checkbox "Administrator: Revert all revisions" disabled invalid=false checked
+        row
+          cell "View all revisions To view a revision, you also need permission to view the content item."
+            text "View all revisions"
+            text "To view a revision, you also need permission to view the content item."
+          cell "Anonymous user: View all revisions"
+            checkbox "Anonymous user: View all revisions" invalid=false focusable checked=false
+          cell "Authenticated user: View all revisions"
+            checkbox "Authenticated user: View all revisions" invalid=false focusable checked=false
+          cell "Content editor: View all revisions"
+            checkbox "Content editor: View all revisions" invalid=false focusable checked
+          cell "Administrator: View all revisions"
+            checkbox "Administrator: View all revisions" disabled invalid=false checked
+        row
+          cell "View published content"
+          cell "Anonymous user: View published content"
+            checkbox "Anonymous user: View published content" invalid=false focusable checked
+          cell "Authenticated user: View published content"
+            checkbox "Authenticated user: View published content" invalid=false focusable checked
+          cell "Content editor: View published content"
+            checkbox "Content editor: View published content" invalid=false focusable checked=false
+          cell "Administrator: View published content"
+            checkbox "Administrator: View published content" disabled invalid=false checked
+        row
+          cell "View own unpublished content"
+          cell "Anonymous user: View own unpublished content"
+            checkbox "Anonymous user: View own unpublished content" invalid=false focusable checked=false
+          cell "Authenticated user: View own unpublished content"
+            checkbox "Authenticated user: View own unpublished content" invalid=false focusable checked=false
+          cell "Content editor: View own unpublished content"
+            checkbox "Content editor: View own unpublished content" invalid=false focusable checked
+          cell "Administrator: View own unpublished content"
+            checkbox "Administrator: View own unpublished content" disabled invalid=false checked
+        row
+          cell "Path"
+        row
+          cell "Administer URL aliases"
+          cell "Anonymous user: Administer URL aliases"
+            checkbox "Anonymous user: Administer URL aliases" invalid=false focusable checked=false
+          cell "Authenticated user: Administer URL aliases"
+            checkbox "Authenticated user: Administer URL aliases" invalid=false focusable checked=false
+          cell "Content editor: Administer URL aliases"
+            checkbox "Content editor: Administer URL aliases" invalid=false focusable checked
+          cell "Administrator: Administer URL aliases"
+            checkbox "Administrator: Administer URL aliases" disabled invalid=false checked
+        row
+          cell "Create and edit URL aliases"
+          cell "Anonymous user: Create and edit URL aliases"
+            checkbox "Anonymous user: Create and edit URL aliases" invalid=false focusable checked=false
+          cell "Authenticated user: Create and edit URL aliases"
+            checkbox "Authenticated user: Create and edit URL aliases" invalid=false focusable checked=false
+          cell "Content editor: Create and edit URL aliases"
+            checkbox "Content editor: Create and edit URL aliases" invalid=false focusable checked
+          cell "Administrator: Create and edit URL aliases"
+            checkbox "Administrator: Create and edit URL aliases" disabled invalid=false checked
+        row
+          cell "System"
+        row
+          cell "Administer actions Warning: Give to trusted roles only; this permission has security implications."
+            text "Administer actions"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: Administer actions"
+            checkbox "Anonymous user: Administer actions" invalid=false focusable checked=false
+          cell "Authenticated user: Administer actions"
+            checkbox "Authenticated user: Administer actions" invalid=false focusable checked=false
+          cell "Content editor: Administer actions"
+            checkbox "Content editor: Administer actions" invalid=false focusable checked=false
+          cell "Administrator: Administer actions"
+            checkbox "Administrator: Administer actions" disabled invalid=false checked
+        row
+          cell "Administer design token entities Warning: Give to trusted roles only; this permission has security implications. Allows to administer the design tokens."
+            text "Administer design token entities"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+            text "Allows to administer the design tokens."
+          cell "Anonymous user: Administer design token entities"
+            checkbox "Anonymous user: Administer design token entities" invalid=false focusable checked=false
+          cell "Authenticated user: Administer design token entities"
+            checkbox "Authenticated user: Administer design token entities" invalid=false focusable checked=false
+          cell "Content editor: Administer design token entities"
+            checkbox "Content editor: Administer design token entities" invalid=false focusable checked=false
+          cell "Administrator: Administer design token entities"
+            checkbox "Administrator: Administer design token entities" disabled invalid=false checked
+        row
+          cell "Administer menus and menu links"
+          cell "Anonymous user: Administer menus and menu links"
+            checkbox "Anonymous user: Administer menus and menu links" invalid=false focusable checked=false
+          cell "Authenticated user: Administer menus and menu links"
+            checkbox "Authenticated user: Administer menus and menu links" invalid=false focusable checked=false
+          cell "Content editor: Administer menus and menu links"
+            checkbox "Content editor: Administer menus and menu links" invalid=false focusable checked=false
+          cell "Administrator: Administer menus and menu links"
+            checkbox "Administrator: Administer menus and menu links" disabled invalid=false checked
+        row
+          cell "Administer modules"
+          cell "Anonymous user: Administer modules"
+            checkbox "Anonymous user: Administer modules" invalid=false focusable checked=false
+          cell "Authenticated user: Administer modules"
+            checkbox "Authenticated user: Administer modules" invalid=false focusable checked=false
+          cell "Content editor: Administer modules"
+            checkbox "Content editor: Administer modules" invalid=false focusable checked=false
+          cell "Administrator: Administer modules"
+            checkbox "Administrator: Administer modules" disabled invalid=false checked
+        row
+          cell "Administer site configuration Warning: Give to trusted roles only; this permission has security implications."
+            text "Administer site configuration"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: Administer site configuration"
+            checkbox "Anonymous user: Administer site configuration" invalid=false focusable checked=false
+          cell "Authenticated user: Administer site configuration"
+            checkbox "Authenticated user: Administer site configuration" invalid=false focusable checked=false
+          cell "Content editor: Administer site configuration"
+            checkbox "Content editor: Administer site configuration" invalid=false focusable checked=false
+          cell "Administrator: Administer site configuration"
+            checkbox "Administrator: Administer site configuration" disabled invalid=false checked
+        row
+          cell "Administer software updates Warning: Give to trusted roles only; this permission has security implications."
+            text "Administer software updates"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: Administer software updates"
+            checkbox "Anonymous user: Administer software updates" invalid=false focusable checked=false
+          cell "Authenticated user: Administer software updates"
+            checkbox "Authenticated user: Administer software updates" invalid=false focusable checked=false
+          cell "Content editor: Administer software updates"
+            checkbox "Content editor: Administer software updates" invalid=false focusable checked=false
+          cell "Administrator: Administer software updates"
+            checkbox "Administrator: Administer software updates" disabled invalid=false checked
+        row
+          cell "Administer themes Warning: Give to trusted roles only; this permission has security implications."
+            text "Administer themes"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: Administer themes"
+            checkbox "Anonymous user: Administer themes" invalid=false focusable checked=false
+          cell "Authenticated user: Administer themes"
+            checkbox "Authenticated user: Administer themes" invalid=false focusable checked=false
+          cell "Content editor: Administer themes"
+            checkbox "Content editor: Administer themes" invalid=false focusable checked=false
+          cell "Administrator: Administer themes"
+            checkbox "Administrator: Administer themes" disabled invalid=false checked
+        row
+          cell "Link to any page Warning: Give to trusted roles only; this permission has security implications. This allows to bypass access checking when linking to internal paths."
+            text "Link to any page"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+            text "This allows to bypass access checking when linking to internal paths."
+          cell "Anonymous user: Link to any page"
+            checkbox "Anonymous user: Link to any page" invalid=false focusable checked=false
+          cell "Authenticated user: Link to any page"
+            checkbox "Authenticated user: Link to any page" invalid=false focusable checked=false
+          cell "Content editor: Link to any page"
+            checkbox "Content editor: Link to any page" invalid=false focusable checked=false
+          cell "Administrator: Link to any page"
+            checkbox "Administrator: Link to any page" disabled invalid=false checked
+        row
+          cell "Use the administration pages"
+          cell "Anonymous user: Use the administration pages"
+            checkbox "Anonymous user: Use the administration pages" invalid=false focusable checked=false
+          cell "Authenticated user: Use the administration pages"
+            checkbox "Authenticated user: Use the administration pages" invalid=false focusable checked=false
+          cell "Content editor: Use the administration pages"
+            checkbox "Content editor: Use the administration pages" invalid=false focusable checked
+          cell "Administrator: Use the administration pages"
+            checkbox "Administrator: Use the administration pages" disabled invalid=false checked
+        row
+          cell "Use the site in maintenance mode"
+          cell "Anonymous user: Use the site in maintenance mode"
+            checkbox "Anonymous user: Use the site in maintenance mode" invalid=false focusable checked=false
+          cell "Authenticated user: Use the site in maintenance mode"
+            checkbox "Authenticated user: Use the site in maintenance mode" invalid=false focusable checked=false
+          cell "Content editor: Use the site in maintenance mode"
+            checkbox "Content editor: Use the site in maintenance mode" invalid=false focusable checked=false
+          cell "Administrator: Use the site in maintenance mode"
+            checkbox "Administrator: Use the site in maintenance mode" disabled invalid=false checked
+        row
+          cell "View site reports Warning: Give to trusted roles only; this permission has security implications."
+            text "View site reports"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: View site reports"
+            checkbox "Anonymous user: View site reports" invalid=false focusable checked=false
+          cell "Authenticated user: View site reports"
+            checkbox "Authenticated user: View site reports" invalid=false focusable checked=false
+          cell "Content editor: View site reports"
+            checkbox "Content editor: View site reports" invalid=false focusable checked=false
+          cell "Administrator: View site reports"
+            checkbox "Administrator: View site reports" disabled invalid=false checked
+        row
+          cell "View the administration theme This is only used when the site is configured to use a separate administration theme on the Appearance page."
+            text "View the administration theme"
+            text "This is only used when the site is configured to use a separate administration theme on the Appearance page."
+          cell "Anonymous user: View the administration theme"
+            checkbox "Anonymous user: View the administration theme" invalid=false focusable checked=false
+          cell "Authenticated user: View the administration theme"
+            checkbox "Authenticated user: View the administration theme" invalid=false focusable checked=false
+          cell "Content editor: View the administration theme"
+            checkbox "Content editor: View the administration theme" invalid=false focusable checked
+          cell "Administrator: View the administration theme"
+            checkbox "Administrator: View the administration theme" disabled invalid=false checked
+        row
+          cell "Taxonomy"
+        row
+          cell "Access the taxonomy vocabulary overview page Get an overview of all taxonomy vocabularies."
+            text "Access the taxonomy vocabulary overview page"
+            text "Get an overview of all taxonomy vocabularies."
+          cell "Anonymous user: Access the taxonomy vocabulary overview page"
+            checkbox "Anonymous user: Access the taxonomy vocabulary overview page" invalid=false focusable checked=false
+          cell "Authenticated user: Access the taxonomy vocabulary overview page"
+            checkbox "Authenticated user: Access the taxonomy vocabulary overview page" invalid=false focusable checked=false
+          cell "Content editor: Access the taxonomy vocabulary overview page"
+            checkbox "Content editor: Access the taxonomy vocabulary overview page" invalid=false focusable checked=false
+          cell "Administrator: Access the taxonomy vocabulary overview page"
+            checkbox "Administrator: Access the taxonomy vocabulary overview page" disabled invalid=false checked
+        row
+          cell "Administer vocabularies and terms"
+          cell "Anonymous user: Administer vocabularies and terms"
+            checkbox "Anonymous user: Administer vocabularies and terms" invalid=false focusable checked=false
+          cell "Authenticated user: Administer vocabularies and terms"
+            checkbox "Authenticated user: Administer vocabularies and terms" invalid=false focusable checked=false
+          cell "Content editor: Administer vocabularies and terms"
+            checkbox "Content editor: Administer vocabularies and terms" invalid=false focusable checked=false
+          cell "Administrator: Administer vocabularies and terms"
+            checkbox "Administrator: Administer vocabularies and terms" disabled invalid=false checked
+        row
+          cell "Delete all term revisions"
+          cell "Anonymous user: Delete all term revisions"
+            checkbox "Anonymous user: Delete all term revisions" invalid=false focusable checked=false
+          cell "Authenticated user: Delete all term revisions"
+            checkbox "Authenticated user: Delete all term revisions" invalid=false focusable checked=false
+          cell "Content editor: Delete all term revisions"
+            checkbox "Content editor: Delete all term revisions" invalid=false focusable checked=false
+          cell "Administrator: Delete all term revisions"
+            checkbox "Administrator: Delete all term revisions" disabled invalid=false checked
+        row
+          cell "Revert all term revisions"
+          cell "Anonymous user: Revert all term revisions"
+            checkbox "Anonymous user: Revert all term revisions" invalid=false focusable checked=false
+          cell "Authenticated user: Revert all term revisions"
+            checkbox "Authenticated user: Revert all term revisions" invalid=false focusable checked=false
+          cell "Content editor: Revert all term revisions"
+            checkbox "Content editor: Revert all term revisions" invalid=false focusable checked=false
+          cell "Administrator: Revert all term revisions"
+            checkbox "Administrator: Revert all term revisions" disabled invalid=false checked
+        row
+          cell "View all term revisions"
+          cell "Anonymous user: View all term revisions"
+            checkbox "Anonymous user: View all term revisions" invalid=false focusable checked=false
+          cell "Authenticated user: View all term revisions"
+            checkbox "Authenticated user: View all term revisions" invalid=false focusable checked=false
+          cell "Content editor: View all term revisions"
+            checkbox "Content editor: View all term revisions" invalid=false focusable checked=false
+          cell "Administrator: View all term revisions"
+            checkbox "Administrator: View all term revisions" disabled invalid=false checked
+        row
+          cell "View vocabulary labels"
+          cell "Anonymous user: View vocabulary labels"
+            checkbox "Anonymous user: View vocabulary labels" invalid=false focusable checked=false
+          cell "Authenticated user: View vocabulary labels"
+            checkbox "Authenticated user: View vocabulary labels" invalid=false focusable checked=false
+          cell "Content editor: View vocabulary labels"
+            checkbox "Content editor: View vocabulary labels" invalid=false focusable checked=false
+          cell "Administrator: View vocabulary labels"
+            checkbox "Administrator: View vocabulary labels" disabled invalid=false checked
+        row
+          cell "Update Status"
+        row
+          cell "View software update notifications Ensure that site administrators have this permission so that security updates are applied promptly."
+            text "View software update notifications"
+            text "Ensure that site administrators have this permission so that security updates are applied promptly."
+          cell "Anonymous user: View software update notifications"
+            checkbox "Anonymous user: View software update notifications" invalid=false focusable checked=false
+          cell "Authenticated user: View software update notifications"
+            checkbox "Authenticated user: View software update notifications" invalid=false focusable checked=false
+          cell "Content editor: View software update notifications"
+            checkbox "Content editor: View software update notifications" invalid=false focusable checked=false
+          cell "Administrator: View software update notifications"
+            checkbox "Administrator: View software update notifications" disabled invalid=false checked
+        row
+          cell "User"
+        row
+          cell "Administer account settings Warning: Give to trusted roles only; this permission has security implications. Configure site-wide settings and behavior for user accounts and registration. This includes account cancellation methods, the content of user emails and fields attached to users."
+            text "Administer account settings"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+            text "Configure site-wide settings and behavior for user accounts and registration. This includes account cancellation methods, the content of user emails and fields attached to users."
+          cell "Anonymous user: Administer account settings"
+            checkbox "Anonymous user: Administer account settings" invalid=false focusable checked=false
+          cell "Authenticated user: Administer account settings"
+            checkbox "Authenticated user: Administer account settings" invalid=false focusable checked=false
+          cell "Content editor: Administer account settings"
+            checkbox "Content editor: Administer account settings" invalid=false focusable checked=false
+          cell "Administrator: Administer account settings"
+            checkbox "Administrator: Administer account settings" disabled invalid=false checked
+        row
+          cell "Administer roles and permissions Warning: Give to trusted roles only; this permission has security implications."
+            text "Administer roles and permissions"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: Administer roles and permissions"
+            checkbox "Anonymous user: Administer roles and permissions" invalid=false focusable checked=false
+          cell "Authenticated user: Administer roles and permissions"
+            checkbox "Authenticated user: Administer roles and permissions" invalid=false focusable checked=false
+          cell "Content editor: Administer roles and permissions"
+            checkbox "Content editor: Administer roles and permissions" invalid=false focusable checked=false
+          cell "Administrator: Administer roles and permissions"
+            checkbox "Administrator: Administer roles and permissions" disabled invalid=false checked
+        row
+          cell "Administer users Warning: Give to trusted roles only; this permission has security implications. Manage all user accounts. This includes editing all user information, changes of email addresses and passwords, issuing emails to users and blocking and deleting user accounts."
+            text "Administer users"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+            text "Manage all user accounts. This includes editing all user information, changes of email addresses and passwords, issuing emails to users and blocking and deleting user accounts."
+          cell "Anonymous user: Administer users"
+            checkbox "Anonymous user: Administer users" invalid=false focusable checked=false
+          cell "Authenticated user: Administer users"
+            checkbox "Authenticated user: Administer users" invalid=false focusable checked=false
+          cell "Content editor: Administer users"
+            checkbox "Content editor: Administer users" invalid=false focusable checked=false
+          cell "Administrator: Administer users"
+            checkbox "Administrator: Administer users" disabled invalid=false checked
+        row
+          cell "Cancel own user account Note: content may be kept, unpublished, deleted or transferred to the anonymous user depending on the configured user settings."
+            text "Cancel own user account"
+            text "Note: content may be kept, unpublished, deleted or transferred to the anonymous user depending on the configured user settings."
+          cell "Anonymous user: Cancel own user account"
+            checkbox "Anonymous user: Cancel own user account" invalid=false focusable checked=false
+          cell "Authenticated user: Cancel own user account"
+            checkbox "Authenticated user: Cancel own user account" invalid=false focusable checked=false
+          cell "Content editor: Cancel own user account"
+            checkbox "Content editor: Cancel own user account" invalid=false focusable checked=false
+          cell "Administrator: Cancel own user account"
+            checkbox "Administrator: Cancel own user account" disabled invalid=false checked
+        row
+          cell "Change own username"
+          cell "Anonymous user: Change own username"
+            checkbox "Anonymous user: Change own username" invalid=false focusable checked=false
+          cell "Authenticated user: Change own username"
+            checkbox "Authenticated user: Change own username" invalid=false focusable checked=false
+          cell "Content editor: Change own username"
+            checkbox "Content editor: Change own username" invalid=false focusable checked=false
+          cell "Administrator: Change own username"
+            checkbox "Administrator: Change own username" disabled invalid=false checked
+        row
+          cell "Select method for cancelling account Warning: Give to trusted roles only; this permission has security implications."
+            text "Select method for cancelling account"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: Select method for cancelling account"
+            checkbox "Anonymous user: Select method for cancelling account" invalid=false focusable checked=false
+          cell "Authenticated user: Select method for cancelling account"
+            checkbox "Authenticated user: Select method for cancelling account" invalid=false focusable checked=false
+          cell "Content editor: Select method for cancelling account"
+            checkbox "Content editor: Select method for cancelling account" invalid=false focusable checked=false
+          cell "Administrator: Select method for cancelling account"
+            checkbox "Administrator: Select method for cancelling account" disabled invalid=false checked
+        row
+          cell "View user email addresses Users without this permission will not have access to email addresses on user pages or other places where they might be shown, such as Views and JSON:API responses."
+            text "View user email addresses"
+            text "Users without this permission will not have access to email addresses on user pages or other places where they might be shown, such as Views and JSON:API responses."
+          cell "Anonymous user: View user email addresses"
+            checkbox "Anonymous user: View user email addresses" invalid=false focusable checked=false
+          cell "Authenticated user: View user email addresses"
+            checkbox "Authenticated user: View user email addresses" invalid=false focusable checked=false
+          cell "Content editor: View user email addresses"
+            checkbox "Content editor: View user email addresses" invalid=false focusable checked=false
+          cell "Administrator: View user email addresses"
+            checkbox "Administrator: View user email addresses" disabled invalid=false checked
+        row
+          cell "View user information"
+          cell "Anonymous user: View user information"
+            checkbox "Anonymous user: View user information" invalid=false focusable checked=false
+          cell "Authenticated user: View user information"
+            checkbox "Authenticated user: View user information" invalid=false focusable checked=false
+          cell "Content editor: View user information"
+            checkbox "Content editor: View user information" invalid=false focusable checked=false
+          cell "Administrator: View user information"
+            checkbox "Administrator: View user information" disabled invalid=false checked
+        row
+          cell "Views UI"
+        row
+          cell "Administer views Warning: Give to trusted roles only; this permission has security implications."
+            text "Administer views"
+            emphasis
+              text "Warning: Give to trusted roles only; this permission has security implications."
+          cell "Anonymous user: Administer views"
+            checkbox "Anonymous user: Administer views" invalid=false focusable checked=false
+          cell "Authenticated user: Administer views"
+            checkbox "Authenticated user: Administer views" invalid=false focusable checked=false
+          cell "Content editor: Administer views"
+            checkbox "Content editor: Administer views" invalid=false focusable checked=false
+          cell "Administrator: Administer views"
+            checkbox "Administrator: Administer views" disabled invalid=false checked
+      button "Save permissions" invalid=false focusable
+  generic live=polite atomic=false relevant="additions text"

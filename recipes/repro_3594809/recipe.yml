@@ -1,0 +1,14 @@
+name: 'Repro: #3594809 Use standard checkboxes on forms that require submission'
+description: 'Starting state for #3594809: the Standard install (Default Admin as the administration theme) plus an Article content type, an Image media type with the Media Library, sample content, and the lab-only fixture form at /admin/lab/checkboxes. The same on Before and After. Safe to apply more than once.'
+type: 'Testing'
+# A dependency name containing '/' is resolved from the Drupal root.
+# Current Standard installs create no content types or media types, so the
+# pages the issue's steps use (/node/add/article, /admin/content, the media
+# grid) need them made here. The fixture module and the sample content are
+# added by apply.sh: a recipe cannot ship module code.
+recipes:
+  - core/tests/fixtures/recipes/article_content_type
+  - core/recipes/image_media_type
+install:
+  - node
+  - media_library
