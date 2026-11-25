@@ -1,0 +1,943 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-11-25T11:55:55Z",
+  "period": {
+    "from": "2026-10-02",
+    "to": "2026-10-16"
+  },
+  "method": {
+    "name": "CLEER cost bridge",
+    "basis": "cost-bridge",
+    "method_version": "cost-bridge-v1",
+    "boundary": "facility-inference (accelerator + host + idle + cooling)",
+    "what_is_measured": "client-reported cost per AI event; provider-reported token counts",
+    "what_is_estimated": "remote inference energy, from a published CLEER energy-per-dollar intensity",
+    "what_is_unavailable": "per-token energy coefficients; direct measurement of provider infrastructure",
+    "uncertainty": "CLEER per-session standard deviation propagated as 1.96 x relative sd; scenario spread, not a confidence interval",
+    "dataset": {
+      "organization": "Sustainable AI Group",
+      "dataset": "CLEER Dataset",
+      "version": "CLEER-Text-0926/1.1.0",
+      "engine": "CLEER-Text-0926",
+      "schema_version": "1.1.0",
+      "accounting": "Closed-AI-Emissions-Methodology-0926",
+      "release": "2026-09-29",
+      "built": "2026-10-30",
+      "pin": "7fe6be0c76a3d6bbf98f3cb545a05871a6457f8f",
+      "checksum": "6235ead80bab89a5472874f1679839e5a833ae06719c440ad5aea1ff58a33f70",
+      "licence": "CC BY-NC 4.0",
+      "citation": "Sustainable AI Group, CLEER Dataset, version CLEER-Text-0926"
+    },
+    "use_case_by_activity": {
+      "model-evaluation": "chat",
+      "default": "agentic"
+    },
+    "default_tier": "typical",
+    "sigma": 1.96,
+    "calibration": "Each published energy_wh_per_usd is checked against energy_wh.mean / cost_usd for every row; a disagreement over 1% stops estimation."
+  },
+  "coverage": {
+    "denominator": "counted AI events (ai-request and counted ai-usage) that carry a model identifier",
+    "ai_events": 2235,
+    "estimated": 2235,
+    "unavailable": 0,
+    "estimated_share": 1,
+    "cost_total_usd": 237.19,
+    "cost_covered_usd": 237.19,
+    "cost_covered_share": 1,
+    "models_observed": 2,
+    "models_mapped": 2,
+    "models_unmapped": 0,
+    "models_with_exact_match": 0,
+    "models_with_proxy_match": 2,
+    "models_with_unreviewed_proxy": 2,
+    "unavailable_by_code": {}
+  },
+  "totals": {
+    "events": 2235,
+    "estimated": 2235,
+    "unavailable": 0,
+    "cost_usd": 237.19,
+    "cost_covered_usd": 237.19,
+    "central_wh": 1678.308214,
+    "workload_low_wh": 1675.84622,
+    "workload_high_wh": 1727.585991,
+    "configuration_low_wh": 1010.002898,
+    "configuration_high_wh": 2346.613458,
+    "use_cases": [
+      "agentic",
+      "chat"
+    ],
+    "dataset_models": [
+      "Claude Opus 5",
+      "Claude Sonnet 5"
+    ]
+  },
+  "use_case_sensitivity": {
+    "note": "What the same measured spend would imply under each use case. These are alternatives, not a range. The use case is configured per activity in mapping.json.",
+    "chat": {
+      "central_wh": 3574.05071,
+      "events_covered": 2235
+    },
+    "agentic": {
+      "central_wh": 1657.850807,
+      "events_covered": 2235
+    },
+    "ratio_chat_over_agentic": 2.16
+  },
+  "by_model": [
+    {
+      "model": "claude-sonnet-5-5",
+      "provider": "Anthropic",
+      "dataset_model": "Claude Sonnet 5",
+      "match_type": "proxy",
+      "review_status": "unreviewed",
+      "confidence": 0.75,
+      "energy_wh_per_usd": 8.14,
+      "events": 1611,
+      "estimated": 1611,
+      "unavailable": 0,
+      "cost_usd": 163.63,
+      "cost_covered_usd": 163.63,
+      "central_wh": 1352.433364,
+      "workload_low_wh": 1349.97137,
+      "workload_high_wh": 1386.263356,
+      "configuration_low_wh": 808.112189,
+      "configuration_high_wh": 1896.754473,
+      "use_cases": [
+        "agentic",
+        "chat"
+      ],
+      "dataset_models": [
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "model": "claude-opus-5-5",
+      "provider": "Anthropic",
+      "dataset_model": "Claude Opus 5",
+      "match_type": "proxy",
+      "review_status": "unreviewed",
+      "confidence": 0.467,
+      "energy_wh_per_usd": 4.43,
+      "events": 624,
+      "estimated": 624,
+      "unavailable": 0,
+      "cost_usd": 73.56,
+      "cost_covered_usd": 73.56,
+      "central_wh": 325.87485,
+      "workload_low_wh": 325.87485,
+      "workload_high_wh": 341.322635,
+      "configuration_low_wh": 201.890709,
+      "configuration_high_wh": 449.858985,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Opus 5"
+      ]
+    }
+  ],
+  "by_activity": [
+    {
+      "activity": "patch-development",
+      "events": 564,
+      "estimated": 564,
+      "unavailable": 0,
+      "cost_usd": 66.79,
+      "cost_covered_usd": 66.79,
+      "central_wh": 489.906402,
+      "workload_low_wh": 489.906402,
+      "workload_high_wh": 503.932197,
+      "configuration_low_wh": 293.935637,
+      "configuration_high_wh": 685.877125,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Opus 5",
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "activity": "code-exploration",
+      "events": 661,
+      "estimated": 661,
+      "unavailable": 0,
+      "cost_usd": 64.53,
+      "cost_covered_usd": 64.53,
+      "central_wh": 446.541726,
+      "workload_low_wh": 446.541726,
+      "workload_high_wh": 460.093383,
+      "configuration_low_wh": 268.716677,
+      "configuration_high_wh": 624.366754,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Opus 5",
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "activity": "unknown",
+      "events": 461,
+      "estimated": 461,
+      "unavailable": 0,
+      "cost_usd": 53.11,
+      "cost_covered_usd": 53.11,
+      "central_wh": 356.492497,
+      "workload_low_wh": 356.492497,
+      "workload_high_wh": 367.644751,
+      "configuration_low_wh": 214.874687,
+      "configuration_high_wh": 498.110277,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Opus 5",
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "activity": "environment-setup",
+      "events": 247,
+      "estimated": 247,
+      "unavailable": 0,
+      "cost_usd": 24.85,
+      "cost_covered_usd": 24.85,
+      "central_wh": 175.537193,
+      "workload_low_wh": 175.537193,
+      "workload_high_wh": 180.755348,
+      "configuration_low_wh": 105.519951,
+      "configuration_high_wh": 245.554471,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Opus 5",
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "activity": "issue-intake",
+      "events": 62,
+      "estimated": 62,
+      "unavailable": 0,
+      "cost_usd": 7.88,
+      "cost_covered_usd": 7.88,
+      "central_wh": 52.123067,
+      "workload_low_wh": 52.123067,
+      "workload_high_wh": 53.776858,
+      "configuration_low_wh": 31.441184,
+      "configuration_high_wh": 72.804946,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Opus 5",
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "activity": "validation",
+      "events": 65,
+      "estimated": 65,
+      "unavailable": 0,
+      "cost_usd": 6.82,
+      "cost_covered_usd": 6.82,
+      "central_wh": 48.027534,
+      "workload_low_wh": 48.027534,
+      "workload_high_wh": 49.460651,
+      "configuration_low_wh": 28.876229,
+      "configuration_high_wh": 67.178838,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Opus 5",
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "activity": "model-evaluation",
+      "events": 59,
+      "estimated": 59,
+      "unavailable": 0,
+      "cost_usd": 2.54,
+      "cost_covered_usd": 2.54,
+      "central_wh": 41.117815,
+      "workload_low_wh": 38.655821,
+      "workload_high_wh": 41.117815,
+      "configuration_low_wh": 25.210797,
+      "configuration_high_wh": 57.024822,
+      "use_cases": [
+        "chat"
+      ],
+      "dataset_models": [
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "activity": "infrastructure",
+      "events": 32,
+      "estimated": 32,
+      "unavailable": 0,
+      "cost_usd": 3.12,
+      "cost_covered_usd": 3.12,
+      "central_wh": 22.81184,
+      "workload_low_wh": 22.81184,
+      "workload_high_wh": 23.466838,
+      "configuration_low_wh": 13.688708,
+      "configuration_high_wh": 31.934973,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Opus 5",
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "activity": "issue-analysis",
+      "events": 38,
+      "estimated": 38,
+      "unavailable": 0,
+      "cost_usd": 3.54,
+      "cost_covered_usd": 3.54,
+      "central_wh": 16.816179,
+      "workload_low_wh": 16.816179,
+      "workload_high_wh": 17.559136,
+      "configuration_low_wh": 10.361759,
+      "configuration_high_wh": 23.270597,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Opus 5",
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "activity": "playwright-testing",
+      "events": 27,
+      "estimated": 27,
+      "unavailable": 0,
+      "cost_usd": 2.12,
+      "cost_covered_usd": 2.12,
+      "central_wh": 16.763848,
+      "workload_low_wh": 16.763848,
+      "workload_high_wh": 17.208614,
+      "configuration_low_wh": 10.021396,
+      "configuration_high_wh": 23.506306,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Opus 5",
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "activity": "github-actions",
+      "events": 5,
+      "estimated": 5,
+      "unavailable": 0,
+      "cost_usd": 0.6,
+      "cost_covered_usd": 0.6,
+      "central_wh": 4.162265,
+      "workload_low_wh": 4.162265,
+      "workload_high_wh": 4.28834,
+      "configuration_low_wh": 2.504487,
+      "configuration_high_wh": 5.820042,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Opus 5",
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "activity": "phpunit-execution",
+      "events": 7,
+      "estimated": 7,
+      "unavailable": 0,
+      "cost_usd": 0.64,
+      "cost_covered_usd": 0.64,
+      "central_wh": 3.66886,
+      "workload_low_wh": 3.66886,
+      "workload_high_wh": 3.802969,
+      "configuration_low_wh": 2.231528,
+      "configuration_high_wh": 5.106192,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Opus 5",
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "activity": "resource-measurement",
+      "events": 3,
+      "estimated": 3,
+      "unavailable": 0,
+      "cost_usd": 0.4,
+      "cost_covered_usd": 0.4,
+      "central_wh": 2.330573,
+      "workload_low_wh": 2.330573,
+      "workload_high_wh": 2.414086,
+      "configuration_low_wh": 1.41579,
+      "configuration_high_wh": 3.245356,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Opus 5",
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "activity": "documentation-generation",
+      "events": 2,
+      "estimated": 2,
+      "unavailable": 0,
+      "cost_usd": 0.2,
+      "cost_covered_usd": 0.2,
+      "central_wh": 1.413128,
+      "workload_low_wh": 1.413128,
+      "workload_high_wh": 1.454361,
+      "configuration_low_wh": 0.848662,
+      "configuration_high_wh": 1.977593,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Opus 5",
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "activity": "composer-install",
+      "events": 2,
+      "estimated": 2,
+      "unavailable": 0,
+      "cost_usd": 0.07,
+      "cost_covered_usd": 0.07,
+      "central_wh": 0.595287,
+      "workload_low_wh": 0.595287,
+      "workload_high_wh": 0.610644,
+      "configuration_low_wh": 0.355406,
+      "configuration_high_wh": 0.835166,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Sonnet 5"
+      ]
+    }
+  ],
+  "by_use_case": [
+    {
+      "use_case": "agentic",
+      "events": 2176,
+      "estimated": 2176,
+      "unavailable": 0,
+      "cost_usd": 234.66,
+      "cost_covered_usd": 234.66,
+      "central_wh": 1637.190399,
+      "workload_low_wh": 1637.190399,
+      "workload_high_wh": 1686.468176,
+      "configuration_low_wh": 984.792101,
+      "configuration_high_wh": 2289.588636,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Opus 5",
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "use_case": "chat",
+      "events": 59,
+      "estimated": 59,
+      "unavailable": 0,
+      "cost_usd": 2.54,
+      "cost_covered_usd": 2.54,
+      "central_wh": 41.117815,
+      "workload_low_wh": 38.655821,
+      "workload_high_wh": 41.117815,
+      "configuration_low_wh": 25.210797,
+      "configuration_high_wh": 57.024822,
+      "use_cases": [
+        "chat"
+      ],
+      "dataset_models": [
+        "Claude Sonnet 5"
+      ]
+    }
+  ],
+  "by_issue": [
+    {
+      "issue": "unattributed",
+      "events": 2002,
+      "estimated": 2002,
+      "unavailable": 0,
+      "cost_usd": 196.8,
+      "cost_covered_usd": 196.8,
+      "central_wh": 1499.356461,
+      "workload_low_wh": 1496.894467,
+      "workload_high_wh": 1540.151201,
+      "configuration_low_wh": 899.136111,
+      "configuration_high_wh": 2099.576737,
+      "use_cases": [
+        "agentic",
+        "chat"
+      ],
+      "dataset_models": [
+        "Claude Opus 5",
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "issue": "3618230",
+      "events": 233,
+      "estimated": 233,
+      "unavailable": 0,
+      "cost_usd": 40.4,
+      "cost_covered_usd": 40.4,
+      "central_wh": 178.951753,
+      "workload_low_wh": 178.951753,
+      "workload_high_wh": 187.43479,
+      "configuration_low_wh": 110.866787,
+      "configuration_high_wh": 247.036721,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Opus 5"
+      ]
+    }
+  ],
+  "trend": [
+    {
+      "date": "2026-10-02",
+      "events": 410,
+      "estimated": 410,
+      "unavailable": 0,
+      "cost_usd": 39.44,
+      "cost_covered_usd": 39.44,
+      "central_wh": 321.005805,
+      "workload_low_wh": 321.005805,
+      "workload_high_wh": 329.287298,
+      "configuration_low_wh": 191.651741,
+      "configuration_high_wh": 450.35989,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "date": "2026-10-03",
+      "events": 136,
+      "estimated": 136,
+      "unavailable": 0,
+      "cost_usd": 34.05,
+      "cost_covered_usd": 34.05,
+      "central_wh": 277.169379,
+      "workload_low_wh": 277.169379,
+      "workload_high_wh": 284.319936,
+      "configuration_low_wh": 165.479848,
+      "configuration_high_wh": 388.858904,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "date": "2026-10-04",
+      "events": 61,
+      "estimated": 61,
+      "unavailable": 0,
+      "cost_usd": 3.83,
+      "cost_covered_usd": 3.83,
+      "central_wh": 31.168208,
+      "workload_low_wh": 31.168208,
+      "workload_high_wh": 31.9723,
+      "configuration_low_wh": 18.608509,
+      "configuration_high_wh": 43.727899,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "date": "2026-10-05",
+      "events": 1,
+      "estimated": 1,
+      "unavailable": 0,
+      "cost_usd": 0.28,
+      "cost_covered_usd": 0.28,
+      "central_wh": 2.284182,
+      "workload_low_wh": 2.284182,
+      "workload_high_wh": 2.34311,
+      "configuration_low_wh": 1.363737,
+      "configuration_high_wh": 3.204627,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "date": "2026-10-08",
+      "events": 55,
+      "estimated": 55,
+      "unavailable": 0,
+      "cost_usd": 3.19,
+      "cost_covered_usd": 3.19,
+      "central_wh": 25.955249,
+      "workload_low_wh": 25.955249,
+      "workload_high_wh": 26.624857,
+      "configuration_low_wh": 15.496197,
+      "configuration_high_wh": 36.41431,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "date": "2026-10-14",
+      "events": 357,
+      "estimated": 357,
+      "unavailable": 0,
+      "cost_usd": 43.86,
+      "cost_covered_usd": 43.86,
+      "central_wh": 194.309726,
+      "workload_low_wh": 194.309726,
+      "workload_high_wh": 203.520796,
+      "configuration_low_wh": 120.381577,
+      "configuration_high_wh": 268.237874,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Opus 5"
+      ]
+    },
+    {
+      "date": "2026-10-15",
+      "events": 889,
+      "estimated": 889,
+      "unavailable": 0,
+      "cost_usd": 80.37,
+      "cost_covered_usd": 80.37,
+      "central_wh": 649.050569,
+      "workload_low_wh": 646.588575,
+      "workload_high_wh": 665.394871,
+      "configuration_low_wh": 388.855848,
+      "configuration_high_wh": 909.245211,
+      "use_cases": [
+        "agentic",
+        "chat"
+      ],
+      "dataset_models": [
+        "Claude Opus 5",
+        "Claude Sonnet 5"
+      ]
+    },
+    {
+      "date": "2026-10-16",
+      "events": 326,
+      "estimated": 326,
+      "unavailable": 0,
+      "cost_usd": 32.18,
+      "cost_covered_usd": 32.18,
+      "central_wh": 177.365096,
+      "workload_low_wh": 177.365096,
+      "workload_high_wh": 184.122823,
+      "configuration_low_wh": 108.165441,
+      "configuration_high_wh": 246.564743,
+      "use_cases": [
+        "agentic"
+      ],
+      "dataset_models": [
+        "Claude Opus 5",
+        "Claude Sonnet 5"
+      ]
+    }
+  ],
+  "reference": [
+    {
+      "dataset_model": "Claude Sonnet 5",
+      "provider": "Anthropic",
+      "estimation_basis": "CLEER proxy estimation",
+      "confidence": 0.75,
+      "hardware": "B200/B300",
+      "workload": "chat.light",
+      "use_case": "chat",
+      "tier": "light",
+      "energy_wh_per_usd": 15.57,
+      "energy_wh_mean": 0.237966663,
+      "energy_wh_sd": 0.047049302025,
+      "cost_usd": 0.015283,
+      "components_wh": {
+        "accelerator": 0.0994636,
+        "host": 0.0497318,
+        "idle": 0.01491954,
+        "cooling": 0.073851723
+      }
+    },
+    {
+      "dataset_model": "Claude Sonnet 5",
+      "provider": "Anthropic",
+      "estimation_basis": "CLEER proxy estimation",
+      "confidence": 0.75,
+      "hardware": "B200/B300",
+      "workload": "chat.typical",
+      "use_case": "chat",
+      "tier": "typical",
+      "energy_wh_per_usd": 16.2,
+      "energy_wh_mean": 0.8307983046,
+      "energy_wh_sd": 0.16398273474,
+      "cost_usd": 0.051293,
+      "components_wh": {
+        "accelerator": 0.34725112,
+        "host": 0.17362556,
+        "idle": 0.052087668,
+        "cooling": 0.2578339566
+      }
+    },
+    {
+      "dataset_model": "Claude Sonnet 5",
+      "provider": "Anthropic",
+      "estimation_basis": "CLEER proxy estimation",
+      "confidence": 0.75,
+      "hardware": "B200/B300",
+      "workload": "chat.heavy",
+      "use_case": "chat",
+      "tier": "heavy",
+      "energy_wh_per_usd": 15.23,
+      "energy_wh_mean": 8.022900402,
+      "energy_wh_sd": 1.587767719725,
+      "cost_usd": 0.526627,
+      "components_wh": {
+        "accelerator": 3.3533544,
+        "host": 1.6766772,
+        "idle": 0.50300316,
+        "cooling": 2.489865642
+      }
+    },
+    {
+      "dataset_model": "Claude Sonnet 5",
+      "provider": "Anthropic",
+      "estimation_basis": "CLEER proxy estimation",
+      "confidence": 0.75,
+      "hardware": "B200/B300",
+      "workload": "agentic.light",
+      "use_case": "agentic",
+      "tier": "light",
+      "energy_wh_per_usd": 8.35,
+      "energy_wh_mean": 15.1007043528,
+      "energy_wh_sd": 3.09845948247,
+      "cost_usd": 1.808768,
+      "components_wh": {
+        "accelerator": 6.31168416,
+        "host": 3.15584208,
+        "idle": 0.946752624,
+        "cooling": 4.6864254888
+      }
+    },
+    {
+      "dataset_model": "Claude Sonnet 5",
+      "provider": "Anthropic",
+      "estimation_basis": "CLEER proxy estimation",
+      "confidence": 0.75,
+      "hardware": "B200/B300",
+      "workload": "agentic.typical",
+      "use_case": "agentic",
+      "tier": "typical",
+      "energy_wh_per_usd": 8.14,
+      "energy_wh_mean": 31.6879420704,
+      "energy_wh_sd": 6.514861385835,
+      "cost_usd": 3.891696,
+      "components_wh": {
+        "accelerator": 13.24469888,
+        "host": 6.62234944,
+        "idle": 1.986704832,
+        "cooling": 9.8341889184
+      }
+    },
+    {
+      "dataset_model": "Claude Sonnet 5",
+      "provider": "Anthropic",
+      "estimation_basis": "CLEER proxy estimation",
+      "confidence": 0.75,
+      "hardware": "B200/B300",
+      "workload": "agentic.heavy",
+      "use_case": "agentic",
+      "tier": "heavy",
+      "energy_wh_per_usd": 8.33,
+      "energy_wh_mean": 120.1381345956,
+      "energy_wh_sd": 24.65488602324,
+      "cost_usd": 14.421213,
+      "components_wh": {
+        "accelerator": 50.21447632,
+        "host": 25.10723816,
+        "idle": 7.532171448,
+        "cooling": 37.2842486676
+      }
+    },
+    {
+      "dataset_model": "Claude Opus 5",
+      "provider": "Anthropic",
+      "estimation_basis": "CLEER proxy estimation",
+      "confidence": 0.467,
+      "hardware": "B200/B300",
+      "workload": "chat.light",
+      "use_case": "chat",
+      "tier": "light",
+      "energy_wh_per_usd": 11.92,
+      "energy_wh_mean": 0.455495550263,
+      "energy_wh_sd": 0.087299742296,
+      "cost_usd": 0.038208,
+      "components_wh": {
+        "accelerator": 0.190384765,
+        "host": 0.0951923825,
+        "idle": 0.02855771475,
+        "cooling": 0.141360688013
+      }
+    },
+    {
+      "dataset_model": "Claude Opus 5",
+      "provider": "Anthropic",
+      "estimation_basis": "CLEER proxy estimation",
+      "confidence": 0.467,
+      "hardware": "B200/B300",
+      "workload": "chat.typical",
+      "use_case": "chat",
+      "tier": "typical",
+      "energy_wh_per_usd": 12.55,
+      "energy_wh_mean": 1.609712026395,
+      "energy_wh_sd": 0.308397728282,
+      "cost_usd": 0.128232,
+      "components_wh": {
+        "accelerator": 0.672815894,
+        "host": 0.336407947,
+        "idle": 0.1009223841,
+        "cooling": 0.499565801295
+      }
+    },
+    {
+      "dataset_model": "Claude Opus 5",
+      "provider": "Anthropic",
+      "estimation_basis": "CLEER proxy estimation",
+      "confidence": 0.467,
+      "hardware": "B200/B300",
+      "workload": "chat.heavy",
+      "use_case": "chat",
+      "tier": "heavy",
+      "energy_wh_per_usd": 11.58,
+      "energy_wh_mean": 15.249496021238,
+      "energy_wh_sd": 2.923349430004,
+      "cost_usd": 1.316568,
+      "components_wh": {
+        "accelerator": 6.373875035,
+        "host": 3.1869375175,
+        "idle": 0.95608125525,
+        "cooling": 4.732602213488
+      }
+    },
+    {
+      "dataset_model": "Claude Opus 5",
+      "provider": "Anthropic",
+      "estimation_basis": "CLEER proxy estimation",
+      "confidence": 0.467,
+      "hardware": "B200/B300",
+      "workload": "agentic.light",
+      "use_case": "agentic",
+      "tier": "light",
+      "energy_wh_per_usd": 4.64,
+      "energy_wh_mean": 20.990329550685,
+      "energy_wh_sd": 4.070864051645,
+      "cost_usd": 4.521921,
+      "components_wh": {
+        "accelerator": 8.773387482,
+        "host": 4.386693741,
+        "idle": 1.3160081223,
+        "cooling": 6.514240205385
+      }
+    },
+    {
+      "dataset_model": "Claude Opus 5",
+      "provider": "Anthropic",
+      "estimation_basis": "CLEER proxy estimation",
+      "confidence": 0.467,
+      "hardware": "B200/B300",
+      "workload": "agentic.typical",
+      "use_case": "agentic",
+      "tier": "typical",
+      "energy_wh_per_usd": 4.43,
+      "energy_wh_mean": 43.140409209893,
+      "energy_wh_sd": 8.374202923457,
+      "cost_usd": 9.729241,
+      "components_wh": {
+        "accelerator": 18.031519001,
+        "host": 9.0157595005,
+        "idle": 2.70472785015,
+        "cooling": 13.388402858243
+      }
+    },
+    {
+      "dataset_model": "Claude Opus 5",
+      "provider": "Anthropic",
+      "estimation_basis": "CLEER proxy estimation",
+      "confidence": 0.467,
+      "hardware": "B200/B300",
+      "workload": "agentic.heavy",
+      "use_case": "agentic",
+      "tier": "heavy",
+      "energy_wh_per_usd": 4.62,
+      "energy_wh_mean": 166.70218097577,
+      "energy_wh_sd": 32.332655186469,
+      "cost_usd": 36.053032,
+      "components_wh": {
+        "accelerator": 69.676982644,
+        "host": 34.838491322,
+        "idle": 10.4515473966,
+        "cooling": 51.73515961317
+      }
+    }
+  ],
+  "unavailable": [],
+  "limitations": [
+    "Estimated, not measured. The figure is a published CLEER energy-per-dollar intensity multiplied by a client-reported cost.",
+    "CLEER publishes no per-token coefficients; the token counts behind its workloads are withheld. This project does not reconstruct them.",
+    "CLEER's workload is a fixed token mix; our request mix may differ. Our cache-read share is very high, and CLEER's workload cache share is unpublished.",
+    "Cost is a client-reported estimate, not an invoice or subscription statement, and may price tokens differently from CLEER's Artificial Analysis snapshot.",
+    "One ratio per model drives every request, so the aggregate uncertainty is correlated and does not narrow with more requests.",
+    "The bridge and any future per-token coefficient method are shown separately and are never merged."
+  ],
+  "privacy": {
+    "public_fields": "Aggregates only: model identifiers, dataset identifiers, costs, estimated energy, coverage counts. No prompts, transcripts, paths, hosts, usernames, session ids, task descriptions or evidence references.",
+    "estimate_grid": "Per-request estimates are computed deterministically and are available through the estimate command; the published report aggregates them.",
+    "missing_is_not_zero": true
+  },
+  "overhead": {
+    "compute_ms": 24.97,
+    "ledger_events_read": 2414,
+    "dataset_bytes": 515167,
+    "note": "Cost of computing this report on this host. It is monitoring overhead, separate from the workloads it describes."
+  }
+}

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/mgifford/drupal-core-lab/tools/resource/events.schema.json",
   "title": "Drupal Core Lab resource accounting event",
-  "description": "Version 1.0.0. One normalized measurement from one source. Missing values are null and described in quality.missing; zero is a real measured zero. Provider-reported, measured, derived and estimated values are kept distinct.",
+  "description": "Version 1.1.0. Adds an optional measurements.energy block for derived or measured energy; absent means no estimate, never zero. One normalized measurement from one source. Missing values are null and described in quality.missing; zero is a real measured zero. Provider-reported, measured, derived and estimated values are kept distinct.",
   "type": "object",
   "required": [
     "schema_version",
@@ -30,7 +30,10 @@
   "additionalProperties": false,
   "properties": {
     "schema_version": {
-      "const": "1.0.0"
+      "enum": [
+        "1.0.0",
+        "1.1.0"
+      ]
     },
     "event_id": {
       "type": "string",
@@ -956,6 +959,226 @@
                 "null"
               ],
               "minimum": 0
+            }
+          }
+        },
+        "energy": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "A derived or measured energy estimate. Energy is never a provider token measurement; basis and status say what it is. Absent or null means no estimate exists for this event, which is not the same as zero energy. Added in schema 1.1.0.",
+          "required": [
+            "status",
+            "basis"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "enum": [
+                "measured",
+                "provider-reported",
+                "estimated",
+                "derived",
+                "unavailable",
+                "not-applicable"
+              ]
+            },
+            "basis": {
+              "enum": [
+                "cost-bridge",
+                "coefficient",
+                "direct-measurement",
+                "unavailable"
+              ]
+            },
+            "method_version": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "boundary": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "central_wh": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "workload_low_wh": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "workload_high_wh": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "configuration_low_wh": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "configuration_high_wh": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "energy_wh_per_usd": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "use_case": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "workload": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "dataset": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "version": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "release": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "checksum": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "pin": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "licence": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            },
+            "model_mapping": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "input_model": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "dataset_model": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "match_type": {
+                  "enum": [
+                    "exact",
+                    "alias",
+                    "proxy",
+                    "unsupported",
+                    "ambiguous",
+                    "unknown",
+                    null
+                  ]
+                },
+                "review_status": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "confidence": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              }
+            },
+            "coverage": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "status": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "missing_categories": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "unavailable_code": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "computed_at": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "limitations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           }
         }

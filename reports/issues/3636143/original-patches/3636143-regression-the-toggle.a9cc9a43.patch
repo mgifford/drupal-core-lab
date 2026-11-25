@@ -1,0 +1,98 @@
+diff --git a/core/modules/navigation/css/components/admin-toolbar.css b/core/modules/navigation/css/components/admin-toolbar.css
+index afa4d8db7b53d197d304ab47a504d7407d781896..472fe48c9f991aee61b36a8248e6848c363b52e6 100644
+--- a/core/modules/navigation/css/components/admin-toolbar.css
++++ b/core/modules/navigation/css/components/admin-toolbar.css
+@@ -166,8 +166,31 @@ body {
+     border-radius: 50%;
+     background-color: transparent;
+ 
+-    &:hover {
++    &:hover,
++    &:focus-visible {
+       color: var(--admin-toolbar-color-gray-990);
++      border-color: var(--admin-toolbar-color-gray-990);
++      background-color: var(--admin-toolbar-color-gray-050);
++      /* Doubles the visible border width without changing the box size. */
++      box-shadow: inset 0 0 0 1px var(--admin-toolbar-color-gray-990);
++    }
++
++    /* The focus outline itself is set in admin-reset-styles.pcss.css. */
++    &:focus-visible {
++      outline-offset: 2px;
++    }
++
++    /* Box shadows are not painted in forced colors mode. */
++    @media (forced-colors: active) {
++      &:focus-visible {
++        border-color: buttonText;
++        outline-color: highlight;
++      }
++
++      /* Declared after :focus-visible so hovering a focused button shows. */
++      &:hover {
++        border-color: highlight;
++      }
+     }
+ 
+     @media (min-width: 64rem) {
+diff --git a/core/modules/navigation/css/components/admin-toolbar.pcss.css b/core/modules/navigation/css/components/admin-toolbar.pcss.css
+index 407fb097e189963db8f527a88d32a1848ef92d7d..c0325683a0b154eb78a5025b29f011e715a9983f 100644
+--- a/core/modules/navigation/css/components/admin-toolbar.pcss.css
++++ b/core/modules/navigation/css/components/admin-toolbar.pcss.css
+@@ -163,8 +163,31 @@ body {
+     border-radius: 50%;
+     background-color: transparent;
+ 
+-    &:hover {
++    &:hover,
++    &:focus-visible {
+       color: var(--admin-toolbar-color-gray-990);
++      border-color: var(--admin-toolbar-color-gray-990);
++      background-color: var(--admin-toolbar-color-gray-050);
++      /* Doubles the visible border width without changing the box size. */
++      box-shadow: inset 0 0 0 1px var(--admin-toolbar-color-gray-990);
++    }
++
++    /* The focus outline itself is set in admin-reset-styles.pcss.css. */
++    &:focus-visible {
++      outline-offset: 2px;
++    }
++
++    /* Box shadows are not painted in forced colors mode. */
++    @media (forced-colors: active) {
++      &:focus-visible {
++        border-color: buttonText;
++        outline-color: highlight;
++      }
++
++      /* Declared after :focus-visible so hovering a focused button shows. */
++      &:hover {
++        border-color: highlight;
++      }
+     }
+ 
+     @media (--admin-toolbar-desktop) {
+diff --git a/core/themes/default_admin/css/components/navigation.css b/core/themes/default_admin/css/components/navigation.css
+index afef666a5e6f31163e55ff0e0c34e3cd72cedb57..f0b4b2b9196aaa023df8df5b78bda5e7bdcb2949 100644
+--- a/core/themes/default_admin/css/components/navigation.css
++++ b/core/themes/default_admin/css/components/navigation.css
+@@ -38,6 +38,7 @@ html.admin-toolbar-expanded {
+   --admin-toolbar-color-gray-050: var(--admin-color-bg-surface-nested);
+   --admin-toolbar-color-gray-100: var(--admin-color-border-soft);
+   --admin-toolbar-color-gray-200: var(--admin-color-border);
++  --admin-toolbar-color-gray-300: var(--admin-color-border-input);
+   --admin-toolbar-color-gray-800: var(--admin-color-text);
+   --admin-toolbar-color-gray-990: var(--admin-color-primary-active);
+   --toolbar-button-has-active-child-color: var(--admin-color-primary);
+diff --git a/core/themes/default_admin/css/components/navigation.pcss.css b/core/themes/default_admin/css/components/navigation.pcss.css
+index d98887b34c2697dc310aeae4b332172cad08de37..dd337773e826813afe19b639d8cffc5b31ad4612 100644
+--- a/core/themes/default_admin/css/components/navigation.pcss.css
++++ b/core/themes/default_admin/css/components/navigation.pcss.css
+@@ -35,6 +35,7 @@ html.admin-toolbar-expanded {
+   --admin-toolbar-color-gray-050: var(--admin-color-bg-surface-nested);
+   --admin-toolbar-color-gray-100: var(--admin-color-border-soft);
+   --admin-toolbar-color-gray-200: var(--admin-color-border);
++  --admin-toolbar-color-gray-300: var(--admin-color-border-input);
+   --admin-toolbar-color-gray-800: var(--admin-color-text);
+   --admin-toolbar-color-gray-990: var(--admin-color-primary-active);
+   --toolbar-button-has-active-child-color: var(--admin-color-primary);

@@ -41,6 +41,11 @@ for (const [name, width, options, setup] of [
   await page.goto(base, { waitUntil: 'load' });
   if (setup) await setup(page);
   await page.waitForSelector('#summary:not([hidden])', { timeout: 15000 });
+  const timing = await page.evaluate(() => {
+    const entry = performance.getEntriesByType('resource').find((x) => x.name.endsWith('resources.json'));
+    return { json_bytes: entry?.encodedBodySize ?? null, json_fetch_ms: entry ? Math.round(entry.duration) : null,
+      dom_content_loaded_ms: Math.round(performance.timing.domContentLoadedEventEnd - performance.timing.navigationStart) };
+  });
   const geometry = await page.evaluate(() => ({
     status: document.getElementById('status').textContent,
     cards: document.querySelectorAll('#cards .card').length,
@@ -60,7 +65,7 @@ for (const [name, width, options, setup] of [
   await page.waitForTimeout(50);
   const reset = await page.locator('#rows-table tbody tr').count();
   const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice']).analyze();
-  results.push({ name, geometry, filter: { before, filtered, reset }, violations: axe.violations.map((v) => ({ id: v.id, impact: v.impact, nodes: v.nodes.length })), errors });
+  results.push({ name, geometry, timing, filter: { before, filtered, reset }, violations: axe.violations.map((v) => ({ id: v.id, impact: v.impact, nodes: v.nodes.length })), errors });
   await context.close();
 }
 await browser.close();
