@@ -1,48 +1,104 @@
 # #2574721: Module operations on narrow screens
 
-**DRAFT.** Evidence is recorded, but a person has not reviewed it or posted anything to drupal.org.
+Issue: [#2574721: Provide access to action links in the modules page on small screens](https://www.drupal.org/project/drupal/issues/2574721)
 
-Issue: [#2574721](https://www.drupal.org/project/drupal/issues/2574721)
+Merge request: [!17049](https://git.drupalcode.org/project/drupal/-/merge_requests/17049)
+
+Last reviewed: 2026-11-25.
 
 ## Result
 
 The issue reproduces on core `main`. At 480px, the description column and its action links disappear from the module table.
 
-MR !17049 at `ed3917f4` moves the links into an operations cell, but its implementation manually rebuilds Drupal dropbutton markup in Twig.
-It also has Twig whitespace failures and no PHP, CSS, or test coverage.
+The original MR !17049 at `ed3917f4` moved the links into an operations cell but manually reconstructed Drupal dropbutton markup in Twig. It also had Twig whitespace failures and lacked corresponding PHP, CSS and regression test changes.
 
-The lab proposal addresses those concerns by building the operations as a `#type => 'dropbutton'` render array in `ModulesListForm`,
-rendering that array in a dedicated cell, adding responsive widths, and testing the order and placement of the links.
+The revised implementation:
 
-On core `97c6ff8b2534b242c0f1df3e4ba2493e56aebcec`, the proposal passed at 1280px and 480px in Chromium,
-including dark mode and forced colours. Firefox and WebKit also completed the visible and interaction checks.
+- Builds operations using Drupal's native `#type => 'dropbutton'` render element in `ModulesListForm`.
+- Renders operations in a dedicated table column.
+- Orders available operations as Configure, Permissions and Help.
+- Preserves existing accessible link labels and attributes.
+- Adds responsive styling to the operations column.
+- Updates the system and Default Admin templates.
+- Extends functional regression coverage.
+
+The implementation avoids duplicating existing Drupal dropbutton behaviour.
+
+## November 25 integration
+
+The Lab proposal was integrated into the existing MR branch.
+
+- Applied the interdiff against `ed3917f4b36`.
+- Merged current core main, which was 299 commits ahead.
+- Accepted upstream deletion of three obsolete Claro files.
+- Corrected a missing closing div in the system modules Twig template.
+- Verified all seven files using reverse application of the previously tested current-main proposal.
+- Confirmed that the branch incorporated current main.
+- Confirmed a clean Git whitespace check.
+
+The resulting local revision, `e7a89e764ce`, modifies seven files, with 42 insertions and 14 deletions.
+
+The upstream MR revision and CI results should be independently confirmed.
 
 ## Proposal artifacts
 
-- MR patch under review: [`branches/drupal-2574721.patch`](branches/drupal-2574721.patch), tip `ed3917f4`, base `9e8373659f26`.
-- Full replacement patch on the MR base: [`branches/2574721-full-proposal-9e837365.patch`](branches/2574721-full-proposal-9e837365.patch).
-- Interdiff from the MR: [`branches/2574721-2574721-lab-proposal.patch`](branches/2574721-2574721-lab-proposal.patch).
-- Current-main patch: [`branches/2574721-current-main-proposal.patch`](branches/2574721-current-main-proposal.patch), based on `97c6ff8b253`.
+- [Original MR patch](branches/drupal-2574721.patch), tip `ed3917f4`, base `9e8373659f26`.
+- [Full replacement patch on the original MR base](branches/2574721-full-proposal-9e837365.patch).
+- [Interdiff from the original MR](branches/2574721-2574721-lab-proposal.patch).
+- [Tested current-main proposal](branches/2574721-current-main-proposal.patch), based on `97c6ff8b253`.
+- [Current upstream MR diff](https://git.drupalcode.org/project/drupal/-/merge_requests/17049.diff).
 
-## Evidence
+Historical patch artifacts are retained to support reproducibility.
+
+## Testing evidence
+
+### November 23 Lab evaluation
+
+On core `97c6ff8b2534b242c0f1df3e4ba2493e56aebcec`:
 
 - `ModulesListFormWebTest::testModuleListForm`: 11 assertions on Before and 15 on After; both passed.
-- Core checks: CSpell, PHPStan, PHPCS, TwigCS, Stylelint, and generated CSS consistency passed.
-- Chromium 480px: Before had 0 operations cells; After had 61 cells and 72 links.
-- After kept the sampled dropbutton inside the viewport and supported pointer and keyboard opening.
-- Chromium 480px accessibility-tree evidence exposed the Operations header, action links, and “List additional actions” button.
-- No unresolved ARIA ID references, new axe violations, or JavaScript errors were recorded.
-- See [EVIDENCE.md](EVIDENCE.md) and the [playwright runs](playwright/).
+- CSpell, PHPStan, PHPCS, TwigCS, Stylelint and generated CSS consistency checks passed.
+- Chromium at 480px: Before had zero operations cells; After had 61 operations cells and 72 links.
+- Pointer and keyboard interaction opened secondary operations.
+- Chromium accessibility-tree evidence exposed the Operations header, action links and the additional actions button.
+- Chromium light mode, dark mode and forced colours were evaluated.
+- Firefox and WebKit completed visibility and interaction checks, subject to the Safari keyboard limitation below.
+- No unresolved ARIA ID references, new axe violations or JavaScript errors were recorded.
+
+### November 25 local verification
+
+- PHP 8.5.13.
+- PHPUnit 12.5.44.
+- Targeted `testModuleListForm` execution returned exit code 0.
+- All seven files passed the reverse patch compatibility check.
+
+The PHPUnit HTML output referenced a previously configured DDEV project URL. The identity of the HTTP test environment requires confirmation before treating this as independent verification of the updated checkout.
+
+See [EVIDENCE.md](EVIDENCE.md), [Playwright results](playwright/) and [accessibility tree comparisons](tree-diff/).
+
+## Review feedback
+
+The revised implementation addresses the implementation and test-coverage concerns raised in [comment #90](https://www.drupal.org/project/drupal/issues/2574721#comment-16768600).
+
+The MR description should accurately reflect the seven-file implementation. Previously reported CI failures require confirmation against the updated revision.
 
 ## Outstanding concerns
 
-- A person must verify the rendered design, keyboard use, 400% zoom, and screen-reader announcement quality.
-- WebKit Playwright did not reproduce Safari’s macOS Full Keyboard Access preference; a person must verify link traversal in Safari.
-- Forced colours retained one pre-existing `color-contrast` axe finding on both sides; the proposal added none.
-- No real VoiceOver or NVDA pass was run.
-- The generated proposal has not been posted to the merge request or tested by drupal.org CI.
+- Confirm current upstream MR revision and CI results.
+- Confirm that the local functional tests use the intended Drupal installation.
+- Complete independent human review of the rendered design and keyboard interactions.
+- Verify reflow at 320 CSS pixels and 200% and 400% zoom.
+- Verify Safari keyboard traversal with macOS Full Keyboard Access enabled.
+- Complete real VoiceOver or NVDA testing.
+- Review compatibility with custom theme template overrides.
+- Obtain subsystem maintainer review.
+
+Forced colours testing retained one pre-existing colour-contrast axe finding on both Before and After. The proposal introduced no additional finding.
+
+The available evidence supports the proposed fix but does not establish complete WCAG conformance.
 
 ## Next action
 
-Human reviewer: inspect the full patch and interdiff, then decide whether to replace the MR contents and update its description.
-The lab did not push, post, comment, or change the MR.
+Confirm upstream submission and CI results, reconcile the MR description with the actual implementation, respond to outstanding review feedback and request independent community review.
+
+Further implementation changes should be driven by specific test failures or review findings rather than repeating the existing evaluation.
