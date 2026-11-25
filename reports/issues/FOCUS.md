@@ -2,21 +2,21 @@
 
 Built from the local `status.json` snapshots, `BRANCHES.md` and `ARCHIVED.md` by `node scripts/focus-issues.mjs`. No model was called and nothing here posts to drupal.org. The status and MR data can be stale; open the issue before acting.
 
-**Priority:** Reopened archive → Needs review → RTBC → Needs work → Active/postponed → close-out. 0 reopened, 4 need review, 2 are RTBC, 18 need work.
+**Priority:** Reopened archive → Needs review → RTBC → Needs work → Active/postponed → close-out. 0 reopened, 5 need review, 2 are RTBC, 17 need work.
 
 | Tier | Count |
 |---|---|
 | P0 · Reopened archive | 0 |
-| P0 · Review now | 4 |
+| P0 · Review now | 5 |
 | P1 · Final verification | 2 |
-| P2 · Unblock / refresh | 18 |
+| P2 · Unblock / refresh | 17 |
 | P3 · Watch | 11 |
 | P4 · Postponed | 1 |
 | P5 · Close out | 5 |
 | P6 · Not checked | 0 |
 | P7 · Archived | 0 |
 
-## P0 · Review now — Needs review (4)
+## P0 · Review now — Needs review (5)
 
 Needs review: the most useful place to help a reviewer. If the MR moved since the lab tested it, re-test first; do not review stale evidence.
 
@@ -24,6 +24,7 @@ Needs review: the most useful place to help a reviewer. If the MR moved since th
 |---|---|---|---|---|---|---|
 | [#3619127](3619127/SUMMARY.md) | Forms sidebar doesn't open with error links from Inline Form Errors module | Major | [!16895](https://git.drupalcode.org/project/drupal/-/merge_requests/16895) opened at `cdff6661` | `cdff6661` | Current head tested: review | Review the current evidence and draft a comment |
 | [#2847425](2847425/) | #states not affecting visibility/requirement of managed_file | Major | [!7305](https://git.drupalcode.org/project/drupal/-/merge_requests/7305) opened at `6e43afa2` | `71b1ad1d` | MR head changed: re-test first | `node scripts/test-mr.mjs 2847425` — MR !7305 is at 6e43afa2; the lab tested 71b1ad1d; then review |
+| [#3637339](3637339/SUMMARY.md) | Skip to main content link is not using the selected focus color in light… | Normal | [!17818](https://git.drupalcode.org/project/drupal/-/merge_requests/17818) opened at `3a86954d` | `8c4a0e70` | MR head changed: re-test first | `node scripts/test-mr.mjs 3637339` — MR !17818 is at 3a86954d; the lab tested 8c4a0e70; then review |
 | [#3606655](3606655/) | Allow user-configurable UI settings - starting with dark mode | Normal | [!16432](https://git.drupalcode.org/project/drupal/-/merge_requests/16432) opened at `170be9e3` | `08a4cb4c` | MR head changed: re-test first | `node scripts/test-mr.mjs 3606655` — MR !16432 is at 170be9e3; the lab tested 08a4cb4c; then review |
 | [#3207233](3207233/SUMMARY.md) | Improve the visual indication of the active workspace in the Workspaces… | Major | [!17464](https://git.drupalcode.org/project/drupal/-/merge_requests/17464) opened, draft at `278ea9ee` | not recorded | Draft MR: confirm readiness | Draft MR !17464: confirm it is ready before reviewing; do not review unfinished work |
 
@@ -36,7 +37,7 @@ RTBC: one final run on current core main.
 | [#3619387](3619387/) | Indicate on forms sidebar toggle button that sidebar has child element… | Major | [!17013](https://git.drupalcode.org/project/drupal/-/merge_requests/17013) opened at `052a9309` | `cb915a48` | `node scripts/test-mr.mjs 3619387` on current core main — MR !17013 is at 052a9309; the lab tested cb915a48; if green, confirm with maintainers |
 | [#3615469](3615469/SUMMARY.md) | Change link text on Maintenance mode form to 'user login page' | Normal | [!16609](https://git.drupalcode.org/project/drupal/-/merge_requests/16609) opened at `21bbeeb1` | `21bbeeb1` | `node scripts/test-mr.mjs 3615469` on current core main; if green, confirm with maintainers |
 
-## P2 · Unblock / refresh — Needs work (18)
+## P2 · Unblock / refresh — Needs work (17)
 
 Needs work: review the queue and decide whether a patch or test can move it. Queue review means reading the recent comments, tags and MR before deciding; it is not a request to bump the issue.
 
@@ -44,9 +45,8 @@ Needs work: review the queue and decide whether a patch or test can move it. Que
 |---|---|---|---|---|---|---|---|
 | [#3155130](3155130/SUMMARY.md) | "Edit summary" toggle on text fields has many accessibility issues | Normal | none found | not recorded | No MR found: find a patch | Accessibility | `node scripts/issue-intake.mjs fetch 3155130`; find or refresh a patch/MR |
 | [#3593502](3593502/SUMMARY.md) | Introduce a new Menu UI to resolve memory issues and improve user experience | Major | [!15975](https://git.drupalcode.org/project/drupal/-/merge_requests/15975) opened at `0a887245` | `6d566c31` | MR head changed: refresh and re-test | Needs usability review, Needs accessibility review, Accessibility | `node scripts/test-mr.mjs 3593502` — MR !15975 is at 0a887245; the lab tested 6d566c31; then review the queue |
-| [#3637339](3637339/SUMMARY.md) | Skip to main content link is not using the selected focus color in light… | Normal | [!17818](https://git.drupalcode.org/project/drupal/-/merge_requests/17818) opened at `3a86954d` | `8c4a0e70` | MR head changed: refresh and re-test | Accessibility | `node scripts/test-mr.mjs 3637339` — MR !17818 is at 3a86954d; the lab tested 8c4a0e70; then review the queue |
+| [#3619154](3619154/) | Accessibility fixes for Admin theme's node add/edit sidebar toggle control | Normal | [!16911](https://git.drupalcode.org/project/drupal/-/merge_requests/16911) opened at `4d8fe2a1` | `175e6f17` | MR head changed: refresh and re-test | Accessibility | `node scripts/test-mr.mjs 3619154` — MR !16911 is at 4d8fe2a1; the lab tested 175e6f17; then review the queue |
 | [#2951317](2951317/SUMMARY.md) | Radios element missing "required" attribute | Normal | [!15536](https://git.drupalcode.org/project/drupal/-/merge_requests/15536) opened at `c76e9244` | `ab7ab046` | MR head changed: refresh and re-test | Accessibility, Needs accessibility review, wcag131, Needs Review Queue Initiative | `node scripts/test-mr.mjs 2951317` — MR !15536 is at c76e9244; the lab tested ab7ab046; then review the queue |
-| [#3619154](3619154/) | Accessibility fixes for Admin theme's node add/edit sidebar toggle control | Normal | [!16911](https://git.drupalcode.org/project/drupal/-/merge_requests/16911) opened at `65e64ee4` | `175e6f17` | MR head changed: refresh and re-test | Accessibility | `node scripts/test-mr.mjs 3619154` — MR !16911 is at 65e64ee4; the lab tested 175e6f17; then review the queue |
 | [#3604037](3604037/SUMMARY.md) | Indicate that grouping elements have child element errors for UX and a11y | Major | [!17078](https://git.drupalcode.org/project/drupal/-/merge_requests/17078) opened at `c3c52b00` | not recorded | No tested revision: record it | Accessibility, wcag331 | Record the tested revision; review recent comments/tags and the patch |
 | [#3587661](3587661/SUMMARY.md) | Missing labels in "Limited files with a single pre-existing value… | Normal | [!16335](https://git.drupalcode.org/project/drupal/-/merge_requests/16335) opened at `3ec7eefd` | not recorded | No tested revision: record it | Accessibility, Needs Review Queue Initiative | Record the tested revision; review recent comments/tags and the patch |
 | [#3370946](3370946/SUMMARY.md) | Page title should contextualize the local navigation | Normal | [!4479](https://git.drupalcode.org/project/drupal/-/merge_requests/4479) opened at `1ff37e70` | not recorded | No tested revision: record it | wcag242, wcag246, Accessibility | Record the tested revision; review recent comments/tags and the patch |

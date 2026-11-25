@@ -29,10 +29,10 @@ Something changed upstream, or a reviewable change is ready; act on these first.
 | [3617875](3617875/SUMMARY.md) | Better Dark Mode Support for Disabled Elements | Closed (fixed), updated 2026-09-29 | !16905 closed at `71cd2aca` | `e87837c4` ([how](3617875/REPRODUCE.md)) | Closed (fixed) upstream: confirm on core main, then archive (node scripts/issue-archive.mjs 3617875) |
 | [3618230](3618230/SUMMARY.md) | Adopt the ajax MessageCommand for file uploads | Active, updated 2026-10-14 | !16777 opened at `01e19a6f` | `2d600f40` ([how](3618230/REPRODUCE.md)) | Re-test: MR !16777 is at 01e19a6f; the lab tested 2d600f40 |
 | [3619127](3619127/SUMMARY.md) | Forms sidebar doesn't open with error links from Inline Form Errors module | Needs review, updated 2026-10-01 | !16895 opened at `cdff6661` | `cdff6661` ([how](3619127/REPRODUCE.md)) | Needs review: the lab has tested the current MR head; review the evidence |
-| [3619154](3619154/) | Accessibility fixes for Admin theme's node add/edit sidebar toggle control | Needs work, updated 2026-11-18 | !16911 opened at `65e64ee4` | `175e6f17` ([how](3619154/REPRODUCE.md)) | Re-test: MR !16911 is at 65e64ee4; the lab tested 175e6f17 |
+| [3619154](3619154/) | Accessibility fixes for Admin theme's node add/edit sidebar toggle control | Needs work, updated 2026-11-24 | !16911 opened at `4d8fe2a1` | `175e6f17` ([how](3619154/REPRODUCE.md)) | Re-test: MR !16911 is at 4d8fe2a1; the lab tested 175e6f17 |
 | [3619387](3619387/) | Indicate on forms sidebar toggle button that sidebar has child element errors | Reviewed & tested by the community, updated 2026-11-09 | !17013 opened at `052a9309` | `cb915a48` ([how](3619387/REPRODUCE.md)) | Re-test: MR !17013 is at 052a9309; the lab tested cb915a48 |
 | [3627936](3627936/) | Active workspace has a broken styling in dark mode | Closed (fixed), updated 2026-11-17 | !17471 closed at `b0bf91b9` | no MR commit recorded ([how](3627936/REPRODUCE.md)) | Closed (fixed) upstream: confirm on core main, then archive (node scripts/issue-archive.mjs 3627936) |
-| [3637339](3637339/SUMMARY.md) | Skip to main content link is not using the selected focus color in light and… | Needs work, updated 2026-11-19 | !17818 opened at `3a86954d` | `8c4a0e70` ([how](3637339/REPRODUCE.md)) | Re-test: MR !17818 is at 3a86954d; the lab tested 8c4a0e70 |
+| [3637339](3637339/SUMMARY.md) | Skip to main content link is not using the selected focus color in light and… | Needs review, updated 2026-11-24 | !17818 opened at `3a86954d` | `8c4a0e70` ([how](3637339/REPRODUCE.md)) | Re-test: MR !17818 is at 3a86954d; the lab tested 8c4a0e70 |
 
 ## Waiting (22)
 
@@ -61,7 +61,7 @@ Nothing for the lab to do until the issue moves.
 | [3631337](3631337/SUMMARY.md) | Decide how to semantically label HTML elements for errors/warnings in forced… | Active, updated 2026-10-16 | none found | no MR commit recorded ([how](3631337/REPRODUCE.md)) | Active; no MR found |
 | [3636143](3636143/SUMMARY.md) | Regression: The toggle button border in the navigation sidebar has a too low… | Needs work, updated 2026-11-20 | !17738 opened at `8779866c` | `8779866c` ([how](3636143/REPRODUCE.md)) | Needs work: waiting on the MR |
 | [3637163](3637163/SUMMARY.md) | The custom accent color field is in lack of a form validation check | Active, updated 2026-11-19 | none found | no MR commit recorded ([how](3637163/REPRODUCE.md)) | Active; no MR found |
-| [867830](867830/SUMMARY.md) | "Unpublished" style of rendered entities is not accessible (and looks bad) | Active, updated 2026-11-23 | none found | `0fcbb553` ([how](867830/REPRODUCE.md)) | Active; no MR found |
+| [867830](867830/SUMMARY.md) | "Unpublished" style of rendered entities is not accessible (and looks bad) | Active, updated 2026-11-24 | none found | `0fcbb553` ([how](867830/REPRODUCE.md)) | Active; no MR found |
 
 ## Not checked yet (0)
 
