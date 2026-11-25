@@ -1,16 +1,24 @@
-# Status of #2847425 (snapshot 2026-10-14)
+# #2847425: Conditional visibility and requirements of managed file fields
 
-Re-check everything on drupal.org before relying on it; statuses go stale.
+**DRAFT. Documentation reviewed 2026-11-25. Independent runtime evaluation pending.**
 
-| Field | Value |
-|---|---|
-| Issue | https://www.drupal.org/project/drupal/issues/2847425 |
-| Title | `#states` not affecting visibility/requirement of `managed_file` |
-| Merge request | !7305 — from a local branch `mr-7305`, not on the issue fork |
-| Status | not recorded here — check the issue before relying on it |
-| Related | follow-up #3513308 (`#states` `required` is cosmetic, "works as designed") |
+The September 16 update to MR !7305 reportedly addresses enclosing-group visibility and incorrect label and description ID associations.
 
-## In this lab
+The historical Lab test kit predates those changes. Its expectation that Scenario 3 fails must not be treated as evidence against the updated MR.
 
-Not yet built or run. The review material is a test kit in [`kit/`](kit/); see [REPRODUCE.md](REPRODUCE.md) and
-[EVIDENCE.md](EVIDENCE.md). Nothing has been posted to drupal.org or GitLab.
+Remaining reported concerns include the disappearance of the required indicator after AJAX upload and inappropriate attributes on wrapper elements.
+
+The current MR requires independent evaluation of conditional visibility, required and disabled states, AJAX upload and removal, accessible names, description associations and keyboard focus.
+
+The existing test kit should be reused and its diagnostics independently validated.
+
+No replacement implementation is recommended until an unresolved defect has been reproduced.
+
+- [Drupal issue](https://www.drupal.org/project/drupal/issues/2847425)
+- [MR !7305](https://git.drupalcode.org/project/drupal/-/merge_requests/7305)
+- [Evidence](EVIDENCE.md)
+- [Reproduction instructions](REPRODUCE.md)
+- [Patch provenance](BRANCHES.md)
+- [Test kit](kit/README.md)
+
+Generated with the help of an LLM.
