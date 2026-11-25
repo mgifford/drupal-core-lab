@@ -1,88 +1,178 @@
 # #3604037: Indicate that grouping elements have child element errors
 
-**DRAFT.** The current lab port applies to core `29b0a0b2256e`. Targeted After tests and core lint pass, and an automated
-Before/After browser evaluation is recorded. That evaluation reports six light-mode hover text contrast checks below
-4.5:1. Human review remains outstanding. Historical measurements below predate this port. Last updated: 2026-11-18.
+Last updated: 2026-11-25.
 
-**This is the entry point for this issue.** It links to the patches, the recipe, the evidence and the comment
-draft. Start with **Files and links** below, or `REPRODUCE.md` for the step-by-step commands.
+**Contribution submitted. Independent review and current CI verification remain outstanding.**
 
-Issue: https://www.drupal.org/project/drupal/issues/3604037
-Merge request: !17078 (Needs work) · refreshed tip `c3c52b00`
-Pinned core: `c321043bb82d` (2026-09-28)
-Status snapshots: [STATUS-2026-10-02.md](STATUS-2026-10-02.md) · older: [STATUS-2026-10-01.md](STATUS-2026-10-01.md)
+- Issue: [#3604037](https://www.drupal.org/project/drupal/issues/3604037)
+- Current contribution: [MR !17947](https://git.drupalcode.org/project/drupal/-/merge_requests/17947)
+- Original contribution: [MR !17078](https://git.drupalcode.org/project/drupal/-/merge_requests/17078)
+- [Published contribution branch](https://git.drupalcode.org/issue/drupal-3604037/-/tree/3604037-grouping-errors-review-fixes)
 
-## Summary
+## Problem
 
-Reported problem: when a form has grouping elements (`<details>`, vertical tabs, the node form's sidebar) and a field
-inside a **closed or inactive** group has a validation error, nothing on the group says so. A user cannot tell which
-group holds the problem and has to open each one (WCAG 3.3.1 Error Identification, 1.3.1). The MR (!17078) adds
-indicators in the Default Admin theme: a red border on the logical inline start, an error icon near the label's inline
-end, red label text, a 1 px red border around a `<details>`, the input border colour for an active vertical tab with
-errors, a visually hidden " (child error)" text on the label, and a `data-child-error-count` attribute on `<details>`.
-Forced-colours mode uses `mask-image` with `canvasText`.
+When a form contains validation errors inside closed or inactive grouping elements, users cannot easily identify which groups contain the errors.
 
-Open items on the issue (not decisions): RTL border position, the forced-colours icon colour, a change record, and
-dark-mode contrast (split to [#3625458](https://www.drupal.org/project/drupal/issues/3625458)).
+This affects standard details elements, accordion-style details and vertical tabs.
 
-For `3604037-latest`, the lab uses a port of MR !17078 tip `c3c52b00` onto core `29b0a0b2256e`. It addresses the defects
-listed in mherchel's Comment #61; it is not the upstream MR patch. Patch application and targeted tests are verified. See
-[`BRANCHES.md`](BRANCHES.md) for provenance and [`EVIDENCE.md`](EVIDENCE.md) for what remains untested.
+The proposed implementation provides visible and programmatically determinable error indicators, supporting WCAG 3.3.1 Error Identification and 1.3.1 Info and Relationships.
 
-## Next step: which code to use
+See [REPRODUCE.md](REPRODUCE.md) for reproduction instructions.
 
-Use the [standalone replacement patch](branches/3604037-comment61-standalone.patch) for a clean checkout at
-core `29b0a0b2256e`. It contains the complete proposal, including its required test fixture.
-Do **not** apply it on top of the existing MR.
+## Proposed resolution
 
-To update the existing issue-fork branch instead, apply the
-[interdiff against MR !17078 at `c3c52b00`](branches/3604037-comment61-vs-mr17078-c3c52b00.interdiff.patch).
-It contains only the proposed follow-up changes, including removal of the stale Umami snapshot edit.
-Do **not** apply the standalone patch and interdiff together.
+The contribution builds on Kent Richards's original MR !17078 and retains its commit history.
 
-Recommended: add a follow-up commit to the existing branch/MR if you have permission and the contributors agree.
-Otherwise, create a new branch from that exact MR tip, apply the interdiff, and open a replacement MR referencing !17078.
-Neither route requires overwriting shared branch history. See [the handoff in BRANCHES.md](BRANCHES.md#upstream-handoff)
-for exact bases, checks, and the remaining review gates. No upstream change has been made.
+The original implementation provides:
 
-## Files and links
+- An error border positioned using logical CSS properties.
+- An error icon and error-coloured label.
+- A visually hidden "(contains error)" indicator.
+- A `data-child-error-count` attribute on details elements.
+- Forced-colours support using system colours.
 
-| What | Where |
+The Lab developed follow-up changes addressing the concerns identified by mherchel in comment #61 on November 4, 2026.
+
+## Review feedback addressed
+
+| Concern | Implementation |
 |---|---|
-| How to reproduce (commands, pinned and latest) | [REPRODUCE.md](REPRODUCE.md) |
-| Complete proposed replacement for clean core | [Standalone patch, including required test fixture](branches/3604037-comment61-standalone.patch) |
-| Follow-up changes for existing MR branch | [Interdiff from MR !17078 tip `c3c52b00`](branches/3604037-comment61-vs-mr17078-c3c52b00.interdiff.patch) |
-| Upstream reference and registered lab stack | [Upstream MR snapshot](branches/3604037-grouping-elements-child-errors-default-admin.patch) · [Lab port (requires separate fixture)](branches/3604037-comment61-current-main.patch) · [BRANCHES.md](BRANCHES.md) |
-| Test-support patches applied to both sides | [two required fields](branches/support-fixture-two-required-fields.patch) · [multiple vertical-tab errors](branches/support-fixture-multiple-vertical-tab-errors.patch) |
-| Recipe (starting state) | [`recipes/repro_3604037/`](../../../recipes/repro_3604037/) |
-| Evidence index, exact commits | [EVIDENCE.md](EVIDENCE.md) |
-| Current automated evaluation | [Playwright evaluation](playwright/2026-11-17T23-46-32-155Z-evaluate/SUMMARY.md) |
-| Historical measurements and images (old patch only) | [EVALUATION-2026-10-01.md](EVALUATION-2026-10-01.md) |
-| Historical scripted runs and screenshots (old patch only) | [`playwright/`](playwright/) |
-| Historical MR PHPUnit test logs (old patch only) | [`phpunit/`](phpunit/) |
-| Historical core code checks (old patch only) | [`lint/`](lint/) (not accessibility evidence) |
-| Follow-up patches proposed on the MR | [`proposals/`](proposals/) |
-| Draft comment (do not post) | [ISSUE-COMMENT-DRAFT.md](ISSUE-COMMENT-DRAFT.md) |
-| Status snapshots | [STATUS-2026-11-17.md](STATUS-2026-11-17.md) · [STATUS-2026-10-02.md](STATUS-2026-10-02.md) · [STATUS-2026-10-01.md](STATUS-2026-10-01.md) |
+| Missing or empty details titles | Provide a translatable fallback title |
+| JavaScript compatibility | Make `childErrorIndicator` optional |
+| Incorrect test assertions | Replace defective assertions |
+| Error attributes on unrelated containers | Restrict attributes to details elements |
+| Unused preprocessing variable | Consume `child_error_count` in Twig |
+| HTML embedded in translatable strings | Move markup into templates |
+| Incorrect CSS selector and physical border | Correct selector and use logical properties |
+| Border changes affecting unrelated tabs | Restore original border token |
 
-## Sources
+Additional regression coverage verifies untitled details elements, multiple vertical tabs containing errors and JavaScript compatibility without an error indicator.
 
-- https://www.drupal.org/project/drupal/issues/3604037 (intake refreshed 2026-11-17): issue page, status **Needs work**
-- https://git.drupalcode.org/project/drupal/-/merge_requests/17078 (intake refreshed 2026-11-17): merge request !17078, tip `c3c52b00`, target `main`
-- `branches/3604037-comment61-current-main.patch`: lab port of that tip onto core `29b0a0b2256e`; hash recorded in [BRANCHES.md](BRANCHES.md)
-- Related: [#3625458](https://www.drupal.org/project/drupal/issues/3625458) (dark-mode contrast), [#2915899](https://www.drupal.org/project/drupal/issues/2915899) (enable IFE in Standard, which this blocks)
+The stale Umami performance snapshot modification from the original MR is excluded.
 
-## Not verified
+## Published contribution
 
-- Human keyboard and real screen-reader review, Firefox/Safari, real Windows forced colours, and the 480px cross-browser matrix.
-- Whether the six automated light-mode hover contrast failures also occur on the baseline and how they relate to this port.
-- The interface text is English; historical RTL measurements used Farsi without importing translations.
-- The historical screenshots and test logs below do not verify the current port.
+On November 25, 2026, the existing Lab interdiff was applied to the original MR revision and committed to a new branch.
 
-## Notes
+Current Drupal Core main was then merged without conflicts.
 
-- **Before is not fully pristine by design.** Test-support patches add a second required field and enable errors in
-  multiple vertical tabs. They are applied to both sides; see `tools/compare/variants.json`.
-- The pinned build and historical bundle use older core and patches. The current latest DDEV pair has been built.
-- AI-assisted: measurements and images were produced by scripted runs; a person should review them before anything is
-  posted. Nothing has been posted to drupal.org or GitLab.
+| Property | Value |
+|---|---|
+| Original MR | !17078 |
+| Original MR revision | `c3c52b00781f8f2f3e94ee1697d48fe39496d4f8` |
+| Follow-up commit | `7d4d38092b` |
+| Core base at publication | `8bb21381d6` |
+| Published merge commit | `8b3e016996578d7b90fcc22d25677d43acdb118d` |
+| Contribution branch | `3604037-grouping-errors-review-fixes` |
+| Replacement MR | !17947 |
+| Files changed relative to Core main | 20 |
+| Insertions | 544 |
+| Deletions | 7 |
+
+Publication verification:
+
+- Interdiff application passed.
+- Reverse interdiff compatibility check passed.
+- Merge with Core main completed without conflicts.
+- Reverse standalone patch compatibility check passed after merging.
+- Contribution-specific whitespace validation passed.
+- Working tree was clean.
+- Remote branch publication was verified using `git ls-remote`.
+
+The original MR branch remains unchanged.
+
+The issue fork's automatic synchronization was unsuccessful, but this did not prevent publication of the updated contribution branch.
+
+## Automated testing evidence
+
+The November 17 evaluation used a Lab port of MR !17078 at `c3c52b00` onto Core `29b0a0b2256e`.
+
+Targeted After tests and Core lint passed on that revision.
+
+The evaluation includes:
+
+- Standard details elements.
+- Accordion-style details elements.
+- Vertical tabs with multiple validation errors.
+- Light and dark appearance.
+- Forced-colours emulation.
+- Error indicators and accessible text.
+- Regression tests for missing titles and optional JavaScript properties.
+
+See the [November 17 Playwright evaluation](playwright/2026-11-17T23-46-32-155Z-evaluate/SUMMARY.md) and [EVIDENCE.md](EVIDENCE.md).
+
+These historical runtime results have not been reclassified as fresh test results for MR !17947.
+
+The November 25 checks establish patch compatibility and successful publication, not complete runtime correctness.
+
+## Outstanding contrast findings
+
+The November 17 automated evaluation identified six light-mode hover text contrast measurements below 4.5:1.
+
+It remains necessary to determine whether these findings are:
+
+- Existing Core accessibility problems.
+- Regressions introduced by the original MR.
+- Regressions introduced by the follow-up implementation.
+
+Do not classify these as pre-existing problems without comparable evidence.
+
+## Related issues and agreed follow-ups
+
+| Issue | Scope |
+|---|---|
+| [#2848507](https://www.drupal.org/project/drupal/issues/2848507) | Original grouping element error indicator work |
+| [#3619387](https://www.drupal.org/project/drupal/issues/3619387) | Forms sidebar toggle error indicators |
+| [#3625458](https://www.drupal.org/project/drupal/issues/3625458) | Dark-mode error text contrast |
+| [#3631321](https://www.drupal.org/project/drupal/issues/3631321) | Distinguishing inactive vertical tabs in forced colours |
+| [#3631337](https://www.drupal.org/project/drupal/issues/3631337) | Semantic system colours for errors and warnings |
+| [#3631335](https://www.drupal.org/project/drupal/issues/3631335) | Red accent colour and error colour similarity |
+| [#2915899](https://www.drupal.org/project/drupal/issues/2915899) | Enable Inline Form Errors in Standard |
+
+Avoid expanding this MR to address unrelated design-system problems already identified for follow-up.
+
+## Patch provenance and reproduction
+
+| Resource | Location |
+|---|---|
+| Current upstream contribution | [MR !17947](https://git.drupalcode.org/project/drupal/-/merge_requests/17947) |
+| Patch provenance | [BRANCHES.md](BRANCHES.md) |
+| Historical standalone proposal | [Standalone patch](branches/3604037-comment61-standalone.patch) |
+| Interdiff used for contribution | [Comment #61 interdiff](branches/3604037-comment61-vs-mr17078-c3c52b00.interdiff.patch) |
+| Original MR snapshot | [Original MR patch](branches/3604037-grouping-elements-child-errors-default-admin.patch) |
+| Historical Lab port | [Current-main port](branches/3604037-comment61-current-main.patch) |
+| Reproduction instructions | [REPRODUCE.md](REPRODUCE.md) |
+| Recipe | [repro_3604037](../../../recipes/repro_3604037/) |
+| Evaluation evidence | [EVIDENCE.md](EVIDENCE.md) |
+| Screenshots and scripted results | [playwright/](playwright/) |
+| Historical PHPUnit results | [phpunit/](phpunit/) |
+| Historical code checks | [lint/](lint/) |
+| Earlier measurements | [EVALUATION-2026-10-01.md](EVALUATION-2026-10-01.md) |
+| Historical comment draft | [ISSUE-COMMENT-DRAFT.md](ISSUE-COMMENT-DRAFT.md) |
+| Historical status snapshots | [November 17](STATUS-2026-11-17.md), [October 2](STATUS-2026-10-02.md), [October 1](STATUS-2026-10-01.md) |
+
+The historical standalone patch and interdiff are retained for reproducibility and provenance. Neither should be reapplied to the published contribution branch.
+
+The historical Lab comparison uses test-support patches to provide multiple invalid fields and vertical tabs. These fixtures must remain distinguishable from production implementation changes.
+
+## Remaining verification
+
+- Current MR pipeline results.
+- Generated CSS consistency on the published revision.
+- Independent PHP review requested in comment #61.
+- Classification of the six light-mode hover contrast findings.
+- Manual keyboard and real screen-reader testing.
+- Firefox and Safari verification.
+- Actual Windows forced-colours testing.
+- Narrow viewport, zoom and translated RTL verification.
+- Review of unresolved GitLab discussion threads.
+
+## Next action
+
+Review MR !17947 and its CI results.
+
+Further implementation changes should respond to specific test failures or reviewer findings rather than generate another replacement implementation.
+
+The historical evidence supports continued review but does not establish complete accessibility conformance or readiness for RTBC.
+
+Generated with the help of an LLM.
