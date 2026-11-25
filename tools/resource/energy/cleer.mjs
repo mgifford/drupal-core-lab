@@ -63,6 +63,8 @@ export function loadRatios() {
       tier,
       // The published intensity. Upstream rounds it to 2 decimal places.
       energy_wh_per_usd: numOrNull(r.energy_wh_per_usd),
+      // Verbosity-adjusted intensity (CLEER's robust "vadj" column). Reported as a sensitivity, never used silently.
+      vadj_energy_wh_per_usd: numOrNull(r.vadj_energy_wh_per_usd),
       energy_wh_mean: numOrNull(r.energy_wh_mean),
       energy_wh_sd: numOrNull(r.energy_wh_sd),
       cost_usd: numOrNull(r.cost_usd),
@@ -83,6 +85,12 @@ export function dataset() {
   const models = loadModels();
   const meta = loadMeta();
   const ratios = loadRatios();
+  // The published intensity must agree with its own components for every row, not only the rows an estimate happens to
+  // look up: a stale or mixed dataset would otherwise pass unnoticed until someone used that row.
+  for (const [key, entry] of ratios) {
+    const c = checkRatioConsistency(entry);
+    if (!c.ok) throw new Error(`CLEER dataset is inconsistent at load (${key}): ${c.problem || `published ${c.published} vs energy_wh_mean/cost_usd ${c.computed.toFixed(4)}`}`);
+  }
   cache = { provenance, meta, models, ratios, byName: new Map(models.models.map((m) => [m.name, m])) };
   return cache;
 }

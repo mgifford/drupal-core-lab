@@ -1,6 +1,6 @@
 # Energy estimate
 
-Generated 2026-11-25T11:55:55Z. Period: 2026-10-02 to 2026-10-16. Method **cost-bridge-v1** (CLEER cost bridge). No AI model was called to produce this report.
+Generated 2026-11-25T21:43:06Z. AI-event period: 2026-10-02 to 2026-10-16. Method **cost-bridge-v1** (CLEER cost bridge). No AI model was called to produce this report.
 
 This is an **estimate**, not a measurement. It multiplies each AI event's client-reported cost by a published CLEER energy-per-dollar intensity. CLEER publishes no per-token coefficients; its token counts per workload are withheld. Read the limitations before quoting a number.
 
@@ -9,13 +9,16 @@ This is an **estimate**, not a measurement. It multiplies each AI event's client
 | Metric | Value | Basis |
 |---|---:|---|
 | Remote inference energy (central) | 1.68 kWh | estimated, cost-bridge |
-| Workload-tier band | 1.68 kWh – 1.73 kWh | published intensity across the three tiers of the use case |
+| Workload sensitivity (one-sided) | 1.68 kWh – 1.73 kWh | the three published tiers; the configured tier is inside the spread, so this moves one way only |
 | CLEER configuration band | 1.01 kWh – 2.35 kWh | 1.96 × the published per-session relative standard deviation; a scenario spread, not a confidence interval |
-| AI events covered | 2,235 of 2,235 (100.0%) | counted AI events carrying a model |
+| Verbosity-adjusted intensity (sensitivity) | 2.18 kWh | cost × `vadj_energy_wh_per_usd`; a modelling alternative, not the headline |
+| AI events covered | 2,235 of 2,235 (100.0%) | counted AI events |
 | Cost covered | $237.19 of $237.19 (100.0%) | client-reported estimate, not an invoice |
 | Boundary | facility-inference (accelerator + host + idle + cooling) | facility energy in CLEER's published scenario |
 | Dataset | CLEER-Text-0926/1.1.0 (2026-09-29) | CC BY-NC 4.0 |
 | Dataset pin | `7fe6be0c76a3…` | checksum `6235ead80bab…` |
+
+The headline uses CLEER's published `energy_wh_per_usd`. CLEER also publishes a verbosity-adjusted `vadj_energy_wh_per_usd`; the same measured spend would imply **2.18 kWh**. That is a modelling choice, not a correction; it is shown here and is not folded into the headline.
 
 ## Use-case sensitivity
 
@@ -106,7 +109,7 @@ Source: Sustainable AI Group, CLEER Dataset, CLEER-Text-0926/1.1.0, release 2026
 
 | Measure | Value | Denominator |
 |---|---:|---|
-| AI events estimated | 2,235 | 2,235 (counted AI events (ai-request and counted ai-usage) that carry a model identifier) |
+| AI events estimated | 2,235 | 2,235 (counted AI events (ai-request and counted ai-usage)) |
 | AI events unavailable | 0 | 2,235 |
 | Models observed | 2 | — |
 | Models mapped (exact) | 0 | 2 |
@@ -118,10 +121,11 @@ Source: Sustainable AI Group, CLEER Dataset, CLEER-Text-0926/1.1.0, release 2026
 - Estimated, not measured. The figure is a published CLEER energy-per-dollar intensity multiplied by a client-reported cost.
 - CLEER publishes no per-token coefficients; the token counts behind its workloads are withheld. This project does not reconstruct them.
 - CLEER's workload is a fixed token mix; our request mix may differ. Our cache-read share is very high, and CLEER's workload cache share is unpublished.
+- The headline uses the published energy_wh_per_usd. CLEER also publishes a verbosity-adjusted vadj_energy_wh_per_usd; using it would raise the agentic estimate for the mapped models by roughly 28-31%. That alternative is reported as a sensitivity, never folded into the headline.
 - Cost is a client-reported estimate, not an invoice or subscription statement, and may price tokens differently from CLEER's Artificial Analysis snapshot.
 - One ratio per model drives every request, so the aggregate uncertainty is correlated and does not narrow with more requests.
 - The bridge and any future per-token coefficient method are shown separately and are never merged.
 
-Monitoring overhead: 24.97 ms to compute this report from 2,414 ledger events; dataset 515,167 bytes on disk.
+Monitoring overhead: 53.59 ms to compute this report from 2,414 ledger events; dataset 515,167 bytes on disk.
 
 The dashboard reads only static files. This report required no AI inference.

@@ -1179,6 +1179,75 @@
               "items": {
                 "type": "string"
               }
+            },
+            "intensity_column": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "The published dataset column the central estimate multiplies (energy_wh_per_usd)."
+            },
+            "vadj_central_wh": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0,
+              "description": "Sensitivity only: cost multiplied by CLEER's verbosity-adjusted vadj_energy_wh_per_usd. Never part of the headline."
+            },
+            "cost": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "description": "The client-reported cost this estimate used, including when the estimate is unavailable. Absent when no cost was recorded.",
+              "required": [
+                "usd",
+                "basis"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "usd": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "basis": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            },
+            "uncertainty": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "required": [
+                "kind",
+                "relative_sd",
+                "note"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "kind": {
+                  "type": "string"
+                },
+                "relative_sd": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "note": {
+                  "type": "string"
+                }
+              }
             }
           }
         }

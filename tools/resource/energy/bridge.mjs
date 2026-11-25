@@ -20,10 +20,11 @@ export function costOf(event) {
   return { usd: null, basis: 'unavailable' };
 }
 
-// The events this estimator applies to: counted AI events that carry a model. A session roll-up that reconciliation
-// marked uncounted is excluded, so a request is never estimated twice through its session.
+// The events this estimator applies to: counted AI events, with or without a model (a model-less event is reported as
+// unavailable, not dropped). A session roll-up that reconciliation marked uncounted is excluded, so a request is never
+// estimated twice through its session.
 export function isAiEvent(event) {
-  return counted(event) && event.activity !== 'monitoring' && Boolean(event.model)
+  return counted(event) && event.activity !== 'monitoring'
     && (event.event_type === 'ai-request' || event.event_type === 'ai-usage');
 }
 
@@ -31,6 +32,7 @@ const SHARED_LIMITATIONS = [
   'Estimated, not measured. The figure is a published CLEER energy-per-dollar intensity multiplied by a client-reported cost.',
   'CLEER publishes no per-token coefficients; the token counts behind its workloads are withheld. This project does not reconstruct them.',
   'CLEER\'s workload is a fixed token mix; our request mix may differ. Our cache-read share is very high, and CLEER\'s workload cache share is unpublished.',
+  'The headline uses the published energy_wh_per_usd. CLEER also publishes a verbosity-adjusted vadj_energy_wh_per_usd; using it would raise the agentic estimate for the mapped models by roughly 28-31%. That alternative is reported as a sensitivity, never folded into the headline.',
   'Cost is a client-reported estimate, not an invoice or subscription statement, and may price tokens differently from CLEER\'s Artificial Analysis snapshot.',
   'One ratio per model drives every request, so the aggregate uncertainty is correlated and does not narrow with more requests.',
   'The bridge and any future per-token coefficient method are shown separately and are never merged.',
@@ -44,7 +46,13 @@ export function modelResolver(mapping = loadMapping(), models) {
   };
 }
 
-const unavailable = (base, code) => ({ ...base, status: 'unavailable', unavailable_code: code, central_wh: null, workload_low_wh: null, workload_high_wh: null, configuration_low_wh: null, configuration_high_wh: null });
+// An unavailable estimate still keeps the cost it was given, so the coverage metric can show spend that could not be
+// bridged. It never carries an energy figure.
+const unavailable = (base, code, cost = null) => ({
+  ...base, status: 'unavailable', unavailable_code: code,
+  ...(cost && num(cost.usd) != null && cost.usd >= 0 ? { cost: { usd: round(cost.usd, 6), basis: cost.basis } } : {}),
+  central_wh: null, workload_low_wh: null, workload_high_wh: null, configuration_low_wh: null, configuration_high_wh: null,
+});
 
 // Estimate one AI event. Returns null when the event is not an AI event; otherwise an object whose `status` is
 // "estimated" or "unavailable". A measured zero cost stays a zero estimate when a ratio exists.
@@ -52,8 +60,8 @@ export function estimateEvent(event, { mapping = loadMapping(), resolve = null, 
   if (!isAiEvent(event)) return null;
   const resolveOne = resolve || modelResolver(mapping);
   const meta = datasetMeta(dataset().provenance);
-  const model = resolveOne(event.model);
   const cost = costOf(event);
+  const model = resolveOne(event.model);
   const useCase = useCaseFor(event.activity, mapping);
   const tier = tierFor(mapping);
   const base = {
@@ -65,32 +73,36 @@ export function estimateEvent(event, { mapping = loadMapping(), resolve = null, 
     },
     use_case: useCase, workload: `${useCase}.${tier}`,
     boundary: BOUNDARY,
+    intensity_column: 'energy_wh_per_usd',
     computed_at: now,
   };
-  if (model.match_type === 'unsupported') return unavailable(base, 'unsupported_model');
-  if (model.match_type === 'ambiguous') return unavailable(base, 'ambiguous_model');
-  if (model.match_type === 'unknown') return unavailable(base, 'unknown_model');
+  if (!event.model) return unavailable(base, 'missing_model', cost);
+  if (model.match_type === 'unsupported') return unavailable(base, 'unsupported_model', cost);
+  if (model.match_type === 'ambiguous') return unavailable(base, 'ambiguous_model', cost);
+  if (model.match_type === 'unknown') return unavailable(base, 'unknown_model', cost);
   if (cost.usd == null) return unavailable(base, 'missing_cost');
   if (cost.usd < 0) return unavailable(base, 'invalid_cost');
-  if (cost.basis === 'subscription-allowance') return unavailable(base, 'cost_not_a_charge');
+  if (cost.basis === 'subscription-allowance') return unavailable(base, 'cost_not_a_charge', cost);
 
-  let ratio;
-  try { ratio = ratioFor(model.dataset_model, useCase, tier); } catch (e) { return unavailable(base, 'dataset_inconsistent'); }
-  if (!ratio) return unavailable(base, 'no_published_intensity');
-  const tiers = tierRatios(model.dataset_model, useCase);
+  let ratio, tiers;
+  try { ratio = ratioFor(model.dataset_model, useCase, tier); tiers = tierRatios(model.dataset_model, useCase); } catch (e) { return unavailable(base, 'dataset_inconsistent', cost); }
+  if (!ratio) return unavailable(base, 'no_published_intensity', cost);
   const ratios = Object.values(tiers).map((t) => t.energy_wh_per_usd).filter((v) => num(v) != null);
   const central = cost.usd * ratio.energy_wh_per_usd;
   const rel = num(ratio.relative_sd);
   // The configuration band propagates CLEER's own per-session dispersion. It is a scenario spread, not a confidence
-  // interval, and it is never merged with the workload band.
+  // interval, and it is never merged with the workload band. A negative lower bound is not physically meaningful, so it
+  // is clamped at zero (per event and again on the aggregate); the band is conservative, not a quantile.
   const configLow = rel == null ? null : Math.max(0, central * (1 - SIGMA * rel));
   const configHigh = rel == null ? null : central * (1 + SIGMA * rel);
+  const vadjWh = cost.usd * (num(ratio.vadj_energy_wh_per_usd) ?? NaN);
   return {
     ...base,
     status: 'estimated',
     energy_wh_per_usd: ratio.energy_wh_per_usd,
     cost: { usd: round(cost.usd, 6), basis: cost.basis },
     central_wh: round(central),
+    vadj_central_wh: Number.isFinite(vadjWh) ? round(vadjWh) : null,
     workload_low_wh: ratios.length ? round(cost.usd * Math.min(...ratios)) : null,
     workload_high_wh: ratios.length ? round(cost.usd * Math.max(...ratios)) : null,
     configuration_low_wh: round(configLow),
@@ -105,7 +117,7 @@ export function estimateEvent(event, { mapping = loadMapping(), resolve = null, 
 }
 
 function blankBucket() {
-  return { events: 0, estimated: 0, unavailable: 0, cost_usd: 0, cost_covered_usd: 0, central_wh: 0, workload_low_wh: 0, workload_high_wh: 0, configuration_low_wh: 0, configuration_high_wh: 0, has_workload_band: true, has_config_band: true, use_cases: new Set(), models: new Set() };
+  return { events: 0, estimated: 0, unavailable: 0, cost_usd: 0, cost_covered_usd: 0, central_wh: 0, vadj_wh: 0, workload_low_wh: 0, workload_high_wh: 0, configuration_low_wh: 0, configuration_high_wh: 0, has_workload_band: true, has_config_band: true, has_vadj: true, use_cases: new Set(), models: new Set() };
 }
 
 function addTo(bucket, estimate) {
@@ -115,6 +127,7 @@ function addTo(bucket, estimate) {
     bucket.estimated++;
     if (cost != null) { bucket.cost_covered_usd += cost; }
     bucket.central_wh += estimate.central_wh || 0;
+    if (estimate.vadj_central_wh == null) bucket.has_vadj = false; else bucket.vadj_wh += estimate.vadj_central_wh;
     if (estimate.workload_low_wh == null) bucket.has_workload_band = false; else { bucket.workload_low_wh += estimate.workload_low_wh; bucket.workload_high_wh += estimate.workload_high_wh; }
     if (estimate.configuration_low_wh == null) bucket.has_config_band = false; else { bucket.configuration_low_wh += estimate.configuration_low_wh; bucket.configuration_high_wh += estimate.configuration_high_wh; }
     if (estimate.use_case) bucket.use_cases.add(estimate.use_case);
@@ -134,9 +147,10 @@ function finalise(bucket, extra = {}) {
     cost_usd: round(bucket.cost_usd, 2),
     cost_covered_usd: round(bucket.cost_covered_usd, 2),
     central_wh: bucket.estimated ? round(bucket.central_wh) : null,
+    vadj_central_wh: bucket.estimated && bucket.has_vadj ? round(bucket.vadj_wh) : null,
     workload_low_wh: bucket.estimated && bucket.has_workload_band ? round(bucket.workload_low_wh) : null,
     workload_high_wh: bucket.estimated && bucket.has_workload_band ? round(bucket.workload_high_wh) : null,
-    configuration_low_wh: bucket.estimated && bucket.has_config_band ? round(bucket.configuration_low_wh) : null,
+    configuration_low_wh: bucket.estimated && bucket.has_config_band ? round(Math.max(0, bucket.configuration_low_wh)) : null,
     configuration_high_wh: bucket.estimated && bucket.has_config_band ? round(bucket.configuration_high_wh) : null,
     use_cases: [...bucket.use_cases].sort(),
     dataset_models: [...bucket.models].filter(Boolean).sort(),
@@ -163,6 +177,7 @@ export function referenceTable(mapping = loadMapping()) {
         confidence: model?.confidence ?? published.confidence ?? null, hardware: model?.hardware || published.hardware || null,
         workload, use_case: useCase, tier,
         energy_wh_per_usd: ratio.energy_wh_per_usd,
+        vadj_energy_wh_per_usd: published.vadj_energy_wh_per_usd ?? null,
         energy_wh_mean: published.energy_wh_mean, energy_wh_sd: published.energy_wh_sd, cost_usd: published.cost_usd,
         components_wh: published.components_wh,
       });
@@ -239,9 +254,9 @@ export function energySummary(events, { mapping = loadMapping(), now = new Date(
   }
 
   const activityRows = [...byActivity.entries()].map(([activity, bucket]) => finalise(bucket, { activity })).sort((a, b) => (b.central_wh || 0) - (a.central_wh || 0));
-  const useRows = [...byUse.entries()].map(([use_case, bucket]) => finalise(bucket, { use_case })).sort((a, b) => String(a.use_case).localeCompare(String(b.use_case)));
+  const useRows = [...byUse.entries()].map(([use_case, bucket]) => finalise(bucket, { use_case })).sort((a, b) => (String(a.use_case) < String(b.use_case) ? -1 : String(a.use_case) > String(b.use_case) ? 1 : 0));
   const issueRows = [...byIssue.entries()].map(([issue, bucket]) => finalise(bucket, { issue })).sort((a, b) => (b.central_wh || 0) - (a.central_wh || 0));
-  const trendRows = [...byDay.entries()].map(([date, bucket]) => ({ date, ...finalise(bucket) })).sort((a, b) => a.date.localeCompare(b.date));
+  const trendRows = [...byDay.entries()].map(([date, bucket]) => ({ date, ...finalise(bucket) })).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 
   const modelsObserved = [...new Set(ai.map((e) => e.model).filter(Boolean))].sort();
   const modelStatus = modelsObserved.map((m) => resolve(m));
@@ -249,7 +264,7 @@ export function energySummary(events, { mapping = loadMapping(), now = new Date(
   const unmapped = modelStatus.filter((m) => !['exact', 'alias', 'proxy'].includes(m.match_type));
 
   const coverage = {
-    denominator: 'counted AI events (ai-request and counted ai-usage) that carry a model identifier',
+    denominator: 'counted AI events (ai-request and counted ai-usage)',
     ai_events: ai.length,
     estimated: totals.estimated,
     unavailable: totals.unavailable,
@@ -285,7 +300,9 @@ export function energySummary(events, { mapping = loadMapping(), now = new Date(
       use_case_by_activity: mapping.use_case_by_activity || {},
       default_tier: tierFor(mapping),
       sigma: SIGMA,
-      calibration: 'Each published energy_wh_per_usd is checked against energy_wh.mean / cost_usd for every row; a disagreement over 1% stops estimation.',
+      intensity_column: 'energy_wh_per_usd',
+      adjusted_column: 'vadj_energy_wh_per_usd',
+      calibration: 'At dataset load, every row is checked: its published energy_wh_per_usd must agree with energy_wh_mean / cost_usd within 1%, or estimation stops. The same check also runs on each lookup.',
     },
     coverage,
     totals,
@@ -304,7 +321,7 @@ export function energySummary(events, { mapping = loadMapping(), now = new Date(
     unavailable: [...unavailableCodes.entries()].map(([code, events]) => ({ code, events })).sort((a, b) => b.events - a.events),
     limitations: SHARED_LIMITATIONS,
     privacy: {
-      public_fields: 'Aggregates only: model identifiers, dataset identifiers, costs, estimated energy, coverage counts. No prompts, transcripts, paths, hosts, usernames, session ids, task descriptions or evidence references.',
+      public_fields: 'Aggregates only: model identifiers, dataset identifiers, costs, estimated energy, coverage counts. No prompts, transcripts, paths, hosts, usernames, session ids, task descriptions or evidence paths. Evidence ids are opaque hashes; generated_at is the only precise time.',
       estimate_grid: 'Per-request estimates are computed deterministically and are available through the estimate command; the published report aggregates them.',
       missing_is_not_zero: true,
     },

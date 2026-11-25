@@ -266,6 +266,52 @@ test('the event schema accepts an energy block and still accepts a 1.0.0 event',
   assert.equal(validateEvent(bad).ok, false);
 });
 
+test('an estimate from the bridge validates as a measurements.energy block', () => {
+  const est = estimateEvent(event(), { mapping });
+  assert.equal(est.status, 'estimated');
+  const ev = makeEvent({
+    event_type: 'ai-request', occurred_at: '2026-10-05T10:00:00Z', activity: 'validation', tool: 'test',
+    model: 'claude-sonnet-5-5', provider: 'anthropic',
+    measurements: { energy: est },
+    source: { adapter: 'test' },
+  });
+  const v = validateEvent(ev);
+  assert.equal(v.ok, true, v.errors.map((e) => e.message).join('; '));
+});
+
+test('unavailable estimates keep their cost, so cost coverage can fall below 100%', () => {
+  const ev = event({ model: 'a-model-not-in-clever', measurements: { ...event().measurements, cost: { reported_usd: null, estimated_usd: 10, basis: 'client-reported-estimate', note: null } } });
+  const est = estimateEvent(ev, { mapping });
+  assert.equal(est.status, 'unavailable');
+  assert.equal(est.unavailable_code, 'unsupported_model');
+  assert.equal(est.cost.usd, 10);
+  const s = energySummary([ev], { mapping, now: NOW });
+  assert.equal(s.totals.cost_usd, 10);
+  assert.equal(s.totals.cost_covered_usd, 0);
+  assert.equal(s.coverage.cost_covered_share, 0);
+});
+
+test('a model-less AI event is counted as unavailable, not dropped', () => {
+  const ev = event({ model: null });
+  assert.equal(isAiEvent(ev), true);
+  const est = estimateEvent(ev, { mapping });
+  assert.equal(est.status, 'unavailable');
+  assert.equal(est.unavailable_code, 'missing_model');
+  const s = energySummary([ev], { mapping, now: NOW });
+  assert.equal(s.coverage.ai_events, 1);
+  assert.equal(s.coverage.estimated, 0);
+});
+
+test('the verbosity-adjusted intensity is a sensitivity, not part of the headline', () => {
+  const est = estimateEvent(event(), { mapping });
+  assert.ok(est.vadj_central_wh > est.central_wh, 'the adjusted column should be higher for the mapped agentic models');
+  const s = energySummary([event()], { mapping, now: NOW });
+  assert.equal(s.method.intensity_column, 'energy_wh_per_usd');
+  assert.equal(s.method.adjusted_column, 'vadj_energy_wh_per_usd');
+  assert.ok(s.totals.vadj_central_wh > s.totals.central_wh);
+  assert.equal(s.totals.central_wh, est.central_wh);
+});
+
 test('the library modules never touch the network', () => {
   for (const file of ['cleer.mjs', 'bridge.mjs', 'model-mapping.mjs', 'factor-loader.mjs', 'provenance.mjs']) {
     const text = fs.readFileSync(path.join(here, '..', '..', 'tools', 'resource', 'energy', file), 'utf8');

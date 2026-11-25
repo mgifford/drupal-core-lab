@@ -1,10 +1,10 @@
 # Energy estimation coverage
 
-Generated 2026-11-25T11:55:55Z. Method **cost-bridge-v1**.
+Generated 2026-11-25T21:43:06Z. Method **cost-bridge-v1**.
 
 ## Denominator
 
-counted AI events (ai-request and counted ai-usage) that carry a model identifier. A request is counted once; a reconciled session roll-up is excluded, so no request is estimated twice.
+counted AI events (ai-request and counted ai-usage). A request is counted once; a reconciled session roll-up is excluded, so no request is estimated twice.
 
 ## Counts
 

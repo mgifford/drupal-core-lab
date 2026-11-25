@@ -86,7 +86,7 @@ function report() {
   summary.monitoring = summary.totals.monitoring;
   summary.data_quality = summary.quality;
   summary.privacy = {
-    public_fields: 'Aggregates and grouped rows only; no transcript titles, paths, prompts, responses, task descriptions, evidence references, API keys, account ids or precise work timestamps.',
+    public_fields: 'Aggregates and grouped rows only; no transcript titles, paths, prompts, responses, task descriptions, API keys or account ids. Evidence ids are opaque hashes, and the report timestamp (generated_at) is the only precise time published.',
     raw_ledger: 'Local-only ledger; not committed and not published.',
     missing_is_not_zero: true,
   };
@@ -103,26 +103,7 @@ function report() {
     'This report does not claim that lower resource use means lower energy use or emissions.',
     'Energy is estimated from a client-reported cost and a published CLEER energy-per-dollar intensity. It is not a measurement, it covers remote inference only, and it claims no conformance with any standard. See docs/CLEER.md.',
   ];
-  // Derived energy: computed from events and the pinned dataset, never written to the ledger. Per-event estimates are
-  // exposed non-enumerably so they enrich the grouped rows without being serialised twice.
-  const energy = energySummary(events, { mapping: loadMapping(), now: summary.generated_at });
-  summary.energy = energy;
-  summary.events = publicRows(events, { energyByEvent: energy.event_estimates });
-  const energyByModel = new Map(energy.by_model.map((r) => [r.model, r]));
-  for (const row of summary.by_model || []) {
-    const e = energyByModel.get(row.model);
-    if (!e) continue;
-    row.dataset_model = e.dataset_model; row.match_type = e.match_type; row.review_status = e.review_status;
-    row.energy_requests = e.estimated; row.energy_unavailable = e.unavailable;
-    row.energy_central_wh = e.central_wh; row.energy_workload_low_wh = e.workload_low_wh; row.energy_workload_high_wh = e.workload_high_wh;
-  }
-  const energyByActivity = new Map(energy.by_activity.map((r) => [r.activity, r]));
-  for (const row of summary.by_activity || []) {
-    const e = energyByActivity.get(row.activity);
-    if (!e) continue;
-    row.energy_requests = e.estimated; row.energy_unavailable = e.unavailable;
-    row.energy_central_wh = e.central_wh; row.energy_workload_low_wh = e.workload_low_wh; row.energy_workload_high_wh = e.workload_high_wh;
-  }
+  attachEnergy(summary, events);
   summary.budget = (() => { const b = loadBudgets(); return { mode: b.config.mode, source: b.source, problems: b.problems, limits: b.config.limits }; })();
   assertPublic(summary, 'reports/resources/summary.json');
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -155,6 +136,30 @@ function report() {
   if (invalid.length) say(`\nWARNING: ${invalid.length} invalid ledger line(s) skipped; run verify.`);
 }
 
+// Derived energy: computed from events and the pinned dataset, never written to the ledger. One implementation, used by
+// both the report and the public export, so `export` cannot silently drop the energy block the dashboard reads.
+function attachEnergy(summary, events) {
+  const energy = energySummary(events, { mapping: loadMapping(), now: summary.generated_at });
+  summary.energy = energy;
+  summary.events = publicRows(events, { energyByEvent: energy.event_estimates });
+  const energyByModel = new Map(energy.by_model.map((r) => [r.model, r]));
+  for (const row of summary.by_model || []) {
+    const e = energyByModel.get(row.model);
+    if (!e) continue;
+    row.dataset_model = e.dataset_model; row.match_type = e.match_type; row.review_status = e.review_status;
+    row.energy_requests = e.estimated; row.energy_unavailable = e.unavailable;
+    row.energy_central_wh = e.central_wh; row.energy_workload_low_wh = e.workload_low_wh; row.energy_workload_high_wh = e.workload_high_wh;
+  }
+  const energyByActivity = new Map(energy.by_activity.map((r) => [r.activity, r]));
+  for (const row of summary.by_activity || []) {
+    const e = energyByActivity.get(row.activity);
+    if (!e) continue;
+    row.energy_requests = e.estimated; row.energy_unavailable = e.unavailable;
+    row.energy_central_wh = e.central_wh; row.energy_workload_low_wh = e.workload_low_wh; row.energy_workload_high_wh = e.workload_high_wh;
+  }
+  return summary;
+}
+
 function markdown(s, baseline = false) {
   const n = (v, d = 0) => (v == null ? '—' : Number(v).toLocaleString('en-US', { maximumFractionDigits: d }));
   const money = (v) => (v == null ? '—' : `$${Number(v).toFixed(2)} (estimate)`);
@@ -182,11 +187,15 @@ function markdown(s, baseline = false) {
   if (s.energy) {
     const e = s.energy, et = e.totals, ec = e.coverage;
     const energy = (v) => (v == null ? '—' : v >= 1000 ? `${(v / 1000).toFixed(2)} kWh` : `${v.toFixed(1)} Wh`);
-    md += `## Energy estimate\n\nDerived from a client-reported cost and the pinned CLEER dataset. **Estimated, not measured.** [Full energy report](ENERGY-SUMMARY.md) and [method](../docs/CLEER.md).\n\n| Metric | Value | Basis |\n|---|---:|---|\n`;
-    md += `| Remote inference energy (central) | ${energy(et.central_wh)} | estimated, cost-bridge |\n`;
-    md += `| Workload-tier band | ${energy(et.workload_low_wh)} – ${energy(et.workload_high_wh)} | published intensity across the use case's three tiers |\n`;
+    const proxies = (e.by_model || []).filter((r) => r.match_type === 'proxy');
+    const unreviewed = proxies.filter((r) => r.review_status !== 'reviewed').length;
+    md += `## Energy estimate\n\nDerived from a client-reported cost and the pinned CLEER dataset. **Estimated, not measured.** The AI events behind it cover ${e.period.from || '—'} to ${e.period.to || '—'}; the report period above may be wider. [Full energy report](ENERGY-SUMMARY.md) and [method](../docs/CLEER.md).\n\n| Metric | Value | Basis |\n|---|---:|---|\n`;
+    md += `| Remote inference energy (central) | ${energy(et.central_wh)} | estimated, cost-bridge; column \`${e.method.intensity_column || 'energy_wh_per_usd'}\` |\n`;
+    md += `| Workload sensitivity (one-sided) | ${energy(et.workload_low_wh)} – ${energy(et.workload_high_wh)} | the three published tiers; the configured tier is inside the spread |\n`;
     md += `| CLEER configuration band | ${energy(et.configuration_low_wh)} – ${energy(et.configuration_high_wh)} | 1.96 × published relative SD; scenario spread, not a confidence interval |\n`;
-    md += `| AI events covered | ${n(ec.estimated)} of ${n(ec.ai_events)} (${pct(ec.estimated_share)}) | counted AI events carrying a model |\n`;
+    if (et.vadj_central_wh != null) md += `| Verbosity-adjusted intensity (sensitivity) | ${energy(et.vadj_central_wh)} | cost × \`${e.method.adjusted_column || 'vadj_energy_wh_per_usd'}\`; a modelling alternative, not the headline |\n`;
+    md += `| AI events covered | ${n(ec.estimated)} of ${n(ec.ai_events)} (${pct(ec.estimated_share)}) | counted AI events |\n`;
+    if (proxies.length) md += `| Mappings | ${n(proxies.length)} proxy mapping(s), ${n(unreviewed)} unreviewed | a proxy is not an exact match; see ENERGY-SUMMARY.md |\n`;
     md += `| Method | ${e.method.method_version} | ${e.method.boundary} |\n`;
     md += `| Dataset | ${e.method.dataset.version} (${e.method.dataset.release}) | ${e.method.dataset.licence} |\n\n`;
   }
@@ -280,7 +289,7 @@ function markdown(s, baseline = false) {
 function exportPublic() {
   const { events } = loadEvents({ includeMonitoring: true });
   const summary = aggregate(events, { tasks: loadTasks() });
-  summary.events = publicRows(events);
+  attachEnergy(summary, events);
   summary.monitoring = summary.totals.monitoring;
   summary.data_quality = summary.quality;
   summary.privacy = { public_fields: 'Aggregates and grouped rows only.', raw_ledger: 'local', missing_is_not_zero: true };

@@ -39,7 +39,10 @@ This project therefore **does not reconstruct or guess per-token coefficients**.
 exactly what the upstream guard is designed to prevent.
 
 The CSV additionally publishes `energy_wh_per_usd`, the ratio of per-session energy to per-session cost. That published
-field is the basis of the estimate described below.
+field is the basis of the estimate described below. The same CSV publishes a verbosity-adjusted
+`vadj_energy_wh_per_usd`. For the two mapped models under `agentic`, the adjusted figure is about **28–31% higher**; the
+headline uses the unadjusted column, and the adjusted figure is reported as a separate sensitivity. Neither is a
+measurement, and the choice between them is a modelling decision, not a correction.
 
 ## The cost bridge
 
@@ -63,8 +66,8 @@ Evidence that the ratio is usable:
 
 | Check | Result |
 |---|---|
-| Published `energy_wh_per_usd` equals `energy_wh.mean ÷ cost_usd` | 306 of 306 rows agree to two decimal places |
-| Spread of the ratio across the three tiers of one use case | median 4.45%, maximum 10.10% across the 35 closed models |
+| Published `energy_wh_per_usd` equals `energy_wh.mean ÷ cost_usd` | all 306 rows agree within 1%; checked at dataset load, before any estimate |
+| Spread of the ratio across the three tiers of one use case | the configured tier is one of the three, so this "band" is one-sided and is labelled a sensitivity, not a range |
 | Difference between `chat` and `agentic` | about 2.1×, so the use case must be chosen deliberately |
 
 The bridge handles cache because it never touches token categories: a cache read is cheap in the client's cost model and
@@ -77,7 +80,7 @@ Where it breaks:
 - **Mix mismatch.** If our input/output/output-vs-cache proportion differs from CLEER's workload, the ratio shifts. Not
   verifiable from published data.
 - **Cost basis.** Our cost is a client-reported estimate, not an invoice, and may price tokens differently from CLEER's
-  Artificial Analysis snapshot (2026-09). A subscription allowance is refused outright.
+  Artificial Analysis snapshot (2026-09). It may be a subscription allowance rather than a charge.
 - **Configuration.** CLEER's figure is for a deployment configuration; its standard deviation is a spread over plausible
   configurations, not measurement noise.
 
@@ -112,7 +115,8 @@ Three numbers are reported separately and are never merged:
 
 | Band | What it is | How |
 |---|---|---|
-| Workload tier | The published intensity varies across `light`, `typical` and `heavy` | min and max of `energy_wh_per_usd` across the three tiers |
+| Workload tier (one-sided) | The published intensity varies across `light`, `typical` and `heavy`; the configured tier is one of them | min and max of `energy_wh_per_usd` across the three tiers; report it as an uplift, not a range |
+| Verbosity-adjusted | CLEER's `vadj_energy_wh_per_usd` instead of the published column | the same spend at the adjusted intensity; shown separately, never in the headline |
 | Configuration | CLEER's own spread over deployment configurations | central × (1 ± 1.96 × sd ÷ mean) |
 | Use case | `chat` instead of `agentic` | the same spend recomputed under the other use case |
 

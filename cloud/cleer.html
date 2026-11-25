@@ -8,7 +8,7 @@
   :root { color-scheme: light dark; --bg: #f7f7f5; --surface: #fff; --text: #1d1d1b; --muted: #55554f; --line: #c9c9c1; --accent: #0b5fff; --accent-weak: #dbe6ff; --warn: #7a4b00; }
   @media (prefers-color-scheme: dark) { :root { --bg: #171716; --surface: #232321; --text: #f1f1ec; --muted: #c3c3b8; --line: #55554c; --accent: #8fb3ff; --accent-weak: #25324a; --warn: #f1c27d; } }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 1rem/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
   a { color: var(--accent); }
   a:focus-visible, .tablewrap:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   .skip { position: absolute; left: -999px; top: 0; background: var(--surface); padding: .5rem .75rem; z-index: 10; } .skip:focus { left: .5rem; }
@@ -43,10 +43,10 @@
 </head>
 <body>
 <a class="skip" href="#main">Skip to energy data</a>
-<header><div class="inner"><strong>Drupal Core Lab</strong><nav aria-label="Site"><a href="resources.html">Resource usage</a><a href="index.html">Compare issues</a><a href="../docs/CLEER.md">CLEER method</a></nav></div></header>
+<header><div class="inner"><strong>Drupal Core Lab</strong><nav aria-label="Site"><a href="resources.html">Resource usage</a><a href="index.html">Compare issues</a><a href="https://github.com/mgifford/drupal-core-lab/blob/main/docs/CLEER.md">CLEER method</a></nav></div></header>
 <main id="main">
 <h1>Energy estimates</h1>
-<p class="note">Generated 2026-11-25T11:55:55Z. Period 2026-10-02 to 2026-10-16. Method cost-bridge-v1. No AI model was called to produce this page.</p>
+<p class="note">Generated 2026-11-25T21:43:06Z. Period 2026-10-02 to 2026-10-16. Method cost-bridge-v1. No AI model was called to produce this page.</p>
 
 <div class="callout">
   <h2>Read this first</h2>
@@ -55,7 +55,8 @@
 
 <div class="cards">
   <div class="card"><h3>Remote inference energy (central)</h3><p class="value">1.68 kWh</p><p class="quality">estimated, cost bridge</p></div>
-  <div class="card"><h3>Workload-tier band</h3><p class="value">1.68 kWh – 1.73 kWh</p><p class="quality">published intensity across three tiers</p></div>
+  <div class="card"><h3>Workload sensitivity</h3><p class="value">1.68 kWh – 1.73 kWh</p><p class="quality">one-sided: the configured tier is inside the three-tier spread</p></div>
+  <div class="card"><h3>Verbosity-adjusted (sensitivity)</h3><p class="value">2.18 kWh</p><p class="quality">modelling alternative, not the headline</p></div>
   <div class="card"><h3>CLEER configuration band</h3><p class="value">1.01 kWh – 2.35 kWh</p><p class="quality">scenario spread, not a confidence interval</p></div>
   <div class="card"><h3>Events covered</h3><p class="value">100.0%</p><p class="quality">2,235 of 2,235 AI events</p></div>
   <div class="card"><h3>Cost covered</h3><p class="value">$237.19</p><p class="quality">client-reported estimate, not an invoice</p></div>
@@ -73,7 +74,7 @@
     <tr><th scope="row">Estimated</th><td>remote inference energy, from a published CLEER energy-per-dollar intensity</td></tr>
     <tr><th scope="row">Unavailable</th><td>per-token energy coefficients; direct measurement of provider infrastructure</td></tr>
     <tr><th scope="row">Uncertainty</th><td>CLEER per-session standard deviation propagated as 1.96 x relative sd; scenario spread, not a confidence interval</td></tr>
-    <tr><th scope="row">Calibration</th><td>Each published energy_wh_per_usd is checked against energy_wh.mean / cost_usd for every row; a disagreement over 1% stops estimation.</td></tr>
+    <tr><th scope="row">Calibration</th><td>At dataset load, every row is checked: its published energy_wh_per_usd must agree with energy_wh_mean / cost_usd within 1%, or estimation stops. The same check also runs on each lookup.</td></tr>
   </tbody>
 </table>
 </div>
@@ -195,13 +196,14 @@
 <li>Estimated, not measured. The figure is a published CLEER energy-per-dollar intensity multiplied by a client-reported cost.</li>
 <li>CLEER publishes no per-token coefficients; the token counts behind its workloads are withheld. This project does not reconstruct them.</li>
 <li>CLEER&#39;s workload is a fixed token mix; our request mix may differ. Our cache-read share is very high, and CLEER&#39;s workload cache share is unpublished.</li>
+<li>The headline uses the published energy_wh_per_usd. CLEER also publishes a verbosity-adjusted vadj_energy_wh_per_usd; using it would raise the agentic estimate for the mapped models by roughly 28-31%. That alternative is reported as a sensitivity, never folded into the headline.</li>
 <li>Cost is a client-reported estimate, not an invoice or subscription statement, and may price tokens differently from CLEER&#39;s Artificial Analysis snapshot.</li>
 <li>One ratio per model drives every request, so the aggregate uncertainty is correlated and does not narrow with more requests.</li>
 <li>The bridge and any future per-token coefficient method are shown separately and are never merged.</li>
 </ul>
 
 <h2>Monitoring overhead</h2>
-<p class="note">Computing this report took 24.97 ms from 2,414 ledger events; the vendored dataset is 515,167 bytes on disk. This page is static and makes no network request beyond the files it is served with.</p>
+<p class="note">Computing this report took 53.59 ms from 2,414 ledger events; the vendored dataset is 515,167 bytes on disk. This page is static and makes no network request beyond the files it is served with.</p>
 </main>
 <footer>Generated from local telemetry and a pinned public dataset. No AI inference was used. Missing data is shown as “—”, never as zero.</footer>
 </body>

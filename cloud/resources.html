@@ -8,7 +8,7 @@
   :root { color-scheme: light dark; --bg: #f7f7f5; --surface: #fff; --text: #1d1d1b; --muted: #55554f; --line: #c9c9c1; --accent: #0b5fff; --accent-weak: #dbe6ff; --ok: #1a6b3c; --warn: #7a4b00; --bad: #8a1c1c; }
   @media (prefers-color-scheme: dark) { :root { --bg: #171716; --surface: #232321; --text: #f1f1ec; --muted: #c3c3b8; --line: #55554c; --accent: #8fb3ff; --accent-weak: #25324a; --ok: #8fd6ab; --warn: #f1c27d; --bad: #ff9d9d; } }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 1rem/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
   a { color: var(--accent); }
   a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, .tablewrap:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   .skip { position: absolute; left: -999px; top: 0; background: var(--surface); padding: .5rem .75rem; z-index: 10; } .skip:focus { left: .5rem; }
@@ -407,7 +407,7 @@ function render() {
   const energyCfgHigh = sum('energy_configuration_high_wh');
   const energyReq = sum('energy_requests');
   const energyAll = DATA.energy?.coverage?.ai_events;
-  card('Estimated AI energy', energyWh == null ? MISSING : wh(energyWh), energyWh == null ? 'unavailable, not zero' : 'estimated; not a measurement', energyWh == null ? 'CLEER publishes no per-token coefficients' : `workload band ${wh(energyLow)}–${wh(energyHigh)}; CLEER configuration band ${wh(energyCfgLow)}–${wh(energyCfgHigh)}`);
+  card('Estimated AI energy', energyWh == null ? MISSING : wh(energyWh), energyWh == null ? 'unavailable, not zero' : 'estimated; not a measurement', energyWh == null ? 'CLEER publishes no per-token coefficients' : `workload sensitivity (one-sided) ${wh(energyLow)}–${wh(energyHigh)}; CLEER configuration band ${wh(energyCfgLow)}–${wh(energyCfgHigh)}; verbosity-adjusted alternative ${wh(DATA.energy?.totals?.vadj_central_wh)}`);
   card('Energy coverage', `${fmt(energyReq)} / ${fmt(energyAll)}`, 'AI events with an estimate', `${pct(DATA.energy?.coverage?.estimated_share)} of counted AI events, whole period; see the Energy section`);
   $('completeness').textContent = `Period ${DATA.period.from || MISSING} to ${DATA.period.to || MISSING}. Data completeness: ${DATA.completeness}. ${ROWS.length} grouped public row(s) shown. Monitoring overhead is reported separately: ${hours(DATA.monitoring?.cpu_seconds)} CPU, ${bytes(DATA.monitoring?.peak_memory_bytes)} peak.`;
 
@@ -467,7 +467,7 @@ function render() {
     if (typeof r.energy_workload_high_wh === 'number') b.high = (b.high || 0) + r.energy_workload_high_wh;
     eByModel.set(r.model, b);
   }
-  table($('energy-model-table'), 'Estimated remote inference energy by model, filtered rows. Estimated, not measured.', ['Model', 'Provider', 'Mapping', 'Requests', 'Estimated cost', 'Energy (central)', 'Workload band'], [...eByModel.values()].sort((a, b) => (b.wh ?? -1) - (a.wh ?? -1)).map((m) => [m.model, m.provider || MISSING, m.match || MISSING, m.requests, money(m.cost), wh(m.wh), m.low == null ? MISSING : `${wh(m.low)}–${wh(m.high)}`]));
+  table($('energy-model-table'), 'Estimated remote inference energy by model, filtered rows. Estimated, not measured.', ['Model', 'Provider', 'Mapping', 'Requests', 'Estimated cost', 'Energy (central)', 'Workload sensitivity (one-sided)'], [...eByModel.values()].sort((a, b) => (b.wh ?? -1) - (a.wh ?? -1)).map((m) => [m.model, m.provider || MISSING, m.match || MISSING, m.requests, money(m.cost), wh(m.wh), m.low == null ? MISSING : `${wh(m.low)}–${wh(m.high)}`]));
 
   const eByActivity = new Map();
   for (const r of ROWS) {
@@ -480,7 +480,7 @@ function render() {
     if (typeof r.energy_workload_high_wh === 'number') b.high = (b.high || 0) + r.energy_workload_high_wh;
     eByActivity.set(k, b);
   }
-  table($('energy-activity-table'), 'Estimated remote inference energy by activity, filtered rows. Activity association is not causation.', ['Activity', 'Requests', 'Estimated cost', 'Energy (central)', 'Workload band'], [...eByActivity.values()].sort((a, b) => (b.wh ?? -1) - (a.wh ?? -1)).map((a) => [a.activity, a.requests, money(a.cost), wh(a.wh), a.low == null ? MISSING : `${wh(a.low)}–${wh(a.high)}`]));
+  table($('energy-activity-table'), 'Estimated remote inference energy by activity, filtered rows. Activity association is not causation.', ['Activity', 'Requests', 'Estimated cost', 'Energy (central)', 'Workload sensitivity (one-sided)'], [...eByActivity.values()].sort((a, b) => (b.wh ?? -1) - (a.wh ?? -1)).map((a) => [a.activity, a.requests, money(a.cost), wh(a.wh), a.low == null ? MISSING : `${wh(a.low)}–${wh(a.high)}`]));
 
   const ec = DATA.energy?.coverage || {};
   table($('energy-coverage-table'), 'Energy estimation coverage, whole period. Absolute counts with their denominators.', ['Measure', 'Value', 'Denominator'], [
@@ -502,7 +502,7 @@ function render() {
     ['Uncertainty', em.uncertainty], ['Dataset', em.dataset ? `${em.dataset.version} (${em.dataset.release})` : MISSING],
     ['Dataset checksum', em.dataset?.checksum || MISSING], ['Licence', em.dataset?.licence || MISSING],
   ]);
-  $('energy-note').textContent = DATA.energy ? `Uncertainty: ${DATA.energy.method.uncertainty}. The bridge assumes our token-category mix resembles CLEER's workload mix; that is unverified. Read the limitations in the method section.` : 'No energy estimate is available in this data.';
+  $('energy-note').textContent = DATA.energy ? `Uncertainty: ${DATA.energy.method.uncertainty}. The headline uses ${DATA.energy.method.intensity_column || 'energy_wh_per_usd'}; CLEER's verbosity-adjusted ${DATA.energy.method.adjusted_column || 'vadj_energy_wh_per_usd'} would imply ${wh(DATA.energy.totals.vadj_central_wh)}, a modelling alternative shown separately. The bridge assumes our token-category mix resembles CLEER's workload mix; that is unverified. Read the limitations in the method section.` : 'No energy estimate is available in this data.';
 
   renderAttribution();
   renderInfrastructure();

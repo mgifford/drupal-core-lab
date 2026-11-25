@@ -92,17 +92,19 @@ const canon = (x) => {
 
 function markdown(s) {
   const m = s.method, c = s.coverage, t = s.totals;
-  let md = `# Energy estimate\n\nGenerated ${s.generated_at}. Period: ${s.period.from || '—'} to ${s.period.to || '—'}. Method **${m.method_version}** (${m.name}). No AI model was called to produce this report.\n\n`;
+  let md = `# Energy estimate\n\nGenerated ${s.generated_at}. AI-event period: ${s.period.from || '—'} to ${s.period.to || '—'}. Method **${m.method_version}** (${m.name}). No AI model was called to produce this report.\n\n`;
   md += `This is an **estimate**, not a measurement. It multiplies each AI event's client-reported cost by a published CLEER energy-per-dollar intensity. CLEER publishes no per-token coefficients; its token counts per workload are withheld. Read the limitations before quoting a number.\n\n`;
   md += `## Headline\n\n| Metric | Value | Basis |\n|---|---:|---|\n`;
   md += `| Remote inference energy (central) | ${wh(t.central_wh)} | estimated, cost-bridge |\n`;
-  md += `| Workload-tier band | ${wh(t.workload_low_wh)} – ${wh(t.workload_high_wh)} | published intensity across the three tiers of the use case |\n`;
+  md += `| Workload sensitivity (one-sided) | ${wh(t.workload_low_wh)} – ${wh(t.workload_high_wh)} | the three published tiers; the configured tier is inside the spread, so this moves one way only |\n`;
   md += `| CLEER configuration band | ${wh(t.configuration_low_wh)} – ${wh(t.configuration_high_wh)} | ${SIGMA} × the published per-session relative standard deviation; a scenario spread, not a confidence interval |\n`;
-  md += `| AI events covered | ${n(c.estimated)} of ${n(c.ai_events)} (${pct(c.estimated_share)}) | counted AI events carrying a model |\n`;
+  md += `| Verbosity-adjusted intensity (sensitivity) | ${wh(t.vadj_central_wh)} | cost × \`vadj_energy_wh_per_usd\`; a modelling alternative, not the headline |\n`;
+  md += `| AI events covered | ${n(c.estimated)} of ${n(c.ai_events)} (${pct(c.estimated_share)}) | counted AI events |\n`;
   md += `| Cost covered | ${usd(c.cost_covered_usd)} of ${usd(c.cost_total_usd)} (${pct(c.cost_covered_share)}) | client-reported estimate, not an invoice |\n`;
   md += `| Boundary | ${m.boundary} | facility energy in CLEER's published scenario |\n`;
   md += `| Dataset | ${m.dataset.version} (${m.dataset.release}) | ${m.dataset.licence} |\n`;
   md += `| Dataset pin | \`${m.dataset.pin.slice(0, 12)}…\` | checksum \`${(m.dataset.checksum || '').slice(0, 12)}…\` |\n\n`;
+  md += `The headline uses CLEER's published \`energy_wh_per_usd\`. CLEER also publishes a verbosity-adjusted \`vadj_energy_wh_per_usd\`; the same measured spend would imply **${wh(t.vadj_central_wh)}**. That is a modelling choice, not a correction; it is shown here and is not folded into the headline.\n\n`;
 
   md += `## Use-case sensitivity\n\n${s.use_case_sensitivity.note}\n\n| Use case | Central | Events covered |\n|---|---:|---:|\n`;
   md += `| chat | ${wh(s.use_case_sensitivity.chat.central_wh)} | ${n(s.use_case_sensitivity.chat.events_covered)} |\n`;
@@ -205,7 +207,7 @@ function page(s) {
   :root { color-scheme: light dark; --bg: #f7f7f5; --surface: #fff; --text: #1d1d1b; --muted: #55554f; --line: #c9c9c1; --accent: #0b5fff; --accent-weak: #dbe6ff; --warn: #7a4b00; }
   @media (prefers-color-scheme: dark) { :root { --bg: #171716; --surface: #232321; --text: #f1f1ec; --muted: #c3c3b8; --line: #55554c; --accent: #8fb3ff; --accent-weak: #25324a; --warn: #f1c27d; } }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 1rem/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
   a { color: var(--accent); }
   a:focus-visible, .tablewrap:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   .skip { position: absolute; left: -999px; top: 0; background: var(--surface); padding: .5rem .75rem; z-index: 10; } .skip:focus { left: .5rem; }
@@ -240,7 +242,7 @@ function page(s) {
 </head>
 <body>
 <a class="skip" href="#main">Skip to energy data</a>
-<header><div class="inner"><strong>Drupal Core Lab</strong><nav aria-label="Site"><a href="resources.html">Resource usage</a><a href="index.html">Compare issues</a><a href="../docs/CLEER.md">CLEER method</a></nav></div></header>
+<header><div class="inner"><strong>Drupal Core Lab</strong><nav aria-label="Site"><a href="resources.html">Resource usage</a><a href="index.html">Compare issues</a><a href="https://github.com/mgifford/drupal-core-lab/blob/main/docs/CLEER.md">CLEER method</a></nav></div></header>
 <main id="main">
 <h1>Energy estimates</h1>
 <p class="note">Generated ${esc(s.generated_at)}. Period ${esc(s.period.from || '—')} to ${esc(s.period.to || '—')}. Method ${esc(s.method.method_version)}. No AI model was called to produce this page.</p>
@@ -252,7 +254,8 @@ function page(s) {
 
 <div class="cards">
   <div class="card"><h3>Remote inference energy (central)</h3><p class="value">${wh(t.central_wh)}</p><p class="quality">estimated, cost bridge</p></div>
-  <div class="card"><h3>Workload-tier band</h3><p class="value">${wh(t.workload_low_wh)} – ${wh(t.workload_high_wh)}</p><p class="quality">published intensity across three tiers</p></div>
+  <div class="card"><h3>Workload sensitivity</h3><p class="value">${wh(t.workload_low_wh)} – ${wh(t.workload_high_wh)}</p><p class="quality">one-sided: the configured tier is inside the three-tier spread</p></div>
+  <div class="card"><h3>Verbosity-adjusted (sensitivity)</h3><p class="value">${wh(t.vadj_central_wh)}</p><p class="quality">modelling alternative, not the headline</p></div>
   <div class="card"><h3>CLEER configuration band</h3><p class="value">${wh(t.configuration_low_wh)} – ${wh(t.configuration_high_wh)}</p><p class="quality">scenario spread, not a confidence interval</p></div>
   <div class="card"><h3>Events covered</h3><p class="value">${pct(c.estimated_share)}</p><p class="quality">${n(c.estimated)} of ${n(c.ai_events)} AI events</p></div>
   <div class="card"><h3>Cost covered</h3><p class="value">${usd(c.cost_covered_usd)}</p><p class="quality">client-reported estimate, not an invoice</p></div>

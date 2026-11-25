@@ -329,8 +329,11 @@ node scripts/resource-energy.mjs estimate --model=claude-sonnet-5-5 --cost=1.00
 node scripts/resource-energy.mjs sync --sha=<commit>   # the only networked command; explicit
 ```
 
-The report multiplies each AI event's client-reported cost by a CLEER `energy_wh_per_usd` intensity. CLEER publishes no
-per-token coefficients and withholds the token counts behind its workloads, so this project does not reconstruct them.
+The report multiplies each AI event's client-reported cost by a CLEER `energy_wh_per_usd` intensity. The dataset also
+publishes `vadj_energy_wh_per_usd`; for the mapped models under `agentic` it is about 28–31% higher. The headline uses the
+unadjusted column, and the adjusted figure is a separate sensitivity. The three-tier "band" is one-sided by construction
+(the configured tier is one of the three) and is labelled a sensitivity, not a range. CLEER publishes no per-token
+coefficients and withholds the token counts behind its workloads, so this project does not reconstruct them.
 The method, its assumptions, the model mapping and the uncertainty semantics are in [CLEER.md](CLEER.md); the numbers are
 in [ENERGY-SUMMARY.md](../reports/resources/ENERGY-SUMMARY.md) and
 [ENERGY-COVERAGE.md](../reports/resources/ENERGY-COVERAGE.md).
