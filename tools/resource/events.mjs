@@ -8,7 +8,7 @@ import { validateAgainst } from '../observability/schema.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const SCHEMA_PATH = path.join(here, 'events.schema.json');
-export const SCHEMA_VERSION = '1.0.0';
+export const SCHEMA_VERSION = '1.1.0';
 const schema = JSON.parse(fs.readFileSync(SCHEMA_PATH, 'utf8'));
 
 export const ACTIVITIES = [
@@ -188,6 +188,19 @@ export function publicEvent(event) {
       completeness: e.provenance.completeness, limitations: (e.provenance.limitations || []).slice(0, 6),
     } : null,
     reconciliation: e.reconciliation ? { ...e.reconciliation } : null,
+    energy: e.measurements.energy ? {
+      status: e.measurements.energy.status, basis: e.measurements.energy.basis,
+      method_version: e.measurements.energy.method_version ?? null,
+      central_wh: num(e.measurements.energy.central_wh),
+      workload_low_wh: num(e.measurements.energy.workload_low_wh), workload_high_wh: num(e.measurements.energy.workload_high_wh),
+      configuration_low_wh: num(e.measurements.energy.configuration_low_wh), configuration_high_wh: num(e.measurements.energy.configuration_high_wh),
+      energy_wh_per_usd: num(e.measurements.energy.energy_wh_per_usd),
+      use_case: e.measurements.energy.use_case ?? null, workload: e.measurements.energy.workload ?? null,
+      dataset: e.measurements.energy.dataset ? { version: e.measurements.energy.dataset.version ?? null, release: e.measurements.energy.dataset.release ?? null, checksum: e.measurements.energy.dataset.checksum ?? null, licence: e.measurements.energy.dataset.licence ?? null } : null,
+      model_mapping: e.measurements.energy.model_mapping ? { input_model: e.measurements.energy.model_mapping.input_model ?? null, dataset_model: e.measurements.energy.model_mapping.dataset_model ?? null, match_type: e.measurements.energy.model_mapping.match_type ?? null, review_status: e.measurements.energy.model_mapping.review_status ?? null } : null,
+      coverage: e.measurements.energy.coverage ? { status: e.measurements.energy.coverage.status ?? null, missing_categories: (e.measurements.energy.coverage.missing_categories || []).slice(0, 8) } : null,
+      unavailable_code: e.measurements.energy.unavailable_code ?? null,
+    } : null,
     source: { adapter: e.source.adapter, confidence: e.source.confidence },
     allocations: (m.allocations || []).map((a) => ({ activity: a.activity, tokens: num(a.tokens), cpu_seconds: num(a.cpu_seconds), method: a.method })),
   };
@@ -202,5 +215,5 @@ export const totalTokens = (t) => {
 
 export const publicFields = Object.freeze([
   'id', 'date', 'event_type', 'issue', 'variant', 'activity', 'tool', 'model', 'provider', 'outcome', 'validation',
-  'duration_seconds', 'quality', 'classification', 'provenance', 'reconciliation', 'tokens', 'cost', 'tools', 'exploration', 'cpu', 'memory', 'github', 'source', 'allocations',
+  'duration_seconds', 'quality', 'classification', 'provenance', 'reconciliation', 'tokens', 'cost', 'tools', 'exploration', 'cpu', 'memory', 'mutagen', 'energy', 'github', 'source', 'allocations',
 ]);
