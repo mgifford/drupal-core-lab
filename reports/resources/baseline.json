@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-11-24T13:07:54.016Z",
+  "generated_at": "2026-11-24T21:07:32.763Z",
   "methodology": {
     "classifier_version": "2.1.0",
     "rule_registry_version": 1,
@@ -13,7 +13,7 @@
   },
   "period": {
     "from": "2026-10-02",
-    "to": "2026-11-23"
+    "to": "2026-11-24"
   },
   "completeness": "partial",
   "totals": {
@@ -36,10 +36,10 @@
     },
     "cpu": {
       "measured_seconds": 1.06,
-      "sampled_seconds": 6.9129999999999985,
-      "total_seconds": 7.972999999999999,
+      "sampled_seconds": 8.430999999999994,
+      "total_seconds": 9.490999999999994,
       "peak_memory_bytes": 372349338,
-      "processes_measured": 13
+      "processes_measured": 49
     },
     "github": {
       "runs": 100,
@@ -53,16 +53,16 @@
       "billable_minutes": null
     },
     "tasks": {
-      "measured": 27,
+      "measured": 35,
       "success": 12,
       "failure": 1,
-      "unknown": 14
+      "unknown": 22
     },
     "monitoring": {
-      "events": 16,
-      "cpu_seconds": 7.761500000000001,
+      "events": 20,
+      "cpu_seconds": 9.576629000000002,
       "peak_memory_bytes": 225837056,
-      "duration_ms": 47534
+      "duration_ms": 66812
     }
   },
   "by_activity": [
@@ -200,23 +200,23 @@
     },
     {
       "activity": "infrastructure",
-      "events": 40,
-      "tasks": 11,
+      "events": 76,
+      "tasks": 19,
       "tokens": 13529402,
       "share": 0.016645769581401095,
       "model_requests": 32,
       "cost_usd": 3.12,
-      "cpu_seconds": 6.91,
+      "cpu_seconds": 8.43,
       "peak_memory_bytes": 372349338,
       "tool_invocations": 32,
       "repeated_reads": 0,
-      "duration_seconds": 8,
+      "duration_seconds": 147.3,
       "outcomes": {
         "success": 0,
         "failure": 0,
         "cancelled": 0,
         "partial": 0,
-        "unknown": 40
+        "unknown": 76
       },
       "method": "direct-event, request-level-v1"
     },
@@ -400,13 +400,13 @@
   "by_issue": [
     {
       "issue": null,
-      "events": 2077,
-      "tasks": 22,
+      "events": 2101,
+      "tasks": 28,
       "tokens": 744513755,
       "model_requests": 2002,
       "cost_usd": 196.8,
-      "cpu_seconds": 4.22,
-      "duration_seconds": 2823.1,
+      "cpu_seconds": 5.58,
+      "duration_seconds": 2916,
       "peak_memory_bytes": 372349338,
       "success": 122,
       "failure": 1,
@@ -415,7 +415,7 @@
         "failure": 1,
         "cancelled": 0,
         "partial": 0,
-        "unknown": 1954
+        "unknown": 1978
       },
       "evidence": [
         "184c89ee6bdc",
@@ -570,13 +570,13 @@
     },
     {
       "issue": "3619127",
-      "events": 4,
-      "tasks": 2,
+      "events": 16,
+      "tasks": 4,
       "tokens": null,
       "model_requests": null,
       "cost_usd": null,
-      "cpu_seconds": 3.76,
-      "duration_seconds": 4,
+      "cpu_seconds": 3.92,
+      "duration_seconds": 50.4,
       "peak_memory_bytes": 371300762,
       "success": 0,
       "failure": 0,
@@ -585,13 +585,17 @@
         "failure": 0,
         "cancelled": 0,
         "partial": 0,
-        "unknown": 4
+        "unknown": 16
       },
       "evidence": [
         "aee908dce274",
         "d4af5af60c4c",
         "05d7bd77ffc7",
-        "c561f23be5d7"
+        "c561f23be5d7",
+        "0184f82b9364",
+        "4230a5e5947e",
+        "e5d677ba14b5",
+        "406466694fb2"
       ]
     }
   ],
@@ -659,6 +663,62 @@
       "events": 3,
       "tokens": null,
       "cpu_seconds": 1.06,
+      "model_requests": null,
+      "cost_usd": null
+    },
+    {
+      "tool": "ddev-web",
+      "events": 6,
+      "tokens": null,
+      "cpu_seconds": 0.01,
+      "model_requests": null,
+      "cost_usd": null
+    },
+    {
+      "tool": "ddev-viewer",
+      "events": 3,
+      "tokens": null,
+      "cpu_seconds": 1.2,
+      "model_requests": null,
+      "cost_usd": null
+    },
+    {
+      "tool": "ddev-chrome",
+      "events": 6,
+      "tokens": null,
+      "cpu_seconds": 0.31,
+      "model_requests": null,
+      "cost_usd": null
+    },
+    {
+      "tool": "ddev-otel-collector",
+      "events": 6,
+      "tokens": null,
+      "cpu_seconds": 0.01,
+      "model_requests": null,
+      "cost_usd": null
+    },
+    {
+      "tool": "ddev-router",
+      "events": 3,
+      "tokens": null,
+      "cpu_seconds": 0,
+      "model_requests": null,
+      "cost_usd": null
+    },
+    {
+      "tool": "ddev-ssh-agent",
+      "events": 3,
+      "tokens": null,
+      "cpu_seconds": 0,
+      "model_requests": null,
+      "cost_usd": null
+    },
+    {
+      "tool": "ddev-mutagen",
+      "events": 9,
+      "tokens": null,
+      "cpu_seconds": null,
       "model_requests": null,
       "cost_usd": null
     }
@@ -865,17 +925,107 @@
       "cpu_seconds": 7.97,
       "github_seconds": 642,
       "unknown_tokens": null
+    },
+    {
+      "date": "2026-11-24",
+      "events": 36,
+      "tokens": null,
+      "model_requests": null,
+      "cost_usd": null,
+      "cpu_seconds": 1.52,
+      "github_seconds": null,
+      "unknown_tokens": null
     }
   ],
+  "infrastructure": {
+    "samples": 27,
+    "containers": 9,
+    "unclassified_samples": 8,
+    "roles": [
+      {
+        "role": "viewer",
+        "containers": 1,
+        "events": 3,
+        "cpu_seconds": 1.2,
+        "peak_memory_bytes": 88720015
+      },
+      {
+        "role": "chrome",
+        "containers": 2,
+        "events": 6,
+        "cpu_seconds": 0.31,
+        "peak_memory_bytes": 299053875
+      },
+      {
+        "role": "otel-collector",
+        "containers": 2,
+        "events": 6,
+        "cpu_seconds": 0.01,
+        "peak_memory_bytes": 48433725
+      },
+      {
+        "role": "web",
+        "containers": 2,
+        "events": 6,
+        "cpu_seconds": 0.01,
+        "peak_memory_bytes": 368155034
+      },
+      {
+        "role": "router",
+        "containers": 1,
+        "events": 3,
+        "cpu_seconds": 0,
+        "peak_memory_bytes": 51747226
+      },
+      {
+        "role": "ssh-agent",
+        "containers": 1,
+        "events": 3,
+        "cpu_seconds": 0,
+        "peak_memory_bytes": 4132438
+      }
+    ],
+    "note": "Container statistics are sampled. CPU-seconds are derived from CPUPerc over the sample interval; memory is container usage. Mutagen file counts, Chrome on/off and Docker disk are reported by the local `lab-env resources` command, not this public page.",
+    "mutagen": {
+      "samples": 9,
+      "snapshots": [
+        {
+          "label": "baseline",
+          "files": 67793,
+          "bytes": 460000000,
+          "sessions": 1,
+          "measurement": "sampled",
+          "occurred_at": "2026-11-24T21:07:31Z"
+        },
+        {
+          "label": "issue-3619127",
+          "files": 67761,
+          "bytes": 460000000,
+          "sessions": 1,
+          "measurement": "sampled",
+          "occurred_at": "2026-11-24T21:07:31Z"
+        },
+        {
+          "label": "viewer",
+          "files": 53,
+          "bytes": 111000,
+          "sessions": 1,
+          "measurement": "sampled",
+          "occurred_at": "2026-11-24T21:07:31Z"
+        }
+      ],
+      "note": "The latest sampled Mutagen session per variant. File counts and content sizes are Mutagen session values, not a directory walk or disk usage; a flush or reset can change them."
+    }
+  },
   "attribution": {
     "activity": {
-      "events": 2348,
-      "classified": 1887,
+      "events": 2384,
+      "classified": 1923,
       "unknown": 461,
       "tokens": 812783208,
       "tokens_classified": 648275787,
       "tokens_unknown": 164507421,
-      "coverage_events": 0.8036626916524702,
+      "coverage_events": 0.8066275167785235,
       "coverage_tokens": 0.79759987733408
     },
     "model_requests": {
@@ -891,10 +1041,10 @@
     },
     "task": {
       "events_attributed": 0,
-      "events_total": 2348,
+      "events_total": 2384,
       "tokens_attributed": null,
       "coverage": null,
-      "non_session_task_events": 113,
+      "non_session_task_events": 149,
       "non_session_task_tokens": null,
       "session_task_events": 2181,
       "session_task_tokens": 812265879,
@@ -906,8 +1056,8 @@
       }
     },
     "issue": {
-      "events_attributed": 271,
-      "events_total": 2348,
+      "events_attributed": 283,
+      "events_total": 2384,
       "tokens_attributed": 68269453,
       "coverage": 0.08399466466339693,
       "note": "Issue attribution is independent of activity classification. An Unknown activity is not an unattributed issue."
@@ -915,7 +1065,7 @@
     "outcome": {
       "success": 156,
       "failure": 1,
-      "unknown": 2191,
+      "unknown": 2227,
       "verified_note": "A successful command or a model claim is not a verified task outcome; evidence review remains human."
     },
     "unknown": {
@@ -964,8 +1114,8 @@
       ]
     },
     "data": {
-      "events_total": 2358,
-      "events_counted": 2348,
+      "events_total": 2394,
+      "events_counted": 2384,
       "events_uncounted": 10,
       "request_level_sessions": 10,
       "legacy_sessions": 0,
@@ -1182,12 +1332,12 @@
     },
     "cpu": {
       "status": "measured",
-      "events": 11,
+      "events": 38,
       "note": "CPU-seconds are measured by the process wrapper, or derived from sampled container percentages. They are not hardware cycle counts."
     },
     "memory": {
       "status": "measured/sampled",
-      "events": 13,
+      "events": 40,
       "note": "Peak RSS and container peaks are different measurements; PHP peak is per request."
     },
     "github": {
@@ -1196,18 +1346,19 @@
       "note": "Durations and conclusions come from the GitHub API; billable minutes and runner CPU are unavailable."
     },
     "events": {
-      "total": 2348,
+      "total": 2384,
       "complete": 3,
-      "partial": 2345,
+      "partial": 2381,
       "estimated": 0,
       "unavailable": 0
     },
     "sources": {
       "claude-transcripts:provider-reported": 2181,
-      "docker-stats:measured": 8,
+      "docker-stats:measured": 35,
       "github-actions:provider-reported": 100,
       "measure-resources:measured": 2,
       "model-eval-trials:provider-reported": 54,
+      "mutagen-status:measured": 9,
       "process-wrapper:measured": 3
     },
     "missing": [
@@ -1218,11 +1369,13 @@
       "cpu",
       "cumulative_cpu",
       "disk_bytes",
+      "disk_usage",
       "exact_cost",
       "exact_cpu",
       "input_token_split",
       "io",
       "memory",
+      "mutagen",
       "network",
       "outcome",
       "request_duration",
@@ -1373,6 +1526,546 @@
     }
   ],
   "events": [
+    {
+      "date": "2026-11-24",
+      "issue": "3619127",
+      "variant": null,
+      "activity": "infrastructure",
+      "tool": "ddev-web",
+      "model": null,
+      "provider": null,
+      "token_basis": "unavailable",
+      "cost_basis": "unavailable",
+      "cpu_measurement": "derived",
+      "quality": "partial",
+      "classification_confidence": null,
+      "classification_provenance": null,
+      "subcategory": null,
+      "unknown_reasons": [],
+      "events": 3,
+      "tokens": null,
+      "uncached_input": null,
+      "output": null,
+      "cache_creation": null,
+      "cache_read": null,
+      "reasoning": null,
+      "model_requests": null,
+      "cost_usd": null,
+      "cpu_seconds": 0,
+      "duration_seconds": 15,
+      "tool_invocations": null,
+      "repeated_reads": null,
+      "github_runs": 0,
+      "github_seconds": null,
+      "peak_memory_bytes": 368155034,
+      "outcomes": {
+        "success": 0,
+        "failure": 0,
+        "cancelled": 0,
+        "partial": 0,
+        "unknown": 3
+      },
+      "evidence_ids": [
+        "0184f82b9364",
+        "406466694fb2",
+        "a1e7e980f5fb"
+      ]
+    },
+    {
+      "date": "2026-11-24",
+      "issue": null,
+      "variant": null,
+      "activity": "infrastructure",
+      "tool": "ddev-viewer",
+      "model": null,
+      "provider": null,
+      "token_basis": "unavailable",
+      "cost_basis": "unavailable",
+      "cpu_measurement": "derived",
+      "quality": "partial",
+      "classification_confidence": null,
+      "classification_provenance": null,
+      "subcategory": null,
+      "unknown_reasons": [],
+      "events": 3,
+      "tokens": null,
+      "uncached_input": null,
+      "output": null,
+      "cache_creation": null,
+      "cache_read": null,
+      "reasoning": null,
+      "model_requests": null,
+      "cost_usd": null,
+      "cpu_seconds": 1.2,
+      "duration_seconds": 15,
+      "tool_invocations": null,
+      "repeated_reads": null,
+      "github_runs": 0,
+      "github_seconds": null,
+      "peak_memory_bytes": 88720015,
+      "outcomes": {
+        "success": 0,
+        "failure": 0,
+        "cancelled": 0,
+        "partial": 0,
+        "unknown": 3
+      },
+      "evidence_ids": [
+        "396b3355bd6b",
+        "3a66e24e2666",
+        "c98627e5845f"
+      ]
+    },
+    {
+      "date": "2026-11-24",
+      "issue": "3619127",
+      "variant": null,
+      "activity": "infrastructure",
+      "tool": "ddev-chrome",
+      "model": null,
+      "provider": null,
+      "token_basis": "unavailable",
+      "cost_basis": "unavailable",
+      "cpu_measurement": "derived",
+      "quality": "partial",
+      "classification_confidence": null,
+      "classification_provenance": null,
+      "subcategory": null,
+      "unknown_reasons": [],
+      "events": 3,
+      "tokens": null,
+      "uncached_input": null,
+      "output": null,
+      "cache_creation": null,
+      "cache_read": null,
+      "reasoning": null,
+      "model_requests": null,
+      "cost_usd": null,
+      "cpu_seconds": 0.15,
+      "duration_seconds": 15,
+      "tool_invocations": null,
+      "repeated_reads": null,
+      "github_runs": 0,
+      "github_seconds": null,
+      "peak_memory_bytes": 299053875,
+      "outcomes": {
+        "success": 0,
+        "failure": 0,
+        "cancelled": 0,
+        "partial": 0,
+        "unknown": 3
+      },
+      "evidence_ids": [
+        "4230a5e5947e",
+        "52ae7f579b4f",
+        "6aae4140aba9"
+      ]
+    },
+    {
+      "date": "2026-11-24",
+      "issue": null,
+      "variant": null,
+      "activity": "infrastructure",
+      "tool": "ddev-otel-collector",
+      "model": null,
+      "provider": null,
+      "token_basis": "unavailable",
+      "cost_basis": "unavailable",
+      "cpu_measurement": "derived",
+      "quality": "partial",
+      "classification_confidence": null,
+      "classification_provenance": null,
+      "subcategory": null,
+      "unknown_reasons": [],
+      "events": 3,
+      "tokens": null,
+      "uncached_input": null,
+      "output": null,
+      "cache_creation": null,
+      "cache_read": null,
+      "reasoning": null,
+      "model_requests": null,
+      "cost_usd": null,
+      "cpu_seconds": 0,
+      "duration_seconds": 15,
+      "tool_invocations": null,
+      "repeated_reads": null,
+      "github_runs": 0,
+      "github_seconds": null,
+      "peak_memory_bytes": 46860861,
+      "outcomes": {
+        "success": 0,
+        "failure": 0,
+        "cancelled": 0,
+        "partial": 0,
+        "unknown": 3
+      },
+      "evidence_ids": [
+        "460e119a0f42",
+        "3214f057f95a",
+        "fb6352c3ccc4"
+      ]
+    },
+    {
+      "date": "2026-11-24",
+      "issue": null,
+      "variant": null,
+      "activity": "infrastructure",
+      "tool": "ddev-router",
+      "model": null,
+      "provider": null,
+      "token_basis": "unavailable",
+      "cost_basis": "unavailable",
+      "cpu_measurement": "derived",
+      "quality": "partial",
+      "classification_confidence": null,
+      "classification_provenance": null,
+      "subcategory": null,
+      "unknown_reasons": [],
+      "events": 3,
+      "tokens": null,
+      "uncached_input": null,
+      "output": null,
+      "cache_creation": null,
+      "cache_read": null,
+      "reasoning": null,
+      "model_requests": null,
+      "cost_usd": null,
+      "cpu_seconds": 0,
+      "duration_seconds": 15,
+      "tool_invocations": null,
+      "repeated_reads": null,
+      "github_runs": 0,
+      "github_seconds": null,
+      "peak_memory_bytes": 51747226,
+      "outcomes": {
+        "success": 0,
+        "failure": 0,
+        "cancelled": 0,
+        "partial": 0,
+        "unknown": 3
+      },
+      "evidence_ids": [
+        "4976a0caf565",
+        "44e733d1a7cb",
+        "46aec9703701"
+      ]
+    },
+    {
+      "date": "2026-11-24",
+      "issue": null,
+      "variant": null,
+      "activity": "infrastructure",
+      "tool": "ddev-web",
+      "model": null,
+      "provider": null,
+      "token_basis": "unavailable",
+      "cost_basis": "unavailable",
+      "cpu_measurement": "derived",
+      "quality": "partial",
+      "classification_confidence": null,
+      "classification_provenance": null,
+      "subcategory": null,
+      "unknown_reasons": [],
+      "events": 3,
+      "tokens": null,
+      "uncached_input": null,
+      "output": null,
+      "cache_creation": null,
+      "cache_read": null,
+      "reasoning": null,
+      "model_requests": null,
+      "cost_usd": null,
+      "cpu_seconds": 0,
+      "duration_seconds": 15,
+      "tool_invocations": null,
+      "repeated_reads": null,
+      "github_runs": 0,
+      "github_seconds": null,
+      "peak_memory_bytes": 348232090,
+      "outcomes": {
+        "success": 0,
+        "failure": 0,
+        "cancelled": 0,
+        "partial": 0,
+        "unknown": 3
+      },
+      "evidence_ids": [
+        "97e8094726ae",
+        "e6a9c062f7d4",
+        "cd54b742429b"
+      ]
+    },
+    {
+      "date": "2026-11-24",
+      "issue": null,
+      "variant": null,
+      "activity": "infrastructure",
+      "tool": "ddev-chrome",
+      "model": null,
+      "provider": null,
+      "token_basis": "unavailable",
+      "cost_basis": "unavailable",
+      "cpu_measurement": "derived",
+      "quality": "partial",
+      "classification_confidence": null,
+      "classification_provenance": null,
+      "subcategory": null,
+      "unknown_reasons": [],
+      "events": 3,
+      "tokens": null,
+      "uncached_input": null,
+      "output": null,
+      "cache_creation": null,
+      "cache_read": null,
+      "reasoning": null,
+      "model_requests": null,
+      "cost_usd": null,
+      "cpu_seconds": 0.15,
+      "duration_seconds": 15,
+      "tool_invocations": null,
+      "repeated_reads": null,
+      "github_runs": 0,
+      "github_seconds": null,
+      "peak_memory_bytes": 293810995,
+      "outcomes": {
+        "success": 0,
+        "failure": 0,
+        "cancelled": 0,
+        "partial": 0,
+        "unknown": 3
+      },
+      "evidence_ids": [
+        "9bd199d73d9f",
+        "24c85fb49753",
+        "22f9ffde9ce0"
+      ]
+    },
+    {
+      "date": "2026-11-24",
+      "issue": null,
+      "variant": null,
+      "activity": "infrastructure",
+      "tool": "ddev-ssh-agent",
+      "model": null,
+      "provider": null,
+      "token_basis": "unavailable",
+      "cost_basis": "unavailable",
+      "cpu_measurement": "derived",
+      "quality": "partial",
+      "classification_confidence": null,
+      "classification_provenance": null,
+      "subcategory": null,
+      "unknown_reasons": [],
+      "events": 3,
+      "tokens": null,
+      "uncached_input": null,
+      "output": null,
+      "cache_creation": null,
+      "cache_read": null,
+      "reasoning": null,
+      "model_requests": null,
+      "cost_usd": null,
+      "cpu_seconds": 0,
+      "duration_seconds": 15,
+      "tool_invocations": null,
+      "repeated_reads": null,
+      "github_runs": 0,
+      "github_seconds": null,
+      "peak_memory_bytes": 4132438,
+      "outcomes": {
+        "success": 0,
+        "failure": 0,
+        "cancelled": 0,
+        "partial": 0,
+        "unknown": 3
+      },
+      "evidence_ids": [
+        "e0fb1b8ad34a",
+        "a99fa79150f4",
+        "c03e142782ac"
+      ]
+    },
+    {
+      "date": "2026-11-24",
+      "issue": "3619127",
+      "variant": null,
+      "activity": "infrastructure",
+      "tool": "ddev-otel-collector",
+      "model": null,
+      "provider": null,
+      "token_basis": "unavailable",
+      "cost_basis": "unavailable",
+      "cpu_measurement": "derived",
+      "quality": "partial",
+      "classification_confidence": null,
+      "classification_provenance": null,
+      "subcategory": null,
+      "unknown_reasons": [],
+      "events": 3,
+      "tokens": null,
+      "uncached_input": null,
+      "output": null,
+      "cache_creation": null,
+      "cache_read": null,
+      "reasoning": null,
+      "model_requests": null,
+      "cost_usd": null,
+      "cpu_seconds": 0,
+      "duration_seconds": 15,
+      "tool_invocations": null,
+      "repeated_reads": null,
+      "github_runs": 0,
+      "github_seconds": null,
+      "peak_memory_bytes": 48433725,
+      "outcomes": {
+        "success": 0,
+        "failure": 0,
+        "cancelled": 0,
+        "partial": 0,
+        "unknown": 3
+      },
+      "evidence_ids": [
+        "e5d677ba14b5",
+        "4aa12cc686d1",
+        "5ec9fa3bdd48"
+      ]
+    },
+    {
+      "date": "2026-11-24",
+      "issue": null,
+      "variant": "viewer",
+      "activity": "infrastructure",
+      "tool": "ddev-mutagen",
+      "model": null,
+      "provider": null,
+      "token_basis": "unavailable",
+      "cost_basis": "unavailable",
+      "cpu_measurement": "unavailable",
+      "quality": "partial",
+      "classification_confidence": null,
+      "classification_provenance": null,
+      "subcategory": null,
+      "unknown_reasons": [],
+      "events": 3,
+      "tokens": null,
+      "uncached_input": null,
+      "output": null,
+      "cache_creation": null,
+      "cache_read": null,
+      "reasoning": null,
+      "model_requests": null,
+      "cost_usd": null,
+      "cpu_seconds": null,
+      "duration_seconds": 1.5,
+      "tool_invocations": null,
+      "repeated_reads": null,
+      "github_runs": 0,
+      "github_seconds": null,
+      "peak_memory_bytes": null,
+      "outcomes": {
+        "success": 0,
+        "failure": 0,
+        "cancelled": 0,
+        "partial": 0,
+        "unknown": 3
+      },
+      "evidence_ids": [
+        "6b4d42ba8aa0",
+        "8d4817138918",
+        "1ba55707a074"
+      ]
+    },
+    {
+      "date": "2026-11-24",
+      "issue": null,
+      "variant": "baseline",
+      "activity": "infrastructure",
+      "tool": "ddev-mutagen",
+      "model": null,
+      "provider": null,
+      "token_basis": "unavailable",
+      "cost_basis": "unavailable",
+      "cpu_measurement": "unavailable",
+      "quality": "partial",
+      "classification_confidence": null,
+      "classification_provenance": null,
+      "subcategory": null,
+      "unknown_reasons": [],
+      "events": 3,
+      "tokens": null,
+      "uncached_input": null,
+      "output": null,
+      "cache_creation": null,
+      "cache_read": null,
+      "reasoning": null,
+      "model_requests": null,
+      "cost_usd": null,
+      "cpu_seconds": null,
+      "duration_seconds": 1.4,
+      "tool_invocations": null,
+      "repeated_reads": null,
+      "github_runs": 0,
+      "github_seconds": null,
+      "peak_memory_bytes": null,
+      "outcomes": {
+        "success": 0,
+        "failure": 0,
+        "cancelled": 0,
+        "partial": 0,
+        "unknown": 3
+      },
+      "evidence_ids": [
+        "175133b0505a",
+        "ad330bef88ec",
+        "fc42bc73f843"
+      ]
+    },
+    {
+      "date": "2026-11-24",
+      "issue": "3619127",
+      "variant": "issue-3619127",
+      "activity": "infrastructure",
+      "tool": "ddev-mutagen",
+      "model": null,
+      "provider": null,
+      "token_basis": "unavailable",
+      "cost_basis": "unavailable",
+      "cpu_measurement": "unavailable",
+      "quality": "partial",
+      "classification_confidence": null,
+      "classification_provenance": null,
+      "subcategory": null,
+      "unknown_reasons": [],
+      "events": 3,
+      "tokens": null,
+      "uncached_input": null,
+      "output": null,
+      "cache_creation": null,
+      "cache_read": null,
+      "reasoning": null,
+      "model_requests": null,
+      "cost_usd": null,
+      "cpu_seconds": null,
+      "duration_seconds": 1.4,
+      "tool_invocations": null,
+      "repeated_reads": null,
+      "github_runs": 0,
+      "github_seconds": null,
+      "peak_memory_bytes": null,
+      "outcomes": {
+        "success": 0,
+        "failure": 0,
+        "cancelled": 0,
+        "partial": 0,
+        "unknown": 3
+      },
+      "evidence_ids": [
+        "47a42ee1c243",
+        "154059fcbcd8",
+        "97c5eafbe4ea"
+      ]
+    },
     {
       "date": "2026-11-23",
       "issue": "2942404",
@@ -14404,10 +15097,10 @@
     }
   ],
   "monitoring": {
-    "events": 16,
-    "cpu_seconds": 7.761500000000001,
+    "events": 20,
+    "cpu_seconds": 9.576629000000002,
     "peak_memory_bytes": 225837056,
-    "duration_ms": 47534
+    "duration_ms": 66812
   },
   "data_quality": {
     "tokens": {
@@ -14422,12 +15115,12 @@
     },
     "cpu": {
       "status": "measured",
-      "events": 11,
+      "events": 38,
       "note": "CPU-seconds are measured by the process wrapper, or derived from sampled container percentages. They are not hardware cycle counts."
     },
     "memory": {
       "status": "measured/sampled",
-      "events": 13,
+      "events": 40,
       "note": "Peak RSS and container peaks are different measurements; PHP peak is per request."
     },
     "github": {
@@ -14436,18 +15129,19 @@
       "note": "Durations and conclusions come from the GitHub API; billable minutes and runner CPU are unavailable."
     },
     "events": {
-      "total": 2348,
+      "total": 2384,
       "complete": 3,
-      "partial": 2345,
+      "partial": 2381,
       "estimated": 0,
       "unavailable": 0
     },
     "sources": {
       "claude-transcripts:provider-reported": 2181,
-      "docker-stats:measured": 8,
+      "docker-stats:measured": 35,
       "github-actions:provider-reported": 100,
       "measure-resources:measured": 2,
       "model-eval-trials:provider-reported": 54,
+      "mutagen-status:measured": 9,
       "process-wrapper:measured": 3
     },
     "missing": [
@@ -14458,11 +15152,13 @@
       "cpu",
       "cumulative_cpu",
       "disk_bytes",
+      "disk_usage",
       "exact_cost",
       "exact_cpu",
       "input_token_split",
       "io",
       "memory",
+      "mutagen",
       "network",
       "outcome",
       "request_duration",
@@ -14502,5 +15198,5 @@
       "max_test_repetitions": 2
     }
   },
-  "baseline_generated": "2026-11-24T13-07-54-027Z"
+  "baseline_generated": "2026-11-24T21-07-32-774Z"
 }
