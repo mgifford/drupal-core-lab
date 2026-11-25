@@ -56,8 +56,9 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/capture-patch.mjs <slug> [--name <name> [--exclude <path>...]]   # no MR yet: the edits made in the After environment become reports/issues/<nid>/branches/<nid>-<name>.patch, listed in the variant; without --name it only lists them
     node scripts/make-bundle.mjs <slug>                  # a self-contained zip for someone else
     node scripts/index-issues.mjs                        # refresh reports/issues/README.md: issues grouped by next step (offline)
+    node scripts/focus-issues.mjs [--write|--summary]    # where to focus: Needs review > RTBC > Needs work > watch > close-out (offline); --write makes reports/issues/FOCUS.md
     node scripts/run-readmes.mjs <nid> [--check]   # README.md in every reports/issues/<nid>/playwright/<run>/ (Before/After image pairs, what each state is) plus an index; --check exits 1 when out of date
-    node scripts/issue-status.mjs <nid> [--write] | --all [--write]  # read-only: status, comments, MR head vs the patch the lab tested; --write keeps status.json, rewritten only on a change (weekly: .github/workflows/issue-status.yml)
+    node scripts/issue-status.mjs <nid> [--write] | --all [--write] [--include-archived]  # read-only: status, comments, MR head vs the patch the lab tested; --write keeps status.json, rewritten only on a change; --include-archived spots a reopened archive (weekly: .github/workflows/issue-status.yml)
     node scripts/issue-archive.mjs <nid> [--reason <r>] [--commit <sha>] [--duplicate-of <nid>] [--dry-run]   # closed upstream: ARCHIVED.md, retire the variants that follow core main (docs/ISSUE-LIFECYCLE.md)
     node scripts/check-draft.mjs <nid>                   # the comment draft against core's AGENTS.md rules (180 words, no headers, disclosure line)
     node scripts/bug-feature.mjs draft <nid> [--variant <slug>] [--write [--force]]   # a mechanical Gherkin draft of the bug summary from the variant and its runs (reports/issues/<nid>/BUG.feature)

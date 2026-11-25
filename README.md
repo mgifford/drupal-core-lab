@@ -24,6 +24,7 @@ The viewer allows contributors to inspect both Drupal environments under compara
 
 ### Explore the project
 
+- **[Where to focus](reports/issues/FOCUS.md):** The evaluated issues ranked by what would help most now: Needs review first, then RTBC, Needs work, watch and close-out.
 - **[Browse evaluated issues](reports/issues/README.md):** Explore existing reproductions, patches, evidence, testing coverage, and issue status.
 - **[Examine a worked example](reports/issues/3619127/REPRODUCE.md):** Follow the reproduction and evaluation of a Drupal form accessibility issue.
 - **[Explore the published Lab](https://mgifford.github.io/drupal-core-lab/):** Review issue guides without installing Drupal.

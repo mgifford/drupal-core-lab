@@ -8,7 +8,7 @@ each change, and what happens when an issue is finished.
 
 [`reports/issues/README.md`](../reports/issues/README.md) lists every issue folder in four groups:
 
-- **Needs attention**: something changed upstream that the lab should act on.
+- **Needs attention**: something changed upstream, or a reviewable change is ready; act on these first.
 - **Waiting**: nothing for the lab to do until the issue moves.
 - **Not checked yet**: no `status.json` yet.
 - **Archived**: finished and archived in place.
@@ -17,12 +17,21 @@ Each row shows the drupal.org status, the merge request and its head commit, the
 `BRANCHES.md`) and the next step. `node scripts/index-issues.mjs` builds it offline from files in the lab, so it is only as current
 as the last check.
 
+`reports/issues/FOCUS.md` is the shorter, priority-ordered view: **Needs review** first (the best place to help a reviewer), then
+**RTBC**, **Needs work**, **Active/postponed**, and finally **close-out** candidates. Within Needs review, a current MR head the lab
+tested comes first; a moved MR head is re-tested before review; a draft MR is flagged, not treated as ready. Needs work rows say
+whether to fetch the queue, find a missing MR, record the tested revision or re-test a moved head. The report is built by
+`node scripts/focus-issues.mjs` (offline, no model) and refreshed with the weekly check. It never posts to drupal.org and is not a
+substitute for reading the issue and its review threads.
+
 ## Keeping it current: the weekly check
 
 [`.github/workflows/issue-status.yml`](../.github/workflows/issue-status.yml) runs on Mondays at 07:17 UTC, and on demand from
-**Actions > Weekly issue status > Run workflow**. It runs `node scripts/issue-status.mjs --all --write`, which reads each issue that
-is not archived from drupal.org and git.drupalcode.org, then `node scripts/index-issues.mjs`. When something changed it opens one
-pull request with the changed files and a log line per issue; you review and merge it. It never posts to drupal.org.
+**Actions > Weekly issue status and focus > Run workflow**. It runs `node scripts/issue-status.mjs --all --write --include-archived`, which reads every issue (archived ones too, so a
+reopened issue can be spotted) from drupal.org and git.drupalcode.org, then `node scripts/index-issues.mjs` and
+`node scripts/focus-issues.mjs --write`. When something changed it opens one
+pull request with the changed files (including `FOCUS.md`) and a log line per issue; you review and merge it. The job page also
+shows the current focus summary. It never posts to drupal.org.
 
 - **One-time setting.** In the repository's **Settings > Actions > General > Workflow permissions**, tick **Allow GitHub Actions to
   create and approve pull requests**. Without it the workflow reads the issues but cannot open the pull request.
@@ -95,7 +104,7 @@ working, and its evidence stays next to its reproduction steps. (`reports/archiv
 reports.)
 
 - `ARCHIVED.md` says when and why, the drupal.org status, the core commit if known, which variants were retired and which still
-  build. The list shows the issue under **Archived**, and the weekly check skips it.
+  build. The list shows the issue under **Archived**. The weekly check still reads archived issues, so a reopened one is noticed and appears under **Reopened archive** in `FOCUS.md`; unarchive it deliberately, never automatically.
 - A **retired** variant has `"retired": "<date and reason>"` in its `variants.json` entry. `tools/compare/setup.mjs` and
   `scripts/test-mr.mjs` refuse to build it and say why; an issue number (`test-mr.mjs <nid>`) picks a variant that is not retired.
   A variant pinned to a core commit (usually `<nid>-pinned`) is not retired and still builds, so the Before/After evidence stays
@@ -118,7 +127,7 @@ viewer loads one grouped JSON file. The costs that do grow are:
   need (`lab-env.mjs delete|trim`).
 - **DDEV projects and Docker.** `ddev list`, `lab-env.mjs status` and the router get slower with every registered
   project, even stopped ones. Built environments are the main source of drag.
-- **The weekly status check.** It reads every unarchived issue from drupal.org and GitLab: about 3 seconds per issue
+- **The weekly status check.** It reads every issue, archived ones included, from drupal.org and GitLab: about 3 seconds per issue
   here, so the 41 issues take about two minutes. Archiving closed issues removes them from the sweep.
 - **Evidence size.** `reports/issues/` grows with screenshots and run records; it is not loaded by the viewer, but it
   is what makes a full clone large.

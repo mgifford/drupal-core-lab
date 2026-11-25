@@ -87,8 +87,11 @@ test('changes, retestReason and nextStep: what changed, whether to re-test, and 
   assert.deepEqual(step({ ...base, mr: { ...base.mr, sha: 'aaaa1111' } }).group, 'attention');
   assert.match(step({ ...base, status: 'Reviewed & tested by the community', statusCode: 14 }).text, /^RTBC/);
   assert.deepEqual(step({ ...base, status: 'Needs work', statusCode: 13 }), { group: 'waiting', text: 'Needs work: waiting on the MR' });
+  assert.equal(step(base).group, 'attention', 'Needs review is actionable, not waiting');
   assert.match(step(base).text, /the lab has tested the current MR head/);
+  assert.equal(step(base, null).group, 'attention');
   assert.match(step(base, null).text, /the lab has no BRANCHES\.md/);
+  assert.equal(step({ ...base, mr: null }).group, 'attention');
   assert.match(step({ ...base, mr: null }).text, /the MR the lab tested was not found on GitLab/);
   assert.deepEqual(step(base, { mrIid: null, branch: null, tip: null }), { group: 'attention', text: 'Test MR !1 (at 175e6f17): BRANCHES.md records no MR commit the lab tested' });
   assert.match(retestReason({ ...base.mr, iid: 9 }, { mrIid: 1, branch: 'b', tip: '175e6f17' }), /the MR is now !9; the lab tested !1/);
