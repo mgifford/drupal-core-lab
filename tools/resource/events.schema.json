@@ -706,6 +706,45 @@
             }
           }
         },
+        "mutagen": {
+          "type": "object",
+          "required": [
+            "files",
+            "bytes",
+            "sessions",
+            "measurement"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "files": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "bytes": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "sessions": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "measurement": {
+              "enum": [
+                "sampled",
+                "unavailable"
+              ]
+            }
+          }
+        },
         "github": {
           "type": "object",
           "required": [

@@ -167,6 +167,7 @@ export function publicEvent(event) {
     exploration: m.exploration ? Object.fromEntries(Object.entries(m.exploration).map(([k, v]) => [k, num(v)])) : null,
     cpu: { total_seconds: num(m.cpu.total_seconds), cpu_percent: num(m.cpu.cpu_percent), measurement: m.cpu.measurement },
     memory: { peak_rss_bytes: num(m.memory.peak_rss_bytes), peak_container_bytes: num(m.memory.peak_container_bytes), peak_php_mb: num(m.memory.peak_php_mb), measurement: m.memory.measurement },
+    mutagen: m.mutagen ? { files: num(m.mutagen.files), bytes: num(m.mutagen.bytes), sessions: num(m.mutagen.sessions), measurement: m.mutagen.measurement } : null,
     github: {
       workflow: m.github.workflow, job: m.github.job, event: m.github.event, runner: m.github.runner,
       attempt: num(m.github.attempt), potentially_superseded: m.github.potentially_superseded,

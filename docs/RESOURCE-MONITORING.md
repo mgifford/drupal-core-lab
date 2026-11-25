@@ -230,6 +230,7 @@ are unavailable and stay null. An overlapping later run on the same workflow/bra
 # Collect available measurements (no model call). Default: Claude transcripts, model-eval trials, measure-resources.
 node scripts/resource.mjs collect
 node scripts/resource.mjs collect --source=all --samples=3 --interval=1000
+node scripts/resource.mjs collect --source=mutagen   # read-only ddev mutagen status -l per running project
 node scripts/resource.mjs collect --source=claude --issue=3619127 --variant=3619127-pinned
 node scripts/resource.mjs collect --source=claude --prompt-content   # opt-in: local raw prompt files
 node scripts/resource.mjs collect --source=claude --inspect-artifacts # opt-in: bounded ZIP/patch metadata reads
@@ -290,7 +291,8 @@ override.
 `tools/resource/dashboard.html` becomes `cloud/resources.html`; `reports/resources/summary.json` becomes
 `cloud/resources.json`. Both are generated and committed; GitHub Pages remains static. The dashboard:
 
-- shows totals, activity shares, daily trend, cost by model, CPU by tool, GitHub Actions time and per-issue totals;
+- shows totals, activity shares, daily trend, cost by model, CPU by tool, GitHub Actions time, per-issue totals and a sampled **Infrastructure efficiency** table by container role (web, Chrome, OTEL, viewer, router, SSH agent);
+- labels container CPU/memory as sampled, shows the latest Mutagen session file count/content size per variant, and keeps Docker disk in the local `lab-env resources` command rather than the public page;
 - supports date, issue, activity, tool and model filters with native controls;
 - gives every chart a visible table equivalent; wide tables scroll inside focusable `role="region"` wrappers;
 - works in light, dark, forced-colours, reduced-motion, 320 px and 200% text contexts;

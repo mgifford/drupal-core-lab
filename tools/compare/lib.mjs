@@ -180,6 +180,16 @@ export function assetsOf(html) {
   });
 }
 
+// A lab-owned DDEV override that survives add-on updates. `core/node_modules` is needed only for CSS/JS builds and lint, so it
+// is bind-mounted through upload_dirs instead of being synced by Mutagen (DDEV's own recommendation; measured in the 2026-11-24
+// infrastructure audit). Keep `.ddev/tmp` because the add-on sets it, and do not add sites/default/files: the SQLite database
+// lives there and should stay on the Mutagen volume.
+export const LAB_DDEV_CONFIG = `# lab-managed: written by tools/compare/setup.mjs. Overrides the add-on's upload_dirs.
+# core/node_modules is needed only for CSS/JS builds and lint; excluding it removes ~43k files from Mutagen.
+upload_dirs:
+  - .ddev/tmp
+  - core/node_modules
+`;
 // Public status snapshot for one variant's drupal.org issue: status, priority, tags, dates and MR state.
 // Read from reports/issues/<nid>/status.json (written by scripts/issue-status.mjs --write). Comment bodies are never copied.
 // Read on each call (the file is small and the weekly check may update it while the viewer runs).
