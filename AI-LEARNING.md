@@ -420,6 +420,48 @@ Built the `3426468-latest` pair on core `a48087f26ec`, measured nine browser/mod
 - Parallel sessions had uncommitted changes in `AI-LEARNING.md` and many `reports/issues/` folders. Do not append to or commit a shared file from the dirty main tree; do it in the clean worktree.
 - The drupal.org issue stayed unassigned with 32 comments throughout. Nothing was posted, no MR was opened, and the issue status was not changed.
 
+## Learnings from the #3370946 review and multi-session coordination (2026-11-26)
+
+Reviewed the refresh material for #3370946 and, at the owner's request, coordinated 24 concurrent sessions in this
+workspace. No environment was built; the issue stays unassigned with 121 comments and MR !4479 at `1ff37e70`
+(2026-01-15).
+
+- **Separate sessions are separate roots.** `list_agents` shows only the current session, the team board is per-root,
+  and there is no cross-session message tool. Coordination happens through the shared filesystem: companion files in
+  `reports/infrastructure/` (`COORDINATION-2026-11-26-session-<id>.md`), the lease primitive, and the owner. Two
+  other sessions reached the same conclusion independently; do not look for a messaging API.
+- **Leases are the only ownership signal.** `node scripts/lab-env.mjs leases` showed one expired lease for an
+  environment nobody was using. An expired lease is noise, not ownership: release it rather than leaving it.
+  `lab-env.mjs release <slug> --force` is safe when `leases` already reports it expired.
+- **The viewer is machine-wide.** `stopViewer()` runs `pkill -f tools/compare/serve.mjs`, so any session's
+  `lab-env start` takes every other session's viewer. Build and Playwright evaluation do not need it; only the
+  side-by-side view does. Serialise that, not the whole run.
+- **Disk is the real shared resource, and its ceiling is outside the repo.** The repository is 10 GB, of which
+  `envs/` is 8.8 GB, while `Docker.raw` is 228 GB apparent. Repo-side GC can recover a few GB at most; deleting
+  environments does not fix a host that is 100% full. At 100% even read-only commands fail with
+  `ENOSPC: no space left on device`, and `docker builder prune` returns `context canceled` because the daemon cannot
+  answer. Get free space outside Docker first.
+- **Verify claims about the workspace from git and the filesystem, not from transcripts.** A session inventory built
+  by text-search attributed environments a session never created (including a `3370946` pair that never existed).
+  `ls envs/*`, `variants.json` keys and `git ls-tree` are the reliable sources.
+- **Check patch applicability before provisioning.** With no checkout:
+  `GIT_INDEX_FILE=/tmp/i git --git-dir=envs/core.git read-tree <sha>` then
+  `GIT_INDEX_FILE=/tmp/i git --git-dir=envs/core.git apply --cached --check <patch>`.
+  The #3370946 refresh patch does not apply to `0387fb94`: the `block.post_update.php` hunk conflicts and two theme
+  config paths no longer exist.
+- **Theme assumptions rot fastest.** At `0387fb94` `core/themes/` holds only `default_admin`, `stark` and
+  `starterkit_theme`. Any patch, test or config touching Claro or Olivero is stale by construction — the
+  #3370946 design was written around "default in Claro, other themes opt in", which no longer names a theme in core.
+- **Re-check "existing test" claims against the tree.** #3370946's brief asked to "modernise the existing
+  PageTitleBlockTest"; no such test exists on main (`PageTitleTest` does, and covers escaping). The patch's test is
+  new coverage, not a modernisation.
+- **Push from a clean worktree, not the shared dirty tree.** The working tree held 170 uncommitted files from other
+  issues and sat on another issue's branch. `git worktree add .wt-3370946 -b <branch> origin/main`, copy only the
+  issue's files, commit and push there. Add the worktree path to `.git/info/exclude` so it does not appear as
+  untracked. The same pattern is already recorded above for #3426468.
+- **Owner decisions can invert the brief.** For #3370946 the owner asked for *more* configurability, not less, and
+  for a fresh MR rather than a rebase. Record such answers in the issue folder (`DECISIONS-2026-11-26.md`) with
+  their consequences, so the next session does not re-litigate a 24-page brief.
 ## 2026-11-26 — #3419891 re-evaluation (Docker disk, recipes, TextareaView)
 
 - **Docker.raw can fill the host.** A 228 GB Docker.raw left 159 MiB free and containerd's metadata store went read-only, so `docker rmi` and `docker builder prune` failed with "read-only file system". Stopping my half-built project freed its web-container layer (7.7 GB); pruning build cache freed another 5.6 GB. Docker Desktop did not need a restart.
