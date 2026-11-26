@@ -1,9 +1,11 @@
-# Draft only: testing #3630425 on current main / Default Admin
+Tested MR !17622 (head 090a74cd) on main `dbfce851` with Default Admin and an unlimited core text field.
 
-Do not post this as a successful test until the live evaluator and manual checks have run.
+Without the patch, the actions `th` is empty. The empty-table-header check reports one violation at initial load, after Add another item and after removal. The accessibility tree exposes a bare column header.
 
-Prepared a core-only Lab comparison using an unlimited plain-text field on Article, with Default Admin as the admin theme. Before is pristine main; After adds the main-based version of MR !17421 with local regression coverage. Source inspection confirms the empty actions header persists through Default Admin preprocessing and its table template.
+With the patch, the `th` contains visually hidden Operations text. The same check reports no violations at those three stages. The virtual screen reader reads `columnheader, Operations`. Rows and Remove controls are unchanged at 3, 4 and 3. Stable screenshots are pixel-identical, apart from nine subpixel values after Add.
 
-Pending evidence: exact environment/browser versions, initial empty-table-header finding Before and its absence After, header markup/accessibility tree, AJAX add/remove results, and manual keyboard review. No Paragraphs dependency is required for this scenario.
+The MR test fails on Before at the new assertion and passes on After with 35 assertions.
 
-AI-assisted draft.
+Real VoiceOver table navigation has not completed, so column context at the Remove buttons is not yet verified.
+
+Generated with the help of an LLM.

@@ -27,6 +27,12 @@ async function capture(page, side, stage) {
   state.labelled = state.headers[1].text === 'Operations';
   state.passes = state.labelled && state.emptyHeaderNodes.length === 0;
   state.aria = await table.ariaSnapshot();
+  // Stabilise the capture after AJAX: normalise scroll and drop focus so a caret or focus ring is not compared.
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  });
+  await page.waitForTimeout(600);
   await table.screenshot({ path: path.join(run.out, `${side}-${stage}.png`) });
   fs.writeFileSync(path.join(run.out, `${side}-${stage}-table.html`), await table.evaluate(table => table.outerHTML));
   fs.writeFileSync(path.join(run.out, `${side}-${stage}-aria.txt`), state.aria);
