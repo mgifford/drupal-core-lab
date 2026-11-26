@@ -9,7 +9,8 @@ Evaluations that live here:
 
 | Run | Evaluation | Configuration | Verdict | Screenshots | Status |
 |---|---|---|---|---|---|
-| [2026-11-26T12-39-49-645Z-chromium-light-1280x900](2026-11-26T12-39-49-645Z-chromium-light-1280x900/README.md) | Evaluation | light OS scheme, 1280x900 viewport | reproduced-and-fixed | 6 | latest for this configuration |
+| [2026-11-26T12-56-23-506Z-chromium-light-1280x900](2026-11-26T12-56-23-506Z-chromium-light-1280x900/README.md) | Evaluation | light OS scheme, 1280x900 viewport | reproduced-and-fixed | 6 | latest for this configuration |
+| [2026-11-26T12-39-49-645Z-chromium-light-1280x900](2026-11-26T12-39-49-645Z-chromium-light-1280x900/README.md) | Evaluation | light OS scheme, 1280x900 viewport | reproduced-and-fixed | 6 | superseded by a later run |
 | [2026-11-26T12-37-56-538Z-chromium-light-1280x900](2026-11-26T12-37-56-538Z-chromium-light-1280x900/README.md) | Evaluation | light OS scheme, 1280x900 viewport | reproduced-and-fixed | 6 | superseded by a later run |
 | [2026-10-17T12-46-42-718Z-chromium-light-1280x900](2026-10-17T12-46-42-718Z-chromium-light-1280x900/README.md) | Scripted evaluation | 1280x900 viewport | n/a | none | latest for this configuration |
 | [2026-10-17T12-08-33-014Z-chromium-light-1280x900](2026-10-17T12-08-33-014Z-chromium-light-1280x900/README.md) | Scripted evaluation | 1280x900 viewport | n/a | none | superseded by a later run |
