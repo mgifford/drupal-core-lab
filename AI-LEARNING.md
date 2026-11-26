@@ -340,6 +340,19 @@ Worked on MR !16166 at `fe4adb4f`, rebased its 11 commits onto current `main` `0
 - `tabledrag-handle.svg` remains 30 bytes larger. It is documented and was not reverted to avoid invalidating the pushed branch for a negligible byte change.
 - Functional PHPUnit, native Windows High Contrast, Firefox and WebKit remain untested. No WCAG 2.2 AA claim.
 
+## 2026-11-26: #3630425, shared-machine builds and real AT
+
+- **The DSH workspace sandbox blocks DDEV's global state.** `ddev config` needs to write `~/.ddev/project_list.yaml`; under workspace-write it fails with `operation not permitted`. The setup build needs the one-shot wider permission, or must run from the owner's terminal.
+- **Setup is serialized by `envs/.setup.lock`.** "Another setup is already running (pid ...)" is expected while another comparison builds. Wait, do not start a second one. A watcher loop is fine, but propagate the child status (`exit $?`), not `echo` after `wait`.
+- **Safari's AppleScript `document` is a window property, not an element.** Inside `tell (first window whose id is N)`, `document 1` raises `-10008`; use `document of (first window whose id is N)` or `current tab`.
+- **The agent process cannot control Safari or VoiceOver.** macOS returns `-10004` privilege violation or `osascript ETIMEDOUT`. Real VoiceOver runs must come from the owner's terminal; the agent can still build, evaluate and read the recorded phrases.
+- **Default Admin hides the `Order` column.** The DOM has three `th` cells but the accessibility tree exposes two headers; the actions header is the second DOM `th` and the third logical column. The unlimited widget renders the two recipe defaults plus one empty row: 3 initial, 4 after Add, 3 after Remove.
+- **The Guidepup virtual reader does not tie a header to a cell.** It reads `columnheader, Operations` at the header row but `cell`, `button, Remove` at the button. Do not claim per-button column context from it.
+- **AJAX screenshots need a settle step.** Scroll and focus changes made the whole table differ by 1/255. Normalizing scroll, blurring the active element and waiting 600 ms made the initial and remove captures pixel-identical; report the remaining 9 pixels at 1/255 as anti-aliasing.
+- **Guidepup's `keyboardCommands` getter throws until VoiceOver is running.** Read it only after a successful `start()`.
+- **`<stamp>` in a shell block is redirection.** zsh parses `<` before it runs anything. Use a variable or `find ... | sort | tail -1`; remove angle-bracket placeholders from copy-paste commands.
+- **Compare PNGs by pixels, not bytes.** Record differing pixel count and maximum channel difference; one-level differences are anti-aliasing, not a layout change.
+- **A failed screen reader run must not save `completed`.** The final status write overwrote the error path; `process.exit(1)` after the error save prevents it.
 ## Learnings from the #3606655 review (2026-11-26)
 
 Reviewed MR !16432 at `170be9e3` against core `ced1e263` (`12.0-dev`).
