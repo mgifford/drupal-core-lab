@@ -4,7 +4,7 @@
 
 - Local branch: `3603162-svg-revision`
 - Previous local branch: `3603162-complete` (preserved at `0d00037e`, the previous revision)
-- Tip: `172c07efd8243f678eaa8697c47596eb62b3a747`
+- Tip: `d4728a2aa3fc34e45e428d78ac111bd0c5e228ad`
 - Parent history: the 11 original MR commits, rebased onto upstream `main` at `0387fb948f786bc344a5cc54aa0d98b8f552e378`.
 - Issue fork branch: [https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision](https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision) at the same tip.
 - Merge request: [MR !17967](https://git.drupalcode.org/project/drupal/-/merge_requests/17967).

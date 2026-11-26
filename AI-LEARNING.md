@@ -296,7 +296,7 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 
 ## Learnings from #3603162 Default Admin SVG revision (2026-11-25 to 2026-11-26)
 
-Worked on MR !16166 at `fe4adb4f`, rebased its 11 commits onto current `main` `0387fb94`, and added two revision commits, `0d00037e` and the spelling fix `172c07ef`. Pushed a new issue-fork branch `3603162-svg-revision`; MR !17967 is open. The original MR branch was not rewritten. Evidence is in `reports/issues/3603162/` and in the public [SVG Review revision report](https://mgifford.github.io/svg-review/proposed/reports/revision-2026-11-25.html).
+Worked on MR !16166 at `fe4adb4f`, rebased its 11 commits onto current `main` `0387fb94`, and added two revision commits, `0d00037e` and the spelling fix `d4728a2a`. Pushed a new issue-fork branch `3603162-svg-revision`; MR !17967 is open. The original MR branch was not rewritten. Evidence is in `reports/issues/3603162/` and in the public [SVG Review revision report](https://mgifford.github.io/svg-review/proposed/reports/revision-2026-11-25.html).
 
 ### What was verified
 
