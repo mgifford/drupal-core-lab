@@ -1,0 +1,564 @@
+diff --git a/tests/modules/text_summary_test/src/Hook/TextSummaryTestHooks.php b/tests/modules/text_summary_test/src/Hook/TextSummaryTestHooks.php
+index e9d1bff..5383084 100644
+--- a/tests/modules/text_summary_test/src/Hook/TextSummaryTestHooks.php
++++ b/tests/modules/text_summary_test/src/Hook/TextSummaryTestHooks.php
+@@ -4,8 +4,11 @@ declare(strict_types=1);
+ 
+ namespace Drupal\text_summary_test\Hook;
+ 
++use Drupal\Core\Form\FormStateInterface;
+ use Drupal\Core\Hook\Attribute\Hook;
++use Drupal\Core\Render\Element;
+ use Drupal\Core\State\StateInterface;
++use Drupal\Core\StringTranslation\TranslatableMarkup;
+ 
+ /**
+  * Hook implementations for text_summary_test.
+@@ -15,11 +18,51 @@ class TextSummaryTestHooks {
+   public function __construct(protected readonly StateInterface $state) {}
+ 
+   /**
+- * Implements hook_page_attachments_alter().
+- */
++   * Implements hook_page_attachments_alter().
++   */
+   #[Hook('page_attachments_alter')]
+   public function pageAttachmentsAlter(array &$attachments) : void {
+     $attachments['#attached']['library'][] = 'text_summary_test/text-summary-override';
+   }
+ 
++  /**
++   * Implements hook_form_alter().
++   *
++   * Adds a form validator that can put an error on an empty summary. The
++   * summary textarea only exists after the form has been built, so the error
++   * is added in a form #validate callback rather than in an element callback.
++   */
++  #[Hook('form_alter')]
++  public function formAlter(array &$form, FormStateInterface $form_state, $form_id): void {
++    if (str_starts_with($form_id, 'node_')) {
++      $form['#validate'][] = [static::class, 'validateForm'];
++    }
++  }
++
++  /**
++   * Sets an error on the summary field for a test-only title value.
++   */
++  public static function validateForm(array &$form, FormStateInterface $form_state): void {
++    if ($form_state->getValue(['title', 0, 'value']) === 'trigger-empty-summary-error') {
++      static::setSummaryError($form, $form_state);
++    }
++  }
++
++  /**
++   * Finds the first summary textarea and sets an error on it.
++   */
++  protected static function setSummaryError(array &$element, FormStateInterface $form_state): bool {
++    $parents = $element['#parents'] ?? [];
++    if (($element['#type'] ?? NULL) === 'textarea' && $parents !== [] && end($parents) === 'summary') {
++      $form_state->setError($element, new TranslatableMarkup('The summary validation error.'));
++      return TRUE;
++    }
++    foreach (Element::children($element) as $key) {
++      if (is_array($element[$key]) && static::setSummaryError($element[$key], $form_state)) {
++        return TRUE;
++      }
++    }
++    return FALSE;
++  }
++
+ }
+diff --git a/tests/src/FunctionalJavascript/TextareaWithSummaryTest.php b/tests/src/FunctionalJavascript/TextareaWithSummaryTest.php
+index 345b46e..a3c6854 100644
+--- a/tests/src/FunctionalJavascript/TextareaWithSummaryTest.php
++++ b/tests/src/FunctionalJavascript/TextareaWithSummaryTest.php
+@@ -11,6 +11,7 @@ use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
+ use PHPUnit\Framework\Attributes\Group;
+ use PHPUnit\Framework\Attributes\IgnoreDeprecations;
+ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++use WebDriver\Key;
+ 
+ /**
+  * Tests the JavaScript functionality of the text_textarea_with_summary widget.
+@@ -25,7 +26,6 @@ class TextareaWithSummaryTest extends WebDriverTestBase {
+    */
+   protected static $modules = [
+     'text_with_summary',
+-    'text_summary_test',
+     'node',
+   ];
+ 
+@@ -84,75 +84,295 @@ class TextareaWithSummaryTest extends WebDriverTestBase {
+   }
+ 
+   /**
+-   * Helper to test toggling the summary area.
++   * Returns the disclosure buttons on the page.
+    *
+-   * @internal
++   * @return \Behat\Mink\Element\NodeElement[]
++   *   The buttons, in document order.
+    */
+-  protected function assertSummaryToggle(): void {
+-    $this->drupalGet('node/add/page');
+-    $widget = $this->getSession()->getPage()->findById('edit-body-test-wrapper');
+-    $summary_field = $widget->findField('edit-body-test-0-summary');
++  protected function getDisclosureButtons(): array {
++    return $this->getSession()->getPage()->findAll('css', 'button.link-edit-summary');
++  }
+ 
+-    $this->assertEquals(FALSE, $summary_field->isVisible(), 'Summary field is hidden by default.');
+-    $this->assertEquals(FALSE, $widget->hasButton('Hide summary'), 'No Hide summary link by default.');
++  /**
++   * Waits until at least one disclosure button has been attached.
++   */
++  protected function waitForDisclosure(int $count = 1): void {
++    $this->assertSession()->waitForElement('css', 'button.link-edit-summary');
++    $this->assertCount($count, $this->getDisclosureButtons());
++  }
+ 
+-    $widget->pressButton('Edit summary');
+-    $this->assertEquals(FALSE, $widget->hasButton('Edit summary'), 'Edit summary link is removed after clicking.');
+-    $this->assertEquals(TRUE, $summary_field->isVisible(), 'Summary field is shown.');
++  /**
++   * Returns a summary of the disclosure markup on the page.
++   *
++   * @return array
++   *   One row per disclosure button, with its label, state and DOM position.
++   */
++  protected function getDisclosureState(): array {
++    $script = <<<'JS'
++      (() => {
++        const wrappers = [...document.querySelectorAll('.js-text-summary-wrapper')];
++        return [...document.querySelectorAll('button.link-edit-summary')].map((button) => {
++          const link = button.closest('.field-edit-link');
++          const wrapper = wrappers.find((candidate) => button.getAttribute('aria-controls') === candidate.id);
++          const summary = wrapper ? wrapper.querySelector('.text-summary') : null;
++          return {
++            text: button.textContent.trim().replace(/\s+/g, ' '),
++            expanded: button.getAttribute('aria-expanded'),
++            controls: button.getAttribute('aria-controls'),
++            insideLabel: button.closest('label') !== null,
++            linkInsideLabel: link ? link.closest('label') !== null : null,
++            immediatelyBefore: link !== null && link.nextElementSibling === wrapper,
++            sameElement: button.dataset.testIdentity || null,
++            wrapperVisible: !!wrapper && wrapper.getClientRects().length > 0,
++            wrapperDisplay: wrapper ? getComputedStyle(wrapper).display : null,
++            summaryVisible: summary !== null && summary.getClientRects().length > 0,
++            summaryName: summary ? summary.name : null,
++            summaryLabel: summary && summary.labels.length ? summary.labels[0].textContent.trim().replace(/\s+/g, ' ') : null,
++            valueLabel: summary ? (() => {
++              const value = document.querySelector(`textarea[name="${summary.name.replace('[summary]', '[value]')}"]`);
++              return value && value.labels.length ? value.labels[0].textContent.trim().replace(/\s+/g, ' ') : null;
++            })() : null,
++            wrapperFollows: !!wrapper && summary !== null && (button.compareDocumentPosition(wrapper) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
++            wrapperContainsSummary: !!wrapper && summary !== null && wrapper.contains(summary),
++            controlsUnique: document.querySelectorAll(`#${CSS.escape(button.getAttribute('aria-controls'))}`).length === 1,
++            validId: /^[A-Za-z][A-Za-z0-9_-]*$/.test(button.getAttribute('aria-controls') || ''),
++            active: document.activeElement === button,
++          };
++        });
++      })()
++      JS;
++
++    return $this->getSession()->evaluateScript($script);
++  }
+ 
+-    $widget->pressButton('Hide summary');
+-    $this->assertEquals(FALSE, $widget->hasButton('Hide summary'), 'Hide summary link is removed after clicking.');
+-    $this->assertEquals(FALSE, $summary_field->isVisible(), 'Summary field is hidden again.');
+-    $this->assertEquals(TRUE, $widget->hasButton('Edit summary'), 'Edit summary link is visible again.');
++  /**
++   * Focuses the first disclosure button without activating it.
++   */
++  protected function focusFirstDisclosure(): void {
++    $this->getSession()->executeScript("document.querySelector('button.link-edit-summary').focus()");
++    $this->assertTrue($this->getSession()->evaluateScript("document.activeElement === document.querySelector('button.link-edit-summary')"));
+   }
+ 
+   /**
+-   * Tests the textSummary javascript behavior.
++   * Sends a real WebDriver key action to the focused element.
++   *
++   * This uses the W3C actions endpoint, not a synthetic JavaScript event, so
++   * the browser performs its native activation behaviour.
++   *
++   * @param string $key
++   *   The key value, for example Key::ENTER.
+    */
+-  public function testTextSummaryBehavior(): void {
+-    // Test with field defaults.
+-    $this->assertSummaryToggle();
++  protected function pressKey(string $key): void {
++    $this->getSession()->getDriver()->getWebDriverSession()->postActions([
++      'actions' => [
++        [
++          'type' => 'key',
++          'id' => 'keyboard',
++          'actions' => [
++            ['type' => 'keyDown', 'value' => $key],
++            ['type' => 'keyUp', 'value' => $key],
++          ],
++        ],
++      ],
++    ]);
++  }
+ 
+-    // Repeat test with non-empty field description.
+-    $body_field = FieldConfig::loadByName('node', 'page', 'body_test');
+-    $body_field->set('description', 'Text with Summary field description.');
+-    $body_field->save();
++  /**
++   * Tests the label structure, DOM order and ARIA wiring.
++   */
++  public function testDisclosureStructure(): void {
++    $this->drupalGet('node/add/page');
++    $this->waitForDisclosure();
++
++    $state = $this->getDisclosureState();
++    $this->assertCount(1, $state);
++    $button = $state[0];
++
++    $this->assertSame('false', $button['expanded']);
++    $this->assertSame('Edit summary for Body Test', $button['text']);
++    $this->assertFalse($button['insideLabel'], 'The button is not inside a label.');
++    $this->assertFalse($button['linkInsideLabel'], 'The theme wrapper is not inside a label.');
++    $this->assertSame(0, $this->getSession()->evaluateScript("document.querySelectorAll('label button, label .field-edit-link').length"));
++    $this->assertTrue($button['immediatelyBefore'], 'The button immediately precedes its summary content.');
++    $this->assertTrue($button['wrapperFollows'], 'The controlled content follows the button in the DOM.');
++    $this->assertTrue($button['wrapperContainsSummary']);
++    $this->assertTrue($button['controlsUnique']);
++    $this->assertTrue($button['validId']);
++    $this->assertFalse($button['wrapperVisible']);
++    $this->assertFalse($button['summaryVisible']);
++    $this->assertSame('none', $button['wrapperDisplay']);
++    $this->assertSame('body_test[0][summary]', $button['summaryName']);
++    $this->assertStringContainsString('Summary', $button['summaryLabel']);
++    $this->assertStringContainsString('for Body Test', $button['summaryLabel']);
++    $this->assertSame('Body Test', $button['valueLabel']);
++  }
+ 
+-    $this->assertSummaryToggle();
++  /**
++   * Tests toggling with a click, including keeping the same button.
++   */
++  public function testClickToggleKeepsOneButton(): void {
++    $this->drupalGet('node/add/page');
++    $this->waitForDisclosure();
++
++    $buttons = $this->getDisclosureButtons();
++    $button = $buttons[0];
++    $this->getSession()->executeScript("document.querySelector('button.link-edit-summary').dataset.testIdentity = 'persistent'");
++
++    $button->click();
++    $state = $this->getDisclosureState()[0];
++    $this->assertSame('true', $state['expanded']);
++    $this->assertSame('persistent', $state['sameElement'], 'The same button element is still on the page.');
++    $this->assertSame('Hide summary for Body Test', $state['text']);
++    $this->assertTrue($state['wrapperVisible']);
++    $this->assertTrue($state['summaryVisible']);
++    $this->assertCount(1, $this->getDisclosureButtons(), 'No second button was added.');
++
++    $button->click();
++    $state = $this->getDisclosureState()[0];
++    $this->assertSame('false', $state['expanded']);
++    $this->assertSame('persistent', $state['sameElement']);
++    $this->assertSame('Edit summary for Body Test', $state['text']);
++    $this->assertFalse($state['wrapperVisible']);
++    $this->assertCount(1, $this->getDisclosureButtons());
++  }
+ 
+-    // Repeat test with unlimited cardinality field.
+-    $body_field_storage = FieldStorageConfig::loadByName('node', 'body_test');
+-    $body_field_storage->setCardinality(-1);
+-    $body_field_storage->save();
++  /**
++   * Tests native Enter and Space activation and focus retention.
++   */
++  public function testKeyboardActivationRetainsFocus(): void {
++    $this->drupalGet('node/add/page');
++    $this->waitForDisclosure();
++    $this->focusFirstDisclosure();
++
++    $this->pressKey(Key::ENTER);
++    $this->assertTrue($this->getSession()->evaluateScript("document.activeElement === document.querySelector('button.link-edit-summary')"), 'Focus stays on the button after Enter.');
++    $state = $this->getDisclosureState()[0];
++    $this->assertSame('true', $state['expanded']);
++    $this->assertTrue($state['summaryVisible']);
++
++    $this->pressKey(Key::SPACE);
++    $this->assertTrue($this->getSession()->evaluateScript("document.activeElement === document.querySelector('button.link-edit-summary')"), 'Focus stays on the button after Space.');
++    $state = $this->getDisclosureState()[0];
++    $this->assertSame('false', $state['expanded']);
++    $this->assertFalse($state['summaryVisible']);
++  }
+ 
+-    $this->assertSummaryToggle();
++  /**
++   * Tests empty and populated summary values.
++   */
++  public function testEmptyAndPopulatedSummaries(): void {
++    // A new node starts collapsed.
++    $this->drupalGet('node/add/page');
++    $this->waitForDisclosure();
++    $state = $this->getDisclosureState()[0];
++    $this->assertSame('false', $state['expanded']);
++    $this->assertFalse($state['summaryVisible']);
+ 
+-    // Test summary is shown when non-empty.
++    // A populated summary is shown when the form is reopened.
++    $summary = $this->randomMachineName(32);
+     $node = $this->createNode([
+       'body_test' => [
+         [
+           'value' => $this->randomMachineName(32),
+-          'summary' => $this->randomMachineName(32),
++          'summary' => $summary,
+           'format' => \Drupal::service(FilterFormatRepositoryInterface::class)->getDefaultFormat()->id(),
+         ],
+       ],
+     ]);
+-
+     $this->drupalGet('node/' . $node->id() . '/edit');
+-    $summary_field = $this->getSession()->getPage()->findField('edit-body-test-0-summary');
++    $this->waitForDisclosure();
++    $state = $this->getDisclosureState()[0];
++    $this->assertSame('true', $state['expanded']);
++    $this->assertTrue($state['summaryVisible']);
++    $this->assertSame('Hide summary for Body Test', $state['text']);
++    $this->assertSame($summary, $this->getSession()->getPage()->findField('edit-body-test-0-summary')->getValue());
++  }
+ 
+-    $this->assertEquals(TRUE, $summary_field->isVisible());
++  /**
++   * Tests AJAX-added multiple values and their names.
++   */
++  public function testMultipleValuesAddedByAjax(): void {
++    $storage = FieldStorageConfig::loadByName('node', 'body_test');
++    $storage->setCardinality(-1);
++    $storage->save();
++
++    $this->drupalGet('node/add/page');
++    $this->waitForDisclosure();
++    $this->getSession()->getPage()->pressButton('Add another item');
++    $this->assertSession()->assertWaitOnAjaxRequest();
++    $this->waitForDisclosure(2);
++
++    $state = $this->getDisclosureState();
++    $this->assertCount(2, $state);
++    $this->assertNotSame($state[0]['controls'], $state[1]['controls'], 'Each disclosure controls a different element.');
++    $this->assertNotSame($state[0]['text'], $state[1]['text'], 'Each disclosure has a distinguishable name.');
++    $this->assertNotSame($state[0]['summaryLabel'], $state[1]['summaryLabel'], 'Each summary has a distinguishable name.');
++    $this->assertStringContainsString('value 1', $state[0]['text']);
++    $this->assertStringContainsString('value 2', $state[1]['text']);
++
++    // Toggling one disclosure does not change the other.
++    $this->getDisclosureButtons()[1]->click();
++    $state = $this->getDisclosureState();
++    $this->assertSame('false', $state[0]['expanded']);
++    $this->assertSame('true', $state[1]['expanded']);
++    $this->assertTrue($state[1]['summaryVisible']);
++    $this->assertFalse($state[0]['summaryVisible']);
+   }
+ 
+   /**
+-   * Tests that the textSummary behavior is not run for required summary fields.
++   * Tests disclosures after reordering multi-value field items.
+    */
+-  public function testTextSummaryRequiredBehavior(): void {
+-    // Test with field defaults.
+-    $this->assertSummaryToggle();
++  public function testMultipleValuesAfterReorder(): void {
++    $storage = FieldStorageConfig::loadByName('node', 'body_test');
++    $storage->setCardinality(-1);
++    $storage->save();
+ 
+-    // Create a second field with a required summary.
++    $format = \Drupal::service(FilterFormatRepositoryInterface::class)->getDefaultFormat()->id();
++    $node = $this->createNode([
++      'title' => 'Reorder summaries',
++      'body_test' => [
++        ['value' => '', 'summary' => 'First summary', 'format' => $format],
++        ['value' => '', 'summary' => 'Second summary', 'format' => $format],
++      ],
++    ]);
++    $nid = $node->id();
++
++    $page = $this->getSession()->getPage();
++    $this->drupalGet('node/' . $nid . '/edit');
++    $this->waitForDisclosure(3);
++    $this->assertSame('First summary', $page->findField('edit-body-test-0-summary')->getValue());
++    $this->assertSame('Second summary', $page->findField('edit-body-test-1-summary')->getValue());
++
++    // Swap the weights through the same form values tabledrag submits.
++    $this->getSession()->executeScript(<<<'JS'
++      const weights = document.querySelectorAll('[name$="[_weight]"]');
++      if (weights.length >= 2) {
++        weights[0].value = '1';
++        weights[1].value = '0';
++      }
++      JS);
++    $page->pressButton('Save');
++    $this->getSession()->wait(5000, 'window.location.pathname.match(/^\\/node\\/\\d+$/)');
++
++    $this->drupalGet('node/' . $nid . '/edit');
++    $this->waitForDisclosure(3);
++    $this->assertSame('Second summary', $page->findField('edit-body-test-0-summary')->getValue());
++    $this->assertSame('First summary', $page->findField('edit-body-test-1-summary')->getValue());
++    $state = $this->getDisclosureState();
++    $this->assertCount(3, $state);
++    $this->assertNotSame($state[0]['controls'], $state[1]['controls']);
++    $this->assertNotSame($state[0]['text'], $state[1]['text']);
++    $this->assertSame('true', $state[0]['expanded'], 'A populated reordered summary starts expanded.');
++    $this->getDisclosureButtons()[0]->click();
++    $this->assertSame('false', $this->getDisclosureState()[0]['expanded']);
++  }
++
++  /**
++   * Tests that a required summary stays visible and errors are discoverable.
++   */
++  public function testRequiredSummaryStaysVisible(): void {
+     $field_name = $this->randomMachineName();
++    $label = $this->randomMachineName() . ' required summary';
+     $field_storage = FieldStorageConfig::create([
+       'field_name' => $field_name,
+       'entity_type' => 'node',
+@@ -162,16 +382,14 @@ class TextareaWithSummaryTest extends WebDriverTestBase {
+     FieldConfig::create([
+       'field_storage' => $field_storage,
+       'bundle' => 'page',
+-      'label' => $this->randomMachineName() . '_label',
++      'label' => $label,
+       'settings' => [
+         'display_summary' => TRUE,
+         'required_summary' => TRUE,
+       ],
+     ])->save();
+ 
+-    /** @var \Drupal\Core\Entity\EntityDisplayRepositoryInterface $display_repository */
+     $display_repository = \Drupal::service('entity_display.repository');
+-
+     $display_repository->getFormDisplay('node', 'page')
+       ->setComponent($field_name, [
+         'type' => 'text_textarea_with_summary',
+@@ -179,23 +397,112 @@ class TextareaWithSummaryTest extends WebDriverTestBase {
+       ->save();
+ 
+     $this->drupalGet('node/add/page');
+-    $page = $this->getSession()->getPage();
+-    $summary_field = $page->findField('edit-' . $field_name . '-0-summary');
++    $this->waitForDisclosure();
++    $field = $this->getSession()->getPage()->findById('edit-' . $field_name . '-0-summary');
++    $this->assertTrue($field->isVisible(), 'The required summary is visible.');
++    $this->assertSame(0, $this->getSession()->evaluateScript("(() => { const s = document.querySelector('textarea[name$=\"[summary]\"]:not(.js-text-summary)'); return s ? s.closest('.js-text-summary-wrapper').querySelectorAll('button.link-edit-summary').length : -1; })()"), 'A required summary has no disclosure button.');
++
++    // The required summary is still distinguishable from the optional one.
++    $state = $this->getSession()->evaluateScript(<<<'JS'
++      (() => {
++        const summary = document.querySelector('textarea[name$="[summary]"]:not(.js-text-summary)');
++        return summary && summary.labels.length ? summary.labels[0].textContent.trim().replace(/\s+/g, ' ') : null;
++      })()
++      JS);
++    $this->assertStringContainsString('Summary', $state);
++    $this->assertStringContainsString('for ' . $label, $state);
++
++    // Submit empty: the error must be visible and the field must stay visible.
++    // Disable the browser's own required-field check so the server-side
++    // validation and error markup are what the test observes.
++    $this->getSession()->getPage()->fillField('title[0][value]', $this->randomMachineName());
++    $this->getSession()->executeScript("document.querySelector('form').noValidate = true");
++    $this->getSession()->getPage()->pressButton('Save');
++    $this->assertSession()->pageTextContains('Summary field is required.');
++    $field = $this->getSession()->getPage()->findById('edit-' . $field_name . '-0-summary');
++    $this->assertTrue($field->isVisible(), 'The summary field with an error is visible.');
++    $this->assertSame('true', $field->getAttribute('aria-invalid'));
++  }
+ 
+-    $this->assertEquals(TRUE, $summary_field->isVisible());
++  /**
++   * Tests that an error on an empty, collapsed summary expands it.
++   */
++  public function testValidationErrorExpandsEmptySummary(): void {
++    $this->container->get('module_installer')->install(['text_summary_test']);
++    $this->drupalGet('node/add/page');
++    $this->waitForDisclosure();
++    $this->assertSame('false', $this->getDisclosureState()[0]['expanded']);
++
++    $this->getSession()->getPage()->fillField('title[0][value]', 'trigger-empty-summary-error');
++    $this->getSession()->getPage()->pressButton('Save');
++
++    $this->assertSession()->pageTextContains('The summary validation error.');
++    $this->waitForDisclosure();
++    $state = $this->getDisclosureState()[0];
++    $this->assertSame('true', $state['expanded'], 'The summary expands when it has an error.');
++    $this->assertTrue($state['summaryVisible']);
++    $this->assertSame('true', $this->getSession()->getPage()->findField('edit-body-test-0-summary')->getAttribute('aria-invalid'));
++    $this->assertSame('', $this->getSession()->getPage()->findField('edit-body-test-0-summary')->getValue());
+   }
+ 
+   /**
+-   * Tests overriding markup in Edit summary button.
+-   *
+-   * Check that the override in text-test.js adds the "text-test-edit-link"
+-   * class.
++   * Tests that Drupal.theme.textEditSummaryButton overrides still apply.
+    */
+   public function testSummaryButtonOverride(): void {
+-    $this->assertSummaryToggle();
++    $this->container->get('module_installer')->install(['text_summary_test']);
+     $this->drupalGet('node/add/page');
++    $this->waitForDisclosure();
++
+     $selector = 'div.field--name-body-test span.text-test-edit-link';
+     $this->assertSession()->elementExists('css', $selector);
++    $button = $this->getDisclosureButtons()[0];
++    $this->assertStringContainsString('Custom override:', $this->getSession()->evaluateScript("document.querySelector('button.link-edit-summary').textContent"));
++
++    $button->click();
++    $this->assertSession()->elementExists('css', $selector);
++    $button = $this->getDisclosureButtons()[0];
++    $button_text = $this->getSession()->evaluateScript("document.querySelector('button.link-edit-summary').textContent");
++    $this->assertStringContainsString('Custom override:', $button_text);
++    $this->assertStringContainsString('Hide summary', $button_text);
++  }
++
++  /**
++   * Tests that a summary survives saving, collapsing and reopening.
++   */
++  public function testSummaryPersistsAfterSave(): void {
++    $summary = 'A known summary that must survive saving.';
++    $this->drupalGet('node/add/page');
++    $this->waitForDisclosure();
++    $this->getSession()->getPage()->fillField('title[0][value]', 'Summary persistence');
++    $this->getDisclosureButtons()[0]->click();
++    $this->assertTrue($this->getSession()->evaluateScript("!!document.querySelector('textarea[name=\"body_test[0][summary]\"]')"), 'The summary keeps its submitted name.');
++    $this->assertFalse($this->getSession()->evaluateScript("!!document.querySelector('[name*=\"[container][summary]\"]')"), 'No nested container was added to the submitted name.');
++    $this->getSession()->getPage()->fillField('body_test[0][summary]', $summary);
++    $this->getSession()->getPage()->pressButton('Save');
++    $this->getSession()->wait(5000, 'window.location.pathname.match(/^\\/node\\/\\d+$/)');
++    $this->assertSession()->pageTextContains('Summary persistence');
++    $nid = $this->getNodeIdFromUrl();
++
++    $this->drupalGet('node/' . $nid . '/edit');
++    $this->waitForDisclosure();
++    $this->assertSame($summary, $this->getSession()->getPage()->findField('edit-body-test-0-summary')->getValue());
++
++    // Collapsing the summary before saving must not remove its value.
++    $this->getDisclosureButtons()[0]->click();
++    $this->getSession()->getPage()->pressButton('Save');
++    $this->drupalGet('node/' . $nid . '/edit');
++    $this->waitForDisclosure();
++    $this->assertSame($summary, $this->getSession()->getPage()->findField('edit-body-test-0-summary')->getValue());
++    $this->assertSame('true', $this->getDisclosureState()[0]['expanded']);
++  }
++
++  /**
++   * Returns the current node id from the browser URL.
++   */
++  protected function getNodeIdFromUrl(): string {
++    $url = $this->getSession()->getCurrentUrl();
++    preg_match('/\/node\/(\d+)/', $url, $matches);
++    return $matches[1] ?? '';
+   }
+ 
+ }
