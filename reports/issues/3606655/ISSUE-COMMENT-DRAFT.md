@@ -1,16 +1,19 @@
-<!-- DRAFT for a human to review and post. Do not post automatically.
-     Follows Drupal core's AGENTS.md rules for drupal.org prose (in any core checkout: AGENTS.md, "Operator Rules for LLM Tools"):
-     rewrite it in your own words before posting; at most 180 words; sentences of at most 25 words; plain facts, no
-     interpretation, recommendations or hedging; no headers; no restating the issue or earlier comments; no tool or model names;
-     end with the disclosure line exactly as below. Check it with: node scripts/check-draft.mjs 3606655
-     Every sentence must match a recorded result in EVIDENCE.md. Delete this comment block when you post. -->
+**Draft only: for a person to review, rewrite in their own words, and post. Nothing was posted.**
 
-Tested on main (<commit>) with <theme, browser>. <What was set up, in one sentence.>
+Re-checked MR !16432 (170be9e3) on core ced1e263. The 4 November rebase holds: the pipeline is green,
+PHPStan level 3 included, and the shipped tests pass (17 tests, 209 assertions).
 
-Without the MR, <what happens>.
+Two decisions are needed before further review.
 
-With the MR, <what happens>. <Tests and checks that ran, and their result.>
+The issue summary and the merge request describe different designs. The summary asks for a data-color-scheme
+attribute carrying the stored value, a color_scheme Twig variable, and a theme capability that gates the
+attribute and a cache context. The merge request renders data-color-scheme="auto" everywhere, carries the
+preference in a DrupalColorScheme cookie, and applies it with a script in the head. I found no
+user.color_scheme cache context and no server-rendered preference. The cookie path tested clean for cache
+isolation and accessibility, but it is not the design in the summary.
 
-<What was not tested, in one sentence.>
+Also unresolved: 17 review threads from August and September, including cookie consent and the script on
+every page. user_update_11401 is numbered for 11.4 while main is 12.0-dev, and a docblock names a test that
+does not exist.
 
 Generated with the help of an LLM.
