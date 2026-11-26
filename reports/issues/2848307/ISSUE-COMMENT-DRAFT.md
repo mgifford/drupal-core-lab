@@ -1,6 +1,5 @@
-# Comment draft: #2848307
+The previous patch's second recursive error handler built `#prefix` HTML and left the repeated child errors in place. I reworked it to use the rendering layer. A table or tableselect with its own error now gets an `inline_form_errors_table` wrapper from a pre-render callback. The wrapper renders one error message with an ID. The table's `aria-describedby` is merged with that ID, and `tabindex="-1"` lets the summary link focus the table. Inherited copies are removed from child checkboxes, so rows are not invalid and the message is not repeated. The uninstall form keeps the error on its selection group and prints it once above the hand-rendered table.
 
-Nothing has been drafted for posting. The original [ISSUE_2848307_WORK_SUMMARY.md](ISSUE_2848307_WORK_SUMMARY.md) is a
-work-log, not an issue-queue comment.
+On pristine core the new tests fail (19 tests, 4 errors, 10 failures). With the patch they pass (19 tests, 60 assertions); the full `inline_form_errors` suite, uninstall, tableselect and filter tests pass, and lint passes. I ran a before/after Lab comparison with light, dark and forced-colours screenshots, keyboard focus and a virtual screen reader. No real VoiceOver/NVDA run; #3083103 still owns individual control associations. Review the architecture and test with your own assistive technology.
 
-Nothing is posted to drupal.org by any script — a person reviews and posts.
+Generated with the help of an LLM.

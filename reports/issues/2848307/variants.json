@@ -1,0 +1,66 @@
+[
+  {
+    "issue": "2848307",
+    "slug": "2848307-latest",
+    "label": "#2848307: inline errors on table and tableselect",
+    "description": "Before: core 0387fb948f7 plus the lab test form only. After: the simplified inline-error rendering for table and tableselect elements and the modules uninstall form. The same test-only fixture is on both sides.",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "0387fb948f786bc344a5cc54aa0d98b8f552e378"
+    },
+    "before": {
+      "env": "baseline-2848307",
+      "patches": [
+        "reports/issues/2848307/branches/2848307-tests-only.patch"
+      ]
+    },
+    "after": {
+      "env": "issue-2848307",
+      "patches": [
+        "reports/issues/2848307/branches/2848307-table-inline-errors.patch"
+      ]
+    },
+    "pages": [
+      "/admin/modules/uninstall",
+      "/form-test/table-error/table",
+      "/form-test/table-error/tableselect-checkboxes",
+      "/form-test/table-error/tableselect-radios",
+      "/form-test/table-error/table-tableselect",
+      "/form-test/table-error/child-error"
+    ],
+    "login": true,
+    "steps": [
+      "Open /admin/modules/uninstall and submit Uninstall with no module selected.",
+      "Open /form-test/table-error/table and submit the form.",
+      "Repeat for tableselect-checkboxes, tableselect-radios, table-tableselect and child-error."
+    ],
+    "expected": "Each group-level table error is shown once next to the table, the table has a valid aria-describedby target and is focusable from the summary link, and the individual checkboxes are not marked invalid or given duplicate messages.",
+    "actual": "To be recorded in the run.",
+    "checks": [
+      {
+        "label": "The table's aria-describedby resolves to one error element",
+        "probe": "(() => !!(document.querySelector('table[id]')?.getAttribute('aria-describedby')) && (document.querySelector('table[id]')?.getAttribute('aria-describedby') || '').split(' ').filter(Boolean).every((id) => document.querySelectorAll('#' + CSS.escape(id)).length === 1))()",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "Only one inline group error is rendered",
+        "probe": "document.querySelectorAll('.form-item--error-message').length === 1",
+        "expect": true,
+        "kind": "fix"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Does the summary link move focus to the table?",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Does a checkbox repeat the group error?",
+        "expectBefore": true,
+        "expectAfter": false
+      }
+    ]
+  }
+]

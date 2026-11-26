@@ -340,6 +340,63 @@ Worked on MR !16166 at `fe4adb4f`, rebased its 11 commits onto current `main` `0
 - `tabledrag-handle.svg` remains 30 bytes larger. It is documented and was not reverted to avoid invalidating the pushed branch for a negligible byte change.
 - Functional PHPUnit, native Windows High Contrast, Firefox and WebKit remain untested. No WCAG 2.2 AA claim.
 
+## Learnings from #2848307 table and tableselect inline errors (2026-11-26)
+
+Worked on the open core issue #2848307 and MR !16355. The change replaces a recursive error renderer with table/tableselect theme rendering, fixes the modules uninstall form independently, and records a before/after Lab comparison. Evidence is in `reports/issues/2848307/`; the core patch was not pushed.
+
+### Traps worth not repeating
+
+1. **Copying a DDEV environment copies its worktree pointer.** `cp -a envs/baseline-3083103 envs/issue-2848307` copied a `.git` *file* pointing at `envs/core.git/worktrees/baseline-3083103`, so both trees shared one worktree index. `git reset` in the copy could have changed the original's index, and the lab patch-state file was the same. Replace the copied `.git` with an independent clone/worktree before running git commands in a copied environment, and check `git worktree list` afterwards.
+2. **`git archive` is not a full core tree.** Drupal's `.gitattributes` marks test directories `export-ignore`, so `git archive <sha>` silently omitted `core/modules/*/tests/...` and a patch adding tests failed with "No such file or directory". Use `git checkout-index -a --prefix=/tmp/base/` (or a worktree) when a test fixture must be present.
+3. **Patch state lives in the git directory, not the web root.** `envs/<env>/.git/lab-patches/state.json` records the applied patch hashes. A copied environment inherits it and reports the old patch. Remove it and re-run `setup.mjs --refresh-patches`; the `.lab-patches-applied` name file is only a legacy hint.
+4. **A wrapper theme hook declared with `variables` gets only those variables.** `inline_form_errors_table` initially declared `variables` and received no `#children`, so the table rendered as an empty div. A wrapper around a render element needs `'render element' => 'element'` so `$variables['element']` carries `#children`, `#errors` and `#id`.
+5. **A table pre-render callback must run before `preRenderTableselect()`.** That callback renders the child checkboxes immediately. Appending the IFE callback to `#pre_render` was too late to suppress inherited errors; `array_unshift` is required.
+6. **`#error_no_message` hides the message, not the invalid state.** `RenderElementBase::setAttributes()` adds `aria-invalid="true"` whenever `#errors` is set and the element is validated. To stop every row being invalid, clear the inherited `#errors` on the children (and keep an own-error marker on the table), not just set `#error_no_message`.
+7. **A Guidepup virtual reader started inside a table skips the table's own announcement.** Starting at `table#...` began with `rowgroup` and never spoke the `aria-describedby` description; starting at the wrapper/form spoke `"table, A table with an error, No rows selected."`. Start outside the element whose name/description you are testing.
+8. **A summary-link fragment needs a focusable target.** The table is not focusable, so `#edit-table` changed the hash but left focus on `BODY`. `tabindex="-1"` on the table makes the link move focus to it without adding a tab stop; the next Tab then enters the checkboxes.
+9. **Adding a variant makes `cloud/` stale.** `build-cloud.mjs --check` fails until `cloud/variants.json` is regenerated. Run `node scripts/build-cloud.mjs` and commit the generated file.
+10. **Issue-variant probes are validated as one expression.** A probe with `const`, `if` or semicolons failed `tests/issue-pack/validate.test.mjs`; probes over 400 characters failed too. Use one assignment-free expression, and run that test file after editing `variants.json`.
+11. **`ready-to-push` can be red for machine reasons.** In an independent clone, `test-mr` stops when the real DDEV registry already has `drupal-compare` at the main lab; do not unlist another session's projects to make it green. The selftest also needs the main lab's ignored `tools/compare/.deps` and `tools/playwright/node_modules` linked for `js-yaml` and `jsdom`; restore the tracked `tools/playwright/node_modules` symlink before committing.
+12. **The main lab tree was very dirty.** 134 unrelated changes from other sessions were present. A worktree from `origin/main`, explicit `git add` paths, and a check of `git diff --cached --name-only` kept the push to this issue only.
+
+### What worked, repeat
+
+- Read the rendered DOM before choosing the architecture: the uninstall table is hand-written, the `modules` branch is never rendered as a table, and `tableselect` child checkboxes inherit the parent error.
+- Keep the error on the element that owns it and mark only tables with their **own** error (`#inline_form_errors_own_error`); an inherited parent error must not be repeated at the table.
+- Preserve the table's native semantics. A `form_element` wrapper would print an invalid `<label for="<table id>">`; a fieldset/legend only in the error state needs a label source and changes the layout. Associate the error with the table and make the summary link focus it.
+- Test the before side with the same test-only fixture, not a different page. The regression was concrete: two repeated messages and two invalid checkboxes before, one message and zero invalid rows after.
+- Recompute and record patch hashes and regenerate the interdiff after every patch change; the first interdiff went stale within one edit.
+## 2026-11-26: #3630425, shared-machine builds and real AT
+
+- **The DSH workspace sandbox blocks DDEV's global state.** `ddev config` needs to write `~/.ddev/project_list.yaml`; under workspace-write it fails with `operation not permitted`. The setup build needs the one-shot wider permission, or must run from the owner's terminal.
+- **Setup is serialized by `envs/.setup.lock`.** "Another setup is already running (pid ...)" is expected while another comparison builds. Wait, do not start a second one. A watcher loop is fine, but propagate the child status (`exit $?`), not `echo` after `wait`.
+- **Safari's AppleScript `document` is a window property, not an element.** Inside `tell (first window whose id is N)`, `document 1` raises `-10008`; use `document of (first window whose id is N)` or `current tab`.
+- **The agent process cannot control Safari or VoiceOver.** macOS returns `-10004` privilege violation or `osascript ETIMEDOUT`. Real VoiceOver runs must come from the owner's terminal; the agent can still build, evaluate and read the recorded phrases.
+- **Default Admin hides the `Order` column.** The DOM has three `th` cells but the accessibility tree exposes two headers; the actions header is the second DOM `th` and the third logical column. The unlimited widget renders the two recipe defaults plus one empty row: 3 initial, 4 after Add, 3 after Remove.
+- **The Guidepup virtual reader does not tie a header to a cell.** It reads `columnheader, Operations` at the header row but `cell`, `button, Remove` at the button. Do not claim per-button column context from it.
+- **AJAX screenshots need a settle step.** Scroll and focus changes made the whole table differ by 1/255. Normalizing scroll, blurring the active element and waiting 600 ms made the initial and remove captures pixel-identical; report the remaining 9 pixels at 1/255 as anti-aliasing.
+- **Guidepup's `keyboardCommands` getter throws until VoiceOver is running.** Read it only after a successful `start()`.
+- **`<stamp>` in a shell block is redirection.** zsh parses `<` before it runs anything. Use a variable or `find ... | sort | tail -1`; remove angle-bracket placeholders from copy-paste commands.
+- **Compare PNGs by pixels, not bytes.** Record differing pixel count and maximum channel difference; one-level differences are anti-aliasing, not a layout change.
+- **A failed screen reader run must not save `completed`.** The final status write overwrote the error path; `process.exit(1)` after the error save prevents it.
+## Learnings from the #3606655 review (2026-11-26)
+
+Reviewed MR !16432 at `170be9e3` against core `ced1e263` (`12.0-dev`).
+
+- **Scope is the issue summary, not the MR description.** The MR had pivoted from a server-rendered value (`data-color-scheme`, `color_scheme` Twig variable, capability-gated cache context) to an invariant `auto` plus a `DrupalColorScheme` cookie and a head script. No issue comment mentions the cookie, so the pivot existed only in the MR description. Compare the summary's "Proposed resolution" list to the diff first; a design recorded only in the MR is a blocker, not a nit.
+- **A rebase that claims "PHPStan fixes" can still sit on the wrong branch generation.** `user_update_11401` is 11.4 numbering, but `const VERSION` was `12.0-dev` at the MR base, at the rebase base and at current main, and other modules already used `12000`–`12100`. Check the version at the base and at main, then the highest existing hook number.
+- **The shared bare clone is shallow: `merge-base` fails.** Take the MR `.diff` from the GitLab endpoint, pin its sha256, and test application with a temporary index: `GIT_INDEX_FILE=/tmp/i git --git-dir=envs/core.git read-tree <sha> && GIT_INDEX_FILE=/tmp/i git --git-dir=envs/core.git apply --cached --check <patch>`. That answers "does it still apply to main" without a checkout.
+- **Cacheability debug headers are a container parameter, not a setting.** `$settings['http.response.debug_cacheability_headers']` does nothing. Write `sites/default/services.yml` with `parameters: http.response.debug_cacheability_headers: true`, then rebuild caches.
+- **Mutagen hides settings edits for seconds.** `update.php` kept returning the `update_free_access` denial after the line was appended on the host; `ddev exec tail` showed the container had not received it yet. Verify inside the container before concluding a setting is ignored.
+- **SQLite in the core-dev container has no `NOCASE_UTF8`.** Queries using the `name` index fail with "no such collation sequence"; query and update by `uid`, or read all rows. With `--omit-containers=db`, the database is `sites/default/files/.sqlite`; `.ht.sqlite` is the empty test file.
+- **Form API POSTs need the submit button's `op`.** Without it the form re-renders with a 200 and nothing saves; every preference "failed" until `op: 'Save'` was added to the probe payload.
+- **Detect login by the session cookie, not the "Log out" text.** One-time-login redirects (`?check_logged_in=1`) and theme variants made text matching unreliable; `SESS`/`SSESS` in the jar is decisive.
+- **Attribute an overflow before reporting it.** `/user/edit` at 320 px had `scrollWidth 387`, but Before and After were identical, so it was the theme's pre-existing layout, not the MR.
+- **A cookie-driven kill switch can be driven by the client.** Sending `Cookie: DrupalColorScheme=dark` anonymously made every response `UNCACHEABLE (response policy)`; without the cookie the second request was a HIT. Kept out of the public report as a possible cache-bypass and told the operator. Test with and without the cookie.
+- **A worktree inside the clone cannot pass `selftest`.** `test-mr.mjs` refuses a second copy inside the first (DDEV project names are global), and `jsdom` was missing. Prepare the commit with plumbing (`read-tree`, `--work-tree add`, `write-tree`, `commit-tree`, `push <sha>:refs/heads/<branch>`) rather than switching branches in a tree another session is using.
+
+Open after the review: the design mismatch and the 17 unresolved threads need maintainer decisions; no person has done the keyboard or screen-reader pass.
+
 ## Learnings from #3426468 Navigation active-state evaluation (2026-11-26)
 
 Built the `3426468-latest` pair on core `a48087f26ec`, measured nine browser/mode combinations, and pushed revision v2 on the `3426468-active-indicator` branch. The original v1 patch is preserved; v2 is a four-file interdiff (comments and a Default Admin theme colour) on top of it. The bar is the durable cue: light 6.69:1, dark 10.21:1, forced 21:1, and it survives collapse, 480 px and RTL. The active text is 5.82:1 light; the active-vs-inactive delta fell from 2.99 to 2.32, so colour alone would not carry the state.
