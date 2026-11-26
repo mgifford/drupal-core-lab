@@ -323,9 +323,11 @@ Worked on MR !16166 at `fe4adb4f`, rebased its 11 commits onto current `main` `0
 
 12. **Drupal CSpell enforces US spelling in code comments.** `colour`, `colours` and `grey` failed the commit check even though they were only comments. Use `color`, `colors` and `gray`. Run `cspell` on the changed CSS/Twig before pushing; the bot checks the patch lines, not the whole file.
 
+13. **A follow-up push can race an automated commit.** The remote branch already contained `d4728a2a` with the same content as the local spelling fix `172c07ef`. The push was rejected as non-fast-forward. Fetch, compare content, and adopt the remote commit; never force-push over it.
+
 ### Process notes
 
-- Keep the original 11 commits and add one clearly described revision commit. Do not rewrite the existing MR author's branch.
+- Keep the original 11 commits and add clearly described revision commits. Do not rewrite the existing MR author's branch.
 - The `drupal-core-lab` working tree had many unrelated changes. Push only `reports/issues/<nid>/` from a clean `origin/main` worktree. The same applies to generated HTML: regenerate only the pages that changed.
 - The MR creation URL in the push hint (`/issue/.../-/merge_requests/new`) returned 404. The working route is the target project with the fork's source project id: `/project/drupal/-/merge_requests/new?merge_request[source_project_id]=225946&...`.
 - The Core Lab issue index generator (`scripts/index-issues.mjs`) currently fails on unrelated `mr.sha` data, so the direct `reports/issues/3603162/index.html` page is the usable link.
