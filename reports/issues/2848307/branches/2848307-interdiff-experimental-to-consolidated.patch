@@ -1,0 +1,1298 @@
+diff --git a/core/modules/inline_form_errors/src/FormErrorHandler.php b/core/modules/inline_form_errors/src/FormErrorHandler.php
+index 680391b..104c9a5 100644
+--- a/core/modules/inline_form_errors/src/FormErrorHandler.php
++++ b/core/modules/inline_form_errors/src/FormErrorHandler.php
+@@ -2,7 +2,7 @@
+ 
+ namespace Drupal\inline_form_errors;
+ 
+-use Drupal\Component\Utility\Html;
++use Drupal\Component\Utility\NestedArray;
+ use Drupal\Core\Form\FormElementHelper;
+ use Drupal\Core\Form\FormErrorHandler as CoreFormErrorHandler;
+ use Drupal\Core\Form\FormStateInterface;
+@@ -54,12 +54,42 @@ class FormErrorHandler extends CoreFormErrorHandler {
+     parent::handleFormErrors($form, $form_state);
+ 
+     if (!empty($form_state->getErrors()) && empty($form['#disable_inline_form_errors'])) {
+-      $this->setTableElementInlineErrors($form);
++      $this->flagTableElementErrors($form, $form_state);
+     }
+ 
+     return $this;
+   }
+ 
++  /**
++   * Flags table elements that have their own validation error.
++   *
++   * FormStateInterface::getError() returns an error set on any parent as well,
++   * so #errors on a table does not tell whether the error belongs to the
++   * table or was inherited from a grouping element around it. Only a table
++   * with an error keyed to its own #parents should render the error itself;
++   * otherwise the same message would appear at the table and at the parent
++   * that owns it.
++   *
++   * This looks up the elements named by the errors instead of walking the
++   * whole form, and it does not build markup.
++   *
++   * @param array $form
++   *   The complete form structure.
++   * @param \Drupal\Core\Form\FormStateInterface $form_state
++   *   The current state of the form.
++   */
++  protected function flagTableElementErrors(array &$form, FormStateInterface $form_state): void {
++    foreach (array_keys($form_state->getErrors()) as $name) {
++      if ($name === '') {
++        continue;
++      }
++      $element = &NestedArray::getValue($form, explode('][', $name));
++      if (is_array($element) && in_array($element['#type'] ?? NULL, ['table', 'tableselect'], TRUE)) {
++        $element['#inline_form_errors_own_error'] = TRUE;
++      }
++    }
++  }
++
+   /**
+    * Loops through and displays all form errors.
+    *
+@@ -89,7 +119,19 @@ class FormErrorHandler extends CoreFormErrorHandler {
+     // Loop through all form errors and check if we need to display a link.
+     foreach ($errors as $name => $error) {
+       $form_element = FormElementHelper::getElementByName($name, $form);
+-      $title = FormElementHelper::getElementTitle($form_element);
++      $is_table = in_array($form_element['#type'] ?? NULL, ['table', 'tableselect'], TRUE);
++      if ($is_table) {
++        // A table does not render #title as a label. Use it, a caption, or
++        // the error itself for the summary link. A child's title (for example
++        // "Update Alpha" from a tableselect row) does not describe the group.
++        $title = $form_element['#title'] ?? $form_element['#caption'] ?? $error;
++      }
++      else {
++        $title = $form_element['#title'] ?? NULL;
++        if (empty($title)) {
++          $title = FormElementHelper::getElementTitle($form_element);
++        }
++      }
+ 
+       // Only show links to erroneous elements that are visible.
+       $is_visible_element = Element::isVisibleElement($form_element);
+@@ -126,38 +168,4 @@ class FormErrorHandler extends CoreFormErrorHandler {
+     }
+   }
+ 
+-  /**
+-   * Adds inline table error markup for table form elements with errors.
+-   *
+-   * @param array $elements
+-   *   Form render array elements by reference.
+-   */
+-  protected function setTableElementInlineErrors(array &$elements): void {
+-    foreach (Element::children($elements) as $key) {
+-      if (empty($elements[$key])) {
+-        continue;
+-      }
+-
+-      $element = &$elements[$key];
+-
+-      if (in_array($element['#type'] ?? NULL, ['table', 'tableselect'], TRUE)
+-        && !empty($element['#errors'])
+-        && empty($element['#error_no_message'])
+-      ) {
+-        $error_id = ($element['#id'] ?? ('inline-form-errors-table-' . $key)) . '--error';
+-        $existing_prefix = (string) ($element['#prefix'] ?? '');
+-
+-        if (!str_contains($existing_prefix, $error_id)) {
+-          $error_markup = '<div id="' . Html::escape($error_id) . '" class="form-item--error-message form-item__error-message">' . Html::escape((string) $element['#errors']) . '</div>';
+-          $element['#prefix'] = $error_markup . $existing_prefix;
+-
+-          $describedby = trim((string) ($element['#attributes']['aria-describedby'] ?? ''));
+-          $element['#attributes']['aria-describedby'] = trim($describedby . ' ' . $error_id);
+-        }
+-      }
+-
+-      $this->setTableElementInlineErrors($element);
+-    }
+-  }
+-
+ }
+diff --git a/core/modules/inline_form_errors/src/Hook/InlineFormErrorsThemeHooks.php b/core/modules/inline_form_errors/src/Hook/InlineFormErrorsThemeHooks.php
+index 642d031..63e5ab9 100644
+--- a/core/modules/inline_form_errors/src/Hook/InlineFormErrorsThemeHooks.php
++++ b/core/modules/inline_form_errors/src/Hook/InlineFormErrorsThemeHooks.php
+@@ -21,6 +21,9 @@ class InlineFormErrorsThemeHooks {
+           'form_id' => NULL,
+         ],
+       ],
++      'inline_form_errors_table' => [
++        'render element' => 'element',
++      ],
+     ];
+   }
+ 
+@@ -68,6 +71,43 @@ class InlineFormErrorsThemeHooks {
+     $this->setErrors($variables);
+   }
+ 
++  /**
++   * Implements hook_preprocess_HOOK() for the table error wrapper.
++   *
++   * The wrapper is only added by
++   * \Drupal\inline_form_errors\RenderElementHelper::preRenderTableElement()
++   * to a table or tableselect form element that has its own error.
++   */
++  #[Hook('preprocess_inline_form_errors_table')]
++  public function preprocessInlineFormErrorsTable(array &$variables): void {
++    $element = $variables['element'];
++    $variables['children'] = $element['#children'];
++    $variables['errors'] = NULL;
++    $variables['error_id'] = NULL;
++    if (!empty($element['#errors']) && empty($element['#error_no_message'])) {
++      $variables['errors'] = $element['#errors'];
++      $variables['error_id'] = $element['#inline_form_errors_error_id'] ?? (($element['#id'] ?? 'system-modules-uninstall-table') . '--error');
++    }
++  }
++
++  /**
++   * Implements hook_preprocess_HOOK() for the modules uninstall form.
++   *
++   * The modules uninstall form renders its selection table in its own
++   * template rather than as a table render element, so it needs this
++   * preprocess to display the group error next to the table and to associate
++   * the error with it.
++   */
++  #[Hook('preprocess_system_modules_uninstall')]
++  public function preprocessSystemModulesUninstall(array &$variables): void {
++    $form = $variables['form'];
++    $element = $form['uninstall'] ?? [];
++    if (!empty($element['#errors']) && empty($element['#error_no_message'])) {
++      $variables['table_error'] = $element['#errors'];
++      $variables['table_error_id'] = ($element['#id'] ?? 'system-modules-uninstall-table') . '--error';
++    }
++  }
++
+   /**
+    * Populates form errors in the template.
+    */
+diff --git a/core/modules/inline_form_errors/src/RenderElementHelper.php b/core/modules/inline_form_errors/src/RenderElementHelper.php
+index a96d77d..83766cc 100644
+--- a/core/modules/inline_form_errors/src/RenderElementHelper.php
++++ b/core/modules/inline_form_errors/src/RenderElementHelper.php
+@@ -3,11 +3,20 @@
+ namespace Drupal\inline_form_errors;
+ 
+ use Drupal\Core\Form\FormStateInterface;
++use Drupal\Core\Render\Element;
++use Drupal\Core\Security\TrustedCallbackInterface;
+ 
+ /**
+  * Provides functionality to process render elements.
+  */
+-class RenderElementHelper {
++class RenderElementHelper implements TrustedCallbackInterface {
++
++  /**
++   * {@inheritdoc}
++   */
++  public static function trustedCallbacks(): array {
++    return ['processElement', 'preRenderTableElement'];
++  }
+ 
+   /**
+    * Alters the element type info.
+@@ -17,8 +26,18 @@ class RenderElementHelper {
+    *   of \Drupal\Core\Render\ElementInfoManagerInterface::getInfo().
+    */
+   public function alterElementInfo(array &$info) {
+-    foreach ($info as $element_type => $element_info) {
++    foreach (array_keys($info) as $element_type) {
+       $info[$element_type]['#process'][] = [static::class, 'processElement'];
++      // Tables have their own theme hook, so the standard form element
++      // wrapper (and its inline error markup) is never used for them. Add a
++      // pre-render callback that adds the table error wrapper. It has to run
++      // before the element's own pre-render callbacks: Tableselect renders
++      // its child checkboxes there, and a table error inherited by those
++      // children must be suppressed before they are rendered.
++      if (in_array($element_type, ['table', 'tableselect'], TRUE)) {
++        $info[$element_type]['#pre_render'] = $info[$element_type]['#pre_render'] ?? [];
++        array_unshift($info[$element_type]['#pre_render'], [static::class, 'preRenderTableElement']);
++      }
+     }
+   }
+ 
+@@ -46,4 +65,83 @@ class RenderElementHelper {
+     return $element;
+   }
+ 
++  /**
++   * Adds inline error rendering to a table element with its own error.
++   *
++   * FormErrorHandler::setElementErrorsFromFormState() assigns #errors both to
++   * the element an error was set on and to every descendant, because
++   * FormStateInterface::getError() walks up the form tree. Only an error set
++   * on the table itself should be rendered at the table: an error inherited
++   * from a parent (for example a details element containing the table) is
++   * already displayed by that parent. The FormErrorHandler subclass in this
++   * module flags the table elements that have their own error with
++   * #inline_form_errors_own_error.
++   *
++   * @param array $element
++   *   The table or tableselect render element.
++   *
++   * @return array
++   *   The element, with inline error markup and association added.
++   */
++  public static function preRenderTableElement(array $element): array {
++    if (empty($element['#inline_form_errors_own_error']) || empty($element['#errors']) || !empty($element['#error_no_message']) || empty($element['#id'])) {
++      return $element;
++    }
++
++    $error_id = $element['#id'] . '--error';
++    $element['#inline_form_errors_error_id'] = $error_id;
++    // The table theme hook does not render #errors, so wrap it in a theme
++    // hook that does. The wrapper is only added for erroneous form tables;
++    // ordinary data tables are not changed.
++    $element['#theme_wrappers'][] = 'inline_form_errors_table';
++
++    // Associate the table with the error without dropping the ID references
++    // that are already there (for example a description). The error comes
++    // first so it is announced before less important help text.
++    $describedby = trim((string) ($element['#attributes']['aria-describedby'] ?? ''));
++    $tokens = $describedby === '' ? [] : preg_split('/\s+/', $describedby, -1, PREG_SPLIT_NO_EMPTY);
++    array_unshift($tokens, $error_id);
++    $element['#attributes']['aria-describedby'] = implode(' ', array_unique($tokens));
++
++    // A table is not focusable by default, so the error summary link cannot
++    // move keyboard or screen reader focus to it. tabindex="-1" makes it
++    // focusable programmatically without adding a tab stop.
++    if (!isset($element['#attributes']['tabindex'])) {
++      $element['#attributes']['tabindex'] = '-1';
++    }
++
++    // A table error is inherited by every child element. The table renders it
++    // once, so remove the inherited copy from the children. This also stops
++    // every checkbox or radio in a tableselect from being marked invalid and
++    // from repeating the same message.
++    static::clearInheritedError($element, (string) $element['#errors']);
++
++    return $element;
++  }
++
++  /**
++   * Removes an error inherited from a table from its descendants.
++   *
++   * @param array $element
++   *   The table element, by reference.
++   * @param string $error
++   *   The table's own error message.
++   */
++  protected static function clearInheritedError(array &$element, string $error): void {
++    foreach (Element::children($element) as $key) {
++      if (!is_array($element[$key] ?? NULL)) {
++        continue;
++      }
++      // A nested table with its own error renders and clears its own subtree.
++      if (!empty($element[$key]['#inline_form_errors_own_error'])) {
++        continue;
++      }
++      if (isset($element[$key]['#errors']) && (string) $element[$key]['#errors'] === $error) {
++        $element[$key]['#errors'] = NULL;
++        $element[$key]['#error_no_message'] = TRUE;
++      }
++      static::clearInheritedError($element[$key], $error);
++    }
++  }
++
+ }
+diff --git b/core/modules/inline_form_errors/templates/inline-form-errors-table.html.twig b/core/modules/inline_form_errors/templates/inline-form-errors-table.html.twig
+new file mode 100644
+index 0000000..02d073a
+--- /dev/null
++++ b/core/modules/inline_form_errors/templates/inline-form-errors-table.html.twig
+@@ -0,0 +1,28 @@
++{#
++/**
++ * @file
++ * Default theme implementation for a table form element with inline errors.
++ *
++ * The wrapper is only added to a table or tableselect form element that has
++ * its own validation error. Ordinary data tables are not wrapped.
++ *
++ * Available variables:
++ * - errors: The validation error message for the table.
++ * - error_id: The HTML ID of the error message container. The table refers to
++ *   it with aria-describedby.
++ * - children: The rendered table.
++ *
++ * @see \Drupal\inline_form_errors\RenderElementHelper::preRenderTableElement()
++ * @see \Drupal\inline_form_errors\Hook\InlineFormErrorsThemeHooks::preprocessInlineFormErrorsTable()
++ *
++ * @ingroup themeable
++ */
++#}
++<div class="form-item form-type-table form-item--error">
++  {% if errors %}
++    <div id="{{ error_id }}" class="form-item--error-message form-item__error-message">
++      {{ errors }}
++    </div>
++  {% endif %}
++  {{ children }}
++</div>
+diff --git b/core/modules/inline_form_errors/tests/src/Functional/TableElementInlineErrorsTest.php b/core/modules/inline_form_errors/tests/src/Functional/TableElementInlineErrorsTest.php
+new file mode 100644
+index 0000000..bfda6e8
+--- /dev/null
++++ b/core/modules/inline_form_errors/tests/src/Functional/TableElementInlineErrorsTest.php
+@@ -0,0 +1,206 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\inline_form_errors\Functional;
++
++use Drupal\Tests\BrowserTestBase;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++
++/**
++ * Tests inline errors on table and tableselect form elements.
++ */
++#[Group('InlineFormErrors')]
++#[RunTestsInSeparateProcesses]
++class TableElementInlineErrorsTest extends BrowserTestBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  protected static $modules = ['form_test', 'inline_form_errors'];
++
++  /**
++   * {@inheritdoc}
++   */
++  protected $defaultTheme = 'stark';
++
++  /**
++   * Submits a table error test form and returns the assertion session.
++   */
++  protected function submitVariant(string $variant, array $edit = []): void {
++    $this->drupalGet('form-test/table-error/' . $variant);
++    $this->submitForm($edit, 'Submit');
++  }
++
++  /**
++   * Asserts the group-level inline error and its association with a table.
++   */
++  protected function assertTableError(string $id, string $message): void {
++    $assert_session = $this->assertSession();
++    $assert_session->elementsCount('css', '.form-item--error-message', 1);
++    $assert_session->elementExists('css', '#' . $id . '--error');
++    $assert_session->elementTextContains('css', '#' . $id . '--error', $message);
++    $assert_session->elementAttributeContains('css', 'table#' . $id, 'aria-describedby', $id . '--error');
++    $assert_session->elementAttributeContains('css', 'table#' . $id, 'tabindex', '-1');
++    $assert_session->linkByHrefExists('#' . $id);
++  }
++
++  /**
++   * Tests that an ordinary data table is not changed.
++   */
++  public function testOrdinaryTableUnaffected(): void {
++    $this->drupalGet('form-test/table-error/no-error');
++    $assert_session = $this->assertSession();
++    $assert_session->elementExists('css', 'table#edit-table');
++    $assert_session->elementAttributeNotExists('css', 'table#edit-table', 'aria-describedby');
++    $assert_session->elementAttributeNotExists('css', 'table#edit-table', 'tabindex');
++    $assert_session->elementNotExists('css', '#edit-table--error');
++    $assert_session->elementNotExists('css', '.form-item--error-message');
++  }
++
++  /**
++   * Tests a table element with its own error.
++   */
++  public function testTableElementError(): void {
++    $this->submitVariant('table');
++    $this->assertTableError('edit-table', 'No rows selected.');
++    $this->assertSession()->linkExists('A table with an error');
++  }
++
++  /**
++   * Tests a tableselect with checkboxes and a group-level error.
++   */
++  public function testTableselectCheckboxes(): void {
++    $this->submitVariant('tableselect-checkboxes');
++    $this->assertTableError('edit-tableselect', 'No rows selected.');
++    $assert_session = $this->assertSession();
++    $assert_session->linkExists('Rows to update');
++    // The group error must not be repeated on, or invalidate, every row.
++    $assert_session->elementAttributeNotExists('css', 'input[name="tableselect[row1]"]', 'aria-invalid');
++    $assert_session->elementAttributeNotExists('css', 'input[name="tableselect[row2]"]', 'aria-invalid');
++  }
++
++  /**
++   * Tests a tableselect with radio buttons and a group-level error.
++   */
++  public function testTableselectRadios(): void {
++    $this->submitVariant('tableselect-radios');
++    $this->assertTableError('edit-tableselect', 'No rows selected.');
++    $assert_session = $this->assertSession();
++    $assert_session->linkExists('Rows to update');
++    $assert_session->elementAttributeNotExists('css', 'input[name="tableselect"]', 'aria-invalid');
++  }
++
++  /**
++   * Tests a table with #tableselect enabled.
++   */
++  public function testTableWithTableselect(): void {
++    $this->submitVariant('table-tableselect');
++    $this->assertTableError('edit-table', 'No rows selected.');
++    $assert_session = $this->assertSession();
++    $assert_session->elementAttributeNotExists('css', 'input#edit-table-row1', 'aria-invalid');
++    $assert_session->elementAttributeNotExists('css', 'input#edit-table-row2', 'aria-invalid');
++    // Without a title or caption, the error text is the summary link text.
++    $assert_session->linkExists('No rows selected.');
++  }
++
++  /**
++   * Tests that a child element error stays on its own control.
++   */
++  public function testChildError(): void {
++    $this->submitVariant('child-error');
++    $assert_session = $this->assertSession();
++    $assert_session->pageTextContains('Name in table field is required.');
++    $assert_session->elementsCount('css', '.form-item--error-message', 1);
++    $assert_session->elementExists('css', 'input#edit-table-row1-name[aria-invalid="true"]');
++    // The table itself has no error, so it must not be associated with one.
++    $assert_session->elementAttributeNotExists('css', 'table#edit-table', 'aria-describedby');
++    $assert_session->elementNotExists('css', '#edit-table--error');
++  }
++
++  /**
++   * Tests two tables with errors on the same page.
++   */
++  public function testMultipleTables(): void {
++    $this->submitVariant('multiple');
++    $assert_session = $this->assertSession();
++    $assert_session->elementsCount('css', '.form-item--error-message', 2);
++    $assert_session->elementExists('css', '#edit-table-one--error');
++    $assert_session->elementExists('css', '#edit-table-two--error');
++    $assert_session->elementAttributeContains('css', 'table#edit-table-one', 'aria-describedby', 'edit-table-one--error');
++    $assert_session->elementAttributeContains('css', 'table#edit-table-two', 'aria-describedby', 'edit-table-two--error');
++    $assert_session->linkByHrefExists('#edit-table-one');
++    $assert_session->linkByHrefExists('#edit-table-two');
++  }
++
++  /**
++   * Tests that an error on a parent of a table is not repeated at the table.
++   */
++  public function testDetailsTableErrorIsNotRepeated(): void {
++    $this->submitVariant('details-table');
++    $assert_session = $this->assertSession();
++    $assert_session->pageTextContains('No rows selected.');
++    // The details element owns the error. The table inside it must not show
++    // or be associated with a duplicate.
++    $assert_session->elementAttributeNotExists('css', 'table#edit-table', 'aria-describedby');
++    $assert_session->elementNotExists('css', '#edit-table--error');
++  }
++
++  /**
++   * Tests that an author-supplied aria-describedby is preserved.
++   */
++  public function testExistingDescribedbyIsPreserved(): void {
++    $this->submitVariant('existing-describedby');
++    $assert_session = $this->assertSession();
++    $assert_session->elementExists('css', '#table-help');
++    $assert_session->elementAttributeContains('css', 'table#edit-table', 'aria-describedby', 'table-help');
++    $assert_session->elementAttributeContains('css', 'table#edit-table', 'aria-describedby', 'edit-table--error');
++  }
++
++  /**
++   * Tests that a table #description reference is kept when an error is added.
++   */
++  public function testTableDescriptionIsPreserved(): void {
++    $this->submitVariant('described-table');
++    $this->assertSession()->elementAttributeContains('css', 'table#edit-table', 'aria-describedby', 'edit-table--error');
++    $this->assertSession()->elementAttributeContains('css', 'table#edit-table', 'aria-describedby', 'edit-table--description');
++  }
++
++  /**
++   * Tests that #error_no_message suppresses the table error.
++   */
++  public function testSuppressedError(): void {
++    $this->submitVariant('suppressed');
++    $assert_session = $this->assertSession();
++    $assert_session->elementNotExists('css', '.form-item--error-message');
++    $assert_session->elementNotExists('css', '#edit-table--error');
++    $assert_session->elementAttributeNotExists('css', 'table#edit-table', 'aria-describedby');
++  }
++
++  /**
++   * Tests that inline form errors can be disabled for the whole form.
++   */
++  public function testInlineFormErrorsDisabled(): void {
++    $this->submitVariant('no-ife');
++    $assert_session = $this->assertSession();
++    $assert_session->pageTextContains('No rows selected.');
++    $assert_session->elementNotExists('css', '.form-item--error-message');
++    $assert_session->elementAttributeNotExists('css', 'table#edit-table', 'aria-describedby');
++  }
++
++  /**
++   * Tests correcting the error and resubmitting the form.
++   */
++  public function testCorrectAndResubmit(): void {
++    $this->submitVariant('correct');
++    $this->assertTableError('edit-tableselect', 'Select at least one row.');
++
++    $this->submitVariant('correct', ['tableselect[row1]' => TRUE]);
++    $assert_session = $this->assertSession();
++    $assert_session->pageTextContains('Submitted.');
++    $assert_session->elementNotExists('css', '.form-item--error-message');
++    $assert_session->elementAttributeNotExists('css', 'table#edit-tableselect', 'aria-describedby');
++  }
++
++}
+diff --git b/core/modules/inline_form_errors/tests/src/FunctionalJavascript/TableElementInlineErrorsTest.php b/core/modules/inline_form_errors/tests/src/FunctionalJavascript/TableElementInlineErrorsTest.php
+new file mode 100644
+index 0000000..369c56a
+--- /dev/null
++++ b/core/modules/inline_form_errors/tests/src/FunctionalJavascript/TableElementInlineErrorsTest.php
+@@ -0,0 +1,45 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\inline_form_errors\FunctionalJavascript;
++
++use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++
++/**
++ * Tests focusing a table from the inline errors summary link.
++ */
++#[Group('InlineFormErrors')]
++#[RunTestsInSeparateProcesses]
++class TableElementInlineErrorsTest extends WebDriverTestBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  protected static $modules = ['form_test', 'inline_form_errors'];
++
++  /**
++   * {@inheritdoc}
++   */
++  protected $defaultTheme = 'stark';
++
++  /**
++   * Tests that the summary link moves focus to the table, not the page top.
++   */
++  public function testSummaryLinkFocusesTable(): void {
++    $this->drupalGet('form-test/table-error/tableselect-checkboxes');
++    $this->submitForm([], 'Submit');
++
++    $this->clickLink('Rows to update');
++
++    $this->assertJsCondition('window.location.hash === "#edit-tableselect"');
++    $this->assertJsCondition('document.activeElement.tagName === "TABLE"');
++    $this->assertJsCondition('document.activeElement.id === "edit-tableselect"');
++
++    // The table has focus but is not a tab stop.
++    $this->assertJsCondition('document.activeElement.tabIndex === -1');
++  }
++
++}
+diff --git a/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php b/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php
+index 146b5e1..f803915 100644
+--- a/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php
++++ b/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php
+@@ -160,6 +160,114 @@ class FormErrorHandlerTest extends UnitTestCase {
+     $this->assertSame('element is invisible', $this->testForm['test6']['#errors']);
+   }
+ 
++  /**
++   * Tests that table errors are flagged but not rendered by the handler.
++   *
++   * The table element and its theme wrapper render the error, so the handler
++   * must not add markup or ARIA attributes itself. An error inherited from a
++   * parent element must not be flagged on the table.
++   */
++  public function testTableErrorsAreFlaggedButNotRendered(): void {
++    $this->messenger->expects($this->atLeastOnce())->method('addError');
++    $this->renderer->expects($this->once())
++      ->method('renderInIsolation')
++      ->willReturn('summary');
++
++    $form = [
++      '#parents' => [],
++      '#form_id' => 'test_form',
++      '#array_parents' => [],
++    ];
++    $form['table'] = [
++      '#type' => 'table',
++      '#caption' => 'Table caption',
++      '#parents' => ['table'],
++      '#array_parents' => ['table'],
++      '#id' => 'edit-table',
++      '#attributes' => [],
++    ];
++    $form['details'] = [
++      '#type' => 'details',
++      '#title' => 'Details',
++      '#parents' => ['details'],
++      '#array_parents' => ['details'],
++      '#id' => 'edit-details',
++    ];
++    $form['details']['table'] = [
++      '#type' => 'table',
++      '#parents' => ['details', 'table'],
++      '#array_parents' => ['details', 'table'],
++      '#id' => 'edit-details-table',
++      '#attributes' => [],
++    ];
++
++    $form_state = new FormState();
++    $form_state->setErrorByName('table', 'No rows selected.');
++    $form_state->setErrorByName('details', 'Details error.');
++    $this->formErrorHandler->handleFormErrors($form, $form_state);
++
++    $this->assertSame('No rows selected.', $form['table']['#errors']);
++    $this->assertTrue($form['table']['#inline_form_errors_own_error']);
++    $this->assertArrayNotHasKey('#theme_wrappers', $form['table']);
++    $this->assertArrayNotHasKey('#prefix', $form['table']);
++    $this->assertArrayNotHasKey('aria-describedby', $form['table']['#attributes']);
++    // The table inside the details inherited the details error. It must not
++    // be flagged, otherwise the same message would appear twice.
++    $this->assertSame('Details error.', $form['details']['table']['#errors']);
++    $this->assertArrayNotHasKey('#inline_form_errors_own_error', $form['details']['table']);
++  }
++
++  /**
++   * Tests the summary link text for a table without its own title.
++   */
++  public function testTableSummaryLinkText(): void {
++    $this->messenger->expects($this->atLeastOnce())->method('addError');
++
++    $form = [
++      '#parents' => [],
++      '#form_id' => 'test_form',
++      '#array_parents' => [],
++    ];
++    $form['table'] = [
++      '#type' => 'table',
++      '#caption' => 'Table caption',
++      '#parents' => ['table'],
++      '#array_parents' => ['table'],
++      '#id' => 'edit-table',
++      '#attributes' => [],
++    ];
++    $form['no_title'] = [
++      '#type' => 'tableselect',
++      '#parents' => ['no_title'],
++      '#array_parents' => ['no_title'],
++      '#id' => 'edit-no-title',
++      '#attributes' => [],
++      'row1' => [
++        '#type' => 'checkbox',
++        '#title' => 'Update Alpha',
++        '#parents' => ['no_title', 'row1'],
++        '#array_parents' => ['no_title', 'row1'],
++        '#id' => 'edit-no-title-row1',
++      ],
++    ];
++
++    $this->renderer->expects($this->once())
++      ->method('renderInIsolation')
++      ->willReturnCallback(function (array $render_array): string {
++        $titles = [];
++        foreach ($render_array['#error_links'] as $link) {
++          $titles[] = (string) $link['value']['#title'];
++        }
++        $this->assertSame(['Table caption', 'No rows selected.'], $titles);
++        return 'summary';
++      });
++
++    $form_state = new FormState();
++    $form_state->setErrorByName('table', 'No rows selected.');
++    $form_state->setErrorByName('no_title', 'No rows selected.');
++    $this->formErrorHandler->handleFormErrors($form, $form_state);
++  }
++
+   /**
+    * Tests that the summary render array exposes error_links and form_id.
+    */
+diff --git b/core/modules/inline_form_errors/tests/src/Unit/RenderElementHelperTest.php b/core/modules/inline_form_errors/tests/src/Unit/RenderElementHelperTest.php
+new file mode 100644
+index 0000000..f826cfb
+--- /dev/null
++++ b/core/modules/inline_form_errors/tests/src/Unit/RenderElementHelperTest.php
+@@ -0,0 +1,169 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\inline_form_errors\Unit;
++
++use Drupal\inline_form_errors\RenderElementHelper;
++use Drupal\Tests\UnitTestCase;
++use PHPUnit\Framework\Attributes\CoversClass;
++use PHPUnit\Framework\Attributes\Group;
++
++/**
++ * Tests Drupal\inline_form_errors\RenderElementHelper.
++ */
++#[CoversClass(RenderElementHelper::class)]
++#[Group('InlineFormErrors')]
++class RenderElementHelperTest extends UnitTestCase {
++
++  /**
++   * Tests that table pre-render callbacks are added before the default ones.
++   */
++  public function testAlterElementInfo(): void {
++    $callback = static fn (array $element): array => $element;
++    $info = [
++      'table' => [
++        '#pre_render' => [$callback],
++        '#process' => [],
++      ],
++      'tableselect' => [
++        '#pre_render' => [$callback],
++        '#process' => [],
++      ],
++      'textfield' => [
++        '#pre_render' => [],
++        '#process' => [],
++      ],
++    ];
++
++    (new RenderElementHelper())->alterElementInfo($info);
++
++    $table_callbacks = $info['table']['#pre_render'];
++    $this->assertSame([RenderElementHelper::class, 'preRenderTableElement'], $table_callbacks[0]);
++    $this->assertSame($callback, $table_callbacks[1]);
++    $select_callbacks = $info['tableselect']['#pre_render'];
++    $this->assertSame([RenderElementHelper::class, 'preRenderTableElement'], $select_callbacks[0]);
++    $this->assertSame($callback, $select_callbacks[1]);
++    // Other element types do not get the table pre-render callback.
++    $this->assertSame([], $info['textfield']['#pre_render']);
++    // Every element type gets the process callback.
++    $this->assertSame([RenderElementHelper::class, 'processElement'], $info['textfield']['#process'][0]);
++  }
++
++  /**
++   * Tests that a table with its own error gets the error wrapper.
++   */
++  public function testPreRenderTableElementWithError(): void {
++    $element = [
++      '#type' => 'tableselect',
++      '#id' => 'edit-table',
++      '#inline_form_errors_own_error' => TRUE,
++      '#errors' => 'No rows selected.',
++      '#attributes' => [
++        'aria-describedby' => 'table-help',
++        'data-test' => 'value',
++      ],
++      'row1' => [
++        '#type' => 'checkbox',
++        '#id' => 'edit-table-row1',
++        '#errors' => 'No rows selected.',
++      ],
++      'row2' => [
++        '#type' => 'checkbox',
++        '#id' => 'edit-table-row2',
++        '#errors' => 'A different error.',
++      ],
++      'row3' => [
++        '#type' => 'container',
++        'field' => [
++          '#type' => 'textfield',
++          '#errors' => 'No rows selected.',
++        ],
++      ],
++      'row4' => [
++        '#type' => 'table',
++        '#id' => 'edit-nested-table',
++        '#inline_form_errors_own_error' => TRUE,
++        '#errors' => 'No rows selected.',
++      ],
++    ];
++
++    $result = RenderElementHelper::preRenderTableElement($element);
++
++    $this->assertSame('edit-table--error', $result['#inline_form_errors_error_id']);
++    $this->assertContains('inline_form_errors_table', $result['#theme_wrappers']);
++    $this->assertSame('edit-table--error table-help', $result['#attributes']['aria-describedby']);
++    $this->assertSame('-1', $result['#attributes']['tabindex']);
++    $this->assertSame('value', $result['#attributes']['data-test']);
++    // The inherited error is removed from direct and nested children, so it
++    // is not repeated and does not mark every control invalid.
++    $this->assertNull($result['row1']['#errors']);
++    $this->assertTrue($result['row1']['#error_no_message']);
++    $this->assertNull($result['row3']['field']['#errors']);
++    $this->assertTrue($result['row3']['field']['#error_no_message']);
++    // An error that belongs to a child is kept.
++    $this->assertSame('A different error.', $result['row2']['#errors']);
++    $this->assertArrayNotHasKey('#error_no_message', $result['row2']);
++    // A nested table with its own error keeps it and clears its own subtree.
++    $this->assertSame('No rows selected.', $result['row4']['#errors']);
++    $this->assertArrayNotHasKey('#error_no_message', $result['row4']);
++  }
++
++  /**
++   * Tests that unrelated table elements are not changed.
++   */
++  public function testPreRenderTableElementWithoutOwnError(): void {
++    $element = [
++      '#type' => 'table',
++      '#id' => 'edit-table',
++      '#errors' => 'Inherited error.',
++      '#attributes' => [],
++    ];
++
++    $result = RenderElementHelper::preRenderTableElement($element);
++
++    $this->assertArrayNotHasKey('#theme_wrappers', $result);
++    $this->assertSame([], $result['#attributes']);
++  }
++
++  /**
++   * Tests that an error can be suppressed and that an id is required.
++   */
++  public function testPreRenderTableElementSuppressedAndWithoutId(): void {
++    $suppressed = [
++      '#type' => 'table',
++      '#id' => 'edit-table',
++      '#inline_form_errors_own_error' => TRUE,
++      '#errors' => 'No rows selected.',
++      '#error_no_message' => TRUE,
++      '#attributes' => [],
++    ];
++    $this->assertArrayNotHasKey('#theme_wrappers', RenderElementHelper::preRenderTableElement($suppressed));
++
++    $without_id = [
++      '#type' => 'table',
++      '#inline_form_errors_own_error' => TRUE,
++      '#errors' => 'No rows selected.',
++      '#attributes' => [],
++    ];
++    $this->assertArrayNotHasKey('#theme_wrappers', RenderElementHelper::preRenderTableElement($without_id));
++  }
++
++  /**
++   * Tests that an existing error ID in aria-describedby is not duplicated.
++   */
++  public function testPreRenderTableElementDeduplicatesDescribedby(): void {
++    $element = [
++      '#type' => 'table',
++      '#id' => 'edit-table',
++      '#inline_form_errors_own_error' => TRUE,
++      '#errors' => 'No rows selected.',
++      '#attributes' => ['aria-describedby' => 'edit-table--error other-help'],
++    ];
++
++    $result = RenderElementHelper::preRenderTableElement($element);
++
++    $this->assertSame('edit-table--error other-help', $result['#attributes']['aria-describedby']);
++  }
++
++}
+diff --git a/core/modules/system/src/Form/ModulesUninstallForm.php b/core/modules/system/src/Form/ModulesUninstallForm.php
+index 3751833..6bb0517 100644
+--- a/core/modules/system/src/Form/ModulesUninstallForm.php
++++ b/core/modules/system/src/Form/ModulesUninstallForm.php
+@@ -132,10 +132,7 @@ class ModulesUninstallForm extends FormBase {
+       ],
+     ];
+ 
+-    $form['modules'] = [
+-      '#type' => 'table',
+-      '#header' => ['Uninstall', 'Name', 'Description'],
+-    ];
++    $form['modules'] = [];
+ 
+     // Only build the rest of the form if there are any modules available to
+     // uninstall.
+@@ -155,13 +152,21 @@ class ModulesUninstallForm extends FormBase {
+       $lifecycle_a = isset($unstable_lifecycle[$a->info[ExtensionLifecycle::LIFECYCLE_IDENTIFIER]]) ? -1 : 1;
+       $lifecycle_b = isset($unstable_lifecycle[$b->info[ExtensionLifecycle::LIFECYCLE_IDENTIFIER]]) ? -1 : 1;
+       if ($lifecycle_a === $lifecycle_b) {
+-        return \Drupal\Core\Extension\ModuleExtensionList::sortByName($a, $b);
++        return ModuleExtensionList::sortByName($a, $b);
+       }
+       return $lifecycle_a <=> $lifecycle_b;
+     });
+     $validation_reasons = $this->moduleInstaller->validateUninstall(array_keys($uninstallable));
+ 
+-    $form['uninstall'] = ['#tree' => TRUE];
++    // The selection group is rendered inside the table in
++    // system-modules-uninstall.html.twig, not as a render element. Give it a
++    // title and a stable ID so the inline errors summary can link to the
++    // rendered table, and so preprocess can associate the group error with it.
++    $form['uninstall'] = [
++      '#tree' => TRUE,
++      '#title' => $this->t('Modules to uninstall'),
++      '#id' => 'system-modules-uninstall-table',
++    ];
+     foreach ($uninstallable as $module_key => $module) {
+       $name = $module->info['name'] ?: $module->getName();
+       $form['modules'][$module->getName()]['#module_name'] = $name;
+@@ -188,6 +193,9 @@ class ModulesUninstallForm extends FormBase {
+         '#type' => 'checkbox',
+         '#title' => $this->t('Uninstall @module module', ['@module' => $name]),
+         '#title_display' => 'invisible',
++        // The group error is displayed once, next to the table. Without this,
++        // every checkbox would inherit and repeat the same error.
++        '#error_no_message' => TRUE,
+       ];
+ 
+       // If a validator returns reasons not to uninstall a module,
+@@ -228,7 +236,7 @@ class ModulesUninstallForm extends FormBase {
+   public function validateForm(array &$form, FormStateInterface $form_state) {
+     // Form submitted, but no modules selected.
+     if (!array_filter($form_state->getValue('uninstall'))) {
+-      $form_state->setErrorByName('modules', $this->t('No modules selected.'));
++      $form_state->setErrorByName('uninstall', $this->t('No modules selected.'));
+       $form_state->setRedirect('system.modules_uninstall');
+     }
+   }
+diff --git a/core/modules/system/src/Theme/SystemAdminThemePreprocess.php b/core/modules/system/src/Theme/SystemAdminThemePreprocess.php
+index 82b172d..ca3ac22 100644
+--- a/core/modules/system/src/Theme/SystemAdminThemePreprocess.php
++++ b/core/modules/system/src/Theme/SystemAdminThemePreprocess.php
+@@ -245,6 +245,9 @@ class SystemAdminThemePreprocess {
+   public function preprocessSystemModulesUninstall(array &$variables): void {
+     $form = $variables['form'];
+     $variables['modules'] = [];
++    $variables['table_id'] = $form['uninstall']['#id'] ?? 'system-modules-uninstall-table';
++    $variables['table_error'] = NULL;
++    $variables['table_error_id'] = NULL;
+ 
+     // Iterate through all the modules, which are children of this element.
+     foreach (Element::children($form['modules']) as $key) {
+@@ -252,6 +255,14 @@ class SystemAdminThemePreprocess {
+       $module['module_name'] = $module['#module_name'];
+       $module['checkbox'] = $form['uninstall'][$key];
+       $module['checkbox_id'] = $form['uninstall'][$key]['#id'];
++      // A group error on the selection group is inherited by every checkbox.
++      // It is displayed once, next to the table, so do not render or mark the
++      // inherited copy on each row. An error set on a single checkbox is kept.
++      if (!empty($form['uninstall']['#errors'])
++        && isset($module['checkbox']['#errors'])
++        && (string) $module['checkbox']['#errors'] === (string) $form['uninstall']['#errors']) {
++        $module['checkbox']['#errors'] = NULL;
++      }
+ 
+       if (!empty($module['#validation_reasons'])) {
+         $module['validation_reasons'] = $module['#validation_reasons'];
+diff --git a/core/modules/system/templates/system-modules-uninstall.html.twig b/core/modules/system/templates/system-modules-uninstall.html.twig
+index 7e847b8..5f7e67b 100644
+--- a/core/modules/system/templates/system-modules-uninstall.html.twig
++++ b/core/modules/system/templates/system-modules-uninstall.html.twig
+@@ -23,7 +23,10 @@
+ #}
+ {{ form.filters }}
+ 
+-<table class="responsive-enabled">
++{% if table_error %}
++  <div id="{{ table_error_id }}" class="form-item--error-message form-item__error-message">{{ table_error }}</div>
++{% endif %}
++<table id="{{ table_id }}" class="responsive-enabled"{% if table_error %} tabindex="-1" aria-describedby="{{ table_error_id }}"{% endif %}>
+   <thead>
+     <tr>
+       <th>{{ 'Uninstall'|t }}</th>
+diff --git a/core/modules/system/tests/modules/form_test/form_test.routing.yml b/core/modules/system/tests/modules/form_test/form_test.routing.yml
+index 9daceb0..f2984fe 100644
+--- a/core/modules/system/tests/modules/form_test/form_test.routing.yml
++++ b/core/modules/system/tests/modules/form_test/form_test.routing.yml
+@@ -172,6 +172,15 @@ form_test.tableselect_disabled_rows:
+   requirements:
+     _access: 'TRUE'
+ 
++form_test.table_error:
++  path: '/form-test/table-error/{variant}'
++  defaults:
++    _form: '\Drupal\form_test\Form\FormTestTableErrorForm'
++    _title: 'Table error test form'
++    variant: 'table'
++  requirements:
++    _access: 'TRUE'
++
+ form_test.vertical_tabs:
+   path: '/form_test/vertical-tabs'
+   defaults:
+diff --git b/core/modules/system/tests/modules/form_test/src/Form/FormTestTableErrorForm.php b/core/modules/system/tests/modules/form_test/src/Form/FormTestTableErrorForm.php
+new file mode 100644
+index 0000000..145b039
+--- /dev/null
++++ b/core/modules/system/tests/modules/form_test/src/Form/FormTestTableErrorForm.php
+@@ -0,0 +1,237 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\form_test\Form;
++
++use Drupal\Core\Form\FormBase;
++use Drupal\Core\Form\FormStateInterface;
++
++/**
++ * Form for testing inline errors on table and tableselect elements.
++ *
++ * @internal
++ */
++class FormTestTableErrorForm extends FormBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  public function getFormId() {
++    return 'form_test_table_error_form';
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function buildForm(array $form, FormStateInterface $form_state, $variant = 'table') {
++    $form['#variant'] = $variant;
++    $form['#error_element'] = 'table';
++
++    switch ($variant) {
++      case 'no-error':
++        $form['table'] = [
++          '#type' => 'table',
++          '#caption' => $this->t('A table without an error'),
++          '#header' => ['Name', 'Value'],
++          '#rows' => [
++            ['Alpha', 'One'],
++            ['Beta', 'Two'],
++          ],
++        ];
++        break;
++
++      case 'table':
++        $form['table'] = [
++          '#type' => 'table',
++          '#caption' => $this->t('A table with an error'),
++          '#header' => ['Name', 'Value'],
++          '#rows' => [
++            ['Alpha', 'One'],
++            ['Beta', 'Two'],
++          ],
++        ];
++        break;
++
++      case 'table-tableselect':
++        $form['table'] = [
++          '#type' => 'table',
++          '#tableselect' => TRUE,
++          '#header' => ['Name', 'Value'],
++          '#empty' => $this->t('Empty text.'),
++        ];
++        $form['table']['row1'] = [
++          'title' => ['#title' => 'Alpha'],
++          'value' => ['#markup' => 'One'],
++        ];
++        $form['table']['row2'] = [
++          'title' => ['#title' => 'Beta'],
++          'value' => ['#markup' => 'Two'],
++        ];
++        break;
++
++      case 'tableselect-radios':
++        $form['tableselect'] = $this->buildTableselect(FALSE);
++        $form['#error_element'] = 'tableselect';
++        break;
++
++      case 'tableselect-checkboxes':
++        $form['tableselect'] = $this->buildTableselect(TRUE);
++        $form['#error_element'] = 'tableselect';
++        break;
++
++      case 'child-error':
++        $form['table'] = [
++          '#type' => 'table',
++          '#caption' => $this->t('A table with a field that has an error'),
++          '#header' => ['Name', 'Value'],
++        ];
++        $form['table']['row1']['name'] = [
++          '#type' => 'textfield',
++          '#title' => $this->t('Name in table'),
++          '#required' => TRUE,
++        ];
++        $form['table']['row1']['value'] = [
++          '#type' => 'textfield',
++          '#title' => $this->t('Value in table'),
++        ];
++        break;
++
++      case 'multiple':
++        $form['table_one'] = [
++          '#type' => 'table',
++          '#caption' => $this->t('First table'),
++          '#header' => ['Name'],
++          '#rows' => [['Alpha']],
++        ];
++        $form['table_two'] = [
++          '#type' => 'tableselect',
++          '#title' => $this->t('Second table'),
++          '#header' => ['name' => 'Name'],
++          '#options' => ['row1' => ['name' => 'Beta']],
++        ];
++        $form['#error_element'] = NULL;
++        break;
++
++      case 'details-table':
++        $form['details'] = [
++          '#type' => 'details',
++          '#title' => $this->t('Details with a table'),
++          '#open' => TRUE,
++        ];
++        $form['details']['table'] = [
++          '#type' => 'table',
++          '#header' => ['Name'],
++          '#rows' => [['Alpha']],
++        ];
++        $form['#error_element'] = 'details';
++        break;
++
++      case 'existing-describedby':
++        $form['table'] = [
++          '#type' => 'table',
++          '#caption' => $this->t('A table with help'),
++          '#header' => ['Name'],
++          '#rows' => [['Alpha']],
++          '#attributes' => ['aria-describedby' => 'table-help'],
++          '#prefix' => '<span id="table-help">Author-supplied help.</span>',
++        ];
++        break;
++
++      case 'suppressed':
++        $form['table'] = [
++          '#type' => 'table',
++          '#caption' => $this->t('A table with a suppressed error'),
++          '#header' => ['Name'],
++          '#rows' => [['Alpha']],
++          '#error_no_message' => TRUE,
++        ];
++        break;
++
++      case 'no-ife':
++        $form['#disable_inline_form_errors'] = TRUE;
++        $form['table'] = [
++          '#type' => 'table',
++          '#caption' => $this->t('A table with inline errors disabled'),
++          '#header' => ['Name'],
++          '#rows' => [['Alpha']],
++        ];
++        break;
++
++      case 'correct':
++        $form['tableselect'] = $this->buildTableselect(TRUE);
++        $form['#error_element'] = 'tableselect';
++        break;
++
++      case 'described-table':
++        $form['table'] = [
++          '#type' => 'table',
++          '#caption' => $this->t('A described table with an error'),
++          '#description' => $this->t('This description is set on the table.'),
++          '#header' => ['Name'],
++          '#rows' => [['Alpha']],
++        ];
++        break;
++
++      default:
++        throw new \InvalidArgumentException("Unknown variant $variant");
++    }
++
++    $form['actions'] = ['#type' => 'actions'];
++    $form['actions']['submit'] = [
++      '#type' => 'submit',
++      '#value' => $this->t('Submit'),
++    ];
++
++    return $form;
++  }
++
++  /**
++   * Builds the tableselect used by several variants.
++   */
++  protected function buildTableselect(bool $multiple): array {
++    return [
++      '#type' => 'tableselect',
++      '#title' => $this->t('Rows to update'),
++      '#header' => ['name' => 'Name', 'value' => 'Value'],
++      '#options' => [
++        'row1' => ['name' => 'Alpha', 'value' => 'One'],
++        'row2' => ['name' => 'Beta', 'value' => 'Two'],
++      ],
++      '#multiple' => $multiple,
++      '#empty' => $this->t('Empty text.'),
++    ];
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function validateForm(array &$form, FormStateInterface $form_state): void {
++    $variant = $form['#variant'] ?? 'table';
++    $element = $form['#error_element'] ?? NULL;
++
++    if ($variant === 'correct' && empty(array_filter((array) $form_state->getValue('tableselect')))) {
++      $form_state->setErrorByName('tableselect', $this->t('Select at least one row.'));
++      return;
++    }
++    if ($variant === 'correct' || $variant === 'no-error' || $variant === 'child-error') {
++      return;
++    }
++    if ($variant === 'multiple') {
++      $form_state->setErrorByName('table_one', $this->t('No rows selected in the first table.'));
++      $form_state->setErrorByName('table_two', $this->t('No rows selected in the second table.'));
++      return;
++    }
++    if ($element !== NULL) {
++      $form_state->setErrorByName($element, $this->t('No rows selected.'));
++    }
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function submitForm(array &$form, FormStateInterface $form_state): void {
++    $this->messenger()->addStatus($this->t('Submitted.'));
++  }
++
++}
+diff --git a/core/modules/system/tests/src/Functional/Module/UninstallTest.php b/core/modules/system/tests/src/Functional/Module/UninstallTest.php
+index 38af57e..994b66b 100644
+--- a/core/modules/system/tests/src/Functional/Module/UninstallTest.php
++++ b/core/modules/system/tests/src/Functional/Module/UninstallTest.php
+@@ -27,6 +27,7 @@ class UninstallTest extends BrowserTestBase {
+   protected static $modules = [
+     'ckeditor5',
+     'filter',
++    'inline_form_errors',
+     'module_test',
+     'node',
+     'user',
+@@ -198,7 +199,21 @@ class UninstallTest extends BrowserTestBase {
+     $edit = [];
+     $this->drupalGet('admin/modules/uninstall');
+     $this->submitForm($edit, 'Uninstall');
+-    $this->assertSession()->pageTextContains('No modules selected.');
++    $assert_session = $this->assertSession();
++    $assert_session->pageTextContains('No modules selected.');
++    // One inline group error, associated with the selection table.
++    $assert_session->elementsCount('css', '.form-item--error-message', 1);
++    $assert_session->elementExists('css', '#system-modules-uninstall-table--error');
++    $assert_session->elementTextContains('css', '#system-modules-uninstall-table--error', 'No modules selected.');
++    $assert_session->elementAttributeContains('css', 'table#system-modules-uninstall-table', 'aria-describedby', 'system-modules-uninstall-table--error');
++    $assert_session->elementAttributeContains('css', 'table#system-modules-uninstall-table', 'tabindex', '-1');
++    // The summary links to the rendered table.
++    $assert_session->linkExists('Modules to uninstall');
++    $assert_session->linkByHrefExists('#system-modules-uninstall-table');
++    // The table headers are supplied by the template, once.
++    $assert_session->elementsCount('xpath', '//table[@id="system-modules-uninstall-table"]/thead/tr/th', 3);
++    // The group error must not mark every checkbox invalid.
++    $assert_session->elementAttributeNotExists('css', 'form#system-modules-uninstall input[type="checkbox"]', 'aria-invalid');
+   }
+ 
+   /**
