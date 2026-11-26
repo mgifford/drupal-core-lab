@@ -1,0 +1,652 @@
+{
+  "side": "after",
+  "base": "https://repro-issue-3606655.ddev.site",
+  "adminUid": 1,
+  "observations": [
+    {
+      "step": "anonymous",
+      "at": "2026-11-26T15:03:48.534Z",
+      "first": {
+        "label": "anon:first",
+        "url": "/user/login?probe=1795705428300",
+        "status": 200,
+        "colorScheme": "auto",
+        "html": "<html lang=\"en\" dir=\"ltr\" data-color-scheme=\"auto\" data-accent=\"blue\" style=\"--accent-base: #015efe;\" data-admin-focus=\"default\" data-layout-density=\"default\">",
+        "cookies": [],
+        "defaultAdminMarkup": true,
+        "jar": [],
+        "cache": {
+          "x-drupal-cache": "MISS",
+          "x-drupal-dynamic-cache": "MISS",
+          "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface route session.exists theme url.path url.query_args user.permissions user.roles:authenticated",
+          "x-drupal-cache-tags": "CACHE_MISS_IF_UNCACHEABLE_HTTP_METHOD:form config:block_list config:system.site config:user.role.anonymous config:user.settings http_response local_task rendered"
+        }
+      },
+      "second": {
+        "label": "anon:second",
+        "url": "/user/login?probe=1795705428300",
+        "status": 200,
+        "colorScheme": "auto",
+        "html": "<html lang=\"en\" dir=\"ltr\" data-color-scheme=\"auto\" data-accent=\"blue\" style=\"--accent-base: #015efe;\" data-admin-focus=\"default\" data-layout-density=\"default\">",
+        "cookies": [],
+        "defaultAdminMarkup": true,
+        "jar": [],
+        "cache": {
+          "x-drupal-cache": "HIT",
+          "x-drupal-dynamic-cache": "MISS",
+          "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface route session.exists theme url.path url.query_args user.permissions user.roles:authenticated",
+          "x-drupal-cache-tags": "CACHE_MISS_IF_UNCACHEABLE_HTTP_METHOD:form config:block_list config:system.site config:user.role.anonymous config:user.settings http_response local_task rendered"
+        }
+      },
+      "root": {
+        "status": 403,
+        "colorScheme": "auto",
+        "cache": {
+          "x-drupal-cache": "MISS",
+          "x-drupal-dynamic-cache": "UNCACHEABLE (403, sub-request: MISS)",
+          "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface route session.exists theme url.path url.query_args user.permissions user.roles:anonymous user.roles:authenticated",
+          "x-drupal-cache-tags": "4xx-response CACHE_MISS_IF_UNCACHEABLE_HTTP_METHOD:form config:block_list config:system.site config:user.role.anonymous http_response local_task rendered"
+        }
+      }
+    },
+    {
+      "step": "login",
+      "at": "2026-11-26T15:03:48.865Z",
+      "adminLogin": {
+        "ok": true,
+        "status": 200,
+        "url": "/user/1?check_logged_in=1"
+      }
+    },
+    {
+      "step": "admin-default",
+      "at": "2026-11-26T15:03:49.430Z",
+      "uid": 1,
+      "frontend": {
+        "label": "admin-default",
+        "url": "/user/1",
+        "status": 200,
+        "colorScheme": "auto",
+        "html": "<html lang=\"en\" dir=\"ltr\" data-color-scheme=\"auto\" data-accent=\"blue\" style=\"--accent-base: #015efe;\" data-admin-focus=\"default\" data-layout-density=\"default\">",
+        "cookies": [],
+        "defaultAdminMarkup": true,
+        "jar": [],
+        "cache": {
+          "x-drupal-cache": "UNCACHEABLE (request policy)",
+          "x-drupal-dynamic-cache": "HIT",
+          "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface layout_builder_is_active:user route session theme url.path url.query_args:_wrapper_format url.site user",
+          "x-drupal-cache-tags": "config:block_list config:core.entity_view_display.user.user.default config:navigation.block_layout config:navigation.settings config:node_type_list config:system.menu.admin config:system.menu.content config:system.menu.navigation-user-links http_response local_task rendered user:1 user_view"
+        }
+      },
+      "adminRoute": {
+        "label": "admin-default",
+        "url": "/admin/config",
+        "status": 200,
+        "colorScheme": "auto",
+        "html": "<html lang=\"en\" dir=\"ltr\" data-color-scheme=\"auto\" data-accent=\"blue\" style=\"--accent-base: #015efe;\" data-admin-focus=\"default\" data-layout-density=\"default\">",
+        "cookies": [],
+        "defaultAdminMarkup": true,
+        "jar": [],
+        "cache": {
+          "x-drupal-cache": "UNCACHEABLE (request policy)",
+          "x-drupal-dynamic-cache": "UNCACHEABLE (response policy)",
+          "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface route session theme url.path url.query_args:_wrapper_format user",
+          "x-drupal-cache-tags": "config:block_list config:navigation.block_layout config:navigation.settings config:node_type_list config:system.menu.admin config:system.menu.content config:system.menu.navigation-user-links http_response rendered user:1"
+        }
+      },
+      "profile": {
+        "status": 200,
+        "colorScheme": "auto",
+        "radios": [
+          {
+            "value": "light",
+            "checked": false,
+            "disabled": false,
+            "describedBy": null
+          },
+          {
+            "value": "dark",
+            "checked": false,
+            "disabled": false,
+            "describedBy": null
+          },
+          {
+            "value": "auto",
+            "checked": true,
+            "disabled": false,
+            "describedBy": null
+          }
+        ],
+        "legend": "Roles",
+        "descriptionId": "edit-color-scheme--wrapper--description",
+        "description": "System follows your operating system or browser setting. Applies wherever your site’s theme supports it.",
+        "setCookie": [],
+        "cache": {
+          "x-drupal-cache": "UNCACHEABLE (request policy)",
+          "x-drupal-dynamic-cache": "UNCACHEABLE (poor cacheability)",
+          "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface layout_builder_is_active:user route session theme url.path url.query_args:_wrapper_format user",
+          "x-drupal-cache-tags": "CACHE_MISS_IF_UNCACHEABLE_HTTP_METHOD:form config:block_list config:core.entity_form_display.user.user.default config:core.entity_view_display.user.user.default config:field.field.user.user.user_picture config:field.storage.user.user_picture config:navigation.block_layout config:navigation.settings config:node_type_list config:system.menu.admin config:system.menu.content config:system.menu.navigation-user-links config:user.settings http_response local_task rendered user:1"
+        }
+      },
+      "themes": {
+        "front": null,
+        "admin": "default_admin"
+      }
+    },
+    {
+      "step": "admin-preference-matrix",
+      "at": "2026-11-26T15:03:50.233Z",
+      "dark": {
+        "save": {
+          "ok": true,
+          "status": 200,
+          "setCookie": [
+            {
+              "name": "DrupalColorScheme",
+              "value": "dark",
+              "expired": false,
+              "attrs": "expires=Fri, 26 Nov 2027 15:03:49 GMT; Max-Age=31536000; path=/; secure; samesite=lax"
+            }
+          ],
+          "cache": {
+            "x-drupal-cache": "UNCACHEABLE (request policy)",
+            "x-drupal-dynamic-cache": "UNCACHEABLE (poor cacheability)",
+            "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface layout_builder_is_active:user route session theme url.path url.query_args:_wrapper_format user",
+            "x-drupal-cache-tags": "CACHE_MISS_IF_UNCACHEABLE_HTTP_METHOD:form config:block_list config:core.entity_form_display.user.user.default config:core.entity_view_display.user.user.default config:field.field.user.user.user_picture config:field.storage.user.user_picture config:navigation.block_layout config:navigation.settings config:node_type_list config:system.menu.admin config:system.menu.content config:system.menu.navigation-user-links config:user.settings http_response local_task rendered user:1"
+          }
+        },
+        "first": {
+          "label": "admin-default",
+          "url": "/user/1",
+          "status": 200,
+          "colorScheme": "auto",
+          "html": "<html lang=\"en\" dir=\"ltr\" data-color-scheme=\"auto\" data-accent=\"blue\" style=\"--accent-base: #015efe;\" data-admin-focus=\"default\" data-layout-density=\"default\">",
+          "cookies": [],
+          "defaultAdminMarkup": true,
+          "jar": [],
+          "cache": {
+            "x-drupal-cache": "UNCACHEABLE (request policy)",
+            "x-drupal-dynamic-cache": "MISS",
+            "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface layout_builder_is_active:user route session theme url.path url.query_args:_wrapper_format url.site user",
+            "x-drupal-cache-tags": "config:block_list config:core.entity_view_display.user.user.default config:navigation.block_layout config:navigation.settings config:node_type_list config:system.menu.admin config:system.menu.content config:system.menu.navigation-user-links http_response local_task rendered user:1 user_view"
+          }
+        },
+        "second": {
+          "label": "admin-default",
+          "url": "/user/1",
+          "status": 200,
+          "colorScheme": "auto",
+          "html": "<html lang=\"en\" dir=\"ltr\" data-color-scheme=\"auto\" data-accent=\"blue\" style=\"--accent-base: #015efe;\" data-admin-focus=\"default\" data-layout-density=\"default\">",
+          "cookies": [],
+          "defaultAdminMarkup": true,
+          "jar": [],
+          "cache": {
+            "x-drupal-cache": "UNCACHEABLE (request policy)",
+            "x-drupal-dynamic-cache": "HIT",
+            "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface layout_builder_is_active:user route session theme url.path url.query_args:_wrapper_format url.site user",
+            "x-drupal-cache-tags": "config:block_list config:core.entity_view_display.user.user.default config:navigation.block_layout config:navigation.settings config:node_type_list config:system.menu.admin config:system.menu.content config:system.menu.navigation-user-links http_response local_task rendered user:1 user_view"
+          }
+        },
+        "form": true
+      },
+      "light": {
+        "save": {
+          "ok": true,
+          "status": 200,
+          "setCookie": [
+            {
+              "name": "DrupalColorScheme",
+              "value": "light",
+              "expired": false,
+              "attrs": "expires=Fri, 26 Nov 2027 15:03:49 GMT; Max-Age=31536000; path=/; secure; samesite=lax"
+            }
+          ],
+          "cache": {
+            "x-drupal-cache": "UNCACHEABLE (request policy)",
+            "x-drupal-dynamic-cache": "UNCACHEABLE (poor cacheability)",
+            "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface layout_builder_is_active:user route session theme url.path url.query_args:_wrapper_format user",
+            "x-drupal-cache-tags": "CACHE_MISS_IF_UNCACHEABLE_HTTP_METHOD:form config:block_list config:core.entity_form_display.user.user.default config:core.entity_view_display.user.user.default config:field.field.user.user.user_picture config:field.storage.user.user_picture config:navigation.block_layout config:navigation.settings config:node_type_list config:system.menu.admin config:system.menu.content config:system.menu.navigation-user-links config:user.settings http_response local_task rendered user:1"
+          }
+        },
+        "first": {
+          "label": "admin-default",
+          "url": "/user/1",
+          "status": 200,
+          "colorScheme": "auto",
+          "html": "<html lang=\"en\" dir=\"ltr\" data-color-scheme=\"auto\" data-accent=\"blue\" style=\"--accent-base: #015efe;\" data-admin-focus=\"default\" data-layout-density=\"default\">",
+          "cookies": [],
+          "defaultAdminMarkup": true,
+          "jar": [],
+          "cache": {
+            "x-drupal-cache": "UNCACHEABLE (request policy)",
+            "x-drupal-dynamic-cache": "MISS",
+            "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface layout_builder_is_active:user route session theme url.path url.query_args:_wrapper_format url.site user",
+            "x-drupal-cache-tags": "config:block_list config:core.entity_view_display.user.user.default config:navigation.block_layout config:navigation.settings config:node_type_list config:system.menu.admin config:system.menu.content config:system.menu.navigation-user-links http_response local_task rendered user:1 user_view"
+          }
+        },
+        "second": {
+          "label": "admin-default",
+          "url": "/user/1",
+          "status": 200,
+          "colorScheme": "auto",
+          "html": "<html lang=\"en\" dir=\"ltr\" data-color-scheme=\"auto\" data-accent=\"blue\" style=\"--accent-base: #015efe;\" data-admin-focus=\"default\" data-layout-density=\"default\">",
+          "cookies": [],
+          "defaultAdminMarkup": true,
+          "jar": [],
+          "cache": {
+            "x-drupal-cache": "UNCACHEABLE (request policy)",
+            "x-drupal-dynamic-cache": "HIT",
+            "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface layout_builder_is_active:user route session theme url.path url.query_args:_wrapper_format url.site user",
+            "x-drupal-cache-tags": "config:block_list config:core.entity_view_display.user.user.default config:navigation.block_layout config:navigation.settings config:node_type_list config:system.menu.admin config:system.menu.content config:system.menu.navigation-user-links http_response local_task rendered user:1 user_view"
+          }
+        },
+        "form": true
+      },
+      "auto": {
+        "save": {
+          "ok": true,
+          "status": 200,
+          "setCookie": [
+            {
+              "name": "DrupalColorScheme",
+              "value": "deleted",
+              "expired": false,
+              "attrs": "expires=Wed, 26 Nov 2025 15:03:49 GMT; Max-Age=0; path=/; secure; samesite=lax"
+            },
+            {
+              "name": "DrupalColorScheme",
+              "value": "deleted",
+              "expired": false,
+              "attrs": "expires=Wed, 26 Nov 2025 15:03:49 GMT; Max-Age=0; path=/; secure; samesite=lax"
+            }
+          ],
+          "cache": {
+            "x-drupal-cache": "UNCACHEABLE (request policy)",
+            "x-drupal-dynamic-cache": "UNCACHEABLE (poor cacheability)",
+            "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface layout_builder_is_active:user route session theme url.path url.query_args:_wrapper_format user",
+            "x-drupal-cache-tags": "CACHE_MISS_IF_UNCACHEABLE_HTTP_METHOD:form config:block_list config:core.entity_form_display.user.user.default config:core.entity_view_display.user.user.default config:field.field.user.user.user_picture config:field.storage.user.user_picture config:navigation.block_layout config:navigation.settings config:node_type_list config:system.menu.admin config:system.menu.content config:system.menu.navigation-user-links config:user.settings http_response local_task rendered user:1"
+          }
+        },
+        "first": {
+          "label": "admin-default",
+          "url": "/user/1",
+          "status": 200,
+          "colorScheme": "auto",
+          "html": "<html lang=\"en\" dir=\"ltr\" data-color-scheme=\"auto\" data-accent=\"blue\" style=\"--accent-base: #015efe;\" data-admin-focus=\"default\" data-layout-density=\"default\">",
+          "cookies": [
+            "DrupalColorScheme=deleted",
+            "DrupalColorScheme=deleted"
+          ],
+          "defaultAdminMarkup": true,
+          "jar": [],
+          "cache": {
+            "x-drupal-cache": "UNCACHEABLE (request policy)",
+            "x-drupal-dynamic-cache": "UNCACHEABLE (response policy)",
+            "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface layout_builder_is_active:user route session theme url.path url.query_args:_wrapper_format url.site user",
+            "x-drupal-cache-tags": "config:block_list config:core.entity_view_display.user.user.default config:navigation.block_layout config:navigation.settings config:node_type_list config:system.menu.admin config:system.menu.content config:system.menu.navigation-user-links http_response local_task rendered user:1 user_view"
+          }
+        },
+        "second": {
+          "label": "admin-default",
+          "url": "/user/1",
+          "status": 200,
+          "colorScheme": "auto",
+          "html": "<html lang=\"en\" dir=\"ltr\" data-color-scheme=\"auto\" data-accent=\"blue\" style=\"--accent-base: #015efe;\" data-admin-focus=\"default\" data-layout-density=\"default\">",
+          "cookies": [
+            "DrupalColorScheme=deleted",
+            "DrupalColorScheme=deleted"
+          ],
+          "defaultAdminMarkup": true,
+          "jar": [],
+          "cache": {
+            "x-drupal-cache": "UNCACHEABLE (request policy)",
+            "x-drupal-dynamic-cache": "UNCACHEABLE (response policy)",
+            "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface layout_builder_is_active:user route session theme url.path url.query_args:_wrapper_format url.site user",
+            "x-drupal-cache-tags": "config:block_list config:core.entity_view_display.user.user.default config:navigation.block_layout config:navigation.settings config:node_type_list config:system.menu.admin config:system.menu.content config:system.menu.navigation-user-links http_response local_task rendered user:1 user_view"
+          }
+        },
+        "form": true
+      }
+    },
+    {
+      "step": "logout",
+      "at": "2026-11-26T15:03:50.353Z",
+      "logout": {
+        "ok": true,
+        "status": 403,
+        "url": "/"
+      },
+      "page": {
+        "label": "anon:second",
+        "url": "/user/login?probe=1795705428300",
+        "status": 200,
+        "colorScheme": "auto",
+        "html": "<html lang=\"en\" dir=\"ltr\" data-color-scheme=\"auto\" data-accent=\"blue\" style=\"--accent-base: #015efe;\" data-admin-focus=\"default\" data-layout-density=\"default\">",
+        "cookies": [],
+        "defaultAdminMarkup": true,
+        "jar": [],
+        "cache": {
+          "x-drupal-cache": "HIT",
+          "x-drupal-dynamic-cache": "MISS",
+          "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface route session.exists theme url.path url.query_args user.permissions user.roles:authenticated",
+          "x-drupal-cache-tags": "CACHE_MISS_IF_UNCACHEABLE_HTTP_METHOD:form config:block_list config:system.site config:user.role.anonymous config:user.settings http_response local_task rendered"
+        }
+      }
+    },
+    {
+      "step": "created-users",
+      "at": "2026-11-26T15:03:53.233Z",
+      "created": [
+        {
+          "ok": true,
+          "created": true,
+          "uid": 15,
+          "name": "probe_dark_428300",
+          "scheme": "dark"
+        },
+        {
+          "ok": true,
+          "created": true,
+          "uid": 16,
+          "name": "probe_light_428300",
+          "scheme": "light"
+        },
+        {
+          "ok": true,
+          "created": true,
+          "uid": 17,
+          "name": "probe_light2_428300",
+          "scheme": "light"
+        }
+      ]
+    },
+    {
+      "step": "accounts",
+      "at": "2026-11-26T15:03:54.613Z",
+      "probe_dark_428300": {
+        "created": {
+          "ok": true,
+          "created": true,
+          "uid": 15,
+          "name": "probe_dark_428300",
+          "scheme": "dark"
+        },
+        "login": {
+          "ok": true,
+          "status": 200,
+          "url": "/user/15?check_logged_in=1"
+        },
+        "profile": {
+          "status": 200,
+          "colorScheme": "auto",
+          "radios": [
+            {
+              "value": "light",
+              "checked": false,
+              "disabled": false,
+              "describedBy": null
+            },
+            {
+              "value": "dark",
+              "checked": true,
+              "disabled": false,
+              "describedBy": null
+            },
+            {
+              "value": "auto",
+              "checked": false,
+              "disabled": false,
+              "describedBy": null
+            }
+          ],
+          "description": "System follows your operating system or browser setting. Applies wherever your site’s theme supports it.",
+          "setCookie": []
+        },
+        "frontend": {
+          "label": "probe_dark_428300",
+          "url": "/user/15",
+          "status": 200,
+          "colorScheme": "auto",
+          "html": "<html lang=\"en\" dir=\"ltr\" data-color-scheme=\"auto\" data-accent=\"blue\" style=\"--accent-base: #015efe;\" data-admin-focus=\"default\" data-layout-density=\"default\">",
+          "cookies": [],
+          "defaultAdminMarkup": true,
+          "jar": [
+            "SSESSbfadfb1691d3fb133b75f31b582f4eb8=8e79ed8713e3f312929c5731c4f5c111",
+            "DrupalColorScheme=dark"
+          ],
+          "cache": {
+            "x-drupal-cache": "UNCACHEABLE (request policy)",
+            "x-drupal-dynamic-cache": "UNCACHEABLE (poor cacheability)",
+            "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface layout_builder_is_active:user route session.exists theme url.path url.query_args:_wrapper_format url.site user",
+            "x-drupal-cache-tags": "config:block_list http_response local_task rendered user:15 user_view"
+          }
+        },
+        "adminRoute": {
+          "status": 403,
+          "cache": {
+            "x-drupal-cache": "UNCACHEABLE (request policy)",
+            "x-drupal-dynamic-cache": "UNCACHEABLE (403, sub-request: MISS)",
+            "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface route session.exists theme url.path url.query_args:_wrapper_format user.permissions user.roles:authenticated",
+            "x-drupal-cache-tags": "4xx-response config:block_list http_response local_task rendered"
+          }
+        }
+      },
+      "probe_light_428300": {
+        "created": {
+          "ok": true,
+          "created": true,
+          "uid": 16,
+          "name": "probe_light_428300",
+          "scheme": "light"
+        },
+        "login": {
+          "ok": true,
+          "status": 200,
+          "url": "/user/16?check_logged_in=1"
+        },
+        "profile": {
+          "status": 200,
+          "colorScheme": "auto",
+          "radios": [
+            {
+              "value": "light",
+              "checked": true,
+              "disabled": false,
+              "describedBy": null
+            },
+            {
+              "value": "dark",
+              "checked": false,
+              "disabled": false,
+              "describedBy": null
+            },
+            {
+              "value": "auto",
+              "checked": false,
+              "disabled": false,
+              "describedBy": null
+            }
+          ],
+          "description": "System follows your operating system or browser setting. Applies wherever your site’s theme supports it.",
+          "setCookie": []
+        },
+        "frontend": {
+          "label": "probe_light_428300",
+          "url": "/user/16",
+          "status": 200,
+          "colorScheme": "auto",
+          "html": "<html lang=\"en\" dir=\"ltr\" data-color-scheme=\"auto\" data-accent=\"blue\" style=\"--accent-base: #015efe;\" data-admin-focus=\"default\" data-layout-density=\"default\">",
+          "cookies": [],
+          "defaultAdminMarkup": true,
+          "jar": [
+            "SSESSbfadfb1691d3fb133b75f31b582f4eb8=c1975907df92f828883d565dbe1f4a0e",
+            "DrupalColorScheme=light"
+          ],
+          "cache": {
+            "x-drupal-cache": "UNCACHEABLE (request policy)",
+            "x-drupal-dynamic-cache": "UNCACHEABLE (poor cacheability)",
+            "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface layout_builder_is_active:user route session.exists theme url.path url.query_args:_wrapper_format url.site user",
+            "x-drupal-cache-tags": "config:block_list http_response local_task rendered user:16 user_view"
+          }
+        },
+        "adminRoute": {
+          "status": 403,
+          "cache": {
+            "x-drupal-cache": "UNCACHEABLE (request policy)",
+            "x-drupal-dynamic-cache": "UNCACHEABLE (403, sub-request: HIT)",
+            "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface route session.exists theme url.path url.query_args:_wrapper_format user.permissions user.roles:authenticated",
+            "x-drupal-cache-tags": "4xx-response config:block_list http_response local_task rendered"
+          }
+        }
+      },
+      "probe_light2_428300": {
+        "created": {
+          "ok": true,
+          "created": true,
+          "uid": 17,
+          "name": "probe_light2_428300",
+          "scheme": "light"
+        },
+        "login": {
+          "ok": true,
+          "status": 200,
+          "url": "/user/17?check_logged_in=1"
+        },
+        "profile": {
+          "status": 200,
+          "colorScheme": "auto",
+          "radios": [
+            {
+              "value": "light",
+              "checked": true,
+              "disabled": false,
+              "describedBy": null
+            },
+            {
+              "value": "dark",
+              "checked": false,
+              "disabled": false,
+              "describedBy": null
+            },
+            {
+              "value": "auto",
+              "checked": false,
+              "disabled": false,
+              "describedBy": null
+            }
+          ],
+          "description": "System follows your operating system or browser setting. Applies wherever your site’s theme supports it.",
+          "setCookie": []
+        },
+        "frontend": {
+          "label": "probe_light2_428300",
+          "url": "/user/17",
+          "status": 200,
+          "colorScheme": "auto",
+          "html": "<html lang=\"en\" dir=\"ltr\" data-color-scheme=\"auto\" data-accent=\"blue\" style=\"--accent-base: #015efe;\" data-admin-focus=\"default\" data-layout-density=\"default\">",
+          "cookies": [],
+          "defaultAdminMarkup": true,
+          "jar": [
+            "SSESSbfadfb1691d3fb133b75f31b582f4eb8=ce5182cd4927d43390b6194caa8c89b3",
+            "DrupalColorScheme=light"
+          ],
+          "cache": {
+            "x-drupal-cache": "UNCACHEABLE (request policy)",
+            "x-drupal-dynamic-cache": "UNCACHEABLE (poor cacheability)",
+            "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface layout_builder_is_active:user route session.exists theme url.path url.query_args:_wrapper_format url.site user",
+            "x-drupal-cache-tags": "config:block_list http_response local_task rendered user:17 user_view"
+          }
+        },
+        "adminRoute": {
+          "status": 403,
+          "cache": {
+            "x-drupal-cache": "UNCACHEABLE (request policy)",
+            "x-drupal-dynamic-cache": "UNCACHEABLE (403, sub-request: HIT)",
+            "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface route session.exists theme url.path url.query_args:_wrapper_format user.permissions user.roles:authenticated",
+            "x-drupal-cache-tags": "4xx-response config:block_list http_response local_task rendered"
+          }
+        }
+      }
+    },
+    {
+      "step": "themes",
+      "at": "2026-11-26T15:03:55.780Z",
+      "themesTried": {
+        "stark-front": {
+          "set": {
+            "ok": true,
+            "front": {
+              "status": 200,
+              "url": "/admin/appearance"
+            },
+            "admin": null,
+            "themes": {
+              "front": null,
+              "admin": "default_admin"
+            }
+          },
+          "page": {
+            "label": "admin-default",
+            "url": "/user/1",
+            "status": 200,
+            "colorScheme": "auto",
+            "html": "<html lang=\"en\" dir=\"ltr\" data-color-scheme=\"auto\">",
+            "cookies": [
+              "DrupalColorScheme=deleted",
+              "DrupalColorScheme=deleted"
+            ],
+            "defaultAdminMarkup": false,
+            "jar": [],
+            "cache": {
+              "x-drupal-cache": "UNCACHEABLE (request policy)",
+              "x-drupal-dynamic-cache": "UNCACHEABLE (response policy)",
+              "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface layout_builder_is_active:user route session theme url.path url.query_args:_wrapper_format url.site user",
+              "x-drupal-cache-tags": "config:block_list config:core.entity_view_display.user.user.default config:navigation.block_layout config:navigation.settings config:node_type_list config:system.menu.admin config:system.menu.content config:system.menu.navigation-user-links http_response local_task rendered user:1 user_view"
+            }
+          },
+          "description": "System follows your operating system or browser setting. Administrative pages follow this setting, the rest of the site does not.",
+          "disabled": false
+        },
+        "default-admin-front": {
+          "set": {
+            "ok": true,
+            "front": {
+              "status": 200,
+              "url": "/admin/appearance"
+            },
+            "admin": null,
+            "themes": {
+              "front": null,
+              "admin": "default_admin"
+            }
+          },
+          "page": {
+            "label": "admin-default",
+            "url": "/user/1",
+            "status": 200,
+            "colorScheme": "auto",
+            "html": "<html lang=\"en\" dir=\"ltr\" data-color-scheme=\"auto\" data-accent=\"blue\" style=\"--accent-base: #015efe;\" data-admin-focus=\"default\" data-layout-density=\"default\">",
+            "cookies": [
+              "DrupalColorScheme=deleted",
+              "DrupalColorScheme=deleted"
+            ],
+            "defaultAdminMarkup": true,
+            "jar": [],
+            "cache": {
+              "x-drupal-cache": "UNCACHEABLE (request policy)",
+              "x-drupal-dynamic-cache": "UNCACHEABLE (response policy)",
+              "x-drupal-cache-contexts": "cookies:big_pipe_nojs languages:language_interface layout_builder_is_active:user route session theme url.path url.query_args:_wrapper_format url.site user",
+              "x-drupal-cache-tags": "config:block_list config:core.entity_view_display.user.user.default config:navigation.block_layout config:navigation.settings config:node_type_list config:system.menu.admin config:system.menu.content config:system.menu.navigation-user-links http_response local_task rendered user:1 user_view"
+            }
+          },
+          "description": "System follows your operating system or browser setting. Applies wherever your site’s theme supports it.",
+          "disabled": false
+        }
+      },
+      "themesNow": {
+        "front": null,
+        "admin": "default_admin"
+      }
+    }
+  ]
+}

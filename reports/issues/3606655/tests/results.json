@@ -1,0 +1,257 @@
+{
+  "issue": "3606655",
+  "reviewed_at": "2026-11-26",
+  "core": {
+    "commit": "ced1e2636622be0c1197a7cadeba13a7c9bbc8a8",
+    "date": "2026-11-04",
+    "version": "12.0-dev",
+    "subject": "task: #3620948 [November 2026] Refactor test code via Rector"
+  },
+  "mr": {
+    "iid": 16432,
+    "head": "170be9e30054dc7e7477465e1bc9b9bdd648ef66",
+    "updated": "2026-11-05T09:33:32Z",
+    "target": "main",
+    "patch_sha256": "04507c78e85e52c19ae1877a9da717f45d71ed0c6c2c903810954ac5885f5f04",
+    "pipeline": "1032080 (2026-11-05), overall success; PHPStan job success; 2 PHP 8.6 unit jobs failed with allow_failure=true",
+    "applies_cleanly_to_current_main": "a48087f2 (git apply --check), not built or run"
+  },
+  "rows": [
+    {
+      "id": "SCOPE-01",
+      "check": "User entity base field color_scheme",
+      "status": "passed",
+      "evidence": "User.php baseFieldDefinitions, user.install, live radios on /user/edit; ColorSchemeItem allowed values"
+    },
+    {
+      "id": "SCOPE-02",
+      "check": "Stored values light/dark/auto, default auto",
+      "status": "passed",
+      "evidence": "radios values and #default_value; sqlite users_field_data after save; upgraded rows are NULL and the getter returns auto"
+    },
+    {
+      "id": "SCOPE-03",
+      "check": "Options labelled Light/Dark/System, ordered",
+      "status": "passed",
+      "evidence": "a11y-after.json radios: Light, Dark, System (checked auto)"
+    },
+    {
+      "id": "SCOPE-04",
+      "check": "Accessible radios with explanatory text",
+      "status": "passed",
+      "evidence": "fieldset+legend 'Color scheme', aria-describedby resolves, keyboard arrows/spaces, 4px focus outline, axe 0 violations"
+    },
+    {
+      "id": "SCOPE-05",
+      "check": "Theme capability declaration gates the attribute and cache context",
+      "status": "failed",
+      "evidence": "ActiveTheme::supportsColorScheme and ColorSchemeSupport exist, but are consumed only by AccountForm to choose the description. data-color-scheme and cacheability are identical on stark (no declaration) and default_admin (declares support)"
+    },
+    {
+      "id": "SCOPE-06",
+      "check": "Conditional data-color-scheme attribute from the stored value",
+      "status": "failed",
+      "evidence": "ThemePreprocess sets data-color-scheme=\"auto\" unconditionally; probe: account stores dark, page still reports auto; only the cookie/JS overrides it client side"
+    },
+    {
+      "id": "SCOPE-07",
+      "check": "color_scheme Twig variable",
+      "status": "failed",
+      "evidence": "no $variables['color_scheme'] in ThemePreprocess or elsewhere in the MR diff"
+    },
+    {
+      "id": "SCOPE-08",
+      "check": "Conditional cache context",
+      "status": "failed",
+      "evidence": "user.color_scheme context removed by design; live X-Drupal-Cache-Contexts never contains it; MR test asserts its absence"
+    },
+    {
+      "id": "SCOPE-09",
+      "check": "Default Admin dark-mode settings removed",
+      "status": "passed",
+      "evidence": "settings form no longer contains the control; default_admin.settings config key removed by post update; AdminTest updated"
+    },
+    {
+      "id": "SCOPE-10",
+      "check": "Update hook for existing sites",
+      "status": "failed",
+      "evidence": "user_update_11401 is numbered for 11.4 on 12.0-dev main (other modules use 12000/12001/12002/12100); it runs, adds the column, leaves existing rows NULL (not 'auto')"
+    },
+    {
+      "id": "SCOPE-11",
+      "check": "Test coverage shipped with the MR",
+      "status": "passed",
+      "evidence": "UserColorSchemeFormTest 12 tests/151 assertions OK; ColorSchemeCookieTest 5 tests/58 assertions OK; ColorSchemeScriptTest not run"
+    },
+    {
+      "id": "FUNC-01",
+      "check": "New account created with a preference",
+      "status": "passed",
+      "evidence": "http-after.json created-users: 3 accounts created via /admin/people/create with stored scheme"
+    },
+    {
+      "id": "FUNC-02",
+      "check": "Existing account saves and reloads each preference",
+      "status": "passed",
+      "evidence": "admin-preference-matrix: save dark/light/auto, form reflects the stored value, radios checked correctly"
+    },
+    {
+      "id": "FUNC-03",
+      "check": "Logout clears, login seeds the cookie",
+      "status": "passed",
+      "evidence": "logout step: cookie removed; each account login writes its own DrupalColorScheme value"
+    },
+    {
+      "id": "FUNC-04",
+      "check": "Two accounts keep independent preferences",
+      "status": "passed",
+      "evidence": "accounts step: dark account carries dark, light accounts carry light; no cross-account value observed"
+    },
+    {
+      "id": "FUNC-05",
+      "check": "Anonymous requests",
+      "status": "passed",
+      "evidence": "no cookie, attribute auto, internal page cache MISS then HIT, no Set-Cookie"
+    },
+    {
+      "id": "FUNC-06",
+      "check": "Front-end and administration routes",
+      "status": "passed",
+      "evidence": "/user (front end theme) and /admin/config (admin theme) both carry attribute auto; users without permission get 403 as expected"
+    },
+    {
+      "id": "FUNC-07",
+      "check": "Themes declaring and not declaring support",
+      "status": "passed",
+      "evidence": "themes step: description changes (administrative pages only vs whole site); attribute and contexts do not"
+    },
+    {
+      "id": "FUNC-08",
+      "check": "Existing site upgraded with the update hook",
+      "status": "passed-with-caveat",
+      "evidence": "unpatched database imported into patched code, /update.php ran 3 updates with no failure, second visit reports 'No pending updates'; existing color_scheme values are NULL, the getter returns auto"
+    },
+    {
+      "id": "FUNC-09",
+      "check": "Invalid stored preference value",
+      "status": "passed-with-caveat",
+      "evidence": "invalid-value.json: no radio selected in the form; a forged cookie is cleared; attribute stays auto. Not reachable through the form (AllowedValues constraint)"
+    },
+    {
+      "id": "A11Y-01",
+      "check": "Keyboard-only operation and native radio behaviour",
+      "status": "passed",
+      "evidence": "ArrowDown/ArrowRight move focus and selection, Space selects; tab order enters the group once"
+    },
+    {
+      "id": "A11Y-02",
+      "check": "Visible focus",
+      "status": "passed",
+      "evidence": "focused radio outline solid 4px rgb(0,125,250)"
+    },
+    {
+      "id": "A11Y-03",
+      "check": "Accessible group name and description",
+      "status": "passed",
+      "evidence": "aria snapshot: group \"Color scheme\"; description via aria-describedby on the fieldset"
+    },
+    {
+      "id": "A11Y-04",
+      "check": "axe in light, dark and forced colours",
+      "status": "passed",
+      "evidence": "0 violations each; 13 color-contrast nodes incomplete in forced colours (axe limitation)"
+    },
+    {
+      "id": "A11Y-05",
+      "check": "Narrow viewport / zoom",
+      "status": "not-attributable",
+      "evidence": "320px viewport scrollWidth 387 on both Before and After; identical pre-existing Default Admin layout overflow"
+    },
+    {
+      "id": "A11Y-06",
+      "check": "Real screen reader pass",
+      "status": "untested",
+      "evidence": "no VoiceOver or NVDA session was run"
+    },
+    {
+      "id": "CACHE-01",
+      "check": "Two accounts with identical preferences",
+      "status": "passed",
+      "evidence": "two light accounts: same contexts, same markup, each cookie is its own; no per-account fragmentation added"
+    },
+    {
+      "id": "CACHE-02",
+      "check": "Two accounts with different preferences",
+      "status": "passed",
+      "evidence": "dark and light accounts: identical contexts and HTML, different cookies"
+    },
+    {
+      "id": "CACHE-03",
+      "check": "Cached responses never expose another account's preference",
+      "status": "passed",
+      "evidence": "no Set-Cookie on cached responses; kill switch fires only on a mismatch (MR test), state confirmed live"
+    },
+    {
+      "id": "CACHE-04",
+      "check": "Preference change after a cache entry exists",
+      "status": "passed",
+      "evidence": "save writes the cookie and the response is uncacheable; next request with an agreeing cookie is cacheable again"
+    },
+    {
+      "id": "CACHE-05",
+      "check": "Observed cache contexts",
+      "status": "recorded",
+      "evidence": "CACHE-CONTEXT.md; no user.color_scheme context anywhere, including on the profile form"
+    },
+    {
+      "id": "CACHE-06",
+      "check": "Measured resource consumption of the change",
+      "status": "untested",
+      "evidence": "no benchmark; only cache correctness was evaluated"
+    },
+    {
+      "id": "QUAL-01",
+      "check": "Core code checks on changed files (PHPCS, PHPStan, CSpell, ESLint)",
+      "status": "passed",
+      "evidence": "scripts/lint.mjs 3606655-pinned: Result PASS, PHPStan 'No errors' (report in lint/)"
+    },
+    {
+      "id": "QUAL-02",
+      "check": "MR pipeline at the reviewed tip",
+      "status": "passed-with-caveat",
+      "evidence": "pipeline 1032080 success; 2 PHP 8.6 allow_failure job failures have no public logs (401) and are not attributed"
+    },
+    {
+      "id": "QUAL-03",
+      "check": "Review threads resolved",
+      "status": "failed",
+      "evidence": "17 resolvable discussions unresolved (amateescu, goba, longwave x14, poker10), all older than the tip"
+    },
+    {
+      "id": "QUAL-04",
+      "check": "Issue summary matches the MR",
+      "status": "failed",
+      "evidence": "summary still proposes attribute + Twig variable + capability-gated context and calls step 4 outstanding; the MR ships invariant auto + cookie + inline JS"
+    },
+    {
+      "id": "QUAL-05",
+      "check": "Docblock references exist",
+      "status": "failed",
+      "evidence": "ColorSchemeCookieSubscriber refers to Drupal\\Tests\\Core\\EventSubscriber\\ColorSchemeCookieSubscriberTest, which is not in the checkout"
+    },
+    {
+      "id": "QUAL-06",
+      "check": "Lab coverage tool sees the runs",
+      "status": "untested",
+      "evidence": "coverage.mjs reports 0 of 6 because the custom probes do not record lab-format runs; results.json is the record"
+    }
+  ],
+  "summary": {
+    "passed": 22,
+    "failed": 8,
+    "passed-with-caveat": 3,
+    "not-attributable": 1,
+    "untested": 3,
+    "recorded": 1
+  }
+}
