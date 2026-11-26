@@ -1,0 +1,35 @@
+diff --git a/core/lib/Drupal/Core/Field/FieldPreprocess.php b/core/lib/Drupal/Core/Field/FieldPreprocess.php
+index 4f06ce2403fd9dcbb66f5e3c048cc3039079d972..15c8ca017ba994b253cded260aa1103fefcbfea1 100644
+--- a/core/lib/Drupal/Core/Field/FieldPreprocess.php
++++ b/core/lib/Drupal/Core/Field/FieldPreprocess.php
+@@ -115,7 +115,14 @@ public function preprocessFieldMultipleValueForm(array &$variables): void {
+           'colspan' => 2,
+           'class' => ['field-label'],
+         ],
+-        [],
++        [
++          'data' => [
++            '#type' => 'html_tag',
++            '#tag' => 'span',
++            '#value' => $this->t('Operations'),
++            '#attributes' => ['class' => ['visually-hidden']],
++          ],
++        ],
+         $this->t('Order', [], ['context' => 'Sort order']),
+       ];
+       $rows = [];
+diff --git a/core/modules/field/tests/src/Functional/FormTest.php b/core/modules/field/tests/src/Functional/FormTest.php
+index 61b489b2a0be59934fb47b2feeeba98458f02f21..f9dde4489c72b254a7e04bd50cca1214bd88c06a 100644
+--- a/core/modules/field/tests/src/Functional/FormTest.php
++++ b/core/modules/field/tests/src/Functional/FormTest.php
+@@ -285,6 +285,10 @@ public function testFieldFormUnlimited(): void {
+     // Check if aria-describedby attribute is placed on multiple value widgets.
+     $this->assertSession()->elementAttributeContains('xpath', '//table[@id="field-unlimited-values"]', 'aria-describedby', 'edit-field-unlimited--description');
+ 
++    // Check that the operations column header has accessible text.
++    $this->assertSession()->elementNotExists('xpath', '//table[@id="field-unlimited-values"]/thead//th[not(normalize-space())]');
++    $this->assertSession()->elementExists('xpath', '//table[@id="field-unlimited-values"]/thead//th/span[contains(@class, "visually-hidden") and text()="Operations"]');
++
+     // Press 'add more' button -> 2 widgets.
+     $this->submitForm([], 'Add another item');
+     $this->assertSession()->fieldValueEquals("{$field_name}[0][value]", '');

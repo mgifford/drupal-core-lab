@@ -1,0 +1,230 @@
+{
+  "issue": "3630425",
+  "variant": "3630425-mr17622",
+  "when": "2026-11-26T12:56:52.915Z",
+  "mode": "voiceover",
+  "sides": [
+    "before",
+    "after"
+  ],
+  "out": "reports/issues/3630425/screenreader/2026-11-26T12-56-52-891Z",
+  "versions": {
+    "node": "v22.23.5",
+    "platform": "darwin arm64",
+    "macos": "27.2.1",
+    "safari": "27.2",
+    "voiceover": "10",
+    "virtualScreenReader": "0.33.0",
+    "jsdom": "31.0.1",
+    "guidepup": "0.40.0"
+  },
+  "source": null,
+  "core": {
+    "url": "https://git.drupalcode.org/project/drupal.git",
+    "commit": "dbfce851242d5b082adb8ed14634b4bc9cce374b"
+  },
+  "patches": [
+    "reports/issues/3630425/branches/17622-090a74cd28aa.patch"
+  ],
+  "commits": {
+    "before": "dbfce851242 2026-10-16",
+    "after": "dbfce851242 2026-10-16"
+  },
+  "identity": {
+    "pin": "dbfce851242d5b082adb8ed14634b4bc9cce374b",
+    "recipe": {
+      "name": "repro_3630425",
+      "current": "56fa1b6b329ef12cee89cde19b4b08708f1c2da8ea0c4ddd278af749e0ee8a14",
+      "before": "56fa1b6b329ef12cee89cde19b4b08708f1c2da8ea0c4ddd278af749e0ee8a14",
+      "after": "56fa1b6b329ef12cee89cde19b4b08708f1c2da8ea0c4ddd278af749e0ee8a14"
+    },
+    "base": {
+      "before": "dbfce851242d5b082adb8ed14634b4bc9cce374b",
+      "after": "dbfce851242d5b082adb8ed14634b4bc9cce374b"
+    },
+    "problems": []
+  },
+  "preconditions": {},
+  "virtual": {},
+  "voiceover": {
+    "before": {
+      "env": "baseline-3630425",
+      "base": "https://repro-baseline-3630425.ddev.site",
+      "windowId": "14062",
+      "openedAt": "2026-11-26T12:57:00.942Z",
+      "safariWindowsBefore": [],
+      "steps": [],
+      "scenarios": {},
+      "focus": [],
+      "errors": [
+        "Command failed: osascript -e tell application \"Safari\" tell (first window whose id is 14062) set URL of document 1 to \"https://repro-baseline-3630425.ddev.site/node/add/article\" end tell end tell 62:149: execution error: Safari got an error: The specified object is a property, not an element. (-10008)"
+      ],
+      "safariJs": null,
+      "completed": false,
+      "incomplete": [],
+      "safariWindowsAfter": [
+        "14062"
+      ],
+      "otherWindowsPreserved": true
+    },
+    "after": {
+      "env": "issue-3630425-mr17622",
+      "base": "https://repro-issue-3630425-mr17622.ddev.site",
+      "windowId": "14065",
+      "openedAt": "2026-11-26T12:57:17.418Z",
+      "safariWindowsBefore": [
+        "14062"
+      ],
+      "steps": [],
+      "scenarios": {},
+      "focus": [],
+      "errors": [
+        "Command failed: osascript -e tell application \"Safari\" tell (first window whose id is 14065) set URL of document 1 to \"https://repro-issue-3630425-mr17622.ddev.site/node/add/article\" end tell end tell 62:154: execution error: Safari got an error: The specified object is a property, not an element. (-10008)"
+      ],
+      "safariJs": null,
+      "completed": false,
+      "incomplete": [],
+      "safariWindowsAfter": [
+        "14065"
+      ],
+      "otherWindowsPreserved": false
+    }
+  },
+  "limits": [
+    "Synthetic virtual reader over jsdom; not VoiceOver or NVDA.",
+    "One macOS/Safari/VoiceOver machine and run; a person has still to review it.",
+    "The MR review note was unreadable (HTTP 401)."
+  ],
+  "status": "incomplete",
+  "site": {
+    "before": {
+      "php": "8.5.7",
+      "drupal": "12.0-dev",
+      "profile": "standard",
+      "theme": {
+        "default": "default_admin",
+        "admin": "default_admin"
+      },
+      "themes": [
+        "default_admin"
+      ],
+      "themeSettings": {
+        "default_admin": {
+          "enable_dark_mode": "auto",
+          "high_contrast_mode": false,
+          "layout_density": "default"
+        }
+      },
+      "modules": [
+        "announcements_feed",
+        "automated_cron",
+        "big_pipe",
+        "block",
+        "block_content",
+        "breakpoint",
+        "ckeditor5",
+        "config",
+        "contextual",
+        "datetime",
+        "dblog",
+        "dynamic_page_cache",
+        "editor",
+        "field",
+        "field_ui",
+        "file",
+        "filter",
+        "help",
+        "image",
+        "layout_builder",
+        "layout_discovery",
+        "link",
+        "menu_link_content",
+        "menu_ui",
+        "navigation",
+        "node",
+        "options",
+        "page_cache",
+        "path",
+        "path_alias",
+        "sqlite",
+        "standard",
+        "system",
+        "taxonomy",
+        "text",
+        "update",
+        "user",
+        "views",
+        "views_ui"
+      ],
+      "defaultLangcode": "en",
+      "languages": []
+    },
+    "after": {
+      "php": "8.5.7",
+      "drupal": "12.0-dev",
+      "profile": "standard",
+      "theme": {
+        "default": "default_admin",
+        "admin": "default_admin"
+      },
+      "themes": [
+        "default_admin"
+      ],
+      "themeSettings": {
+        "default_admin": {
+          "enable_dark_mode": "auto",
+          "high_contrast_mode": false,
+          "layout_density": "default"
+        }
+      },
+      "modules": [
+        "announcements_feed",
+        "automated_cron",
+        "big_pipe",
+        "block",
+        "block_content",
+        "breakpoint",
+        "ckeditor5",
+        "config",
+        "contextual",
+        "datetime",
+        "dblog",
+        "dynamic_page_cache",
+        "editor",
+        "field",
+        "field_ui",
+        "file",
+        "filter",
+        "help",
+        "image",
+        "layout_builder",
+        "layout_discovery",
+        "link",
+        "menu_link_content",
+        "menu_ui",
+        "navigation",
+        "node",
+        "options",
+        "page_cache",
+        "path",
+        "path_alias",
+        "sqlite",
+        "standard",
+        "system",
+        "taxonomy",
+        "text",
+        "update",
+        "user",
+        "views",
+        "views_ui"
+      ],
+      "defaultLangcode": "en",
+      "languages": []
+    }
+  },
+  "guidepup": {
+    "from": "@guidepup/guidepup",
+    "version": "0.40.0"
+  },
+  "safariWindowsBefore": []
+}

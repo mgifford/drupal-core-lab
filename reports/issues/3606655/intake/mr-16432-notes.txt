@@ -1,0 +1,493 @@
+=== jurgenhaas 2026-07-24T15:22:20.404Z discussion=77fa075b91799a94f45018682ea155144e9967ab resolved=false individual=true
+added 1 commit
+
+<ul><li>9552e561 - Fix data type of color_scheme field</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2357018&start_sha=5f00194d17bf04b2e2cd3121b5a50fbae9d828a3)
+
+=== jurgenhaas 2026-07-28T16:14:57.333Z discussion=36ffa75ff549f31ef82b6b4fea85f2361e5214ba resolved=false individual=true
+added 28 commits
+
+<ul><li>9552e561...c35d842e - 26 commits from branch <code>project:main</code></li><li>f6650613 - Merge branch &#39;main&#39; into 3606655-make-dark-mode</li><li>6b56f140 - Adjust the form field to select dark mode</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2365000&start_sha=9552e5618659dace395a563c52cdc34b75b7e42e)
+
+=== jurgenhaas 2026-07-28T16:24:44.323Z discussion=a3da97f679dd6648c617e07454e52248d6e2204a resolved=false individual=true
+added 1 commit
+
+<ul><li>272ea43a - Only set cache context for authenticated users</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2365071&start_sha=6b56f140d8d0ff53436a4bf362f18a12790e9f26)
+
+=== jurgenhaas 2026-07-28T17:05:58.699Z discussion=697cfbe716f1eb40b6782e029c30a1e2466c7ced resolved=false individual=true
+added 1 commit
+
+<ul><li>c8b903cf - Remove cache context entirely to see if that fixes the tests</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2365154&start_sha=272ea43a4982e2b2338ef070d0f5cdd0c8652379)
+
+=== jurgenhaas 2026-07-28T17:42:54.598Z discussion=1846ef1015c4ab0a2c052c8caae08cfc191cc47b resolved=false individual=true
+added 1 commit
+
+<ul><li>1dccad47 - Fix functional tests and bring back the cache context</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2365216&start_sha=c8b903cfa8311f8c7a3aefcfbeb8ac90be531ab5)
+
+=== jurgenhaas 2026-07-29T06:46:59.748Z discussion=c5f400acb243a72375237094f5c2d8c05c9d14a6 resolved=false individual=true
+added 1 commit
+
+<ul><li>5f14ab65 - Add the user.color_scheme cache context to test expectations</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2366388&start_sha=1dccad476b12f48a42dbfc1cb096b551a8dedbb3)
+
+=== jurgenhaas 2026-07-29T06:52:40.470Z discussion=8113947c7b15b63fc756614e5802c7ece45a9178 resolved=false individual=true
+added 1 commit
+
+<ul><li>cbfe0c56 - Fix PHPCS line length for array declaration</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2366401&start_sha=5f14ab652c875242eea062bf7ea31257e1d5c93f)
+
+=== jurgenhaas 2026-07-29T07:12:54.845Z discussion=cce9c7ae4e5aa21788defd235ed26dfc1bc4852e resolved=false individual=true
+added 1 commit
+
+<ul><li>b84b95b1 - Add the user.color_scheme cache context to entity listing page expectations</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2366438&start_sha=cbfe0c56f9c8e3c3986a879ebb1563d30ef0d0fa)
+
+=== jurgenhaas 2026-08-04T11:48:23.492Z discussion=92199073f88f69d30cfc799bc0e59c41027101f2 resolved=false individual=true
+added 47 commits
+
+<ul><li>b84b95b1...13fcd9a6 - 45 commits from branch <code>project:main</code></li><li>f087e0b1 - Merge branch &#39;main&#39; into 3606655-make-dark-mode</li><li>93049431 - Expose the color scheme to templates from the html preprocess</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2382627&start_sha=b84b95b1b6363f5143cb18c5f3cab65f29a17802)
+
+=== amateescu 2026-08-04T19:54:56.272Z discussion=7009f3907016e62d1dc0d5370a8d52f0edbf81b3 resolved=true individual=false
+```suggestion:-0+0
+    ->setDefaultValue('auto')
+    ->setInitialtValue('auto');
+```
+
+We should also set the initial value for this field, so it's populated in the database by default for all existing users.
+
+=== jurgenhaas 2026-08-05T07:26:53.239Z discussion=7009f3907016e62d1dc0d5370a8d52f0edbf81b3 resolved=true individual=false
+This is on purpose. The implementation doesn't require a value. If it's unset, this falls back to `auto` at runtime. So, every user who hasn't set their own preference is falling back to the system default. That system default is implicitly `auto` today, but there may be a setting for this at some time in the future.
+
+=== amateescu 2026-08-04T19:54:56.452Z discussion=34bd4f9ab30edb79de1b622d6b004ddfff762b39 resolved=false individual=false
+Any reason for not using `list_string` with three predefined options?
+
+=== jurgenhaas 2026-08-05T07:26:53.039Z discussion=34bd4f9ab30edb79de1b622d6b004ddfff762b39 resolved=false individual=false
+Interesting, I had my own LLM suggesting the same thing, but tests failed as `list_string` doesn't exist by default. That field type lives in the options module, but that's not always enabled. That's why we can't use that.
+
+=== poker10 2026-09-03T17:50:23.191Z discussion=34bd4f9ab30edb79de1b622d6b004ddfff762b39 resolved=false individual=false
+Can we restrict it to those predefined options by using `addPropertyConstraints` instead? Something like:
+
+`->addPropertyConstraints('value', [
+  'AllowedValues' => ...
+])`
+
+=== jurgenhaas 2026-09-10T12:45:57.644Z discussion=34bd4f9ab30edb79de1b622d6b004ddfff762b39 resolved=false individual=false
+I've added that constraint.
+
+=== amateescu 2026-08-04T19:54:56.643Z discussion=f982eddc0ab01cc86e7abd7ffd122f9a26468c9f resolved=false individual=true
+left review comments
+
+=== jurgenhaas 2026-08-05T07:26:53.400Z discussion=89662d551f4e56917279bfc2dd5bcceec81786d5 resolved=false individual=true
+resolved all threads
+
+=== jurgenhaas 2026-08-05T07:26:53.603Z discussion=9284d9a78976ebb2f385aa081b44f8ca8ca42f2a resolved=false individual=true
+left review comments
+
+=== goba 2026-08-22T19:46:31.423Z discussion=932a42b38041af162409c8f0368b511f43b34caf resolved=false individual=false
+Is this the right update function name for this new feature?
+
+=== jurgenhaas 2026-08-23T07:50:24.263Z discussion=932a42b38041af162409c8f0368b511f43b34caf resolved=false individual=false
+changed this line in [version 13 of the diff](/project/drupal/-/merge_requests/16432/diffs?diff_id=2428658&start_sha=c8c3c1eeb58ee3100259f969b913f8057a2c31ea#94503a3b79687c2c4d78855f54540fb42e43ffb7_106_106)
+
+=== jurgenhaas 2026-08-23T07:52:09.166Z discussion=932a42b38041af162409c8f0368b511f43b34caf resolved=false individual=false
+That's a good question. I've looked around and found other core modules that seem to use the pattern `11m##` with `m` being the minor version when this got introduced and `##` being an integer beginning with `01`. Assuming that this will be made available with 11.4.x, I chose the name `user_update_11401`.
+
+=== goba 2026-08-23T11:16:16.038Z discussion=932a42b38041af162409c8f0368b511f43b34caf resolved=false individual=false
+I think features would not be committed to a bugfix branch so 11.5 would be the earliest it can get into?
+
+=== jurgenhaas 2026-08-23T12:00:28.873Z discussion=932a42b38041af162409c8f0368b511f43b34caf resolved=false individual=false
+Thought that too. On the other hand, this setting is the prerequisite for @mherchel to finalize the dark-mode CSS in default_admin (still experimental). And getting that into 11.4 to receive real user feedback before it becomes stable would be important. Getting that no sooner than 11.5, which happens at the same time as 12, would be too late for that. But I'm not sure if that's achievable.
+
+=== longwave 2026-09-02T14:48:32.703Z discussion=932a42b38041af162409c8f0368b511f43b34caf resolved=false individual=false
+This is not possible to land in a patch release for multiple reasons: there is an update hook, there are UI changes, there are new translatable strings, and that's just the ones I can immediately think of.
+
+=== jurgenhaas 2026-08-23T07:50:24.357Z discussion=54d94a2016a86c904d513595258816d3ee909fc4 resolved=false individual=true
+added 90 commits
+
+<ul><li>c8c3c1ee...5683959e - 88 commits from branch <code>project:main</code></li><li>e15e8f4d - Merge branch &#39;main&#39; into 3606655-make-dark-mode</li><li>753f5ab2 - Rename update hook</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2428658&start_sha=c8c3c1eeb58ee3100259f969b913f8057a2c31ea)
+
+=== mherchel 2026-08-25T14:12:55.972Z discussion=415191b28a5c2a9bbf23f357cc5ec2c85fc2d4c6 resolved=false individual=true
+added 26 commits
+
+<ul><li>753f5ab2...15fda93c - 25 commits from branch <code>project:main</code></li><li>d6345305 - Merge branch &#39;main&#39; into 3606655-make-dark-mode</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2434458&start_sha=753f5ab2fadebd10aec07d374e776aedb91cade4)
+
+=== jurgenhaas 2026-08-26T06:48:13.229Z discussion=edcf294cbd19dbf4d373c288c3df1d16d807ea45 resolved=false individual=true
+added 1 commit
+
+<ul><li>9c9920e7 - feat: #3606655 Gate the color scheme on theme support and rename the setting</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2436469&start_sha=d6345305b129de2b7f0ca6550c98c92444552a6d)
+
+=== jurgenhaas 2026-08-26T08:53:44.043Z discussion=a5e9fa4e42fdda9f27085cdb564446053f8b0607 resolved=false individual=true
+added 1 commit
+
+<ul><li>35a219a6 - feat: #3606655 Move the color scheme decision into a service</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2436727&start_sha=dcf06139bab7b789bc407ca2008764c08e58575c)
+
+=== jurgenhaas 2026-08-26T09:11:55.676Z discussion=c3609df10f7a0c2b5d8baea1990463b761ff4b7c resolved=false individual=true
+added 1 commit
+
+<ul><li>0deed67d - fix: #3606655 Read the theme configuration before the permission</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2436778&start_sha=35a219a6e223dfd48c2d2457b6c2d40d618aad74)
+
+=== jurgenhaas 2026-08-26T10:25:18.865Z discussion=bc86b91806ebec78d1b5c4110de29a8ec7ef4427 resolved=false individual=true
+added 20 commits
+
+<ul><li>0deed67d...e24cd797 - 17 commits from branch <code>project:main</code></li><li>b3fd97d9 - test: #3606655 Expect the theme configuration cache tag on rendered pages</li><li>9eaeca92 - Merge branch &#39;main&#39; into 3606655-make-dark-mode</li><li>924b7d30 - test: #3606655 Update the performance baselines for the theme configuration</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2436983&start_sha=0deed67d34e283c57942a4a4aa7e376ce28fdedd)
+
+=== jurgenhaas 2026-08-26T10:43:20.675Z discussion=81879f4285e7b15838372ad8c951f81fdf5b4622 resolved=false individual=true
+added 1 commit
+
+<ul><li>ccf2d155 - test: #3606655 Baseline the theme configuration tag in the remaining scenarios</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2437070&start_sha=924b7d30fd2336f9e8358fe8638f5944e9fb13de)
+
+=== jurgenhaas 2026-08-26T11:12:25.188Z discussion=b65d8247ec3f715812aa415f8b7624fe4b4c540c resolved=false individual=true
+added 1 commit
+
+<ul><li>bef902aa - test: #3606655 Baseline the theme configuration tag across performance scenarios</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2437233&start_sha=ccf2d1553f4cb2232648666d91f5e8d22cca2757)
+
+=== jurgenhaas 2026-08-26T12:09:14.655Z discussion=40f2cd2721ff2c3e70a983b542d9c4080f0a5438 resolved=false individual=true
+added 1 commit
+
+<ul><li>f9d97d31 - test: #3606655 Correct the theme configuration baselines for login and cold cache</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2437466&start_sha=bef902aa8fb7c09565a0e730927b2c5ec67e5b37)
+
+=== jurgenhaas 2026-08-26T12:21:50.085Z discussion=3ed025ce3b6154fdb084851f9185f83247741647 resolved=false individual=true
+added 1 commit
+
+<ul><li>61d81ac6 - test: #3606655 Correct the theme configuration baselines for cached and admin pages</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2437488&start_sha=f9d97d31b8e5fe43c1171a34c8571c5f11f4a49d)
+
+=== jurgenhaas 2026-08-26T12:33:08.669Z discussion=17351d4215f0fd46f936864bb1f98e12d4b8fd55 resolved=false individual=true
+changed the description
+
+=== jurgenhaas 2026-08-26T16:48:45.655Z discussion=c690279b595419fd28dd7d4e2a8cb4fb4b42a05c resolved=false individual=true
+added 1 commit
+
+<ul><li>2b6c359f - Update form field descriptions according to Emma&#39;s review</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2438238&start_sha=61d81ac60057ee1af64287e6dea01177a0b3680c)
+
+=== jurgenhaas 2026-08-26T17:09:30.539Z discussion=fb56f58659847e20eb1936817a480054af30b9da resolved=false individual=true
+added 1 commit
+
+<ul><li>6095310b - test: #3606655 Match the color scheme descriptions to the account form</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2438280&start_sha=2b6c359f003d77c70705789575f19a8996631a19)
+
+=== jurgenhaas 2026-08-26T17:30:49.073Z discussion=d34b9e7829b073a56c02ed807c6860becb0817a3 resolved=false individual=true
+added 1 commit
+
+<ul><li>8e8427eb - ci: #3606655 Restart the pipeline</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2438306&start_sha=6095310b51850995cc7def10a21695a8072f488d)
+
+=== jurgenhaas 2026-09-02T09:16:30.807Z discussion=9507357c1045b40137b8503976c24114b72a2e5d resolved=false individual=true
+added 47 commits
+
+<ul><li>8e8427eb...1b4da6db - 45 commits from branch <code>project:main</code></li><li>5ef00f51 - Merge branch &#39;main&#39; into 3606655-make-dark-mode</li><li>37288a1e - Merge remote-tracking branch &#39;drupal-3606655/3606655-make-dark-mode&#39; into 3606655-make-dark-mode</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2452509&start_sha=8e8427eba55536c25e5fbf4b5cd4d1d4019178ee)
+
+=== jurgenhaas 2026-09-02T10:33:29.544Z discussion=e3f736087e84da2482795b2a478122d431e000d8 resolved=false individual=true
+added 1 commit
+
+<ul><li>e72fa1c3 - task: #3606655 Make dark mode a first class citizen of Drupal core</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2452743&start_sha=37288a1e13d9f861e8ff0b30c52b34ef39c67bc0)
+
+=== jurgenhaas 2026-09-02T12:08:55.873Z discussion=df0eaf3e5c07614a3aaa22aa7187fea7ee461b02 resolved=false individual=true
+changed the description
+
+=== jurgenhaas 2026-09-02T13:01:32.986Z discussion=21557df96f6b43e7e548ce9a42bde0c0dfe7e451 resolved=false individual=true
+added 1 commit
+
+<ul><li>24a12298 - test: #3606655 Correct two assertions the inline script invalidates</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2453188&start_sha=01565e6269ea2600e676eac680d6692ec1fa4775)
+
+=== longwave 2026-09-02T14:23:20.036Z discussion=73301756ee5f5716000d236c106ecd83944a8475 resolved=false individual=false
+I still feel like this should be a separate module, then sites who just don't care about dark mode don't have to have this JS injected on all pages.
+
+=== jurgenhaas 2026-09-03T14:32:36.320Z discussion=73301756ee5f5716000d236c106ecd83944a8475 resolved=false individual=false
+Support for color-scheme makes Drupal more accessible. And its new default_admin theme supports dark-mode, and that's why support should be in core and not in a separate module.
+
+=== mgifford 2026-09-03T16:20:57.475Z discussion=73301756ee5f5716000d236c106ecd83944a8475 resolved=false individual=false
+Site owners may feel they don't want to support two modes, but the Drupal Admin theme will support dark/light modes. Users (such as editors) will benefit from it individually, but we want to make this configurable to the user, not to the site.
+
+I do wonder for other themes if it might make sense to have this be something that can be set site-wide in a yaml file or similar, at least for this JS.
+
+=== poker10 2026-09-03T16:59:46.510Z discussion=73301756ee5f5716000d236c106ecd83944a8475 resolved=false individual=false
+@jurgenhaas It could be a module in the core though?
+
+=== jurgenhaas 2026-09-10T12:45:57.485Z discussion=73301756ee5f5716000d236c106ecd83944a8475 resolved=false individual=false
+Yes, it could. But that wouldn't be a "first class citizen" then. Or in other words, if this is about a11y, it should be ootb, not optional.
+
+=== longwave 2026-09-02T14:25:10.688Z discussion=76f3e2b1744587feea19ff9c6795a667fb4999a8 resolved=false individual=false
+This sounds like a bug!
+
+=== jurgenhaas 2026-09-03T14:32:36.539Z discussion=76f3e2b1744587feea19ff9c6795a667fb4999a8 resolved=false individual=false
+Yeah, it would even fail in the constructor on modern PHP. But I thought it was out of scope for this issue to fix that. Therefore, I need to exclude that one item, if that ever comes along.
+
+=== longwave 2026-09-02T14:27:21.476Z discussion=549c07d5be69dcffd11ee6736058122abc3c5fc9 resolved=false individual=false
+Again does this need to be added to every page, or can we just assume that no data attribute means auto? What if something else somewhere removes the data attribute (e.g. a site with html.html.twig that doesn't render `html_attributes`)?
+
+=== jurgenhaas 2026-09-03T14:32:36.663Z discussion=549c07d5be69dcffd11ee6736058122abc3c5fc9 resolved=false individual=false
+That data attribute is a WCAG convention, if I'm not mistaken. It seems good practice to be expressive about it. If a theme decided otherwise, that doesn't seem to be Drupal's responsibility then.
+
+=== mgifford 2026-09-03T16:20:57.681Z discussion=549c07d5be69dcffd11ee6736058122abc3c5fc9 resolved=false individual=false
+We want auto to be supported, so that the default is the browser selection, right? So, this sounds ok "can we just assume that no data attribute means auto" but I'm not sure what the impact is.
+
+And yes, if themes do their own thing, they will have the concequences of their actions.
+
+=== jurgenhaas 2026-11-04T10:57:56.549Z discussion=549c07d5be69dcffd11ee6736058122abc3c5fc9 resolved=false individual=false
+changed this line in [version 42 of the diff](/project/drupal/-/merge_requests/16432/diffs?diff_id=2631103&start_sha=08a4cb4ca44085f2a168c6203ecc3201a5b2d322#61ba46ea21323c39a97fb137008edd73d63099a1_271_271)
+
+=== longwave 2026-09-02T14:27:47.607Z discussion=bc66b285aacba8018a11b6c78992275a926db1f4 resolved=false individual=false
+This change (and the enormous LLM comment) feels out of scope.
+
+=== jurgenhaas 2026-09-03T14:31:53.388Z discussion=bc66b285aacba8018a11b6c78992275a926db1f4 resolved=false individual=false
+changed this line in [version 32 of the diff](/project/drupal/-/merge_requests/16432/diffs?diff_id=2456609&start_sha=24a12298a736352f00fbc61dd8ea311077f45858#ad39bfd01127331cda6390fcca84c276c80793ca_200_191)
+
+=== jurgenhaas 2026-09-03T14:32:36.828Z discussion=bc66b285aacba8018a11b6c78992275a926db1f4 resolved=false individual=false
+We need to adjust this test because we now have a `<script>` tag on every site. Without this, those tests would fail.
+
+=== mgifford 2026-09-03T16:19:04.985Z discussion=bc66b285aacba8018a11b6c78992275a926db1f4 resolved=false individual=false
+Is this too short:
+
+"Matches the start of an unescaped comment script. Ignores bare <script> (always injected by core) and truncates before search excerpt tags (<strong>)."
+
+What bout "Unescaped payload prefix; avoids core's default <script> and search excerpt tags."?
+
+=== longwave 2026-09-02T14:28:43.490Z discussion=42104058f3fb611cb438cd9fa22dc31af69b0b85 resolved=false individual=false
+Nit: `#[TestWith]` is simpler when you only have three cases like this
+
+=== jurgenhaas 2026-09-03T14:32:00.377Z discussion=42104058f3fb611cb438cd9fa22dc31af69b0b85 resolved=false individual=false
+changed this line in [version 32 of the diff](/project/drupal/-/merge_requests/16432/diffs?diff_id=2456609&start_sha=24a12298a736352f00fbc61dd8ea311077f45858#29033f4671a3ad4659976a03235dd41907a8c4bf_100_92)
+
+=== jurgenhaas 2026-09-03T14:32:36.999Z discussion=42104058f3fb611cb438cd9fa22dc31af69b0b85 resolved=false individual=false
+Thanks, I've corrected that.
+
+=== longwave 2026-09-02T14:30:17.743Z discussion=1d649896e91734cb4888b363ec96ecef2449786b resolved=false individual=false
+This isn't the way we normally do things in core, just set it in the constructor and provide BC.
+
+=== jurgenhaas 2026-09-03T14:32:06.465Z discussion=1d649896e91734cb4888b363ec96ecef2449786b resolved=false individual=false
+changed this line in [version 32 of the diff](/project/drupal/-/merge_requests/16432/diffs?diff_id=2456609&start_sha=24a12298a736352f00fbc61dd8ea311077f45858#4cbf2d9c1e876314985f028542fc10db57b64fdb_41_39)
+
+=== jurgenhaas 2026-09-03T14:32:37.176Z discussion=1d649896e91734cb4888b363ec96ecef2449786b resolved=false individual=false
+That was an oversight. Wanted to fix that before, and just forgot about it. Done now.
+
+=== longwave 2026-09-02T14:31:12.808Z discussion=b7c14c67608002a246fb489e5b0f4998adaf6d80 resolved=false individual=false
+Why do we need all this cacheability code here?
+
+=== jurgenhaas 2026-09-03T14:32:11.630Z discussion=b7c14c67608002a246fb489e5b0f4998adaf6d80 resolved=false individual=false
+changed this line in [version 32 of the diff](/project/drupal/-/merge_requests/16432/diffs?diff_id=2456609&start_sha=24a12298a736352f00fbc61dd8ea311077f45858#4cbf2d9c1e876314985f028542fc10db57b64fdb_360_346)
+
+=== jurgenhaas 2026-09-03T14:32:37.379Z discussion=b7c14c67608002a246fb489e5b0f4998adaf6d80 resolved=false individual=false
+When building back the cache context in the last commit, I forgot about this file. I've cleaned that up now.
+
+=== longwave 2026-09-02T14:31:47.745Z discussion=7b355fc2ab8f5c50deafe4942708b8248ab8ce7f resolved=false individual=false
+IMHO we should not show this at all if it is of no consequence to the user.
+
+=== jurgenhaas 2026-09-03T14:32:37.452Z discussion=7b355fc2ab8f5c50deafe4942708b8248ab8ce7f resolved=false individual=false
+The UX team explained in the issue that disabled display is preferred because otherwise users believe that Drupal doesn't support what they're looking for. Where in reality, it's not a missing feature in Drupal, it's a shortcoming in their selected theme.
+
+=== longwave 2026-09-10T16:09:54.775Z discussion=7b355fc2ab8f5c50deafe4942708b8248ab8ce7f resolved=false individual=false
+In many sites that allow users to log in, they don't even necessarily know they are using Drupal? We have many sites that have two tiers of user: admin/editor, and customer. Admins/editors might want to see this setting, but we would never want to show it to a customer, unless we explicitly had a theme that supported dark mode - they never see the admin interface though.
+
+=== jurgenhaas 2026-09-15T08:01:37.741Z discussion=7b355fc2ab8f5c50deafe4942708b8248ab8ce7f resolved=false individual=false
+Users don't need to know that it's Drupal. But a lot (most?) users nowadays are looking for dark mode settings if a system (website) doesn't switch automatically. If they can't find such a setting, they assume the system to be bad/outdated.
+
+If they find a setting but it's disabled and explains why it's disabled, then they have a chance to understand and don't have to file an issue asking for it.
+
+That's how the UX experts explained it to us, and it does make sense to me.
+
+=== longwave 2026-09-02T14:31:54.562Z discussion=78a09c03eef335d8d530fa63311239d962f91e92 resolved=false individual=false
+Same here.
+
+=== jurgenhaas 2026-09-03T14:32:37.555Z discussion=78a09c03eef335d8d530fa63311239d962f91e92 resolved=false individual=false
+See above
+
+=== longwave 2026-09-02T14:32:28.584Z discussion=d1689b4e39a2bf07b4e36dcd1e6b6e1ca4b6e5a2 resolved=false individual=false
+Why do we need this?
+
+=== jurgenhaas 2026-09-03T14:32:19.388Z discussion=d1689b4e39a2bf07b4e36dcd1e6b6e1ca4b6e5a2 resolved=false individual=false
+changed this line in [version 32 of the diff](/project/drupal/-/merge_requests/16432/diffs?diff_id=2456609&start_sha=24a12298a736352f00fbc61dd8ea311077f45858#4cbf2d9c1e876314985f028542fc10db57b64fdb_462_437)
+
+=== jurgenhaas 2026-09-03T14:32:37.670Z discussion=d1689b4e39a2bf07b4e36dcd1e6b6e1ca4b6e5a2 resolved=false individual=false
+We don't. See above. It's removed now.
+
+=== longwave 2026-09-02T14:34:08.832Z discussion=517e9482bd2e2e579782bc4ed7f332392959c4d0 resolved=false individual=false
+We don't need long assertion messages like this.
+
+=== longwave 2026-09-02T14:34:26.408Z discussion=517e9482bd2e2e579782bc4ed7f332392959c4d0 resolved=false individual=false
+In fact this test feels pretty pointless.
+
+=== jurgenhaas 2026-09-03T14:32:26.781Z discussion=517e9482bd2e2e579782bc4ed7f332392959c4d0 resolved=false individual=false
+changed this line in [version 32 of the diff](/project/drupal/-/merge_requests/16432/diffs?diff_id=2456609&start_sha=24a12298a736352f00fbc61dd8ea311077f45858#f5e94e0b9bf80a07e08367b75ee669b93d54739c_43_0)
+
+=== jurgenhaas 2026-09-03T14:32:37.794Z discussion=517e9482bd2e2e579782bc4ed7f332392959c4d0 resolved=false individual=false
+Point taken, test removed.
+
+=== longwave 2026-09-02T14:36:52.830Z discussion=275b4b19afee2dad62f548a8c0ba0a84aee24258 resolved=false individual=false
+Do we care about EU cookie law here? What about sites that are not allowed to set cookies without obtaining user permission?
+
+=== longwave 2026-09-02T14:44:15.904Z discussion=275b4b19afee2dad62f548a8c0ba0a84aee24258 resolved=false individual=false
+Previously we swapped cookies for localStorage in Olivero because of this: https://www.drupal.org/project/drupal/issues/3487874
+
+=== jurgenhaas 2026-09-03T14:32:37.937Z discussion=275b4b19afee2dad62f548a8c0ba0a84aee24258 resolved=false individual=false
+The EU cookie law clearly states that those cookies that are technically required, can be set without prior consent from the user. And regarding that legislation, cookies and local storage are no different. Both are leaving a trace in the user's browser.
+
+=== poker10 2026-09-03T16:59:46.185Z discussion=275b4b19afee2dad62f548a8c0ba0a84aee24258 resolved=false individual=false
+~~I am not a lawyer, but it seems like this cookie is also set for anonymous users who do not have access to any theme which supports this feature. That does not seems like a "technically required" for me. Can we omit the cookie in such situations (for example for user without access to the admin theme when frontent theme does not support dark mode, or for anonymous users) and assume that if the cookie is not set, that the value is "auto"?~~
+
+//edit - disregard my comment, this seems to be working as expected.
+
+=== longwave 2026-09-02T14:39:53.744Z discussion=e9943433dcdacd7313c50493f7d5a5448bc3e498 resolved=false individual=false
+I am slightly surprised that setting a cookie doesn't automatically do this somewhere, but perhaps it doesn't.
+
+=== jurgenhaas 2026-09-03T14:32:38.085Z discussion=e9943433dcdacd7313c50493f7d5a5448bc3e498 resolved=false individual=false
+That's what I found, yes. I hope I'm not missing something.
+
+=== poker10 2026-09-03T16:59:46.434Z discussion=e9943433dcdacd7313c50493f7d5a5448bc3e498 resolved=false individual=false
+~~I think this might interfere with the EU Cookie Compliance module or other solutions, which can delete unwanted/not allowed cookies. What if users do not update their modules/tools and allow this specific cookie? It seems like this might cause issues as each request will have kill switch, therefore site will not be cacheable. Can we assume that when the when the cookie is not set, that the value is "auto"? See also my comment few lines below.~~
+
+//edit - disregard my comment, this seems to be actually working, as when `$color_scheme` is "auto", the `$value` is NULL.
+
+=== longwave 2026-09-02T14:52:52.087Z discussion=d3797b3f4a422664f45b064f28023373704c60ad resolved=false individual=false
+Do we need an update hook to delete this from the theme settings?
+
+=== longwave 2026-09-02T14:53:46.577Z discussion=d3797b3f4a422664f45b064f28023373704c60ad resolved=false individual=false
+And what about anyone who's already selected a value here? I guess because the theme is not stable this is okay to lose though.
+
+=== jurgenhaas 2026-09-03T14:32:38.216Z discussion=d3797b3f4a422664f45b064f28023373704c60ad resolved=false individual=false
+I've added 2 post update hooks for that.
+
+=== jurgenhaas 2026-09-03T14:32:38.438Z discussion=91f44fd6f9d184c17ed1f5250593b77f049fa7ec resolved=false individual=true
+left review comments
+
+=== jurgenhaas 2026-09-03T14:32:49.149Z discussion=1249934ac8df5e0112b0ba276c59856ecbaa73b8 resolved=false individual=true
+added 1 commit
+
+<ul><li>806729f0 - Address longwave&#39;s review</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2456609&start_sha=24a12298a736352f00fbc61dd8ea311077f45858)
+
+=== jurgenhaas 2026-09-03T14:47:05.686Z discussion=3d2b30acef237b4cb1e1ddad86dabf6c825a7f6e resolved=false individual=true
+added 1 commit
+
+<ul><li>0f7a2497 - Fix tests</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2456648&start_sha=806729f09fce88ce3d364a1200b8814eddb2ec5b)
+
+=== jurgenhaas 2026-09-03T14:56:12.840Z discussion=7441fe4985c8c3f247a373735c91bfabec21d478 resolved=false individual=true
+added 1 commit
+
+<ul><li>52328385 - Fix tests</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2456723&start_sha=0f7a2497684cc3303923da52971cbbf2cfd467a4)
+
+=== jurgenhaas 2026-09-03T15:22:31.229Z discussion=ddd23aa664892fdb8425fa5b0987c2390214abc8 resolved=false individual=true
+added 1 commit
+
+<ul><li>d9d2a192 - Rstore the tests for the SearchComment</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2456809&start_sha=5232838565df0138627c29517098947168ae2bec)
+
+=== poker10 2026-09-03T16:59:46.741Z discussion=9aa86d223a9ebeb8b3ed8069dea4f4dcb003efa3 resolved=false individual=true
+left review comments
+
+=== poker10 2026-09-03T17:50:22.971Z discussion=032c85d5e4445ff2c4758962bea654fd1140d321 resolved=false individual=false
+Do we need this paragraph of the comment? It seems too verbose with little additional value to me.
+
+=== jurgenhaas 2026-09-10T12:45:57.756Z discussion=032c85d5e4445ff2c4758962bea654fd1140d321 resolved=false individual=false
+Agreed, it doesn't provide any value. I've removed it.
+
+=== poker10 2026-09-03T17:50:23.505Z discussion=db87a0c5b44854f055e535b326294008597be309 resolved=false individual=true
+left review comments
+
+=== jurgenhaas 2026-09-10T12:45:13.993Z discussion=5d3c271c4b8de754e4527cb0eda28f15a1d6d3a5 resolved=false individual=true
+added 62 commits
+
+<ul><li>d9d2a192...678e6478 - 60 commits from branch <code>project:main</code></li><li>a5ccb6ba - Merge branch &#39;main&#39; into 3606655-make-dark-mode</li><li>6c584e9e - Address review feedback from @poker10</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2474164&start_sha=d9d2a192053b6e39bd1b2a9584fca5fabb74f4f7)
+
+=== jurgenhaas 2026-09-10T12:45:57.977Z discussion=acc3fa4c4bcd9ffcfd5b346be17b10516df02680 resolved=false individual=true
+left review comments
+
+=== jurgenhaas 2026-09-10T13:17:03.219Z discussion=38ad716fca69fe3c06cb61af6817fc2d265fa475 resolved=false individual=true
+added 1 commit
+
+<ul><li>29ed87db - fix: #3606655 Color scheme field violates validation in sample entities</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2474230&start_sha=6c584e9ee4c2b4112c0f09e89d5cf146b9f6fd3a)
+
+=== jurgenhaas 2026-09-18T10:44:05.596Z discussion=cef3c227e676148b2d0e85238ddd8fe26d2dbd4e resolved=false individual=true
+added 53 commits
+
+<ul><li>29ed87db...04341944 - 52 commits from branch <code>project:main</code></li><li>0f903b55 - Merge remote-tracking branch &#39;origin/main&#39; into 3606655-make-dark-mode</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2495182&start_sha=29ed87dbc752a0231c8f1db40634b91a511ac148)
+
+=== jurgenhaas 2026-09-19T10:33:00.530Z discussion=2702888f050ccab5746ef557bf232c0445666dd7 resolved=false individual=true
+added 48 commits
+
+<ul><li>0f903b55...c0277ee2 - 11 commits from branch <code>project:main</code></li><li>c0277ee2...4a0bc3eb - 27 earlier commits</li><li>ef9be2d8 - test: #3606655 Cover the cookie and the invariant markup</li><li>04cacac9 - fix: #3606655 Pass the color scheme script as markup</li><li>74582010 - fix: #3606655 Rename the color scheme cookie</li><li>d7a5c7b5 - test: #3606655 Correct two assertions the inline script invalidates</li><li>9e3403c1 - Address longwave&#39;s review</li><li>3040a432 - Fix tests</li><li>f61c191f - Fix tests</li><li>6be839ad - Rstore the tests for the SearchComment</li><li>bb9c351e - Address review feedback from @poker10</li><li>73fd8193 - fix: #3606655 Color scheme field violates validation in sample entities</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2497930&start_sha=0f903b55b2d3a89e2c05c55eb8578fdd3dbef63f)
+
+=== jurgenhaas 2026-09-21T07:44:43.957Z discussion=8f5a89053a6131dbf66b9fad54f52bff90a02468 resolved=false individual=true
+added 39 commits
+
+<ul><li>73fd8193...8eaf82d7 - 4 commits from branch <code>project:main</code></li><li>8eaf82d7...27a7045a - 25 earlier commits</li><li>5e58a649 - task: #3606655 Make dark mode a first class citizen of Drupal core</li><li>a119d4d8 - test: #3606655 Remove the cache context expectations</li><li>bcc8100b - test: #3606655 Cover the cookie and the invariant markup</li><li>583c7a03 - fix: #3606655 Pass the color scheme script as markup</li><li>c785d8ab - fix: #3606655 Rename the color scheme cookie</li><li>2fd01c6b - test: #3606655 Correct two assertions the inline script invalidates</li><li>80eef249 - Address longwave&#39;s review</li><li>faf84937 - Fix tests</li><li>d47ef2f8 - Address review feedback from @poker10</li><li>41fb9b47 - fix: #3606655 Color scheme field violates validation in sample entities</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2501391&start_sha=73fd8193112845c71af0d4736f0be8bac75deb25)
+
+=== jurgenhaas 2026-10-01T11:20:10.767Z discussion=88d8d17334f11c9c375474d02c86abeb0aa8e77b resolved=false individual=true
+added 56 commits
+
+<ul><li>41fb9b47...073a7d38 - 21 commits from branch <code>project:main</code></li><li>073a7d38...7c18b61e - 25 earlier commits</li><li>6ed0e4e5 - task: #3606655 Make dark mode a first class citizen of Drupal core</li><li>d3cf993a - test: #3606655 Remove the cache context expectations</li><li>91323e45 - test: #3606655 Cover the cookie and the invariant markup</li><li>e0e6c899 - fix: #3606655 Pass the color scheme script as markup</li><li>6f2f9b0f - fix: #3606655 Rename the color scheme cookie</li><li>21fbbd01 - test: #3606655 Correct two assertions the inline script invalidates</li><li>5fadb82e - Address longwave&#39;s review</li><li>57992ae9 - Fix tests</li><li>e088a9e6 - Address review feedback from @poker10</li><li>08a4cb4c - fix: #3606655 Color scheme field violates validation in sample entities</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2528684&start_sha=41fb9b47c3f2453da06bf1989f50353a8cb479f7)
+
+=== jurgenhaas 2026-11-04T10:57:57.148Z discussion=db9c592a0bcb279313e95dc0a63b9398b658c11c resolved=false individual=true
+added 140 commits
+
+<ul><li>08a4cb4c...a4cbef85 - 104 commits from branch <code>project:main</code></li><li>a4cbef85...ec47392a - 26 earlier commits</li><li>93bd5ca7 - test: #3606655 Remove the cache context expectations</li><li>b5485b49 - test: #3606655 Cover the cookie and the invariant markup</li><li>e8068342 - fix: #3606655 Pass the color scheme script as markup</li><li>246fd94f - fix: #3606655 Rename the color scheme cookie</li><li>6d01fe40 - test: #3606655 Correct two assertions the inline script invalidates</li><li>39794180 - Address longwave&#39;s review</li><li>06893f1f - Fix tests</li><li>53440e7d - Address review feedback from @poker10</li><li>4e0ad6f4 - fix: #3606655 Color scheme field violates validation in sample entities</li><li>82f52863 - fix: #3606655 Resolve PHPStan level 3 errors</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2631103&start_sha=08a4cb4ca44085f2a168c6203ecc3201a5b2d322)
+
+=== jurgenhaas 2026-11-05T09:33:33.549Z discussion=5b8b9fde5b774c313d5f6d41768f6b20d7f14d53 resolved=false individual=true
+added 41 commits
+
+<ul><li>82f52863...ced1e263 - 5 commits from branch <code>project:main</code></li><li>ced1e263...8e36f9d2 - 26 earlier commits</li><li>67f52573 - test: #3606655 Remove the cache context expectations</li><li>d389dfd4 - test: #3606655 Cover the cookie and the invariant markup</li><li>6c22f4fe - fix: #3606655 Pass the color scheme script as markup</li><li>fb31d32b - fix: #3606655 Rename the color scheme cookie</li><li>314bb2ef - test: #3606655 Correct two assertions the inline script invalidates</li><li>fe3ec790 - Address longwave&#39;s review</li><li>e3fb18e2 - Fix tests</li><li>164b9539 - Address review feedback from @poker10</li><li>9bd6ab81 - fix: #3606655 Color scheme field violates validation in sample entities</li><li>170be9e3 - fix: #3606655 Resolve PHPStan level 3 errors</li></ul>
+
+[Compare with previous version](/project/drupal/-/merge_requests/16432/diffs?diff_id=2634464&start_sha=82f52863a2e58094f645afb3341d874c8f6f9ec3)

@@ -2174,200 +2174,6 @@
       "executionEvidence": null
     },
     {
-      "slug": "3606655-pinned",
-      "issue": "3606655",
-      "label": "#3606655: Allow user-configurable UI settings - starting with dark mode, pinned core",
-      "description": "Before: user profile has no Color scheme setting and <html> has no data-color-scheme. After (MR !16432): profile form /user/1/edit has Color scheme radios Light/Dark/System and every page carries <html data-color-scheme>. Open /user/1/edit in both frames and compare the bottom of the form, then inspect the <html> attribute.",
-      "issueMeta": {
-        "status": "Needs review",
-        "status_code": 8,
-        "priority": "Normal",
-        "category": "Feature request",
-        "changed": "2026-11-04",
-        "comments": 114,
-        "title": "Allow user-configurable UI settings - starting with dark mode",
-        "since": "2026-11-09",
-        "tags": [
-          "Accessibility",
-          "Performance",
-          "Needs release manager review",
-          "Needs change record updates"
-        ],
-        "mr": {
-          "state": "opened",
-          "sha": "170be9e3",
-          "draft": false
-        }
-      },
-      "before": {},
-      "after": {},
-      "steps": [
-        {
-          "text": "Standard install; Default Admin is the admin theme.",
-          "how": "recipe"
-        },
-        {
-          "text": "Type /user/1/edit in Page and press Go (both). Scroll to the bottom above Save.",
-          "how": "mirror",
-          "lookFor": "After: a Color scheme fieldset with Light / Dark / System radios. Before: no such field."
-        },
-        {
-          "text": "In EACH frame, pick Dark and press Save, then look at the page.",
-          "how": "each",
-          "lookFor": "After: preference saves and <html data-color-scheme> reflects it. Before: nothing to pick."
-        }
-      ],
-      "expected": "After: /user/1/edit shows Color scheme radios and <html> carries data-color-scheme. Before: neither exists.",
-      "actual": "TODO after running",
-      "observe": [
-        {
-          "label": "Profile form shows a Color scheme choice (Light / Dark / System)",
-          "expectBefore": false,
-          "expectAfter": true
-        },
-        {
-          "label": "<html data-color-scheme> is present",
-          "expectBefore": false,
-          "expectAfter": true
-        },
-        {
-          "label": "Anything else looks broken (profile form, theme settings)",
-          "expectBefore": false,
-          "expectAfter": false
-        }
-      ],
-      "checks": [
-        {
-          "label": "Setup reached: user edit form is on the page",
-          "probe": "!!document.querySelector('form.user-form, form#user-form, form[action*=\"user\"]')",
-          "expect": true,
-          "kind": "precondition",
-          "onlyOn": "/user/1/edit"
-        },
-        {
-          "label": "Color scheme radios are on the profile form",
-          "probe": "document.querySelectorAll('input[name=\"color_scheme\"]').length",
-          "expect": 3,
-          "kind": "fix",
-          "onlyOn": "/user/1/edit"
-        },
-        {
-          "label": "<html> carries data-color-scheme",
-          "probe": "document.documentElement.hasAttribute('data-color-scheme')",
-          "expect": true,
-          "kind": "fix"
-        },
-        {
-          "label": "JavaScript errors on the page (ignoring the harmless \"ResizeObserver loop\" notice)",
-          "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
-          "expect": 0,
-          "kind": "regression"
-        }
-      ],
-      "pages": [
-        "/user/1/edit",
-        "/"
-      ],
-      "executionEvidence": null
-    },
-    {
-      "slug": "3606655-latest",
-      "issue": "3606655",
-      "label": "#3606655: same steps against the LATEST core main",
-      "description": "Before: user profile has no Color scheme setting and <html> has no data-color-scheme. After (MR !16432): profile form /user/1/edit has Color scheme radios Light/Dark/System and every page carries <html data-color-scheme>. Open /user/1/edit in both frames and compare the bottom of the form, then inspect the <html> attribute.",
-      "issueMeta": {
-        "status": "Needs review",
-        "status_code": 8,
-        "priority": "Normal",
-        "category": "Feature request",
-        "changed": "2026-11-04",
-        "comments": 114,
-        "title": "Allow user-configurable UI settings - starting with dark mode",
-        "since": "2026-11-09",
-        "tags": [
-          "Accessibility",
-          "Performance",
-          "Needs release manager review",
-          "Needs change record updates"
-        ],
-        "mr": {
-          "state": "opened",
-          "sha": "170be9e3",
-          "draft": false
-        }
-      },
-      "before": {},
-      "after": {},
-      "steps": [
-        {
-          "text": "Standard install; Default Admin is the admin theme.",
-          "how": "recipe"
-        },
-        {
-          "text": "Type /user/1/edit in Page and press Go (both). Scroll to the bottom above Save.",
-          "how": "mirror",
-          "lookFor": "After: a Color scheme fieldset with Light / Dark / System radios. Before: no such field."
-        },
-        {
-          "text": "In EACH frame, pick Dark and press Save, then look at the page.",
-          "how": "each",
-          "lookFor": "After: preference saves and <html data-color-scheme> reflects it. Before: nothing to pick."
-        }
-      ],
-      "expected": "After: /user/1/edit shows Color scheme radios and <html> carries data-color-scheme. Before: neither exists.",
-      "actual": "TODO after running",
-      "observe": [
-        {
-          "label": "Profile form shows a Color scheme choice (Light / Dark / System)",
-          "expectBefore": false,
-          "expectAfter": true
-        },
-        {
-          "label": "<html data-color-scheme> is present",
-          "expectBefore": false,
-          "expectAfter": true
-        },
-        {
-          "label": "Anything else looks broken (profile form, theme settings)",
-          "expectBefore": false,
-          "expectAfter": false
-        }
-      ],
-      "checks": [
-        {
-          "label": "Setup reached: user edit form is on the page",
-          "probe": "!!document.querySelector('form.user-form, form#user-form, form[action*=\"user\"]')",
-          "expect": true,
-          "kind": "precondition",
-          "onlyOn": "/user/1/edit"
-        },
-        {
-          "label": "Color scheme radios are on the profile form",
-          "probe": "document.querySelectorAll('input[name=\"color_scheme\"]').length",
-          "expect": 3,
-          "kind": "fix",
-          "onlyOn": "/user/1/edit"
-        },
-        {
-          "label": "<html> carries data-color-scheme",
-          "probe": "document.documentElement.hasAttribute('data-color-scheme')",
-          "expect": true,
-          "kind": "fix"
-        },
-        {
-          "label": "JavaScript errors on the page (ignoring the harmless \"ResizeObserver loop\" notice)",
-          "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
-          "expect": 0,
-          "kind": "regression"
-        }
-      ],
-      "pages": [
-        "/user/1/edit",
-        "/"
-      ],
-      "executionEvidence": null
-    },
-    {
       "slug": "3273054-pinned",
       "issue": "3273054",
       "label": "#3273054: text-format permission checkboxes hold an invisible focus stop, pinned core",
@@ -5918,6 +5724,200 @@
       "executionEvidence": null
     },
     {
+      "slug": "3606655-pinned",
+      "issue": "3606655",
+      "label": "#3606655: per-user color scheme (MR !16432 @ 170be9e3), pinned to its core base",
+      "description": "Before: no Color scheme setting on the profile form, no data-color-scheme on <html>, no cookie. After (MR !16432 at 170be9e3): a User settings fieldset with Light/Dark/System radios on /user/1/edit; <html> always carries data-color-scheme=\"auto\"; a customized choice travels in the DrupalColorScheme cookie and an inline head script overrides the attribute. The user.color_scheme cache context is absent by design.",
+      "issueMeta": {
+        "status": "Needs review",
+        "status_code": 8,
+        "priority": "Normal",
+        "category": "Feature request",
+        "changed": "2026-11-04",
+        "comments": 114,
+        "title": "Allow user-configurable UI settings - starting with dark mode",
+        "since": "2026-11-26",
+        "tags": [
+          "Accessibility",
+          "Performance",
+          "Needs release manager review",
+          "Needs change record updates"
+        ],
+        "mr": {
+          "state": "opened",
+          "sha": "170be9e3",
+          "draft": false
+        }
+      },
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Standard install; Default Admin is the admin theme.",
+          "how": "recipe"
+        },
+        {
+          "text": "Type /user/1/edit in Page and press Go (both). Scroll to the bottom above Save.",
+          "how": "mirror",
+          "lookFor": "After: a Color scheme fieldset with Light / Dark / System radios. Before: no such field."
+        },
+        {
+          "text": "In EACH frame, pick Dark and press Save, then look at the page.",
+          "how": "each",
+          "lookFor": "After: preference saves and <html data-color-scheme> reflects it. Before: nothing to pick."
+        }
+      ],
+      "expected": "After: /user/1/edit shows Color scheme radios and <html> carries data-color-scheme. Before: neither exists.",
+      "actual": "TODO after running",
+      "observe": [
+        {
+          "label": "Profile form shows a Color scheme choice (Light / Dark / System)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "<html data-color-scheme> is present",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Anything else looks broken (profile form, theme settings)",
+          "expectBefore": false,
+          "expectAfter": false
+        }
+      ],
+      "checks": [
+        {
+          "label": "Setup reached: user edit form is on the page",
+          "probe": "!!document.querySelector('form.user-form, form#user-form, form[action*=\"user\"]')",
+          "expect": true,
+          "kind": "precondition",
+          "onlyOn": "/user/1/edit"
+        },
+        {
+          "label": "Color scheme radios are on the profile form",
+          "probe": "document.querySelectorAll('input[name=\"color_scheme\"]').length",
+          "expect": 3,
+          "kind": "fix",
+          "onlyOn": "/user/1/edit"
+        },
+        {
+          "label": "<html> carries data-color-scheme",
+          "probe": "document.documentElement.hasAttribute('data-color-scheme')",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "JavaScript errors on the page (ignoring the harmless \"ResizeObserver loop\" notice)",
+          "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+          "expect": 0,
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/user/1/edit",
+        "/"
+      ],
+      "executionEvidence": null
+    },
+    {
+      "slug": "3606655-latest",
+      "issue": "3606655",
+      "label": "#3606655: same steps against the LATEST core main",
+      "description": "Before: no Color scheme setting on the profile form, no data-color-scheme on <html>, no cookie. After (MR !16432 at 170be9e3): a User settings fieldset with Light/Dark/System radios on /user/1/edit; <html> always carries data-color-scheme=\"auto\"; a customized choice travels in the DrupalColorScheme cookie and an inline head script overrides the attribute. The user.color_scheme cache context is absent by design.",
+      "issueMeta": {
+        "status": "Needs review",
+        "status_code": 8,
+        "priority": "Normal",
+        "category": "Feature request",
+        "changed": "2026-11-04",
+        "comments": 114,
+        "title": "Allow user-configurable UI settings - starting with dark mode",
+        "since": "2026-11-26",
+        "tags": [
+          "Accessibility",
+          "Performance",
+          "Needs release manager review",
+          "Needs change record updates"
+        ],
+        "mr": {
+          "state": "opened",
+          "sha": "170be9e3",
+          "draft": false
+        }
+      },
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Standard install; Default Admin is the admin theme.",
+          "how": "recipe"
+        },
+        {
+          "text": "Type /user/1/edit in Page and press Go (both). Scroll to the bottom above Save.",
+          "how": "mirror",
+          "lookFor": "After: a Color scheme fieldset with Light / Dark / System radios. Before: no such field."
+        },
+        {
+          "text": "In EACH frame, pick Dark and press Save, then look at the page.",
+          "how": "each",
+          "lookFor": "After: preference saves and <html data-color-scheme> reflects it. Before: nothing to pick."
+        }
+      ],
+      "expected": "After: /user/1/edit shows Color scheme radios and <html> carries data-color-scheme. Before: neither exists.",
+      "actual": "TODO after running",
+      "observe": [
+        {
+          "label": "Profile form shows a Color scheme choice (Light / Dark / System)",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "<html data-color-scheme> is present",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Anything else looks broken (profile form, theme settings)",
+          "expectBefore": false,
+          "expectAfter": false
+        }
+      ],
+      "checks": [
+        {
+          "label": "Setup reached: user edit form is on the page",
+          "probe": "!!document.querySelector('form.user-form, form#user-form, form[action*=\"user\"]')",
+          "expect": true,
+          "kind": "precondition",
+          "onlyOn": "/user/1/edit"
+        },
+        {
+          "label": "Color scheme radios are on the profile form",
+          "probe": "document.querySelectorAll('input[name=\"color_scheme\"]').length",
+          "expect": 3,
+          "kind": "fix",
+          "onlyOn": "/user/1/edit"
+        },
+        {
+          "label": "<html> carries data-color-scheme",
+          "probe": "document.documentElement.hasAttribute('data-color-scheme')",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "JavaScript errors on the page (ignoring the harmless \"ResizeObserver loop\" notice)",
+          "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+          "expect": 0,
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/user/1/edit",
+        "/"
+      ],
+      "executionEvidence": null
+    },
+    {
       "slug": "3615469-pinned",
       "issue": "3615469",
       "label": "#3615469: Maintenance form login link, pinned core",
@@ -6778,6 +6778,118 @@
       "steps": [
         {
           "text": "Standard install with Default Admin. Apply repro_3630425 to both sides: unlimited plain-text field Lab multi-value text, with two sample defaults. No Paragraphs module required.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /node/add/article in both frames. Find Lab multi-value text, its rows and Remove buttons.",
+          "how": "mirror",
+          "lookFor": "The same field values and controls on both sides."
+        },
+        {
+          "text": "Run checks, then inspect the field table header in each frame using DevTools or its accessibility tree.",
+          "how": "each",
+          "lookFor": "Before: empty actions-column header. After: visually hidden Operations label. There are three header cells; the first spans two logical columns, so the affected header is the second th, not the third th."
+        },
+        {
+          "text": "Use Add another item in each frame and run checks again. Optionally remove the newly added row and verify that the header remains labelled only on After. Do not save the Article.",
+          "how": "each",
+          "lookFor": "Header state survives AJAX updates; add/remove behavior remains available on both sides."
+        }
+      ],
+      "expected": "After has a visually hidden Operations column header and no empty-table-header finding for the target table; the visible form and add/remove controls remain usable.",
+      "actual": "Before has an empty actions-column header, inherited by Default Admin from FieldPreprocess.",
+      "observe": [
+        {
+          "label": "Actions header has an accessible Operations label",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Visible field layout remains unchanged",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "Add and Remove controls work with the keyboard",
+          "expectBefore": true,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "Default Admin rendered this page",
+          "probe": "window.drupalSettings?.ajaxPageState?.theme === 'default_admin'",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The core multi-value field table exists",
+          "probe": "!!document.querySelector('table[id^=\"field-lab-multivalue-values\"]')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "The table contains Remove controls",
+          "probe": "Array.from(document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.querySelectorAll('input[type=submit], button') || []).some(e => /Remove/.test(e.value || e.textContent))",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Actions-column header is labelled Operations",
+          "probe": "document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.tHead?.rows[0]?.cells[1]?.textContent.trim() === 'Operations'",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "No empty header in the target field table",
+          "probe": "Array.from(document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.querySelectorAll('thead th') || []).every(e => e.textContent.trim().length > 0)",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Same number of field rows on both sides",
+          "probe": "document.querySelector('table[id^=\"field-lab-multivalue-values\"]')?.tBodies[0]?.rows.length",
+          "expect": "same",
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/node/add/article"
+      ],
+      "demo": {
+        "start": "/node/add/article"
+      },
+      "executionEvidence": null
+    },
+    {
+      "slug": "3630425-mr17622",
+      "issue": "3630425",
+      "label": "#3630425: MR !17622 on pinned main",
+      "description": "Before: pristine pinned main dbfce851242d with Default Admin and repro_3630425. After: the same core plus MR !17622 head 090a74cd28aa, whose production change is equivalent to !17421 but whose functional assertions are the MR's own (FormTest::testFieldFormUnlimited). This comparison is not a re-run of !17421 or of the Lab's main port, and its results must not be attributed to them. Both touched files are byte-identical at the pin and at the MR base 555acb124a50, so the MR diff applies to the pin. The recipe adds an unlimited core plain-text field named Lab multi-value text with two defaults. Expect no visual change; inspect the header markup, the accessibility tree, the explicit empty-table-header axe rule and screen reader output.",
+      "issueMeta": {
+        "status": "Needs work",
+        "status_code": 13,
+        "priority": "Normal",
+        "category": "Bug report",
+        "changed": "2026-10-29",
+        "comments": 11,
+        "title": "Multi-value field widget table renders an empty <th> for the actions (Remove) column",
+        "since": "2026-11-02",
+        "tags": [
+          "Needs tests",
+          "Accessibility"
+        ],
+        "mr": {
+          "state": "opened",
+          "sha": "f1f524f9",
+          "draft": false
+        }
+      },
+      "before": {},
+      "after": {},
+      "steps": [
+        {
+          "text": "Standard install with Default Admin. Apply repro_3630425 to both sides: unlimited plain-text field Lab multi-value text, with two sample defaults.",
           "how": "recipe"
         },
         {
