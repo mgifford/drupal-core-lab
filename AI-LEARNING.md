@@ -396,3 +396,26 @@ Reviewed MR !16432 at `170be9e3` against core `ced1e263` (`12.0-dev`).
 - **A worktree inside the clone cannot pass `selftest`.** `test-mr.mjs` refuses a second copy inside the first (DDEV project names are global), and `jsdom` was missing. Prepare the commit with plumbing (`read-tree`, `--work-tree add`, `write-tree`, `commit-tree`, `push <sha>:refs/heads/<branch>`) rather than switching branches in a tree another session is using.
 
 Open after the review: the design mismatch and the 17 unresolved threads need maintainer decisions; no person has done the keyboard or screen-reader pass.
+
+## Learnings from #3426468 Navigation active-state evaluation (2026-11-26)
+
+Built the `3426468-latest` pair on core `a48087f26ec`, measured nine browser/mode combinations, and pushed revision v2 on the `3426468-active-indicator` branch. The original v1 patch is preserved; v2 is a four-file interdiff (comments and a Default Admin theme colour) on top of it. The bar is the durable cue: light 6.69:1, dark 10.21:1, forced 21:1, and it survives collapse, 480 px and RTL. The active text is 5.82:1 light; the active-vs-inactive delta fell from 2.99 to 2.32, so colour alone would not carry the state.
+
+### Mistakes and traps worth not repeating
+
+1. **A theme can override a module custom property after the module rule.** Default Admin re-declared `--toolbar-button-current-color` after the module, so v1's `gray-990` change produced no rendered difference at all. Read the theme's cascade and the computed colour; do not trust a variable change in the component. In this theme `gray-990` is an alias for the dark active blue (`accent-600`), not a neutral gray.
+2. **Chromium can serialise computed colours as `lch()`.** The dark-mode run returned null contrast until the evaluator normalised every colour through a 1x1 canvas. Parse `lch()`/`oklch()` or measure through the browser; do not assume `rgb()` strings.
+3. **Wait for the admin sidebar slide before measuring.** `data-admin-toolbar-animating` and a negative `x` were the only clues; a mid-transition rect invented a clipping failure. Wait for `#admin-toolbar` to settle, then measure.
+4. **The active trail can be closed on load (#3438046).** The current submenu dot is hidden until Structure is opened. Open the trail with keyboard Enter; in RTL a pointer click on the next trigger was intercepted by the open popover's safe-triangle.
+5. **Hover is not a touch gesture.** At 480 px, skip hover checks and record them as not tested; do not fail a patch for a state the viewport cannot produce.
+6. **Firefox's default focus ring can be 1 px dotted.** The pre-existing “Collapse sidebar” button uses it; require a visible ring (>=1 px), record the inconsistency, and keep the theme's 2 px ring as the target.
+7. **Coverage's primary variant is the `-pinned` one unless `coverage.active` selects another.** The validator did not allow the key that `coverage.mjs` reads; it now does. Without it, a local proposal in `-latest` is not the primary row.
+8. **Shortcuts is gone from core at this commit.** `core/modules/shortcut` and `navigation_shortcuts` do not exist, so the issue's case (c) is N/A on a Standard install, not a pass.
+9. **A clean worktree still fails two selftest checks for environment reasons.** The tracked `tools/playwright/node_modules` symlink is depth-specific, and `test-mr` stops because the main copy owns the `drupal-compare` DDEV name. `ready-to-push --skip-selftest` is then an honest base check only if the variants, cloud and docs checks were run separately and the environment-blocked rows are named.
+10. **The push branch can contain other work.** The main tree had 134 unrelated changes and the current branch was a 3155130 branch two commits ahead. Create a new branch from `origin/main`, copy only the issue's files, merge its variant entry, and push from there.
+
+### Process notes
+
+- The final branch is `3426468-active-indicator` (two commits before the learnings commit: the evaluation and the coverage/cloud fix). It was pushed from `/tmp/drupal-core-lab-3426468-push`, a clean `origin/main` worktree.
+- Parallel sessions had uncommitted changes in `AI-LEARNING.md` and many `reports/issues/` folders. Do not append to or commit a shared file from the dirty main tree; do it in the clean worktree.
+- The drupal.org issue stayed unassigned with 32 comments throughout. Nothing was posted, no MR was opened, and the issue status was not changed.

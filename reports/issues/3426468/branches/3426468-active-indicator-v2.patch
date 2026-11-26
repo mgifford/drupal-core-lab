@@ -1,0 +1,86 @@
+diff --git a/core/modules/navigation/components/toolbar-button/toolbar-button.css b/core/modules/navigation/components/toolbar-button/toolbar-button.css
+index 09b53bd0d264663fa9d0e7bd0a6f5b581808228e..90db379e7f94c7dfc1dc12e70309e3e4d037138c 100644
+--- a/core/modules/navigation/components/toolbar-button/toolbar-button.css
++++ b/core/modules/navigation/components/toolbar-button/toolbar-button.css
+@@ -56,10 +56,10 @@
+       color: var(--toolbar-button-has-active-child-color);
+       background-color: var(--toolbar-button-has-active-child-bg);
+ 
+-      /* A left bar, not colour alone, marks the state (SC 1.4.1); its own
++      /* A left bar, not color alone, marks the state (SC 1.4.1); its own
+        * contrast against the background exceeds the SC 1.4.11 3:1 minimum
+        * (currentColor is gray-950 here). In forced-colors mode it switches
+-       * to the system canvasText colour. */
++       * to the system canvasText color. */
+       &::before {
+         position: absolute;
+         inset-block-start: 0;
+@@ -114,10 +114,10 @@
+       color: var(--toolbar-button-current-color);
+       background-color: var(--toolbar-button-current-bg);
+ 
+-      /* A left bar, not colour alone, marks the active item (SC 1.4.1); its
++      /* A left bar, not color alone, marks the active item (SC 1.4.1); its
+        * own contrast against the background exceeds the SC 1.4.11 3:1
+        * minimum (currentColor is gray-990 here). In forced-colors mode it
+-       * switches to the system canvasText colour. Matches the dot already
++       * switches to the system canvasText color. Matches the dot already
+        * used for the active state further down the menu hierarchy. */
+       &::before {
+         position: absolute;
+diff --git a/core/modules/navigation/components/toolbar-button/toolbar-button.pcss.css b/core/modules/navigation/components/toolbar-button/toolbar-button.pcss.css
+index cfbf41ef74f1256809063b8cdb8c1dddc9dd3b7b..4f40fa14f09a1383d6561889a06a2cf327e691e3 100644
+--- a/core/modules/navigation/components/toolbar-button/toolbar-button.pcss.css
++++ b/core/modules/navigation/components/toolbar-button/toolbar-button.pcss.css
+@@ -52,10 +52,10 @@
+       color: var(--toolbar-button-has-active-child-color);
+       background-color: var(--toolbar-button-has-active-child-bg);
+ 
+-      /* A left bar, not colour alone, marks the state (SC 1.4.1); its own
++      /* A left bar, not color alone, marks the state (SC 1.4.1); its own
+        * contrast against the background exceeds the SC 1.4.11 3:1 minimum
+        * (currentColor is gray-950 here). In forced-colors mode it switches
+-       * to the system canvasText colour. */
++       * to the system canvasText color. */
+       &::before {
+         position: absolute;
+         inset-block-start: 0;
+@@ -110,10 +110,10 @@
+       color: var(--toolbar-button-current-color);
+       background-color: var(--toolbar-button-current-bg);
+ 
+-      /* A left bar, not colour alone, marks the active item (SC 1.4.1); its
++      /* A left bar, not color alone, marks the active item (SC 1.4.1); its
+        * own contrast against the background exceeds the SC 1.4.11 3:1
+        * minimum (currentColor is gray-990 here). In forced-colors mode it
+-       * switches to the system canvasText colour. Matches the dot already
++       * switches to the system canvasText color. Matches the dot already
+        * used for the active state further down the menu hierarchy. */
+       &::before {
+         position: absolute;
+diff --git a/core/themes/default_admin/css/components/navigation.css b/core/themes/default_admin/css/components/navigation.css
+index afef666a5e6f31163e55ff0e0c34e3cd72cedb57..704957a5973b6a602025475136ef4a76bcb6a73b 100644
+--- a/core/themes/default_admin/css/components/navigation.css
++++ b/core/themes/default_admin/css/components/navigation.css
+@@ -41,7 +41,7 @@ html.admin-toolbar-expanded {
+   --admin-toolbar-color-gray-800: var(--admin-color-text);
+   --admin-toolbar-color-gray-990: var(--admin-color-primary-active);
+   --toolbar-button-has-active-child-color: var(--admin-color-primary);
+-  --toolbar-button-current-color: var(--admin-color-primary);
++  --toolbar-button-current-color: var(--admin-toolbar-color-gray-990);
+   --toolbar-button-focus-color: var(--admin-color-primary);
+   --admin-toolbar-color-focus: var(--admin-color-focus);
+   --admin-toolbar-color-expanded: var(--admin-color-bg-surface-nested);
+diff --git a/core/themes/default_admin/css/components/navigation.pcss.css b/core/themes/default_admin/css/components/navigation.pcss.css
+index d98887b34c2697dc310aeae4b332172cad08de37..ab586c44515de381bcffeff2c5cf9df68bf58223 100644
+--- a/core/themes/default_admin/css/components/navigation.pcss.css
++++ b/core/themes/default_admin/css/components/navigation.pcss.css
+@@ -38,7 +38,7 @@ html.admin-toolbar-expanded {
+   --admin-toolbar-color-gray-800: var(--admin-color-text);
+   --admin-toolbar-color-gray-990: var(--admin-color-primary-active);
+   --toolbar-button-has-active-child-color: var(--admin-color-primary);
+-  --toolbar-button-current-color: var(--admin-color-primary);
++  --toolbar-button-current-color: var(--admin-toolbar-color-gray-990);
+   --toolbar-button-focus-color: var(--admin-color-primary);
+   --admin-toolbar-color-focus: var(--admin-color-focus);
+   --admin-toolbar-color-expanded: var(--admin-color-bg-surface-nested);
