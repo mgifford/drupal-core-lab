@@ -1,6 +1,7 @@
 # Phase 2 handoff: dashboard and reporting integration (2026-11-25)
 
-**Status: implemented, uncommitted, awaiting review.** No commit, no push. This builds on
+**Status: implemented and opened for review in [PR #107](https://github.com/mgifford/drupal-core-lab/pull/107).**
+Committed on `energy/cleer-estimate`, rebased onto `main`; CI green. This builds on
 [HANDOFF-2026-11-24-energy.md](HANDOFF-2026-11-24-energy.md) (Phase 1). The energy estimate now appears in the existing
 resource report and dashboard; no parallel report or dashboard was created.
 
@@ -146,7 +147,7 @@ node --test --test-concurrency=1 tests/lab/resource-*.test.mjs
 
 ## 11. Rollback
 
-All changes are uncommitted. To revert Phase 2 only, restore the generated and modified files from `HEAD`:
+The work is committed in PR #107. To revert Phase 2 only, restore the generated and modified files from the PR base:
 
 ```bash
 git checkout -- tools/resource/aggregate.mjs tools/resource/energy/bridge.mjs scripts/resource.mjs tools/resource/dashboard.html \

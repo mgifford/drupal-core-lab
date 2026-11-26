@@ -1,10 +1,11 @@
 # Phase 1 handoff: CLEER energy estimation (2026-11-24)
 
-**Status: implemented, uncommitted, awaiting review.** No commit, no push. This is Phase 1 of the brief: a tested,
+**Status: implemented and opened for review in [PR #107](https://github.com/mgifford/drupal-core-lab/pull/107).**
+Committed on `energy/cleer-estimate`, rebased onto `main`; CI green. This is Phase 1 of the brief: a tested,
 offline, versioned energy estimate for historical AI resource events. It is **not** a complete energy, carbon and
 resource framework, and it does not claim to be.
 
-Base revision `d2ba3af` on `infra/resource-audit` (`94b34d0` plus the Mutagen and lab-run work that landed after it).
+Prepared on top of `d2ba3af`; the PR is rebased onto the current `main`.
 
 ## 1. Summary of changes
 
@@ -157,7 +158,8 @@ node --test tests/lab/resource-energy.test.mjs
 
 ## 11. Rollback
 
-Everything is uncommitted. To discard: remove the added files and `git checkout --` the five modified files:
+The work is committed on `energy/cleer-estimate` (PR #107). To discard it before merge, close the PR and delete the
+branch. To remove only the energy files from a checkout of the PR base:
 
 ```bash
 git checkout -- tools/resource/events.schema.json tools/resource/events.mjs docs/RESOURCE-MONITORING.md reports/resources/README.md RESOURCES.md
