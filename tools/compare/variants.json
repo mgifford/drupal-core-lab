@@ -1046,8 +1046,8 @@
     "slug": "3426468-latest",
     "extends": "3426468-pinned",
     "label": "#3426468: Make the active menu item visually stand out more (lab-authored fix, LATEST core main)",
-    "description": "The active top-level navigation item is distinguished only by a faint colour/background change (state-to-state delta ~1.95:1 text, ~1.09:1 background -- SC 1.4.1/1.4.11). Lab-authored fix per kentr's 2026-02 analysis (comment #28): darken --toolbar-button-current-color to match the existing submenu active colour, and add an always-on left bar (not colour alone), matching the bar the forced-colors media query already draws and the dot already used deeper in the menu.",
-    "status": "ready: before = colour-only active state (text delta ~1.95:1, bg delta ~1.09:1); after = darker text (delta ~2.45:1) + a left bar (own contrast ~16.6:1)",
+    "description": "Before: the active top-level item is colour and background only. After (v1+v2): a 4 px inline-start bar (the forced-colours idiom) plus the Default Admin gray-990 active colour. Measured 2026-11-26 on a48087f26ec in Chromium, Firefox and WebKit, light, dark, forced colours, collapsed, 480 px and RTL.",
+    "status": "measured 2026-11-26 (a48087f26ec): 9/9 runs reproduced-and-fixed; bar 6.69:1 light, 10.21:1 dark, 21:1 forced; active text 5.82:1; submenu ancestor still unmarked; Shortcuts case N/A (module removed from core).",
     "core": {
       "ref": "main",
       "commit": null
@@ -1058,7 +1058,8 @@
     "after": {
       "env": "issue-3426468-latest",
       "patches": [
-        "reports/issues/3426468/branches/3426468-active-indicator.patch"
+        "reports/issues/3426468/branches/3426468-active-indicator.patch",
+        "reports/issues/3426468/branches/3426468-active-indicator-v2.patch"
       ]
     },
     "steps": [
@@ -1073,11 +1074,16 @@
       {
         "text": "Look at the \"Content\" item in the top-level navigation menu.",
         "how": "each",
-        "lookFor": "After: a left bar and darker text mark it as active. Before: only a faint colour and background change."
+        "lookFor": "After: a left bar and the darker active colour mark it. Before: only a faint colour and background change."
+      },
+      {
+        "text": "Open /admin/structure/display-modes/form and expand Structure, then Display modes.",
+        "how": "each",
+        "lookFor": "After: Structure has the left bar; Form modes keeps its dot. Display modes (the submenu ancestor) has no bar or dot."
       }
     ],
-    "expected": "After: the active top-level item has a visible left bar (own contrast ~16.6:1 against the background) plus darker active text (delta ~2.45:1 vs non-active text); the same treatment applies to a parent item whose submenu has the active item. Before: only a colour and background-colour change, both with a very low state-to-state delta.",
-    "actual": "TODO after running",
+    "expected": "After: the current top-level item and the top-level ancestor have a 4 px inline-start bar (6.69:1 light, 10.21:1 dark, 21:1 forced) and the current text is 5.82:1 against its background; the current submenu item keeps its dot. Before: colour and background only at the top level. The bar does not intersect the focus ring, clip, or shift the item box; the submenu ancestor still has no bar/dot.",
+    "actual": "Measured 2026-11-26 at a48087f26ec: 9/9 runs reproduced-and-fixed. See playwright/2026-11-26T13-52-52-050Z-chromium-light-1280x900/SUMMARY.md and EVIDENCE.md. Submenu ancestor has no marker; the approved design uses a dot, the patch a bar.",
     "checks": [
       {
         "label": "Setup reached: the active top-level nav item is on the page",
@@ -1096,7 +1102,59 @@
       "Is the active top-level item marked by more than colour alone (a left bar), both in standard colours and in forced-colors mode?",
       "Is the active item's text visibly darker/bolder-looking than non-active items?",
       "Any regression in menu layout, icons, or the existing deeper-level active dot?"
-    ]
+    ],
+    "pages": [
+      "/admin/appearance",
+      "/admin/structure/display-modes/form",
+      "/admin/content"
+    ],
+    "coverage": {
+      "active": true,
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 480
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ]
+    }
   },
   {
     "slug": "3606655-pinned",
