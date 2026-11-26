@@ -144,6 +144,10 @@ for (const [mode, title] of sections) {
   md += `## ${title}\n\n`;
   for (const side of ['before', 'after']) {
     const r = results[mode][side];
+    if (!r) {
+      md += `### ${side}\n\nNot run in this invocation.\n\n`;
+      continue;
+    }
     if (r.error) { md += `### ${side}\n\n**Not completed:** ${r.error}\n\n`; continue; }
     md += `### ${side}\n\n`;
     for (const key of PAGES) {
