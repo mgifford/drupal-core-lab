@@ -102,3 +102,23 @@ The available evidence supports the proposed fix but does not establish complete
 Confirm upstream submission and CI results, reconcile the MR description with the actual implementation, respond to outstanding review feedback and request independent community review.
 
 Further implementation changes should be driven by specific test failures or review findings rather than repeating the existing evaluation.
+
+## November 26 CI correction
+
+Pipeline 1068051, job 13993524, failed in
+ModulesListFormWebTest::testModuleListForm() at line 59.
+
+The likely cause is a root-relative URL assertion in a
+subdirectory installation.
+
+Drupal commit 55e34161fb4ab26050f6bc0ab8c1ba05f8adf355
+corrects all three operation link assertions using CSS
+attribute suffix matching.
+
+- [Test-only interdiff](branches/2574721-ci-base-path.interdiff.patch)
+- [Corrected full proposal](branches/2574721-current-main-proposal-v2.patch)
+
+PHP syntax and whitespace checks passed.
+Production code is unchanged. Fresh functional CI is pending.
+
+AI-assisted analysis and correction.
