@@ -462,3 +462,11 @@ workspace. No environment was built; the issue stays unassigned with 121 comment
 - **Owner decisions can invert the brief.** For #3370946 the owner asked for *more* configurability, not less, and
   for a fresh MR rather than a rebase. Record such answers in the issue folder (`DECISIONS-2026-11-26.md`) with
   their consequences, so the next session does not re-litigate a 24-page brief.
+## 2026-11-26 — #3419891 re-evaluation (Docker disk, recipes, TextareaView)
+
+- **Docker.raw can fill the host.** A 228 GB Docker.raw left 159 MiB free and containerd's metadata store went read-only, so `docker rmi` and `docker builder prune` failed with "read-only file system". Stopping my half-built project freed its web-container layer (7.7 GB); pruning build cache freed another 5.6 GB. Docker Desktop did not need a restart.
+- **`ddev stop` can destroy the site database in this add-on.** `--omit-containers=db` keeps MariaDB inside the web container; stopping removed the containers and the database. Use `ddev restart` for a pause and `--reinstall` after a stop.
+- **A recipe's config belongs in `<recipe>/config/`, not `<recipe>/config/install/`.** At 0387fb948f7 `ConfigConfigurator` reads the recipe's `config/` directory; `config/install/` imported nothing. This stayed hidden while an earlier core supplied a Basic page type, and surfaced as "no content types" after re-pinning.
+- **`TextareaView.value` is programmatic in CKEditor 5 49.1.0.** Typing updates the DOM and recalculates height on `input`, but never updates `value`; `change:value` is what recalculates. Restoring an equal value after Cancel kept a stale height and a stale `isEmpty`. Calling the public `reset()` after the balloon is shown fixes both.
+- **Per-project DDEV web images share every layer.** Re-tagging an existing `ddev-webserver:v1.25.3-<project>-built` avoided a 13-minute rebuild; site code still came from the checkout.
+- **Never stage a shared `variants.json` wholesale.** Other sessions had uncommitted entries in it. This commit was built in a clean `origin/main` worktree and splices only the `3419891-*` entries.
