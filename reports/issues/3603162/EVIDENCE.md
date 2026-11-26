@@ -7,7 +7,7 @@
 | Historical baseline | `29b0a0b2256eb5ed27df6ec5e4e4e33142a717e8` |
 | Current MR head | `fe4adb4f942385912bb3244b570afa475cadf3bd` |
 | Current upstream main | `0387fb948f786bc344a5cc54aa0d98b8f552e378` |
-| Revised branch | `3603162-svg-revision` at `0d00037ed57a46cb6d2d2b14af7db065b12ccc24` |
+| Revised branch | `3603162-svg-revision` at `172c07efd8243f678eaa8697c47596eb62b3a747` |
 | Issue fork branch | [https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision](https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision) (pushed; MR pending) |
 
 ## Source and compiled checks
@@ -26,7 +26,7 @@ node ./scripts/css/postcss-build.js --check \
 ./node_modules/.bin/stylelint "themes/default_admin/css/**/*.css"
 ```
 
-Result: build check exit 0; Stylelint exit 0 on changed files.
+Result: build check exit 0; Stylelint exit 0 on all theme CSS; CSpell 0 issues on 216 theme CSS files.
 
 ## Static validation and audit
 

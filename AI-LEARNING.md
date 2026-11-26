@@ -296,7 +296,7 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 
 ## Learnings from #3603162 Default Admin SVG revision (2026-11-25 to 2026-11-26)
 
-Worked on MR !16166 at `fe4adb4f`, rebased its 11 commits onto current `main` `0387fb94`, and added one revision commit `0d00037e`. Pushed a new issue-fork branch `3603162-svg-revision`; MR !17967 is open. The original MR branch was not rewritten. Evidence is in `reports/issues/3603162/` and in the public [SVG Review revision report](https://mgifford.github.io/svg-review/proposed/reports/revision-2026-11-25.html).
+Worked on MR !16166 at `fe4adb4f`, rebased its 11 commits onto current `main` `0387fb94`, and added two revision commits, `0d00037e` and the spelling fix `172c07ef`. Pushed a new issue-fork branch `3603162-svg-revision`; MR !17967 is open. The original MR branch was not rewritten. Evidence is in `reports/issues/3603162/` and in the public [SVG Review revision report](https://mgifford.github.io/svg-review/proposed/reports/revision-2026-11-25.html).
 
 ### What was verified
 
@@ -320,6 +320,8 @@ Worked on MR !16166 at `fe4adb4f`, rebased its 11 commits onto current `main` `0
 9. **Static harnesses cannot accept interaction-dependent icons.** The sticky loader needed Drupal's real progress markup; the media edit control needed the theme's own class inside a real selected media item. Record every injected state.
 10. **GitHub Pages does not list directories.** The screenshot directory returned 404 until an `index.html` was added. Publish report directories as real pages.
 11. **Issue-fork write access is account-specific.** SSH can authenticate as `@mgifford` while the project rejects the push. Prepare a bundle and exact commands; do not assume read access implies write access.
+
+12. **Drupal CSpell enforces US spelling in code comments.** `colour`, `colours` and `grey` failed the commit check even though they were only comments. Use `color`, `colors` and `gray`. Run `cspell` on the changed CSS/Twig before pushing; the bot checks the patch lines, not the whole file.
 
 ### Process notes
 

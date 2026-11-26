@@ -297,7 +297,7 @@ index 766709e0..46d9b41d 100644
  
  /* <ul> dropdown */
 diff --git a/core/themes/default_admin/css/components/autocomplete-loading.module.pcss.css b/core/themes/default_admin/css/components/autocomplete-loading.module.pcss.css
-index f91dc3fa..29dc7aa5 100644
+index f91dc3fa..f12e4028 100644
 --- a/core/themes/default_admin/css/components/autocomplete-loading.module.pcss.css
 +++ b/core/themes/default_admin/css/components/autocomplete-loading.module.pcss.css
 @@ -9,6 +9,33 @@
@@ -334,7 +334,7 @@ index f91dc3fa..29dc7aa5 100644
  }
  
  /* The "Loading" message gets positioned to the top right. */
-@@ -48,15 +75,17 @@
+@@ -48,15 +75,16 @@
  .form-autocomplete {
    margin-inline-end: calc(var(--input-border-size) - 1.5 * var(--input-padding-horizontal));
    padding-inline-end: 36px;
@@ -342,14 +342,12 @@ index f91dc3fa..29dc7aa5 100644
 -  background-repeat: no-repeat;
 -  background-position: 100% 50%;
 -  background-size: 1rem 1rem;
--
++}
+ 
 -  &:dir(rtl) {
 -    background-image: var(--admin-icon-search-muted-rtl);
 -    background-position: 0 50%;
 -  }
-+
-+}
-+
 +/*
 + * The wrapper places the icon at the inline end. On this native input
 + * Chromium resolves the logical padding against the document direction
@@ -421,7 +419,7 @@ index b6a7b5ac..2ef2e121 100644
 +  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' aria-hidden='true' focusable='false' viewBox='0 0 16 16'%3e%3cpath fill='%23fff' d='m11 0 3 3v13H2V0z'/%3e%3cpath fill='%237f7f7f' d='m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z'/%3e%3cpath fill='%23f3da4d' d='M9 2v3h3v9H4V2z'/%3e%3cpath fill='%23ecc747' d='M4 2h5v1H4z'/%3e%3cpath fill='%23f0d14a' d='M4 3h5v1H4z'/%3e%3cpath fill='%23f9e752' d='M4 7h8v3H4z'/%3e%3cpath fill='%23cc7b2b' d='M4 13h8v1H4z'/%3e%3cpath fill='%23d58f32' d='M4 12h8v1H4z'/%3e%3cpath fill='%23e3b33f' d='M4 11h8v1H4z'/%3e%3cpath fill='%23fef456' d='M4 8h8v1H4z'/%3e%3ccircle cx='6' cy='5' r='2' fill='%23fff'/%3e%3cpath fill='%23756400' d='M6.27 7.39C6.29 6.8 7.22 5.98 8 6c.66.02 1.49.78 1.49.78S10.34 6.02 11 6c.79-.02 1.54.89 1.54 1.39 0 .49-.55-.72-1.54-.45C9.93 7.22 9.49 8 9.49 8S9.05 7.1 8 6.94c-1.16-.18-1.74 1.03-1.73.45'/%3e%3c/svg%3e");
  }
 diff --git a/core/themes/default_admin/css/components/form--checkbox-radio.css b/core/themes/default_admin/css/components/form--checkbox-radio.css
-index 356cb9de..f61d3301 100644
+index 356cb9de..aed94c11 100644
 --- a/core/themes/default_admin/css/components/form--checkbox-radio.css
 +++ b/core/themes/default_admin/css/components/form--checkbox-radio.css
 @@ -231,6 +231,18 @@
@@ -430,7 +428,7 @@ index 356cb9de..f61d3301 100644
  }
 +/*
 + * The dark-mode disabled surface is darker than the light-mode surface, so
-+ * the light-mode grey check (gray-700) no longer separates from it. This is a
++ * the light-mode gray check (gray-700) no longer separates from it. This is a
 + * discernibility improvement for a disabled control, not a WCAG 1.4.11 fix:
 + * inactive controls are exempt. Forced colors uses the native control, so the
 + * override is limited to non-forced-colors.
@@ -444,7 +442,7 @@ index 356cb9de..f61d3301 100644
  .form-boolean--type-radio[disabled].error:checked {
    /* Same ring-and-dot technique as enabled radios; no image asset needed. */
 diff --git a/core/themes/default_admin/css/components/form--checkbox-radio.pcss.css b/core/themes/default_admin/css/components/form--checkbox-radio.pcss.css
-index 88fd02f7..ae920e5f 100644
+index 88fd02f7..e5fad97c 100644
 --- a/core/themes/default_admin/css/components/form--checkbox-radio.pcss.css
 +++ b/core/themes/default_admin/css/components/form--checkbox-radio.pcss.css
 @@ -224,6 +224,18 @@
@@ -453,7 +451,7 @@ index 88fd02f7..ae920e5f 100644
  }
 +/*
 + * The dark-mode disabled surface is darker than the light-mode surface, so
-+ * the light-mode grey check (gray-700) no longer separates from it. This is a
++ * the light-mode gray check (gray-700) no longer separates from it. This is a
 + * discernibility improvement for a disabled control, not a WCAG 1.4.11 fix:
 + * inactive controls are exempt. Forced colors uses the native control, so the
 + * override is limited to non-forced-colors.
@@ -504,7 +502,7 @@ index 01f67caa..a1d12f13 100644
  
  @media (forced-colors: active) {
 diff --git a/core/themes/default_admin/css/components/form--select.pcss.css b/core/themes/default_admin/css/components/form--select.pcss.css
-index cb92f3ae..1fdec963 100644
+index cb92f3ae..cefcfae0 100644
 --- a/core/themes/default_admin/css/components/form--select.pcss.css
 +++ b/core/themes/default_admin/css/components/form--select.pcss.css
 @@ -21,10 +21,6 @@
@@ -518,7 +516,7 @@ index cb92f3ae..1fdec963 100644
    .no-touchevents & {
      &.form-element--extrasmall,
      &[name$="][_weight]"] {
-@@ -35,6 +31,22 @@
+@@ -35,6 +31,21 @@
        line-height: 1.5;
      }
    }
@@ -537,12 +535,11 @@ index cb92f3ae..1fdec963 100644
 +      background-image: var(--admin-icon-chevron-down-disabled-inverse);
 +    }
 +  }
-+
  }
  
  @media (forced-colors: active) {
 diff --git a/core/themes/default_admin/css/components/more-actions.css b/core/themes/default_admin/css/components/more-actions.css
-index c415fa96..6729395a 100644
+index c415fa96..55dc058d 100644
 --- a/core/themes/default_admin/css/components/more-actions.css
 +++ b/core/themes/default_admin/css/components/more-actions.css
 @@ -41,7 +41,14 @@
@@ -633,7 +630,7 @@ index c415fa96..6729395a 100644
 +
 +/*
 + * In dark mode the primary fill becomes light with dark text, while the
-+ * secondary button keeps light text on a dark surface. Swap the dot colours
++ * secondary button keeps light text on a dark surface. Swap the dot colors
 + * to keep the indicator at the same contrast as the button label.
 + */
 +@media (forced-colors: none) {
@@ -662,7 +659,7 @@ index c415fa96..6729395a 100644
    }
  }
 diff --git a/core/themes/default_admin/css/components/more-actions.pcss.css b/core/themes/default_admin/css/components/more-actions.pcss.css
-index fa10f66a..fa830407 100644
+index fa10f66a..50f56dd7 100644
 --- a/core/themes/default_admin/css/components/more-actions.pcss.css
 +++ b/core/themes/default_admin/css/components/more-actions.pcss.css
 @@ -34,7 +34,14 @@
@@ -753,7 +750,7 @@ index fa10f66a..fa830407 100644
 +
 +/*
 + * In dark mode the primary fill becomes light with dark text, while the
-+ * secondary button keeps light text on a dark surface. Swap the dot colours
++ * secondary button keeps light text on a dark surface. Swap the dot colors
 + * to keep the indicator at the same contrast as the button label.
 + */
 +@media (forced-colors: none) {
@@ -782,7 +779,7 @@ index fa10f66a..fa830407 100644
    }
  }
 diff --git a/core/themes/default_admin/css/components/system-status-report-general-info.css b/core/themes/default_admin/css/components/system-status-report-general-info.css
-index 13e462e0..a86a0429 100644
+index 13e462e0..837fe608 100644
 --- a/core/themes/default_admin/css/components/system-status-report-general-info.css
 +++ b/core/themes/default_admin/css/components/system-status-report-general-info.css
 @@ -72,6 +72,15 @@
@@ -792,7 +789,7 @@ index 13e462e0..a86a0429 100644
 +
 +    /*
 +     * The mask paint is a background-color. Forced colors would otherwise
-+     * force it to Canvas, which is the same colour as the page and the icon
++     * force it to Canvas, which is the same color as the page and the icon
 +     * would disappear. CanvasText keeps the status glyph visible.
 +     */
 +    @media (forced-colors: active) {
@@ -802,7 +799,7 @@ index 13e462e0..a86a0429 100644
  }
  
 diff --git a/core/themes/default_admin/css/components/system-status-report-general-info.pcss.css b/core/themes/default_admin/css/components/system-status-report-general-info.pcss.css
-index e4c44f31..d40b492a 100644
+index e4c44f31..0b668b9d 100644
 --- a/core/themes/default_admin/css/components/system-status-report-general-info.pcss.css
 +++ b/core/themes/default_admin/css/components/system-status-report-general-info.pcss.css
 @@ -65,6 +65,15 @@
@@ -812,7 +809,7 @@ index e4c44f31..d40b492a 100644
 +
 +    /*
 +     * The mask paint is a background-color. Forced colors would otherwise
-+     * force it to Canvas, which is the same colour as the page and the icon
++     * force it to Canvas, which is the same color as the page and the icon
 +     * would disappear. CanvasText keeps the status glyph visible.
 +     */
 +    @media (forced-colors: active) {
@@ -822,7 +819,7 @@ index e4c44f31..d40b492a 100644
  }
  
 diff --git a/core/themes/default_admin/css/components/tabledrag.css b/core/themes/default_admin/css/components/tabledrag.css
-index 00c929d8..90a9aa2e 100644
+index 00c929d8..78acaade 100644
 --- a/core/themes/default_admin/css/components/tabledrag.css
 +++ b/core/themes/default_admin/css/components/tabledrag.css
 @@ -393,6 +393,11 @@ body {
@@ -830,7 +827,7 @@ index 00c929d8..90a9aa2e 100644
    width: 1.5625rem;
    height: 1.5625rem;
 +  /*
-+   * The inline SVG paths use currentColor. The soft text colour keeps the
++   * The inline SVG paths use currentColor. The soft text color keeps the
 +   * tree lines subordinate to the row label in both light and dark mode.
 +   */
 +  color: var(--admin-color-text-soft);
@@ -838,7 +835,7 @@ index 00c929d8..90a9aa2e 100644
  
  .tree__item {
 diff --git a/core/themes/default_admin/css/components/tabledrag.pcss.css b/core/themes/default_admin/css/components/tabledrag.pcss.css
-index 76bdc496..071ad7d4 100644
+index 76bdc496..51c985e7 100644
 --- a/core/themes/default_admin/css/components/tabledrag.pcss.css
 +++ b/core/themes/default_admin/css/components/tabledrag.pcss.css
 @@ -390,6 +390,11 @@ body {
@@ -846,7 +843,7 @@ index 76bdc496..071ad7d4 100644
    width: 25px;
    height: 25px;
 +  /*
-+   * The inline SVG paths use currentColor. The soft text colour keeps the
++   * The inline SVG paths use currentColor. The soft text color keeps the
 +   * tree lines subordinate to the row label in both light and dark mode.
 +   */
 +  color: var(--admin-color-text-soft);

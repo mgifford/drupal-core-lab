@@ -3,8 +3,8 @@
 ## Branch
 
 - Local branch: `3603162-svg-revision`
-- Previous local branch: `3603162-complete` (preserved at the same commit)
-- Tip: `0d00037ed57a46cb6d2d2b14af7db065b12ccc24`
+- Previous local branch: `3603162-complete` (preserved at `0d00037e`, the previous revision)
+- Tip: `172c07efd8243f678eaa8697c47596eb62b3a747`
 - Parent history: the 11 original MR commits, rebased onto upstream `main` at `0387fb948f786bc344a5cc54aa0d98b8f552e378`.
 - Issue fork branch: [https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision](https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision) at the same tip.
 - Merge request: [MR !17967](https://git.drupalcode.org/project/drupal/-/merge_requests/17967).
@@ -17,8 +17,8 @@ The original MR branch and issue fork were not modified.
 
 | File | Base | SHA-256 |
 |---|---|---|
-| `3603162-complete-svg-consolidation.patch` | upstream `main` `0387fb94` | `53bfcb5a9c570541713fd6074dbb8151d834f97240a84150699f712ba58061e4` |
-| `3603162-mr16166-comprehensive-interdiff.patch` | MR head `fe4adb4f` | `3c3b5318cd43dcbab26d7b1b9eb067b9332154185f4fcdd134821efc58869807` |
+| `3603162-complete-svg-consolidation.patch` | upstream `main` `0387fb94` | `71f3eb100e1467e1f56d93ff08ebc5fa9eca668c77ab4d95749293c139d596b7` |
+| `3603162-mr16166-comprehensive-interdiff.patch` | MR head `fe4adb4f` | `c07d72e2e2bb64b2c989efc5dfd47f257bd858077f8887e8bdbc099ec4c796d7` |
 
 Apply:
 

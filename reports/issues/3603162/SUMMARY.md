@@ -9,7 +9,7 @@ Reviewed MR head: `fe4adb4f942385912bb3244b570afa475cadf3bd`
 Current upstream `main`: `0387fb948f786bc344a5cc54aa0d98b8f552e378`
 Merge base: `29b0a0b2256eb5ed27df6ec5e4e4e33142a717e8`
 Issue fork branch: [https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision](https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision) — pushed; [MR !17967](https://git.drupalcode.org/project/drupal/-/merge_requests/17967) open.
-Revision branch tip: `0d00037ed57a46cb6d2d2b14af7db065b12ccc24`
+Revision branch tip: `172c07efd8243f678eaa8697c47596eb62b3a747`
 
 ## What this revision changes
 
