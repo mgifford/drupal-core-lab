@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "per-token-energy-factors",
+  "synthetic": true,
+  "source": {
+    "organization": "Synthetic (test fixture)",
+    "dataset_name": "Synthetic coefficient fixture",
+    "dataset_version": "synthetic-1",
+    "release_date": "2026-01-01",
+    "checksum": null,
+    "licence": {
+      "name": "Synthetic test data; no rights claimed",
+      "redistribution": "permitted",
+      "commercial_use": "permitted",
+      "notice": "Synthetic coefficients for arithmetic tests only. They are not an energy measurement or a published estimate."
+    },
+    "methodology": {
+      "name": "Synthetic",
+      "version": "synthetic-1",
+      "boundary": "accelerator-inference"
+    }
+  },
+  "units": {
+    "energy": "Wh",
+    "tokens": "count"
+  },
+  "models": [
+    {
+      "provider": "Synthetic",
+      "model": "Synthetic Model A",
+      "aliases": ["synthetic-a", "synthetic model a"],
+      "coefficients": {
+        "uncached_input": { "central": 0.001, "lower": 0.0005, "upper": 0.0015, "status": "published", "note": "Synthetic." },
+        "cache_read": { "central": 0.0001, "lower": 0.00005, "upper": 0.00015, "status": "derived", "note": "Synthetic." },
+        "cache_creation": { "central": 0.0012, "lower": 0.0006, "upper": 0.0018, "status": "derived", "note": "Synthetic." },
+        "output": { "central": 0.002, "lower": 0.001, "upper": 0.003, "status": "published", "note": "Synthetic." }
+      },
+      "uncertainty": {
+        "semantics": "configuration-spread",
+        "source": "Synthetic fixture; not a real uncertainty."
+      },
+      "workload_assumptions": {
+        "batch_size": 128,
+        "hardware": "Synthetic accelerator",
+        "context_length": 4096,
+        "note": "Synthetic."
+      },
+      "limitations": ["Synthetic coefficients; never a real estimate."]
+    },
+    {
+      "provider": "Synthetic",
+      "model": "Synthetic Model B",
+      "aliases": [],
+      "coefficients": {
+        "total_input": { "central": 0.002, "lower": null, "upper": null, "status": "published", "note": "Total-input fallback only." },
+        "output": { "central": 0.004, "lower": null, "upper": null, "status": "published", "note": "Synthetic." }
+      },
+      "uncertainty": {
+        "semantics": "unknown",
+        "source": "Synthetic fixture."
+      },
+      "limitations": ["Synthetic coefficients; never a real estimate."]
+    }
+  ]
+}

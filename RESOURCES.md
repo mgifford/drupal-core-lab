@@ -36,6 +36,7 @@ Reviewed October 17, 2026. This is a reference index for design, accessibility, 
 | Forced-color styling | [CSS Color Adjustment](https://www.w3.org/TR/css-color-adjust-1/) | Inspect system colors, contrast, visible focus, and any forced-color-adjust exception. |
 | Paper output | [CSS Paged Media](https://www.w3.org/TR/css-page-3/) | Review A4 and Letter rendering where relevant; a screen viewport is not a paper size. |
 | Sustainability | [Web Sustainability Guidelines](https://www.w3.org/TR/web-sustainability-guidelines/) | Connect observations to a documented guideline and measurement method. Record the source edition/status when making a formal claim. |
+| AI inference energy | [CLEER](https://github.com/sustainableaigroup/CLEER), [technical report](https://reports.sustainableaigroup.com/CLEER-Tech-Report/), [lab method](docs/CLEER.md) | CLEER publishes per-session energy, not per-token coefficients. The lab's estimate is a cost bridge, not a measurement, and does not claim conformance. Attribute the dataset under CC BY-NC 4.0. |
 
 These links are living references. Preserve an exact edition, retrieval date, or commit alongside evidence used in an issue. Draft specifications, APG guidance, local proposals, observed theme behavior, and normative requirements carry different authority.
 

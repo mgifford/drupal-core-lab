@@ -16,7 +16,8 @@ export function matrixProblems(coverage, at = 'coverage') {
   const out = [];
   const isObj = (x) => x && typeof x === 'object' && !Array.isArray(x);
   if (!isObj(coverage)) return [[at, 'must be a mapping with a matrix list']];
-  for (const k of Object.keys(coverage)) if (!['matrix', 'note', 'blocked', 'manual'].includes(k)) out.push([`${at}.${k}`, 'is not a known key (allowed: matrix, note, blocked, manual)']);
+  for (const k of Object.keys(coverage)) if (!['matrix', 'note', 'blocked', 'manual', 'active'].includes(k)) out.push([`${at}.${k}`, 'is not a known key (allowed: matrix, note, blocked, manual, active)']);
+  if ('active' in coverage && typeof coverage.active !== 'boolean') out.push([`${at}.active`, 'must be true or false']);
   const m = coverage.matrix;
   if (!Array.isArray(m) || !m.length || m.length > 24) return [...out, [`${at}.matrix`, 'must list 1 to 24 combinations']];
   m.forEach((c, i) => {

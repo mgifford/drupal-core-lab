@@ -1,0 +1,204 @@
+diff --git a/core/modules/navigation/components/toolbar-button/toolbar-button.css b/core/modules/navigation/components/toolbar-button/toolbar-button.css
+index e7a35eb49dc3d0392e711a523373089db485ab53..90db379e7f94c7dfc1dc12e70309e3e4d037138c 100644
+--- a/core/modules/navigation/components/toolbar-button/toolbar-button.css
++++ b/core/modules/navigation/components/toolbar-button/toolbar-button.css
+@@ -20,7 +20,8 @@
+   --toolbar-button-focus-color: var(--admin-toolbar-color-blue-700);
+   /* Current variables */
+   --toolbar-button-current-bg: var(--admin-toolbar-color-gray-050);
+-  --toolbar-button-current-color: var(--admin-toolbar-color-blue-700);
++  --toolbar-button-current-color: var(--admin-toolbar-color-gray-990);
++  --toolbar-button-current-indicator-width: 0.25rem;
+   /* Active child variables. */
+   --toolbar-button-has-active-child-bg: var(--admin-toolbar-color-gray-050);
+   --toolbar-button-has-active-child-color: var(--admin-toolbar-color-gray-950);
+@@ -51,20 +52,27 @@
+     gap: calc(0.5 * var(--admin-toolbar-rem));
+ 
+     &:has(+ .toolbar-popover__wrapper .is-active) {
++      position: relative;
+       color: var(--toolbar-button-has-active-child-color);
+       background-color: var(--toolbar-button-has-active-child-bg);
+ 
+-      @media (forced-colors: active) {
+-        position: relative;
++      /* A left bar, not color alone, marks the state (SC 1.4.1); its own
++       * contrast against the background exceeds the SC 1.4.11 3:1 minimum
++       * (currentColor is gray-950 here). In forced-colors mode it switches
++       * to the system canvasText color. */
++      &::before {
++        position: absolute;
++        inset-block-start: 0;
++        inset-inline-end: calc(100% + 0.3125rem);
++        width: 0;
++        height: 100%;
++        content: "";
++        border-inline-start: solid var(--toolbar-button-current-indicator-width) currentColor;
++      }
+ 
++      @media (forced-colors: active) {
+         &::before {
+-          position: absolute;
+-          inset-block-start: 0;
+-          inset-inline-end: calc(100% + 0.3125rem);
+-          width: 0;
+-          height: 100%;
+-          content: "";
+-          border-inline-start: solid 0.25rem canvasText;
++          border-inline-start-color: canvasText;
+         }
+       }
+     }
+@@ -102,20 +110,28 @@
+     }
+ 
+     &.current {
++      position: relative;
+       color: var(--toolbar-button-current-color);
+       background-color: var(--toolbar-button-current-bg);
+ 
+-      @media (forced-colors: active) {
+-        position: relative;
++      /* A left bar, not color alone, marks the active item (SC 1.4.1); its
++       * own contrast against the background exceeds the SC 1.4.11 3:1
++       * minimum (currentColor is gray-990 here). In forced-colors mode it
++       * switches to the system canvasText color. Matches the dot already
++       * used for the active state further down the menu hierarchy. */
++      &::before {
++        position: absolute;
++        inset-block-start: 0;
++        inset-inline-end: calc(100% + 0.3125rem);
++        width: 0;
++        height: 100%;
++        content: "";
++        border-inline-start: solid var(--toolbar-button-current-indicator-width) currentColor;
++      }
+ 
++      @media (forced-colors: active) {
+         &::before {
+-          position: absolute;
+-          inset-block-start: 0;
+-          inset-inline-end: calc(100% + 0.3125rem);
+-          width: 0;
+-          height: 100%;
+-          content: "";
+-          border-inline-start: solid 0.25rem canvasText;
++          border-inline-start-color: canvasText;
+         }
+       }
+     }
+diff --git a/core/modules/navigation/components/toolbar-button/toolbar-button.pcss.css b/core/modules/navigation/components/toolbar-button/toolbar-button.pcss.css
+index 6c55712c509f050b1d5452b17e20db9e659b23fe..4f40fa14f09a1383d6561889a06a2cf327e691e3 100644
+--- a/core/modules/navigation/components/toolbar-button/toolbar-button.pcss.css
++++ b/core/modules/navigation/components/toolbar-button/toolbar-button.pcss.css
+@@ -17,7 +17,8 @@
+   --toolbar-button-focus-color: var(--admin-toolbar-color-blue-700);
+   /* Current variables */
+   --toolbar-button-current-bg: var(--admin-toolbar-color-gray-050);
+-  --toolbar-button-current-color: var(--admin-toolbar-color-blue-700);
++  --toolbar-button-current-color: var(--admin-toolbar-color-gray-990);
++  --toolbar-button-current-indicator-width: 4px;
+   /* Active child variables. */
+   --toolbar-button-has-active-child-bg: var(--admin-toolbar-color-gray-050);
+   --toolbar-button-has-active-child-color: var(--admin-toolbar-color-gray-950);
+@@ -47,20 +48,27 @@
+     gap: calc(0.5 * var(--admin-toolbar-rem));
+ 
+     &:has(+ .toolbar-popover__wrapper .is-active) {
++      position: relative;
+       color: var(--toolbar-button-has-active-child-color);
+       background-color: var(--toolbar-button-has-active-child-bg);
+ 
+-      @media (forced-colors: active) {
+-        position: relative;
++      /* A left bar, not color alone, marks the state (SC 1.4.1); its own
++       * contrast against the background exceeds the SC 1.4.11 3:1 minimum
++       * (currentColor is gray-950 here). In forced-colors mode it switches
++       * to the system canvasText color. */
++      &::before {
++        position: absolute;
++        inset-block-start: 0;
++        inset-inline-end: calc(100% + 5px);
++        width: 0;
++        height: 100%;
++        content: "";
++        border-inline-start: solid var(--toolbar-button-current-indicator-width) currentColor;
++      }
+ 
++      @media (forced-colors: active) {
+         &::before {
+-          position: absolute;
+-          inset-block-start: 0;
+-          inset-inline-end: calc(100% + 5px);
+-          width: 0;
+-          height: 100%;
+-          content: "";
+-          border-inline-start: solid 4px canvasText;
++          border-inline-start-color: canvasText;
+         }
+       }
+     }
+@@ -98,20 +106,28 @@
+     }
+ 
+     &.current {
++      position: relative;
+       color: var(--toolbar-button-current-color);
+       background-color: var(--toolbar-button-current-bg);
+ 
+-      @media (forced-colors: active) {
+-        position: relative;
++      /* A left bar, not color alone, marks the active item (SC 1.4.1); its
++       * own contrast against the background exceeds the SC 1.4.11 3:1
++       * minimum (currentColor is gray-990 here). In forced-colors mode it
++       * switches to the system canvasText color. Matches the dot already
++       * used for the active state further down the menu hierarchy. */
++      &::before {
++        position: absolute;
++        inset-block-start: 0;
++        inset-inline-end: calc(100% + 5px);
++        width: 0;
++        height: 100%;
++        content: "";
++        border-inline-start: solid var(--toolbar-button-current-indicator-width) currentColor;
++      }
+ 
++      @media (forced-colors: active) {
+         &::before {
+-          position: absolute;
+-          inset-block-start: 0;
+-          inset-inline-end: calc(100% + 5px);
+-          width: 0;
+-          height: 100%;
+-          content: "";
+-          border-inline-start: solid 4px canvasText;
++          border-inline-start-color: canvasText;
+         }
+       }
+     }
+diff --git a/core/themes/default_admin/css/components/navigation.css b/core/themes/default_admin/css/components/navigation.css
+index afef666a5e6f31163e55ff0e0c34e3cd72cedb57..704957a5973b6a602025475136ef4a76bcb6a73b 100644
+--- a/core/themes/default_admin/css/components/navigation.css
++++ b/core/themes/default_admin/css/components/navigation.css
+@@ -41,7 +41,7 @@ html.admin-toolbar-expanded {
+   --admin-toolbar-color-gray-800: var(--admin-color-text);
+   --admin-toolbar-color-gray-990: var(--admin-color-primary-active);
+   --toolbar-button-has-active-child-color: var(--admin-color-primary);
+-  --toolbar-button-current-color: var(--admin-color-primary);
++  --toolbar-button-current-color: var(--admin-toolbar-color-gray-990);
+   --toolbar-button-focus-color: var(--admin-color-primary);
+   --admin-toolbar-color-focus: var(--admin-color-focus);
+   --admin-toolbar-color-expanded: var(--admin-color-bg-surface-nested);
+diff --git a/core/themes/default_admin/css/components/navigation.pcss.css b/core/themes/default_admin/css/components/navigation.pcss.css
+index d98887b34c2697dc310aeae4b332172cad08de37..ab586c44515de381bcffeff2c5cf9df68bf58223 100644
+--- a/core/themes/default_admin/css/components/navigation.pcss.css
++++ b/core/themes/default_admin/css/components/navigation.pcss.css
+@@ -38,7 +38,7 @@ html.admin-toolbar-expanded {
+   --admin-toolbar-color-gray-800: var(--admin-color-text);
+   --admin-toolbar-color-gray-990: var(--admin-color-primary-active);
+   --toolbar-button-has-active-child-color: var(--admin-color-primary);
+-  --toolbar-button-current-color: var(--admin-color-primary);
++  --toolbar-button-current-color: var(--admin-toolbar-color-gray-990);
+   --toolbar-button-focus-color: var(--admin-color-primary);
+   --admin-toolbar-color-focus: var(--admin-color-focus);
+   --admin-toolbar-color-expanded: var(--admin-color-bg-surface-nested);

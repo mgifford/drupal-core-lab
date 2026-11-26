@@ -419,7 +419,7 @@ function explorationTotals(sessions) {
 
 // Public rows are aggregates, not individual sessions. That removes transcript titles, paths and precise working
 // patterns while still supporting every dashboard filter.
-export function publicRows(events) {
+export function publicRows(events, { energyByEvent = null } = {}) {
   const groups = new Map();
   for (const e of events) {
     if (e.activity === 'monitoring' || !counted(e)) continue;
@@ -432,6 +432,7 @@ export function publicRows(events) {
       subcategory: e.classification?.subcategory || null, unknown_reasons: [...new Set(unknownReasons)],
       events: 0, tokens: null, uncached_input: null, output: null, cache_creation: null, cache_read: null, reasoning: null, model_requests: null, cost_usd: null, cpu_seconds: null, duration_seconds: null,
       tool_invocations: null, repeated_reads: null, github_runs: 0, github_seconds: null, peak_memory_bytes: null, outcomes: { success: 0, failure: 0, cancelled: 0, partial: 0, unknown: 0 }, evidence_ids: [],
+      energy_requests: 0, energy_unavailable: 0, energy_central_wh: null, energy_workload_low_wh: null, energy_workload_high_wh: null, energy_configuration_low_wh: null, energy_configuration_high_wh: null, energy_match: null, energy_unavailable_code: null,
     };
     g.events++;
     if (tokensOf(e) != null) g.tokens = (g.tokens || 0) + tokensOf(e);
@@ -446,9 +447,23 @@ export function publicRows(events) {
     const mem = memoryOf(e); if (mem != null) g.peak_memory_bytes = Math.max(g.peak_memory_bytes || 0, mem);
     g.outcomes[e.outcome] = (g.outcomes[e.outcome] || 0) + 1;
     if (g.evidence_ids.length < 5) g.evidence_ids.push(e.event_id.slice(0, 12));
+    const en = energyByEvent ? energyByEvent.get(e.event_id) : null;
+    if (en) {
+      if (en.status === 'estimated') {
+        g.energy_requests++;
+        g.energy_match = en.model_mapping?.match_type || null;
+        for (const [field, source] of [['energy_central_wh', 'central_wh'], ['energy_workload_low_wh', 'workload_low_wh'], ['energy_workload_high_wh', 'workload_high_wh'], ['energy_configuration_low_wh', 'configuration_low_wh'], ['energy_configuration_high_wh', 'configuration_high_wh']]) {
+          if (typeof en[source] === 'number') g[field] = (g[field] || 0) + en[source];
+        }
+      } else { g.energy_unavailable++; g.energy_unavailable_code = en.unavailable_code || null; }
+    }
     groups.set(key, g);
   }
-  return [...groups.values()].map((g) => ({ ...g, cost_usd: round(g.cost_usd), cpu_seconds: round(g.cpu_seconds), duration_seconds: round(g.duration_seconds, 1), github_seconds: round(g.github_seconds, 1) })).sort((a, b) => b.date.localeCompare(a.date) || String(a.activity).localeCompare(String(b.activity)));
+  return [...groups.values()].map((g) => ({
+    ...g, cost_usd: round(g.cost_usd), cpu_seconds: round(g.cpu_seconds), duration_seconds: round(g.duration_seconds, 1), github_seconds: round(g.github_seconds, 1),
+    energy_central_wh: round(g.energy_central_wh, 4), energy_workload_low_wh: round(g.energy_workload_low_wh, 4), energy_workload_high_wh: round(g.energy_workload_high_wh, 4),
+    energy_configuration_low_wh: round(g.energy_configuration_low_wh, 4), energy_configuration_high_wh: round(g.energy_configuration_high_wh, 4),
+  })).sort((a, b) => b.date.localeCompare(a.date) || String(a.activity).localeCompare(String(b.activity)));
 }
 
 function findOpportunities(events, summary) {

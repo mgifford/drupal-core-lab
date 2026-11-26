@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#3603162 — Default Admin SVG consolidation revision</title>
+<style>
+:root{color-scheme:light dark}
+body{max-width:72rem;margin:2rem auto;padding:0 1rem;font:1rem/1.55 system-ui,sans-serif}
+nav{border-bottom:1px solid #888;padding-bottom:.6rem;margin-bottom:1.2rem;font-size:.9rem}
+table{border-collapse:collapse;width:100%;margin:1rem 0}
+th,td{border:1px solid #888;padding:.4rem .6rem;text-align:left;vertical-align:top}
+th{background:color-mix(in srgb,CanvasText 10%,Canvas)}
+code{overflow-wrap:anywhere}
+a:focus-visible{outline:.2rem solid;outline-offset:.15rem}
+</style></head><body>
+<nav><a href="../../../reports/index.html">Core Lab reports</a> · <a href="https://mgifford.github.io/svg-review/proposed/reports/revision-2026-11-25.html">SVG Review revision</a> · <a href="https://www.drupal.org/project/drupal/issues/3603162">Issue</a></nav>
+<h1>#3603162: Default Admin SVG consolidation and accessibility revision</h1>
+<p><strong>DRAFT — MR !17967 is open. No issue comment has been posted.</strong></p>
+<p>Issue: <a href="https://www.drupal.org/project/drupal/issues/3603162">https://www.drupal.org/project/drupal/issues/3603162</a>
+Original MR: <a href="https://git.drupalcode.org/project/drupal/-/merge_requests/16166">https://git.drupalcode.org/project/drupal/-/merge_requests/16166</a>
+New MR: <a href="https://git.drupalcode.org/project/drupal/-/merge_requests/17967">https://git.drupalcode.org/project/drupal/-/merge_requests/17967</a>
+Reviewed MR head: <code>fe4adb4f942385912bb3244b570afa475cadf3bd</code>
+Current upstream <code>main</code>: <code>0387fb948f786bc344a5cc54aa0d98b8f552e378</code>
+Merge base: <code>29b0a0b2256eb5ed27df6ec5e4e4e33142a717e8</code>
+Issue fork branch: <a href="https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision">https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision</a> — pushed; <a href="https://git.drupalcode.org/project/drupal/-/merge_requests/17967">MR !17967</a> open.
+Revision branch tip: <code>d4728a2aa3fc34e45e428d78ac111bd0c5e228ad</code></p>
+<h2>What this revision changes</h2>
+<ul>
+<li>Restores the autocomplete search icon as a mask on <code>.admin-autocomplete</code>; removes the undefined <code>--admin-icon-search-muted</code> properties.</li>
+<li>Defines <code>--admin-icon-edit-inverse</code> from the existing pencil geometry.</li>
+<li>Adds a dark-mode disabled check colour (<code>#adaeb3</code>) and limits the override to <code>@media (forced-colors: none)</code>.</li>
+<li>Corrects the disabled dark select chevron without competing with forced colours.</li>
+<li>Paints masked status-report icons with <code>CanvasText</code> in forced colours.</li>
+<li>Replaces the sticky loader pseudo-element with pre-tinted background images, because the controls are <code>&lt;input type=&quot;submit&quot;&gt;</code>.</li>
+<li>Covers both <code>edit-submit</code>/<code>sticky-edit-submit</code> and <code>edit-save</code>/<code>sticky-edit-save</code>, mirrors the keyframes for RTL, and keeps a reduced-motion indicator.</li>
+<li>Uses <code>currentColor</code> for tabledrag tree strokes and hides the inline SVG from assistive technology.</li>
+<li>Removes 15 assets and 20 registry entries with no source consumer.</li>
+<li>Optimises 45 SVGs with SVGO 3.3.2 only where Chromium pixel output is identical.</li>
+</ul>
+<h2>Verified</h2>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Static SVG validation</td>
+<td>64 files, 0 errors, 0 warnings</td>
+</tr>
+<tr>
+<td>Icon reference audit</td>
+<td>0 undefined, 0 missing, 0 unused</td>
+</tr>
+<tr>
+<td>Compiled icon equivalence</td>
+<td>51 compiled data URIs match source recursively</td>
+</tr>
+<tr>
+<td>Pixel comparison</td>
+<td>45 adopted files identical; 6 skipped</td>
+</tr>
+<tr>
+<td>Theme PHPUnit Unit/Kernel</td>
+<td>14 tests, 209 assertions, pass</td>
+</tr>
+<tr>
+<td>Twig lint</td>
+<td>2 files, 0 errors</td>
+</tr>
+<tr>
+<td>Stylelint</td>
+<td>Changed compiled CSS passes</td>
+</tr>
+<tr>
+<td>Compiled CSS check</td>
+<td>Changed files reproduce with Core build</td>
+</tr>
+<tr>
+<td>Axe, tested pages</td>
+<td>0 WCAG A/AA violations</td>
+</tr>
+<tr>
+<td>Patch application</td>
+<td>Complete patch and interdiff apply cleanly</td>
+</tr>
+</tbody></table>
+<h2>Measured</h2>
+<ul>
+<li>SVGs: 74 files / 41,981 bytes → 64 files / 29,835 bytes.</li>
+<li><code>icons.css</code>: 40,615 bytes → 26,315 bytes; gzip 9,669 → 6,246; brotli 8,184 → 5,346.</li>
+<li>Dark disabled checkbox check contrast: 2.85:1 → 5.85:1; light unchanged at 3.78:1.</li>
+</ul>
+<p>These are stylesheet measurements, not page-weight or carbon claims.</p>
+<h2>Not verified</h2>
+<ul>
+<li>Functional PHPUnit tests (8) need a test web server configured for the test database.</li>
+<li>Native Windows High Contrast.</li>
+<li>Firefox and WebKit.</li>
+<li>Full AJAX Save/Preview round trip; the real progress markup was injected because node Save is not an AJAX submit.</li>
+<li>Media library edit control was tested with the theme&#39;s own markup inside a real selected item; this fixture&#39;s widget display does not render that field.</li>
+<li>File-type icons, sort indicators, pager, messages, password controls, narrow-viewport local-task trigger.</li>
+<li>No WCAG 2.2 AA conformance claim.</li>
+</ul>
+<p>See <a href="https://github.com/mgifford/drupal-core-lab/blob/main/reports/issues/3603162/EVIDENCE.md">EVIDENCE.md</a>, <a href="https://github.com/mgifford/drupal-core-lab/blob/main/reports/issues/3603162/BRANCHES.md">BRANCHES.md</a> and <a href="https://github.com/mgifford/drupal-core-lab/blob/main/reports/issues/3603162/REPRODUCE.md">REPRODUCE.md</a>.</p>
+
+</body></html>

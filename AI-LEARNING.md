@@ -293,3 +293,129 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 - **What worked, repeat:** pin a public dataset with SHA + checksum + NOTICE; verify offline; compute derived values at report time; test with synthetic fixtures; run accessibility checks on both pages and fix what they find; record coverage and denominators next to every figure; force-push only with `--force-with-lease` and explicit approval.
 - **Open:** the two proxy mappings need a human decision; carbon (Phase 7), local and CI infrastructure energy (Phase 4) and energy per verified outcome (Phase 3) are not started. The per-token coefficient import path is built and tested, but no real dataset exists to import.
 
+
+## Learnings from #3603162 Default Admin SVG revision (2026-11-25 to 2026-11-26)
+
+Worked on MR !16166 at `fe4adb4f`, rebased its 11 commits onto current `main` `0387fb94`, and added two revision commits, `0d00037e` and the spelling fix `d4728a2a`. Pushed a new issue-fork branch `3603162-svg-revision`; MR !17967 is open. The original MR branch was not rewritten. Evidence is in `reports/issues/3603162/` and in the public [SVG Review revision report](https://mgifford.github.io/svg-review/proposed/reports/revision-2026-11-25.html).
+
+### What was verified
+
+- 64 SVGs pass the structural validator; the reference audit has 0 undefined, missing or unused references.
+- 46 external regression tests pass.
+- 14 theme Unit/Kernel PHPUnit tests pass with 209 assertions; 8 functional tests need a test web server and were not counted.
+- Axe reports no WCAG A/AA violations on permissions, status and node-add pages.
+- Real-browser evidence covers permissions, autocomplete, sticky loader, media-library controls, status icons, tabledrag, selects, RTL, reduced motion and forced-colours emulation.
+- The complete patch and interdiff both apply; the complete patch reproduces the branch theme.
+
+### Mistakes and traps worth not repeating
+
+1. **A `<input type="submit">` cannot host a pseudo-element.** The historical sticky-loader fix used `::after`; it could never render. Check the rendered tag before choosing a CSS mechanism. The replacement uses pretinted background images and a `.button` selector that outranks the top-bar padding rule.
+2. **External SVG backgrounds do not inherit `currentColor`.** A mask takes its paint from the consuming element; a background image has its own rendering context. Classify each consumer before choosing mask, inline SVG or pretint.
+3. **The theme's specificity hack can invert the cascade.** `:is(#extra-specificity-hack, [data-drupal-admin-styles])` beat the loader padding and the dark-mode rules beat forced-colours rules. Scope dark artwork with `@media (forced-colors: none)` and verify matched rules, not source order.
+4. **A mask's paint is `background-color`.** In Chromium forced-colours emulation, `CanvasText` survived on the masked pseudo-element and kept status icons visible; `forced-color-adjust: none` was not needed. Record that emulation is not native Windows High Contrast.
+5. **Do not measure RTL by toggling `dir` on a loaded page.** Logical padding transitioned through 12/36 px and produced a false reading. A fresh document with `dir="rtl"` gave the correct 36 px left / 12 px right and exposed the real overlap risk.
+6. **Pixel-identical SVGO output can be larger.** `tabledrag-handle.svg` grew 30 bytes because arc-flag spacing expanded; `menu.svg` grew 16 bytes from intentional ARIA metadata. Gate optimisation on both bytes and pixels, and report exceptions.
+7. **“Adopted”, “smaller” and “new” are different counts.** The first summary said 45 SVGs were adopted; only 41 existing SVGs are smaller, two adopted files are larger, and two adopted files were new pretints. Define the denominator before quoting a percentage.
+8. **A definition is not a consumer.** Resolve CSS custom-property alias chains to files and keep literal source references separate. An absent source reference still does not prove an icon is unused.
+9. **Static harnesses cannot accept interaction-dependent icons.** The sticky loader needed Drupal's real progress markup; the media edit control needed the theme's own class inside a real selected media item. Record every injected state.
+10. **GitHub Pages does not list directories.** The screenshot directory returned 404 until an `index.html` was added. Publish report directories as real pages.
+11. **Issue-fork write access is account-specific.** SSH can authenticate as `@mgifford` while the project rejects the push. Prepare a bundle and exact commands; do not assume read access implies write access.
+
+12. **Drupal CSpell enforces US spelling in code comments.** `colour`, `colours` and `grey` failed the commit check even though they were only comments. Use `color`, `colors` and `gray`. Run `cspell` on the changed CSS/Twig before pushing; the bot checks the patch lines, not the whole file.
+
+13. **A follow-up push can race an automated commit.** The remote branch already contained `d4728a2a` with the same content as the local spelling fix `172c07ef`. The push was rejected as non-fast-forward. Fetch, compare content, and adopt the remote commit; never force-push over it.
+
+### Process notes
+
+- Keep the original 11 commits and add clearly described revision commits. Do not rewrite the existing MR author's branch.
+- The `drupal-core-lab` working tree had many unrelated changes. Push only `reports/issues/<nid>/` from a clean `origin/main` worktree. The same applies to generated HTML: regenerate only the pages that changed.
+- The MR creation URL in the push hint (`/issue/.../-/merge_requests/new`) returned 404. The working route is the target project with the fork's source project id: `/project/drupal/-/merge_requests/new?merge_request[source_project_id]=225946&...`.
+- The Core Lab issue index generator (`scripts/index-issues.mjs`) currently fails on unrelated `mr.sha` data, so the direct `reports/issues/3603162/index.html` page is the usable link.
+- Local cleanup: remove temporary worktrees and transfer bundles, restore the shared Drupal site's theme, settings, password and test modules, and keep the active branch worktree clean.
+
+### Open items
+
+- MR !17967 exists and is mergeable. Its description is still the short auto-generated text; replace it with the prepared description that links the interdiff, revision report and component evidence.
+- The Drupal.org issue comment draft is ready at `reports/issues/3603162/ISSUE-COMMENT-DRAFT.md` (128 words, with LLM disclosure). It has not been posted; rewrite it in the owner's words first.
+- `tabledrag-handle.svg` remains 30 bytes larger. It is documented and was not reverted to avoid invalidating the pushed branch for a negligible byte change.
+- Functional PHPUnit, native Windows High Contrast, Firefox and WebKit remain untested. No WCAG 2.2 AA claim.
+
+## Learnings from #2848307 table and tableselect inline errors (2026-11-26)
+
+Worked on the open core issue #2848307 and MR !16355. The change replaces a recursive error renderer with table/tableselect theme rendering, fixes the modules uninstall form independently, and records a before/after Lab comparison. Evidence is in `reports/issues/2848307/`; the core patch was not pushed.
+
+### Traps worth not repeating
+
+1. **Copying a DDEV environment copies its worktree pointer.** `cp -a envs/baseline-3083103 envs/issue-2848307` copied a `.git` *file* pointing at `envs/core.git/worktrees/baseline-3083103`, so both trees shared one worktree index. `git reset` in the copy could have changed the original's index, and the lab patch-state file was the same. Replace the copied `.git` with an independent clone/worktree before running git commands in a copied environment, and check `git worktree list` afterwards.
+2. **`git archive` is not a full core tree.** Drupal's `.gitattributes` marks test directories `export-ignore`, so `git archive <sha>` silently omitted `core/modules/*/tests/...` and a patch adding tests failed with "No such file or directory". Use `git checkout-index -a --prefix=/tmp/base/` (or a worktree) when a test fixture must be present.
+3. **Patch state lives in the git directory, not the web root.** `envs/<env>/.git/lab-patches/state.json` records the applied patch hashes. A copied environment inherits it and reports the old patch. Remove it and re-run `setup.mjs --refresh-patches`; the `.lab-patches-applied` name file is only a legacy hint.
+4. **A wrapper theme hook declared with `variables` gets only those variables.** `inline_form_errors_table` initially declared `variables` and received no `#children`, so the table rendered as an empty div. A wrapper around a render element needs `'render element' => 'element'` so `$variables['element']` carries `#children`, `#errors` and `#id`.
+5. **A table pre-render callback must run before `preRenderTableselect()`.** That callback renders the child checkboxes immediately. Appending the IFE callback to `#pre_render` was too late to suppress inherited errors; `array_unshift` is required.
+6. **`#error_no_message` hides the message, not the invalid state.** `RenderElementBase::setAttributes()` adds `aria-invalid="true"` whenever `#errors` is set and the element is validated. To stop every row being invalid, clear the inherited `#errors` on the children (and keep an own-error marker on the table), not just set `#error_no_message`.
+7. **A Guidepup virtual reader started inside a table skips the table's own announcement.** Starting at `table#...` began with `rowgroup` and never spoke the `aria-describedby` description; starting at the wrapper/form spoke `"table, A table with an error, No rows selected."`. Start outside the element whose name/description you are testing.
+8. **A summary-link fragment needs a focusable target.** The table is not focusable, so `#edit-table` changed the hash but left focus on `BODY`. `tabindex="-1"` on the table makes the link move focus to it without adding a tab stop; the next Tab then enters the checkboxes.
+9. **Adding a variant makes `cloud/` stale.** `build-cloud.mjs --check` fails until `cloud/variants.json` is regenerated. Run `node scripts/build-cloud.mjs` and commit the generated file.
+10. **Issue-variant probes are validated as one expression.** A probe with `const`, `if` or semicolons failed `tests/issue-pack/validate.test.mjs`; probes over 400 characters failed too. Use one assignment-free expression, and run that test file after editing `variants.json`.
+11. **`ready-to-push` can be red for machine reasons.** In an independent clone, `test-mr` stops when the real DDEV registry already has `drupal-compare` at the main lab; do not unlist another session's projects to make it green. The selftest also needs the main lab's ignored `tools/compare/.deps` and `tools/playwright/node_modules` linked for `js-yaml` and `jsdom`; restore the tracked `tools/playwright/node_modules` symlink before committing.
+12. **The main lab tree was very dirty.** 134 unrelated changes from other sessions were present. A worktree from `origin/main`, explicit `git add` paths, and a check of `git diff --cached --name-only` kept the push to this issue only.
+
+### What worked, repeat
+
+- Read the rendered DOM before choosing the architecture: the uninstall table is hand-written, the `modules` branch is never rendered as a table, and `tableselect` child checkboxes inherit the parent error.
+- Keep the error on the element that owns it and mark only tables with their **own** error (`#inline_form_errors_own_error`); an inherited parent error must not be repeated at the table.
+- Preserve the table's native semantics. A `form_element` wrapper would print an invalid `<label for="<table id>">`; a fieldset/legend only in the error state needs a label source and changes the layout. Associate the error with the table and make the summary link focus it.
+- Test the before side with the same test-only fixture, not a different page. The regression was concrete: two repeated messages and two invalid checkboxes before, one message and zero invalid rows after.
+- Recompute and record patch hashes and regenerate the interdiff after every patch change; the first interdiff went stale within one edit.
+## 2026-11-26: #3630425, shared-machine builds and real AT
+
+- **The DSH workspace sandbox blocks DDEV's global state.** `ddev config` needs to write `~/.ddev/project_list.yaml`; under workspace-write it fails with `operation not permitted`. The setup build needs the one-shot wider permission, or must run from the owner's terminal.
+- **Setup is serialized by `envs/.setup.lock`.** "Another setup is already running (pid ...)" is expected while another comparison builds. Wait, do not start a second one. A watcher loop is fine, but propagate the child status (`exit $?`), not `echo` after `wait`.
+- **Safari's AppleScript `document` is a window property, not an element.** Inside `tell (first window whose id is N)`, `document 1` raises `-10008`; use `document of (first window whose id is N)` or `current tab`.
+- **The agent process cannot control Safari or VoiceOver.** macOS returns `-10004` privilege violation or `osascript ETIMEDOUT`. Real VoiceOver runs must come from the owner's terminal; the agent can still build, evaluate and read the recorded phrases.
+- **Default Admin hides the `Order` column.** The DOM has three `th` cells but the accessibility tree exposes two headers; the actions header is the second DOM `th` and the third logical column. The unlimited widget renders the two recipe defaults plus one empty row: 3 initial, 4 after Add, 3 after Remove.
+- **The Guidepup virtual reader does not tie a header to a cell.** It reads `columnheader, Operations` at the header row but `cell`, `button, Remove` at the button. Do not claim per-button column context from it.
+- **AJAX screenshots need a settle step.** Scroll and focus changes made the whole table differ by 1/255. Normalizing scroll, blurring the active element and waiting 600 ms made the initial and remove captures pixel-identical; report the remaining 9 pixels at 1/255 as anti-aliasing.
+- **Guidepup's `keyboardCommands` getter throws until VoiceOver is running.** Read it only after a successful `start()`.
+- **`<stamp>` in a shell block is redirection.** zsh parses `<` before it runs anything. Use a variable or `find ... | sort | tail -1`; remove angle-bracket placeholders from copy-paste commands.
+- **Compare PNGs by pixels, not bytes.** Record differing pixel count and maximum channel difference; one-level differences are anti-aliasing, not a layout change.
+- **A failed screen reader run must not save `completed`.** The final status write overwrote the error path; `process.exit(1)` after the error save prevents it.
+## Learnings from the #3606655 review (2026-11-26)
+
+Reviewed MR !16432 at `170be9e3` against core `ced1e263` (`12.0-dev`).
+
+- **Scope is the issue summary, not the MR description.** The MR had pivoted from a server-rendered value (`data-color-scheme`, `color_scheme` Twig variable, capability-gated cache context) to an invariant `auto` plus a `DrupalColorScheme` cookie and a head script. No issue comment mentions the cookie, so the pivot existed only in the MR description. Compare the summary's "Proposed resolution" list to the diff first; a design recorded only in the MR is a blocker, not a nit.
+- **A rebase that claims "PHPStan fixes" can still sit on the wrong branch generation.** `user_update_11401` is 11.4 numbering, but `const VERSION` was `12.0-dev` at the MR base, at the rebase base and at current main, and other modules already used `12000`–`12100`. Check the version at the base and at main, then the highest existing hook number.
+- **The shared bare clone is shallow: `merge-base` fails.** Take the MR `.diff` from the GitLab endpoint, pin its sha256, and test application with a temporary index: `GIT_INDEX_FILE=/tmp/i git --git-dir=envs/core.git read-tree <sha> && GIT_INDEX_FILE=/tmp/i git --git-dir=envs/core.git apply --cached --check <patch>`. That answers "does it still apply to main" without a checkout.
+- **Cacheability debug headers are a container parameter, not a setting.** `$settings['http.response.debug_cacheability_headers']` does nothing. Write `sites/default/services.yml` with `parameters: http.response.debug_cacheability_headers: true`, then rebuild caches.
+- **Mutagen hides settings edits for seconds.** `update.php` kept returning the `update_free_access` denial after the line was appended on the host; `ddev exec tail` showed the container had not received it yet. Verify inside the container before concluding a setting is ignored.
+- **SQLite in the core-dev container has no `NOCASE_UTF8`.** Queries using the `name` index fail with "no such collation sequence"; query and update by `uid`, or read all rows. With `--omit-containers=db`, the database is `sites/default/files/.sqlite`; `.ht.sqlite` is the empty test file.
+- **Form API POSTs need the submit button's `op`.** Without it the form re-renders with a 200 and nothing saves; every preference "failed" until `op: 'Save'` was added to the probe payload.
+- **Detect login by the session cookie, not the "Log out" text.** One-time-login redirects (`?check_logged_in=1`) and theme variants made text matching unreliable; `SESS`/`SSESS` in the jar is decisive.
+- **Attribute an overflow before reporting it.** `/user/edit` at 320 px had `scrollWidth 387`, but Before and After were identical, so it was the theme's pre-existing layout, not the MR.
+- **A cookie-driven kill switch can be driven by the client.** Sending `Cookie: DrupalColorScheme=dark` anonymously made every response `UNCACHEABLE (response policy)`; without the cookie the second request was a HIT. Kept out of the public report as a possible cache-bypass and told the operator. Test with and without the cookie.
+- **A worktree inside the clone cannot pass `selftest`.** `test-mr.mjs` refuses a second copy inside the first (DDEV project names are global), and `jsdom` was missing. Prepare the commit with plumbing (`read-tree`, `--work-tree add`, `write-tree`, `commit-tree`, `push <sha>:refs/heads/<branch>`) rather than switching branches in a tree another session is using.
+
+Open after the review: the design mismatch and the 17 unresolved threads need maintainer decisions; no person has done the keyboard or screen-reader pass.
+
+## Learnings from #3426468 Navigation active-state evaluation (2026-11-26)
+
+Built the `3426468-latest` pair on core `a48087f26ec`, measured nine browser/mode combinations, and pushed revision v2 on the `3426468-active-indicator` branch. The original v1 patch is preserved; v2 is a four-file interdiff (comments and a Default Admin theme colour) on top of it. The bar is the durable cue: light 6.69:1, dark 10.21:1, forced 21:1, and it survives collapse, 480 px and RTL. The active text is 5.82:1 light; the active-vs-inactive delta fell from 2.99 to 2.32, so colour alone would not carry the state.
+
+### Mistakes and traps worth not repeating
+
+1. **A theme can override a module custom property after the module rule.** Default Admin re-declared `--toolbar-button-current-color` after the module, so v1's `gray-990` change produced no rendered difference at all. Read the theme's cascade and the computed colour; do not trust a variable change in the component. In this theme `gray-990` is an alias for the dark active blue (`accent-600`), not a neutral gray.
+2. **Chromium can serialise computed colours as `lch()`.** The dark-mode run returned null contrast until the evaluator normalised every colour through a 1x1 canvas. Parse `lch()`/`oklch()` or measure through the browser; do not assume `rgb()` strings.
+3. **Wait for the admin sidebar slide before measuring.** `data-admin-toolbar-animating` and a negative `x` were the only clues; a mid-transition rect invented a clipping failure. Wait for `#admin-toolbar` to settle, then measure.
+4. **The active trail can be closed on load (#3438046).** The current submenu dot is hidden until Structure is opened. Open the trail with keyboard Enter; in RTL a pointer click on the next trigger was intercepted by the open popover's safe-triangle.
+5. **Hover is not a touch gesture.** At 480 px, skip hover checks and record them as not tested; do not fail a patch for a state the viewport cannot produce.
+6. **Firefox's default focus ring can be 1 px dotted.** The pre-existing “Collapse sidebar” button uses it; require a visible ring (>=1 px), record the inconsistency, and keep the theme's 2 px ring as the target.
+7. **Coverage's primary variant is the `-pinned` one unless `coverage.active` selects another.** The validator did not allow the key that `coverage.mjs` reads; it now does. Without it, a local proposal in `-latest` is not the primary row.
+8. **Shortcuts is gone from core at this commit.** `core/modules/shortcut` and `navigation_shortcuts` do not exist, so the issue's case (c) is N/A on a Standard install, not a pass.
+9. **A clean worktree still fails two selftest checks for environment reasons.** The tracked `tools/playwright/node_modules` symlink is depth-specific, and `test-mr` stops because the main copy owns the `drupal-compare` DDEV name. `ready-to-push --skip-selftest` is then an honest base check only if the variants, cloud and docs checks were run separately and the environment-blocked rows are named.
+10. **The push branch can contain other work.** The main tree had 134 unrelated changes and the current branch was a 3155130 branch two commits ahead. Create a new branch from `origin/main`, copy only the issue's files, merge its variant entry, and push from there.
+
+### Process notes
+
+- The final branch is `3426468-active-indicator` (two commits before the learnings commit: the evaluation and the coverage/cloud fix). It was pushed from `/tmp/drupal-core-lab-3426468-push`, a clean `origin/main` worktree.
+- Parallel sessions had uncommitted changes in `AI-LEARNING.md` and many `reports/issues/` folders. Do not append to or commit a shared file from the dirty main tree; do it in the clean worktree.
+- The drupal.org issue stayed unassigned with 32 comments throughout. Nothing was posted, no MR was opened, and the issue status was not changed.

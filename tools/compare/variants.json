@@ -684,7 +684,7 @@
       {
         "text": "Focus the sidebar toggle (top of the meta sidebar) and press the Space key.",
         "how": "each",
-        "lookFor": "After: the sidebar toggles. Before: nothing happens — an <a role=button> does not activate on Space."
+        "lookFor": "After: the sidebar toggles. Before: nothing happens \u2014 an <a role=button> does not activate on Space."
       },
       {
         "text": "Desktop (>=1024px): toggle the sidebar closed, then reload the frame.",
@@ -714,7 +714,7 @@
       {
         "text": "Forced colours (local DDEV: the lab browser's switch; any lab: DevTools > Rendering > Emulate forced-colors, or a Windows contrast theme), below 976px: open the sidebar with Enter.",
         "how": "each",
-        "lookFor": "After: the close button has focus and its × icon is visible inside the focus ring. With revision 6f7766cb only the ring showed (comment #23); with 175e6f17 the icon shows (measured 2026-10-18, Chromium). Before: the close button is under the top bar."
+        "lookFor": "After: the close button has focus and its \u00d7 icon is visible inside the focus ring. With revision 6f7766cb only the ring showed (comment #23); with 175e6f17 the icon shows (measured 2026-10-18, Chromium). Before: the close button is under the top bar."
       },
       {
         "text": "Below 976px: close the sidebar once with the close button and once by clicking the overlay.",
@@ -833,7 +833,7 @@
         "expectAfter": true
       },
       {
-        "label": "Forced colours, below 976px: the close button's × is visible when the button has focus (comment #23)",
+        "label": "Forced colours, below 976px: the close button's \u00d7 is visible when the button has focus (comment #23)",
         "expectBefore": false,
         "expectAfter": true
       },
@@ -1046,8 +1046,8 @@
     "slug": "3426468-latest",
     "extends": "3426468-pinned",
     "label": "#3426468: Make the active menu item visually stand out more (lab-authored fix, LATEST core main)",
-    "description": "The active top-level navigation item is distinguished only by a faint colour/background change (state-to-state delta ~1.95:1 text, ~1.09:1 background -- SC 1.4.1/1.4.11). Lab-authored fix per kentr's 2026-02 analysis (comment #28): darken --toolbar-button-current-color to match the existing submenu active colour, and add an always-on left bar (not colour alone), matching the bar the forced-colors media query already draws and the dot already used deeper in the menu.",
-    "status": "ready: before = colour-only active state (text delta ~1.95:1, bg delta ~1.09:1); after = darker text (delta ~2.45:1) + a left bar (own contrast ~16.6:1)",
+    "description": "Before: the active top-level item is colour and background only. After (v1+v2): a 4 px inline-start bar (the forced-colours idiom) plus the Default Admin gray-990 active colour. Measured 2026-11-26 on a48087f26ec in Chromium, Firefox and WebKit, light, dark, forced colours, collapsed, 480 px and RTL.",
+    "status": "measured 2026-11-26 (a48087f26ec): 9/9 runs reproduced-and-fixed; bar 6.69:1 light, 10.21:1 dark, 21:1 forced; active text 5.82:1; submenu ancestor still unmarked; Shortcuts case N/A (module removed from core).",
     "core": {
       "ref": "main",
       "commit": null
@@ -1058,7 +1058,8 @@
     "after": {
       "env": "issue-3426468-latest",
       "patches": [
-        "reports/issues/3426468/branches/3426468-active-indicator.patch"
+        "reports/issues/3426468/branches/3426468-active-indicator.patch",
+        "reports/issues/3426468/branches/3426468-active-indicator-v2.patch"
       ]
     },
     "steps": [
@@ -1073,11 +1074,16 @@
       {
         "text": "Look at the \"Content\" item in the top-level navigation menu.",
         "how": "each",
-        "lookFor": "After: a left bar and darker text mark it as active. Before: only a faint colour and background change."
+        "lookFor": "After: a left bar and the darker active colour mark it. Before: only a faint colour and background change."
+      },
+      {
+        "text": "Open /admin/structure/display-modes/form and expand Structure, then Display modes.",
+        "how": "each",
+        "lookFor": "After: Structure has the left bar; Form modes keeps its dot. Display modes (the submenu ancestor) has no bar or dot."
       }
     ],
-    "expected": "After: the active top-level item has a visible left bar (own contrast ~16.6:1 against the background) plus darker active text (delta ~2.45:1 vs non-active text); the same treatment applies to a parent item whose submenu has the active item. Before: only a colour and background-colour change, both with a very low state-to-state delta.",
-    "actual": "TODO after running",
+    "expected": "After: the current top-level item and the top-level ancestor have a 4 px inline-start bar (6.69:1 light, 10.21:1 dark, 21:1 forced) and the current text is 5.82:1 against its background; the current submenu item keeps its dot. Before: colour and background only at the top level. The bar does not intersect the focus ring, clip, or shift the item box; the submenu ancestor still has no bar/dot.",
+    "actual": "Measured 2026-11-26 at a48087f26ec: 9/9 runs reproduced-and-fixed. See playwright/2026-11-26T13-52-52-050Z-chromium-light-1280x900/SUMMARY.md and EVIDENCE.md. Submenu ancestor has no marker; the approved design uses a dot, the patch a bar.",
     "checks": [
       {
         "label": "Setup reached: the active top-level nav item is on the page",
@@ -1096,98 +1102,14 @@
       "Is the active top-level item marked by more than colour alone (a left bar), both in standard colours and in forced-colors mode?",
       "Is the active item's text visibly darker/bolder-looking than non-active items?",
       "Any regression in menu layout, icons, or the existing deeper-level active dot?"
-    ]
-  },
-  {
-    "slug": "3606655-pinned",
-    "issue": "3606655",
-    "label": "#3606655: Allow user-configurable UI settings - starting with dark mode, pinned core",
-    "description": "Before: user profile has no Color scheme setting and <html> has no data-color-scheme. After (MR !16432): profile form /user/1/edit has Color scheme radios Light/Dark/System and every page carries <html data-color-scheme>. Open /user/1/edit in both frames and compare the bottom of the form, then inspect the <html> attribute.",
-    "status": "ready: before = no color_scheme field, no data-color-scheme; after = Color scheme radios + data-color-scheme on <html>",
-    "core": {
-      "url": "https://git.drupalcode.org/project/drupal.git",
-      "commit": "073a7d38198419c6348d9b8f575a8c6b6ade3ba9"
-    },
-    "before": {
-      "env": "baseline-3606655"
-    },
-    "after": {
-      "env": "issue-3606655",
-      "patches": [
-        "reports/issues/3606655/branches/3606655-make-dark-mode.patch"
-      ]
-    },
+    ],
     "pages": [
-      "/user/1/edit",
-      "/"
-    ],
-    "login": true,
-    "recipe": "repro_3606655",
-    "steps": [
-      {
-        "text": "Standard install; Default Admin is the admin theme.",
-        "how": "recipe"
-      },
-      {
-        "text": "Type /user/1/edit in Page and press Go (both). Scroll to the bottom above Save.",
-        "how": "mirror",
-        "lookFor": "After: a Color scheme fieldset with Light / Dark / System radios. Before: no such field."
-      },
-      {
-        "text": "In EACH frame, pick Dark and press Save, then look at the page.",
-        "how": "each",
-        "lookFor": "After: preference saves and <html data-color-scheme> reflects it. Before: nothing to pick."
-      }
-    ],
-    "expected": "After: /user/1/edit shows Color scheme radios and <html> carries data-color-scheme. Before: neither exists.",
-    "actual": "TODO after running",
-    "checks": [
-      {
-        "label": "Setup reached: user edit form is on the page",
-        "probe": "!!document.querySelector('form.user-form, form#user-form, form[action*=\"user\"]')",
-        "expect": true,
-        "kind": "precondition",
-        "onlyOn": "/user/1/edit"
-      },
-      {
-        "label": "Color scheme radios are on the profile form",
-        "probe": "document.querySelectorAll('input[name=\"color_scheme\"]').length",
-        "expect": 3,
-        "kind": "fix",
-        "onlyOn": "/user/1/edit"
-      },
-      {
-        "label": "<html> carries data-color-scheme",
-        "probe": "document.documentElement.hasAttribute('data-color-scheme')",
-        "expect": true,
-        "kind": "fix"
-      },
-      {
-        "label": "JavaScript errors on the page (ignoring the harmless \"ResizeObserver loop\" notice)",
-        "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
-        "expect": 0,
-        "kind": "regression"
-      }
-    ],
-    "observe": [
-      {
-        "label": "Profile form shows a Color scheme choice (Light / Dark / System)",
-        "expectBefore": false,
-        "expectAfter": true
-      },
-      {
-        "label": "<html data-color-scheme> is present",
-        "expectBefore": false,
-        "expectAfter": true
-      },
-      {
-        "label": "Anything else looks broken (profile form, theme settings)",
-        "expectBefore": false,
-        "expectAfter": false
-      }
+      "/admin/appearance",
+      "/admin/structure/display-modes/form",
+      "/admin/content"
     ],
     "coverage": {
-      "note": "The combinations that count as tested for this issue (scripts/coverage.mjs). Edit to fit the question the issue asks.",
+      "active": true,
       "matrix": [
         {
           "browser": "chromium",
@@ -1204,6 +1126,12 @@
         {
           "browser": "chromium",
           "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
           "forced": true,
           "width": 1280
         },
@@ -1226,21 +1154,6 @@
           "width": 1280
         }
       ]
-    }
-  },
-  {
-    "slug": "3606655-latest",
-    "extends": "3606655-pinned",
-    "label": "#3606655: same steps against the LATEST core main",
-    "core": {
-      "ref": "main",
-      "commit": null
-    },
-    "before": {
-      "env": "baseline-3606655-latest"
-    },
-    "after": {
-      "env": "issue-3606655-latest"
     }
   },
   {
@@ -2545,8 +2458,8 @@
     "slug": "2942404-consolidated",
     "extends": "2942404-pinned",
     "label": "#2942404: current main vs ONE consolidated \"System messages\" region (Variant C)",
-    "description": "Before is current core main (Variant A, the same checkout as the 2942404-latest comparison). After is main plus a lab-authored option that wraps the message groups in ONE named landmark: the [data-drupal-messages] container becomes role=region with the accessible name 'System messages', and the existing per-type groups keep role=status (status) or role=alert (error and warning) and their headings. No nested live regions, no aria-live, no focus change. Templates only (system, Default Admin, starterkit). Variant B (a region per type) is the 2942404-latest comparison. This is an option to evaluate, not a recommendation.",
-    "status": "DRAFT: lab-authored option for comparison; human review required",
+    "description": "Before is current core main (Variant A, the same checkout as the 2942404-latest comparison). After is main plus a lab-authored option that wraps the message groups in ONE named landmark: the [data-drupal-messages] container becomes role=region with the accessible name 'System messages', and the existing per-type groups keep role=status (status) or role=alert (error and warning) and their headings. No nested live regions, no aria-live, no focus change. The template change covers system, Default Admin, starterkit, Umami and the test_messages test theme; Drupal.Message adds and removes the same landmark on default JavaScript messages and keeps contextual wrappers unchanged. Regression tests are included. Variant B (a region per type) is the 2942404-latest comparison. This is an option to evaluate, not a recommendation.",
+    "status": "DRAFT: lab-authored option with implementation and tests; human review required",
     "core": {
       "ref": "main",
       "commit": null
@@ -2557,7 +2470,8 @@
     "after": {
       "env": "issue-2942404-consolidated",
       "patches": [
-        "reports/issues/2942404/branches/2942404-consolidated-region.patch"
+        "reports/issues/2942404/branches/2942404-consolidated-region.patch",
+        "reports/issues/2942404/branches/2942404-consolidated-message-landmark.patch"
       ]
     },
     "pages": [
@@ -2568,19 +2482,19 @@
     ],
     "steps": [
       {
-        "text": "Log in to both sites (the recipe adds the Article content type). Open /node/add/article, type a title and press Save. A status message appears on the new article after the redirect (front-end theme, Stark). Leave the page as it is, then press Run checks: the checks read the page each frame is on, so a message must be showing.",
+        "text": "Log in to both sites (the recipe adds the Article content type). Open /node/add/article, type a title and press Save. A status message appears on the new article after the redirect (default theme, Default Admin on this core). Leave the page as it is, then press Run checks: the checks read the page each frame is on, so a message must be showing.",
         "how": "each",
-        "lookFor": "Before: one element with role=status labelled 'Status message'. After: a region landmark labelled 'Status message' that contains an inner role=status. No contentinfo on either."
+        "lookFor": "Before: one element with role=status labelled 'Status message'. After: one region landmark named 'System messages' around it; the status group remains role=status. No contentinfo on either."
       },
       {
         "text": "Open /node/add/article again and press Save with the title empty. Browser validation stops the form first; turn it off (the evaluate script does) or submit from a form that validates on the server. An error message appears (admin theme).",
         "how": "each",
-        "lookFor": "Both: role=alert for the error. After adds a region landmark around it."
+        "lookFor": "Both: role=alert for the error. After adds one region landmark around it."
       },
       {
         "text": "Press Clear all caches on /admin/config/development/performance, and submit a wrong password on /user/login while logged out.",
         "how": "each",
-        "lookFor": "A status message in the admin theme and an error in the front-end theme: the same structure as above in each theme."
+        "lookFor": "A status message in the admin theme and an error in the default theme: the same structure as above in each theme."
       },
       {
         "text": "Open /system-test/status-messages-for-assertions (core's own fixture: a status, an error and a warning message together, plus quotes, ampersands and escaped markup). This is the one page where all three message types render at once.",
@@ -2590,7 +2504,7 @@
       {
         "text": "Open the browser's landmark list (or a screen reader's landmarks rotor) on a page with a message.",
         "how": "each",
-        "lookFor": "Before: no landmark for the message. After: one region landmark per message type, so a page may have several."
+        "lookFor": "Before: no landmark for the message. After: one region landmark named 'System messages'."
       },
       {
         "text": "With a screen reader, compare what is spoken after the save redirect and when a message is added by JavaScript. The lab runs none; record it as a person's result.",
@@ -2633,7 +2547,7 @@
         "expectAfter": true
       },
       {
-        "label": "Does the landmark list show one entry per message type, and is that useful rather than noisy?",
+        "label": "Does the landmark list show one 'System messages' entry around all current messages?",
         "expectBefore": false,
         "expectAfter": true
       }

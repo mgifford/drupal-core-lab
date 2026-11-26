@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mgifford/drupal-core-lab/tools/resource/energy/factors.schema.json",
+  "title": "Per-token energy coefficient dataset (import format)",
+  "description": "Version 1.0.0. Import format for a per-token energy coefficient set. The current public CLEER dataset does not publish these coefficients, so this format exists to accept a locally supplied dataset when one becomes available, and to test the estimator with clearly labelled synthetic data. A dataset marked synthetic must never be presented as a real estimate. Units are declared once for the whole dataset and converted to Wh on import.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "kind",
+    "synthetic",
+    "source",
+    "units",
+    "models"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "kind": {
+      "const": "per-token-energy-factors"
+    },
+    "synthetic": {
+      "type": "boolean",
+      "description": "True for test fixtures built to exercise arithmetic. A synthetic dataset is never a real energy estimate."
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "organization",
+        "dataset_name",
+        "dataset_version",
+        "release_date",
+        "licence",
+        "methodology"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "organization": { "type": "string", "minLength": 1 },
+        "dataset_name": { "type": "string", "minLength": 1 },
+        "dataset_version": { "type": "string", "minLength": 1 },
+        "release_date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "checksum": { "type": ["string", "null"] },
+        "licence": {
+          "type": "object",
+          "required": ["name", "redistribution", "commercial_use", "notice"],
+          "additionalProperties": false,
+          "properties": {
+            "name": { "type": "string", "minLength": 1 },
+            "redistribution": { "enum": ["permitted", "restricted", "unknown"] },
+            "commercial_use": { "enum": ["permitted", "restricted", "unknown"] },
+            "notice": { "type": "string" }
+          }
+        },
+        "methodology": {
+          "type": "object",
+          "required": ["name", "version", "boundary"],
+          "additionalProperties": false,
+          "properties": {
+            "name": { "type": "string", "minLength": 1 },
+            "version": { "type": "string", "minLength": 1 },
+            "boundary": { "enum": ["accelerator-inference", "facility-inference", "whole-system", "unknown"] }
+          }
+        }
+      }
+    },
+    "units": {
+      "type": "object",
+      "required": ["energy", "tokens"],
+      "additionalProperties": false,
+      "properties": {
+        "energy": { "enum": ["Wh", "kWh", "J"] },
+        "tokens": { "const": "count" }
+      }
+    },
+    "models": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/model" }
+    }
+  },
+  "$defs": {
+    "coefficient": {
+      "type": "object",
+      "required": ["central", "lower", "upper", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "central": { "type": ["number", "null"], "minimum": 0 },
+        "lower": { "type": ["number", "null"], "minimum": 0 },
+        "upper": { "type": ["number", "null"], "minimum": 0 },
+        "status": { "enum": ["published", "derived", "unavailable"] },
+        "note": { "type": ["string", "null"] }
+      }
+    },
+    "model": {
+      "type": "object",
+      "required": ["provider", "model", "aliases", "coefficients", "uncertainty"],
+      "additionalProperties": false,
+      "properties": {
+        "provider": { "type": "string", "minLength": 1 },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The dataset's exact identifier for the model. A lab model is matched by exact string or by one of `aliases`; there is no fuzzy matching."
+        },
+        "aliases": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "coefficients": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "uncached_input": { "$ref": "#/$defs/coefficient" },
+            "cache_read": { "$ref": "#/$defs/coefficient" },
+            "cache_creation": { "$ref": "#/$defs/coefficient" },
+            "output": { "$ref": "#/$defs/coefficient" },
+            "total_input": { "$ref": "#/$defs/coefficient" }
+          }
+        },
+        "uncertainty": {
+          "type": "object",
+          "required": ["semantics", "source"],
+          "additionalProperties": false,
+          "properties": {
+            "semantics": { "enum": ["configuration-spread", "confidence-interval", "unknown"] },
+            "source": { "type": "string" }
+          }
+        },
+        "workload_assumptions": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "batch_size": { "type": ["number", "null"] },
+            "hardware": { "type": ["string", "null"] },
+            "context_length": { "type": ["number", "null"] },
+            "note": { "type": ["string", "null"] }
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+diff --git a/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php b/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php
+index 860667ce83..b07fcb1da2 100644
+--- a/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php
++++ b/core/modules/system/tests/src/Functional/Form/ModulesListFormWebTest.php
+@@ -56,9 +56,9 @@ public function testModuleListForm(): void {
+ 
+     // Check that module operations render as a dropbutton in a dedicated cell.
+     $this->assertSession()->elementExists('css', "td.operations .dropbutton-wrapper");
+-    $this->assertSession()->elementExists('css', 'td.operations .dropbutton > li:nth-child(1) > a[href="/system-test/configure/bar"]');
+-    $this->assertSession()->elementExists('css', 'td.operations .dropbutton > li:nth-child(2) > a[href="/admin/people/permissions/module/system_test"]');
+-    $this->assertSession()->elementExists('css', 'td.operations .dropbutton > li:nth-child(3) > a[href="/admin/help/system_test"]');
++    $this->assertSession()->elementExists('css', 'td.operations .dropbutton > li:nth-child(1) > a[href$="/system-test/configure/bar"]');
++    $this->assertSession()->elementExists('css', 'td.operations .dropbutton > li:nth-child(2) > a[href$="/admin/people/permissions/module/system_test"]');
++    $this->assertSession()->elementExists('css', 'td.operations .dropbutton > li:nth-child(3) > a[href$="/admin/help/system_test"]');
+ 
+     // Ensure that the Database Logging module's machine name is printed. This
+     // module is used because its machine name is different than its human

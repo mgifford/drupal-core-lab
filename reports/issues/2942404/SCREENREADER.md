@@ -1,49 +1,145 @@
-# #2942404: screen reader evidence, Guidepup virtual reader and Guidepup with real VoiceOver
+# #2942404: screen reader evidence
 
-**DRAFT, AI-assisted; a person has not reviewed it.** Run 2026-11-23 on macOS 27.2.1, Safari, VoiceOver, core `92e5c3a30476` (main, 2026-11-18).
+**DRAFT, AI-assisted; a person has not reviewed it.** Last updated 2026-11-26.
 
-- **Before:** core main as it is.
-- **After:** main plus the lab option [2942404-main-region-option.patch](branches/2942404-main-region-option.patch) (not an upstream MR; MR !6058 and !6112 no longer apply to main, see [MR-EVALUATION.md](MR-EVALUATION.md)). Each message type becomes a `region` named by its heading, with an inner `status` (status and warning) or `alert` (error).
-- **Page:** a lab-only test page added identically to both sites by `recipes/repro_2942404` (module `lab_status_messages`, test support, not code under test): `/lab/status-messages` in the front-end theme and `/admin/lab/status-messages` in Default Admin. Each shows two server-rendered status messages (one with a link), a warning, an error, and a button that adds one JavaScript message of each type with `Drupal.Message`.
-- **Tool:** [screenreader-2942404.mjs](../../../tools/playwright/screenreader-2942404.mjs). Raw output: [virtual run](screenreader/2026-11-23T13-29-17-382Z/SUMMARY.md), [VoiceOver, Before and the first After attempt](screenreader/vo-run2/results.json), [VoiceOver, After](screenreader/vo-run3-after/SUMMARY.md). Run 2 could not start VoiceOver for After (an AppleScript timeout); After was rerun alone as run 3, once VoiceOver Utility, left open by an earlier Recovery-mode start, was closed. Same pages, same command.
+The current evidence has two parts:
 
-## Result in one table
+- a Guidepup virtual run on the final three-patch code (03:34);
+- real VoiceOver runs on the final three-patch code (06:39) and on the earlier two-patch code
+  (01:31, 01:38, 01:42).
 
-| | Before | After (region option) |
-|---|---|---|
-| Status message, as read by **real VoiceOver** | "Status message application status", heading, text | "Status message **region**", heading, text |
-| Warning, real VoiceOver | "Warning message **alert**" | "Warning message **region**" |
-| Error, real VoiceOver | "Error message **alert**" | "Error message **region**" |
-| Status, **virtual reader** | `status, Status message` | `region, Status message` containing `status` |
-| Warning, virtual reader | `alert, Warning message` (assertive) | `region, Warning message` containing **`status`** (polite) |
-| Error, virtual reader | `alert, Error message` | `region, Error message` containing `alert` |
-| Messages added by JavaScript (`Drupal.Message.add`) | status (polite), warning and error (assertive) | **identical**: the option does not change `Drupal.theme.message` |
-| Spoken by VoiceOver after pressing the button | "Error message", then the three JavaScript messages when read on | **identical** |
-| Same on the front-end and Default Admin pages | yes | yes |
+The 06:39 run completed both After routes. Its Before-front navigation did not start (VoiceOver
+reported "Heading not found" and did not reach the button); its Before-admin route completed. The
+earlier 01:31 run supplies the Before-front comparison. These are kept separate from the final
+product code only where stated.
 
-## What this shows
+## Final code: Guidepup virtual, 2026-11-26T03-34-45-279Z
 
-1. **The warning changes urgency.** On main a server-rendered warning is `role="alert"` (assertive). In the option it sits inside `role="status"` (polite), because the option follows the MR's "status and warning are polite". The same warning added by JavaScript stays `alert` on both sides, so After is **inconsistent** between server and JavaScript warnings. This comes from the markup (virtual reader) and from the `Drupal.announce()` calls, which the recorder logged as polite for the JavaScript status and assertive for the warning and error on both sides. Real VoiceOver reads the outer element, so it does not show the inner role directly.
-2. **A region is a landmark, which adds a stop.** With the option, VoiceOver and the virtual reader both expose three `region` landmarks named "Status message", "Warning message" and "Error message". That helps someone navigating by landmark. On pages with several message types it adds up to three landmark stops where there were none, and it is the design point the issue's discussion is about, not something this run decides.
-3. **The role words VoiceOver speaks change.** Before, VoiceOver says "status" or "alert" after the name. After, it says "region". The urgency the inner role carries (polite or assertive) is not spoken in the reading order, so it can only be judged from live announcements, which this run captured poorly (next section).
-4. **Nothing else differs:** order, heading levels, the Hide buttons, the link and the JavaScript messages read the same on both sides.
+- **Before:** `baseline-2942404-latest` at `0387fb948f786bc344a5cc54aa0d98b8f552e378`.
+- **After:** `issue-2942404-consolidated` at the same commit plus
+  `2942404-consolidated-region.patch`, `2942404-consolidated-message-landmark.patch` and
+  `2942404-consolidated-ownership.patch`.
+- **Pages:** `/lab/status-messages` and `/admin/lab/status-messages`, each with two server-rendered
+  status messages, a warning, an error and a button that adds one JavaScript message of each type.
+  Both rendered Default Admin on this core.
+- **Raw output:**
+  [`screenreader/2026-11-26T03-34-45-279Z`](screenreader/2026-11-26T03-34-45-279Z/SUMMARY.md).
 
-## What is not established
+Result: Before has no message landmark; After exposes `region, System messages` around the server
+groups and the JavaScript messages. The inner groups remain `status`, `alert`, `alert`. The virtual
+reader does not speak live-region changes and jsdom has no layout.
 
-- **Live announcement is thinly recorded.** After activating the button, Guidepup's phrase log held only "Error message" on both sides. That log is not a reliable record of everything VoiceOver spoke; it does not show whether the polite status or the warning was announced, and it cannot show whether an interrupting announcement cut another one off. A person listening should check this.
-- **One machine, one run:** macOS 27.2.1, Safari, default VoiceOver settings and verbosity. NVDA, JAWS, TalkBack and Chrome or Firefox were not used.
-- The virtual reader works on a DOM snapshot without CSS or layout and does not speak live-region changes; it reports names, roles and structure only.
-- Page-load messages (the server-rendered ones) were read by moving the VoiceOver cursor to them, not heard as an announcement when the page loaded.
-- A person's keyboard and screen-reader pass is still needed. This is evidence, not a conformance verdict.
+## Final code: real VoiceOver, 2026-11-26T06-39-33-642Z
 
-## Reproduce
+- **Code:** core `0387fb94` plus the region, message-landmark and ownership patches.
+- **After:** both routes reached the button and exposed `System messages region` around the status,
+  warning and error groups. The groups kept `status`, `alert`, `alert`; headings stayed at level 2.
+  The unsolicited announcement was the combined three-message string.
+- **Before:** the administration route reached the button and had no message region. The front route
+  did not start: VoiceOver reported "Heading not found" 20 times and did not reach the button. This
+  is a test-navigation failure on the Before side, not a product difference. The earlier 01:31 run
+  supplies the Before-front result.
+- **Raw output:**
+  [`screenreader/2026-11-26T06-39-33-642Z`](screenreader/2026-11-26T06-39-33-642Z/SUMMARY.md).
 
-```bash
-node scripts/lab-env.mjs start 2942404-latest
-bash scripts/lab-site.sh apply baseline-2942404-latest repro_2942404
-bash scripts/lab-site.sh apply issue-2942404-latest repro_2942404
-node tools/playwright/screenreader-2942404.mjs 2942404-latest --mode=virtual
-node tools/playwright/screenreader-2942404.mjs 2942404-latest --mode=voiceover
-```
+## Earlier real VoiceOver, 2026-11-26 01:31 / 01:38 / 01:42
 
-VoiceOver mode needs `npx @guidepup/setup setup` and `npx @guidepup/setup install` once, speaks aloud while it runs, and drives Safari. If it will not start, quit VoiceOver Utility and run it again; `--sides=after` reruns one side.
+- **Code:** core `0387fb94` plus the region and message-landmark patches. The ownership/detection
+  patch did not exist yet.
+- **Runs:**
+  - `2026-11-26T01-31-46-207Z`: Before both routes; After administration route only (After front did
+    not reach the button).
+  - `2026-11-26T01-38-53-209Z`: intermediate run; a Markdown reporting exception stopped the
+    summary. Raw JSON preserved.
+  - `2026-11-26T01-42-23-930Z`: After both routes, after the skipped-side reporting fix.
+- **Tool versions:** Node 22.23.5, npm 10.9.9, Guidepup 0.40.0, Guidepup setup 0.29.3, Guidepup
+  virtual reader 0.33.0. macOS, Safari and VoiceOver versions are not recorded in the run JSON; they
+  are not inferred from other runs.
+
+### What it establishes
+
+- VoiceOver reads the named `System messages` region on the After pages.
+- The status message, warning alert and error alert semantics are preserved.
+- Headings remain at level 2.
+- Both After routes reached the "Add messages with JavaScript" button.
+- The unsolicited after-activation announcement was identical on Before and After:
+
+  > JavaScript status: the item was saved. JavaScript warning: the connection is slow. JavaScript error: the upload failed.
+
+Both After routes rendered Default Admin.
+
+### What it does not establish
+
+Human landmark rotor navigation, navigation back to dynamically inserted messages, NVDA, JAWS or
+TalkBack, other themes, or general conformance. The 06:39 run covers the final After code on both
+routes; its Before front did not start, so the Before-front comparison comes from 01:31.
+
+## The repeated phrases are navigation, not repeated announcements
+
+The real VoiceOver JSON has two lists:
+
+- `announcedAfterActivation`: what VoiceOver said by itself after the button. It is the one combined
+  string above.
+- `readAfterActivation`: the next 12 scripted `voiceOver.next()` steps. It repeats the same combined
+  string six times, separated by empty phrases.
+
+`Drupal.announce()` debounces and joins queued announcements into one update of a single
+`#drupal-live-announce` element (`core/misc/announce.js`). After the button, the cursor reaches that
+one text region and repeated `next()` steps re-read the same text. That is why the string appears six
+times in the scripted navigation. It is not six automatic announcements.
+
+## Focused human VoiceOver test (not yet run)
+
+Use the rotor and message activation, not repeated `next()` calls.
+
+1. Start Safari with VoiceOver on `/lab/status-messages` on both sites, signed in as administrator.
+2. Open the rotor (`VO+U`) and choose Landmarks. On After, check that "System messages" appears once
+   and contains the status, warning and error groups. On Before, check that it does not appear.
+3. Choose "System messages". Record the region role/name, then each group's role, name, heading
+   level (2) and text.
+4. Activate "Add messages with JavaScript" with `VO+Space`. Record what is spoken without moving the
+   cursor, then use the landmarks rotor again and record where the three new messages appear. Do not
+   use repeated `next()` steps through `#drupal-live-announce`.
+5. Activate a message's "Hide" button. Record whether focus stays, whether the message leaves the
+   landmark, and whether the landmark remains when every message is hidden.
+6. Repeat on `/admin/lab/status-messages`.
+7. Record macOS, Safari and VoiceOver versions, verbosity, and anything spoken twice.
+
+Expected on After: one "System messages" landmark, unchanged per-type roles and names, JavaScript
+messages inside the same landmark, and no focus move. The Hide behavior exposes the existing Default
+Admin dismissal defect (opacity plus `visually-hidden`, no DOM removal), so record it as a finding,
+not a pass/fail for this patch.
+
+## Historical evidence, preserved
+
+### 2026-11-23: per-type region option on `92e5c3a30476`
+
+This evaluated `2942404-main-region-option.patch` (Variant B, one region per type), not the current
+consolidated Variant C. Real VoiceOver read "Status message application status", "Warning message
+alert", "Error message alert" on Before, and "Status message region", "Warning message region",
+"Error message region" on the option. The option changed the server warning from `alert` to `status`;
+Variant C keeps warnings as `alert`.
+
+Raw: [`screenreader/2026-11-23T13-29-17-382Z`](screenreader/2026-11-23T13-29-17-382Z/SUMMARY.md),
+`screenreader/vo-run2`, `screenreader/vo-run3-after`.
+
+### 2026-11-25: Variant C on `92e5c3a304`
+
+Chromium and Guidepup evidence for the Twig-only Variant C patch. Runtime identity `92e5c3a30476`;
+applicability to `0387fb948f` was checked separately and was not a runtime result. The VoiceOver
+transcript from this run showed only `Error message` in the unsolicited slice, with the repeated
+combined string in the later navigation; the 01:31/01:42 runs above are the newer real VoiceOver
+evidence.
+
+Raw: [`screenreader/2026-11-25T23-48-06-731Z`](screenreader/2026-11-25T23-48-06-731Z/SUMMARY.md)
+(virtual), [`screenreader/2026-11-25T23-50-28-424Z`](screenreader/2026-11-25T23-50-28-424Z/SUMMARY.md)
+(real VoiceOver).
+
+## Limits
+
+- The virtual reader is a DOM snapshot without CSS or layout and does not speak live-region changes.
+- The real VoiceOver evidence is one machine, one Safari, one VoiceOver configuration, and no human
+  review. The 06:39 run covers the final After code on both routes; its Before-front route did not
+  start, so the Before-front comparison comes from 01:31.
+- Automated and synthetic evidence does not establish conformance. A person's keyboard and screen
+  reader pass is still required.

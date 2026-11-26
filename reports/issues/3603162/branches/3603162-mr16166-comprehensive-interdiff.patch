@@ -1,0 +1,1750 @@
+diff --git a/core/themes/default_admin/css/base/icons.css b/core/themes/default_admin/css/base/icons.css
+index 8c48f630..e06c0a71 100644
+--- a/core/themes/default_admin/css/base/icons.css
++++ b/core/themes/default_admin/css/base/icons.css
+@@ -16,65 +16,47 @@
+  */
+ /* cspell:ignore toleft, totop */
+ :root {
+-  --admin-icon-add: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M12 4V20' /%3e    %3cpath d='M4 12H20' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-appearance: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M9 7.75L19 7.75' /%3e    %3crect fill='currentColor' fill-opacity='.15' stroke-width='0' x='7' y='2.25' width='11' height='4.5' /%3e    %3cpath d='M19 4.07693V2.0577C19 1.61162 18.5522 1.25 18 1.25H6C5.44772 1.25 5 1.61162 5 2.0577V10.1346C5.00354 12.31 6.56184 14.2882 8.99999 15.2124V19.827C8.99999 21.1651 10.3431 22.25 12 22.25C13.6569 22.25 15 21.1651 15 19.827V15.2124C17.4382 14.2882 18.9965 12.31 19 10.1346L19 7.75' /%3e  %3c/g%3e%3c/svg%3e");
++  --admin-icon-add: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25'%3e%3cpath d='M12 4v16'/%3e%3cpath d='M4 12h16'/%3e%3c/g%3e%3c/svg%3e");
+   --admin-icon-asterisk: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath fill='currentColor' d='M2.04075 11.8689C0.928882 11.5926 0.29649 10.428 0.649643 9.33809L1.03815 8.1391C1.38495 7.06881 2.54758 6.49302 3.60207 6.88526C6.46906 7.95171 8.62177 8.8925 10.056 9.711C9.74558 6.74781 9.53464 4.4103 9.42271 2.69849C9.34986 1.58418 10.2445 0.670502 11.3612 0.670502H12.5329C13.662 0.670502 14.5685 1.60439 14.4925 2.73093C14.3582 4.72214 14.1151 7.03801 13.7595 9.675C15.7523 8.6714 17.9727 7.72805 20.4268 6.84493C21.4712 6.46909 22.609 7.04742 22.9509 8.1034L23.3877 9.45211C23.7265 10.4983 23.158 11.6263 22.1012 11.9303C19.6815 12.6263 17.2999 13.1093 14.958 13.377C16.1733 14.4342 17.7995 16.1718 19.8382 18.5897C20.5852 19.4756 20.404 20.8085 19.4584 21.4784L18.4529 22.1909C17.5622 22.8219 16.329 22.6233 15.7171 21.7193C14.5769 20.035 13.2955 17.9684 11.874 15.519C10.5582 18.0261 9.35897 20.0984 8.27812 21.7312C7.67842 22.6371 6.44976 22.8207 5.56848 22.1853L4.58713 21.4778C3.65477 20.8056 3.47894 19.4861 4.212 18.6008C6.32731 16.0463 7.88831 14.305 8.895 13.377C6.5197 12.9182 4.23473 12.4141 2.04075 11.8689Z' /%3e%3c/svg%3e");
+   --admin-icon-back-to-site: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpolyline points='9 14 4 9 9 4'%3e%3c/polyline%3e    %3cpath d='M20 18V13C20 11.9391 19.5786 10.9217 18.8284 10.1716C18.0783 9.42143 17.0609 9 16 9H4'%3e%3c/path%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-blocks: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M12.6427 1.54355L12.6427 1.54356L12.6471 1.54599L21.0201 6.24452C21.0207 6.24487 21.0213 6.24521 21.0219 6.24556C21.2146 6.35525 21.3722 6.51118 21.4809 6.69583C21.5898 6.88093 21.6465 7.08928 21.6467 7.30021V16.6998C21.6465 16.9107 21.5898 17.1191 21.4809 17.3042C21.3722 17.4888 21.2146 17.6448 21.0218 17.7545C21.0212 17.7548 21.0207 17.7551 21.0201 17.7555L12.6471 22.454L12.6427 22.4564C12.4489 22.5664 12.2274 22.625 12.0008 22.625C11.7743 22.625 11.5528 22.5664 11.359 22.4564L11.3546 22.454L2.98163 17.7555C2.98104 17.7551 2.98045 17.7548 2.97987 17.7545C2.78712 17.6448 2.62952 17.4888 2.52081 17.3042C2.41194 17.1192 2.35532 16.911 2.35501 16.7003V7.29973C2.35532 7.08897 2.41194 6.88079 2.52081 6.69583C2.62951 6.51117 2.78709 6.35524 2.97981 6.24555C2.98041 6.24521 2.98102 6.24486 2.98163 6.24452L11.3546 1.54599L11.3546 1.546L11.3589 1.54355C11.5528 1.43363 11.7743 1.375 12.0008 1.375C12.2274 1.375 12.4489 1.43363 12.6427 1.54355Z' /%3e    %3cpath d='M3.18835 7.10417L12.0009 12L20.8134 7.10417' /%3e    %3cpath d='M12.0009 22.7708V12' /%3e  %3c/g%3e  %3cpath d='M12 12L21.5 7V17.5L12 23V12Z' fill='currentColor' fill-opacity='.15'/%3e%3c/svg%3e");
+-  --admin-icon-bookmarks: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e%3cg fill='currentColor' stroke='currentColor' stroke-width='0.5' stroke-linecap='round' stroke-linejoin='round'%3e  %3cpath d='M19.0403 0H5.88003C5.38142 0 4.90322 0.198081 4.55065 0.55065C4.19808 0.903219 4 1.38142 4 1.88003V22.5604C4.00009 22.7281 4.04506 22.8928 4.13026 23.0373C4.21546 23.1818 4.33778 23.3009 4.48454 23.3822C4.63128 23.4636 4.79711 23.5041 4.96481 23.4997C5.13251 23.4952 5.29597 23.446 5.43823 23.357L12.4602 18.9684L19.4832 23.357C19.6255 23.4457 19.7888 23.4947 19.9564 23.4989C20.1239 23.5032 20.2895 23.4626 20.436 23.3814C20.5827 23.3001 20.7049 23.1812 20.79 23.0368C20.8751 22.8924 20.9201 22.728 20.9203 22.5604V1.88003C20.9203 1.38142 20.7223 0.903219 20.3697 0.55065C20.0171 0.198081 19.5389 0 19.0403 0ZM19.0403 1.88003V15.2248L12.9572 11.4236C12.8078 11.3302 12.6351 11.2807 12.459 11.2807C12.2828 11.2807 12.1102 11.3302 11.9608 11.4236L5.88003 15.2235V1.88003H19.0403ZM12.9572 17.0637C12.8078 16.9703 12.6351 16.9208 12.459 16.9208C12.2828 16.9208 12.1102 16.9703 11.9608 17.0637L5.88003 20.8649V17.4408L12.4602 13.3283L19.0403 17.4408V20.8649L12.9572 17.0637Z' /%3e%3c/g%3e%3c/svg%3e");
+-  --admin-icon-check: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath fill='currentColor' d='M5.69238 10.6436L9.27246 14.4023L18.3076 4.91309L20.5342 7.25391L9.27246 19.0869L3.46582 12.9844L5.69238 10.6436Z' /%3e%3c/svg%3e");
+   --admin-icon-checked: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath fill='currentColor' d='M5.69238 10.6436L9.27246 14.4023L18.3076 4.91309L20.5342 7.25391L9.27246 19.0869L3.46582 12.9844L5.69238 10.6436Z' /%3e%3c/svg%3e");
+   --admin-icon-checkmark: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath fill='currentColor' d='M5.69238 10.6436L9.27246 14.4023L18.3076 4.91309L20.5342 7.25391L9.27246 19.0869L3.46582 12.9844L5.69238 10.6436Z' /%3e%3c/svg%3e");
+-  --admin-icon-chevron-down: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M4 8L12 16L20 8' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-chevron-left: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M16 20L8 12L16 4' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-chevron-right: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M8 20L16 12L8 4' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-clock: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3ccircle cx='12' cy='12' r='10'%3e%3c/circle%3e    %3cpolyline points='12 6 12 12 16 14'%3e%3c/polyline%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-close: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M20 4L4 20' /%3e    %3cpath d='M4 4L20 20' /%3e  %3c/g%3e%3c/svg%3e");
++  --admin-icon-chevron-down: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpath fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m4 8 8 8 8-8'/%3e%3c/svg%3e");
++  --admin-icon-clock: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25'%3e%3ccircle cx='12' cy='12' r='10'/%3e%3cpolyline points='12 6 12 12 16 14'/%3e%3c/g%3e%3c/svg%3e");
++  --admin-icon-close: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25'%3e%3cpath d='M20 4 4 20'/%3e%3cpath d='m4 4 16 16'/%3e%3c/g%3e%3c/svg%3e");
+   --admin-icon-config: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3ccircle fill='currentColor' fill-opacity='.15' cx='12' cy='12' r='3'%3e%3c/circle%3e    %3cpath d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z'%3e%3c/path%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-content: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z'%3e%3c/path%3e    %3cpath fill='currentColor' fill-opacity='.15' d='M12 2V10H20' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-database: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cellipse cx='12' cy='5' rx='9' ry='3'%3e%3c/ellipse%3e    %3cpath d='M21 12c0 1.66-4 3-9 3s-9-1.34-9-3'%3e%3c/path%3e    %3cpath d='M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5'%3e%3c/path%3e  %3c/g%3e%3c/svg%3e");
++  --admin-icon-database: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25'%3e%3cellipse cx='12' cy='5' rx='9' ry='3'/%3e%3cpath d='M21 12c0 1.66-4 3-9 3s-9-1.34-9-3'/%3e%3cpath d='M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5'/%3e%3c/g%3e%3c/svg%3e");
+   --admin-icon-devel: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' height='16' width='16' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='m13.727 7.714c-1.309-1.308-3.248-1.569-4.827-.818l-5.899-5.896h-3.001v2h1v1.618l.378.382h1.622v1h1v1.622h1.622l.864.862-.986 1.016.992.99c-.062 1.162.335 2.346 1.223 3.234 1.66 1.653 4.352 1.653 6.012 0 1.658-1.66 1.658-4.351 0-6.01zm-.829 5.182c-.646.646-1.693.646-2.338 0-.646-.646-.646-1.692 0-2.338.645-.646 1.688-.646 2.338 0 .645.646.645 1.694 0 2.338z' fill='currentColor'/%3e%3c/svg%3e");
+-  --admin-icon-drag: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpolyline points='5 9 2 12 5 15'%3e%3c/polyline%3e    %3cpolyline points='9 5 12 2 15 5'%3e%3c/polyline%3e    %3cpolyline points='15 19 12 22 9 19'%3e%3c/polyline%3e    %3cpolyline points='19 9 22 12 19 15'%3e%3c/polyline%3e    %3cline x1='2' y1='12' x2='22' y2='12'%3e%3c/line%3e    %3cline x1='12' y1='2' x2='12' y2='22'%3e%3c/line%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-drag-y: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpolyline points='9 5 12 2 15 5'%3e%3c/polyline%3e    %3cpolyline points='15 19 12 22 9 19'%3e%3c/polyline%3e    %3cline x1='2' y1='12' x2='22' y2='12'%3e%3c/line%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-drop: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M4 8L12 16L20 8' /%3e  %3c/g%3e%3c/svg%3e");
++  --admin-icon-drag: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25'%3e%3cpolyline points='5 9 2 12 5 15'/%3e%3cpolyline points='9 5 12 2 15 5'/%3e%3cpolyline points='15 19 12 22 9 19'/%3e%3cpolyline points='19 9 22 12 19 15'/%3e%3cline x1='2' x2='22' y1='12' y2='12'/%3e%3cline x1='12' x2='12' y1='2' y2='22'/%3e%3c/g%3e%3c/svg%3e");
++  --admin-icon-drag-y: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25'%3e%3cpolyline points='9 5 12 2 15 5'/%3e%3cpolyline points='15 19 12 22 9 19'/%3e%3cline x1='2' x2='22' y1='12' y2='12'/%3e%3c/g%3e%3c/svg%3e");
++  --admin-icon-drop: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpath fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m4 8 8 8 8-8'/%3e%3c/svg%3e");
+   --admin-icon-drupal: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath fill='currentColor' d='M15.792 5.064C14.088 3.408 12.504 1.824 12.024 0C11.544 1.824 9.96 3.408 8.256 5.064C5.76 7.56 2.904 10.416 2.904 14.712C2.76 19.728 6.792 23.904 11.808 24C16.824 24.096 21.024 20.112 21.096 15.096C21.096 14.976 21.096 14.832 21.096 14.712C21.144 10.416 18.288 7.56 15.792 5.064ZM7.56 15.528C7.296 15.864 7.032 16.272 6.864 16.656C6.816 16.704 6.768 16.776 6.696 16.776H6.648C6.432 16.776 6.216 16.392 6.216 16.392C6.168 16.296 6.096 16.176 6.048 16.08L6 15.984C5.448 14.784 5.904 13.08 5.904 13.08C6.12 12.264 6.504 11.448 6.984 10.752C7.296 10.32 7.632 9.888 7.968 9.456L8.4 9.888L10.44 11.952C10.536 12.048 10.536 12.168 10.44 12.264L8.328 14.64L7.56 15.528ZM12.12 21.48C10.392 21.48 8.952 20.064 9 18.312C9 17.544 9.312 16.8 9.768 16.248C10.416 15.48 11.232 14.688 12.144 13.656C13.176 14.784 13.872 15.504 14.52 16.392C14.568 16.44 14.616 16.512 14.64 16.608C14.976 17.136 15.192 17.736 15.192 18.384C15.264 20.112 13.848 21.48 12.12 21.48ZM18.024 16.464C17.976 16.584 17.856 16.68 17.712 16.728H17.664C17.544 16.68 17.448 16.608 17.352 16.512C16.8 15.696 16.176 14.904 15.504 14.232L14.688 13.368L11.928 10.512C11.376 9.984 10.8 9.384 10.296 8.832C10.296 8.784 10.248 8.784 10.248 8.784C10.152 8.664 10.08 8.52 10.032 8.352C10.032 8.304 10.032 8.304 10.032 8.256C9.936 7.776 10.128 7.296 10.464 6.96C10.992 6.432 11.544 5.88 12.072 5.328C12.624 5.928 13.248 6.528 13.848 7.152C15.048 8.28 16.128 9.528 17.136 10.872C17.952 12.048 18.384 13.368 18.384 14.808C18.288 15.312 18.216 15.912 18.024 16.464Z' /%3e%3c/svg%3e");
+-  --admin-icon-edit: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z'%3e%3c/path%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-error: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3ccircle cx='12' cy='12' r='10'%3e%3c/circle%3e    %3cline x1='4.93' y1='4.93' x2='19.07' y2='19.07'%3e%3c/line%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-files: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e%3cg fill='currentColor' stroke='currentColor' stroke-width='0.5' stroke-linecap='round' stroke-linejoin='round'%3e  %3cpath d='M22.0054 4.84116L17.3974 0.23321C17.3118 0.147649 17.2102 0.0798082 17.0982 0.0335567C16.9864 -0.0126949 16.8665 -0.0364597 16.7455 -0.0363614H7.52955C7.04071 -0.0363614 6.57188 0.157836 6.22622 0.503494C5.88056 0.849152 5.68636 1.31798 5.68636 1.80682V3.65H3.84318C3.35435 3.65 2.88551 3.8442 2.53986 4.18986C2.1942 4.53552 2 5.00435 2 5.49318V22.0818C2 22.5706 2.1942 23.0395 2.53986 23.3852C2.88551 23.7309 3.35435 23.925 3.84318 23.925H16.7455C17.2343 23.925 17.7032 23.7309 18.0488 23.3852C18.3945 23.0395 18.5886 22.5706 18.5886 22.0818V20.2386H20.4318C20.9206 20.2386 21.3895 20.0445 21.7352 19.6988C22.0809 19.3532 22.275 18.8843 22.275 18.3955V5.49318C22.2751 5.37212 22.2513 5.25223 22.2051 5.14035C22.1589 5.02848 22.0911 4.92681 22.0054 4.84116ZM16.7455 22.0818H3.84318V5.49318H12.6778L16.7455 9.56084V19.2986C16.7455 19.3055 16.7455 19.3113 16.7455 19.317C16.7455 19.3228 16.7455 19.3286 16.7455 19.3355V22.0818ZM20.4318 18.3955H18.5886V9.17955C18.5888 9.05849 18.5649 8.9386 18.5187 8.82671C18.4725 8.71485 18.4047 8.61318 18.319 8.52752L13.7111 3.91957C13.6254 3.83401 13.5238 3.76617 13.4119 3.71992C13.3001 3.67367 13.1801 3.6499 13.0591 3.65H7.52955V1.80682H16.3642L20.4318 5.87449V18.3955ZM13.9807 14.7091C13.9807 14.9535 13.8836 15.188 13.7107 15.3607C13.5379 15.5336 13.3035 15.6307 13.0591 15.6307H7.52955C7.28513 15.6307 7.05071 15.5336 6.87788 15.3607C6.70505 15.188 6.60795 14.9535 6.60795 14.7091C6.60795 14.4647 6.70505 14.2302 6.87788 14.0575C7.05071 13.8846 7.28513 13.7875 7.52955 13.7875H13.0591C13.3035 13.7875 13.5379 13.8846 13.7107 14.0575C13.8836 14.2302 13.9807 14.4647 13.9807 14.7091ZM13.9807 18.3955C13.9807 18.6399 13.8836 18.8743 13.7107 19.0471C13.5379 19.22 13.3035 19.317 13.0591 19.317H7.52955C7.28513 19.317 7.05071 19.22 6.87788 19.0471C6.70505 18.8743 6.60795 18.6399 6.60795 18.3955C6.60795 18.1511 6.70505 17.9166 6.87788 17.7438C7.05071 17.5709 7.28513 17.4739 7.52955 17.4739H13.0591C13.3035 17.4739 13.5379 17.5709 13.7107 17.7438C13.8836 17.9166 13.9807 18.1511 13.9807 18.3955Z' /%3e%3c/g%3e%3c/svg%3e");
+-  --admin-icon-first: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpolyline points='11 17 6 12 11 7'%3e%3c/polyline%3e    %3cpolyline points='18 17 13 12 18 7'%3e%3c/polyline%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-grid: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e    %3crect x='3' y='3' width='7' height='7'%3e%3c/rect%3e    %3crect x='14' y='3' width='7' height='7'%3e%3c/rect%3e    %3crect x='14' y='14' width='7' height='7'%3e%3c/rect%3e    %3crect x='3' y='14' width='7' height='7'%3e%3c/rect%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-hamburger: url("data:image/svg+xml,%3csvg fill='none' height='16' viewBox='0 0 16 16' width='16' xmlns='http://www.w3.org/2000/svg'%3e%3cpath clip-rule='evenodd' d='m15 9h-14c-.56016 0-1-.43984-1-1s.43984-1 1-1h14c.5602 0 1 .43984 1 1s-.4398 1-1 1zm0-5h-14c-.56016 0-1-.43984-1-1s.43984-1 1-1h14c.5602 0 1 .43984 1 1s-.4398 1-1 1zm-14 8h14c.5602 0 1 .4398 1 1s-.4398 1-1 1h-14c-.56016 0-1-.4398-1-1s.43984-1 1-1z' fill='currentColor' fill-rule='evenodd'/%3e%3c/svg%3e");
+-  --admin-icon-handle: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M8 20L16 12L8 4' /%3e  %3c/g%3e%3c/svg%3e");
++  --admin-icon-edit: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpath fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25' d='M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z'/%3e%3c/svg%3e");
++  --admin-icon-error: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25'%3e%3ccircle cx='12' cy='12' r='10'/%3e%3cline x1='4.93' x2='19.07' y1='4.93' y2='19.07'/%3e%3c/g%3e%3c/svg%3e");
++  --admin-icon-first: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25'%3e%3cpolyline points='11 17 6 12 11 7'/%3e%3cpolyline points='18 17 13 12 18 7'/%3e%3c/g%3e%3c/svg%3e");
++  --admin-icon-grid: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='3'%3e%3crect width='7' height='7' x='3' y='3'/%3e%3crect width='7' height='7' x='14' y='3'/%3e%3crect width='7' height='7' x='14' y='14'/%3e%3crect width='7' height='7' x='3' y='14'/%3e%3c/g%3e%3c/svg%3e");
++  --admin-icon-handle: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpath fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m8 20 8-8-8-8'/%3e%3c/svg%3e");
+   --admin-icon-help: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M23 12C23 18.0751 18.0751 23 12 23C5.92487 23 1 18.0751 1 12C1 5.92487 5.92487 1 12 1C18.0751 1 23 5.92487 23 12Z' /%3e    %3cpath d='M9.09003 8.00002C9.32513 7.33169 9.78918 6.76813 10.4 6.40915C11.0108 6.05018 11.7289 5.91896 12.4272 6.03873C13.1255 6.15851 13.7588 6.52154 14.2151 7.06355C14.6714 7.60555 14.9211 8.29154 14.92 9.00002C14.92 11 11.92 12 11.92 12' /%3e    %3cpath d='M12 17H12.01' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-hide: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24'%3e%3c/path%3e    %3cline x1='1' y1='1' x2='23' y2='23'%3e%3c/line%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-info: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'%3e%3c/path%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-last: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpolyline points='13 17 18 12 13 7'%3e%3c/polyline%3e    %3cpolyline points='6 17 11 12 6 7'%3e%3c/polyline%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-list: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e    %3cline x1='8' y1='6' x2='21' y2='6'%3e%3c/line%3e    %3cline x1='8' y1='12' x2='21' y2='12'%3e%3c/line%3e    %3cline x1='8' y1='18' x2='21' y2='18'%3e%3c/line%3e    %3cline x1='3' y1='6' x2='3.01' y2='6'%3e%3c/line%3e    %3cline x1='3' y1='12' x2='3.01' y2='12'%3e%3c/line%3e    %3cline x1='3' y1='18' x2='3.01' y2='18'%3e%3c/line%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-loader: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M12 4C12.5523 4 13 3.55228 13 3C13 2.44772 12.5523 2 12 2C11.4477 2 11 2.44772 11 3C11 3.55228 11.4477 4 12 4Z' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-media: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='currentColor' stroke='currentColor' stroke-width='0.5' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M21.7917 0.25H6.125C5.60562 0.25 5.1075 0.45633 4.74025 0.823583C4.373 1.19084 4.16667 1.68896 4.16667 2.20833V4.16667H2.20833C1.68896 4.16667 1.19084 4.373 0.823583 4.74025C0.45633 5.1075 0.25 5.60562 0.25 6.125V21.7917C0.25 22.311 0.45633 22.8092 0.823583 23.1765C1.19084 23.5437 1.68896 23.75 2.20833 23.75H17.875C18.3944 23.75 18.8925 23.5437 19.2598 23.1765C19.6271 22.8092 19.8333 22.311 19.8333 21.7917V19.8333H21.7917C22.311 19.8333 22.8092 19.6271 23.1765 19.2598C23.5437 18.8925 23.75 18.3944 23.75 17.875V2.20833C23.75 1.68896 23.5437 1.19084 23.1765 0.823583C22.8092 0.45633 22.311 0.25 21.7917 0.25ZM6.125 2.20833H21.7917V10.7002L19.7477 8.65615C19.3804 8.28917 18.8825 8.08302 18.3634 8.08302C17.8442 8.08302 17.3462 8.28917 16.979 8.65615L7.76144 17.875H6.125V2.20833ZM17.875 21.7917H2.20833V6.125H4.16667V17.875C4.16667 18.3944 4.373 18.8925 4.74025 19.2598C5.1075 19.6271 5.60562 19.8333 6.125 19.8333H17.875V21.7917ZM21.7917 17.875H10.5313L18.3646 10.0417L21.7917 13.4688V17.875ZM11.0208 10.0417C11.6018 10.0417 12.1697 9.86933 12.6528 9.5466C13.1358 9.22383 13.5124 8.76506 13.7347 8.2283C13.957 7.69154 14.0153 7.1009 13.9019 6.53109C13.7886 5.96127 13.5088 5.43786 13.098 5.02704C12.6871 4.61622 12.1637 4.33645 11.594 4.22311C11.0241 4.10977 10.4335 4.16793 9.89675 4.39027C9.35994 4.61261 8.90117 4.98911 8.57839 5.47218C8.25562 5.95525 8.08333 6.52318 8.08333 7.10417C8.08333 7.88324 8.39282 8.6304 8.94371 9.18129C9.49464 9.73212 10.2418 10.0417 11.0208 10.0417ZM11.0208 6.125C11.2144 6.125 11.4038 6.18243 11.5649 6.29002C11.7258 6.39761 11.8513 6.55053 11.9255 6.72946C11.9996 6.90837 12.0189 7.10525 11.9812 7.2952C11.9435 7.48513 11.8501 7.6596 11.7132 7.79654C11.5762 7.93348 11.4018 8.02674 11.2118 8.06452C11.0219 8.1023 10.825 8.08292 10.6461 8.0088C10.4671 7.93468 10.3143 7.80918 10.2067 7.64817C10.0991 7.48714 10.0417 7.29783 10.0417 7.10417C10.0417 6.84448 10.1448 6.59542 10.3285 6.41179C10.5121 6.22816 10.7612 6.125 11.0208 6.125Z' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-nav-toggle-toleft: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cline x1='19' y1='12' x2='5' y2='12' /%3e    %3cpolyline points='12 19 5 12 12 5' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-nav-toggle-totop: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cline x1='12' y1='19' x2='12' y2='5'/%3e    %3cpolyline points='5 12 12 5 19 12'/%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-next: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpolyline points='9 18 15 12 9 6'%3e%3c/polyline%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-people: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cellipse fill='currentColor' fill-opacity='.15' stroke-width='0' cx='12.25' cy='19.5' rx='6.25' ry='2.5' /%3e    %3cpath fill='currentColor' fill-opacity='.15' fill-rule='evenodd' clip-rule='evenodd' d='M12 13C14.2091 13 16 11.2091 16 9C16 6.79086 14.2091 5 12 5C9.79086 5 8 6.79086 8 9C8 11.2091 9.79086 13 12 13Z' /%3e    %3cpath d='M5.25 20V19.3333C5.25 17 9.31375 16 12.25 16C15.1863 16 19.25 17 19.25 19.3333V20' /%3e    %3cpath d='M22.875 12C22.875 18.0061 18.0061 22.875 12 22.875C5.99391 22.875 1.125 18.0061 1.125 12C1.125 5.99391 5.99391 1.125 12 1.125C18.0061 1.125 22.875 5.99391 22.875 12Z' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-php: url("data:image/svg+xml,%3csvg height='33.447' viewBox='0 0 66 33.447' width='66' xmlns='http://www.w3.org/2000/svg'%3e%3cg fill='currentColor'%3e%3cpath d='m49.5 12.255h-2.7l-1.473 7h2.4c1.59 0 2.773-.342 3.55-.94.78-.6 1.304-1.62 1.577-3.023.26-1.345.142-1.975-.357-2.528-.5-.553-1.498-.51-2.996-.51z'/%3e%3cpath d='m33 0c-18.225 0-33 7.488-33 16.724s14.775 16.724 33 16.724 33-7.488 33-16.724-14.775-16.724-33-16.724zm-9.328 19.982c-.787.737-1.662 1.376-2.625 1.69-.963.313-2.19.583-3.68.583h-3.377l-.935 5h-3.945l3.52-18h7.584c2.28 0 3.946.34 4.992 1.537s1.36 2.74.944 4.885c-.172.884-.462 1.628-.87 2.36-.413.732-.947 1.338-1.608 1.945zm11.51 2.273 1.558-8.124c.177-.91.112-1.29-.196-1.62s-.962-.255-1.963-.255h-3.126l-2.016 10h-3.913l3.52-18h3.912l-.935 5h3.486c2.193 0 3.706.124 4.54.888.832.765 1.08 1.99.748 3.703l-1.637 8.41h-3.977zm21.747-6.708c-.173.884-.463 1.692-.872 2.424-.41.734-.944 1.404-1.605 2.01-.787.738-1.662 1.377-2.625 1.69-.963.314-2.19.584-3.68.584h-3.377l-.934 5h-3.944l3.518-18h7.584c2.282 0 3.946.34 4.992 1.537 1.046 1.2 1.36 2.61.943 4.757z'/%3e%3cpath d='m18.72 12.255h-2.703l-1.473 7h2.4c1.59 0 2.773-.342 3.552-.94.778-.6 1.303-1.62 1.576-3.023.26-1.345.142-1.975-.357-2.528-.5-.553-1.497-.51-2.996-.51z'/%3e%3c/g%3e%3c/svg%3e");
+-  --admin-icon-prev: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpolyline points='15 18 9 12 15 6'%3e%3c/polyline%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-remove: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M20 4L4 20' /%3e    %3cpath d='M4 4L20 20' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-reports: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M21.21 15.89A10 10 0 1 1 8 2.83'%3e%3c/path%3e    %3cpath fill='currentColor' fill-opacity='.15' d='M22 12A10 10 0 0 0 12 2v10z'%3e%3c/path%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-required: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath fill='currentColor' d='M2.04075 11.8689C0.928882 11.5926 0.29649 10.428 0.649643 9.33809L1.03815 8.1391C1.38495 7.06881 2.54758 6.49302 3.60207 6.88526C6.46906 7.95171 8.62177 8.8925 10.056 9.711C9.74558 6.74781 9.53464 4.4103 9.42271 2.69849C9.34986 1.58418 10.2445 0.670502 11.3612 0.670502H12.5329C13.662 0.670502 14.5685 1.60439 14.4925 2.73093C14.3582 4.72214 14.1151 7.03801 13.7595 9.675C15.7523 8.6714 17.9727 7.72805 20.4268 6.84493C21.4712 6.46909 22.609 7.04742 22.9509 8.1034L23.3877 9.45211C23.7265 10.4983 23.158 11.6263 22.1012 11.9303C19.6815 12.6263 17.2999 13.1093 14.958 13.377C16.1733 14.4342 17.7995 16.1718 19.8382 18.5897C20.5852 19.4756 20.404 20.8085 19.4584 21.4784L18.4529 22.1909C17.5622 22.8219 16.329 22.6233 15.7171 21.7193C14.5769 20.035 13.2955 17.9684 11.874 15.519C10.5582 18.0261 9.35897 20.0984 8.27812 21.7312C7.67842 22.6371 6.44976 22.8207 5.56848 22.1853L4.58713 21.4778C3.65477 20.8056 3.47894 19.4861 4.212 18.6008C6.32731 16.0463 7.88831 14.305 8.895 13.377C6.5197 12.9182 4.23473 12.4141 2.04075 11.8689Z' /%3e%3c/svg%3e");
++  --admin-icon-hide: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='3'%3e%3cpath d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24'/%3e%3cline x1='1' x2='23' y1='1' y2='23'/%3e%3c/g%3e%3c/svg%3e");
++  --admin-icon-info: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpath fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25' d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3e%3c/svg%3e");
++  --admin-icon-last: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25'%3e%3cpolyline points='13 17 18 12 13 7'/%3e%3cpolyline points='6 17 11 12 6 7'/%3e%3c/g%3e%3c/svg%3e");
++  --admin-icon-list: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='3'%3e%3cline x1='8' x2='21' y1='6' y2='6'/%3e%3cline x1='8' x2='21' y1='12' y2='12'/%3e%3cline x1='8' x2='21' y1='18' y2='18'/%3e%3cline x1='3' x2='3.01' y1='6' y2='6'/%3e%3cline x1='3' x2='3.01' y1='12' y2='12'/%3e%3cline x1='3' x2='3.01' y1='18' y2='18'/%3e%3c/g%3e%3c/svg%3e");
++  --admin-icon-next: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpolyline fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25' points='9 18 15 12 9 6'/%3e%3c/svg%3e");
++  --admin-icon-php: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='66' height='33.447' viewBox='0 0 66 33.447'%3e%3cg fill='currentColor'%3e%3cpath d='M49.5 12.255h-2.7l-1.473 7h2.4c1.59 0 2.773-.342 3.55-.94.78-.6 1.304-1.62 1.577-3.023.26-1.345.142-1.975-.357-2.528-.5-.553-1.498-.51-2.996-.51z'/%3e%3cpath d='M33 0C14.775 0 0 7.488 0 16.724s14.775 16.724 33 16.724 33-7.488 33-16.724S51.225 0 33 0m-9.328 19.982c-.787.737-1.662 1.376-2.625 1.69-.963.313-2.19.583-3.68.583H13.99l-.935 5H9.11l3.52-18h7.584c2.28 0 3.946.34 4.992 1.537s1.36 2.74.944 4.885c-.172.884-.462 1.628-.87 2.36-.413.732-.947 1.338-1.608 1.945m11.51 2.273 1.558-8.124c.177-.91.112-1.29-.196-1.62s-.962-.255-1.963-.255h-3.126l-2.016 10h-3.913l3.52-18h3.912l-.935 5h3.486c2.193 0 3.706.124 4.54.888.832.765 1.08 1.99.748 3.703l-1.637 8.41h-3.977zm21.747-6.708c-.173.884-.463 1.692-.872 2.424-.41.734-.944 1.404-1.605 2.01-.787.738-1.662 1.377-2.625 1.69-.963.314-2.19.584-3.68.584H44.77l-.934 5h-3.944l3.518-18h7.584c2.282 0 3.946.34 4.992 1.537 1.046 1.2 1.36 2.61.943 4.757z'/%3e%3cpath d='M18.72 12.255h-2.703l-1.473 7h2.4c1.59 0 2.773-.342 3.552-.94.778-.6 1.303-1.62 1.576-3.023.26-1.345.142-1.975-.357-2.528-.5-.553-1.497-.51-2.996-.51z'/%3e%3c/g%3e%3c/svg%3e");
++  --admin-icon-prev: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpolyline fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25' points='15 18 9 12 15 6'/%3e%3c/svg%3e");
++  --admin-icon-remove: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25'%3e%3cpath d='M20 4 4 20'/%3e%3cpath d='m4 4 16 16'/%3e%3c/g%3e%3c/svg%3e");
+   --admin-icon-search: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M10 17C13.866 17 17 13.866 17 10C17 6.13401 13.866 3 10 3C6.13401 3 3 6.13401 3 10C3 13.866 6.13401 17 10 17Z' /%3e    %3cpath d='M21 21L16.65 16.65' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-server: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3crect x='2' y='2' width='20' height='8' rx='2' ry='2'%3e%3c/rect%3e    %3crect x='2' y='14' width='20' height='8' rx='2' ry='2'%3e%3c/rect%3e    %3cline x1='6' y1='6' x2='6.01' y2='6'%3e%3c/line%3e    %3cline x1='6' y1='18' x2='6.01' y2='18'%3e%3c/line%3e  %3c/g%3e%3c/svg%3e");
++  --admin-icon-server: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25'%3e%3crect width='20' height='8' x='2' y='2' rx='2' ry='2'/%3e%3crect width='20' height='8' x='2' y='14' rx='2' ry='2'/%3e%3cline x1='6' x2='6.01' y1='6' y2='6'/%3e%3cline x1='6' x2='6.01' y1='18' y2='18'/%3e%3c/g%3e%3c/svg%3e");
+   --admin-icon-show: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'%3e%3c/path%3e    %3ccircle cx='12' cy='12' r='3'%3e%3c/circle%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-sidebar: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e    %3crect x='2' y='2' width='20' height='18' rx='4' ry='4'%3e%3c/rect%3e    %3cline x1='14' y1='2' x2='14' y2='20'%3e%3c/line%3e    %3cline x1='17.25' y1='7' x2='18.5' y2='7'%3e%3c/line%3e    %3cline x1='17.25' y1='11.5' x2='18.5' y2='11.5'%3e%3c/line%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-sort: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M3 12H17' /%3e    %3cpath d='M3 6H21' /%3e    %3cpath d='M3 18H13' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-sort-asc: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M12 21V3' /%3e    %3cpath d='M5 10L12 3L19 10' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-sort-desc: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M12 3V21' /%3e    %3cpath d='M19 14L12 21L5 14' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-status: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'%3e%3c/path%3e    %3cpolyline points='22 4 12 14.01 9 11.01'%3e%3c/polyline%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-structure: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath fill='currentColor' fill-opacity='.15' d='M12.928 1.4861C12.3468 1.18165 11.6532 1.18165 11.072 1.4861L1.5 6.5L11.072 11.5139C11.6532 11.8183 12.3468 11.8183 12.928 11.5139L22.5 6.5L12.928 1.4861Z' /%3e    %3cpath d='M1.5 12L11.072 17.0139C11.6532 17.3183 12.3468 17.3183 12.928 17.0139L22.5 12' /%3e    %3cpath d='M1.5 17.5L11.072 22.5139C11.6532 22.8183 12.3468 22.8183 12.928 22.5139L22.5 17.5' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-tabledrag-handle: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='17' height='17' viewBox='0 0 16 16'%3e%3cpath fill='currentColor' d='M14.103 5.476a.5.5 0 00-.701-.053.526.526 0 00-.082.713l1.1 1.346H8.512V1.62l1.32 1.113a.501.501 0 00.732-.054.528.528 0 00-.085-.744L8.328.119a.5.5 0 00-.647 0L5.529 1.935a.527.527 0 00-.085.744.504.504 0 00.732.054l1.32-1.113v5.862H1.588L2.68 6.136a.526.526 0 00-.1-.68.5.5 0 00-.675.02L.117 7.67a.525.525 0 000 .66l1.788 2.194a.5.5 0 00.702.053.526.526 0 00.081-.713l-1.1-1.346h5.908v5.862l-1.32-1.113a.501.501 0 00-.698.082.526.526 0 00.051.716l2.152 1.817v-.001a.5.5 0 00.647 0l2.151-1.816a.526.526 0 00.052-.716.501.501 0 00-.699-.082l-1.32 1.113V8.518h5.908l-1.091 1.346a.527.527 0 00.022.776.504.504 0 00.752-.116l1.78-2.194a.527.527 0 000-.66z'/%3e%3c/svg%3e");
++  --admin-icon-sidebar: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'%3e%3crect width='20' height='18' x='2' y='2' rx='4' ry='4'/%3e%3cline x1='14' x2='14' y1='2' y2='20'/%3e%3cline x1='17.25' x2='18.5' y1='7' y2='7'/%3e%3cline x1='17.25' x2='18.5' y1='11.5' y2='11.5'/%3e%3c/g%3e%3c/svg%3e");
++  --admin-icon-sort: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25'%3e%3cpath d='M3 12h14'/%3e%3cpath d='M3 6h18'/%3e%3cpath d='M3 18h10'/%3e%3c/g%3e%3c/svg%3e");
++  --admin-icon-sort-asc: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25'%3e%3cpath d='M12 21V3'/%3e%3cpath d='m5 10 7-7 7 7'/%3e%3c/g%3e%3c/svg%3e");
++  --admin-icon-sort-desc: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25'%3e%3cpath d='M12 3v18'/%3e%3cpath d='m19 14-7 7-7-7'/%3e%3c/g%3e%3c/svg%3e");
++  --admin-icon-status: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25'%3e%3cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3e%3cpolyline points='22 4 12 14.01 9 11.01'/%3e%3c/g%3e%3c/svg%3e");
++  --admin-icon-tabledrag-handle: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='17' height='17' viewBox='0 0 16 16'%3e%3cpath fill='currentColor' d='M14.103 5.476a.5.5 0 0 0-.701-.053.526.526 0 0 0-.082.713l1.1 1.346H8.512V1.62l1.32 1.113a.501.501 0 0 0 .732-.054.528.528 0 0 0-.085-.744L8.328.119a.5.5 0 0 0-.647 0L5.529 1.935a.527.527 0 0 0-.085.744.504.504 0 0 0 .732.054l1.32-1.113v5.862H1.588L2.68 6.136a.526.526 0 0 0-.1-.68.5.5 0 0 0-.675.02L.117 7.67a.525.525 0 0 0 0 .66l1.788 2.194a.5.5 0 0 0 .702.053.526.526 0 0 0 .081-.713l-1.1-1.346h5.908v5.862l-1.32-1.113a.501.501 0 0 0-.698.082.526.526 0 0 0 .051.716l2.152 1.817v-.001a.5.5 0 0 0 .647 0l2.151-1.816a.526.526 0 0 0 .052-.716.501.501 0 0 0-.699-.082l-1.32 1.113V8.518h5.908l-1.091 1.346a.527.527 0 0 0 .022.776.504.504 0 0 0 .752-.116l1.78-2.194a.527.527 0 0 0 0-.66z'/%3e%3c/svg%3e");
+   --admin-icon-toggle-unchecked: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='currentColor'%3e    %3cpath d='M17.8977 11.9773C17.8977 13.2462 17.6572 14.3258 17.1761 15.2159C16.6989 16.1061 16.0473 16.786 15.2216 17.2557C14.3996 17.7216 13.4754 17.9545 12.4489 17.9545C11.4148 17.9545 10.4867 17.7197 9.66477 17.25C8.8428 16.7803 8.19318 16.1004 7.71591 15.2102C7.23864 14.3201 7 13.2424 7 11.9773C7 10.7083 7.23864 9.62879 7.71591 8.73864C8.19318 7.84848 8.8428 7.17045 9.66477 6.70455C10.4867 6.23485 11.4148 6 12.4489 6C13.4754 6 14.3996 6.23485 15.2216 6.70455C16.0473 7.17045 16.6989 7.84848 17.1761 8.73864C17.6572 9.62879 17.8977 10.7083 17.8977 11.9773ZM15.4034 11.9773C15.4034 11.1553 15.2803 10.4621 15.0341 9.89773C14.7917 9.33333 14.4489 8.9053 14.0057 8.61364C13.5625 8.32197 13.0436 8.17614 12.4489 8.17614C11.8542 8.17614 11.3352 8.32197 10.892 8.61364C10.4489 8.9053 10.1042 9.33333 9.85795 9.89773C9.61553 10.4621 9.49432 11.1553 9.49432 11.9773C9.49432 12.7992 9.61553 13.4924 9.85795 14.0568C10.1042 14.6212 10.4489 15.0492 10.892 15.3409C11.3352 15.6326 11.8542 15.7784 12.4489 15.7784C13.0436 15.7784 13.5625 15.6326 14.0057 15.3409C14.4489 15.0492 14.7917 14.6212 15.0341 14.0568C15.2803 13.4924 15.4034 12.7992 15.4034 11.9773Z' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-trash: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpolyline points='3 6 5 6 21 6'%3e%3c/polyline%3e    %3cpath d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'%3e%3c/path%3e    %3cline x1='10' y1='11' x2='10' y2='17'%3e%3c/line%3e    %3cline x1='14' y1='11' x2='14' y2='17'%3e%3c/line%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-user: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M12 13C14.2091 13 16 11.2091 16 9C16 6.79086 14.2091 5 12 5C9.79086 5 8 6.79086 8 9C8 11.2091 9.79086 13 12 13Z' /%3e    %3cpath d='M5.25 20V19.3333C5.25 17 9.31375 16 12.25 16C15.1863 16 19.25 17 19.25 19.3333V20' /%3e    %3cpath d='M23 12C23 18.0751 18.0751 23 12 23C5.92487 23 1 18.0751 1 12C1 5.92487 5.92487 1 12 1C18.0751 1 23 5.92487 23 12Z' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-warning: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e  %3cg fill='none' stroke='currentColor' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpolygon points='7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2'%3e%3c/polygon%3e    %3cline x1='12' y1='8' x2='12' y2='12'%3e%3c/line%3e    %3cline x1='12' y1='16' x2='12.01' y2='16'%3e%3c/line%3e  %3c/g%3e%3c/svg%3e");
++  --admin-icon-trash: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='3'%3e%3cpolyline points='3 6 5 6 21 6'/%3e%3cpath d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'/%3e%3cline x1='10' x2='10' y1='11' y2='17'/%3e%3cline x1='14' x2='14' y1='11' y2='17'/%3e%3c/g%3e%3c/svg%3e");
++  --admin-icon-warning: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25'%3e%3cpolygon points='7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2'/%3e%3cline x1='12' x2='12' y1='8' y2='12'/%3e%3cline x1='12' x2='12.01' y1='16' y2='16'/%3e%3c/g%3e%3c/svg%3e");
+ }
+ 
+ /*
+@@ -95,22 +77,28 @@
+  *   master             pretint                     hex      token snapshot
+  *   check.svg          check-inverse.svg           #ffffff  --admin-color-white
+  *   check.svg          check-disabled.svg          #767676  --admin-color-gray-700
+- *   chevron-down.svg   chevron-down-default.svg    #545560  --admin-color-gray-800
++ *   check.svg          check-disabled-inverse.svg  #adaeb3  --admin-color-gray-400
+  *   chevron-down.svg   chevron-down-inverse.svg    #ffffff  --admin-color-white
+  *   chevron-down.svg   chevron-down-disabled.svg   #767676  --admin-color-gray-700
+- *   close.svg          remove-default.svg          #545560  --admin-color-gray-800
++ *   chevron-down.svg   chevron-down-disabled-inverse.svg  #adaeb3  --admin-color-gray-400
+  *   close.svg          remove-inverse.svg          #ffffff  --admin-color-white
++ *   pencil.svg         edit-inverse.svg            #ffffff  --admin-color-white
++ *   loader.svg         loader-inverse.svg          #ffffff  --admin-color-white
++ *   loader.svg         loader-contrast.svg         #111111  --admin-color-text-on-primary dark-mode value
+  *
+  * Do not add to this list unless a native control leaves no other option.
+  */
+ :root {
+   --admin-icon-checked-inverse: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath fill='%23ffffff' d='M5.69238 10.6436L9.27246 14.4023L18.3076 4.91309L20.5342 7.25391L9.27246 19.0869L3.46582 12.9844L5.69238 10.6436Z' /%3e%3c/svg%3e");
+   --admin-icon-checked-disabled: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath fill='%23767676' d='M5.69238 10.6436L9.27246 14.4023L18.3076 4.91309L20.5342 7.25391L9.27246 19.0869L3.46582 12.9844L5.69238 10.6436Z' /%3e%3c/svg%3e");
+-  --admin-icon-chevron-down-default: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='%23545560' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M4 8L12 16L20 8' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-chevron-down-inverse: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M4 8L12 16L20 8' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-chevron-down-disabled: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='%23767676' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M4 8L12 16L20 8' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-remove-default: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='%23545560' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M20 4L4 20' /%3e    %3cpath d='M4 4L20 20' /%3e  %3c/g%3e%3c/svg%3e");
+-  --admin-icon-remove-inverse: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='%23ffffff' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M20 4L4 20' /%3e    %3cpath d='M4 4L20 20' /%3e  %3c/g%3e%3c/svg%3e");
++  --admin-icon-checked-disabled-inverse: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath fill='%23adaeb3' d='M5.69238 10.6436L9.27246 14.4023L18.3076 4.91309L20.5342 7.25391L9.27246 19.0869L3.46582 12.9844L5.69238 10.6436Z'/%3e%3c/svg%3e");
++  --admin-icon-chevron-down-inverse: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m4 8 8 8 8-8'/%3e%3c/svg%3e");
++  --admin-icon-chevron-down-disabled: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpath fill='none' stroke='%23767676' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m4 8 8 8 8-8'/%3e%3c/svg%3e");
++  --admin-icon-chevron-down-disabled-inverse: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpath fill='none' stroke='%23adaeb3' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m4 8 8 8 8-8'/%3e%3c/svg%3e");
++  --admin-icon-edit-inverse: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25' d='M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z'/%3e%3c/svg%3e");
++  --admin-icon-loader-inverse: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='%23ffffff' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M12 4C12.5523 4 13 3.55228 13 3C13 2.44772 12.5523 2 12 2C11.4477 2 11 2.44772 11 3C11 3.55228 11.4477 4 12 4Z'/%3e  %3c/g%3e%3c/svg%3e");
++  --admin-icon-loader-contrast: url("data:image/svg+xml,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e  %3cg fill='none' stroke='%23111111' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e    %3cpath d='M12 4C12.5523 4 13 3.55228 13 3C13 2.44772 12.5523 2 12 2C11.4477 2 11 2.44772 11 3C11 3.55228 11.4477 4 12 4Z'/%3e  %3c/g%3e%3c/svg%3e");
++  --admin-icon-remove-inverse: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cg fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.25'%3e%3cpath d='M20 4 4 20'/%3e%3cpath d='m4 4 16 16'/%3e%3c/g%3e%3c/svg%3e");
+ }
+ 
+ /**
+diff --git a/core/themes/default_admin/css/base/icons.pcss.css b/core/themes/default_admin/css/base/icons.pcss.css
+index 45e4d130..4efe68ee 100644
+--- a/core/themes/default_admin/css/base/icons.pcss.css
++++ b/core/themes/default_admin/css/base/icons.pcss.css
+@@ -11,21 +11,14 @@
+ /* cspell:ignore toleft, totop */
+ :root {
+   --admin-icon-add: url("../../images/icons/plus.svg");
+-  --admin-icon-appearance: url("../../images/icons/appearance.svg");
+   --admin-icon-asterisk: url("../../images/icons/required.svg");
+   --admin-icon-back-to-site: url("../../images/icons/back-to-site.svg");
+-  --admin-icon-blocks: url("../../images/icons/blocks.svg");
+-  --admin-icon-bookmarks: url("../../images/icons/bookmarks.svg");
+-  --admin-icon-check: url("../../images/icons/check.svg");
+   --admin-icon-checked: url("../../images/icons/check.svg");
+   --admin-icon-checkmark: url("../../images/icons/check.svg");
+   --admin-icon-chevron-down: url("../../images/icons/chevron-down.svg");
+-  --admin-icon-chevron-left: url("../../images/icons/chevron-left.svg");
+-  --admin-icon-chevron-right: url("../../images/icons/chevron-right.svg");
+   --admin-icon-clock: url("../../images/icons/clock.svg");
+   --admin-icon-close: url("../../images/icons/close.svg");
+   --admin-icon-config: url("../../images/icons/cog.svg");
+-  --admin-icon-content: url("../../images/icons/content.svg");
+   --admin-icon-database: url("../../images/icons/database.svg");
+   --admin-icon-devel: url("../../images/icons/key.svg");
+   --admin-icon-drag: url("../../images/icons/drag.svg");
+@@ -34,27 +27,18 @@
+   --admin-icon-drupal: url("../../images/logos/drupal.svg");
+   --admin-icon-edit: url("../../images/icons/pencil.svg");
+   --admin-icon-error: url("../../images/icons/error.svg");
+-  --admin-icon-files: url("../../images/icons/files.svg");
+   --admin-icon-first: url("../../images/icons/pager-first.svg");
+   --admin-icon-grid: url("../../images/icons/grid.svg");
+-  --admin-icon-hamburger: url("../../images/icons/menu.svg");
+   --admin-icon-handle: url("../../images/icons/chevron-right.svg");
+   --admin-icon-help: url("../../images/icons/help.svg");
+   --admin-icon-hide: url("../../images/icons/hide.svg");
+   --admin-icon-info: url("../../images/icons/info.svg");
+   --admin-icon-last: url("../../images/icons/pager-last.svg");
+   --admin-icon-list: url("../../images/icons/list.svg");
+-  --admin-icon-loader: url("../../images/icons/loader.svg");
+-  --admin-icon-media: url("../../images/icons/media.svg");
+-  --admin-icon-nav-toggle-toleft: url("../../images/icons/nav-toggle-left.svg");
+-  --admin-icon-nav-toggle-totop: url("../../images/icons/nav-toggle-top.svg");
+   --admin-icon-next: url("../../images/icons/pager-next.svg");
+-  --admin-icon-people: url("../../images/icons/people.svg");
+   --admin-icon-php: url("../../images/logos/php.svg");
+   --admin-icon-prev: url("../../images/icons/pager-prev.svg");
+   --admin-icon-remove: url("../../images/icons/close.svg");
+-  --admin-icon-reports: url("../../images/icons/reports.svg");
+-  --admin-icon-required: url("../../images/icons/required.svg");
+   --admin-icon-search: url("../../images/icons/search.svg");
+   --admin-icon-server: url("../../images/icons/server.svg");
+   --admin-icon-show: url("../../images/icons/show.svg");
+@@ -63,11 +47,9 @@
+   --admin-icon-sort-asc: url("../../images/icons/sort-asc.svg");
+   --admin-icon-sort-desc: url("../../images/icons/sort-desc.svg");
+   --admin-icon-status: url("../../images/icons/status.svg");
+-  --admin-icon-structure: url("../../images/icons/structure.svg");
+   --admin-icon-tabledrag-handle: url("../../images/icons/tabledrag-handle.svg");
+   --admin-icon-toggle-unchecked: url("../../images/icons/toggle-unchecked.svg");
+   --admin-icon-trash: url("../../images/icons/trash.svg");
+-  --admin-icon-user: url("../../images/icons/user.svg");
+   --admin-icon-warning: url("../../images/icons/warning.svg");
+ }
+ 
+@@ -89,21 +71,27 @@
+  *   master             pretint                     hex      token snapshot
+  *   check.svg          check-inverse.svg           #ffffff  --admin-color-white
+  *   check.svg          check-disabled.svg          #767676  --admin-color-gray-700
+- *   chevron-down.svg   chevron-down-default.svg    #545560  --admin-color-gray-800
++ *   check.svg          check-disabled-inverse.svg  #adaeb3  --admin-color-gray-400
+  *   chevron-down.svg   chevron-down-inverse.svg    #ffffff  --admin-color-white
+  *   chevron-down.svg   chevron-down-disabled.svg   #767676  --admin-color-gray-700
+- *   close.svg          remove-default.svg          #545560  --admin-color-gray-800
++ *   chevron-down.svg   chevron-down-disabled-inverse.svg  #adaeb3  --admin-color-gray-400
+  *   close.svg          remove-inverse.svg          #ffffff  --admin-color-white
++ *   pencil.svg         edit-inverse.svg            #ffffff  --admin-color-white
++ *   loader.svg         loader-inverse.svg          #ffffff  --admin-color-white
++ *   loader.svg         loader-contrast.svg         #111111  --admin-color-text-on-primary dark-mode value
+  *
+  * Do not add to this list unless a native control leaves no other option.
+  */
+ :root {
+   --admin-icon-checked-inverse: url("../../images/icons/pretint/check-inverse.svg");
+   --admin-icon-checked-disabled: url("../../images/icons/pretint/check-disabled.svg");
+-  --admin-icon-chevron-down-default: url("../../images/icons/pretint/chevron-down-default.svg");
++  --admin-icon-checked-disabled-inverse: url("../../images/icons/pretint/check-disabled-inverse.svg");
+   --admin-icon-chevron-down-inverse: url("../../images/icons/pretint/chevron-down-inverse.svg");
+   --admin-icon-chevron-down-disabled: url("../../images/icons/pretint/chevron-down-disabled.svg");
+-  --admin-icon-remove-default: url("../../images/icons/pretint/remove-default.svg");
++  --admin-icon-chevron-down-disabled-inverse: url("../../images/icons/pretint/chevron-down-disabled-inverse.svg");
++  --admin-icon-edit-inverse: url("../../images/icons/pretint/edit-inverse.svg");
++  --admin-icon-loader-inverse: url("../../images/icons/pretint/loader-inverse.svg");
++  --admin-icon-loader-contrast: url("../../images/icons/pretint/loader-contrast.svg");
+   --admin-icon-remove-inverse: url("../../images/icons/pretint/remove-inverse.svg");
+ }
+ 
+diff --git a/core/themes/default_admin/css/components/autocomplete-loading.module.css b/core/themes/default_admin/css/components/autocomplete-loading.module.css
+index 766709e0..46d9b41d 100644
+--- a/core/themes/default_admin/css/components/autocomplete-loading.module.css
++++ b/core/themes/default_admin/css/components/autocomplete-loading.module.css
+@@ -16,6 +16,33 @@
+ .admin-autocomplete {
+   position: relative;
+   width: fit-content;
++
++  /*
++   * The search affordance. The icon is a mask on the wrapper because the
++   * input itself cannot host a pseudo-element, and an external SVG used as a
++   * background image cannot inherit the input's currentColor. The wrapper is
++   * only rendered for autocomplete inputs (see input.html.twig).
++   */
++  &::before {
++    position: absolute;
++    z-index: 1;
++    width: 1rem;
++    height: 1rem;
++    content: "";
++    transform: translateY(-50%);
++    pointer-events: none;
++    background-color: var(--admin-color-gray-500);
++    mask-image: var(--admin-icon-search);
++    mask-repeat: no-repeat;
++    mask-position: center;
++    mask-size: contain;
++    inset-block-start: 50%;
++    inset-inline-end: var(--input-border-size);
++
++    @media (forced-colors: active) {
++      background-color: CanvasText;
++    }
++  }
+ }
+ 
+ /* The "Loading" message gets positioned to the top right. */
+@@ -55,15 +82,16 @@
+ .form-autocomplete {
+   margin-inline-end: calc(var(--input-border-size) - 1.5 * var(--input-padding-horizontal));
+   padding-inline-end: 2.25rem;
+-  background-image: var(--admin-icon-search-muted);
+-  background-repeat: no-repeat;
+-  background-position: 100% 50%;
+-  background-size: 1rem 1rem;
+-
+-  &:dir(rtl) {
+-    background-image: var(--admin-icon-search-muted-rtl);
+-    background-position: 0 50%;
+-  }
++}
++
++/*
++ * The wrapper places the icon at the inline end. On this native input
++ * Chromium resolves the logical padding against the document direction
++ * inconsistently, so mirror the physical sides explicitly for RTL.
++ */
++[dir="rtl"] .form-autocomplete {
++  padding-right: var(--input-padding-horizontal);
++  padding-left: 2.25rem;
+ }
+ 
+ /* <ul> dropdown */
+diff --git a/core/themes/default_admin/css/components/autocomplete-loading.module.pcss.css b/core/themes/default_admin/css/components/autocomplete-loading.module.pcss.css
+index f91dc3fa..f12e4028 100644
+--- a/core/themes/default_admin/css/components/autocomplete-loading.module.pcss.css
++++ b/core/themes/default_admin/css/components/autocomplete-loading.module.pcss.css
+@@ -9,6 +9,33 @@
+ .admin-autocomplete {
+   position: relative;
+   width: fit-content;
++
++  /*
++   * The search affordance. The icon is a mask on the wrapper because the
++   * input itself cannot host a pseudo-element, and an external SVG used as a
++   * background image cannot inherit the input's currentColor. The wrapper is
++   * only rendered for autocomplete inputs (see input.html.twig).
++   */
++  &::before {
++    position: absolute;
++    z-index: 1;
++    width: 1rem;
++    height: 1rem;
++    content: "";
++    transform: translateY(-50%);
++    pointer-events: none;
++    background-color: var(--admin-color-gray-500);
++    mask-image: var(--admin-icon-search);
++    mask-repeat: no-repeat;
++    mask-position: center;
++    mask-size: contain;
++    inset-block-start: 50%;
++    inset-inline-end: var(--input-border-size);
++
++    @media (forced-colors: active) {
++      background-color: CanvasText;
++    }
++  }
+ }
+ 
+ /* The "Loading" message gets positioned to the top right. */
+@@ -48,15 +75,16 @@
+ .form-autocomplete {
+   margin-inline-end: calc(var(--input-border-size) - 1.5 * var(--input-padding-horizontal));
+   padding-inline-end: 36px;
+-  background-image: var(--admin-icon-search-muted);
+-  background-repeat: no-repeat;
+-  background-position: 100% 50%;
+-  background-size: 1rem 1rem;
++}
+ 
+-  &:dir(rtl) {
+-    background-image: var(--admin-icon-search-muted-rtl);
+-    background-position: 0 50%;
+-  }
++/*
++ * The wrapper places the icon at the inline end. On this native input
++ * Chromium resolves the logical padding against the document direction
++ * inconsistently, so mirror the physical sides explicitly for RTL.
++ */
++[dir="rtl"] .form-autocomplete {
++  padding-right: var(--input-padding-horizontal);
++  padding-left: 36px;
+ }
+ 
+ /* <ul> dropdown */
+diff --git a/core/themes/default_admin/css/components/file.css b/core/themes/default_admin/css/components/file.css
+index b6a7b5ac..2ef2e121 100644
+--- a/core/themes/default_admin/css/components/file.css
++++ b/core/themes/default_admin/css/components/file.css
+@@ -34,19 +34,19 @@
+ 
+ .file--general,
+ .file--application-octet-stream {
+-  background-image: url("data:image/svg+xml,%3csvg aria-hidden='true' focusable='false' width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath d='M11 0L14 3V16H2V0H11Z' fill='%23fff'/%3e  %3cpath d='M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z' fill='%237f7f7f'/%3e  %3cpath d='M4 2H9V3H4V2Z' fill='%23dadada'/%3e  %3cpath d='M4 3H9V4H4V3Z' fill='%23e0e0e0'/%3e  %3cpath d='M4 4H9V5H4V4Z' fill='%23ebebeb'/%3e  %3cpath d='M4 5H12V6H4V5Z' fill='%23eee'/%3e  %3cpath d='M4 6H12V7H4V6Z' fill='%23f5f5f5'/%3e  %3cpath d='M4 7H12V8H4V7Z' fill='%23f8f8f8'/%3e  %3cpath d='M4 8H12V9H4V8Z' fill='%23fcfcfc'/%3e%3c/svg%3e");
++  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' aria-hidden='true' focusable='false' viewBox='0 0 16 16'%3e%3cpath fill='%23fff' d='m11 0 3 3v13H2V0z'/%3e%3cpath fill='%237f7f7f' d='m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z'/%3e%3cpath fill='%23dadada' d='M4 2h5v1H4z'/%3e%3cpath fill='%23e0e0e0' d='M4 3h5v1H4z'/%3e%3cpath fill='%23ebebeb' d='M4 4h5v1H4z'/%3e%3cpath fill='%23eee' d='M4 5h8v1H4z'/%3e%3cpath fill='%23f5f5f5' d='M4 6h8v1H4z'/%3e%3cpath fill='%23f8f8f8' d='M4 7h8v1H4z'/%3e%3cpath fill='%23fcfcfc' d='M4 8h8v1H4z'/%3e%3c/svg%3e");
+ }
+ .file--package-x-generic {
+-  background-image: url("data:image/svg+xml,%3csvg aria-hidden='true' focusable='false' width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath d='M11 0L14 3V16H2V0H11Z' fill='%23fff'/%3e  %3cpath d='M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z' fill='%237f7f7f'/%3e  %3cpath d='M4 2H9V3H4V2Z' fill='%23dadada'/%3e  %3cpath d='M4 3H9V4H4V3Z' fill='%23e0e0e0'/%3e  %3cpath d='M4 4H9V5H4V4Z' fill='%23ebebeb'/%3e  %3cpath d='M4 5H12V6H4V5Z' fill='%23eee'/%3e  %3cpath d='M4 6H12V7H4V6Z' fill='%23f5f5f5'/%3e  %3cpath d='M4 7H12V8H4V7Z' fill='%23f8f8f8'/%3e  %3cpath d='M4 8H12V9H4V8Z' fill='%23fcfcfc'/%3e  %3cpath d='M6 10H3V9H6V10ZM13 10H9V9H13V10Z' fill='%23ababab'/%3e  %3cpath d='M7 15H6V1H7V15ZM9 15H8V1H9V15Z' fill='%23747474' fill-opacity='0.8'/%3e  %3cpath d='M9 15H6V14H9V15ZM9 13H6V12H9V13ZM9 11H6V10H9V11ZM9 9H6V8H9V9ZM9 7H6V6H9V7ZM9 5H6V4H9V5ZM9 3H6V2H9V3Z' fill='%23747474' fill-opacity='0.5'/%3e%3c/svg%3e");
++  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' aria-hidden='true' focusable='false' viewBox='0 0 16 16'%3e%3cpath fill='%23fff' d='m11 0 3 3v13H2V0z'/%3e%3cpath fill='%237f7f7f' d='m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z'/%3e%3cpath fill='%23dadada' d='M4 2h5v1H4z'/%3e%3cpath fill='%23e0e0e0' d='M4 3h5v1H4z'/%3e%3cpath fill='%23ebebeb' d='M4 4h5v1H4z'/%3e%3cpath fill='%23eee' d='M4 5h8v1H4z'/%3e%3cpath fill='%23f5f5f5' d='M4 6h8v1H4z'/%3e%3cpath fill='%23f8f8f8' d='M4 7h8v1H4z'/%3e%3cpath fill='%23fcfcfc' d='M4 8h8v1H4z'/%3e%3cpath fill='%23ababab' d='M6 10H3V9h3zm7 0H9V9h4z'/%3e%3cpath fill='%23747474' fill-opacity='.8' d='M7 15H6V1h1zm2 0H8V1h1z'/%3e%3cpath fill='%23747474' fill-opacity='.5' d='M9 15H6v-1h3zm0-2H6v-1h3zm0-2H6v-1h3zm0-2H6V8h3zm0-2H6V6h3zm0-2H6V4h3zm0-2H6V2h3z'/%3e%3c/svg%3e");
+ }
+ .file--x-office-spreadsheet {
+-  background-image: url("data:image/svg+xml,%3csvg aria-hidden='true' focusable='false' width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath d='M11 0L14 3V16H2V0H11Z' fill='%23fff'/%3e  %3cpath d='M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z' fill='%237f7f7f'/%3e  %3cpath d='M4 2H9V3H4V2Z' fill='%23dadada'/%3e  %3cpath d='M4 3H9V4H4V3Z' fill='%23e0e0e0'/%3e  %3cpath d='M4 4H9V5H4V4Z' fill='%23ebebeb'/%3e  %3cpath d='M4 5H12V6H4V5Z' fill='%23eee'/%3e  %3cpath d='M4 6H12V7H4V6Z' fill='%23f5f5f5'/%3e  %3cpath d='M4 7H12V8H4V7Z' fill='%23f8f8f8'/%3e  %3cpath d='M4 8H12V9H4V8Z' fill='%23fcfcfc'/%3e  %3cpath d='M4 2H9V4H4V2Z' fill='%234e9a06'/%3e  %3cpath d='M12 14H4V5H12V14ZM5 13H8V12H5V13ZM9 13H11V12H9V13ZM5 11H8V10H5V11ZM9 11H11V10H9V11ZM5 8V9H8V8H5ZM9 8V9H11V8H9ZM5 7H8V6H5V7ZM9 7H11V6H9V7Z' fill='%23bfbfbf'/%3e%3c/svg%3e");
++  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' aria-hidden='true' focusable='false' viewBox='0 0 16 16'%3e%3cpath fill='%23fff' d='m11 0 3 3v13H2V0z'/%3e%3cpath fill='%237f7f7f' d='m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z'/%3e%3cpath fill='%23dadada' d='M4 2h5v1H4z'/%3e%3cpath fill='%23e0e0e0' d='M4 3h5v1H4z'/%3e%3cpath fill='%23ebebeb' d='M4 4h5v1H4z'/%3e%3cpath fill='%23eee' d='M4 5h8v1H4z'/%3e%3cpath fill='%23f5f5f5' d='M4 6h8v1H4z'/%3e%3cpath fill='%23f8f8f8' d='M4 7h8v1H4z'/%3e%3cpath fill='%23fcfcfc' d='M4 8h8v1H4z'/%3e%3cpath fill='%234e9a06' d='M4 2h5v2H4z'/%3e%3cpath fill='%23bfbfbf' d='M12 14H4V5h8zm-7-1h3v-1H5zm4 0h2v-1H9zm-4-2h3v-1H5zm4 0h2v-1H9zM5 8v1h3V8zm4 0v1h2V8zM5 7h3V6H5zm4 0h2V6H9z'/%3e%3c/svg%3e");
+ }
+ .file--x-office-document {
+-  background-image: url("data:image/svg+xml,%3csvg aria-hidden='true' focusable='false' width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath d='M11 0L14 3V16H2V0H11Z' fill='%23fff'/%3e  %3cpath d='M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z' fill='%237f7f7f'/%3e  %3cpath d='M4 2H9V3H4V2Z' fill='%23dadada'/%3e  %3cpath d='M4 3H9V4H4V3Z' fill='%23e0e0e0'/%3e  %3cpath d='M4 4H9V5H4V4Z' fill='%23ebebeb'/%3e  %3cpath d='M4 5H12V6H4V5Z' fill='%23eee'/%3e  %3cpath d='M4 6H12V7H4V6Z' fill='%23f5f5f5'/%3e  %3cpath d='M4 7H12V8H4V7Z' fill='%23f8f8f8'/%3e  %3cpath d='M4 8H12V9H4V8Z' fill='%23fcfcfc'/%3e  %3cpath d='M4 2H9V4H4V2Z' fill='%230077c0'/%3e  %3cpath d='M5 14H4V13H5V14ZM12 14H6V13H12V14ZM5 12H4V11H5V12ZM12 12H6V11H12V12ZM7 10H4V5H7V10ZM12 10H8V9H12V10ZM12 8H8V7H12V8ZM12 6H8V5H12V6Z' fill='%23a8a8a8'/%3e%3c/svg%3e");
++  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' aria-hidden='true' focusable='false' viewBox='0 0 16 16'%3e%3cpath fill='%23fff' d='m11 0 3 3v13H2V0z'/%3e%3cpath fill='%237f7f7f' d='m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z'/%3e%3cpath fill='%23dadada' d='M4 2h5v1H4z'/%3e%3cpath fill='%23e0e0e0' d='M4 3h5v1H4z'/%3e%3cpath fill='%23ebebeb' d='M4 4h5v1H4z'/%3e%3cpath fill='%23eee' d='M4 5h8v1H4z'/%3e%3cpath fill='%23f5f5f5' d='M4 6h8v1H4z'/%3e%3cpath fill='%23f8f8f8' d='M4 7h8v1H4z'/%3e%3cpath fill='%23fcfcfc' d='M4 8h8v1H4z'/%3e%3cpath fill='%230077c0' d='M4 2h5v2H4z'/%3e%3cpath fill='%23a8a8a8' d='M5 14H4v-1h1zm7 0H6v-1h6zm-7-2H4v-1h1zm7 0H6v-1h6zm-5-2H4V5h3zm5 0H8V9h4zm0-2H8V7h4zm0-2H8V5h4z'/%3e%3c/svg%3e");
+ }
+ .file--x-office-presentation {
+-  background-image: url("data:image/svg+xml,%3csvg aria-hidden='true' focusable='false' width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath d='M11 0L14 3V16H2V0H11Z' fill='%23fff'/%3e  %3cpath d='M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z' fill='%237f7f7f'/%3e  %3cpath d='M4 2H9V3H4V2Z' fill='%23dadada'/%3e  %3cpath d='M4 3H9V4H4V3Z' fill='%23e0e0e0'/%3e  %3cpath d='M4 4H9V5H4V4Z' fill='%23ebebeb'/%3e  %3cpath d='M4 5H12V6H4V5Z' fill='%23eee'/%3e  %3cpath d='M4 6H12V7H4V6Z' fill='%23f5f5f5'/%3e  %3cpath d='M4 7H12V8H4V7Z' fill='%23f8f8f8'/%3e  %3cpath d='M4 8H12V9H4V8Z' fill='%23fcfcfc'/%3e  %3cpath d='M4 2H9V4H4V2Z' fill='%23f57900'/%3e  %3cpath d='M6 14H5V13H6V14ZM11 14H10V13H11V14ZM12 12H10V13H9V12H7V13H6V12H4V6H7V5H9V6H12V12ZM5 7V11H11V7H5Z' fill='%237f7f7f'/%3e%3c/svg%3e");
++  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' aria-hidden='true' focusable='false' viewBox='0 0 16 16'%3e%3cpath fill='%23fff' d='m11 0 3 3v13H2V0z'/%3e%3cpath fill='%237f7f7f' d='m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z'/%3e%3cpath fill='%23dadada' d='M4 2h5v1H4z'/%3e%3cpath fill='%23e0e0e0' d='M4 3h5v1H4z'/%3e%3cpath fill='%23ebebeb' d='M4 4h5v1H4z'/%3e%3cpath fill='%23eee' d='M4 5h8v1H4z'/%3e%3cpath fill='%23f5f5f5' d='M4 6h8v1H4z'/%3e%3cpath fill='%23f8f8f8' d='M4 7h8v1H4z'/%3e%3cpath fill='%23fcfcfc' d='M4 8h8v1H4z'/%3e%3cpath fill='%23f57900' d='M4 2h5v2H4z'/%3e%3cpath fill='%237f7f7f' d='M6 14H5v-1h1zm5 0h-1v-1h1zm1-2h-2v1H9v-1H7v1H6v-1H4V6h3V5h2v1h3zM5 7v4h6V7z'/%3e%3c/svg%3e");
+ }
+ .file--text-x-script {
+   background-image: url("data:image/svg+xml,%3csvg aria-hidden='true' focusable='false' width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath d='M11 0L14 3V16H2V0H11Z' fill='%23fff'/%3e  %3cpath d='M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z' fill='%237f7f7f'/%3e  %3cpath d='M4 2H9V3H4V2Z' fill='%23dadada'/%3e  %3cpath d='M4 3H9V4H4V3Z' fill='%23e0e0e0'/%3e  %3cpath d='M4 4H9V5H4V4Z' fill='%23ebebeb'/%3e  %3cpath d='M4 5H12V6H4V5Z' fill='%23eee'/%3e  %3cpath d='M4 6H12V7H4V6Z' fill='%23f5f5f5'/%3e  %3cpath d='M4 7H12V8H4V7Z' fill='%23f8f8f8'/%3e  %3cpath d='M4 8H12V9H4V8Z' fill='%23fcfcfc'/%3e  %3cpath d='M5.25 4.89C6.09 4.89 6.71 5.51 6.71 6.36V8.44C6.71 8.96 7.22 8.98 7.62 8.98V10.08C7.23 10.08 6.71 10.11 6.71 10.62V12.72C6.71 13.53 6.07 14.20 5.25 14.20H4.40V13.09H5.25C5.51 13.09 5.60 12.98 5.60 12.72V10.62C5.60 10.17 5.87 9.72 6.29 9.53C5.86 9.32 5.60 8.92 5.60 8.44V6.36C5.60 6.10 5.51 6.00 5.25 6.00H4.40V4.89H5.25ZM10.06 13.18H8.86L9.70 10.90H11.16L10.06 13.18ZM11.10 9.06H9.67V7.63H11.10V9.06Z' fill='%23602b6e'/%3e%3c/svg%3e");
+@@ -55,23 +55,23 @@
+   background-image: url("data:image/svg+xml,%3csvg aria-hidden='true' focusable='false' width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath d='M11 0L14 3V16H2V0H11Z' fill='%23fff'/%3e  %3cpath d='M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z' fill='%237f7f7f'/%3e  %3cpath d='M4 2H9V3H4V2Z' fill='%23dadada'/%3e  %3cpath d='M4 3H9V4H4V3Z' fill='%23e0e0e0'/%3e  %3cpath d='M4 4H9V5H4V4Z' fill='%23ebebeb'/%3e  %3cpath d='M4 5H12V6H4V5Z' fill='%23eee'/%3e  %3cpath d='M4 6H12V7H4V6Z' fill='%23f5f5f5'/%3e  %3cpath d='M4 7H12V8H4V7Z' fill='%23f8f8f8'/%3e  %3cpath d='M4 8H12V9H4V8Z' fill='%23fcfcfc'/%3e  %3cpath d='M7.43 7.59L5.52 9.50L7.43 11.41L6.50 12.36L3.65 9.50L6.50 6.64L7.43 7.59ZM12.42 9.50L9.57 12.35L8.63 11.41L10.54 9.50L8.63 7.59L9.56 6.64L12.42 9.50Z' fill='%23602b6e'/%3e%3c/svg%3e");
+ }
+ .file--text-plain {
+-  background-image: url("data:image/svg+xml,%3csvg aria-hidden='true' focusable='false' width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath d='M11 0L14 3V16H2V0H11Z' fill='%23fff'/%3e  %3cpath d='M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z' fill='%237f7f7f'/%3e  %3cpath d='M4 2H9V3H4V2Z' fill='%23dadada'/%3e  %3cpath d='M4 3H9V4H4V3Z' fill='%23e0e0e0'/%3e  %3cpath d='M4 4H9V5H4V4Z' fill='%23ebebeb'/%3e  %3cpath d='M4 5H12V6H4V5Z' fill='%23eee'/%3e  %3cpath d='M4 6H12V7H4V6Z' fill='%23f5f5f5'/%3e  %3cpath d='M4 7H12V8H4V7Z' fill='%23f8f8f8'/%3e  %3cpath d='M4 8H12V9H4V8Z' fill='%23fcfcfc'/%3e  %3cpath d='M4 3H9V4H4V3Z' fill='%239e9e9e'/%3e  %3cpath d='M6 8H4V7H6V8ZM12 8H7V7H12V8Z' fill='%239e9e9e' fill-opacity='0.65'/%3e  %3cpath d='M8 6H4V5H8V6ZM12 6H9V5H12V6Z' fill='%239e9e9e' fill-opacity='0.8'/%3e  %3cpath d='M8 10H4V9H8V10ZM12 10H9V9H12V10Z' fill='%239e9e9e' fill-opacity='0.45'/%3e  %3cpath d='M6 12H4V11H6V12ZM10 12H7V11H10V12ZM12 12H11V11H12V12Z' fill='%239e9e9e' fill-opacity='0.3'/%3e%3c/svg%3e");
++  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' aria-hidden='true' focusable='false' viewBox='0 0 16 16'%3e%3cpath fill='%23fff' d='m11 0 3 3v13H2V0z'/%3e%3cpath fill='%237f7f7f' d='m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z'/%3e%3cpath fill='%23dadada' d='M4 2h5v1H4z'/%3e%3cpath fill='%23e0e0e0' d='M4 3h5v1H4z'/%3e%3cpath fill='%23ebebeb' d='M4 4h5v1H4z'/%3e%3cpath fill='%23eee' d='M4 5h8v1H4z'/%3e%3cpath fill='%23f5f5f5' d='M4 6h8v1H4z'/%3e%3cpath fill='%23f8f8f8' d='M4 7h8v1H4z'/%3e%3cpath fill='%23fcfcfc' d='M4 8h8v1H4z'/%3e%3cpath fill='%239e9e9e' d='M4 3h5v1H4z'/%3e%3cpath fill='%239e9e9e' fill-opacity='.65' d='M6 8H4V7h2zm6 0H7V7h5z'/%3e%3cpath fill='%239e9e9e' fill-opacity='.8' d='M8 6H4V5h4zm4 0H9V5h3z'/%3e%3cpath fill='%239e9e9e' fill-opacity='.45' d='M8 10H4V9h4zm4 0H9V9h3z'/%3e%3cpath fill='%239e9e9e' fill-opacity='.3' d='M6 12H4v-1h2zm4 0H7v-1h3zm2 0h-1v-1h1z'/%3e%3c/svg%3e");
+ }
+ .file--application-pdf {
+   background-image: url("data:image/svg+xml,%3csvg aria-hidden='true' focusable='false' width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath d='M11 0L14 3V16H2V0H11Z' fill='%23fff'/%3e  %3cpath d='M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z' fill='%237f7f7f'/%3e  %3cpath d='M4 2H9V3H4V2Z' fill='%23dadada'/%3e  %3cpath d='M4 3H9V4H4V3Z' fill='%23e0e0e0'/%3e  %3cpath d='M4 4H9V5H4V4Z' fill='%23ebebeb'/%3e  %3cpath d='M4 5H12V6H4V5Z' fill='%23eee'/%3e  %3cpath d='M4 6H12V7H4V6Z' fill='%23f5f5f5'/%3e  %3cpath d='M4 7H12V8H4V7Z' fill='%23f8f8f8'/%3e  %3cpath d='M4 8H12V9H4V8Z' fill='%23fcfcfc'/%3e  %3cpath d='M4.74 13.73C5.45 13.04 8.06 8.79 7.89 7.30C7.71 5.81 6.73 6.11 7 7.50C7.27 8.89 10.26 12.00 11.06 12.39C11.85 12.79 12.74 12.19 11.5 11.5C10.26 10.81 5.54 12.05 4.56 12.84C3.59 13.63 4.03 14.43 4.74 13.73Z' stroke='%23FF2116' stroke-width='0.8'/%3e%3c/svg%3e");
+ }
+ .file--application-x-executable {
+-  background-image: url("data:image/svg+xml,%3csvg aria-hidden='true' focusable='false' width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath d='M11 0L14 3V16H2V0H11Z' fill='%23fff'/%3e  %3cpath d='M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z' fill='%237f7f7f'/%3e  %3cpath d='M4 2H9V3H4V2Z' fill='%23dadada'/%3e  %3cpath d='M4 3H9V4H4V3Z' fill='%23e0e0e0'/%3e  %3cpath d='M4 4H9V5H4V4Z' fill='%23ebebeb'/%3e  %3cpath d='M4 5H12V6H4V5Z' fill='%23eee'/%3e  %3cpath d='M4 6H12V7H4V6Z' fill='%23f5f5f5'/%3e  %3cpath d='M4 7H12V8H4V7Z' fill='%23f8f8f8'/%3e  %3cpath d='M4 8H12V9H4V8Z' fill='%23fcfcfc'/%3e%3c/svg%3e");
++  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' aria-hidden='true' focusable='false' viewBox='0 0 16 16'%3e%3cpath fill='%23fff' d='m11 0 3 3v13H2V0z'/%3e%3cpath fill='%237f7f7f' d='m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z'/%3e%3cpath fill='%23dadada' d='M4 2h5v1H4z'/%3e%3cpath fill='%23e0e0e0' d='M4 3h5v1H4z'/%3e%3cpath fill='%23ebebeb' d='M4 4h5v1H4z'/%3e%3cpath fill='%23eee' d='M4 5h8v1H4z'/%3e%3cpath fill='%23f5f5f5' d='M4 6h8v1H4z'/%3e%3cpath fill='%23f8f8f8' d='M4 7h8v1H4z'/%3e%3cpath fill='%23fcfcfc' d='M4 8h8v1H4z'/%3e%3c/svg%3e");
+ }
+ .file--audio {
+-  background-image: url("data:image/svg+xml,%3csvg aria-hidden='true' focusable='false' width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath d='M11 0L14 3V16H2V0H11Z' fill='%23fff'/%3e  %3cpath d='M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z' fill='%237f7f7f'/%3e  %3cpath d='M4 2H9V3H4V2Z' fill='%23dadada'/%3e  %3cpath d='M4 3H9V4H4V3Z' fill='%23e0e0e0'/%3e  %3cpath d='M4 4H9V5H4V4Z' fill='%23ebebeb'/%3e  %3cpath d='M4 5H12V6H4V5Z' fill='%23eee'/%3e  %3cpath d='M4 6H12V7H4V6Z' fill='%23f5f5f5'/%3e  %3cpath d='M4 7H12V8H4V7Z' fill='%23f8f8f8'/%3e  %3cpath d='M4 8H12V9H4V8Z' fill='%23fcfcfc'/%3e  %3cpath d='M12 5.06v6.41c0 .53-.49 1.06-1.18 1.25-.8.21-1.57-.09-1.73-.68-.16-.59.36-1.24 1.15-1.45.37-.1.74-.09 1.04 0V6.74L7 7.72v4.96c0 .53-.48 1.06-1.18 1.25-.8.21-1.57-.09-1.73-.68-.16-.59.36-1.24 1.15-1.45.37-.1.74-.09 1.04 0V6.28L12 5.06z' fill='%234e9a06'/%3e%3c/svg%3e");
++  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' aria-hidden='true' focusable='false' viewBox='0 0 16 16'%3e%3cpath fill='%23fff' d='m11 0 3 3v13H2V0z'/%3e%3cpath fill='%237f7f7f' d='m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z'/%3e%3cpath fill='%23dadada' d='M4 2h5v1H4z'/%3e%3cpath fill='%23e0e0e0' d='M4 3h5v1H4z'/%3e%3cpath fill='%23ebebeb' d='M4 4h5v1H4z'/%3e%3cpath fill='%23eee' d='M4 5h8v1H4z'/%3e%3cpath fill='%23f5f5f5' d='M4 6h8v1H4z'/%3e%3cpath fill='%23f8f8f8' d='M4 7h8v1H4z'/%3e%3cpath fill='%23fcfcfc' d='M4 8h8v1H4z'/%3e%3cpath fill='%234e9a06' d='M12 5.06v6.41c0 .53-.49 1.06-1.18 1.25-.8.21-1.57-.09-1.73-.68s.36-1.24 1.15-1.45c.37-.1.74-.09 1.04 0V6.74L7 7.72v4.96c0 .53-.48 1.06-1.18 1.25-.8.21-1.57-.09-1.73-.68s.36-1.24 1.15-1.45c.37-.1.74-.09 1.04 0V6.28z'/%3e%3c/svg%3e");
+ }
+ .file--video {
+-  background-image: url("data:image/svg+xml,%3csvg aria-hidden='true' focusable='false' width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath d='M11 0L14 3V16H2V0H11Z' fill='%23fff'/%3e  %3cpath d='M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z' fill='%237f7f7f'/%3e  %3cpath d='M4 2H9V3H4V2Z' fill='%23dadada'/%3e  %3cpath d='M4 3H9V4H4V3Z' fill='%23e0e0e0'/%3e  %3cpath d='M4 4H9V5H4V4Z' fill='%23ebebeb'/%3e  %3cpath d='M4 5H12V6H4V5Z' fill='%23eee'/%3e  %3cpath d='M4 6H12V7H4V6Z' fill='%23f5f5f5'/%3e  %3cpath d='M4 7H12V8H4V7Z' fill='%23f8f8f8'/%3e  %3cpath d='M4 8H12V9H4V8Z' fill='%23fcfcfc'/%3e  %3cpath d='M5 5H11V4H13V5H12V6H13V7H12V8H13V9H12V10H13V11H12V12H13V13H12V14H13V15H11V11H5V15H3V14H4V13H3V12H4V11H3V10H4V9H3V8H4V7H3V6H4V5H3V4H4V3H3V2H4V1H5V5ZM5 10H11V6H5V10Z' fill='%237f7f7f'/%3e%3c/svg%3e");
++  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' aria-hidden='true' focusable='false' viewBox='0 0 16 16'%3e%3cpath fill='%23fff' d='m11 0 3 3v13H2V0z'/%3e%3cpath fill='%237f7f7f' d='m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z'/%3e%3cpath fill='%23dadada' d='M4 2h5v1H4z'/%3e%3cpath fill='%23e0e0e0' d='M4 3h5v1H4z'/%3e%3cpath fill='%23ebebeb' d='M4 4h5v1H4z'/%3e%3cpath fill='%23eee' d='M4 5h8v1H4z'/%3e%3cpath fill='%23f5f5f5' d='M4 6h8v1H4z'/%3e%3cpath fill='%23f8f8f8' d='M4 7h8v1H4z'/%3e%3cpath fill='%23fcfcfc' d='M4 8h8v1H4z'/%3e%3cpath fill='%237f7f7f' d='M5 5h6V4h2v1h-1v1h1v1h-1v1h1v1h-1v1h1v1h-1v1h1v1h-1v1h1v1h-2v-4H5v4H3v-1h1v-1H3v-1h1v-1H3v-1h1V9H3V8h1V7H3V6h1V5H3V4h1V3H3V2h1V1h1zm0 5h6V6H5z'/%3e%3c/svg%3e");
+ }
+ .file--text {
+-  background-image: url("data:image/svg+xml,%3csvg aria-hidden='true' focusable='false' width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath d='M11 0L14 3V16H2V0H11Z' fill='%23fff'/%3e  %3cpath d='M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z' fill='%237f7f7f'/%3e  %3cpath d='M4 2H9V3H4V2Z' fill='%23dadada'/%3e  %3cpath d='M4 3H9V4H4V3Z' fill='%23e0e0e0'/%3e  %3cpath d='M4 4H9V5H4V4Z' fill='%23ebebeb'/%3e  %3cpath d='M4 5H12V6H4V5Z' fill='%23eee'/%3e  %3cpath d='M4 6H12V7H4V6Z' fill='%23f5f5f5'/%3e  %3cpath d='M4 7H12V8H4V7Z' fill='%23f8f8f8'/%3e  %3cpath d='M4 8H12V9H4V8Z' fill='%23fcfcfc'/%3e  %3cpath d='M4 3H9V4H4V3Z' fill='%239e9e9e'/%3e  %3cpath d='M6 8H4V7H6V8ZM12 8H7V7H12V8Z' fill='%239e9e9e' fill-opacity='0.65'/%3e  %3cpath d='M8 6H4V5H8V6ZM12 6H9V5H12V6Z' fill='%239e9e9e' fill-opacity='0.8'/%3e  %3cpath d='M8 10H4V9H8V10ZM12 10H9V9H12V10Z' fill='%239e9e9e' fill-opacity='0.45'/%3e  %3cpath d='M6 12H4V11H6V12ZM10 12H7V11H10V12ZM12 12H11V11H12V12Z' fill='%239e9e9e' fill-opacity='0.3'/%3e%3c/svg%3e");
++  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' aria-hidden='true' focusable='false' viewBox='0 0 16 16'%3e%3cpath fill='%23fff' d='m11 0 3 3v13H2V0z'/%3e%3cpath fill='%237f7f7f' d='m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z'/%3e%3cpath fill='%23dadada' d='M4 2h5v1H4z'/%3e%3cpath fill='%23e0e0e0' d='M4 3h5v1H4z'/%3e%3cpath fill='%23ebebeb' d='M4 4h5v1H4z'/%3e%3cpath fill='%23eee' d='M4 5h8v1H4z'/%3e%3cpath fill='%23f5f5f5' d='M4 6h8v1H4z'/%3e%3cpath fill='%23f8f8f8' d='M4 7h8v1H4z'/%3e%3cpath fill='%23fcfcfc' d='M4 8h8v1H4z'/%3e%3cpath fill='%239e9e9e' d='M4 3h5v1H4z'/%3e%3cpath fill='%239e9e9e' fill-opacity='.65' d='M6 8H4V7h2zm6 0H7V7h5z'/%3e%3cpath fill='%239e9e9e' fill-opacity='.8' d='M8 6H4V5h4zm4 0H9V5h3z'/%3e%3cpath fill='%239e9e9e' fill-opacity='.45' d='M8 10H4V9h4zm4 0H9V9h3z'/%3e%3cpath fill='%239e9e9e' fill-opacity='.3' d='M6 12H4v-1h2zm4 0H7v-1h3zm2 0h-1v-1h1z'/%3e%3c/svg%3e");
+ }
+ .file--image {
+-  background-image: url("data:image/svg+xml,%3csvg aria-hidden='true' focusable='false' width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e  %3cpath d='M11 0L14 3V16H2V0H11Z' fill='%23fff'/%3e  %3cpath d='M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z' fill='%237f7f7f'/%3e  %3cpath d='M9 2V5H12V14H4V2H9Z' fill='%23f3da4d'/%3e  %3cpath d='M4 2H9V3H4V2Z' fill='%23ecc747'/%3e  %3cpath d='M4 3H9V4H4V3Z' fill='%23f0d14a'/%3e  %3cpath d='M4 7H12V10H4V7Z' fill='%23f9e752'/%3e  %3cpath d='M4 13H12V14H4V13Z' fill='%23cc7b2b'/%3e  %3cpath d='M4 12H12V13H4V12Z' fill='%23d58f32'/%3e  %3cpath d='M4 11H12V12H4V11Z' fill='%23e3b33f'/%3e  %3cpath d='M4 8H12V9H4V8Z' fill='%23fef456'/%3e  %3ccircle cx='6' cy='5' r='2' fill='%23fff'/%3e  %3cpath d='M6.27 7.39C6.29 6.80 7.22 5.98 8 6C8.66 6.02 9.49 6.78 9.49 6.78C9.49 6.78 10.34 6.02 11 6C11.79 5.98 12.54 6.89 12.54 7.39C12.54 7.88 11.99 6.67 11 6.94C9.93 7.22 9.49 8 9.49 8C9.49 8 9.05 7.10 8 6.94C6.84 6.76 6.26 7.97 6.27 7.39Z' fill='%23756400'/%3e%3c/svg%3e");
++  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' aria-hidden='true' focusable='false' viewBox='0 0 16 16'%3e%3cpath fill='%23fff' d='m11 0 3 3v13H2V0z'/%3e%3cpath fill='%237f7f7f' d='m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z'/%3e%3cpath fill='%23f3da4d' d='M9 2v3h3v9H4V2z'/%3e%3cpath fill='%23ecc747' d='M4 2h5v1H4z'/%3e%3cpath fill='%23f0d14a' d='M4 3h5v1H4z'/%3e%3cpath fill='%23f9e752' d='M4 7h8v3H4z'/%3e%3cpath fill='%23cc7b2b' d='M4 13h8v1H4z'/%3e%3cpath fill='%23d58f32' d='M4 12h8v1H4z'/%3e%3cpath fill='%23e3b33f' d='M4 11h8v1H4z'/%3e%3cpath fill='%23fef456' d='M4 8h8v1H4z'/%3e%3ccircle cx='6' cy='5' r='2' fill='%23fff'/%3e%3cpath fill='%23756400' d='M6.27 7.39C6.29 6.8 7.22 5.98 8 6c.66.02 1.49.78 1.49.78S10.34 6.02 11 6c.79-.02 1.54.89 1.54 1.39 0 .49-.55-.72-1.54-.45C9.93 7.22 9.49 8 9.49 8S9.05 7.1 8 6.94c-1.16-.18-1.74 1.03-1.73.45'/%3e%3c/svg%3e");
+ }
+diff --git a/core/themes/default_admin/css/components/form--checkbox-radio.css b/core/themes/default_admin/css/components/form--checkbox-radio.css
+index 356cb9de..aed94c11 100644
+--- a/core/themes/default_admin/css/components/form--checkbox-radio.css
++++ b/core/themes/default_admin/css/components/form--checkbox-radio.css
+@@ -231,6 +231,18 @@
+ .form-boolean--type-checkbox[disabled]:checked {
+   background-image: var(--admin-icon-checked-disabled);
+ }
++/*
++ * The dark-mode disabled surface is darker than the light-mode surface, so
++ * the light-mode gray check (gray-700) no longer separates from it. This is a
++ * discernibility improvement for a disabled control, not a WCAG 1.4.11 fix:
++ * inactive controls are exempt. Forced colors uses the native control, so the
++ * override is limited to non-forced-colors.
++ */
++@media (forced-colors: none) {
++  .dark-mode .form-boolean--type-checkbox[disabled]:checked {
++    background-image: var(--admin-icon-checked-disabled-inverse);
++  }
++}
+ .form-boolean--type-radio[disabled]:checked,
+ .form-boolean--type-radio[disabled].error:checked {
+   /* Same ring-and-dot technique as enabled radios; no image asset needed. */
+diff --git a/core/themes/default_admin/css/components/form--checkbox-radio.pcss.css b/core/themes/default_admin/css/components/form--checkbox-radio.pcss.css
+index 88fd02f7..e5fad97c 100644
+--- a/core/themes/default_admin/css/components/form--checkbox-radio.pcss.css
++++ b/core/themes/default_admin/css/components/form--checkbox-radio.pcss.css
+@@ -224,6 +224,18 @@
+ .form-boolean--type-checkbox[disabled]:checked {
+   background-image: var(--admin-icon-checked-disabled);
+ }
++/*
++ * The dark-mode disabled surface is darker than the light-mode surface, so
++ * the light-mode gray check (gray-700) no longer separates from it. This is a
++ * discernibility improvement for a disabled control, not a WCAG 1.4.11 fix:
++ * inactive controls are exempt. Forced colors uses the native control, so the
++ * override is limited to non-forced-colors.
++ */
++@media (forced-colors: none) {
++  .dark-mode .form-boolean--type-checkbox[disabled]:checked {
++    background-image: var(--admin-icon-checked-disabled-inverse);
++  }
++}
+ .form-boolean--type-radio[disabled]:checked,
+ .form-boolean--type-radio[disabled].error:checked {
+   /* Same ring-and-dot technique as enabled radios; no image asset needed. */
+diff --git a/core/themes/default_admin/css/components/form--select.css b/core/themes/default_admin/css/components/form--select.css
+index 01f67caa..a1d12f13 100644
+--- a/core/themes/default_admin/css/components/form--select.css
++++ b/core/themes/default_admin/css/components/form--select.css
+@@ -28,10 +28,6 @@
+     background-position: 0 50%;
+   }
+ 
+-  .dark-mode & {
+-    background-image: var(--admin-icon-chevron-down-inverse);
+-  }
+-
+   .no-touchevents & {
+     &.form-element--extrasmall,
+     &[name$="][_weight]"] {
+@@ -42,6 +38,21 @@
+       line-height: 1.5;
+     }
+   }
++
++  /*
++   * Dark-mode artwork. Scope it to non-forced-colors so it cannot out-rank
++   * the native appearance rules below, and keep the disabled state last so
++   * it wins over the enabled dark chevron.
++   */
++  @media (forced-colors: none) {
++    .dark-mode & {
++      background-image: var(--admin-icon-chevron-down-inverse);
++    }
++
++    .dark-mode &[disabled] {
++      background-image: var(--admin-icon-chevron-down-disabled-inverse);
++    }
++  }
+ }
+ 
+ @media (forced-colors: active) {
+diff --git a/core/themes/default_admin/css/components/form--select.pcss.css b/core/themes/default_admin/css/components/form--select.pcss.css
+index cb92f3ae..cefcfae0 100644
+--- a/core/themes/default_admin/css/components/form--select.pcss.css
++++ b/core/themes/default_admin/css/components/form--select.pcss.css
+@@ -21,10 +21,6 @@
+     background-position: 0 50%;
+   }
+ 
+-  .dark-mode & {
+-    background-image: var(--admin-icon-chevron-down-inverse);
+-  }
+-
+   .no-touchevents & {
+     &.form-element--extrasmall,
+     &[name$="][_weight]"] {
+@@ -35,6 +31,21 @@
+       line-height: 1.5;
+     }
+   }
++
++  /*
++   * Dark-mode artwork. Scope it to non-forced-colors so it cannot out-rank
++   * the native appearance rules below, and keep the disabled state last so
++   * it wins over the enabled dark chevron.
++   */
++  @media (forced-colors: none) {
++    .dark-mode & {
++      background-image: var(--admin-icon-chevron-down-inverse);
++    }
++
++    .dark-mode &[disabled] {
++      background-image: var(--admin-icon-chevron-down-disabled-inverse);
++    }
++  }
+ }
+ 
+ @media (forced-colors: active) {
+diff --git a/core/themes/default_admin/css/components/more-actions.css b/core/themes/default_admin/css/components/more-actions.css
+index c415fa96..55dc058d 100644
+--- a/core/themes/default_admin/css/components/more-actions.css
++++ b/core/themes/default_admin/css/components/more-actions.css
+@@ -41,7 +41,14 @@
+   }
+ }
+ 
+-@keyframes pseudo-throbber {
++/*
++ * The sticky actions are <input type="submit"> elements. They cannot host a
++ * pseudo-element, so the throbber remains a background image. An external SVG
++ * background image cannot inherit currentColor; these pre-tinted copies give
++ * the dot the same contrast as the button text. The position and size are
++ * animated together so the dot stays in place while the pulse grows.
++ */
++@keyframes sticky-throbber {
+   0% {
+     background-position: 16px 18px;
+     background-size: 0.5rem 0.5rem;
+@@ -58,6 +65,24 @@
+   }
+ }
+ 
++@keyframes sticky-throbber-rtl {
++  0% {
++    background-position: right 16px top 18px;
++    background-size: 0.5rem 0.5rem;
++  }
++
++  50% {
++    background-position: right 4px top 14px;
++    background-size: 2rem 2rem;
++  }
++
++  100% {
++    background-position: right 16px top 18px;
++    background-size: 0.5rem 0.5rem;
++  }
++}
++
++[data-drupal-selector="sticky-edit-submit"],
+ [data-drupal-selector="sticky-edit-save"],
+ [data-drupal-selector="sticky-edit-preview"],
+ [data-drupal-selector="sticky-edit-delete"] {
+@@ -65,15 +90,67 @@
+   background-position: var(--admin-space-xs) center;
+ }
+ 
+-body:has([data-drupal-selector="edit-save"] + .ajax-progress) :where([data-drupal-selector="sticky-edit-save"]),
+-body:has([data-drupal-selector="edit-preview"] + .ajax-progress) :where([data-drupal-selector="sticky-edit-preview"]),
+-body:has([data-drupal-selector="edit-delete"] + .ajax-progress) :where([data-drupal-selector="sticky-edit-delete"]) {
++body:has([data-drupal-selector="edit-submit"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-submit"],
++body:has([data-drupal-selector="edit-save"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-save"] {
++  padding-inline-start: var(--admin-space-xl);
++  animation: sticky-throbber 1s linear infinite;
++  background-image: var(--admin-icon-loader-inverse);
++  background-repeat: no-repeat;
++
++  &:dir(rtl) {
++    animation-name: sticky-throbber-rtl;
++  }
++}
++
++body:has([data-drupal-selector="edit-preview"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-preview"] {
+   padding-inline-start: var(--admin-space-xl);
+-  animation: pseudo-throbber 1s linear infinite;
+-  background-image: var(--admin-icon-loader);
++  animation: sticky-throbber 1s linear infinite;
++  background-image: var(--admin-icon-loader-contrast);
++  background-repeat: no-repeat;
+ 
+   &:dir(rtl) {
+-    padding-inline-start: unset;
+-    padding-inline-end: var(--admin-space-xl);
++    animation-name: sticky-throbber-rtl;
++  }
++}
++
++body:has([data-drupal-selector="edit-delete"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-delete"] {
++  padding-inline-start: var(--admin-space-xl);
++  animation: sticky-throbber 1s linear infinite;
++  background-image: var(--admin-icon-loader-inverse);
++  background-repeat: no-repeat;
++
++  &:dir(rtl) {
++    animation-name: sticky-throbber-rtl;
++  }
++}
++
++/*
++ * In dark mode the primary fill becomes light with dark text, while the
++ * secondary button keeps light text on a dark surface. Swap the dot colors
++ * to keep the indicator at the same contrast as the button label.
++ */
++@media (forced-colors: none) {
++  .dark-mode body:has([data-drupal-selector="edit-submit"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-submit"],
++  .dark-mode body:has([data-drupal-selector="edit-save"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-save"] {
++    background-image: var(--admin-icon-loader-contrast);
++  }
++
++  .dark-mode body:has([data-drupal-selector="edit-preview"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-preview"] {
++    background-image: var(--admin-icon-loader-inverse);
++  }
++}
++
++@media (prefers-reduced-motion: reduce) {
++  body:has([data-drupal-selector="edit-submit"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-submit"],
++  body:has([data-drupal-selector="edit-save"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-save"],
++  body:has([data-drupal-selector="edit-preview"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-preview"],
++  body:has([data-drupal-selector="edit-delete"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-delete"] {
++    animation: none;
++    background-position: var(--admin-space-xs) center;
++    background-size: 1rem 1rem;
++
++    &:dir(rtl) {
++      background-position: right var(--admin-space-xs) center;
++    }
+   }
+ }
+diff --git a/core/themes/default_admin/css/components/more-actions.pcss.css b/core/themes/default_admin/css/components/more-actions.pcss.css
+index fa10f66a..50f56dd7 100644
+--- a/core/themes/default_admin/css/components/more-actions.pcss.css
++++ b/core/themes/default_admin/css/components/more-actions.pcss.css
+@@ -34,7 +34,14 @@
+   }
+ }
+ 
+-@keyframes pseudo-throbber {
++/*
++ * The sticky actions are <input type="submit"> elements. They cannot host a
++ * pseudo-element, so the throbber remains a background image. An external SVG
++ * background image cannot inherit currentColor; these pre-tinted copies give
++ * the dot the same contrast as the button text. The position and size are
++ * animated together so the dot stays in place while the pulse grows.
++ */
++@keyframes sticky-throbber {
+   0% {
+     background-position: 16px 18px;
+     background-size: 8px 8px;
+@@ -51,6 +58,24 @@
+   }
+ }
+ 
++@keyframes sticky-throbber-rtl {
++  0% {
++    background-position: right 16px top 18px;
++    background-size: 8px 8px;
++  }
++
++  50% {
++    background-position: right 4px top 14px;
++    background-size: 32px 32px;
++  }
++
++  100% {
++    background-position: right 16px top 18px;
++    background-size: 8px 8px;
++  }
++}
++
++[data-drupal-selector="sticky-edit-submit"],
+ [data-drupal-selector="sticky-edit-save"],
+ [data-drupal-selector="sticky-edit-preview"],
+ [data-drupal-selector="sticky-edit-delete"] {
+@@ -58,15 +83,67 @@
+   background-position: var(--admin-space-xs) center;
+ }
+ 
+-body:has([data-drupal-selector="edit-save"] + .ajax-progress) :where([data-drupal-selector="sticky-edit-save"]),
+-body:has([data-drupal-selector="edit-preview"] + .ajax-progress) :where([data-drupal-selector="sticky-edit-preview"]),
+-body:has([data-drupal-selector="edit-delete"] + .ajax-progress) :where([data-drupal-selector="sticky-edit-delete"]) {
++body:has([data-drupal-selector="edit-submit"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-submit"],
++body:has([data-drupal-selector="edit-save"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-save"] {
++  padding-inline-start: var(--admin-space-xl);
++  animation: sticky-throbber 1s linear infinite;
++  background-image: var(--admin-icon-loader-inverse);
++  background-repeat: no-repeat;
++
++  &:dir(rtl) {
++    animation-name: sticky-throbber-rtl;
++  }
++}
++
++body:has([data-drupal-selector="edit-preview"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-preview"] {
++  padding-inline-start: var(--admin-space-xl);
++  animation: sticky-throbber 1s linear infinite;
++  background-image: var(--admin-icon-loader-contrast);
++  background-repeat: no-repeat;
++
++  &:dir(rtl) {
++    animation-name: sticky-throbber-rtl;
++  }
++}
++
++body:has([data-drupal-selector="edit-delete"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-delete"] {
+   padding-inline-start: var(--admin-space-xl);
+-  animation: pseudo-throbber 1s linear infinite;
+-  background-image: var(--admin-icon-loader);
++  animation: sticky-throbber 1s linear infinite;
++  background-image: var(--admin-icon-loader-inverse);
++  background-repeat: no-repeat;
+ 
+   &:dir(rtl) {
+-    padding-inline-start: unset;
+-    padding-inline-end: var(--admin-space-xl);
++    animation-name: sticky-throbber-rtl;
++  }
++}
++
++/*
++ * In dark mode the primary fill becomes light with dark text, while the
++ * secondary button keeps light text on a dark surface. Swap the dot colors
++ * to keep the indicator at the same contrast as the button label.
++ */
++@media (forced-colors: none) {
++  .dark-mode body:has([data-drupal-selector="edit-submit"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-submit"],
++  .dark-mode body:has([data-drupal-selector="edit-save"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-save"] {
++    background-image: var(--admin-icon-loader-contrast);
++  }
++
++  .dark-mode body:has([data-drupal-selector="edit-preview"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-preview"] {
++    background-image: var(--admin-icon-loader-inverse);
++  }
++}
++
++@media (prefers-reduced-motion: reduce) {
++  body:has([data-drupal-selector="edit-submit"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-submit"],
++  body:has([data-drupal-selector="edit-save"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-save"],
++  body:has([data-drupal-selector="edit-preview"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-preview"],
++  body:has([data-drupal-selector="edit-delete"] + .ajax-progress) :is(#extra-specificity-hack, [data-drupal-admin-styles]) .button[data-drupal-selector="sticky-edit-delete"] {
++    animation: none;
++    background-position: var(--admin-space-xs) center;
++    background-size: 16px 16px;
++
++    &:dir(rtl) {
++      background-position: right var(--admin-space-xs) center;
++    }
+   }
+ }
+diff --git a/core/themes/default_admin/css/components/system-status-report-general-info.css b/core/themes/default_admin/css/components/system-status-report-general-info.css
+index 13e462e0..837fe608 100644
+--- a/core/themes/default_admin/css/components/system-status-report-general-info.css
++++ b/core/themes/default_admin/css/components/system-status-report-general-info.css
+@@ -72,6 +72,15 @@
+     mask-repeat: no-repeat;
+     mask-position: center center;
+     mask-size: 2rem 2rem;
++
++    /*
++     * The mask paint is a background-color. Forced colors would otherwise
++     * force it to Canvas, which is the same color as the page and the icon
++     * would disappear. CanvasText keeps the status glyph visible.
++     */
++    @media (forced-colors: active) {
++      background-color: CanvasText;
++    }
+   }
+ }
+ 
+diff --git a/core/themes/default_admin/css/components/system-status-report-general-info.pcss.css b/core/themes/default_admin/css/components/system-status-report-general-info.pcss.css
+index e4c44f31..0b668b9d 100644
+--- a/core/themes/default_admin/css/components/system-status-report-general-info.pcss.css
++++ b/core/themes/default_admin/css/components/system-status-report-general-info.pcss.css
+@@ -65,6 +65,15 @@
+     mask-repeat: no-repeat;
+     mask-position: center center;
+     mask-size: 32px 32px;
++
++    /*
++     * The mask paint is a background-color. Forced colors would otherwise
++     * force it to Canvas, which is the same color as the page and the icon
++     * would disappear. CanvasText keeps the status glyph visible.
++     */
++    @media (forced-colors: active) {
++      background-color: CanvasText;
++    }
+   }
+ }
+ 
+diff --git a/core/themes/default_admin/css/components/tabledrag.css b/core/themes/default_admin/css/components/tabledrag.css
+index 00c929d8..78acaade 100644
+--- a/core/themes/default_admin/css/components/tabledrag.css
++++ b/core/themes/default_admin/css/components/tabledrag.css
+@@ -393,6 +393,11 @@ body {
+ .tree {
+   width: 1.5625rem;
+   height: 1.5625rem;
++  /*
++   * The inline SVG paths use currentColor. The soft text color keeps the
++   * tree lines subordinate to the row label in both light and dark mode.
++   */
++  color: var(--admin-color-text-soft);
+ }
+ 
+ .tree__item {
+diff --git a/core/themes/default_admin/css/components/tabledrag.pcss.css b/core/themes/default_admin/css/components/tabledrag.pcss.css
+index 76bdc496..51c985e7 100644
+--- a/core/themes/default_admin/css/components/tabledrag.pcss.css
++++ b/core/themes/default_admin/css/components/tabledrag.pcss.css
+@@ -390,6 +390,11 @@ body {
+ .tree {
+   width: 25px;
+   height: 25px;
++  /*
++   * The inline SVG paths use currentColor. The soft text color keeps the
++   * tree lines subordinate to the row label in both light and dark mode.
++   */
++  color: var(--admin-color-text-soft);
+ }
+ 
+ .tree__item {
+diff --git a/core/themes/default_admin/images/file-types/application-octet-stream.svg b/core/themes/default_admin/images/file-types/application-octet-stream.svg
+index 69af3126..968f9f22 100644
+--- a/core/themes/default_admin/images/file-types/application-octet-stream.svg
++++ b/core/themes/default_admin/images/file-types/application-octet-stream.svg
+@@ -1,11 +1 @@
+-<svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+-  <path d="M11 0L14 3V16H2V0H11Z" fill="#fff"/>
+-  <path d="M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z" fill="#7f7f7f"/>
+-  <path d="M4 2H9V3H4V2Z" fill="#dadada"/>
+-  <path d="M4 3H9V4H4V3Z" fill="#e0e0e0"/>
+-  <path d="M4 4H9V5H4V4Z" fill="#ebebeb"/>
+-  <path d="M4 5H12V6H4V5Z" fill="#eee"/>
+-  <path d="M4 6H12V7H4V6Z" fill="#f5f5f5"/>
+-  <path d="M4 7H12V8H4V7Z" fill="#f8f8f8"/>
+-  <path d="M4 8H12V9H4V8Z" fill="#fcfcfc"/>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" aria-hidden="true" focusable="false" viewBox="0 0 16 16"><path fill="#fff" d="m11 0 3 3v13H2V0z"/><path fill="#7f7f7f" d="m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z"/><path fill="#dadada" d="M4 2h5v1H4z"/><path fill="#e0e0e0" d="M4 3h5v1H4z"/><path fill="#ebebeb" d="M4 4h5v1H4z"/><path fill="#eee" d="M4 5h8v1H4z"/><path fill="#f5f5f5" d="M4 6h8v1H4z"/><path fill="#f8f8f8" d="M4 7h8v1H4z"/><path fill="#fcfcfc" d="M4 8h8v1H4z"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/file-types/application-x-executable.svg b/core/themes/default_admin/images/file-types/application-x-executable.svg
+index 69af3126..968f9f22 100644
+--- a/core/themes/default_admin/images/file-types/application-x-executable.svg
++++ b/core/themes/default_admin/images/file-types/application-x-executable.svg
+@@ -1,11 +1 @@
+-<svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+-  <path d="M11 0L14 3V16H2V0H11Z" fill="#fff"/>
+-  <path d="M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z" fill="#7f7f7f"/>
+-  <path d="M4 2H9V3H4V2Z" fill="#dadada"/>
+-  <path d="M4 3H9V4H4V3Z" fill="#e0e0e0"/>
+-  <path d="M4 4H9V5H4V4Z" fill="#ebebeb"/>
+-  <path d="M4 5H12V6H4V5Z" fill="#eee"/>
+-  <path d="M4 6H12V7H4V6Z" fill="#f5f5f5"/>
+-  <path d="M4 7H12V8H4V7Z" fill="#f8f8f8"/>
+-  <path d="M4 8H12V9H4V8Z" fill="#fcfcfc"/>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" aria-hidden="true" focusable="false" viewBox="0 0 16 16"><path fill="#fff" d="m11 0 3 3v13H2V0z"/><path fill="#7f7f7f" d="m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z"/><path fill="#dadada" d="M4 2h5v1H4z"/><path fill="#e0e0e0" d="M4 3h5v1H4z"/><path fill="#ebebeb" d="M4 4h5v1H4z"/><path fill="#eee" d="M4 5h8v1H4z"/><path fill="#f5f5f5" d="M4 6h8v1H4z"/><path fill="#f8f8f8" d="M4 7h8v1H4z"/><path fill="#fcfcfc" d="M4 8h8v1H4z"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/file-types/audio-x-generic.svg b/core/themes/default_admin/images/file-types/audio-x-generic.svg
+index af3df884..855565e1 100644
+--- a/core/themes/default_admin/images/file-types/audio-x-generic.svg
++++ b/core/themes/default_admin/images/file-types/audio-x-generic.svg
+@@ -1,12 +1 @@
+-<svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+-  <path d="M11 0L14 3V16H2V0H11Z" fill="#fff"/>
+-  <path d="M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z" fill="#7f7f7f"/>
+-  <path d="M4 2H9V3H4V2Z" fill="#dadada"/>
+-  <path d="M4 3H9V4H4V3Z" fill="#e0e0e0"/>
+-  <path d="M4 4H9V5H4V4Z" fill="#ebebeb"/>
+-  <path d="M4 5H12V6H4V5Z" fill="#eee"/>
+-  <path d="M4 6H12V7H4V6Z" fill="#f5f5f5"/>
+-  <path d="M4 7H12V8H4V7Z" fill="#f8f8f8"/>
+-  <path d="M4 8H12V9H4V8Z" fill="#fcfcfc"/>
+-  <path d="M12 5.06v6.41c0 .53-.49 1.06-1.18 1.25-.8.21-1.57-.09-1.73-.68-.16-.59.36-1.24 1.15-1.45.37-.1.74-.09 1.04 0V6.74L7 7.72v4.96c0 .53-.48 1.06-1.18 1.25-.8.21-1.57-.09-1.73-.68-.16-.59.36-1.24 1.15-1.45.37-.1.74-.09 1.04 0V6.28L12 5.06z" fill="#4e9a06"/>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" aria-hidden="true" focusable="false" viewBox="0 0 16 16"><path fill="#fff" d="m11 0 3 3v13H2V0z"/><path fill="#7f7f7f" d="m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z"/><path fill="#dadada" d="M4 2h5v1H4z"/><path fill="#e0e0e0" d="M4 3h5v1H4z"/><path fill="#ebebeb" d="M4 4h5v1H4z"/><path fill="#eee" d="M4 5h8v1H4z"/><path fill="#f5f5f5" d="M4 6h8v1H4z"/><path fill="#f8f8f8" d="M4 7h8v1H4z"/><path fill="#fcfcfc" d="M4 8h8v1H4z"/><path fill="#4e9a06" d="M12 5.06v6.41c0 .53-.49 1.06-1.18 1.25-.8.21-1.57-.09-1.73-.68s.36-1.24 1.15-1.45c.37-.1.74-.09 1.04 0V6.74L7 7.72v4.96c0 .53-.48 1.06-1.18 1.25-.8.21-1.57-.09-1.73-.68s.36-1.24 1.15-1.45c.37-.1.74-.09 1.04 0V6.28z"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/file-types/image-x-generic.svg b/core/themes/default_admin/images/file-types/image-x-generic.svg
+index b5a53523..f30d577f 100644
+--- a/core/themes/default_admin/images/file-types/image-x-generic.svg
++++ b/core/themes/default_admin/images/file-types/image-x-generic.svg
+@@ -1,14 +1 @@
+-<svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+-  <path d="M11 0L14 3V16H2V0H11Z" fill="#fff"/>
+-  <path d="M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z" fill="#7f7f7f"/>
+-  <path d="M9 2V5H12V14H4V2H9Z" fill="#f3da4d"/>
+-  <path d="M4 2H9V3H4V2Z" fill="#ecc747"/>
+-  <path d="M4 3H9V4H4V3Z" fill="#f0d14a"/>
+-  <path d="M4 7H12V10H4V7Z" fill="#f9e752"/>
+-  <path d="M4 13H12V14H4V13Z" fill="#cc7b2b"/>
+-  <path d="M4 12H12V13H4V12Z" fill="#d58f32"/>
+-  <path d="M4 11H12V12H4V11Z" fill="#e3b33f"/>
+-  <path d="M4 8H12V9H4V8Z" fill="#fef456"/>
+-  <circle cx="6" cy="5" r="2" fill="#fff"/>
+-  <path d="M6.27 7.39C6.29 6.80 7.22 5.98 8 6C8.66 6.02 9.49 6.78 9.49 6.78C9.49 6.78 10.34 6.02 11 6C11.79 5.98 12.54 6.89 12.54 7.39C12.54 7.88 11.99 6.67 11 6.94C9.93 7.22 9.49 8 9.49 8C9.49 8 9.05 7.10 8 6.94C6.84 6.76 6.26 7.97 6.27 7.39Z" fill="#756400"/>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" aria-hidden="true" focusable="false" viewBox="0 0 16 16"><path fill="#fff" d="m11 0 3 3v13H2V0z"/><path fill="#7f7f7f" d="m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z"/><path fill="#f3da4d" d="M9 2v3h3v9H4V2z"/><path fill="#ecc747" d="M4 2h5v1H4z"/><path fill="#f0d14a" d="M4 3h5v1H4z"/><path fill="#f9e752" d="M4 7h8v3H4z"/><path fill="#cc7b2b" d="M4 13h8v1H4z"/><path fill="#d58f32" d="M4 12h8v1H4z"/><path fill="#e3b33f" d="M4 11h8v1H4z"/><path fill="#fef456" d="M4 8h8v1H4z"/><circle cx="6" cy="5" r="2" fill="#fff"/><path fill="#756400" d="M6.27 7.39C6.29 6.8 7.22 5.98 8 6c.66.02 1.49.78 1.49.78S10.34 6.02 11 6c.79-.02 1.54.89 1.54 1.39 0 .49-.55-.72-1.54-.45C9.93 7.22 9.49 8 9.49 8S9.05 7.1 8 6.94c-1.16-.18-1.74 1.03-1.73.45"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/file-types/package-x-generic.svg b/core/themes/default_admin/images/file-types/package-x-generic.svg
+index 87c95301..e306a8a9 100644
+--- a/core/themes/default_admin/images/file-types/package-x-generic.svg
++++ b/core/themes/default_admin/images/file-types/package-x-generic.svg
+@@ -1,14 +1 @@
+-<svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+-  <path d="M11 0L14 3V16H2V0H11Z" fill="#fff"/>
+-  <path d="M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z" fill="#7f7f7f"/>
+-  <path d="M4 2H9V3H4V2Z" fill="#dadada"/>
+-  <path d="M4 3H9V4H4V3Z" fill="#e0e0e0"/>
+-  <path d="M4 4H9V5H4V4Z" fill="#ebebeb"/>
+-  <path d="M4 5H12V6H4V5Z" fill="#eee"/>
+-  <path d="M4 6H12V7H4V6Z" fill="#f5f5f5"/>
+-  <path d="M4 7H12V8H4V7Z" fill="#f8f8f8"/>
+-  <path d="M4 8H12V9H4V8Z" fill="#fcfcfc"/>
+-  <path d="M6 10H3V9H6V10ZM13 10H9V9H13V10Z" fill="#ababab"/>
+-  <path d="M7 15H6V1H7V15ZM9 15H8V1H9V15Z" fill="#747474" fill-opacity="0.8"/>
+-  <path d="M9 15H6V14H9V15ZM9 13H6V12H9V13ZM9 11H6V10H9V11ZM9 9H6V8H9V9ZM9 7H6V6H9V7ZM9 5H6V4H9V5ZM9 3H6V2H9V3Z" fill="#747474" fill-opacity="0.5"/>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" aria-hidden="true" focusable="false" viewBox="0 0 16 16"><path fill="#fff" d="m11 0 3 3v13H2V0z"/><path fill="#7f7f7f" d="m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z"/><path fill="#dadada" d="M4 2h5v1H4z"/><path fill="#e0e0e0" d="M4 3h5v1H4z"/><path fill="#ebebeb" d="M4 4h5v1H4z"/><path fill="#eee" d="M4 5h8v1H4z"/><path fill="#f5f5f5" d="M4 6h8v1H4z"/><path fill="#f8f8f8" d="M4 7h8v1H4z"/><path fill="#fcfcfc" d="M4 8h8v1H4z"/><path fill="#ababab" d="M6 10H3V9h3zm7 0H9V9h4z"/><path fill="#747474" fill-opacity=".8" d="M7 15H6V1h1zm2 0H8V1h1z"/><path fill="#747474" fill-opacity=".5" d="M9 15H6v-1h3zm0-2H6v-1h3zm0-2H6v-1h3zm0-2H6V8h3zm0-2H6V6h3zm0-2H6V4h3zm0-2H6V2h3z"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/file-types/text-plain.svg b/core/themes/default_admin/images/file-types/text-plain.svg
+index 70dca2f8..8babef87 100644
+--- a/core/themes/default_admin/images/file-types/text-plain.svg
++++ b/core/themes/default_admin/images/file-types/text-plain.svg
+@@ -1,16 +1 @@
+-<svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+-  <path d="M11 0L14 3V16H2V0H11Z" fill="#fff"/>
+-  <path d="M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z" fill="#7f7f7f"/>
+-  <path d="M4 2H9V3H4V2Z" fill="#dadada"/>
+-  <path d="M4 3H9V4H4V3Z" fill="#e0e0e0"/>
+-  <path d="M4 4H9V5H4V4Z" fill="#ebebeb"/>
+-  <path d="M4 5H12V6H4V5Z" fill="#eee"/>
+-  <path d="M4 6H12V7H4V6Z" fill="#f5f5f5"/>
+-  <path d="M4 7H12V8H4V7Z" fill="#f8f8f8"/>
+-  <path d="M4 8H12V9H4V8Z" fill="#fcfcfc"/>
+-  <path d="M4 3H9V4H4V3Z" fill="#9e9e9e"/>
+-  <path d="M6 8H4V7H6V8ZM12 8H7V7H12V8Z" fill="#9e9e9e" fill-opacity="0.65"/>
+-  <path d="M8 6H4V5H8V6ZM12 6H9V5H12V6Z" fill="#9e9e9e" fill-opacity="0.8"/>
+-  <path d="M8 10H4V9H8V10ZM12 10H9V9H12V10Z" fill="#9e9e9e" fill-opacity="0.45"/>
+-  <path d="M6 12H4V11H6V12ZM10 12H7V11H10V12ZM12 12H11V11H12V12Z" fill="#9e9e9e" fill-opacity="0.3"/>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" aria-hidden="true" focusable="false" viewBox="0 0 16 16"><path fill="#fff" d="m11 0 3 3v13H2V0z"/><path fill="#7f7f7f" d="m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z"/><path fill="#dadada" d="M4 2h5v1H4z"/><path fill="#e0e0e0" d="M4 3h5v1H4z"/><path fill="#ebebeb" d="M4 4h5v1H4z"/><path fill="#eee" d="M4 5h8v1H4z"/><path fill="#f5f5f5" d="M4 6h8v1H4z"/><path fill="#f8f8f8" d="M4 7h8v1H4z"/><path fill="#fcfcfc" d="M4 8h8v1H4z"/><path fill="#9e9e9e" d="M4 3h5v1H4z"/><path fill="#9e9e9e" fill-opacity=".65" d="M6 8H4V7h2zm6 0H7V7h5z"/><path fill="#9e9e9e" fill-opacity=".8" d="M8 6H4V5h4zm4 0H9V5h3z"/><path fill="#9e9e9e" fill-opacity=".45" d="M8 10H4V9h4zm4 0H9V9h3z"/><path fill="#9e9e9e" fill-opacity=".3" d="M6 12H4v-1h2zm4 0H7v-1h3zm2 0h-1v-1h1z"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/file-types/text-x-generic.svg b/core/themes/default_admin/images/file-types/text-x-generic.svg
+index 70dca2f8..8babef87 100644
+--- a/core/themes/default_admin/images/file-types/text-x-generic.svg
++++ b/core/themes/default_admin/images/file-types/text-x-generic.svg
+@@ -1,16 +1 @@
+-<svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+-  <path d="M11 0L14 3V16H2V0H11Z" fill="#fff"/>
+-  <path d="M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z" fill="#7f7f7f"/>
+-  <path d="M4 2H9V3H4V2Z" fill="#dadada"/>
+-  <path d="M4 3H9V4H4V3Z" fill="#e0e0e0"/>
+-  <path d="M4 4H9V5H4V4Z" fill="#ebebeb"/>
+-  <path d="M4 5H12V6H4V5Z" fill="#eee"/>
+-  <path d="M4 6H12V7H4V6Z" fill="#f5f5f5"/>
+-  <path d="M4 7H12V8H4V7Z" fill="#f8f8f8"/>
+-  <path d="M4 8H12V9H4V8Z" fill="#fcfcfc"/>
+-  <path d="M4 3H9V4H4V3Z" fill="#9e9e9e"/>
+-  <path d="M6 8H4V7H6V8ZM12 8H7V7H12V8Z" fill="#9e9e9e" fill-opacity="0.65"/>
+-  <path d="M8 6H4V5H8V6ZM12 6H9V5H12V6Z" fill="#9e9e9e" fill-opacity="0.8"/>
+-  <path d="M8 10H4V9H8V10ZM12 10H9V9H12V10Z" fill="#9e9e9e" fill-opacity="0.45"/>
+-  <path d="M6 12H4V11H6V12ZM10 12H7V11H10V12ZM12 12H11V11H12V12Z" fill="#9e9e9e" fill-opacity="0.3"/>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" aria-hidden="true" focusable="false" viewBox="0 0 16 16"><path fill="#fff" d="m11 0 3 3v13H2V0z"/><path fill="#7f7f7f" d="m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z"/><path fill="#dadada" d="M4 2h5v1H4z"/><path fill="#e0e0e0" d="M4 3h5v1H4z"/><path fill="#ebebeb" d="M4 4h5v1H4z"/><path fill="#eee" d="M4 5h8v1H4z"/><path fill="#f5f5f5" d="M4 6h8v1H4z"/><path fill="#f8f8f8" d="M4 7h8v1H4z"/><path fill="#fcfcfc" d="M4 8h8v1H4z"/><path fill="#9e9e9e" d="M4 3h5v1H4z"/><path fill="#9e9e9e" fill-opacity=".65" d="M6 8H4V7h2zm6 0H7V7h5z"/><path fill="#9e9e9e" fill-opacity=".8" d="M8 6H4V5h4zm4 0H9V5h3z"/><path fill="#9e9e9e" fill-opacity=".45" d="M8 10H4V9h4zm4 0H9V9h3z"/><path fill="#9e9e9e" fill-opacity=".3" d="M6 12H4v-1h2zm4 0H7v-1h3zm2 0h-1v-1h1z"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/file-types/video-x-generic.svg b/core/themes/default_admin/images/file-types/video-x-generic.svg
+index 697641ca..b1ec8886 100644
+--- a/core/themes/default_admin/images/file-types/video-x-generic.svg
++++ b/core/themes/default_admin/images/file-types/video-x-generic.svg
+@@ -1,12 +1 @@
+-<svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+-  <path d="M11 0L14 3V16H2V0H11Z" fill="#fff"/>
+-  <path d="M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z" fill="#7f7f7f"/>
+-  <path d="M4 2H9V3H4V2Z" fill="#dadada"/>
+-  <path d="M4 3H9V4H4V3Z" fill="#e0e0e0"/>
+-  <path d="M4 4H9V5H4V4Z" fill="#ebebeb"/>
+-  <path d="M4 5H12V6H4V5Z" fill="#eee"/>
+-  <path d="M4 6H12V7H4V6Z" fill="#f5f5f5"/>
+-  <path d="M4 7H12V8H4V7Z" fill="#f8f8f8"/>
+-  <path d="M4 8H12V9H4V8Z" fill="#fcfcfc"/>
+-  <path d="M5 5H11V4H13V5H12V6H13V7H12V8H13V9H12V10H13V11H12V12H13V13H12V14H13V15H11V11H5V15H3V14H4V13H3V12H4V11H3V10H4V9H3V8H4V7H3V6H4V5H3V4H4V3H3V2H4V1H5V5ZM5 10H11V6H5V10Z" fill="#7f7f7f"/>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" aria-hidden="true" focusable="false" viewBox="0 0 16 16"><path fill="#fff" d="m11 0 3 3v13H2V0z"/><path fill="#7f7f7f" d="m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z"/><path fill="#dadada" d="M4 2h5v1H4z"/><path fill="#e0e0e0" d="M4 3h5v1H4z"/><path fill="#ebebeb" d="M4 4h5v1H4z"/><path fill="#eee" d="M4 5h8v1H4z"/><path fill="#f5f5f5" d="M4 6h8v1H4z"/><path fill="#f8f8f8" d="M4 7h8v1H4z"/><path fill="#fcfcfc" d="M4 8h8v1H4z"/><path fill="#7f7f7f" d="M5 5h6V4h2v1h-1v1h1v1h-1v1h1v1h-1v1h1v1h-1v1h1v1h-1v1h1v1h-2v-4H5v4H3v-1h1v-1H3v-1h1v-1H3v-1h1V9H3V8h1V7H3V6h1V5H3V4h1V3H3V2h1V1h1zm0 5h6V6H5z"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/file-types/x-office-document.svg b/core/themes/default_admin/images/file-types/x-office-document.svg
+index a8050818..c4572de1 100644
+--- a/core/themes/default_admin/images/file-types/x-office-document.svg
++++ b/core/themes/default_admin/images/file-types/x-office-document.svg
+@@ -1,13 +1 @@
+-<svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+-  <path d="M11 0L14 3V16H2V0H11Z" fill="#fff"/>
+-  <path d="M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z" fill="#7f7f7f"/>
+-  <path d="M4 2H9V3H4V2Z" fill="#dadada"/>
+-  <path d="M4 3H9V4H4V3Z" fill="#e0e0e0"/>
+-  <path d="M4 4H9V5H4V4Z" fill="#ebebeb"/>
+-  <path d="M4 5H12V6H4V5Z" fill="#eee"/>
+-  <path d="M4 6H12V7H4V6Z" fill="#f5f5f5"/>
+-  <path d="M4 7H12V8H4V7Z" fill="#f8f8f8"/>
+-  <path d="M4 8H12V9H4V8Z" fill="#fcfcfc"/>
+-  <path d="M4 2H9V4H4V2Z" fill="#0077c0"/>
+-  <path d="M5 14H4V13H5V14ZM12 14H6V13H12V14ZM5 12H4V11H5V12ZM12 12H6V11H12V12ZM7 10H4V5H7V10ZM12 10H8V9H12V10ZM12 8H8V7H12V8ZM12 6H8V5H12V6Z" fill="#a8a8a8"/>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" aria-hidden="true" focusable="false" viewBox="0 0 16 16"><path fill="#fff" d="m11 0 3 3v13H2V0z"/><path fill="#7f7f7f" d="m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z"/><path fill="#dadada" d="M4 2h5v1H4z"/><path fill="#e0e0e0" d="M4 3h5v1H4z"/><path fill="#ebebeb" d="M4 4h5v1H4z"/><path fill="#eee" d="M4 5h8v1H4z"/><path fill="#f5f5f5" d="M4 6h8v1H4z"/><path fill="#f8f8f8" d="M4 7h8v1H4z"/><path fill="#fcfcfc" d="M4 8h8v1H4z"/><path fill="#0077c0" d="M4 2h5v2H4z"/><path fill="#a8a8a8" d="M5 14H4v-1h1zm7 0H6v-1h6zm-7-2H4v-1h1zm7 0H6v-1h6zm-5-2H4V5h3zm5 0H8V9h4zm0-2H8V7h4zm0-2H8V5h4z"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/file-types/x-office-presentation.svg b/core/themes/default_admin/images/file-types/x-office-presentation.svg
+index baf878f5..c070e884 100644
+--- a/core/themes/default_admin/images/file-types/x-office-presentation.svg
++++ b/core/themes/default_admin/images/file-types/x-office-presentation.svg
+@@ -1,13 +1 @@
+-<svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+-  <path d="M11 0L14 3V16H2V0H11Z" fill="#fff"/>
+-  <path d="M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z" fill="#7f7f7f"/>
+-  <path d="M4 2H9V3H4V2Z" fill="#dadada"/>
+-  <path d="M4 3H9V4H4V3Z" fill="#e0e0e0"/>
+-  <path d="M4 4H9V5H4V4Z" fill="#ebebeb"/>
+-  <path d="M4 5H12V6H4V5Z" fill="#eee"/>
+-  <path d="M4 6H12V7H4V6Z" fill="#f5f5f5"/>
+-  <path d="M4 7H12V8H4V7Z" fill="#f8f8f8"/>
+-  <path d="M4 8H12V9H4V8Z" fill="#fcfcfc"/>
+-  <path d="M4 2H9V4H4V2Z" fill="#f57900"/>
+-  <path d="M6 14H5V13H6V14ZM11 14H10V13H11V14ZM12 12H10V13H9V12H7V13H6V12H4V6H7V5H9V6H12V12ZM5 7V11H11V7H5Z" fill="#7f7f7f"/>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" aria-hidden="true" focusable="false" viewBox="0 0 16 16"><path fill="#fff" d="m11 0 3 3v13H2V0z"/><path fill="#7f7f7f" d="m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z"/><path fill="#dadada" d="M4 2h5v1H4z"/><path fill="#e0e0e0" d="M4 3h5v1H4z"/><path fill="#ebebeb" d="M4 4h5v1H4z"/><path fill="#eee" d="M4 5h8v1H4z"/><path fill="#f5f5f5" d="M4 6h8v1H4z"/><path fill="#f8f8f8" d="M4 7h8v1H4z"/><path fill="#fcfcfc" d="M4 8h8v1H4z"/><path fill="#f57900" d="M4 2h5v2H4z"/><path fill="#7f7f7f" d="M6 14H5v-1h1zm5 0h-1v-1h1zm1-2h-2v1H9v-1H7v1H6v-1H4V6h3V5h2v1h3zM5 7v4h6V7z"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/file-types/x-office-spreadsheet.svg b/core/themes/default_admin/images/file-types/x-office-spreadsheet.svg
+index 291770ed..c5c8900e 100644
+--- a/core/themes/default_admin/images/file-types/x-office-spreadsheet.svg
++++ b/core/themes/default_admin/images/file-types/x-office-spreadsheet.svg
+@@ -1,13 +1 @@
+-<svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+-  <path d="M11 0L14 3V16H2V0H11Z" fill="#fff"/>
+-  <path d="M11 0L14 3V16H2V0H11ZM3 15H13V4H10V1H3V15ZM11 3H12.5L11 1.5V3Z" fill="#7f7f7f"/>
+-  <path d="M4 2H9V3H4V2Z" fill="#dadada"/>
+-  <path d="M4 3H9V4H4V3Z" fill="#e0e0e0"/>
+-  <path d="M4 4H9V5H4V4Z" fill="#ebebeb"/>
+-  <path d="M4 5H12V6H4V5Z" fill="#eee"/>
+-  <path d="M4 6H12V7H4V6Z" fill="#f5f5f5"/>
+-  <path d="M4 7H12V8H4V7Z" fill="#f8f8f8"/>
+-  <path d="M4 8H12V9H4V8Z" fill="#fcfcfc"/>
+-  <path d="M4 2H9V4H4V2Z" fill="#4e9a06"/>
+-  <path d="M12 14H4V5H12V14ZM5 13H8V12H5V13ZM9 13H11V12H9V13ZM5 11H8V10H5V11ZM9 11H11V10H9V11ZM5 8V9H8V8H5ZM9 8V9H11V8H9ZM5 7H8V6H5V7ZM9 7H11V6H9V7Z" fill="#bfbfbf"/>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" aria-hidden="true" focusable="false" viewBox="0 0 16 16"><path fill="#fff" d="m11 0 3 3v13H2V0z"/><path fill="#7f7f7f" d="m11 0 3 3v13H2V0zM3 15h10V4h-3V1H3zm8-12h1.5L11 1.5z"/><path fill="#dadada" d="M4 2h5v1H4z"/><path fill="#e0e0e0" d="M4 3h5v1H4z"/><path fill="#ebebeb" d="M4 4h5v1H4z"/><path fill="#eee" d="M4 5h8v1H4z"/><path fill="#f5f5f5" d="M4 6h8v1H4z"/><path fill="#f8f8f8" d="M4 7h8v1H4z"/><path fill="#fcfcfc" d="M4 8h8v1H4z"/><path fill="#4e9a06" d="M4 2h5v2H4z"/><path fill="#bfbfbf" d="M12 14H4V5h8zm-7-1h3v-1H5zm4 0h2v-1H9zm-4-2h3v-1H5zm4 0h2v-1H9zM5 8v1h3V8zm4 0v1h2V8zM5 7h3V6H5zm4 0h2V6H9z"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/appearance.svg b/core/themes/default_admin/images/icons/appearance.svg
+deleted file mode 100644
+index 51ebed9b..00000000
+--- a/core/themes/default_admin/images/icons/appearance.svg
++++ /dev/null
+@@ -1,7 +0,0 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M9 7.75L19 7.75" />
+-    <rect fill="currentColor" fill-opacity=".15" stroke-width="0" x="7" y="2.25" width="11" height="4.5" />
+-    <path d="M19 4.07693V2.0577C19 1.61162 18.5522 1.25 18 1.25H6C5.44772 1.25 5 1.61162 5 2.0577V10.1346C5.00354 12.31 6.56184 14.2882 8.99999 15.2124V19.827C8.99999 21.1651 10.3431 22.25 12 22.25C13.6569 22.25 15 21.1651 15 19.827V15.2124C17.4382 14.2882 18.9965 12.31 19 10.1346L19 7.75" />
+-  </g>
+-</svg>
+diff --git a/core/themes/default_admin/images/icons/blocks.svg b/core/themes/default_admin/images/icons/blocks.svg
+deleted file mode 100644
+index 65563c13..00000000
+--- a/core/themes/default_admin/images/icons/blocks.svg
++++ /dev/null
+@@ -1,8 +0,0 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M12.6427 1.54355L12.6427 1.54356L12.6471 1.54599L21.0201 6.24452C21.0207 6.24487 21.0213 6.24521 21.0219 6.24556C21.2146 6.35525 21.3722 6.51118 21.4809 6.69583C21.5898 6.88093 21.6465 7.08928 21.6467 7.30021V16.6998C21.6465 16.9107 21.5898 17.1191 21.4809 17.3042C21.3722 17.4888 21.2146 17.6448 21.0218 17.7545C21.0212 17.7548 21.0207 17.7551 21.0201 17.7555L12.6471 22.454L12.6427 22.4564C12.4489 22.5664 12.2274 22.625 12.0008 22.625C11.7743 22.625 11.5528 22.5664 11.359 22.4564L11.3546 22.454L2.98163 17.7555C2.98104 17.7551 2.98045 17.7548 2.97987 17.7545C2.78712 17.6448 2.62952 17.4888 2.52081 17.3042C2.41194 17.1192 2.35532 16.911 2.35501 16.7003V7.29973C2.35532 7.08897 2.41194 6.88079 2.52081 6.69583C2.62951 6.51117 2.78709 6.35524 2.97981 6.24555C2.98041 6.24521 2.98102 6.24486 2.98163 6.24452L11.3546 1.54599L11.3546 1.546L11.3589 1.54355C11.5528 1.43363 11.7743 1.375 12.0008 1.375C12.2274 1.375 12.4489 1.43363 12.6427 1.54355Z" />
+-    <path d="M3.18835 7.10417L12.0009 12L20.8134 7.10417" />
+-    <path d="M12.0009 22.7708V12" />
+-  </g>
+-  <path d="M12 12L21.5 7V17.5L12 23V12Z" fill="currentColor" fill-opacity=".15"/>
+-</svg>
+diff --git a/core/themes/default_admin/images/icons/bookmarks.svg b/core/themes/default_admin/images/icons/bookmarks.svg
+deleted file mode 100644
+index 338bbbef..00000000
+--- a/core/themes/default_admin/images/icons/bookmarks.svg
++++ /dev/null
+@@ -1,5 +0,0 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-<g fill="currentColor" stroke="currentColor" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round">
+-  <path d="M19.0403 0H5.88003C5.38142 0 4.90322 0.198081 4.55065 0.55065C4.19808 0.903219 4 1.38142 4 1.88003V22.5604C4.00009 22.7281 4.04506 22.8928 4.13026 23.0373C4.21546 23.1818 4.33778 23.3009 4.48454 23.3822C4.63128 23.4636 4.79711 23.5041 4.96481 23.4997C5.13251 23.4952 5.29597 23.446 5.43823 23.357L12.4602 18.9684L19.4832 23.357C19.6255 23.4457 19.7888 23.4947 19.9564 23.4989C20.1239 23.5032 20.2895 23.4626 20.436 23.3814C20.5827 23.3001 20.7049 23.1812 20.79 23.0368C20.8751 22.8924 20.9201 22.728 20.9203 22.5604V1.88003C20.9203 1.38142 20.7223 0.903219 20.3697 0.55065C20.0171 0.198081 19.5389 0 19.0403 0ZM19.0403 1.88003V15.2248L12.9572 11.4236C12.8078 11.3302 12.6351 11.2807 12.459 11.2807C12.2828 11.2807 12.1102 11.3302 11.9608 11.4236L5.88003 15.2235V1.88003H19.0403ZM12.9572 17.0637C12.8078 16.9703 12.6351 16.9208 12.459 16.9208C12.2828 16.9208 12.1102 16.9703 11.9608 17.0637L5.88003 20.8649V17.4408L12.4602 13.3283L19.0403 17.4408V20.8649L12.9572 17.0637Z" />
+-</g>
+-</svg>
+diff --git a/core/themes/default_admin/images/icons/chevron-down.svg b/core/themes/default_admin/images/icons/chevron-down.svg
+index 9da34102..10410ca7 100644
+--- a/core/themes/default_admin/images/icons/chevron-down.svg
++++ b/core/themes/default_admin/images/icons/chevron-down.svg
+@@ -1,5 +1 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M4 8L12 16L20 8" />
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="m4 8 8 8 8-8"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/chevron-left.svg b/core/themes/default_admin/images/icons/chevron-left.svg
+deleted file mode 100644
+index 161045ed..00000000
+--- a/core/themes/default_admin/images/icons/chevron-left.svg
++++ /dev/null
+@@ -1,5 +0,0 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M16 20L8 12L16 4" />
+-  </g>
+-</svg>
+diff --git a/core/themes/default_admin/images/icons/chevron-right.svg b/core/themes/default_admin/images/icons/chevron-right.svg
+index dd8a34f1..0e6faabd 100644
+--- a/core/themes/default_admin/images/icons/chevron-right.svg
++++ b/core/themes/default_admin/images/icons/chevron-right.svg
+@@ -1,5 +1 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M8 20L16 12L8 4" />
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="m8 20 8-8-8-8"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/clock.svg b/core/themes/default_admin/images/icons/clock.svg
+index 126f08bb..53b10bbc 100644
+--- a/core/themes/default_admin/images/icons/clock.svg
++++ b/core/themes/default_admin/images/icons/clock.svg
+@@ -1,6 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <circle cx="12" cy="12" r="10"></circle>
+-    <polyline points="12 6 12 12 16 14"></polyline>
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/close.svg b/core/themes/default_admin/images/icons/close.svg
+index 20380dd3..d7f376f9 100644
+--- a/core/themes/default_admin/images/icons/close.svg
++++ b/core/themes/default_admin/images/icons/close.svg
+@@ -1,6 +1 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M20 4L4 20" />
+-    <path d="M4 4L20 20" />
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25"><path d="M20 4 4 20"/><path d="m4 4 16 16"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/content.svg b/core/themes/default_admin/images/icons/content.svg
+deleted file mode 100644
+index 2f135f09..00000000
+--- a/core/themes/default_admin/images/icons/content.svg
++++ /dev/null
+@@ -1,6 +0,0 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+-    <path fill="currentColor" fill-opacity=".15" d="M12 2V10H20" />
+-  </g>
+-</svg>
+diff --git a/core/themes/default_admin/images/icons/database.svg b/core/themes/default_admin/images/icons/database.svg
+index 4bc33eeb..88940a78 100644
+--- a/core/themes/default_admin/images/icons/database.svg
++++ b/core/themes/default_admin/images/icons/database.svg
+@@ -1,7 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+-    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+-    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/drag-y.svg b/core/themes/default_admin/images/icons/drag-y.svg
+index 8c7dd0d1..7debaba5 100644
+--- a/core/themes/default_admin/images/icons/drag-y.svg
++++ b/core/themes/default_admin/images/icons/drag-y.svg
+@@ -1,7 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <polyline points="9 5 12 2 15 5"></polyline>
+-    <polyline points="15 19 12 22 9 19"></polyline>
+-    <line x1="2" y1="12" x2="22" y2="12"></line>
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25"><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><line x1="2" x2="22" y1="12" y2="12"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/drag.svg b/core/themes/default_admin/images/icons/drag.svg
+index ac8932c3..4d117572 100644
+--- a/core/themes/default_admin/images/icons/drag.svg
++++ b/core/themes/default_admin/images/icons/drag.svg
+@@ -1,10 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <polyline points="5 9 2 12 5 15"></polyline>
+-    <polyline points="9 5 12 2 15 5"></polyline>
+-    <polyline points="15 19 12 22 9 19"></polyline>
+-    <polyline points="19 9 22 12 19 15"></polyline>
+-    <line x1="2" y1="12" x2="22" y2="12"></line>
+-    <line x1="12" y1="2" x2="12" y2="22"></line>
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" x2="22" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="22"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/error.svg b/core/themes/default_admin/images/icons/error.svg
+index ae774345..b5d7d62b 100644
+--- a/core/themes/default_admin/images/icons/error.svg
++++ b/core/themes/default_admin/images/icons/error.svg
+@@ -1,6 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <circle cx="12" cy="12" r="10"></circle>
+-    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25"><circle cx="12" cy="12" r="10"/><line x1="4.93" x2="19.07" y1="4.93" y2="19.07"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/files.svg b/core/themes/default_admin/images/icons/files.svg
+deleted file mode 100644
+index 272e2e28..00000000
+--- a/core/themes/default_admin/images/icons/files.svg
++++ /dev/null
+@@ -1,5 +0,0 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-<g fill="currentColor" stroke="currentColor" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round">
+-  <path d="M22.0054 4.84116L17.3974 0.23321C17.3118 0.147649 17.2102 0.0798082 17.0982 0.0335567C16.9864 -0.0126949 16.8665 -0.0364597 16.7455 -0.0363614H7.52955C7.04071 -0.0363614 6.57188 0.157836 6.22622 0.503494C5.88056 0.849152 5.68636 1.31798 5.68636 1.80682V3.65H3.84318C3.35435 3.65 2.88551 3.8442 2.53986 4.18986C2.1942 4.53552 2 5.00435 2 5.49318V22.0818C2 22.5706 2.1942 23.0395 2.53986 23.3852C2.88551 23.7309 3.35435 23.925 3.84318 23.925H16.7455C17.2343 23.925 17.7032 23.7309 18.0488 23.3852C18.3945 23.0395 18.5886 22.5706 18.5886 22.0818V20.2386H20.4318C20.9206 20.2386 21.3895 20.0445 21.7352 19.6988C22.0809 19.3532 22.275 18.8843 22.275 18.3955V5.49318C22.2751 5.37212 22.2513 5.25223 22.2051 5.14035C22.1589 5.02848 22.0911 4.92681 22.0054 4.84116ZM16.7455 22.0818H3.84318V5.49318H12.6778L16.7455 9.56084V19.2986C16.7455 19.3055 16.7455 19.3113 16.7455 19.317C16.7455 19.3228 16.7455 19.3286 16.7455 19.3355V22.0818ZM20.4318 18.3955H18.5886V9.17955C18.5888 9.05849 18.5649 8.9386 18.5187 8.82671C18.4725 8.71485 18.4047 8.61318 18.319 8.52752L13.7111 3.91957C13.6254 3.83401 13.5238 3.76617 13.4119 3.71992C13.3001 3.67367 13.1801 3.6499 13.0591 3.65H7.52955V1.80682H16.3642L20.4318 5.87449V18.3955ZM13.9807 14.7091C13.9807 14.9535 13.8836 15.188 13.7107 15.3607C13.5379 15.5336 13.3035 15.6307 13.0591 15.6307H7.52955C7.28513 15.6307 7.05071 15.5336 6.87788 15.3607C6.70505 15.188 6.60795 14.9535 6.60795 14.7091C6.60795 14.4647 6.70505 14.2302 6.87788 14.0575C7.05071 13.8846 7.28513 13.7875 7.52955 13.7875H13.0591C13.3035 13.7875 13.5379 13.8846 13.7107 14.0575C13.8836 14.2302 13.9807 14.4647 13.9807 14.7091ZM13.9807 18.3955C13.9807 18.6399 13.8836 18.8743 13.7107 19.0471C13.5379 19.22 13.3035 19.317 13.0591 19.317H7.52955C7.28513 19.317 7.05071 19.22 6.87788 19.0471C6.70505 18.8743 6.60795 18.6399 6.60795 18.3955C6.60795 18.1511 6.70505 17.9166 6.87788 17.7438C7.05071 17.5709 7.28513 17.4739 7.52955 17.4739H13.0591C13.3035 17.4739 13.5379 17.5709 13.7107 17.7438C13.8836 17.9166 13.9807 18.1511 13.9807 18.3955Z" />
+-</g>
+-</svg>
+diff --git a/core/themes/default_admin/images/icons/grid.svg b/core/themes/default_admin/images/icons/grid.svg
+index b4f5342e..0700423c 100644
+--- a/core/themes/default_admin/images/icons/grid.svg
++++ b/core/themes/default_admin/images/icons/grid.svg
+@@ -1,8 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+-  <g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+-    <rect x="3" y="3" width="7" height="7"></rect>
+-    <rect x="14" y="3" width="7" height="7"></rect>
+-    <rect x="14" y="14" width="7" height="7"></rect>
+-    <rect x="3" y="14" width="7" height="7"></rect>
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"><rect width="7" height="7" x="3" y="3"/><rect width="7" height="7" x="14" y="3"/><rect width="7" height="7" x="14" y="14"/><rect width="7" height="7" x="3" y="14"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/hide.svg b/core/themes/default_admin/images/icons/hide.svg
+index 010f4a2f..13e494b2 100644
+--- a/core/themes/default_admin/images/icons/hide.svg
++++ b/core/themes/default_admin/images/icons/hide.svg
+@@ -1,6 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+-  <g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+-    <line x1="1" y1="1" x2="23" y2="23"></line>
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" x2="23" y1="1" y2="23"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/info.svg b/core/themes/default_admin/images/icons/info.svg
+index 0acf2d22..54069ec4 100644
+--- a/core/themes/default_admin/images/icons/info.svg
++++ b/core/themes/default_admin/images/icons/info.svg
+@@ -1,5 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/list.svg b/core/themes/default_admin/images/icons/list.svg
+index 377b769e..82f7a79e 100644
+--- a/core/themes/default_admin/images/icons/list.svg
++++ b/core/themes/default_admin/images/icons/list.svg
+@@ -1,10 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+-  <g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+-    <line x1="8" y1="6" x2="21" y2="6"></line>
+-    <line x1="8" y1="12" x2="21" y2="12"></line>
+-    <line x1="8" y1="18" x2="21" y2="18"></line>
+-    <line x1="3" y1="6" x2="3.01" y2="6"></line>
+-    <line x1="3" y1="12" x2="3.01" y2="12"></line>
+-    <line x1="3" y1="18" x2="3.01" y2="18"></line>
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/media.svg b/core/themes/default_admin/images/icons/media.svg
+deleted file mode 100644
+index ec22fe75..00000000
+--- a/core/themes/default_admin/images/icons/media.svg
++++ /dev/null
+@@ -1,5 +0,0 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="currentColor" stroke="currentColor" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M21.7917 0.25H6.125C5.60562 0.25 5.1075 0.45633 4.74025 0.823583C4.373 1.19084 4.16667 1.68896 4.16667 2.20833V4.16667H2.20833C1.68896 4.16667 1.19084 4.373 0.823583 4.74025C0.45633 5.1075 0.25 5.60562 0.25 6.125V21.7917C0.25 22.311 0.45633 22.8092 0.823583 23.1765C1.19084 23.5437 1.68896 23.75 2.20833 23.75H17.875C18.3944 23.75 18.8925 23.5437 19.2598 23.1765C19.6271 22.8092 19.8333 22.311 19.8333 21.7917V19.8333H21.7917C22.311 19.8333 22.8092 19.6271 23.1765 19.2598C23.5437 18.8925 23.75 18.3944 23.75 17.875V2.20833C23.75 1.68896 23.5437 1.19084 23.1765 0.823583C22.8092 0.45633 22.311 0.25 21.7917 0.25ZM6.125 2.20833H21.7917V10.7002L19.7477 8.65615C19.3804 8.28917 18.8825 8.08302 18.3634 8.08302C17.8442 8.08302 17.3462 8.28917 16.979 8.65615L7.76144 17.875H6.125V2.20833ZM17.875 21.7917H2.20833V6.125H4.16667V17.875C4.16667 18.3944 4.373 18.8925 4.74025 19.2598C5.1075 19.6271 5.60562 19.8333 6.125 19.8333H17.875V21.7917ZM21.7917 17.875H10.5313L18.3646 10.0417L21.7917 13.4688V17.875ZM11.0208 10.0417C11.6018 10.0417 12.1697 9.86933 12.6528 9.5466C13.1358 9.22383 13.5124 8.76506 13.7347 8.2283C13.957 7.69154 14.0153 7.1009 13.9019 6.53109C13.7886 5.96127 13.5088 5.43786 13.098 5.02704C12.6871 4.61622 12.1637 4.33645 11.594 4.22311C11.0241 4.10977 10.4335 4.16793 9.89675 4.39027C9.35994 4.61261 8.90117 4.98911 8.57839 5.47218C8.25562 5.95525 8.08333 6.52318 8.08333 7.10417C8.08333 7.88324 8.39282 8.6304 8.94371 9.18129C9.49464 9.73212 10.2418 10.0417 11.0208 10.0417ZM11.0208 6.125C11.2144 6.125 11.4038 6.18243 11.5649 6.29002C11.7258 6.39761 11.8513 6.55053 11.9255 6.72946C11.9996 6.90837 12.0189 7.10525 11.9812 7.2952C11.9435 7.48513 11.8501 7.6596 11.7132 7.79654C11.5762 7.93348 11.4018 8.02674 11.2118 8.06452C11.0219 8.1023 10.825 8.08292 10.6461 8.0088C10.4671 7.93468 10.3143 7.80918 10.2067 7.64817C10.0991 7.48714 10.0417 7.29783 10.0417 7.10417C10.0417 6.84448 10.1448 6.59542 10.3285 6.41179C10.5121 6.22816 10.7612 6.125 11.0208 6.125Z" />
+-  </g>
+-</svg>
+diff --git a/core/themes/default_admin/images/icons/menu.svg b/core/themes/default_admin/images/icons/menu.svg
+index 959d8108..f4122e46 100644
+--- a/core/themes/default_admin/images/icons/menu.svg
++++ b/core/themes/default_admin/images/icons/menu.svg
+@@ -1 +1 @@
+-<svg fill="none" height="16" viewBox="0 0 16 16" width="16" xmlns="http://www.w3.org/2000/svg"><path clip-rule="evenodd" d="m15 9h-14c-.56016 0-1-.43984-1-1s.43984-1 1-1h14c.5602 0 1 .43984 1 1s-.4398 1-1 1zm0-5h-14c-.56016 0-1-.43984-1-1s.43984-1 1-1h14c.5602 0 1 .43984 1 1s-.4398 1-1 1zm-14 8h14c.5602 0 1 .4398 1 1s-.4398 1-1 1h-14c-.56016 0-1-.4398-1-1s.43984-1 1-1z" fill="currentColor" fill-rule="evenodd"/></svg>
++<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" aria-hidden="true" focusable="false" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="evenodd" d="M15 9H1c-.5602 0-1-.4398-1-1s.4398-1 1-1h14c.5602 0 1 .4398 1 1s-.4398 1-1 1m0-5H1c-.5602 0-1-.4398-1-1s.4398-1 1-1h14c.5602 0 1 .4398 1 1s-.4398 1-1 1M1 12h14c.5602 0 1 .4398 1 1s-.4398 1-1 1H1c-.5602 0-1-.4398-1-1s.4398-1 1-1" clip-rule="evenodd"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/nav-toggle-left.svg b/core/themes/default_admin/images/icons/nav-toggle-left.svg
+deleted file mode 100644
+index aae4c297..00000000
+--- a/core/themes/default_admin/images/icons/nav-toggle-left.svg
++++ /dev/null
+@@ -1,6 +0,0 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <line x1="19" y1="12" x2="5" y2="12" />
+-    <polyline points="12 19 5 12 12 5" />
+-  </g>
+-</svg>
+diff --git a/core/themes/default_admin/images/icons/nav-toggle-top.svg b/core/themes/default_admin/images/icons/nav-toggle-top.svg
+deleted file mode 100644
+index 3e4652d6..00000000
+--- a/core/themes/default_admin/images/icons/nav-toggle-top.svg
++++ /dev/null
+@@ -1,6 +0,0 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <line x1="12" y1="19" x2="12" y2="5"/>
+-    <polyline points="5 12 12 5 19 12"/>
+-  </g>
+-</svg>
+diff --git a/core/themes/default_admin/images/icons/pager-first.svg b/core/themes/default_admin/images/icons/pager-first.svg
+index d1cb986e..c571d313 100644
+--- a/core/themes/default_admin/images/icons/pager-first.svg
++++ b/core/themes/default_admin/images/icons/pager-first.svg
+@@ -1,6 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <polyline points="11 17 6 12 11 7"></polyline>
+-    <polyline points="18 17 13 12 18 7"></polyline>
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/pager-last.svg b/core/themes/default_admin/images/icons/pager-last.svg
+index 2df279b4..6d8f7cfc 100644
+--- a/core/themes/default_admin/images/icons/pager-last.svg
++++ b/core/themes/default_admin/images/icons/pager-last.svg
+@@ -1,6 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <polyline points="13 17 18 12 13 7"></polyline>
+-    <polyline points="6 17 11 12 6 7"></polyline>
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/pager-next.svg b/core/themes/default_admin/images/icons/pager-next.svg
+index 2dccb723..b92afc74 100644
+--- a/core/themes/default_admin/images/icons/pager-next.svg
++++ b/core/themes/default_admin/images/icons/pager-next.svg
+@@ -1,5 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <polyline points="9 18 15 12 9 6"></polyline>
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25" points="9 18 15 12 9 6"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/pager-prev.svg b/core/themes/default_admin/images/icons/pager-prev.svg
+index b4c22d58..4f53bcba 100644
+--- a/core/themes/default_admin/images/icons/pager-prev.svg
++++ b/core/themes/default_admin/images/icons/pager-prev.svg
+@@ -1,5 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <polyline points="15 18 9 12 15 6"></polyline>
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25" points="15 18 9 12 15 6"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/pencil.svg b/core/themes/default_admin/images/icons/pencil.svg
+index 34c1a026..098e5667 100644
+--- a/core/themes/default_admin/images/icons/pencil.svg
++++ b/core/themes/default_admin/images/icons/pencil.svg
+@@ -1,5 +1 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25" d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/people.svg b/core/themes/default_admin/images/icons/people.svg
+deleted file mode 100644
+index 3e00fc16..00000000
+--- a/core/themes/default_admin/images/icons/people.svg
++++ /dev/null
+@@ -1,8 +0,0 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <ellipse fill="currentColor" fill-opacity=".15" stroke-width="0" cx="12.25" cy="19.5" rx="6.25" ry="2.5" />
+-    <path fill="currentColor" fill-opacity=".15" fill-rule="evenodd" clip-rule="evenodd" d="M12 13C14.2091 13 16 11.2091 16 9C16 6.79086 14.2091 5 12 5C9.79086 5 8 6.79086 8 9C8 11.2091 9.79086 13 12 13Z" />
+-    <path d="M5.25 20V19.3333C5.25 17 9.31375 16 12.25 16C15.1863 16 19.25 17 19.25 19.3333V20" />
+-    <path d="M22.875 12C22.875 18.0061 18.0061 22.875 12 22.875C5.99391 22.875 1.125 18.0061 1.125 12C1.125 5.99391 5.99391 1.125 12 1.125C18.0061 1.125 22.875 5.99391 22.875 12Z" />
+-  </g>
+-</svg>
+diff --git a/core/themes/default_admin/images/icons/plus.svg b/core/themes/default_admin/images/icons/plus.svg
+index 25fc7858..c88935a3 100644
+--- a/core/themes/default_admin/images/icons/plus.svg
++++ b/core/themes/default_admin/images/icons/plus.svg
+@@ -1,6 +1 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M12 4V20" />
+-    <path d="M4 12H20" />
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25"><path d="M12 4v16"/><path d="M4 12h16"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/pretint/check-disabled-inverse.svg b/core/themes/default_admin/images/icons/pretint/check-disabled-inverse.svg
+new file mode 100644
+index 00000000..d2f0f716
+--- /dev/null
++++ b/core/themes/default_admin/images/icons/pretint/check-disabled-inverse.svg
+@@ -0,0 +1,3 @@
++<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
++  <path fill="#adaeb3" d="M5.69238 10.6436L9.27246 14.4023L18.3076 4.91309L20.5342 7.25391L9.27246 19.0869L3.46582 12.9844L5.69238 10.6436Z"/>
++</svg>
+diff --git a/core/themes/default_admin/images/icons/pretint/chevron-down-default.svg b/core/themes/default_admin/images/icons/pretint/chevron-down-default.svg
+deleted file mode 100644
+index 22353b2a..00000000
+--- a/core/themes/default_admin/images/icons/pretint/chevron-down-default.svg
++++ /dev/null
+@@ -1,5 +0,0 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="#545560" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M4 8L12 16L20 8" />
+-  </g>
+-</svg>
+diff --git a/core/themes/default_admin/images/icons/pretint/chevron-down-disabled-inverse.svg b/core/themes/default_admin/images/icons/pretint/chevron-down-disabled-inverse.svg
+new file mode 100644
+index 00000000..0ff7865c
+--- /dev/null
++++ b/core/themes/default_admin/images/icons/pretint/chevron-down-disabled-inverse.svg
+@@ -0,0 +1 @@
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="#adaeb3" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="m4 8 8 8 8-8"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/pretint/chevron-down-disabled.svg b/core/themes/default_admin/images/icons/pretint/chevron-down-disabled.svg
+index 292ca4c9..a5124090 100644
+--- a/core/themes/default_admin/images/icons/pretint/chevron-down-disabled.svg
++++ b/core/themes/default_admin/images/icons/pretint/chevron-down-disabled.svg
+@@ -1,5 +1 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="#767676" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M4 8L12 16L20 8" />
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="#767676" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="m4 8 8 8 8-8"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/pretint/chevron-down-inverse.svg b/core/themes/default_admin/images/icons/pretint/chevron-down-inverse.svg
+index 8e3e04ef..c32bdac0 100644
+--- a/core/themes/default_admin/images/icons/pretint/chevron-down-inverse.svg
++++ b/core/themes/default_admin/images/icons/pretint/chevron-down-inverse.svg
+@@ -1,5 +1 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M4 8L12 16L20 8" />
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="m4 8 8 8 8-8"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/pretint/edit-inverse.svg b/core/themes/default_admin/images/icons/pretint/edit-inverse.svg
+new file mode 100644
+index 00000000..5119a243
+--- /dev/null
++++ b/core/themes/default_admin/images/icons/pretint/edit-inverse.svg
+@@ -0,0 +1 @@
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25" d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/pretint/loader-contrast.svg b/core/themes/default_admin/images/icons/pretint/loader-contrast.svg
+new file mode 100644
+index 00000000..117021be
+--- /dev/null
++++ b/core/themes/default_admin/images/icons/pretint/loader-contrast.svg
+@@ -0,0 +1,5 @@
++<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
++  <g fill="none" stroke="#111111" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
++    <path d="M12 4C12.5523 4 13 3.55228 13 3C13 2.44772 12.5523 2 12 2C11.4477 2 11 2.44772 11 3C11 3.55228 11.4477 4 12 4Z"/>
++  </g>
++</svg>
+diff --git a/core/themes/default_admin/images/icons/pretint/loader-inverse.svg b/core/themes/default_admin/images/icons/pretint/loader-inverse.svg
+new file mode 100644
+index 00000000..07847fae
+--- /dev/null
++++ b/core/themes/default_admin/images/icons/pretint/loader-inverse.svg
+@@ -0,0 +1,5 @@
++<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
++  <g fill="none" stroke="#ffffff" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
++    <path d="M12 4C12.5523 4 13 3.55228 13 3C13 2.44772 12.5523 2 12 2C11.4477 2 11 2.44772 11 3C11 3.55228 11.4477 4 12 4Z"/>
++  </g>
++</svg>
+diff --git a/core/themes/default_admin/images/icons/pretint/remove-default.svg b/core/themes/default_admin/images/icons/pretint/remove-default.svg
+deleted file mode 100644
+index de9a91fb..00000000
+--- a/core/themes/default_admin/images/icons/pretint/remove-default.svg
++++ /dev/null
+@@ -1,6 +0,0 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="#545560" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M20 4L4 20" />
+-    <path d="M4 4L20 20" />
+-  </g>
+-</svg>
+diff --git a/core/themes/default_admin/images/icons/pretint/remove-inverse.svg b/core/themes/default_admin/images/icons/pretint/remove-inverse.svg
+index f8819a0b..c25ff338 100644
+--- a/core/themes/default_admin/images/icons/pretint/remove-inverse.svg
++++ b/core/themes/default_admin/images/icons/pretint/remove-inverse.svg
+@@ -1,6 +1 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="#ffffff" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M20 4L4 20" />
+-    <path d="M4 4L20 20" />
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25"><path d="M20 4 4 20"/><path d="m4 4 16 16"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/reports.svg b/core/themes/default_admin/images/icons/reports.svg
+deleted file mode 100644
+index 8a968dac..00000000
+--- a/core/themes/default_admin/images/icons/reports.svg
++++ /dev/null
+@@ -1,6 +0,0 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+-    <path fill="currentColor" fill-opacity=".15" d="M22 12A10 10 0 0 0 12 2v10z"></path>
+-  </g>
+-</svg>
+diff --git a/core/themes/default_admin/images/icons/server.svg b/core/themes/default_admin/images/icons/server.svg
+index 4d6e9055..babe145a 100644
+--- a/core/themes/default_admin/images/icons/server.svg
++++ b/core/themes/default_admin/images/icons/server.svg
+@@ -1,8 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+-    <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+-    <line x1="6" y1="6" x2="6.01" y2="6"></line>
+-    <line x1="6" y1="18" x2="6.01" y2="18"></line>
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/sidebar.svg b/core/themes/default_admin/images/icons/sidebar.svg
+index 489ba225..22b822f0 100644
+--- a/core/themes/default_admin/images/icons/sidebar.svg
++++ b/core/themes/default_admin/images/icons/sidebar.svg
+@@ -1,8 +1 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+-    <rect x="2" y="2" width="20" height="18" rx="4" ry="4"></rect>
+-    <line x1="14" y1="2" x2="14" y2="20"></line>
+-    <line x1="17.25" y1="7" x2="18.5" y2="7"></line>
+-    <line x1="17.25" y1="11.5" x2="18.5" y2="11.5"></line>
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect width="20" height="18" x="2" y="2" rx="4" ry="4"/><line x1="14" x2="14" y1="2" y2="20"/><line x1="17.25" x2="18.5" y1="7" y2="7"/><line x1="17.25" x2="18.5" y1="11.5" y2="11.5"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/sort-asc.svg b/core/themes/default_admin/images/icons/sort-asc.svg
+index 0330ed43..19709a73 100644
+--- a/core/themes/default_admin/images/icons/sort-asc.svg
++++ b/core/themes/default_admin/images/icons/sort-asc.svg
+@@ -1,6 +1 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M12 21V3" />
+-    <path d="M5 10L12 3L19 10" />
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25"><path d="M12 21V3"/><path d="m5 10 7-7 7 7"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/sort-desc.svg b/core/themes/default_admin/images/icons/sort-desc.svg
+index d9eeacc7..85203125 100644
+--- a/core/themes/default_admin/images/icons/sort-desc.svg
++++ b/core/themes/default_admin/images/icons/sort-desc.svg
+@@ -1,6 +1 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M12 3V21" />
+-    <path d="M19 14L12 21L5 14" />
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25"><path d="M12 3v18"/><path d="m19 14-7 7-7-7"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/sort.svg b/core/themes/default_admin/images/icons/sort.svg
+index ffa792dc..cd277fb8 100644
+--- a/core/themes/default_admin/images/icons/sort.svg
++++ b/core/themes/default_admin/images/icons/sort.svg
+@@ -1,7 +1 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M3 12H17" />
+-    <path d="M3 6H21" />
+-    <path d="M3 18H13" />
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25"><path d="M3 12h14"/><path d="M3 6h18"/><path d="M3 18h10"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/status.svg b/core/themes/default_admin/images/icons/status.svg
+index d72fc72a..aa279238 100644
+--- a/core/themes/default_admin/images/icons/status.svg
++++ b/core/themes/default_admin/images/icons/status.svg
+@@ -1,6 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+-    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/structure.svg b/core/themes/default_admin/images/icons/structure.svg
+deleted file mode 100644
+index 052a4252..00000000
+--- a/core/themes/default_admin/images/icons/structure.svg
++++ /dev/null
+@@ -1,7 +0,0 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <path fill="currentColor" fill-opacity=".15" d="M12.928 1.4861C12.3468 1.18165 11.6532 1.18165 11.072 1.4861L1.5 6.5L11.072 11.5139C11.6532 11.8183 12.3468 11.8183 12.928 11.5139L22.5 6.5L12.928 1.4861Z" />
+-    <path d="M1.5 12L11.072 17.0139C11.6532 17.3183 12.3468 17.3183 12.928 17.0139L22.5 12" />
+-    <path d="M1.5 17.5L11.072 22.5139C11.6532 22.8183 12.3468 22.8183 12.928 22.5139L22.5 17.5" />
+-  </g>
+-</svg>
+diff --git a/core/themes/default_admin/images/icons/tabledrag-handle.svg b/core/themes/default_admin/images/icons/tabledrag-handle.svg
+index 7989c78e..b2190e0a 100644
+--- a/core/themes/default_admin/images/icons/tabledrag-handle.svg
++++ b/core/themes/default_admin/images/icons/tabledrag-handle.svg
+@@ -1 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 16 16"><path fill="currentColor" d="M14.103 5.476a.5.5 0 00-.701-.053.526.526 0 00-.082.713l1.1 1.346H8.512V1.62l1.32 1.113a.501.501 0 00.732-.054.528.528 0 00-.085-.744L8.328.119a.5.5 0 00-.647 0L5.529 1.935a.527.527 0 00-.085.744.504.504 0 00.732.054l1.32-1.113v5.862H1.588L2.68 6.136a.526.526 0 00-.1-.68.5.5 0 00-.675.02L.117 7.67a.525.525 0 000 .66l1.788 2.194a.5.5 0 00.702.053.526.526 0 00.081-.713l-1.1-1.346h5.908v5.862l-1.32-1.113a.501.501 0 00-.698.082.526.526 0 00.051.716l2.152 1.817v-.001a.5.5 0 00.647 0l2.151-1.816a.526.526 0 00.052-.716.501.501 0 00-.699-.082l-1.32 1.113V8.518h5.908l-1.091 1.346a.527.527 0 00.022.776.504.504 0 00.752-.116l1.78-2.194a.527.527 0 000-.66z"/></svg>
++<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 16 16"><path fill="currentColor" d="M14.103 5.476a.5.5 0 0 0-.701-.053.526.526 0 0 0-.082.713l1.1 1.346H8.512V1.62l1.32 1.113a.501.501 0 0 0 .732-.054.528.528 0 0 0-.085-.744L8.328.119a.5.5 0 0 0-.647 0L5.529 1.935a.527.527 0 0 0-.085.744.504.504 0 0 0 .732.054l1.32-1.113v5.862H1.588L2.68 6.136a.526.526 0 0 0-.1-.68.5.5 0 0 0-.675.02L.117 7.67a.525.525 0 0 0 0 .66l1.788 2.194a.5.5 0 0 0 .702.053.526.526 0 0 0 .081-.713l-1.1-1.346h5.908v5.862l-1.32-1.113a.501.501 0 0 0-.698.082.526.526 0 0 0 .051.716l2.152 1.817v-.001a.5.5 0 0 0 .647 0l2.151-1.816a.526.526 0 0 0 .052-.716.501.501 0 0 0-.699-.082l-1.32 1.113V8.518h5.908l-1.091 1.346a.527.527 0 0 0 .022.776.504.504 0 0 0 .752-.116l1.78-2.194a.527.527 0 0 0 0-.66z"/></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/trash.svg b/core/themes/default_admin/images/icons/trash.svg
+index 3d6ca775..daf9b6d4 100644
+--- a/core/themes/default_admin/images/icons/trash.svg
++++ b/core/themes/default_admin/images/icons/trash.svg
+@@ -1,8 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+-  <g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+-    <polyline points="3 6 5 6 21 6"></polyline>
+-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+-    <line x1="10" y1="11" x2="10" y2="17"></line>
+-    <line x1="14" y1="11" x2="14" y2="17"></line>
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/icons/user.svg b/core/themes/default_admin/images/icons/user.svg
+deleted file mode 100644
+index ee1d30bf..00000000
+--- a/core/themes/default_admin/images/icons/user.svg
++++ /dev/null
+@@ -1,7 +0,0 @@
+-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <path d="M12 13C14.2091 13 16 11.2091 16 9C16 6.79086 14.2091 5 12 5C9.79086 5 8 6.79086 8 9C8 11.2091 9.79086 13 12 13Z" />
+-    <path d="M5.25 20V19.3333C5.25 17 9.31375 16 12.25 16C15.1863 16 19.25 17 19.25 19.3333V20" />
+-    <path d="M23 12C23 18.0751 18.0751 23 12 23C5.92487 23 1 18.0751 1 12C1 5.92487 5.92487 1 12 1C18.0751 1 23 5.92487 23 12Z" />
+-  </g>
+-</svg>
+diff --git a/core/themes/default_admin/images/icons/warning.svg b/core/themes/default_admin/images/icons/warning.svg
+index 08999711..f7c17a3d 100644
+--- a/core/themes/default_admin/images/icons/warning.svg
++++ b/core/themes/default_admin/images/icons/warning.svg
+@@ -1,7 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+-  <g fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+-    <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon>
+-    <line x1="12" y1="8" x2="12" y2="12"></line>
+-    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+-  </g>
+-</svg>
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/images/logos/php.svg b/core/themes/default_admin/images/logos/php.svg
+index 12cbd229..b349fb81 100644
+--- a/core/themes/default_admin/images/logos/php.svg
++++ b/core/themes/default_admin/images/logos/php.svg
+@@ -1 +1 @@
+-<svg height="33.447" viewBox="0 0 66 33.447" width="66" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><path d="m49.5 12.255h-2.7l-1.473 7h2.4c1.59 0 2.773-.342 3.55-.94.78-.6 1.304-1.62 1.577-3.023.26-1.345.142-1.975-.357-2.528-.5-.553-1.498-.51-2.996-.51z"/><path d="m33 0c-18.225 0-33 7.488-33 16.724s14.775 16.724 33 16.724 33-7.488 33-16.724-14.775-16.724-33-16.724zm-9.328 19.982c-.787.737-1.662 1.376-2.625 1.69-.963.313-2.19.583-3.68.583h-3.377l-.935 5h-3.945l3.52-18h7.584c2.28 0 3.946.34 4.992 1.537s1.36 2.74.944 4.885c-.172.884-.462 1.628-.87 2.36-.413.732-.947 1.338-1.608 1.945zm11.51 2.273 1.558-8.124c.177-.91.112-1.29-.196-1.62s-.962-.255-1.963-.255h-3.126l-2.016 10h-3.913l3.52-18h3.912l-.935 5h3.486c2.193 0 3.706.124 4.54.888.832.765 1.08 1.99.748 3.703l-1.637 8.41h-3.977zm21.747-6.708c-.173.884-.463 1.692-.872 2.424-.41.734-.944 1.404-1.605 2.01-.787.738-1.662 1.377-2.625 1.69-.963.314-2.19.584-3.68.584h-3.377l-.934 5h-3.944l3.518-18h7.584c2.282 0 3.946.34 4.992 1.537 1.046 1.2 1.36 2.61.943 4.757z"/><path d="m18.72 12.255h-2.703l-1.473 7h2.4c1.59 0 2.773-.342 3.552-.94.778-.6 1.303-1.62 1.576-3.023.26-1.345.142-1.975-.357-2.528-.5-.553-1.497-.51-2.996-.51z"/></g></svg>
++<svg xmlns="http://www.w3.org/2000/svg" width="66" height="33.447" viewBox="0 0 66 33.447"><g fill="currentColor"><path d="M49.5 12.255h-2.7l-1.473 7h2.4c1.59 0 2.773-.342 3.55-.94.78-.6 1.304-1.62 1.577-3.023.26-1.345.142-1.975-.357-2.528-.5-.553-1.498-.51-2.996-.51z"/><path d="M33 0C14.775 0 0 7.488 0 16.724s14.775 16.724 33 16.724 33-7.488 33-16.724S51.225 0 33 0m-9.328 19.982c-.787.737-1.662 1.376-2.625 1.69-.963.313-2.19.583-3.68.583H13.99l-.935 5H9.11l3.52-18h7.584c2.28 0 3.946.34 4.992 1.537s1.36 2.74.944 4.885c-.172.884-.462 1.628-.87 2.36-.413.732-.947 1.338-1.608 1.945m11.51 2.273 1.558-8.124c.177-.91.112-1.29-.196-1.62s-.962-.255-1.963-.255h-3.126l-2.016 10h-3.913l3.52-18h3.912l-.935 5h3.486c2.193 0 3.706.124 4.54.888.832.765 1.08 1.99.748 3.703l-1.637 8.41h-3.977zm21.747-6.708c-.173.884-.463 1.692-.872 2.424-.41.734-.944 1.404-1.605 2.01-.787.738-1.662 1.377-2.625 1.69-.963.314-2.19.584-3.68.584H44.77l-.934 5h-3.944l3.518-18h7.584c2.282 0 3.946.34 4.992 1.537 1.046 1.2 1.36 2.61.943 4.757z"/><path d="M18.72 12.255h-2.703l-1.473 7h2.4c1.59 0 2.773-.342 3.552-.94.778-.6 1.303-1.62 1.576-3.023.26-1.345.142-1.975-.357-2.528-.5-.553-1.497-.51-2.996-.51z"/></g></svg>
+\ No newline at end of file
+diff --git a/core/themes/default_admin/templates/admin/indentation.html.twig b/core/themes/default_admin/templates/admin/indentation.html.twig
+index 9b22d3b5..6c04adf2 100644
+--- a/core/themes/default_admin/templates/admin/indentation.html.twig
++++ b/core/themes/default_admin/templates/admin/indentation.html.twig
+@@ -15,22 +15,24 @@
+     class="tree"
+     width="25"
+     height="25"
+-    viewBox="0 0 25 25">
++    viewBox="0 0 25 25"
++    aria-hidden="true"
++    focusable="false">
+     <path
+       class="tree__item tree__item-child-ltr tree__item-child-last-ltr tree__item-horizontal tree__item-horizontal-right"
+       d="M12,12.5 H25"
+-      stroke="#888"/>
++      stroke="currentColor"/>
+     <path
+       class="tree__item tree__item-child-rtl tree__item-child-last-rtl tree__item-horizontal tree__horizontal-left"
+       d="M0,12.5 H13"
+-      stroke="#888"/>
++      stroke="currentColor"/>
+     <path
+       class="tree__item tree__item-child-ltr tree__item-child-rtl tree__item-child-last-ltr tree__item-child-last-rtl tree__vertical tree__vertical-top"
+       d="M12.5,12 v-99"
+-      stroke="#888"/>
++      stroke="currentColor"/>
+     <path
+       class="tree__item tree__item-child-ltr tree__item-child-rtl tree__vertical tree__vertical-bottom"
+       d="M12.5,12 v99"
+-      stroke="#888"/>
++      stroke="currentColor"/>
+   </svg>
+ </div>{% endfor %}{% endif %}

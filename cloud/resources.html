@@ -8,7 +8,7 @@
   :root { color-scheme: light dark; --bg: #f7f7f5; --surface: #fff; --text: #1d1d1b; --muted: #55554f; --line: #c9c9c1; --accent: #0b5fff; --accent-weak: #dbe6ff; --ok: #1a6b3c; --warn: #7a4b00; --bad: #8a1c1c; }
   @media (prefers-color-scheme: dark) { :root { --bg: #171716; --surface: #232321; --text: #f1f1ec; --muted: #c3c3b8; --line: #55554c; --accent: #8fb3ff; --accent-weak: #25324a; --ok: #8fd6ab; --warn: #f1c27d; --bad: #ff9d9d; } }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 1rem/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
   a { color: var(--accent); }
   a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, .tablewrap:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   .skip { position: absolute; left: -999px; top: 0; background: var(--surface); padding: .5rem .75rem; z-index: 10; } .skip:focus { left: .5rem; }
@@ -57,7 +57,7 @@
 </head>
 <body>
 <a class="skip" href="#main">Skip to resource data</a>
-<header><div class="inner"><strong>Drupal Core Lab</strong><nav aria-label="Site"><a href="index.html">Compare issues</a><a href="README.md">Repository notes</a><a href="https://github.com/mgifford/drupal-core-lab/blob/main/docs/RESOURCE-MONITORING.md">Method</a></nav></div></header>
+<header><div class="inner"><strong>Drupal Core Lab</strong><nav aria-label="Site"><a href="index.html">Compare issues</a><a href="README.md">Repository notes</a><a href="https://github.com/mgifford/drupal-core-lab/blob/main/docs/RESOURCE-MONITORING.md">Method</a><a href="cleer.html">Energy and CLEER</a></nav></div></header>
 <main id="main">
   <h1>Resource usage</h1>
   <p class="note">Transparent accounting of AI tokens, estimated cost, CPU time, memory and GitHub Actions time measured while developing and testing Drupal accessibility fixes. This page is static and calls no AI provider.</p>
@@ -82,6 +82,16 @@
       <div class="actions"><button type="submit" class="primary">Apply</button><button type="reset">Reset</button></div>
     </form>
     <p class="note">Filters apply to the grouped public rows below. The task count in the cards is for the whole period when a filter is active; token and cost values are filtered.</p>
+  </section>
+
+  <section id="energy-section" hidden aria-labelledby="energy-h">
+    <h2 id="energy-h">Energy estimate</h2>
+    <p class="note">Estimated, not measured: a client-reported cost multiplied by a published CLEER energy-per-dollar intensity. It covers remote inference only. <a href="cleer.html">How CLEER is used and what it withholds</a>.</p>
+    <div class="tablewrap" role="region" aria-label="Energy by model table" tabindex="0"><table id="energy-model-table"></table></div>
+    <div class="tablewrap" role="region" aria-label="Energy by activity table" tabindex="0"><table id="energy-activity-table"></table></div>
+    <div class="tablewrap" role="region" aria-label="Energy coverage table" tabindex="0"><table id="energy-coverage-table"></table></div>
+    <div class="tablewrap" role="region" aria-label="Energy method table" tabindex="0"><table id="energy-method-table"></table></div>
+    <p id="energy-note" class="note"></p>
   </section>
 
   <section id="attribution-section" hidden aria-labelledby="attribution-h">
@@ -203,6 +213,7 @@ const pct = (n) => (typeof n === 'number' && Number.isFinite(n) ? `${(n * 100).t
 const money = (n) => (typeof n === 'number' && Number.isFinite(n) ? `$${n.toFixed(2)}` : MISSING);
 const hours = (s) => (typeof s === 'number' && Number.isFinite(s) ? `${(s / 3600).toFixed(3)} h` : MISSING);
 const bytes = (n) => (typeof n !== 'number' || !Number.isFinite(n) ? MISSING : n >= 1024 ** 3 ? `${(n / 1024 ** 3).toFixed(1)} GiB` : n >= 1024 ** 2 ? `${(n / 1024 ** 2).toFixed(1)} MiB` : n >= 1024 ? `${(n / 1024).toFixed(1)} KiB` : `${n} B`);
+const wh = (v) => (typeof v !== 'number' || !Number.isFinite(v) ? MISSING : Math.abs(v) >= 1000 ? `${(v / 1000).toFixed(2)} kWh` : Math.abs(v) >= 1 ? `${v.toFixed(1)} Wh` : `${v.toFixed(3)} Wh`);
 const text = (tag, s, cls = null) => { const el = document.createElement(tag); if (s != null) el.textContent = s; if (cls) el.className = cls; return el; };
 const setStatus = (message, kind = '') => { const el = $('status'); el.textContent = message; el.dataset.kind = kind; };
 let DATA = null, ROWS = [];
@@ -389,6 +400,15 @@ function render() {
   card('Task ids observed', filtered ? MISSING : fmt(overall.measured), filtered ? 'whole period: ' + fmt(overall.measured) : 'distinct ids; includes sessions, CI and Docker', `${fmt(overall.success)} success · ${fmt(overall.failure)} failure · ${fmt(overall.unknown)} unknown`);
   card('Successful / failed outcomes', `${fmt(outcomes.success || 0)} / ${fmt(outcomes.failure || 0)}`, 'from grouped rows', `${fmt(outcomes.cancelled || 0)} cancelled · ${fmt(outcomes.unknown || 0)} unknown`);
   card('Collection overhead', `${hours(DATA.monitoring?.cpu_seconds)} · ${bytes(DATA.monitoring?.peak_memory_bytes)}`, 'measured separately from activity', `${fmt(DATA.monitoring?.events || 0)} collector event(s); not mixed into activity totals`);
+  const energyWh = sum('energy_central_wh');
+  const energyLow = sum('energy_workload_low_wh');
+  const energyHigh = sum('energy_workload_high_wh');
+  const energyCfgLow = sum('energy_configuration_low_wh');
+  const energyCfgHigh = sum('energy_configuration_high_wh');
+  const energyReq = sum('energy_requests');
+  const energyAll = DATA.energy?.coverage?.ai_events;
+  card('Estimated AI energy', energyWh == null ? MISSING : wh(energyWh), energyWh == null ? 'unavailable, not zero' : 'estimated; not a measurement', energyWh == null ? 'CLEER publishes no per-token coefficients' : `workload sensitivity (one-sided) ${wh(energyLow)}–${wh(energyHigh)}; CLEER configuration band ${wh(energyCfgLow)}–${wh(energyCfgHigh)}; verbosity-adjusted alternative ${wh(DATA.energy?.totals?.vadj_central_wh)}`);
+  card('Energy coverage', `${fmt(energyReq)} / ${fmt(energyAll)}`, 'AI events with an estimate', `${pct(DATA.energy?.coverage?.estimated_share)} of counted AI events, whole period; see the Energy section`);
   $('completeness').textContent = `Period ${DATA.period.from || MISSING} to ${DATA.period.to || MISSING}. Data completeness: ${DATA.completeness}. ${ROWS.length} grouped public row(s) shown. Monitoring overhead is reported separately: ${hours(DATA.monitoring?.cpu_seconds)} CPU, ${bytes(DATA.monitoring?.peak_memory_bytes)} peak.`;
 
   const tokenCategories = ['uncached_input', 'cache_creation', 'cache_read', 'output'].map((key) => [key, sum(key)]);
@@ -436,6 +456,54 @@ function render() {
 
   table($('rows-table'), 'Grouped public rows after filters', ['Date', 'Activity', 'Issue', 'Tool', 'Model', 'Grouped events', 'Tokens', 'Model requests', 'CPU (s)', 'Estimated cost', 'Outcomes'], ROWS.map((r) => [r.date, r.activity, r.issue || 'Unattributed', r.tool, r.model || MISSING, r.events, r.tokens, r.model_requests, r.cpu_seconds, money(r.cost_usd), Object.entries(r.outcomes || {}).filter(([, n]) => n).map(([k, n]) => `${k}: ${n}`).join(', ')]));
 
+  const eByModel = new Map();
+  for (const r of ROWS) {
+    if (!r.model) continue;
+    const b = eByModel.get(r.model) || { model: r.model, provider: r.provider, match: r.energy_match, requests: 0, cost: null, wh: null, low: null, high: null };
+    if (typeof r.energy_requests === 'number') b.requests += r.energy_requests;
+    if (typeof r.cost_usd === 'number') b.cost = (b.cost || 0) + r.cost_usd;
+    if (typeof r.energy_central_wh === 'number') b.wh = (b.wh || 0) + r.energy_central_wh;
+    if (typeof r.energy_workload_low_wh === 'number') b.low = (b.low || 0) + r.energy_workload_low_wh;
+    if (typeof r.energy_workload_high_wh === 'number') b.high = (b.high || 0) + r.energy_workload_high_wh;
+    eByModel.set(r.model, b);
+  }
+  table($('energy-model-table'), 'Estimated remote inference energy by model, filtered rows. Estimated, not measured.', ['Model', 'Provider', 'Mapping', 'Requests', 'Estimated cost', 'Energy (central)', 'Workload sensitivity (one-sided)'], [...eByModel.values()].sort((a, b) => (b.wh ?? -1) - (a.wh ?? -1)).map((m) => [m.model, m.provider || MISSING, m.match || MISSING, m.requests, money(m.cost), wh(m.wh), m.low == null ? MISSING : `${wh(m.low)}–${wh(m.high)}`]));
+
+  const eByActivity = new Map();
+  for (const r of ROWS) {
+    const k = r.activity || 'unknown';
+    const b = eByActivity.get(k) || { activity: k, requests: 0, cost: null, wh: null, low: null, high: null };
+    if (typeof r.energy_requests === 'number') b.requests += r.energy_requests;
+    if (typeof r.cost_usd === 'number') b.cost = (b.cost || 0) + r.cost_usd;
+    if (typeof r.energy_central_wh === 'number') b.wh = (b.wh || 0) + r.energy_central_wh;
+    if (typeof r.energy_workload_low_wh === 'number') b.low = (b.low || 0) + r.energy_workload_low_wh;
+    if (typeof r.energy_workload_high_wh === 'number') b.high = (b.high || 0) + r.energy_workload_high_wh;
+    eByActivity.set(k, b);
+  }
+  table($('energy-activity-table'), 'Estimated remote inference energy by activity, filtered rows. Activity association is not causation.', ['Activity', 'Requests', 'Estimated cost', 'Energy (central)', 'Workload sensitivity (one-sided)'], [...eByActivity.values()].sort((a, b) => (b.wh ?? -1) - (a.wh ?? -1)).map((a) => [a.activity, a.requests, money(a.cost), wh(a.wh), a.low == null ? MISSING : `${wh(a.low)}–${wh(a.high)}`]));
+
+  const ec = DATA.energy?.coverage || {};
+  table($('energy-coverage-table'), 'Energy estimation coverage, whole period. Absolute counts with their denominators.', ['Measure', 'Value', 'Denominator'], [
+    ['AI events', ec.ai_events, 'itself'],
+    ['Estimated', ec.estimated, `${fmt(ec.ai_events)} AI events`],
+    ['Unavailable', ec.unavailable, `${fmt(ec.ai_events)} AI events`],
+    ['Estimated share', pct(ec.estimated_share), `${fmt(ec.ai_events)} AI events`],
+    ['Cost covered', money(ec.cost_covered_usd), money(ec.cost_total_usd)],
+    ['Models observed', ec.models_observed, MISSING],
+    ['Models with exact match', ec.models_with_exact_match, `${fmt(ec.models_observed)} models`],
+    ['Models with proxy match', ec.models_with_proxy_match, `${fmt(ec.models_observed)} models`],
+    ['Unreviewed proxies', ec.models_with_unreviewed_proxy, `${fmt(ec.models_observed)} models`],
+  ]);
+
+  const em = DATA.energy?.method || {};
+  table($('energy-method-table'), 'Energy method, boundary and dataset provenance', ['Item', 'Value'], [
+    ['Basis', em.basis], ['Method version', em.method_version], ['Boundary', em.boundary],
+    ['Measured', em.what_is_measured], ['Estimated', em.what_is_estimated], ['Unavailable', em.what_is_unavailable],
+    ['Uncertainty', em.uncertainty], ['Dataset', em.dataset ? `${em.dataset.version} (${em.dataset.release})` : MISSING],
+    ['Dataset checksum', em.dataset?.checksum || MISSING], ['Licence', em.dataset?.licence || MISSING],
+  ]);
+  $('energy-note').textContent = DATA.energy ? `Uncertainty: ${DATA.energy.method.uncertainty}. The headline uses ${DATA.energy.method.intensity_column || 'energy_wh_per_usd'}; CLEER's verbosity-adjusted ${DATA.energy.method.adjusted_column || 'vadj_energy_wh_per_usd'} would imply ${wh(DATA.energy.totals.vadj_central_wh)}, a modelling alternative shown separately. The bridge assumes our token-category mix resembles CLEER's workload mix; that is unverified. Read the limitations in the method section.` : 'No energy estimate is available in this data.';
+
   renderAttribution();
   renderInfrastructure();
   renderTasks();
@@ -465,6 +533,18 @@ function render() {
   method.append(text('h3', 'Measurement methods'), text('p', `Classifier ${DATA.methodology?.classifier_version || MISSING}. Accounting versions: ${(DATA.methodology?.accounting_versions || []).join(', ') || MISSING}. ${DATA.methodology?.note || ''}`));
   method.append(text('p', 'Request-level activity is associated with the request context, not proven to have caused every token in it. Legacy session rows are labelled separately and are not directly comparable with request-level rows.'));
   method.append(text('h3', 'Limitations'), ul);
+  if (DATA.energy) {
+    method.append(text('h3', 'Energy estimate'));
+    method.append(text('p', `${DATA.energy.method.name} (${DATA.energy.method.method_version}): ${DATA.energy.method.uncertainty}. Estimated, not measured.`));
+    const eul = text('ul');
+    for (const l of DATA.energy.limitations || []) eul.append(text('li', l));
+    method.append(eul);
+    const ep = text('p');
+    const link = text('a', 'How CLEER is used and what it withholds');
+    link.href = 'cleer.html';
+    ep.append(link);
+    method.append(ep);
+  }
   const p = text('p'); p.append(document.createTextNode('Privacy: '), text('span', DATA.privacy?.public_fields || 'Public data is aggregated only.')); method.append(p);
   method.append(text('p', 'The page reads resources.json. It does not contact Drupal, an AI provider, a trace collector or a database.', 'note'));
 }
@@ -477,7 +557,7 @@ async function init() {
     ROWS = Array.isArray(DATA.events) ? DATA.events : [];
     if (!ROWS.length) { setStatus('No resource events have been collected yet. Missing data is not the same as zero consumption.', 'warn'); $('summary').hidden = false; $('period').textContent = `Period ${DATA.period?.from || MISSING} to ${DATA.period?.to || MISSING}.`; return; }
     setStatus(`Loaded ${ROWS.length} grouped public row(s), ${DATA.period?.from || MISSING} to ${DATA.period?.to || MISSING}.`, '');
-    $('summary').hidden = false; $('filters-section').hidden = false; $('attribution-section').hidden = false; $('infrastructure-section').hidden = false; $('tasks-section').hidden = false; $('exploration-section').hidden = false; $('repetition-section').hidden = false; $('provenance-section').hidden = false; $('charts').hidden = false; $('quality').hidden = false; $('opportunities').hidden = false; $('method').hidden = false;
+    $('summary').hidden = false; $('filters-section').hidden = false; $('energy-section').hidden = false; $('attribution-section').hidden = false; $('infrastructure-section').hidden = false; $('tasks-section').hidden = false; $('exploration-section').hidden = false; $('repetition-section').hidden = false; $('provenance-section').hidden = false; $('charts').hidden = false; $('quality').hidden = false; $('opportunities').hidden = false; $('method').hidden = false;
     $('period').textContent = `Period ${DATA.period?.from || MISSING} to ${DATA.period?.to || MISSING}. Generated ${DATA.generated_at || MISSING}. Completeness: ${DATA.completeness || 'unknown'}.`;
     options($('issue'), ROWS.map((r) => ({ value: r.issue || '__none', label: r.issue || 'Unattributed' })), 'All issues');
     options($('activity'), ROWS.map((r) => ({ value: r.activity, label: r.activity })), 'All activities');
