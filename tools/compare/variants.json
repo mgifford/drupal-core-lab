@@ -2638,5 +2638,149 @@
         "expectAfter": true
       }
     ]
+  },
+  {
+    "issue": "3083103",
+    "status": "DRAFT: static comparison done 2026-11-25; runtime comparison being built",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "0387fb948f786bc344a5cc54aa0d98b8f552e378"
+    },
+    "before": {
+      "env": "baseline-3083103",
+      "patches": [
+        "reports/issues/3083103/branches/3083103-fixture.patch"
+      ]
+    },
+    "pages": [
+      "/form-test/error-association",
+      "/form-test/error-association/two",
+      "/form-test/error-association/no-ife"
+    ],
+    "login": true,
+    "recipe": "repro_3083103",
+    "testExtensions": true,
+    "steps": [],
+    "expected": "Every invalid control or group has a programmatic association to the error text that is actually rendered, and every IDREF resolves.",
+    "actual": "Not yet run.",
+    "checks": [
+      {
+        "label": "The fixture form is on the page",
+        "probe": "!!document.querySelector('form#form-test-error-association-form')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "Every aria-errormessage IDREF resolves to exactly one element",
+        "probe": "(() => { const els = [...document.querySelectorAll('[aria-errormessage]')]; if (!els.length) return false; return els.every(e => { const id = e.getAttribute('aria-errormessage'); return id && document.querySelectorAll('#' + CSS.escape(id)).length === 1; }); })()",
+        "expect": true,
+        "kind": "fix"
+      }
+    ],
+    "observe": [
+      {
+        "label": "On the invalid field, is the error announced when navigating to it?",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Is the error announced twice (aria-errormessage plus aria-describedby)?",
+        "expectBefore": false,
+        "expectAfter": false
+      }
+    ],
+    "slug": "3083103-latest",
+    "label": "#3083103: error association, MR !15692 ported to current main",
+    "description": "Before: current main (0387fb948f7) plus the lab fixture. After: the same core plus MR !15692 (branch 3083103-improve-error-accessibility, tip ed60e948) ported to main. Does not include the August 6 proposal.",
+    "after": {
+      "env": "issue-3083103-15692",
+      "patches": [
+        "reports/issues/3083103/branches/3083103-fixture.patch",
+        "reports/issues/3083103/branches/3083103-improve-error-accessibility-main.patch"
+      ]
+    },
+    "coverage": {
+      "note": "Declared minimum for this comparison: one browser, one scheme, one width. Firefox/WebKit, forced colours, dark scheme and mobile width were not run (see EVIDENCE.md).",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ]
+    }
+  },
+  {
+    "issue": "3083103",
+    "status": "DRAFT: static comparison done 2026-11-25; runtime comparison being built",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "0387fb948f786bc344a5cc54aa0d98b8f552e378"
+    },
+    "before": {
+      "env": "baseline-3083103",
+      "patches": [
+        "reports/issues/3083103/branches/3083103-fixture.patch"
+      ]
+    },
+    "pages": [
+      "/form-test/error-association",
+      "/form-test/error-association/two",
+      "/form-test/error-association/no-ife"
+    ],
+    "login": true,
+    "recipe": "repro_3083103",
+    "testExtensions": true,
+    "steps": [],
+    "expected": "Every invalid control or group has a programmatic association to the error text that is actually rendered, and every IDREF resolves.",
+    "actual": "Not yet run.",
+    "checks": [
+      {
+        "label": "The fixture form is on the page",
+        "probe": "!!document.querySelector('form#form-test-error-association-form')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "Every aria-errormessage IDREF resolves to exactly one element",
+        "probe": "(() => { const els = [...document.querySelectorAll('[aria-errormessage]')]; if (!els.length) return false; return els.every(e => { const id = e.getAttribute('aria-errormessage'); return id && document.querySelectorAll('#' + CSS.escape(id)).length === 1; }); })()",
+        "expect": true,
+        "kind": "fix"
+      }
+    ],
+    "observe": [
+      {
+        "label": "On the invalid field, is the error announced when navigating to it?",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Is the error announced twice (aria-errormessage plus aria-describedby)?",
+        "expectBefore": false,
+        "expectAfter": false
+      }
+    ],
+    "slug": "3083103-aug6",
+    "label": "#3083103: error association, August 6 proposal ported from 11.4.x",
+    "description": "Before: the same current main plus the lab fixture. After: the same core plus the August 6 proposal (originally an 11.4.x diff at b2ce2022) ported to main.",
+    "after": {
+      "env": "issue-3083103-aug6",
+      "patches": [
+        "reports/issues/3083103/branches/3083103-fixture.patch",
+        "reports/issues/3083103/branches/3083103-aria-error-association-main.patch"
+      ]
+    },
+    "coverage": {
+      "note": "Declared minimum for this comparison: one browser, one scheme, one width. Firefox/WebKit, forced colours, dark scheme and mobile width were not run (see EVIDENCE.md).",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ]
+    }
   }
 ]

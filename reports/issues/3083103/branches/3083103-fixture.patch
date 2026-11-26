@@ -1,0 +1,309 @@
+diff --git a/core/modules/system/tests/modules/form_test/form_test.routing.yml b/core/modules/system/tests/modules/form_test/form_test.routing.yml
+index 9daceb0e..9f4c55d5 100644
+--- a/core/modules/system/tests/modules/form_test/form_test.routing.yml
++++ b/core/modules/system/tests/modules/form_test/form_test.routing.yml
+@@ -84,6 +84,24 @@ form_test.validate_form:
+   requirements:
+     _access: 'TRUE'
+ 
++form_test.error_association:
++  path: '/form-test/error-association'
++  defaults:
++    _controller: '\Drupal\form_test\Controller\FormTestController::errorAssociationForms'
++    variant: 'single'
++    _title: 'Error association test form'
++  requirements:
++    _access: 'TRUE'
++
++form_test.error_association_variant:
++  path: '/form-test/error-association/{variant}'
++  defaults:
++    _controller: '\Drupal\form_test\Controller\FormTestController::errorAssociationForms'
++    variant: 'single'
++    _title: 'Error association test form'
++  requirements:
++    _access: 'TRUE'
++
+ form_test.validate_required:
+   path: '/form-test/validate-required'
+   defaults:
+diff --git a/core/modules/system/tests/modules/form_test/src/Controller/FormTestController.php b/core/modules/system/tests/modules/form_test/src/Controller/FormTestController.php
+index 6adf9b23..4517bed7 100644
+--- a/core/modules/system/tests/modules/form_test/src/Controller/FormTestController.php
++++ b/core/modules/system/tests/modules/form_test/src/Controller/FormTestController.php
+@@ -7,6 +7,7 @@
+ use Drupal\Core\Controller\ControllerBase;
+ use Drupal\Core\Form\FormState;
+ use Drupal\Core\Language\LanguageInterface;
++use Drupal\form_test\Form\FormTestErrorAssociationForm;
+ use Drupal\form_test\FormTestObject;
+ use Symfony\Component\HttpFoundation\JsonResponse;
+ 
+@@ -15,6 +16,27 @@
+  */
+ class FormTestController extends ControllerBase {
+ 
++  /**
++   * Returns one or two instances of the error association test form.
++   *
++   * @param string $variant
++   *   'single', 'two' (two instances on one page) or 'no-ife'.
++   *
++   * @return array
++   *   A render array.
++   */
++  public function errorAssociationForms($variant = 'single') {
++    $return = [];
++    if ($variant === 'two') {
++      $return['form_one'] = $this->formBuilder()->getForm(FormTestErrorAssociationForm::class, 'one', FALSE);
++      $return['form_two'] = $this->formBuilder()->getForm(FormTestErrorAssociationForm::class, 'two', FALSE);
++    }
++    else {
++      $return['form'] = $this->formBuilder()->getForm(FormTestErrorAssociationForm::class, 'single', $variant === 'no-ife');
++    }
++    return $return;
++  }
++
+   /**
+    * Returns two instances of the node form.
+    *
+diff --git a/core/modules/system/tests/modules/form_test/src/Form/FormTestErrorAssociationForm.php b/core/modules/system/tests/modules/form_test/src/Form/FormTestErrorAssociationForm.php
+new file mode 100644
+index 00000000..6a52e97f
+--- /dev/null
++++ b/core/modules/system/tests/modules/form_test/src/Form/FormTestErrorAssociationForm.php
+@@ -0,0 +1,234 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\form_test\Form;
++
++use Drupal\Core\Form\FormBase;
++use Drupal\Core\Render\Markup;
++use Drupal\Core\Form\FormStateInterface;
++
++/**
++ * Form for evaluating programmatic error association (#3083103).
++ *
++ * Provides every element shape the evaluation needs: a required textfield with
++ * help text, textarea, select, radio group, checkbox group, a multi-value
++ * group, details, fieldset, nested container, a table, a required tableselect,
++ * two required fields that produce identical error text, an element with an
++ * explicit #id and an author-supplied aria-describedby, an element with
++ * #error_no_message, and an AJAX "add another" control.
++ *
++ * @internal
++ */
++class FormTestErrorAssociationForm extends FormBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  public function getFormId() {
++    return 'form_test_error_association_form';
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function buildForm(array $form, FormStateInterface $form_state, $instance = 'single', $disable_ife = FALSE) {
++    if ($disable_ife) {
++      $form['#disable_inline_form_errors'] = TRUE;
++    }
++
++    $form['name'] = [
++      '#type' => 'textfield',
++      '#title' => 'Name',
++      '#description' => 'Your full name.',
++      '#required' => TRUE,
++    ];
++
++    $form['message'] = [
++      '#type' => 'textarea',
++      '#title' => 'Message',
++      '#description' => 'A short message.',
++      '#required' => TRUE,
++    ];
++
++    $form['choice'] = [
++      '#type' => 'select',
++      '#title' => 'Choice',
++      '#options' => ['foo' => 'Foo', 'bar' => 'Bar'],
++      '#required' => TRUE,
++    ];
++
++    $form['colour'] = [
++      '#type' => 'radios',
++      '#title' => 'Colour',
++      '#options' => ['red' => 'Red', 'blue' => 'Blue'],
++      '#required' => TRUE,
++    ];
++
++    $form['features'] = [
++      '#type' => 'checkboxes',
++      '#title' => 'Features',
++      '#options' => ['one' => 'One', 'two' => 'Two'],
++      '#required' => TRUE,
++    ];
++
++    // Multi-value group.
++    $form['tags'] = [
++      '#type' => 'container',
++      '#tree' => TRUE,
++      '#attributes' => ['class' => ['lab-tags']],
++    ];
++    $form['tags']['tag0'] = [
++      '#type' => 'textfield',
++      '#title' => 'Tag 1',
++      '#required' => TRUE,
++    ];
++    $form['tags']['tag1'] = [
++      '#type' => 'textfield',
++      '#title' => 'Tag 2',
++      '#required' => TRUE,
++    ];
++
++    $form['contact'] = [
++      '#type' => 'details',
++      '#title' => 'Contact',
++      '#open' => TRUE,
++    ];
++    $form['contact']['phone'] = [
++      '#type' => 'textfield',
++      '#title' => 'Phone',
++      '#description' => 'Include the area code.',
++      '#required' => TRUE,
++    ];
++
++    $form['address'] = [
++      '#type' => 'fieldset',
++      '#title' => 'Address',
++    ];
++    $form['address']['street'] = [
++      '#type' => 'textfield',
++      '#title' => 'Street',
++      '#required' => TRUE,
++    ];
++
++    $form['nested'] = [
++      '#type' => 'container',
++    ];
++    $form['nested']['inner'] = [
++      '#type' => 'container',
++    ];
++    $form['nested']['inner']['postcode'] = [
++      '#type' => 'textfield',
++      '#title' => 'Postcode',
++      '#required' => TRUE,
++    ];
++
++    // A plain table, to check that no ARIA is added to it.
++    $form['table'] = [
++      '#type' => 'table',
++      '#header' => ['Key', 'Value'],
++      '#rows' => [
++        ['Alpha', 'One'],
++        ['Beta', 'Two'],
++      ],
++    ];
++
++    $form['table_select'] = [
++      '#type' => 'tableselect',
++      '#title' => 'Rows',
++      '#header' => ['Key', 'Value'],
++      '#options' => [
++        'alpha' => ['key' => 'Alpha', 'value' => 'One'],
++        'beta' => ['key' => 'Beta', 'value' => 'Two'],
++      ],
++      '#required' => TRUE,
++    ];
++
++    // Two different fields with the same error text.
++    $form['email_primary'] = [
++      '#type' => 'textfield',
++      '#title' => 'Email address',
++      '#required' => TRUE,
++    ];
++    $form['email_secondary'] = [
++      '#type' => 'textfield',
++      '#title' => 'Email address',
++      '#required' => TRUE,
++    ];
++
++    // Explicit ID plus an author-supplied aria-describedby. Deliberately no
++    // #description: FormBuilder::doBuildForm() would overwrite the author value.
++    $help_id = 'lab-existing-help-' . $instance;
++    $form['custom'] = [
++      '#type' => 'textfield',
++      '#title' => 'Custom ID',
++      '#id' => 'lab-custom-id',
++      '#required' => TRUE,
++      '#attributes' => [
++        'aria-describedby' => $help_id,
++      ],
++      '#field_prefix' => Markup::create('<span id="' . $help_id . '">Author-supplied help.</span>'),
++    ];
++
++    // Suppressed error message.
++    $form['suppressed'] = [
++      '#type' => 'textfield',
++      '#title' => 'Suppressed',
++      '#required' => TRUE,
++      '#error_no_message' => TRUE,
++    ];
++
++    $form['more'] = [
++      '#type' => 'checkbox',
++      '#title' => 'Add another tag field',
++      '#ajax' => [
++        'callback' => [static::class, 'addMore'],
++        'wrapper' => 'lab-extra-wrapper',
++        'effect' => 'fade',
++      ],
++    ];
++    $form['extra_wrapper'] = [
++      '#type' => 'container',
++      '#attributes' => ['id' => 'lab-extra-wrapper'],
++    ];
++    // getUserInput(), not getValue(): on an AJAX rebuild the submitted value is
++    // not copied into form state values until the element is processed.
++    if ($form_state->getUserInput()['more'] ?? $form_state->getValue('more')) {
++      $form['extra_wrapper']['extra_tag'] = [
++        '#type' => 'textfield',
++        '#title' => 'Extra tag',
++        '#required' => TRUE,
++      ];
++    }
++
++    $form['actions'] = ['#type' => 'actions'];
++    $form['actions']['submit'] = [
++      '#type' => 'submit',
++      '#value' => 'Submit',
++    ];
++
++    return $form;
++  }
++
++  /**
++   * AJAX callback: rebuilds the add-more wrapper.
++   */
++  public static function addMore(array &$form, FormStateInterface $form_state) {
++    return $form['extra_wrapper'];
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function validateForm(array &$form, FormStateInterface $form_state) {
++    // Required errors come from #required; nothing else to validate.
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function submitForm(array &$form, FormStateInterface $form_state) {
++    $this->messenger()->addStatus('Submitted.');
++  }
++
++}

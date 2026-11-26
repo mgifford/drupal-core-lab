@@ -1,47 +1,56 @@
 # #3083103: Programmatically associate error messages with inputs
 
-**DRAFT.** Scoping material only — nothing has been built or run in this lab. This folder was converted to the standard shape
-on 2026-10-14; the original notes and patches are unchanged.
-
-**This is the entry point for this issue.** Start with **Files and links** below.
+**DRAFT — runtime comparison built and measured 2026-11-26; not reviewed by a person; no real NVDA/VoiceOver
+pass.** Nothing was posted to Drupal.org or GitLab. The four original patches are unchanged.
 
 Issue: https://www.drupal.org/project/drupal/issues/3083103
-Patches: 3 with provenance in `branches/` + 1 without (see [BRANCHES.md](BRANCHES.md))
-Status snapshot: [STATUS.md](STATUS.md)
+Patches: [BRANCHES.md](BRANCHES.md) · Preflight: [PREFLIGHT.md](PREFLIGHT.md) · Source: [SOURCE-REVIEW.md](SOURCE-REVIEW.md)
+· Rendered evidence: [EVIDENCE.md](EVIDENCE.md) · Comparison: [INDEPENDENT-COMPARISON.md](INDEPENDENT-COMPARISON.md)
+· Rebuild: [REPRODUCE.md](REPRODUCE.md) · Screen reader: [SCREENREADER.md](SCREENREADER.md) · Plain explanation: [EXPLAINER.md](EXPLAINER.md)
 
-## Summary
+## What was found
 
-The issue is to associate form error messages with their controls programmatically (`aria-invalid`, `aria-errormessage`,
-`aria-describedby`). This folder holds three branch patches with provenance, an LLM patch description, and an LLM
-comparison against **MR !15692** that reaches the verdict "my patch is preferred". That verdict is the author's and has not
-been ratified by a person.
+Neither recorded proposal associates the error with its control in the default configuration.
 
-## Files and links
+- Standard sets **`default_admin` as both the default and the admin theme**, and `default_admin` overrides
+  the three form templates with error containers that have **no `id`**. In the measured `invalid` scenario,
+  **16 of 16 error containers had `id: null`**.
+- **MR !15692**: the association exists only when Inline Form Errors is disabled, where the target is the
+  messenger message; with the module enabled (its own case) every reference dangles. It is also a **fatal
+  error on current `main` as submitted** (typed property conflict) and leaves a dangling reference on
+  `#error_no_message`.
+- **August 6 proposal**: no association at all when Inline Form Errors is disabled — the Standard default —
+  and the same dangling target when it is enabled. It was an **11.4.x** diff (`b2ce2022`), never a `main`
+  one; the comparison document compared unlike bases and is unverified.
 
-| What | Where |
+Recommendation: a **minimal Core association mechanism** that carries the ID with the error content rather
+than a template variable, with Inline Form Errors keeping presentation. See
+[INDEPENDENT-COMPARISON.md](INDEPENDENT-COMPARISON.md).
+
+## Runs
+
+| Run | Result |
 |---|---|
-| Patches and provenance | [BRANCHES.md](BRANCHES.md) |
-| Patch description (unchanged) | [3083103-aria-error-association.md](3083103-aria-error-association.md) |
-| Comparison vs MR !15692 (unchanged) | [3083103-comparison.md](3083103-comparison.md) |
-| How to reproduce | [REPRODUCE.md](REPRODUCE.md) |
-| Evidence | [EVIDENCE.md](EVIDENCE.md) |
-| Draft comment (do not post) | [ISSUE-COMMENT-DRAFT.md](ISSUE-COMMENT-DRAFT.md) |
-| Status snapshot | [STATUS.md](STATUS.md) |
+| MR !15692 (`3083103-latest`) | `playwright/2026-11-26T06-47-46-613Z-chromium-light-1280x900/` — verdict `reproduced-not-fixed` |
+| August 6 (`3083103-aug6`) | `playwright/2026-11-26T06-49-21-012Z-chromium-light-1280x900/` — verdict `reproduced-not-fixed` |
+| Virtual screen reader | `screenreader/2026-11-26T06-43-46-673Z/` |
 
-## Sources
-
-- https://www.drupal.org/project/drupal/issues/3083103 (checked 2026-10-14)
-- MR !15692 (referenced in the comparison note; not fetched here)
-- Related: #2848307, #3243173
+Core `0387fb948f7`, Chromium (Playwright 1.59.1), light scheme, 1280×900, `default_admin`, logged in.
 
 ## Not verified
 
-- No lab run; no pinned Before/After pair, no environment, no commit record, no human review.
-- The comparison note's verdict and requirement-compliance table are the author's, not ratified.
-- One patch (`3083103-aria-error-association.patch`) has no provenance.
+- Real NVDA (Firefox/Chrome) and VoiceOver (Safari); live-region announcements.
+- Firefox/WebKit accessibility trees, forced colours, dark scheme, mobile width.
+- A person's keyboard pass.
+- Regression tests (Functional, `default_admin`) with fail-before/pass-after — **not written yet**.
+- The unresolved MR review threads (GitLab API answered HTTP 401).
+- Whether merging #3557245 / MR !16520 first changes the ID resolution this work must reuse.
 
-## Notes
+## Historical documents
 
-- The patch description says the module boundary is preserved (ARIA attributes set only in `inline_form_errors`); the
-  comparison argues MR !15692 breaks it by setting them in core `FormErrorHandler`. Worth re-checking against the current
-  MR before use.
+- [3083103-comparison.md](3083103-comparison.md) — the original "my patch is preferred" comparison.
+  **Unverified and not reproduced:** it compared an 11.4.x diff with a `main` MR, never applied one to the
+  other, and did not test the default theme.
+- [3083103-aria-error-association.md](3083103-aria-error-association.md) — the patch description; its
+  "module boundary preserved" and "6 unit tests" claims are accurate as description, but the tests assert
+  PHP arrays, not the DOM.
