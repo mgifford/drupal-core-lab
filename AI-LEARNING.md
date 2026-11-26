@@ -340,6 +340,32 @@ Worked on MR !16166 at `fe4adb4f`, rebased its 11 commits onto current `main` `0
 - `tabledrag-handle.svg` remains 30 bytes larger. It is documented and was not reverted to avoid invalidating the pushed branch for a negligible byte change.
 - Functional PHPUnit, native Windows High Contrast, Firefox and WebKit remain untested. No WCAG 2.2 AA claim.
 
+## Learnings from #2848307 table and tableselect inline errors (2026-11-26)
+
+Worked on the open core issue #2848307 and MR !16355. The change replaces a recursive error renderer with table/tableselect theme rendering, fixes the modules uninstall form independently, and records a before/after Lab comparison. Evidence is in `reports/issues/2848307/`; the core patch was not pushed.
+
+### Traps worth not repeating
+
+1. **Copying a DDEV environment copies its worktree pointer.** `cp -a envs/baseline-3083103 envs/issue-2848307` copied a `.git` *file* pointing at `envs/core.git/worktrees/baseline-3083103`, so both trees shared one worktree index. `git reset` in the copy could have changed the original's index, and the lab patch-state file was the same. Replace the copied `.git` with an independent clone/worktree before running git commands in a copied environment, and check `git worktree list` afterwards.
+2. **`git archive` is not a full core tree.** Drupal's `.gitattributes` marks test directories `export-ignore`, so `git archive <sha>` silently omitted `core/modules/*/tests/...` and a patch adding tests failed with "No such file or directory". Use `git checkout-index -a --prefix=/tmp/base/` (or a worktree) when a test fixture must be present.
+3. **Patch state lives in the git directory, not the web root.** `envs/<env>/.git/lab-patches/state.json` records the applied patch hashes. A copied environment inherits it and reports the old patch. Remove it and re-run `setup.mjs --refresh-patches`; the `.lab-patches-applied` name file is only a legacy hint.
+4. **A wrapper theme hook declared with `variables` gets only those variables.** `inline_form_errors_table` initially declared `variables` and received no `#children`, so the table rendered as an empty div. A wrapper around a render element needs `'render element' => 'element'` so `$variables['element']` carries `#children`, `#errors` and `#id`.
+5. **A table pre-render callback must run before `preRenderTableselect()`.** That callback renders the child checkboxes immediately. Appending the IFE callback to `#pre_render` was too late to suppress inherited errors; `array_unshift` is required.
+6. **`#error_no_message` hides the message, not the invalid state.** `RenderElementBase::setAttributes()` adds `aria-invalid="true"` whenever `#errors` is set and the element is validated. To stop every row being invalid, clear the inherited `#errors` on the children (and keep an own-error marker on the table), not just set `#error_no_message`.
+7. **A Guidepup virtual reader started inside a table skips the table's own announcement.** Starting at `table#...` began with `rowgroup` and never spoke the `aria-describedby` description; starting at the wrapper/form spoke `"table, A table with an error, No rows selected."`. Start outside the element whose name/description you are testing.
+8. **A summary-link fragment needs a focusable target.** The table is not focusable, so `#edit-table` changed the hash but left focus on `BODY`. `tabindex="-1"` on the table makes the link move focus to it without adding a tab stop; the next Tab then enters the checkboxes.
+9. **Adding a variant makes `cloud/` stale.** `build-cloud.mjs --check` fails until `cloud/variants.json` is regenerated. Run `node scripts/build-cloud.mjs` and commit the generated file.
+10. **Issue-variant probes are validated as one expression.** A probe with `const`, `if` or semicolons failed `tests/issue-pack/validate.test.mjs`; probes over 400 characters failed too. Use one assignment-free expression, and run that test file after editing `variants.json`.
+11. **`ready-to-push` can be red for machine reasons.** In an independent clone, `test-mr` stops when the real DDEV registry already has `drupal-compare` at the main lab; do not unlist another session's projects to make it green. The selftest also needs the main lab's ignored `tools/compare/.deps` and `tools/playwright/node_modules` linked for `js-yaml` and `jsdom`; restore the tracked `tools/playwright/node_modules` symlink before committing.
+12. **The main lab tree was very dirty.** 134 unrelated changes from other sessions were present. A worktree from `origin/main`, explicit `git add` paths, and a check of `git diff --cached --name-only` kept the push to this issue only.
+
+### What worked, repeat
+
+- Read the rendered DOM before choosing the architecture: the uninstall table is hand-written, the `modules` branch is never rendered as a table, and `tableselect` child checkboxes inherit the parent error.
+- Keep the error on the element that owns it and mark only tables with their **own** error (`#inline_form_errors_own_error`); an inherited parent error must not be repeated at the table.
+- Preserve the table's native semantics. A `form_element` wrapper would print an invalid `<label for="<table id>">`; a fieldset/legend only in the error state needs a label source and changes the layout. Associate the error with the table and make the summary link focus it.
+- Test the before side with the same test-only fixture, not a different page. The regression was concrete: two repeated messages and two invalid checkboxes before, one message and zero invalid rows after.
+- Recompute and record patch hashes and regenerate the interdiff after every patch change; the first interdiff went stale within one edit.
 ## 2026-11-26: #3630425, shared-machine builds and real AT
 
 - **The DSH workspace sandbox blocks DDEV's global state.** `ddev config` needs to write `~/.ddev/project_list.yaml`; under workspace-write it fails with `operation not permitted`. The setup build needs the one-shot wider permission, or must run from the owner's terminal.
