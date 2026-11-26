@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Energy estimates — Drupal Core Lab</title>
+<style>
+  :root { color-scheme: light dark; --bg: #f7f7f5; --surface: #fff; --text: #1d1d1b; --muted: #55554f; --line: #c9c9c1; --accent: #0b5fff; --accent-weak: #dbe6ff; --warn: #7a4b00; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #171716; --surface: #232321; --text: #f1f1ec; --muted: #c3c3b8; --line: #55554c; --accent: #8fb3ff; --accent-weak: #25324a; --warn: #f1c27d; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 1rem/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  a { color: var(--accent); }
+  a:focus-visible, .tablewrap:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .skip { position: absolute; left: -999px; top: 0; background: var(--surface); padding: .5rem .75rem; z-index: 10; } .skip:focus { left: .5rem; }
+  header { background: var(--surface); border-bottom: 1px solid var(--line); padding: .8rem 1rem; }
+  header .inner, main { max-width: 78rem; margin: 0 auto; }
+  header .inner { display: flex; flex-wrap: wrap; gap: .75rem; align-items: baseline; justify-content: space-between; }
+  header nav { display: flex; gap: 1rem; flex-wrap: wrap; font-size: .9rem; }
+  main { padding: 1rem; }
+  h1 { font-size: 1.55rem; margin: .4rem 0 .2rem; } h2 { font-size: 1.2rem; margin: 1.6rem 0 .5rem; } h3 { font-size: 1rem; margin: .2rem 0 .35rem; }
+  .note { color: var(--muted); font-size: .9rem; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: .7rem; margin: .6rem 0 1rem; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: .5rem; padding: .7rem .8rem; }
+  .card h3 { font-size: .85rem; color: var(--muted); font-weight: 600; margin: 0 0 .2rem; }
+  .card .value { font-size: 1.45rem; font-weight: 700; margin: 0; overflow-wrap: anywhere; }
+  .card .quality { font-size: .8rem; color: var(--muted); margin: .2rem 0 0; }
+  .tablewrap { max-width: 100%; overflow-x: auto; margin: .4rem 0 .8rem; }
+  table { border-collapse: collapse; width: 100%; font-size: .88rem; }
+  caption { text-align: left; color: var(--muted); font-size: .85rem; padding: .1rem 0 .3rem; }
+  th, td { border: 1px solid var(--line); padding: .32rem .45rem; text-align: left; vertical-align: top; }
+  th { background: var(--surface); font-size: .82rem; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  code { overflow-wrap: anywhere; }
+  .callout { background: var(--surface); border: 1px solid var(--line); border-left: .35rem solid var(--warn); border-radius: .4rem; padding: .65rem .8rem; margin: .8rem 0; }
+  footer { border-top: 1px solid var(--line); margin-top: 2rem; padding: 1rem; color: var(--muted); font-size: .85rem; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+  @media (forced-colors: active) {
+    body, header, main, footer, .card, .callout, table, th, td { forced-color-adjust: auto; }
+    .card, .callout, table, th, td { border-color: CanvasText; }
+  }
+  @media print { header nav, .skip { display: none; } body { background: #fff; color: #000; } a { color: #000; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to energy data</a>
+<header><div class="inner"><strong>Drupal Core Lab</strong><nav aria-label="Site"><a href="resources.html">Resource usage</a><a href="index.html">Compare issues</a><a href="https://github.com/mgifford/drupal-core-lab/blob/main/docs/CLEER.md">CLEER method</a></nav></div></header>
+<main id="main">
+<h1>Energy estimates</h1>
+<p class="note">Generated 2026-11-25T21:43:06Z. Period 2026-10-02 to 2026-10-16. Method cost-bridge-v1. No AI model was called to produce this page.</p>
+
+<div class="callout">
+  <h2>Read this first</h2>
+  <p><strong>This is an estimate, not a measurement.</strong> It multiplies each AI event's client-reported cost by a published CLEER energy-per-dollar intensity. CLEER publishes <strong>no per-token coefficients</strong>: its token counts per workload are withheld, and this project does not reconstruct them. The figure is an order of magnitude, not an invoice.</p>
+</div>
+
+<div class="cards">
+  <div class="card"><h3>Remote inference energy (central)</h3><p class="value">1.68 kWh</p><p class="quality">estimated, cost bridge</p></div>
+  <div class="card"><h3>Workload sensitivity</h3><p class="value">1.68 kWh – 1.73 kWh</p><p class="quality">one-sided: the configured tier is inside the three-tier spread</p></div>
+  <div class="card"><h3>Verbosity-adjusted (sensitivity)</h3><p class="value">2.18 kWh</p><p class="quality">modelling alternative, not the headline</p></div>
+  <div class="card"><h3>CLEER configuration band</h3><p class="value">1.01 kWh – 2.35 kWh</p><p class="quality">scenario spread, not a confidence interval</p></div>
+  <div class="card"><h3>Events covered</h3><p class="value">100.0%</p><p class="quality">2,235 of 2,235 AI events</p></div>
+  <div class="card"><h3>Cost covered</h3><p class="value">$237.19</p><p class="quality">client-reported estimate, not an invoice</p></div>
+</div>
+
+<h2>Method and boundary</h2>
+<div class="tablewrap" role="region" aria-label="Method and boundary table" tabindex="0">
+<table>
+  <caption>How the estimate is produced</caption>
+  <thead><tr><th scope="col">Item</th><th scope="col">Value</th></tr></thead>
+  <tbody>
+    <tr><th scope="row">Basis</th><td>cost-bridge (cost-bridge-v1)</td></tr>
+    <tr><th scope="row">Boundary</th><td>facility-inference (accelerator + host + idle + cooling)</td></tr>
+    <tr><th scope="row">Measured</th><td>client-reported cost per AI event; provider-reported token counts</td></tr>
+    <tr><th scope="row">Estimated</th><td>remote inference energy, from a published CLEER energy-per-dollar intensity</td></tr>
+    <tr><th scope="row">Unavailable</th><td>per-token energy coefficients; direct measurement of provider infrastructure</td></tr>
+    <tr><th scope="row">Uncertainty</th><td>CLEER per-session standard deviation propagated as 1.96 x relative sd; scenario spread, not a confidence interval</td></tr>
+    <tr><th scope="row">Calibration</th><td>At dataset load, every row is checked: its published energy_wh_per_usd must agree with energy_wh_mean / cost_usd within 1%, or estimation stops. The same check also runs on each lookup.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Dataset provenance and licence</h2>
+<div class="tablewrap" role="region" aria-label="Dataset provenance table" tabindex="0">
+<table>
+  <caption>Vendored CLEER dataset</caption>
+  <thead><tr><th scope="col">Item</th><th scope="col">Value</th></tr></thead>
+  <tbody>
+    <tr><th scope="row">Source</th><td>Sustainable AI Group, CLEER Dataset</td></tr>
+    <tr><th scope="row">Version</th><td>CLEER-Text-0926/1.1.0 (engine CLEER-Text-0926, schema 1.1.0)</td></tr>
+    <tr><th scope="row">Release</th><td>2026-09-29</td></tr>
+    <tr><th scope="row">Commit</th><td><code>7fe6be0c76a3d6bbf98f3cb545a05871a6457f8f</code></td></tr>
+    <tr><th scope="row">Checksum</th><td><code>6235ead80bab89a5472874f1679839e5a833ae06719c440ad5aea1ff58a33f70</code></td></tr>
+    <tr><th scope="row">Licence</th><td>CC BY-NC 4.0; non-commercial use with attribution. Commercial use needs written permission.</td></tr>
+    <tr><th scope="row">Citation</th><td>Sustainable AI Group, CLEER Dataset, version CLEER-Text-0926</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Use-case sensitivity</h2>
+<p>What the same measured spend would imply under each use case. These are alternatives, not a range. The use case is configured per activity in mapping.json.</p>
+<div class="tablewrap" role="region" aria-label="Use-case sensitivity table" tabindex="0">
+<table>
+  <caption>What the same measured spend would imply under each use case</caption>
+  <thead><tr><th scope="col">Use case</th><th scope="col" class="num">Central</th><th scope="col" class="num">Events covered</th></tr></thead>
+  <tbody>
+    <tr><th scope="row">chat</th><td class="num">3.57 kWh</td><td class="num">2,235</td></tr>
+    <tr><th scope="row">agentic</th><td class="num">1.66 kWh</td><td class="num">2,235</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note">Choosing chat instead of agentic would change the headline by 2.16×. The use case is configured per activity, not inferred.</p>
+
+<h2>By model</h2>
+<div class="tablewrap" role="region" aria-label="Energy by model table" tabindex="0">
+<table>
+  <caption>Estimated energy and mapping status per model</caption>
+  <thead><tr><th scope="col">Model</th><th scope="col">Dataset model</th><th scope="col">Match</th><th scope="col">Review</th><th scope="col" class="num">CLEER confidence</th><th scope="col" class="num">Requests</th><th scope="col" class="num">Cost</th><th scope="col" class="num">Energy</th><th scope="col" class="num">Workload band</th></tr></thead>
+  <tbody><tr><td>claude-sonnet-5-5</td><td>Claude Sonnet 5</td><td>proxy</td><td>unreviewed</td><td class="num">0.750</td><td class="num">1,611</td><td class="num">$163.63</td><td class="num">1.35 kWh</td><td class="num">1.35 kWh–1.39 kWh</td></tr>
+<tr><td>claude-opus-5-5</td><td>Claude Opus 5</td><td>proxy</td><td>unreviewed</td><td class="num">0.467</td><td class="num">624</td><td class="num">$73.56</td><td class="num">325.9 Wh</td><td class="num">325.9 Wh–341.3 Wh</td></tr></tbody>
+</table>
+</div>
+<p class="note">CLEER confidence is the dataset's own proxy-match score (0–1), not the probability that the estimate is correct. An "unreviewed" proxy is a labelled best guess.</p>
+
+<h2>By activity</h2>
+<div class="tablewrap" role="region" aria-label="Energy by activity table" tabindex="0">
+<table>
+  <caption>Estimated energy by activity</caption>
+  <thead><tr><th scope="col">Activity</th><th scope="col" class="num">Requests</th><th scope="col" class="num">Cost</th><th scope="col" class="num">Energy</th><th scope="col" class="num">Estimated / unavailable</th></tr></thead>
+  <tbody><tr><td>patch-development</td><td class="num">564</td><td class="num">$66.79</td><td class="num">489.9 Wh</td><td class="num">564 / 0</td></tr>
+<tr><td>code-exploration</td><td class="num">661</td><td class="num">$64.53</td><td class="num">446.5 Wh</td><td class="num">661 / 0</td></tr>
+<tr><td>unknown</td><td class="num">461</td><td class="num">$53.11</td><td class="num">356.5 Wh</td><td class="num">461 / 0</td></tr>
+<tr><td>environment-setup</td><td class="num">247</td><td class="num">$24.85</td><td class="num">175.5 Wh</td><td class="num">247 / 0</td></tr>
+<tr><td>issue-intake</td><td class="num">62</td><td class="num">$7.88</td><td class="num">52.1 Wh</td><td class="num">62 / 0</td></tr>
+<tr><td>validation</td><td class="num">65</td><td class="num">$6.82</td><td class="num">48.0 Wh</td><td class="num">65 / 0</td></tr>
+<tr><td>model-evaluation</td><td class="num">59</td><td class="num">$2.54</td><td class="num">41.1 Wh</td><td class="num">59 / 0</td></tr>
+<tr><td>infrastructure</td><td class="num">32</td><td class="num">$3.12</td><td class="num">22.8 Wh</td><td class="num">32 / 0</td></tr>
+<tr><td>issue-analysis</td><td class="num">38</td><td class="num">$3.54</td><td class="num">16.8 Wh</td><td class="num">38 / 0</td></tr>
+<tr><td>playwright-testing</td><td class="num">27</td><td class="num">$2.12</td><td class="num">16.8 Wh</td><td class="num">27 / 0</td></tr>
+<tr><td>github-actions</td><td class="num">5</td><td class="num">$0.60</td><td class="num">4.2 Wh</td><td class="num">5 / 0</td></tr>
+<tr><td>phpunit-execution</td><td class="num">7</td><td class="num">$0.64</td><td class="num">3.7 Wh</td><td class="num">7 / 0</td></tr>
+<tr><td>resource-measurement</td><td class="num">3</td><td class="num">$0.40</td><td class="num">2.3 Wh</td><td class="num">3 / 0</td></tr>
+<tr><td>documentation-generation</td><td class="num">2</td><td class="num">$0.20</td><td class="num">1.4 Wh</td><td class="num">2 / 0</td></tr>
+<tr><td>composer-install</td><td class="num">2</td><td class="num">$0.07</td><td class="num">0.595 Wh</td><td class="num">2 / 0</td></tr></tbody>
+</table>
+</div>
+<p class="note">Activity association is not causation, and energy follows cost, not activity.</p>
+
+<h2>Published CLEER reference</h2>
+<p>These are CLEER's own published figures for the models this repository maps to. They are <strong>not</strong> an estimate of this repository's usage.</p>
+<div class="tablewrap" role="region" aria-label="CLEER reference table" tabindex="0">
+<table>
+  <caption>Published CLEER energy and cost per session; these are not an estimate of this repository's usage</caption>
+  <thead><tr><th scope="col">Dataset model</th><th scope="col">Workload</th><th scope="col" class="num">Wh per session (mean)</th><th scope="col" class="num">SD</th><th scope="col" class="num">Wh per USD</th><th scope="col" class="num">Cost per session</th></tr></thead>
+  <tbody><tr><td>Claude Sonnet 5</td><td>chat.light</td><td class="num">0.24</td><td class="num">0.05</td><td class="num">15.57</td><td class="num">$0.02</td></tr>
+<tr><td>Claude Sonnet 5</td><td>chat.typical</td><td class="num">0.83</td><td class="num">0.16</td><td class="num">16.20</td><td class="num">$0.05</td></tr>
+<tr><td>Claude Sonnet 5</td><td>chat.heavy</td><td class="num">8.02</td><td class="num">1.59</td><td class="num">15.23</td><td class="num">$0.53</td></tr>
+<tr><td>Claude Sonnet 5</td><td>agentic.light</td><td class="num">15.1</td><td class="num">3.1</td><td class="num">8.35</td><td class="num">$1.81</td></tr>
+<tr><td>Claude Sonnet 5</td><td>agentic.typical</td><td class="num">31.69</td><td class="num">6.51</td><td class="num">8.14</td><td class="num">$3.89</td></tr>
+<tr><td>Claude Sonnet 5</td><td>agentic.heavy</td><td class="num">120.14</td><td class="num">24.65</td><td class="num">8.33</td><td class="num">$14.42</td></tr>
+<tr><td>Claude Opus 5</td><td>chat.light</td><td class="num">0.46</td><td class="num">0.09</td><td class="num">11.92</td><td class="num">$0.04</td></tr>
+<tr><td>Claude Opus 5</td><td>chat.typical</td><td class="num">1.61</td><td class="num">0.31</td><td class="num">12.55</td><td class="num">$0.13</td></tr>
+<tr><td>Claude Opus 5</td><td>chat.heavy</td><td class="num">15.25</td><td class="num">2.92</td><td class="num">11.58</td><td class="num">$1.32</td></tr>
+<tr><td>Claude Opus 5</td><td>agentic.light</td><td class="num">20.99</td><td class="num">4.07</td><td class="num">4.64</td><td class="num">$4.52</td></tr>
+<tr><td>Claude Opus 5</td><td>agentic.typical</td><td class="num">43.14</td><td class="num">8.37</td><td class="num">4.43</td><td class="num">$9.73</td></tr>
+<tr><td>Claude Opus 5</td><td>agentic.heavy</td><td class="num">166.7</td><td class="num">32.33</td><td class="num">4.62</td><td class="num">$36.05</td></tr></tbody>
+</table>
+</div>
+
+<h2>Coverage</h2>
+<div class="tablewrap" role="region" aria-label="Coverage table" tabindex="0">
+<table>
+  <caption>How much of the AI activity has an estimate</caption>
+  <thead><tr><th scope="col">Measure</th><th scope="col" class="num">Absolute</th><th scope="col" class="num">Share</th><th scope="col">Denominator</th></tr></thead>
+  <tbody>
+    <tr><th scope="row">AI events</th><td class="num">2,235</td><td class="num">100.0%</td><td>itself</td></tr>
+    <tr><th scope="row">Estimated</th><td class="num">2,235</td><td class="num">100.0%</td><td>2,235 AI events</td></tr>
+    <tr><th scope="row">Unavailable</th><td class="num">0</td><td class="num">0.0%</td><td>2,235 AI events</td></tr>
+    <tr><th scope="row">Cost covered</th><td class="num">$237.19</td><td class="num">100.0%</td><td>$237.19 client-estimated</td></tr>
+    <tr><th scope="row">Models with exact match</th><td class="num">0</td><td class="num">—</td><td>2 models</td></tr>
+    <tr><th scope="row">Models with proxy match</th><td class="num">2</td><td class="num">—</td><td>2 models</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Unavailable reasons</h2>
+<div class="tablewrap" role="region" aria-label="Unavailable reasons table" tabindex="0">
+<table>
+  <caption>Why some events have no estimate</caption>
+  <thead><tr><th scope="col">Code</th><th scope="col" class="num">Events</th></tr></thead>
+  <tbody><tr><td colspan="2">None</td></tr></tbody>
+</table>
+</div>
+
+<h2>Limitations</h2>
+<ul>
+<li>Estimated, not measured. The figure is a published CLEER energy-per-dollar intensity multiplied by a client-reported cost.</li>
+<li>CLEER publishes no per-token coefficients; the token counts behind its workloads are withheld. This project does not reconstruct them.</li>
+<li>CLEER&#39;s workload is a fixed token mix; our request mix may differ. Our cache-read share is very high, and CLEER&#39;s workload cache share is unpublished.</li>
+<li>The headline uses the published energy_wh_per_usd. CLEER also publishes a verbosity-adjusted vadj_energy_wh_per_usd; using it would raise the agentic estimate for the mapped models by roughly 28-31%. That alternative is reported as a sensitivity, never folded into the headline.</li>
+<li>Cost is a client-reported estimate, not an invoice or subscription statement, and may price tokens differently from CLEER&#39;s Artificial Analysis snapshot.</li>
+<li>One ratio per model drives every request, so the aggregate uncertainty is correlated and does not narrow with more requests.</li>
+<li>The bridge and any future per-token coefficient method are shown separately and are never merged.</li>
+</ul>
+
+<h2>Monitoring overhead</h2>
+<p class="note">Computing this report took 53.59 ms from 2,414 ledger events; the vendored dataset is 515,167 bytes on disk. This page is static and makes no network request beyond the files it is served with.</p>
+</main>
+<footer>Generated from local telemetry and a pinned public dataset. No AI inference was used. Missing data is shown as “—”, never as zero.</footer>
+</body>
+</html>

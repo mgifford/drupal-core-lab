@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "policy": "Explicit mappings only. A lab model is never silently matched to a similar name. A proxy is a documented best guess: it produces an estimate labelled with its review status and CLEER confidence, and it is never described as measured. Edit this file to add or change a mapping; nothing else may substitute a model.",
+  "use_case_by_activity": {
+    "model-evaluation": "chat",
+    "default": "agentic"
+  },
+  "default_tier": "typical",
+  "models": [
+    {
+      "input_model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "dataset_model": "Claude Sonnet 5",
+      "match_type": "proxy",
+      "review_status": "unreviewed",
+      "rationale": "CLEER publishes Claude Sonnet 5 but not Claude Sonnet 5.5. The current point release is used as an explicit proxy; it is not an exact match and the estimate is inferred. Review and record a decision before treating the figure as settled.",
+      "reviewed_by": null,
+      "reviewed_at": null
+    },
+    {
+      "input_model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "dataset_model": "Claude Opus 5",
+      "match_type": "proxy",
+      "review_status": "unreviewed",
+      "rationale": "CLEER publishes Claude Opus 5 but not Claude Opus 5.5. The current point release is used as an explicit proxy; it is not an exact match and the estimate is inferred. CLEER's own confidence for Claude Opus 5 is low (0.467), so treat the figure as an order of magnitude.",
+      "reviewed_by": null,
+      "reviewed_at": null
+    }
+  ]
+}

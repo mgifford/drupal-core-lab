@@ -292,6 +292,7 @@ override.
 `cloud/resources.json`. Both are generated and committed; GitHub Pages remains static. The dashboard:
 
 - shows totals, activity shares, daily trend, cost by model, CPU by tool, GitHub Actions time, per-issue totals and a sampled **Infrastructure efficiency** table by container role (web, Chrome, OTEL, viewer, router, SSH agent);
+- shows a derived **Energy estimate** section: central remote-inference energy, its workload and configuration bands, energy by model and activity, coverage with denominators, the method/boundary/dataset table, and a link to [cleer.html](../cloud/cleer.html);
 - labels container CPU/memory as sampled, shows the latest Mutagen session file count/content size per variant, and keeps Docker disk in the local `lab-env resources` command rather than the public page;
 - supports date, issue, activity, tool and model filters with native controls;
 - gives every chart a visible table equivalent; wide tables scroll inside focusable `role="region"` wrappers;
@@ -304,8 +305,46 @@ provider, Drupal, a collector or a database.
 `node tools/playwright/resource-dashboard.mjs` checked the static dashboard in light, dark, forced-colours,
 reduced-motion, 320 px and 200% text contexts, with native filters and focusable table regions: 6 of 6 contexts passed
 with no axe-core violations and no page errors. The result is
-[dashboard-a11y.json](../reports/resources/dashboard-a11y.json). This is automated accessibility evidence, not a manual
-keyboard or screen-reader pass. A 320 px reflow defect in the opportunities section was found by this run and fixed.
+[dashboard-a11y.json](../reports/resources/dashboard-a11y.json). With the energy section the run records 11 cards and 28
+tables; `resources.json` was 535,597 bytes, fetched in 1–2 ms on this host, with DOMContentLoaded at 6–14 ms. These are
+host-specific observations, not targets. The same run found and fixed a 320 px reflow defect when the energy tables were
+first added.
+
+`node tools/playwright/cleer-page.mjs` checks the static CLEER page in both forced-colours schemes and the same contexts:
+7 of 7 passed with no axe-core violations, no page errors, no off-origin request, and no 320 px or 200% text reflow. The
+result is [cleer-page-a11y.json](../reports/resources/cleer-page-a11y.json). Both results are automated accessibility
+evidence, not a manual keyboard or screen-reader pass.
+
+## Energy estimation
+
+Remote inference energy is estimated in a separate, derived report. It does not modify the ledger and does not change any
+token count, timestamp or primary measurement.
+
+```bash
+node scripts/resource-energy.mjs verify     # offline: dataset checksums and mapping
+node scripts/resource-energy.mjs report     # print the report
+node scripts/resource-energy.mjs report --write
+node scripts/resource-energy.mjs report --check
+node scripts/resource-energy.mjs estimate --model=claude-sonnet-5-5 --cost=1.00
+node scripts/resource-energy.mjs sync --sha=<commit>   # the only networked command; explicit
+```
+
+The report multiplies each AI event's client-reported cost by a CLEER `energy_wh_per_usd` intensity. The dataset also
+publishes `vadj_energy_wh_per_usd`; for the mapped models under `agentic` it is about 28–31% higher. The headline uses the
+unadjusted column, and the adjusted figure is a separate sensitivity. The three-tier "band" is one-sided by construction
+(the configured tier is one of the three) and is labelled a sensitivity, not a range. CLEER publishes no per-token
+coefficients and withholds the token counts behind its workloads, so this project does not reconstruct them.
+The method, its assumptions, the model mapping and the uncertainty semantics are in [CLEER.md](CLEER.md); the numbers are
+in [ENERGY-SUMMARY.md](../reports/resources/ENERGY-SUMMARY.md) and
+[ENERGY-COVERAGE.md](../reports/resources/ENERGY-COVERAGE.md).
+
+What the estimate covers: remote inference energy at CLEER's facility boundary. What it does not cover: local DDEV
+containers, PHP, the database, Chromium, Composer, PHPUnit, GitHub Actions, or carbon. Those keep their existing
+CPU-seconds and CI-duration measurements and are not converted to energy.
+
+A model without an explicit mapping or an exact dataset-name match has no estimate; its cost and tokens remain counted.
+A proxy mapping is labelled with its review status and CLEER's own confidence. Two methods (the cost bridge and a future
+per-token coefficient import) are shown separately and are never merged.
 
 ## Monitoring the measurement system
 
@@ -358,9 +397,9 @@ work.
 - GitHub Actions billable minutes and runner CPU are unavailable. Overlap/supersession is derived.
 - The local ledger does not prove that a period with no events had no work; collection is on demand.
 - Token counts and CPU time are not energy measurements. This project does not convert CPU-seconds or tokens into kWh or
-  carbon emissions. If measured energy becomes available, it should be a separate metric with a documented method,
-  aligned with the Green Software Foundation’s Software Carbon Intensity specification and the W3C Web Sustainability
-  Guidelines; no new standard is invented here.
+  carbon emissions. A separate energy report estimates remote inference energy from a client-reported cost and a
+  published CLEER energy-per-dollar intensity; it is labelled an estimate, is not a measurement, and claims no
+  conformance with any standard. See [CLEER.md](CLEER.md).
 - The dashboard is an accounting and investigation tool, not a performance benchmark. Instrumented runs and resource
   measurement have their own overhead.
 
