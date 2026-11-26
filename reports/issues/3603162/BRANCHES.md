@@ -7,7 +7,7 @@
 - Tip: `0d00037ed57a46cb6d2d2b14af7db065b12ccc24`
 - Parent history: the 11 original MR commits, rebased onto upstream `main` at `0387fb948f786bc344a5cc54aa0d98b8f552e378`.
 - Issue fork branch: [https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision](https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision) at the same tip.
-- Merge request: not created yet.
+- Merge request: [MR !17967](https://git.drupalcode.org/project/drupal/-/merge_requests/17967).
 - Worktree: `~/svg-review-lab/work/mr16166`
 - Shared object store: `~/svg-review-lab/drupal.git`
 
@@ -53,4 +53,4 @@ git push git@git.drupal.org:issue/drupal-3603162.git 3603162-svg-revision:360316
 # Then open or update the MR in the GitLab UI.
 ```
 
-No push, MR update or drupal.org comment was made.
+MR !17967 was created. No Drupal.org issue comment was posted.

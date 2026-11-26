@@ -1,13 +1,14 @@
 # #3603162: Default Admin SVG consolidation and accessibility revision
 
-**DRAFT — the branch is pushed to the issue fork. No merge request or issue comment has been posted.**
+**DRAFT — MR !17967 is open. No issue comment has been posted.**
 
 Issue: https://www.drupal.org/project/drupal/issues/3603162
-MR: https://git.drupalcode.org/project/drupal/-/merge_requests/16166
+Original MR: https://git.drupalcode.org/project/drupal/-/merge_requests/16166
+New MR: https://git.drupalcode.org/project/drupal/-/merge_requests/17967
 Reviewed MR head: `fe4adb4f942385912bb3244b570afa475cadf3bd`
 Current upstream `main`: `0387fb948f786bc344a5cc54aa0d98b8f552e378`
 Merge base: `29b0a0b2256eb5ed27df6ec5e4e4e33142a717e8`
-Issue fork branch: [https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision](https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision) — pushed; merge request not yet open.
+Issue fork branch: [https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision](https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision) — pushed; [MR !17967](https://git.drupalcode.org/project/drupal/-/merge_requests/17967) open.
 Revision branch tip: `0d00037ed57a46cb6d2d2b14af7db065b12ccc24`
 
 ## What this revision changes
