@@ -136,6 +136,29 @@ Real NVDA/VoiceOver runs were **not** done — see [SCREENREADER.md](SCREENREADE
 6. **AJAX-rebuilt elements get a random ID suffix** (`edit-extra-tag--<random>`), so any stored IDREF or
    test selector must be rebuilt with the element, not cached.
 
+## Acceptance test (2026-11-26)
+
+`node scripts/try-tests.mjs 3083103-latest reports/issues/3083103/tests-proposal` ran the proposed
+`ErrorAssociationTest` (7 tests) in **`default_admin`** on Before and on MR !15692:
+
+| Test | Before | After (MR !15692) |
+|---|---|---|
+| A control references an error message that exists | **FAIL** (no reference) | **FAIL** (target missing) |
+| Every IDREF on the page resolves exactly once | pass (no refs) | **FAIL** |
+| Help text and author `aria-describedby` preserved | pass | pass |
+| Suppressed error creates no dangling reference | pass | **FAIL** |
+| Composite group and child associations valid | **FAIL** (no reference) | **FAIL** (target missing) |
+| Two instances keep unique resolving targets | pass (no refs) | **FAIL** |
+| Corrected field drops the invalid state | pass | pass |
+
+Before: 7 tests, 38 assertions, 2 failures. After: 7 tests, 41 assertions, 5 failures. PHPCS and PHPStan
+clean; both checkouts unchanged afterwards. Report: [ACCEPTANCE-TEST.md](ACCEPTANCE-TEST.md); test source
+[ErrorAssociationTest.php](tests-proposal/core/modules/system/tests/src/Functional/Form/ErrorAssociationTest.php);
+patch [3083103-acceptance-test.patch](branches/3083103-acceptance-test.patch).
+
+This is the gate: a fix has to make all seven pass. It also separates the two failure modes — Before has no
+association at all; the MR associates to a container the default theme does not render.
+
 ## Not verified
 
 - Firefox and WebKit accessibility trees; forced colours; dark scheme; mobile width.

@@ -42,7 +42,7 @@ Core `0387fb948f7`, Chromium (Playwright 1.59.1), light scheme, 1280×900, `defa
 - Real NVDA (Firefox/Chrome) and VoiceOver (Safari); live-region announcements.
 - Firefox/WebKit accessibility trees, forced colours, dark scheme, mobile width.
 - A person's keyboard pass.
-- Regression tests (Functional, `default_admin`) with fail-before/pass-after — **not written yet**.
+- Regression tests: the acceptance test is written and run (Before 2 failures, MR After 5); it has not been proposed upstream as a patch to an MR.
 - The unresolved MR review threads (GitLab API answered HTTP 401).
 - Whether merging #3557245 / MR !16520 first changes the ID resolution this work must reuse.
 

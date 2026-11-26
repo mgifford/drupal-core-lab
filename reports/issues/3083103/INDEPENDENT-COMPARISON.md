@@ -98,8 +98,8 @@ association does not resolve in the theme most forms use.
 
 ## Still to do before a Drupal.org comment
 
-- Regression tests (Functional, `default_admin`, IDREF resolution; AJAX; two instances; IFE off) with
-  fail-before/pass-after. Not written yet.
+- Regression tests: written and run (see [ACCEPTANCE-TEST.md](ACCEPTANCE-TEST.md)); still open is an AJAX
+  (FunctionalJavascript) variant and running it against the August 6 port.
 - A real NVDA pass (Firefox/Chrome) and VoiceOver/Safari if available; the virtual reader is not enough.
 - Firefox/WebKit accessibility trees, forced colours, dark scheme, mobile width.
 - Proof-of-concept for recommendation (1).
