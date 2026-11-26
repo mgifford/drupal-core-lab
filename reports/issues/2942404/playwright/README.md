@@ -2,12 +2,15 @@
 
 Each folder is one scripted run comparing **Before** and **After** under one configuration. Open a folder's `README.md` to see the paired screenshots. Folder names are `<UTC start time>-<browser>-<OS scheme>[-forced]-<viewport>`.
 
-One evaluation lives here:
+Evaluations that live here:
 
 - **System messages: options on main** (`2942404-latest`): #2942404: options for system messages on LATEST main (current main vs the MRs' region design)
+- **Scripted evaluation** (`unknown`): 
 
 | Run | Evaluation | Configuration | Verdict | Screenshots | Status |
 |---|---|---|---|---|---|
+| [2026-11-25T23-27-54-093Z-chromium-light-1280x900](2026-11-25T23-27-54-093Z-chromium-light-1280x900/README.md) | System messages: options on main | light OS scheme, 1280x900 viewport | mixed | 16 | latest for this configuration |
+| [2026-11-25T23-24-16-170Z-chromium-light-1280x900](2026-11-25T23-24-16-170Z-chromium-light-1280x900/README.md) | Scripted evaluation | 1280x900 viewport | n/a | none | latest for this configuration |
 | [2026-11-19T21-07-49-954Z-webkit-light-1280x900](2026-11-19T21-07-49-954Z-webkit-light-1280x900/README.md) | System messages: options on main | light OS scheme, 1280x900 viewport | not-reproduced | 10 | latest for this configuration |
 | [2026-11-19T21-07-01-682Z-firefox-light-1280x900](2026-11-19T21-07-01-682Z-firefox-light-1280x900/README.md) | System messages: options on main | light OS scheme, 1280x900 viewport | not-reproduced | 10 | superseded by a later run |
 | [2026-11-19T21-06-35-804Z-chromium-light-480x900](2026-11-19T21-06-35-804Z-chromium-light-480x900/README.md) | System messages: options on main | light OS scheme, 480x900 viewport | not-reproduced | 10 | latest for this configuration |
