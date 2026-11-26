@@ -293,3 +293,45 @@ Worked through #3619127 (sidebar and Inline Form Errors) and #3604037 (child-err
 - **What worked, repeat:** pin a public dataset with SHA + checksum + NOTICE; verify offline; compute derived values at report time; test with synthetic fixtures; run accessibility checks on both pages and fix what they find; record coverage and denominators next to every figure; force-push only with `--force-with-lease` and explicit approval.
 - **Open:** the two proxy mappings need a human decision; carbon (Phase 7), local and CI infrastructure energy (Phase 4) and energy per verified outcome (Phase 3) are not started. The per-token coefficient import path is built and tested, but no real dataset exists to import.
 
+
+## Learnings from #3603162 Default Admin SVG revision (2026-11-25 to 2026-11-26)
+
+Worked on MR !16166 at `fe4adb4f`, rebased its 11 commits onto current `main` `0387fb94`, and added one revision commit `0d00037e`. Pushed a new issue-fork branch `3603162-svg-revision`; MR !17967 is open. The original MR branch was not rewritten. Evidence is in `reports/issues/3603162/` and in the public [SVG Review revision report](https://mgifford.github.io/svg-review/proposed/reports/revision-2026-11-25.html).
+
+### What was verified
+
+- 64 SVGs pass the structural validator; the reference audit has 0 undefined, missing or unused references.
+- 46 external regression tests pass.
+- 14 theme Unit/Kernel PHPUnit tests pass with 209 assertions; 8 functional tests need a test web server and were not counted.
+- Axe reports no WCAG A/AA violations on permissions, status and node-add pages.
+- Real-browser evidence covers permissions, autocomplete, sticky loader, media-library controls, status icons, tabledrag, selects, RTL, reduced motion and forced-colours emulation.
+- The complete patch and interdiff both apply; the complete patch reproduces the branch theme.
+
+### Mistakes and traps worth not repeating
+
+1. **A `<input type="submit">` cannot host a pseudo-element.** The historical sticky-loader fix used `::after`; it could never render. Check the rendered tag before choosing a CSS mechanism. The replacement uses pretinted background images and a `.button` selector that outranks the top-bar padding rule.
+2. **External SVG backgrounds do not inherit `currentColor`.** A mask takes its paint from the consuming element; a background image has its own rendering context. Classify each consumer before choosing mask, inline SVG or pretint.
+3. **The theme's specificity hack can invert the cascade.** `:is(#extra-specificity-hack, [data-drupal-admin-styles])` beat the loader padding and the dark-mode rules beat forced-colours rules. Scope dark artwork with `@media (forced-colors: none)` and verify matched rules, not source order.
+4. **A mask's paint is `background-color`.** In Chromium forced-colours emulation, `CanvasText` survived on the masked pseudo-element and kept status icons visible; `forced-color-adjust: none` was not needed. Record that emulation is not native Windows High Contrast.
+5. **Do not measure RTL by toggling `dir` on a loaded page.** Logical padding transitioned through 12/36 px and produced a false reading. A fresh document with `dir="rtl"` gave the correct 36 px left / 12 px right and exposed the real overlap risk.
+6. **Pixel-identical SVGO output can be larger.** `tabledrag-handle.svg` grew 30 bytes because arc-flag spacing expanded; `menu.svg` grew 16 bytes from intentional ARIA metadata. Gate optimisation on both bytes and pixels, and report exceptions.
+7. **“Adopted”, “smaller” and “new” are different counts.** The first summary said 45 SVGs were adopted; only 41 existing SVGs are smaller, two adopted files are larger, and two adopted files were new pretints. Define the denominator before quoting a percentage.
+8. **A definition is not a consumer.** Resolve CSS custom-property alias chains to files and keep literal source references separate. An absent source reference still does not prove an icon is unused.
+9. **Static harnesses cannot accept interaction-dependent icons.** The sticky loader needed Drupal's real progress markup; the media edit control needed the theme's own class inside a real selected media item. Record every injected state.
+10. **GitHub Pages does not list directories.** The screenshot directory returned 404 until an `index.html` was added. Publish report directories as real pages.
+11. **Issue-fork write access is account-specific.** SSH can authenticate as `@mgifford` while the project rejects the push. Prepare a bundle and exact commands; do not assume read access implies write access.
+
+### Process notes
+
+- Keep the original 11 commits and add one clearly described revision commit. Do not rewrite the existing MR author's branch.
+- The `drupal-core-lab` working tree had many unrelated changes. Push only `reports/issues/<nid>/` from a clean `origin/main` worktree. The same applies to generated HTML: regenerate only the pages that changed.
+- The MR creation URL in the push hint (`/issue/.../-/merge_requests/new`) returned 404. The working route is the target project with the fork's source project id: `/project/drupal/-/merge_requests/new?merge_request[source_project_id]=225946&...`.
+- The Core Lab issue index generator (`scripts/index-issues.mjs`) currently fails on unrelated `mr.sha` data, so the direct `reports/issues/3603162/index.html` page is the usable link.
+- Local cleanup: remove temporary worktrees and transfer bundles, restore the shared Drupal site's theme, settings, password and test modules, and keep the active branch worktree clean.
+
+### Open items
+
+- MR !17967 exists and is mergeable. Its description is still the short auto-generated text; replace it with the prepared description that links the interdiff, revision report and component evidence.
+- The Drupal.org issue comment draft is ready at `reports/issues/3603162/ISSUE-COMMENT-DRAFT.md` (128 words, with LLM disclosure). It has not been posted; rewrite it in the owner's words first.
+- `tabledrag-handle.svg` remains 30 bytes larger. It is documented and was not reverted to avoid invalidating the pushed branch for a negligible byte change.
+- Functional PHPUnit, native Windows High Contrast, Firefox and WebKit remain untested. No WCAG 2.2 AA claim.
