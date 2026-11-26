@@ -1,20 +1,152 @@
-# Reproduce #3155130: "Edit summary" toggle
+# Reproduce #3155130: persistent summary disclosure (contributed `text_with_summary`)
 
 Issue: https://www.drupal.org/project/drupal/issues/3155130
+Project: https://www.drupal.org/project/text_with_summary
+Variant: [`3155130-contrib`](variants.json) (Before = pristine `2.0.x`, After = the two patches)
 
-## Status of this folder (2026-11-06)
+There are two routes: the lab pair (recommended, and what the evidence uses) and a standalone module checkout.
 
-A lab-built pair exists: variant `3155130-pinned`, core `f48d0a58b3ec` (the last core with the widget), recipe `repro_3155130`, After = a port of the 2020 patch
-(`BRANCHES.md`). Current core `main` no longer has the "Edit summary" widget, so there is no `-latest` variant.
+## A. The lab pair
 
-## To reproduce in this lab
+### 1. Build or refresh the pair
 
-    node tools/compare/setup.mjs 3155130-pinned
-    node scripts/lab-env.mjs start 3155130-pinned
-    node tools/playwright/evaluate-3155130.mjs 3155130-pinned
-    node tools/playwright/tree-diff.mjs 3155130-pinned --page=/node/add/page
-    node tools/compare/diff.mjs 3155130-pinned
+From the Lab root (`~/drupal-core-lab`):
 
-## What was verified, and what was not
+```sh
+node scripts/doctor.mjs 3155130-contrib
+node tools/compare/setup.mjs 3155130-contrib
+node scripts/lab-env.mjs start 3155130-contrib
+```
 
-One automated run (DRAFT). See [EVIDENCE.md](EVIDENCE.md) (DRAFT) and [SUMMARY.md](SUMMARY.md).
+The first build creates two DDEV projects (`repro-baseline-3155130-contrib`, `repro-issue-3155130-contrib`) from the
+existing core mirror at `d29add7e`; it does not clone another core. The viewer is at
+https://drupal-compare.ddev.site (or http://localhost:8100) with both frames.
+
+If the sites already exist and the recipe or patches changed, reset them with:
+
+```sh
+node tools/compare/setup.mjs 3155130-contrib --reinstall --refresh-patches
+```
+
+`--reinstall` is needed because a recipe is applied once; re-applying it to an existing site can stop with
+`The configuration 'core.entity_form_display.node.page.default' exists already and does not match the recipe's configuration`.
+A plain `setup.mjs` on an unchanged pair verifies the contrib patch hashes by content and does not need a rebuild.
+
+### 2. Run the functional JavaScript tests
+
+The test patch is test support; apply it to **both** sides so the same test file runs against the old and the new
+`js/text.js`:
+
+```sh
+cd envs/baseline-3155130-contrib
+git apply --directory=modules/contrib/text_with_summary \
+  ../../reports/issues/3155130/branches/3155130-persistent-disclosure-tests.patch
+ddev exec php core/scripts/dr cr
+ddev phpunit modules/contrib/text_with_summary/tests/src/FunctionalJavascript/TextareaWithSummaryTest.php \
+  --log-junit /var/www/html/phpunit-before.xml
+cd ../issue-3155130-contrib
+ddev phpunit modules/contrib/text_with_summary/tests/src/FunctionalJavascript/TextareaWithSummaryTest.php \
+  --log-junit /var/www/html/phpunit-after.xml
+```
+
+Expected: **10/10 fail on Before**, **10/10 pass on After** (156 assertions). Then restore the Before test files:
+
+```sh
+cd ../baseline-3155130-contrib
+for rel in tests/modules/text_summary_test/src/Hook/TextSummaryTestHooks.php \
+           tests/src/FunctionalJavascript/TextareaWithSummaryTest.php; do
+  git -C ../../envs/.contrib/text_with_summary.git show \
+    89c4282cf25259564ce7fa41b9dd70f7fe7f496d:"$rel" > "modules/contrib/text_with_summary/$rel"
+done
+```
+
+### 3. Run the browser evaluation
+
+```sh
+cd tools/playwright
+node evaluate-3155130-contrib.mjs 3155130-contrib
+node evaluate-3155130-contrib.mjs 3155130-contrib --scheme=dark
+node evaluate-3155130-contrib.mjs 3155130-contrib --forced-colors
+node evaluate-3155130-contrib.mjs 3155130-contrib --viewport=480x900
+node evaluate-3155130-contrib.mjs 3155130-contrib --theme=claro
+node evaluate-3155130-contrib.mjs 3155130-contrib --theme=claro --scheme=dark
+node evaluate-3155130-contrib.mjs 3155130-contrib --theme=claro --forced-colors
+node evaluate-3155130-contrib.mjs 3155130-contrib --rtl
+node evaluate-3155130-contrib.mjs 3155130-contrib --zoom=200 --viewport=1600x1200
+node evaluate-3155130-contrib.mjs 3155130-contrib --zoom=200 --viewport=1600x1200 --theme=claro
+```
+
+Each run writes `results.json`, `results.md`, screenshots and ARIA snapshots under
+`reports/issues/3155130/playwright/<stamp>-<tag>/`. The script logs in with a one-time link, switches the admin theme,
+uses a real Playwright keyboard, scans with axe, and restores the site (uninstalls `text_summary_test`).
+
+The 1280×900 `--zoom=200` run stops at a click that the Default Admin sidebar intercepts; that is finding F004 (an
+admin-theme reflow issue), not a disclosure failure. Use the 1600×1200 commands above for a completed zoom run.
+
+### 4. Regenerate the summaries
+
+```sh
+python3 reports/issues/3155130/tests/summarize.py
+python3 reports/issues/3155130/browser/summarize.py
+```
+
+The second script keeps the newest run per environment tag and copies the curated screenshots and ARIA diffs into
+`reports/issues/3155130/visual/`.
+
+### 5. Stop
+
+```sh
+node scripts/lab-env.mjs stop 3155130-contrib
+```
+
+### Historical core variant (unchanged)
+
+The old evaluation can still be rebuilt separately; it pins core `f48d0a58b3ec`, the last core commit with the widget:
+
+```sh
+node tools/compare/setup.mjs 3155130-pinned
+node tools/playwright/evaluate-3155130.mjs 3155130-pinned
+```
+
+Its evidence (`compare/3155130-pinned/`, `tree-diff/3155130-pinned/`, `playwright/2026-11-06T03-46-30-534Z/`) is not
+regenerated by the commands above and must not be overwritten.
+
+## B. Standalone module checkout
+
+```sh
+git clone https://git.drupalcode.org/project/text_with_summary.git ~/text-with-summary-review
+cd ~/text-with-summary-review
+git checkout 2.0.x
+git checkout -b 3155130-persistent-disclosure
+git apply ~/drupal-core-lab/reports/issues/3155130/branches/3155130-persistent-disclosure.patch
+git apply ~/drupal-core-lab/reports/issues/3155130/branches/3155130-persistent-disclosure-tests.patch
+```
+
+The module requires Drupal `^11.5 || ^12`. To run the tests outside the lab, put the checkout in a Drupal site's
+`modules/contrib/text_with_summary`, enable `text_with_summary` and the test module `text_summary_test` (test extensions
+must be discoverable), and run the same PHPUnit command as above from the site root. The lab env is the reproducible
+route because it pins core, Claro, the browser and the fixture.
+
+## What to check by hand
+
+1. Open `/node/add/page` on both frames. Collapsed: the Before control is inside the Body label; the After control is a
+   separate parenthetical link immediately above the summary content.
+2. Tab from Title. Both reach the control. Press Enter (and Space). Before: the button disappears and focus falls to the
+   page; After: the same button stays focused, `aria-expanded` flips, the summary appears/disappears.
+3. Inspect the Body and Summary textareas' accessible names. Before: they include the toggle and change on activation.
+   After: "Body" and "Summary for Body" stay stable; each Notes row and the required summary has its own context.
+4. Type a known summary, Save, reopen. Both keep it; the submitted name is `field_body[0][summary]` on both sides.
+5. Submit the required-summary field empty. Its error is visible on both sides. (The After code also expands an optional
+   summary that has an error; covered by the PHPUnit test.)
+6. Enable the `text_summary_test` module and reload. Its override still adds `text-test-edit-link` and
+   "Custom override: "; Before loses the prefix when the summary auto-collapses, After keeps it.
+
+## Reproducibility notes
+
+- Core: `d29add7ebc18954dcb88877ed38b5bd88cdbf967` (Drupal 12.0-dev, 2026-09-30).
+- Module: `89c4282cf25259564ce7fa41b9dd70f7fe7f496d`; verified branch `3155130-persistent-disclosure` at `3f6854c` (implementation) and `4e70269` (tests) in `~/text-with-summary-review`.
+- Claro: `474f080c47f5ce21961bf90515fb7bdea1d7dcd4`.
+- Recipe: `repro_3155130_contrib` (Basic page; Body 1 value, Notes 3 values, Required summary 1 value; Claro installed).
+- The compared sites differ only by the patches on After; both use the same core, module commit, recipe and Drupal
+  configuration.
+- Automated evidence is DRAFT. A person's keyboard pass and a real screen reader have not been done.

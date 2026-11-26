@@ -91,5 +91,127 @@
         "expectAfter": true
       }
     ]
+  },
+  {
+    "slug": "3155130-contrib",
+    "issue": "3155130",
+    "label": "#3155130: Edit summary disclosure in contributed text_with_summary 2.0.x (Drupal 12 main)",
+    "description": "The Text With Summary field type now lives in contrib. Both sites run Drupal core 12.0-dev d29add7e with text_with_summary 2.0.x at 89c4282 in modules/contrib, plus Claro 4.0.x at 474f080. Before: the module as-is (the historical core js/text.js). After: a local persistent-disclosure fix that keeps the Form API names, the theme function and the visual appearance. Nothing is posted upstream.",
+    "status": "draft: 10/10 functional tests fail on Before and pass on After; 10 browser runs in Default Admin and Claro; no human review and no upstream merge request",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "d29add7ebc18954dcb88877ed38b5bd88cdbf967"
+    },
+    "contrib": [
+      {
+        "name": "text_with_summary",
+        "url": "https://git.drupalcode.org/project/text_with_summary.git",
+        "commit": "89c4282cf25259564ce7fa41b9dd70f7fe7f496d"
+      },
+      {
+        "name": "claro",
+        "type": "theme",
+        "url": "https://git.drupalcode.org/project/claro.git",
+        "commit": "474f080c47f5ce21961bf90515fb7bdea1d7dcd4"
+      }
+    ],
+    "before": {
+      "env": "baseline-3155130-contrib"
+    },
+    "after": {
+      "env": "issue-3155130-contrib",
+      "contribPatches": [
+        {
+          "module": "text_with_summary",
+          "patch": "reports/issues/3155130/branches/3155130-persistent-disclosure.patch"
+        },
+        {
+          "module": "text_with_summary",
+          "patch": "reports/issues/3155130/branches/3155130-persistent-disclosure-tests.patch"
+        }
+      ]
+    },
+    "pages": [
+      "/node/add/page"
+    ],
+    "login": true,
+    "recipe": "repro_3155130_contrib",
+    "testExtensions": true,
+    "steps": [
+      {
+        "text": "Standard install with text_with_summary 2.0.x and Claro 4.0.x installed; Default Admin is the admin theme. The recipe adds a Basic page content type: Body (one value), Notes (three values) and Required summary (one value).",
+        "how": "recipe"
+      },
+      {
+        "text": "Open Add Basic page on both sides.",
+        "how": "mirror"
+      },
+      {
+        "text": "Look at Body and at each Notes row. Before: the Edit summary / Hide summary button sits inside a field label and is replaced when used. After: one persistent button sits immediately before the summary content and reports expanded state.",
+        "how": "each"
+      },
+      {
+        "text": "Tab to the disclosure and press Enter, then Space. Turn Mirror off first.",
+        "how": "each",
+        "lookFor": "Focus stays on the same button; the Summary textarea appears and disappears; aria-expanded changes."
+      },
+      {
+        "text": "Type a title, Body text and a known summary, Save, then reopen Edit.",
+        "how": "each",
+        "lookFor": "The summary is still there and the field name is unchanged."
+      }
+    ],
+    "expected": "After: one persistent button, not inside a label, immediately before the summary it controls; accurate aria-expanded/aria-controls; focus retained; stable textarea names; summary content still saves.",
+    "actual": "Before: the button is inside a label, moves between the Body and Summary labels, is replaced on activation, the summary precedes its control, and the textarea name changes when toggled.",
+    "checks": [
+      {
+        "label": "Setup: Body, Notes and Required summary summaries exist",
+        "kind": "precondition",
+        "probe": "document.querySelectorAll('textarea[name*=\"[summary]\"]').length",
+        "expect": 5
+      },
+      {
+        "label": "No button inside a label",
+        "kind": "fix",
+        "probe": "document.querySelectorAll('label button').length",
+        "expect": 0
+      },
+      {
+        "label": "One disclosure button per optional summary field",
+        "kind": "fix",
+        "probe": "document.querySelectorAll('button.link-edit-summary').length",
+        "expect": 4
+      },
+      {
+        "label": "Every disclosure controls an element and reports expanded",
+        "kind": "fix",
+        "probe": "[...document.querySelectorAll('button.link-edit-summary')].every((b) => b.getAttribute('aria-controls') && b.hasAttribute('aria-expanded'))",
+        "expect": true
+      },
+      {
+        "label": "Disclosure immediately precedes the summary content",
+        "kind": "fix",
+        "probe": "[...document.querySelectorAll('button.link-edit-summary')].every((b) => b.closest('.field-edit-link')?.nextElementSibling?.matches('.js-text-summary-wrapper'))",
+        "expect": true
+      },
+      {
+        "label": "Body summary keeps field_body[0][summary]",
+        "kind": "regression",
+        "probe": "!!document.querySelector('textarea[name=\"field_body[0][summary]\"]')",
+        "expect": true
+      }
+    ],
+    "observe": [
+      {
+        "question": "Is the Summary reached through a disclosure that stays in the same place and keeps the field name the same?",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "question": "After Save and Edit, is the summary text still there?",
+        "expectBefore": true,
+        "expectAfter": true
+      }
+    ]
   }
 ]

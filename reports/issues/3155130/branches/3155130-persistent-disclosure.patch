@@ -1,0 +1,292 @@
+diff --git a/js/text.js b/js/text.js
+index 34721de..b6d464c 100644
+--- a/js/text.js
++++ b/js/text.js
+@@ -5,69 +5,219 @@
+ 
+ (function ($, Drupal) {
+   /**
+-   * Auto-hide summary textarea if empty and show hide and unhide links.
++   * Returns the label text that identifies a field item.
++   *
++   * The value textarea's label already carries the field label, and for
++   * multiple values the item number ("field (value 2)"). Reusing it keeps the
++   * generated names aligned with the rest of the form and needs no new form
++   * structure.
++   *
++   * @param {HTMLTextAreaElement} summary
++   *   The summary textarea.
++   * @param {jQuery} $widget
++   *   The text format wrapper that contains the summary.
++   *
++   * @return {string}
++   *   The label text, or an empty string when it cannot be determined.
++   */
++  function getItemContext(summary, $widget) {
++    const $value = $widget
++      .find('textarea')
++      .filter((index, element) => /\[value\]$/.test(element.name))
++      .first();
++
++    if ($value.length) {
++      const $label = $value
++        .closest('.js-form-item, .form-item')
++        .find('label')
++        .first();
++      if ($label.length) {
++        // The required marker is not part of the field's name.
++        const $labelClone = $label.clone();
++        $labelClone.find('.form-required').remove();
++        const context = $labelClone.text().trim();
++        if (context !== '') {
++          return context;
++        }
++      }
++    }
++
++    // Fall back to the machine name and delta from the submitted input name.
++    const match = summary.name.match(/^([^[]+)\[(\d+)\]\[summary\]$/);
++    return match ? `${match[1]} (${Number(match[2]) + 1})` : '';
++  }
++
++  /**
++   * Returns an id that is valid and not already used in the document.
++   *
++   * @param {string} base
++   *   The preferred id.
++   *
++   * @return {string}
++   *   A unique id.
++   */
++  function getUniqueId(base) {
++    let id = String(base || 'text-summary-content').replace(
++      /[^A-Za-z0-9_-]+/g,
++      '-',
++    );
++    if (!/^[A-Za-z]/.test(id)) {
++      id = `text-summary-${id}`;
++    }
++    let candidate = id;
++    let suffix = 1;
++    while (document.getElementById(candidate)) {
++      candidate = `${id}-${suffix}`;
++      suffix += 1;
++    }
++    return candidate;
++  }
++
++  /**
++   * Checks whether the summary field already has a validation error.
++   *
++   * Errors must stay visible and discoverable, so a field with an error starts
++   * expanded even when its value is empty.
++   *
++   * @param {HTMLTextAreaElement} summary
++   *   The summary textarea.
++   *
++   * @return {boolean}
++   *   TRUE when the summary has an error.
++   */
++  function hasError(summary) {
++    if (summary.getAttribute('aria-invalid') === 'true') {
++      return true;
++    }
++    const item = summary.closest('.js-form-item, .form-item');
++    return (
++      item !== null &&
++      (item.classList.contains('form-item--error') ||
++        item.querySelector('.form-item--error-message') !== null)
++    );
++  }
++
++  /**
++   * Auto-hide summary textarea if empty and show a persistent disclosure.
++   *
++   * The button is created once, placed immediately before the summary content
++   * and outside every label, and never moved or replaced. Its label, expanded
++   * state and controlled element reference are updated in place so keyboard
++   * focus stays on the button.
+    *
+    * @type {Drupal~behavior}
+    *
+    * @prop {Drupal~behaviorAttach} attach
+-   *   Attaches auto-hide behavior on `text-summary` events.
++   *   Attaches the behavior to `text-summary` elements.
+    */
+   Drupal.behaviors.textSummary = {
+-    attach(context, settings) {
+-      once('text-summary', '.js-text-summary', context).forEach((summary) => {
+-        const $widget = $(summary).closest('.js-text-format-wrapper');
+-
+-        const $summary = $widget.find('.js-text-summary-wrapper');
+-        const $summaryLabel = $summary.find('label').eq(0);
+-        const $full = $widget.children('.js-form-type-textarea');
+-        let $fullLabel = $full.find('label').eq(0);
+-
+-        // Create a placeholder label when the field cardinality is greater
+-        // than 1.
+-        if ($fullLabel.length === 0) {
+-          $fullLabel = $('<label></label>').prependTo($full);
++    attach(context) {
++      once('text-summary', '.text-summary', context).forEach((summary) => {
++        const $summary = $(summary).closest('.js-text-summary-wrapper');
++        const $widget = $summary.closest('.js-text-format-wrapper');
++
++        // If the expected structure is missing, leave the summary alone: it
++        // must stay usable even when a theme changes the markup.
++        if (!$summary.length || !$widget.length) {
++          return;
++        }
++
++        const contextText = getItemContext(summary, $widget);
++        const contextSuffix =
++          contextText !== ''
++            ? ` ${Drupal.t('for @field', { '@field': contextText })}`
++            : '';
++
++        // Add the field and item context to the existing "Summary" label. The
++        // visible text is unchanged; the addition is visually hidden.
++        const $summaryLabel = $summary.find('label').first();
++        if ($summaryLabel.length && contextSuffix !== '') {
++          $('<span class="visually-hidden"></span>')
++            .text(contextSuffix)
++            .appendTo($summaryLabel);
++        }
++
++        // Preserve the widget's existing display settings: the module only
++        // marks fields that may be collapsed with the js-text-summary class.
++        if (!summary.classList.contains('js-text-summary')) {
++          return;
+         }
+ 
+-        // To ensure the summary toggle is shown in case the label is hidden
+-        // (in multivalue fields in particular), show the label but hide
+-        // the original text of the label.
+-        if ($fullLabel.hasClass('visually-hidden')) {
+-          $fullLabel.html(
+-            (index, oldHtml) =>
+-              `<span class="visually-hidden">${oldHtml}</span>`,
++        // The content the button controls. It needs a valid, unique id for
++        // aria-controls. Reuse an existing id when one is already present.
++        if (!$summary.attr('id')) {
++          $summary.attr(
++            'id',
++            getUniqueId(`${summary.id || 'text-summary'}-content`),
+           );
+-          $fullLabel.removeClass('visually-hidden');
+         }
++        const contentId = $summary.attr('id');
+ 
+-        // Set up the edit/hide summary link.
+-        const $link = $(
+-          Drupal.theme('textEditSummaryButton', Drupal.t('Hide summary')),
+-        );
+-        const $button = $link.find('button');
+-        let toggleClick = true;
+-        $link
+-          .on('click', (e) => {
+-            if (toggleClick) {
+-              $summary.hide();
+-              $button.html(Drupal.t('Edit summary'));
+-              $link.appendTo($fullLabel);
+-            } else {
+-              $summary.show();
+-              $button.html(Drupal.t('Hide summary'));
+-              $link.appendTo($summaryLabel);
+-            }
+-            e.preventDefault();
+-            toggleClick = !toggleClick;
+-          })
+-          .appendTo($summaryLabel);
+-
+-        // If no summary is set, hide the summary field.
+-        if (summary.value === '') {
+-          $link.trigger('click');
++        let expanded = summary.value !== '' || hasError(summary);
++        const initialTitle = expanded
++          ? Drupal.t('Hide summary')
++          : Drupal.t('Edit summary');
++
++        const $link = $(Drupal.theme('textEditSummaryButton', initialTitle));
++        const $button = $link.find('button').first();
++        if (!$button.length) {
++          return;
+         }
++
++        const addContext = () => {
++          if (contextSuffix !== '') {
++            $button.append(
++              $('<span class="visually-hidden"></span>').text(contextSuffix),
++            );
++          }
++        };
++        addContext();
++
++        $button
++          .attr('aria-controls', contentId)
++          .attr('aria-expanded', expanded ? 'true' : 'false');
++
++        // One persistent button, immediately before the controlled content.
++        // It is a sibling of the summary wrapper, never inside its label.
++        $summary.before($link);
++
++        // Re-theme the button's children without replacing the button itself,
++        // so a Drupal.theme.textEditSummaryButton() override keeps working and
++        // focus stays on the button.
++        const renderButton = (title) => {
++          const $themed = $(Drupal.theme('textEditSummaryButton', title));
++          const $themedButton = $themed.find('button').first();
++          if ($themedButton.length) {
++            $button.empty().append($themedButton.contents());
++          } else {
++            $button.text(title);
++          }
++          addContext();
++        };
++
++        const setExpanded = (state) => {
++          expanded = state;
++          // display:none keeps the collapsed content out of the accessibility
++          // tree and out of sequential keyboard navigation. The hidden
++          // attribute is set as well so the state survives a theme that does
++          // not rely on the inline style.
++          $summary[0].hidden = !state;
++          $summary[0].style.display = state ? '' : 'none';
++          $button.attr('aria-expanded', state ? 'true' : 'false');
++          renderButton(
++            state ? Drupal.t('Hide summary') : Drupal.t('Edit summary'),
++          );
++        };
++        setExpanded(expanded);
++
++        $link.on('click', (event) => {
++          event.preventDefault();
++          setExpanded(!expanded);
++        });
+       });
+     },
+   };
++
+   $.extend(Drupal.theme, {
+     textEditSummaryButton(title) {
+       return `<span class="field-edit-link"> (<button type="button" class="link link-edit-summary">${title}</button>)</span>`;
+diff --git a/src/Plugin/Field/FieldWidget/TextareaWithSummaryWidget.php b/src/Plugin/Field/FieldWidget/TextareaWithSummaryWidget.php
+index c91c196..5b79311 100644
+--- a/src/Plugin/Field/FieldWidget/TextareaWithSummaryWidget.php
++++ b/src/Plugin/Field/FieldWidget/TextareaWithSummaryWidget.php
+@@ -88,9 +88,14 @@ class TextareaWithSummaryWidget extends TextareaWidget {
+       '#required' => $required,
+     ];
+ 
++    // Attach the behavior for every summary textarea so that repeated
++    // "Summary" labels can be distinguished by their field and item context.
++    // Only the fields that may be collapsed get the disclosure control.
++    if ($element['summary']['#type'] === 'textarea') {
++      $element['summary']['#attached']['library'][] = 'text_with_summary/drupal.text';
++    }
+     if (!$this->getSetting('show_summary') && !$required) {
+       $element['summary']['#attributes']['class'][] = 'js-text-summary';
+-      $element['summary']['#attached']['library'][] = 'text_with_summary/drupal.text';
+     }
+ 
+     return $element;

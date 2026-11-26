@@ -8,12 +8,13 @@ something changed. "Lab tested" is the merge request commit in the issue's `BRAN
 an issue is archived: [docs/ISSUE-LIFECYCLE.md](../../docs/ISSUE-LIFECYCLE.md). To start a new issue:
 `node scripts/new-issue.mjs <nid> --branch <fork-branch>` ([docs/NEW-ISSUE.md](../../docs/NEW-ISSUE.md)).
 
-## Needs attention (19)
+## Needs attention (20)
 
 Something changed upstream, or a reviewable change is ready; act on these first.
 
 | Issue | What | drupal.org | Merge request | Lab tested | Next step |
 |---|---|---|---|---|---|
+| [2574721](2574721/SUMMARY.md) | Provide access to action links in the modules page on small screens | Needs work, updated 2026-09-15 | !17049 opened at `ed3917f4` | no MR commit recorded ([how](2574721/REPRODUCE.md)) | Test MR !17049 (at ed3917f4): BRANCHES.md records no MR commit the lab tested |
 | [2847425](2847425/) | #states not affecting visibility/requirement of managed_file | Needs review, updated 2026-09-16 | !7305 opened at `6e43afa2` | `71b1ad1d` ([how](2847425/REPRODUCE.md)) | Re-test: MR !7305 is at 6e43afa2; the lab tested 71b1ad1d |
 | [2951317](2951317/SUMMARY.md) | Radios element missing "required" attribute | Needs work, updated 2026-11-18 | !15536 opened at `c76e9244` | `ab7ab046` ([how](2951317/REPRODUCE.md)) | Re-test: MR !15536 is at c76e9244; the lab tested ab7ab046 |
 | [3087389](3087389/SUMMARY.md) | When selecting media to add through the media library modal, the # of #… | Closed (duplicate), updated 2026-03-04 | none found | no BRANCHES.md ([how](3087389/REPRODUCE.md)) | Closed (duplicate): archive (node scripts/issue-archive.mjs 3087389) |
@@ -34,13 +35,12 @@ Something changed upstream, or a reviewable change is ready; act on these first.
 | [3627936](3627936/) | Active workspace has a broken styling in dark mode | Closed (fixed), updated 2026-11-17 | !17471 closed at `b0bf91b9` | no MR commit recorded ([how](3627936/REPRODUCE.md)) | Closed (fixed) upstream: confirm on core main, then archive (node scripts/issue-archive.mjs 3627936) |
 | [3637339](3637339/SUMMARY.md) | Skip to main content link is not using the selected focus color in light and… | Needs review, updated 2026-11-24 | !17818 opened at `3a86954d` | `8c4a0e70` ([how](3637339/REPRODUCE.md)) | Re-test: MR !17818 is at 3a86954d; the lab tested 8c4a0e70 |
 
-## Waiting (22)
+## Waiting (21)
 
 Nothing for the lab to do until the issue moves.
 
 | Issue | What | drupal.org | Merge request | Lab tested | Next step |
 |---|---|---|---|---|---|
-| [2574721](2574721/SUMMARY.md) | Provide access to action links in the modules page on small screens | Needs work, updated 2026-09-15 | !17049 opened at `ed3917f4` | `ed3917f4` ([how](2574721/REPRODUCE.md)) | Needs work: waiting on the MR |
 | [2848307](2848307/SUMMARY.md) | Inline errors not working on form table elements | Needs work, updated 2026-08-05 | !16355 opened at `46e9b7e7` | no BRANCHES.md ([how](2848307/REPRODUCE.md)) | Needs work: waiting on the MR |
 | [2942404](2942404/SUMMARY.md) | System messages should be accessible | Needs work, updated 2026-05-27 | !6112 opened at `7dc95633` | `7dc95633` ([how](2942404/REPRODUCE.md)) | Needs work: waiting on the MR |
 | [3046089](3046089/SUMMARY.md) | Accessibility of Main toolbar items and internal editing | Active, updated 2026-10-14 | none found | no BRANCHES.md ([how](3046089/REPRODUCE.md)) | Active; no MR found |
