@@ -1,16 +1,13 @@
 # #3603162: Default Admin SVG consolidation and accessibility revision
 
-**DRAFT — local review artefact. Nothing was pushed or posted.**
+**DRAFT — the branch is pushed to the issue fork. No merge request or issue comment has been posted.**
 
 Issue: https://www.drupal.org/project/drupal/issues/3603162
 MR: https://git.drupalcode.org/project/drupal/-/merge_requests/16166
 Reviewed MR head: `fe4adb4f942385912bb3244b570afa475cadf3bd`
 Current upstream `main`: `0387fb948f786bc344a5cc54aa0d98b8f552e378`
 Merge base: `29b0a0b2256eb5ed27df6ec5e4e4e33142a717e8`
-
-Public comparison: [SVG Review revision report](https://mgifford.github.io/svg-review/proposed/reports/revision-2026-11-25.html) ·
-[component coverage](https://mgifford.github.io/svg-review/proposed/reports/component-coverage.html) ·
-[optimization summary](https://mgifford.github.io/svg-review/proposed/reports/optimization-summary.html)
+Issue fork branch: [https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision](https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision) — pushed; merge request not yet open.
 Revision branch tip: `0d00037ed57a46cb6d2d2b14af7db065b12ccc24`
 
 ## What this revision changes
@@ -59,4 +56,4 @@ These are stylesheet measurements, not page-weight or carbon claims.
 - File-type icons, sort indicators, pager, messages, password controls, narrow-viewport local-task trigger.
 - No WCAG 2.2 AA conformance claim.
 
-See [EVIDENCE.md](EVIDENCE.md), [BRANCHES.md](BRANCHES.md), [REPRODUCE.md](REPRODUCE.md) and the [public comparison page](index.html).
+See [EVIDENCE.md](EVIDENCE.md), [BRANCHES.md](BRANCHES.md) and [REPRODUCE.md](REPRODUCE.md).

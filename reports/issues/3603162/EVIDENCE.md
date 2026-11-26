@@ -8,6 +8,7 @@
 | Current MR head | `fe4adb4f942385912bb3244b570afa475cadf3bd` |
 | Current upstream main | `0387fb948f786bc344a5cc54aa0d98b8f552e378` |
 | Revised branch | `3603162-svg-revision` at `0d00037ed57a46cb6d2d2b14af7db065b12ccc24` |
+| Issue fork branch | [https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision](https://git.drupalcode.org/issue/drupal-3603162/-/tree/3603162-svg-revision) (pushed; MR pending) |
 
 ## Source and compiled checks
 
@@ -73,21 +74,13 @@ Functional tests: 8 errored because `SIMPLETEST_BASE_URL` was not served with th
 
 ## Screenshots
 
-Screenshots are published once in SVG Review and not duplicated here:
-
-- [Revision report](https://mgifford.github.io/svg-review/proposed/reports/revision-2026-11-25.html)
-- [Screenshot directory](https://github.com/mgifford/svg-review/tree/main/proposed/reports/screens/revision)
-- [Component evidence JSON](https://mgifford.github.io/svg-review/proposed/reports/components-final.json)
-- [Loader evidence JSON](https://mgifford.github.io/svg-review/proposed/reports/loader.json)
-- [Media evidence JSON](https://mgifford.github.io/svg-review/proposed/reports/media.json)
-- [Axe results](https://mgifford.github.io/svg-review/proposed/reports/axe.json)
-
-## Public comparison
-
-- [SVG Review revision report](https://mgifford.github.io/svg-review/proposed/reports/revision-2026-11-25.html)
-- [Component coverage](https://mgifford.github.io/svg-review/proposed/reports/component-coverage.html)
-- [Optimization summary](https://mgifford.github.io/svg-review/proposed/reports/optimization-summary.html)
-- [Icon reference validation](https://mgifford.github.io/svg-review/proposed/reports/icon-reference-validation.json)
+- `work/evidence/screens/permissions-*.png`
+- `work/evidence/screens/autocomplete-*.png`
+- `work/evidence/screens/loader2-*.png`
+- `work/evidence/screens/media-*.png`
+- `work/evidence/screens/status-*.png`
+- `work/evidence/screens/tabledrag-*.png`
+- `work/evidence/screens/select-*.png`
 
 ## Limitations
 
