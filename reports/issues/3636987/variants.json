@@ -1,0 +1,168 @@
+[
+  {
+    "slug": "3636987-pinned",
+    "issue": "3636987",
+    "label": "#3636987: select caret duplicated in forced-colors + dark mode (November 20 patch), core 8a7df6cc3e69",
+    "description": "Before: pristine core main 8a7df6cc3e69 in a fresh baseline-3636987. After: issue-3636987, same core, plus the November 20 patch (issue attachment 7210257), which adds `.dark-mode .form-element--type-select` to the existing forced-colors selector list. Use the viewer's Conditions > Forced colours Light/Dark; the computed-style checks expect forced colours to be on.",
+    "status": "DRAFT: built; scripted and viewer-side comparisons complete on core 8a7df6cc3e69; a person's manual pass and issue review remain",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "8a7df6cc3e69b6b5d427cb25ce8f66dda8393c29"
+    },
+    "before": {
+      "env": "baseline-3636987"
+    },
+    "after": {
+      "env": "issue-3636987",
+      "patches": [
+        "reports/issues/3636987/branches/3636987-forced-colors-select-2026-11-20.patch"
+      ]
+    },
+    "pages": [
+      "/admin/content",
+      "/admin/structure/block"
+    ],
+    "login": true,
+    "demo": {
+      "start": "/admin/content"
+    },
+    "steps": [
+      {
+        "text": "Both sites are plain Standard installs: Default Admin is the admin theme and its dark-mode setting is 'auto'. Log in to both (admin / admin).",
+        "how": "each",
+        "lookFor": "The admin theme is Default Admin and both sites show the same content."
+      },
+      {
+        "text": "Open Conditions and choose Forced colours > Dark. Open /admin/content in both frames.",
+        "how": "each",
+        "lookFor": "Both frames report forced colours on and a dark colour scheme."
+      },
+      {
+        "text": "Compare the Status and Content type filter selects in Before and After.",
+        "how": "each",
+        "lookFor": "Before: two chevrons at the end of each select (Drupal's SVG plus the browser's native caret). After: one caret."
+      },
+      {
+        "text": "Switch Forced colours to Light, then back to Dark, and compare again.",
+        "how": "each",
+        "lookFor": "Light forced colours: one caret on both sides. Dark forced colours: Before two, After one."
+      },
+      {
+        "text": "Press Tab with real keyboard input until a select has focus, then check the caret and the focus indicator.",
+        "how": "each",
+        "lookFor": "Focus shows one caret and a visible focus indicator After; the Before focus state should already show one caret (the focus rule wins), so this is a regression check."
+      },
+      {
+        "text": "Open /admin/structure/block and compare the extra-small region selects inside the block table, including one focused with Tab.",
+        "how": "each",
+        "lookFor": "Before: the extra-small dark selects also show two chevrons. After: one caret, and the select keeps its size and padding."
+      },
+      {
+        "text": "Turn Forced colours off, choose Color mode Dark, and compare again.",
+        "how": "each",
+        "lookFor": "Both sides keep Drupal's custom chevron in normal dark mode: the patch changes forced colours only."
+      }
+    ],
+    "expected": "In forced colours, a select shows exactly one caret: the browser's native caret (appearance: revert) with no Drupal SVG background, in light and dark, for normal and extra-small selects, when focused and when disabled. Outside forced colours nothing changes.",
+    "actual": "Before (core 8a7df6cc3e69): in forced-colours dark mode, default (unfocused) selects keep Drupal's SVG background-image, so the native caret and the SVG chevron are both visible. Forced-colours light, focus and disabled states already show one caret. After (November 20 patch): the forced-colors selector list includes `.dark-mode .form-element--type-select`, so every forced-colours state resolves to background-image: none and appearance: revert.",
+    "checks": [
+      {
+        "label": "The page has at least one select",
+        "probe": "document.querySelectorAll('select').length > 0",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "The forced-colors rule list covers dark-mode selects",
+        "probe": "[...document.styleSheets].flatMap(s=>{try{return[...s.cssRules]}catch{return[]}}).some(r=>r.media&&/forced-colors/.test(r.media.mediaText)&&[...r.cssRules].some(q=>q.selectorText&&q.selectorText.includes('.dark-mode .form-element--type-select')))",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "Forced colours on: every select on this page has no custom background image (run with Forced colours Dark or Light)",
+        "probe": "(() => { if (!matchMedia('(forced-colors: active)').matches) return 'not in forced colours: set Conditions > Forced colours first'; return [...document.querySelectorAll('select')].filter((s) => getComputedStyle(s).backgroundImage !== 'none').length; })()",
+        "expect": 0,
+        "kind": "fix"
+      },
+      {
+        "label": "The select keeps its computed padding-inline-end",
+        "probe": "getComputedStyle(document.querySelector('select')).paddingInlineEnd",
+        "expect": "same",
+        "kind": "regression"
+      },
+      {
+        "label": "The select keeps a native appearance (no custom appearance value)",
+        "probe": "getComputedStyle(document.querySelector('select')).appearance",
+        "expect": "same",
+        "kind": "regression"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Forced colours, dark: does the /admin/content filter select show exactly one caret?",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Forced colours, light: does the /admin/content filter select show exactly one caret?",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Forced colours, dark: does a select that has keyboard focus show exactly one caret?",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Forced colours, dark: does an extra-small region select on /admin/structure/block show exactly one caret?",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Forced colours off, dark: is Drupal's custom chevron still shown (no regression outside forced colours)?",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Forced colours, dark: is the disabled select unchanged in size and padding?",
+        "expectBefore": true,
+        "expectAfter": true
+      }
+    ],
+    "coverage": {
+      "note": "The reported defect is Chromium forced-colours rendering (the reporter used Edge and the independent evaluation used Chromium 144). Firefox and WebKit were not run for this issue; see SUMMARY.md 'Not verified'.",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": true,
+          "width": 480
+        }
+      ]
+    }
+  }
+]
