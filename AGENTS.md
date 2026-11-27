@@ -32,6 +32,21 @@ For Coder handoffs, put the issue-specific scenario in the variant's `steps`, `e
 Generate the common instructions with `node scripts/coder-prompt.mjs <slug> --write`; do not write an independent-site setup.
 The shared template is `prompts/coder-prompt.md`. Regenerate after changing a scenario or patch stack.
 
+## Resource preflight (before every build)
+
+Run `node scripts/preflight.mjs` (or `node scripts/doctor.mjs`, which includes it) before any command that creates, starts,
+installs or builds: `setup.mjs`, `lab-env.mjs start`, `ddev start`, `composer install`, `yarn install`, `test-mr.mjs`,
+`new-issue.mjs --build`, and a Playwright evidence run.
+
+- **block (exit 3)**: stop. Report the constraint; do not build. `setup.mjs` refuses with exit 6 and `lab-run.mjs` with
+  exit 3; `--ignore-resources` is only for an owner-approved exception.
+- **warn**: ask before starting, and do not add another pair. Current thresholds: 15 GB free disk (block below 8 GB),
+  30% free memory or 40% swap used (block at 20% free or 60% swap), 70% Docker memory (block at 85%).
+- **During a long build**, `lab-run.mjs` re-checks the host every 30 seconds and stops the child if it falls below the
+  floor. Never run two `setup.mjs`, `composer install` or `yarn install` at once.
+- **On `ENOSPC`**: stop builds. Do not run `docker system prune` or `docker volume prune`. Free regenerable space first
+  (`lab-env.mjs trim`, `trim --deep`), then report what was freed.
+
 ## Start here (the normal sequence for an issue)
 
     node scripts/doctor.mjs [slug]                       1. is this machine ready? fix what it reports (read-only)
