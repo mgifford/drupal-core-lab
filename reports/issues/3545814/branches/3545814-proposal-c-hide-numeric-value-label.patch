@@ -1,0 +1,14 @@
+diff --git a/core/modules/views/src/Plugin/views/filter/NumericFilter.php b/core/modules/views/src/Plugin/views/filter/NumericFilter.php
+index d6f3fa5..a658357 100644
+--- a/core/modules/views/src/Plugin/views/filter/NumericFilter.php
++++ b/core/modules/views/src/Plugin/views/filter/NumericFilter.php
+@@ -243,6 +243,9 @@ class NumericFilter extends FilterPluginBase implements FilterOperatorsInterface
+       $form['value']['value'] = [
+         '#type' => 'textfield',
+         '#title' => $this->t('Value'),
++        // The exposed-operator fieldset already labels this group; keep the
++        // value control's accessible name without adding a visible label.
++        '#title_display' => $exposed ? 'invisible' : 'before',
+         '#size' => 30,
+         '#default_value' => $this->value['value'],
+       ];
