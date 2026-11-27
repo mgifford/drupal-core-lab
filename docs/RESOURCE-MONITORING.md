@@ -31,7 +31,8 @@ Claude Code transcripts ── session-usage.mjs ─┐
 Model-eval trials ─────────────────────────────┤
 measure-resources JSON ───────────────────────┤   tools/resource/adapters/
 GitHub Actions API ───────────────────────────┼──► normalized events ──► local JSONL ledger
-Docker stats ─────────────────────────────────┤        (schema 1.0.0)      .lab-cache/resource-ledger/
+Docker stats ─────────────────────────────────┤        (schema 1.2.0)      .lab-cache/resource-ledger/
+preflight host snapshot ── host adapter ───────┘
 process wrapper (/usr/bin/time) ──────────────┘                                │
                                                                                ▼
                                                               deterministic aggregation
@@ -56,7 +57,7 @@ or the public format.
 ## Event schema
 
 [`tools/resource/events.schema.json`](../tools/resource/events.schema.json) is JSON Schema 2020-12, `schema_version`
-`1.0.0`. Every event carries:
+`1.2.0`. Every event carries:
 
 - `occurred_at`, `recorded_at`, `duration_ms`;
 - `project`, `issue`, `variant`;
@@ -216,6 +217,28 @@ a diagnostic: a file may have changed, a test may have failed, or a new task may
   response medians, PHP peak and sampled container peaks, and explicitly marks cumulative CPU as unavailable.
 - CPU percentage is not cumulative CPU consumption. A 200% sample means two cores’ worth at that instant, not 200% of a
   machine forever.
+
+### Host capacity samples
+
+`tools/resource/adapters/host.mjs` turns the same snapshot used by the build/run preflight into a `host-sample` event:
+disk free/total, host memory free, swap used/total, Docker lab memory, running pairs and containers, and the preflight
+level (`pass`, `warn`, `block`, `unknown`). The snapshot is a point-in-time measurement; it is not a live monitor and a
+gap between samples is not proof of idle time.
+
+```bash
+node scripts/host-monitor.mjs --once                 # one sample, exit 3 on block
+node scripts/host-monitor.mjs --interval=180 --notify # sample every 3 minutes; desktop alert on level change
+node scripts/resource.mjs collect --source=host --samples=3 --interval=60000
+node scripts/resource.mjs collect --source=all       # includes the host source
+```
+
+`host-monitor.mjs` appends each sample to the local ledger and prints the level. `--notify` uses a macOS desktop
+notification (or `notify-send` on Linux) only when the level changes to warn or block; otherwise it stays quiet. The
+monitor never starts, stops or deletes an environment, so a block is an alert, not an enforcement point. Run it in a
+terminal or under launchd/cron when a machine is unattended; there is no default daemon.
+
+The public summary and dashboard show the latest sample, a capped series (120 samples), the latest level and counts of
+pass/warn/block samples. Times are published at hour resolution, not as precise working timestamps.
 
 ### GitHub Actions
 
@@ -400,6 +423,8 @@ work.
   carbon emissions. A separate energy report estimates remote inference energy from a client-reported cost and a
   published CLEER energy-per-dollar intensity; it is labelled an estimate, is not a measurement, and claims no
   conformance with any standard. See [CLEER.md](CLEER.md).
+- Host capacity is sampled on demand, at hour resolution in public output. There is no continuous poller or alerting
+  unless `host-monitor.mjs` is running; a gap between samples is not evidence of idle time.
 - The dashboard is an accounting and investigation tool, not a performance benchmark. Instrumented runs and resource
   measurement have their own overhead.
 
