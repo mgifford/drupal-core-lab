@@ -127,9 +127,9 @@ if (!dry) {
 
 step(`Drupal core: ${core.commit ? `pinned commit ${core.commit.slice(0, 12)}` : `branch ${core.ref} (latest)`}${coreFrom ? ` from the local checkout ${coreFrom}` : ` from ${core.url}`}`);
 fs.mkdirSync(path.join(labRoot, 'envs'), { recursive: true });
-if (!have(bare)) { run('git', ['init', '--bare', bare]); run('git', ['-C', bare, 'remote', 'add', 'origin', core.url]); }
-else if (coreUrl && !dry) run('git', ['-C', bare, 'remote', 'set-url', 'origin', core.url]);
-const hasRef = () => !dry && spawnSync('git', ['-C', bare, 'rev-parse', '--verify', '-q', `${coreRef}^{commit}`], { stdio: 'ignore' }).status === 0;
+if (!have(bare)) { run('git', ['init', '--bare', bare]); run('git', [`--git-dir=${bare}`, 'remote', 'add', 'origin', core.url]); }
+else if (coreUrl && !dry) run('git', [`--git-dir=${bare}`, 'remote', 'set-url', 'origin', core.url]);
+const hasRef = () => !dry && spawnSync('git', [`--git-dir=${bare}`, 'rev-parse', '--verify', '-q', `${coreRef}^{commit}`], { stdio: 'ignore' }).status === 0;
 // A pinned commit is fetched once. A branch is fetched again whenever an environment still has to be created,
 // so a new environment starts from current core while existing ones are left alone.
 const needEnv = [v.before, v.after].some((x) => !have(envDir(x.env)));
@@ -142,12 +142,12 @@ if (core.commit ? !hasRef() : (CHECK || needEnv || !hasRef())) {
   if (coreFrom && !dry) {
     const src = path.resolve(coreFrom);
     if (!have(path.join(src, 'HEAD')) && !have(path.join(src, '.git'))) { console.error(`--core-from=${coreFrom} is not a git checkout (no HEAD or .git directory).`); process.exit(1); }
-    done = spawnSync('git', ['-C', bare, 'fetch', '--depth', '1', src, fetchSpec], { stdio: 'inherit' }).status === 0;
+    done = spawnSync('git', [`--git-dir=${bare}`, 'fetch', '--depth', '1', src, fetchSpec], { stdio: 'inherit' }).status === 0;
     if (!done) console.log(`\n--core-from: could not fetch ${core.commit || core.ref} from ${src}; trying ${core.url}. Pass --core-url=<mirror> if the network is filtered.`);
   }
-  if (!done) run('git', ['-C', bare, 'fetch', '--depth', '1', 'origin', fetchSpec]);
+  if (!done) run('git', [`--git-dir=${bare}`, 'fetch', '--depth', '1', 'origin', fetchSpec]);
 }
-if (!dry) console.log('core is at: ' + out('git', ['-C', bare, 'log', '-1', '--format=%H %cs %s', coreRef]));
+if (!dry) console.log('core is at: ' + out('git', [`--git-dir=${bare}`, 'log', '-1', '--format=%H %cs %s', coreRef]));
 
 if (CHECK) {
   // Do both patch stacks still apply to this core? Each side starts from its
@@ -157,7 +157,7 @@ if (CHECK) {
   let failed = false; const rows = [];
   for (const side of ['before', 'after']) {
     const wt = path.join(tmp, side);
-    run('git', ['-C', bare, 'worktree', 'add', '-q', '--detach', wt, coreRef]);
+    run('git', [`--git-dir=${bare}`, 'worktree', 'add', '-q', '--detach', wt, coreRef]);
     let sideFailed = false;
     const patches = v[side].patches || [];
     if (!patches.length) rows.push(`| ${side} | _(pristine core)_ | no patches |`);
@@ -171,7 +171,7 @@ if (CHECK) {
         rows.push(`| ${side} | \`${p}\` | **does not apply**: ${inCore ? 'it applies in reverse, so this core already has its changes (fixed upstream?)' : String(r.stderr).split('\n').slice(0, 2).join(' ').slice(0, 160)} |`);
       }
     }
-    spawnSync('git', ['-C', bare, 'worktree', 'remove', '--force', wt]);
+    spawnSync('git', [`--git-dir=${bare}`, 'worktree', 'remove', '--force', wt]);
   }
   fs.rmSync(tmp, { recursive: true, force: true });
   console.log(`\n| Side | Patch (in order) | Result on core ${core.commit ? core.commit.slice(0, 12) : core.ref} |\n|---|---|---|\n${rows.join('\n')}`);
@@ -194,7 +194,7 @@ const addCheckout = (side, spec) => {
   const dir = envDir(spec.env); if (have(dir)) return;
   const other = envDir((side === 'before' ? v.after : v.before).env), otherHead = headOf(other), base = !core.commit && otherHead ? otherHead : coreRef;
   if (base !== coreRef) console.log(`${spec.env}: created at ${base.slice(0, 12)}, the commit of ${path.basename(other)}, so that Before and After stand on one base (to move both to newer core: node scripts/lab-env.mjs delete ${v.slug} --yes, then run setup again)`);
-  run('git', ['-C', bare, 'worktree', 'add', '--detach', dir, base]);
+  run('git', [`--git-dir=${bare}`, 'worktree', 'add', '--detach', dir, base]);
 };
 for (const [side, spec] of sides) addCheckout(side, spec);
 if (!dry) { const id = identity(v, { labRoot, envDir, checks: ['base', 'pin'] }); if (id.problems.length) { console.error(blockMessage(id)); process.exit(4); } }

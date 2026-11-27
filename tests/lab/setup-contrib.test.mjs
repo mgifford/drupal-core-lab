@@ -14,6 +14,8 @@ import { lock, unlock } from './e2e-lock.mjs';
 await lock();   // one end-to-end setup test at a time (they share envs/core.git and envs/.setup.lock)
 
 const git = (cwd, ...a) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd, encoding: 'utf8' });
+// The shared clone is bare: name it with --git-dir (git will not discover a bare repository under safe.bareRepository=explicit).
+const bareGit = (dir, ...a) => spawnSync('git', [`--git-dir=${dir}`, ...a], { encoding: 'utf8' });
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'setup-contrib-test-'));
 const issueDir = path.join(labRoot, 'reports/issues/99000007'), bare = path.join(labRoot, 'envs/core.git'), shared = path.join(labRoot, 'envs/.contrib/zzcontrib.git'), sharedTheme = path.join(labRoot, 'envs/.contrib/zztheme.git');
 const bareExisted = fs.existsSync(bare), sharedExisted = fs.existsSync(shared), sharedThemeExisted = fs.existsSync(sharedTheme), sharedParentExisted = fs.existsSync(path.dirname(shared));
@@ -25,8 +27,8 @@ const themePatchText = (word) => `diff --git a/templates/node.html.twig b/templa
 const out = (r) => `${r.stdout}\n${r.stderr}`;
 
 function cleanup() {
-  for (const side of ['before', 'after']) { if (fs.existsSync(bare)) git(bare, 'worktree', 'remove', '--force', env(side)); fs.rmSync(env(side), { recursive: true, force: true }); }
-  if (fs.existsSync(bare)) { git(bare, 'worktree', 'prune'); if (bareExisted) git(bare, 'update-ref', '-d', 'refs/lab/zz-contrib'); else fs.rmSync(bare, { recursive: true, force: true }); }
+  for (const side of ['before', 'after']) { if (fs.existsSync(bare)) bareGit(bare, 'worktree', 'remove', '--force', env(side)); fs.rmSync(env(side), { recursive: true, force: true }); }
+  if (fs.existsSync(bare)) { bareGit(bare, 'worktree', 'prune'); if (bareExisted) bareGit(bare, 'update-ref', '-d', 'refs/lab/zz-contrib'); else fs.rmSync(bare, { recursive: true, force: true }); }
   if (!sharedExisted) fs.rmSync(shared, { recursive: true, force: true });
   if (!sharedThemeExisted) fs.rmSync(sharedTheme, { recursive: true, force: true });
   if (!sharedParentExisted) fs.rmSync(path.dirname(shared), { recursive: true, force: true });

@@ -266,7 +266,7 @@ function status() {
   const st = state(); const usedBy = {};
   for (const v of vs) for (const e of [v.before.env, v.after.env]) (usedBy[e] ||= []).push(v.slug);
   // the commit each checkout stands on, and the shared core ref its variant follows when that has moved on
-  const bare = path.join(envsDir, 'core.git'), refTip = (v) => (fs.existsSync(bare) ? execFileSync('git', ['-C', bare, 'rev-parse', '--verify', '--quiet', '--short=11', `refs/lab/${v.core && v.core.commit ? String(v.core.commit).slice(0, 12) : (v.core && v.core.ref) || 'main'}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim() : '');
+  const bare = path.join(envsDir, 'core.git'), refTip = (v) => (fs.existsSync(bare) ? execFileSync('git', [`--git-dir=${bare}`, 'rev-parse', '--verify', '--quiet', '--short=11', `refs/lab/${v.core && v.core.commit ? String(v.core.commit).slice(0, 12) : (v.core && v.core.ref) || 'main'}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim() : '');
   const safeTip = (v) => { try { return refTip(v); } catch { return ''; } };
   const coreOf = (e) => { const h = headOf(envDir(e)).slice(0, 11); const v = vs.find((x) => x.before.env === e || x.after.env === e); const t = v ? safeTip(v) : ''; return h ? (t && t !== h ? `${h} (ref ${t})` : h) : '-'; };
   console.log('Environment                    State     Core                       Project / URL                                     Used by');
@@ -406,7 +406,7 @@ Dry run (${plan.filter((p) => p.action === 'remove').length} environment(s) woul
       const dir = envDir(e);
       const del = ddev(dir, ['delete', '--omit-snapshot', '--yes']);
       if (del.status !== 0) failed.push(`${e}: ddev delete exited ${del.status}`);
-      const wt = spawnSync('git', ['-C', path.join(envsDir, 'core.git'), 'worktree', 'remove', '--force', dir], { stdio: 'inherit' });
+      const wt = spawnSync('git', [`--git-dir=${path.join(envsDir, 'core.git')}`, 'worktree', 'remove', '--force', dir], { stdio: 'inherit' });
       if (wt.status !== 0 || fs.existsSync(dir)) failed.push(`${e}: directory not removed${wt.status !== 0 ? ` (git worktree remove exited ${wt.status})` : ''}`);
     }
     if (failed.length) {
@@ -420,7 +420,7 @@ Dry run (${plan.filter((p) => p.action === 'remove').length} environment(s) woul
     const blocked = protectionMessage(LEASE_FILE, [target], { force, action: 'delete' });
     if (blocked) { console.error(blocked); process.exit(1); }
     const list = present(envsOf(target)); if (!yes) { console.error(`This DELETES ${list.join(' and ')} (containers, database and worktree). Evidence in reports/ is kept. Re-run with --yes.`); process.exit(2); }
-    for (const e of list) { ddev(envDir(e), ['delete', '--omit-snapshot', '--yes']); spawnSync('git', ['-C', path.join(envsDir, 'core.git'), 'worktree', 'remove', '--force', envDir(e)], { stdio: 'inherit' }); }
+    for (const e of list) { ddev(envDir(e), ['delete', '--omit-snapshot', '--yes']); spawnSync('git', [`--git-dir=${path.join(envsDir, 'core.git')}`, 'worktree', 'remove', '--force', envDir(e)], { stdio: 'inherit' }); }
     break; }
   default: console.error('usage: lab-env.mjs status | resources [--json] | deps [--json] | release-deps <slug|all> [--yes] | chrome <slug> start|stop | disk | start <slug> [--browser] | browser [--reset] | stop <slug|all> | reset <slug> --yes | trim <slug|all> [--deep] | delete <slug> --yes | retire <slug> --yes [--force]'); process.exit(2);
 }

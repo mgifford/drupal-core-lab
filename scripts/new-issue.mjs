@@ -25,7 +25,7 @@ const bare = path.join(labRoot, 'envs/core.git');
 if (!fs.existsSync(bare)) { console.error('envs/core.git does not exist yet. Run: node tools/compare/setup.mjs <any-slug> (it creates the shared core clone), or: git init --bare envs/core.git && git -C envs/core.git remote add origin https://git.drupalcode.org/project/drupal.git'); process.exit(1); }
 // Auto-gc and maintenance off: after the first shallow fetch git starts a background cleanup, which makes the second fetch fail
 // with "shallow file has changed since we read it".
-const git = (a, o = {}) => spawnSync('git', ['-c', 'gc.auto=0', '-c', 'maintenance.auto=false', '-C', bare, ...a], { encoding: 'utf8', ...o });
+const git = (a, o = {}) => spawnSync('git', ['-c', 'gc.auto=0', '-c', 'maintenance.auto=false', `--git-dir=${bare}`, ...a], { encoding: 'utf8', ...o });
 const must = (r, what) => { if (r.status !== 0) { console.error(`${what} failed:\n${r.stderr || r.stdout}`); process.exit(1); } return r.stdout.trim(); };
 const dir = path.join(labRoot, 'reports/issues', nid);
 const date = new Date().toISOString().slice(0, 10);

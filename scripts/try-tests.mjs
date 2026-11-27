@@ -99,7 +99,7 @@ const patch = { file: '', files: 0, lines: 0, applies: null, ref: '', detail: ''
 if (opt['patch-out'] || opt['mr-ref']) {
   const coreGit = path.join(envsDir, 'core.git');
   if (opt['mr-ref'] && !fs.existsSync(coreGit)) die(`--mr-ref needs ${coreGit} (the shared core clone); build an environment first.`);
-  const sha = opt['mr-ref'] ? spawnSync('git', ['-C', coreGit, 'rev-parse', '--verify', '--quiet', `${opt['mr-ref']}^{commit}`], { encoding: 'utf8' }).stdout.trim() : '';
+  const sha = opt['mr-ref'] ? spawnSync('git', [`--git-dir=${coreGit}`, 'rev-parse', '--verify', '--quiet', `${opt['mr-ref']}^{commit}`], { encoding: 'utf8' }).stdout.trim() : '';
   if (opt['mr-ref'] && !sha) die(`--mr-ref ${opt['mr-ref']}: not a commit in ${coreGit}. Refs the lab keeps: git -C ${coreGit} for-each-ref refs/lab`);
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'try-tests-patch-')); cleanups.push(() => fs.rmSync(tmp, { recursive: true, force: true }));
   const git = (...a) => spawnSync('git', a, { cwd: tmp, encoding: 'utf8', env: gitEnv, maxBuffer: 1 << 28 });
@@ -111,8 +111,8 @@ if (opt['patch-out'] || opt['mr-ref']) {
   if (sha) {
     patch.ref = `${opt['mr-ref']} (${sha.slice(0, 8)})`;
     const wt = fs.mkdtempSync(path.join(os.tmpdir(), 'try-tests-wt-'));
-    cleanups.push(() => { spawnSync('git', ['-C', coreGit, 'worktree', 'remove', '--force', wt]); fs.rmSync(wt, { recursive: true, force: true }); spawnSync('git', ['-C', coreGit, 'worktree', 'prune']); });
-    const add = spawnSync('git', ['-C', coreGit, 'worktree', 'add', '--detach', '-q', wt, sha], { encoding: 'utf8' });
+    cleanups.push(() => { spawnSync('git', [`--git-dir=${coreGit}`, 'worktree', 'remove', '--force', wt]); fs.rmSync(wt, { recursive: true, force: true }); spawnSync('git', [`--git-dir=${coreGit}`, 'worktree', 'prune']); });
+    const add = spawnSync('git', [`--git-dir=${coreGit}`, 'worktree', 'add', '--detach', '-q', wt, sha], { encoding: 'utf8' });
     const chk = add.status === 0 ? spawnSync('git', ['-C', wt, 'apply', '--check', patch.file], { encoding: 'utf8' }) : add;
     patch.applies = chk.status === 0; patch.detail = patch.applies ? '' : `${chk.stderr}`.trim().split('\n').slice(0, 2).join(' / ');
     cleanupAll();
