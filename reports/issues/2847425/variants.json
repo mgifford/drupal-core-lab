@@ -71,19 +71,19 @@
       },
       {
         "label": "A managed file whose visible state is false is hidden on load",
-        "probe": "(() => { const i = document.querySelector('#edit-managed-file-initially-hidden-upload'); if (!i) return false; return !(i.offsetWidth || i.offsetHeight || i.getClientRects().length); })()",
+        "probe": "!!document.querySelector('#edit-managed-file-initially-hidden-upload') && !(document.querySelector('#edit-managed-file-initially-hidden-upload').offsetWidth || document.querySelector('#edit-managed-file-initially-hidden-upload').offsetHeight || document.querySelector('#edit-managed-file-initially-hidden-upload').getClientRects().length)",
         "expect": true,
         "kind": "fix"
       },
       {
         "label": "Hiding the managed file inside details does not hide the details' own textfield",
-        "probe": "(() => { const t = document.querySelector('#edit-textfield-in-details'); return !!t && !!(t.offsetWidth || t.offsetHeight || t.getClientRects().length); })()",
+        "probe": "!!document.querySelector('#edit-textfield-in-details') && !!(document.querySelector('#edit-textfield-in-details').offsetWidth || document.querySelector('#edit-textfield-in-details').offsetHeight || document.querySelector('#edit-textfield-in-details').getClientRects().length)",
         "expect": true,
         "kind": "regression"
       },
       {
         "label": "A managed file with no states is still visible",
-        "probe": "(() => { const i = document.querySelector('#edit-no-states-file-upload'); return !!i && !!(i.offsetWidth || i.offsetHeight || i.getClientRects().length); })()",
+        "probe": "!!document.querySelector('#edit-no-states-file-upload') && !!(document.querySelector('#edit-no-states-file-upload').offsetWidth || document.querySelector('#edit-no-states-file-upload').offsetHeight || document.querySelector('#edit-no-states-file-upload').getClientRects().length)",
         "expect": true,
         "kind": "regression"
       }
