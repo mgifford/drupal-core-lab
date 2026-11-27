@@ -1,0 +1,105 @@
+diff --git a/core/modules/views/src/Plugin/views/filter/FilterPluginBase.php b/core/modules/views/src/Plugin/views/filter/FilterPluginBase.php
+index 70cdc9e997ec7c57dc158ea329a93241006f52dd..a0df96c7ec5cc4795ef97467d088f616ed7d63be 100644
+--- a/core/modules/views/src/Plugin/views/filter/FilterPluginBase.php
++++ b/core/modules/views/src/Plugin/views/filter/FilterPluginBase.php
+@@ -1083,8 +1083,9 @@ public function buildExposedForm(&$form, FormStateInterface $form_state) {
+       $this->valueForm($form, $form_state);
+       $form[$value] = $form['value'];
+ 
+-      if (isset($form[$value]['#title']) && !empty($form[$value]['#type']) && $form[$value]['#type'] != 'checkbox') {
+-        unset($form[$value]['#title']);
++      // Hide label when operator is exposed.
++      if ($this->options['expose']['use_operator'] && isset($form[$value]['#title']) && !empty($form[$value]['#type']) && $form[$value]['#type'] != 'checkbox') {
++        $form[$value]['#title_display'] = 'invisible';
+       }
+ 
+       $this->exposedTranslate($form[$value], 'value');
+diff --git a/core/modules/views/src/Plugin/views/filter/NumericFilter.php b/core/modules/views/src/Plugin/views/filter/NumericFilter.php
+index e3c9174b5000813083687f8c53adac177b413a1d..ba2fde46385e2387629e95b211bca957379d7462 100644
+--- a/core/modules/views/src/Plugin/views/filter/NumericFilter.php
++++ b/core/modules/views/src/Plugin/views/filter/NumericFilter.php
+@@ -259,7 +259,10 @@ protected function valueForm(&$form, FormStateInterface $form_state) {
+     if ($which == 'all') {
+       $form['value']['value'] = [
+         '#type' => 'textfield',
+-        '#title' => !$exposed ? $this->t('Value') : '',
++        '#title' => $this->t('Value'),
++        // The exposed-operator fieldset already labels this group; keep the
++        // value control's accessible name without adding a visible label.
++        '#title_display' => $exposed ? 'invisible' : 'before',
+         '#size' => 30,
+         '#default_value' => $this->value['value'],
+       ];
+@@ -282,7 +285,7 @@ protected function valueForm(&$form, FormStateInterface $form_state) {
+       // the operator is locked.
+       $form['value'] = [
+         '#type' => 'textfield',
+-        '#title' => !$exposed ? $this->t('Value') : '',
++        '#title' => $this->t('Value'),
+         '#size' => 30,
+         '#default_value' => $this->value['value'],
+       ];
+diff --git a/core/modules/views/tests/src/Functional/Plugin/ExposedFormTest.php b/core/modules/views/tests/src/Functional/Plugin/ExposedFormTest.php
+index d7fa55de91aca0d02dd818677e1956543eb2eab8..0e6600b715bf17da799d725180ab149cd9f0224e 100644
+--- a/core/modules/views/tests/src/Functional/Plugin/ExposedFormTest.php
++++ b/core/modules/views/tests/src/Functional/Plugin/ExposedFormTest.php
+@@ -142,6 +142,29 @@ public function testExposedIdentifier(): void {
+     $this->drupalGet('test_exposed_form_buttons', ['query' => [$identifier => 'article']]);
+     $this->assertSession()->fieldValueEquals(Html::getId('edit-' . $identifier), 'article');
+ 
++    // Verify that exposing the operator preserves the value field's label.
++    $view = Views::getView('test_exposed_form_buttons');
++    $view->setDisplay();
++    $display = $view->displayHandlers->get('default');
++    $filters = $display->getOption('filters');
++    $filters['type']['expose']['use_operator'] = TRUE;
++    $display->overrideOption('filters', $filters);
++    $view->save();
++
++    $this->drupalGet('test_exposed_form_buttons', [
++      'query' => [$identifier => 'article', 'type_op' => 'in'],
++    ]);
++    $assert_session = $this->assertSession();
++    $assert_session->fieldExists('type_op');
++    $value = $assert_session->selectExists($identifier);
++    $xpath = $assert_session->buildXPathQuery(
++      '//label[@for=:id and normalize-space(.) != ""]',
++      [':id' => $value->getAttribute('id')],
++    );
++    $assert_session->elementsCount('xpath', $xpath, 1);
++    $label = $assert_session->elementExists('xpath', $xpath);
++    $this->assertTrue($label->hasClass('visually-hidden'));
++
+     // Alter the identifier of the filter to a random string containing
+     // restricted characters.
+     $view = Views::getView('test_exposed_form_buttons');
+diff --git a/core/modules/views_ui/tests/src/Functional/FilterNumericWebTest.php b/core/modules/views_ui/tests/src/Functional/FilterNumericWebTest.php
+index 0ab2a151d6af1dd03dcc8630d17025ce8895e0cb..2917bbccc6b96e9feb86d5d0d172cad5ae0396cb 100644
+--- a/core/modules/views_ui/tests/src/Functional/FilterNumericWebTest.php
++++ b/core/modules/views_ui/tests/src/Functional/FilterNumericWebTest.php
+@@ -172,6 +172,25 @@ public function testFilterNumericUI(): void {
+     // Make sure the label is visible and that there's no fieldset wrapper.
+     $this->assertSession()->elementsCount('xpath', '//label[contains(@for, "edit-age") and contains(text(), "Age greater than")]', 1);
+     $this->assertSession()->elementNotExists('xpath', '//fieldset[contains(@id, "edit-age-wrapper")]');
++
++    // Expose the operator and check the label of the numeric value field.
++    $this->drupalGet('admin/structure/views/nojs/handler/test_view/default/filter/age');
++    $this->submitForm([
++      'options[expose][use_operator]' => TRUE,
++      'options[expose][operator_id]' => 'age_op',
++    ], 'Apply');
++    $this->drupalGet('admin/structure/views/view/test_view');
++    $this->submitForm([], 'Save');
++
++    $this->drupalGet('test_view-path');
++    $assert_session = $this->assertSession();
++    $assert_session->fieldExists('age_op');
++    $value = $assert_session->fieldExists('age[value]');
++    $xpath = $assert_session->buildXPathQuery(
++      '//label[@for=:id and normalize-space(.)="Value"]',
++      [':id' => $value->getAttribute('id')],
++    );
++    $assert_session->elementsCount('xpath', $xpath, 1);
+   }
+ 
+ }

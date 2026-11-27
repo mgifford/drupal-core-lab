@@ -26,3 +26,12 @@ Each was checked with `git apply --check` against its declared starting tree, an
 - The MR was rebased onto `main` on 2026-07-25 (commit `9b0384db`), removing earlier commits. Its tip is four commits: add `#title`, add a test, fix the cases from comment #8, restore labels hidden as a side effect, remove the Nightwatch test.
 - `d7e538c3` removed the Nightwatch test; that is why comment #15 asks to skip tests. The test interdiff here is the replacement coverage requested in comment #20.
 - The test patch applies in either order: to pristine core, or on top of the MR patch. The combined patch applies both in one pass.
+
+## 2026-11-27 update: the MR moved
+
+The issue owner rebased the branch onto `main` `c706424d7e` and added:
+
+- `2b30abc36b` — regression tests in `ExposedFormTest` and `FilterNumericWebTest`. These are the same assertions the Lab proposed, placed in `ExposedFormTest` rather than the Lab's `FilterTest` + new view; the Lab's test-only interdiff is therefore **superseded upstream**.
+- `12d23affb9` — proposal C folded in (`#title_display => $exposed ? 'invisible' : 'before'`). The Lab's corrective interdiff is now part of the MR.
+
+The tables above describe the 26 July revision the Lab browsed. The current revision is the snapshot `branches/3545814-mr13201-12d23affb9.diff`.

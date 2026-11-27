@@ -1,20 +1,17 @@
 # What remains to finish #3545814
 
-## Decision needed: visible or hidden `Value` label?
+## Decision: settled 2026-11-27
 
-The Lab records the MR as fixing the names but adding a visible `Value` label (+18 px). Proposal C keeps the name and hides the label. Both are verified; the choice is the author's.
+C was folded into !13201 as `12d23affb9`, after the regression tests at `2b30abc36b`. The MR now carries the fix, the tests and the no-visual-change outcome. `ISSUE-COMMENT-DECISION.md` is kept for history and marked resolved.
 
-- **A. Fold C into !13201 (recommended).** The issue summary and the MR comment both say hide the label; one line; five environments recorded. Ask with `ISSUE-COMMENT-DECISION.md`, then add the commit to the MR branch (needs the owner's approval).
-- **B. Keep the visible label.** Defensible as a UX improvement, but the issue's "User interface changes" and the manual-test note must be updated, and reviewers must accept the 18 px change.
-
-Do not open a separate follow-up issue for one line. Do not post either draft without the owner's approval.
+Remaining before Needs review: CI pipeline 1071860 on `12d23affb9`, then a person's review. Before RTBC: the human keyboard/screen-reader pass and a clean pipeline.
 
 
 **DRAFT.** Written 2026-11-27 after the host ran out of capacity for another DDEV start. Nothing here is a substitute for the recorded evidence; it is the short list of what the evidence still lacks.
 
 ## Proposal C: recorded 2026-11-27
 
-Proposal C was built and run in a quiet window (the corrected patch, sha256 `7aed4387…`): variant `3545814-proposal-c`, five runs (Chromium light, dark, forced colours, 480 px; WebKit light) at 1280×900 except the 480 px row. The numeric label renders `visually-hidden` with accessible name `Value`, axe reports 0, the numeric fieldset is 353×238 (the same as Before; the MR alone is 353×256), the filter configuration form is unchanged, and everything else matches the MR run. See [EVIDENCE.md](EVIDENCE.md) and [`playwright/2026-11-27T16-41-46-552Z-chromium-light-1280x900/`](playwright/2026-11-27T16-41-46-552Z-chromium-light-1280x900/SUMMARY.md).
+Proposal C was built and run in a quiet window (the corrected patch, sha256 `7aed4387…`): variant `3545814-proposal-c`, five runs (Chromium light, dark, forced colours, 480 px; WebKit light) at 1280×900 except the 480 px row. C is now part of the MR (`12d23affb9`). The numeric label renders `visually-hidden` with accessible name `Value`, axe reports 0, the numeric fieldset is 353×238 (the same as Before; the MR alone is 353×256), the filter configuration form is unchanged, and everything else matches the MR run. See [EVIDENCE.md](EVIDENCE.md) and [`playwright/2026-11-27T16-41-46-552Z-chromium-light-1280x900/`](playwright/2026-11-27T16-41-46-552Z-chromium-light-1280x900/SUMMARY.md).
 
 ## Remaining checks
 

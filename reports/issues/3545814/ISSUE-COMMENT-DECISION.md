@@ -1,5 +1,7 @@
-<!-- DRAFT for a human to review and post. Do not post automatically.
-     This is the decision question for the MR author, separate from the evidence comment. -->
+<!-- RESOLVED 2026-11-27. Do not post: C was folded into the MR as 12d23affb9.
+     Kept for history. The original text is below. -->
+
+> **Resolved:** C was folded into !13201 at `12d23affb9`, after the tests at `2b30abc36b`. This question is no longer open.
 
 @kentr !13201 fixes the missing accessible names, and the tests now cover them. It also adds a visible "Value" label to the numeric filter when the operator is exposed, and that fieldset grows by 18px. The issue summary asks for the labels to be hidden, and the merge request comment says "Hide label when operator is exposed".
 

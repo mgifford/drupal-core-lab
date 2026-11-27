@@ -8,11 +8,20 @@
 |---|---|
 | Issue | [#3545814](https://www.drupal.org/project/drupal/issues/3545814), status **Needs work** (13), priority Normal, component `views.module`, tags **Accessibility, wcag412, Needs manual testing** (taxonomy terms 1101, 5148, 195758), unassigned, 20 comments, last changed 2026-07-27 |
 | Merge request | [!13201](https://git.drupalcode.org/project/drupal/-/merge_requests/13201), opened, `3545814-numeric-filter-value-field-missing-name` into `main` |
-| MR head | `d7e538c35ac3526ba1a0e0e8a441586f57bba312` (2026-07-26) |
+| MR head | `12d23affb91181da61feadb7676386ee8bf28c50` (2026-11-27); tests at `2b30abc36b`, proposal C at `12d23affb9` |
 | MR base / both Lab sides | `87de7098664fd7bb741f51d47ec750ab0a178c5a` (2026-07-25, Drupal 12.0-dev) |
 | Current core `main` checked for applicability | `8a7df6cc3e69b6b5d427cb25ce8f66dda8393c29` (2026-11-27), checked 2026-11-27; the MR, test and C patches apply when stacked. `main` moves several times a day, so this is a timestamped check, not a standing claim. |
 | MR review threads | 0 human threads; the 5 entries on the MR are system notes (target-branch change and commit pushes). The GitLab API v4 discussions endpoint answered HTTP 401, so the MR page's `discussions.json` endpoint was read instead. |
-| MR CI | Pipeline 902552 on the MR merge ref, 2026-07-26: **passed with warnings**. Lint passed; Tests "passed with warnings"; the `PHPUnit Unit (Component): [8.6-ubuntu]` job **failed**; all Kernel, Functional, FunctionalJavascript and Nightwatch jobs passed. |
+| MR CI | Pipeline **1071860 running** on the `12d23affb9` merge ref (started 2026-11-27T21:55Z). Previous: 1071829 warning on the pre-C tip (21:19Z), 902552 warning (2026-07-26, one `PHPUnit Unit (Component): [8.6-ubuntu]` job failed). |
+
+## Revision history (2026-11-27)
+
+The MR moved during this evaluation. The Lab's browser evidence and PHPUnit fail/pass runs were recorded on the 26 July tip `d7e538c3` (base `87de7098`). On 27 November the branch was rebased onto `main` `c706424d7e` (616 upstream commits), then two commits were added by the issue owner:
+
+- `2b30abc36b` — regression tests in `core/modules/views/tests/src/Functional/Plugin/ExposedFormTest.php` and `core/modules/views_ui/tests/src/Functional/FilterNumericWebTest.php`. They assert the native label association and the `Value` text, and `visually-hidden` for the content-type select. This supersedes the Lab's test interdiff: it is the same coverage, placed in `ExposedFormTest` instead of the Lab's `FilterTest` + new view.
+- `12d23affb9` — proposal C folded in: `#title_display => $exposed ? 'invisible' : 'before'` in `NumericFilter::valueForm()`.
+
+Current MR snapshot: `branches/3545814-mr13201-12d23affb9.diff` (5,814 bytes, sha256 `721feffab03d…`). The one-line C hunk is byte-identical to the Lab's corrected patch and applies cleanly at the new tip. The browser runs were not repeated on the rebased tip; CI is the validation for that revision.
 
 Related issues read: parent [#933004](https://www.drupal.org/i/933004) (open), [#2096013](https://www.drupal.org/i/2096013) (open, exposed operators should have field labels), [#2625136](https://www.drupal.org/i/2625136) (closed: label visibility and wrapper container for exposed numeric/date filters), child/related [#3629900](https://www.drupal.org/i/3629900) (open, other missing `#title` values), plus the testing-policy issues named in comments #6, #7 and #15-#20. No competing branch or newer MR for #3545814 was found: the issue fork has one branch and the issue page lists one MR.
 
@@ -134,7 +143,7 @@ On proposal C (MR + C) the same two tests pass with the same counts: `OK (1 test
 
 A second agent re-checked the package without trusting the numbers above. Method and results:
 
-1. **MR snapshot identity.** The published MR diff (`merge_requests/13201.diff`, 2159 bytes, sha256 `4abe2400…`) was fetched and its hunks compared with `branches/3545814-numeric-filter-value-field-missing-name.patch` after normalising index headers and hunk line numbers: identical content. The lab patch is a faithful snapshot of MR head `d7e538c3`.
+1. **MR snapshot identity.** The published MR diff (`merge_requests/13201.diff`, 2159 bytes, sha256 `4abe2400…`) was fetched and its hunks compared with `branches/3545814-numeric-filter-value-field-missing-name.patch` after normalising index headers and hunk line numbers: identical content. The lab patch is a faithful snapshot of the 26 July MR head `d7e538c3` (kept for the browser evidence). The 27 November head `12d23affb9` is snapshotted in `branches/3545814-mr13201-12d23affb9.diff`.
 2. **Test interdiff identity.** Applying `branches/3545814-tests-accessible-names.patch` to pristine copies of the three files in a scratch git repository reproduces the three files in `tests-proposal/` byte for byte.
 3. **Patch applicability.** Re-checked on 2026-11-27 against core `main` `8a7df6cc3e` (checked at that commit; `main` moves several times a day): MR patch applies; test patch applies on pristine and on MR; corrected proposal C applies on MR; MR + C + tests applies to pristine. A corrected proposal C that used `NULL` would fail the issue's configuration-form requirement (see Patch artifacts).
 4. **Rendered DOM, independent capture.** `curl` fetched `/repro-3545814` from both sites (HTTP 200) and the exposed-form fragments are kept in `verification/`. Before: no `<label for>` for `id_open[value]`, `type` or `tags`; operator selects have visually hidden labels; the fixed filter has a visible label. After: the `Value` label is present **without** `visually-hidden` (a visible change); `Content types` and `Select terms from vocabulary Tags` carry `visually-hidden`; the fixed filter markup is unchanged. The same fragment was captured in light, dark, forced-colours and 480 px browser runs: the label classes are identical in each, and the forced-colours capture was confirmed with `matchMedia('(forced-colors: active)').matches`.
