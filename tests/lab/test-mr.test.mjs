@@ -1,6 +1,7 @@
 // Tests for scripts/test-mr.mjs (the one command for a Coder or local comparison), resolveVariant and the DDEV name helpers in
-// tools/compare/lib.mjs, and the patch-state message scripts/cloud-bootstrap.mjs relies on to reapply a changed patch. No DDEV (a
-// stand-in `ddev` on PATH where one is needed), no network; temp folders only.
+// tools/compare/lib.mjs, and the patch-state message scripts/cloud-bootstrap.mjs relies on to reapply a changed patch. No DDEV: every
+// run of the script has a stand-in `ddev` first on PATH (tools/compare/hermetic.mjs), so the answer does not depend on which DDEV
+// projects this machine, or another lab checkout on it, has registered. No network; temp folders only.
 //   node --test tests/lab/test-mr.test.mjs
 import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,12 +12,19 @@ import { spawnSync } from 'node:child_process';
 import { labRoot, variants, resolveVariant, envDir, ddevName, parseDdevList, labCheckoutOf, ddevNameClashes } from '../../tools/compare/lib.mjs';
 import { ensurePatches, runBlockReason } from '../../tools/compare/patch-state.mjs';
 import { sideState } from '../../tools/compare/contrib-state.mjs';
+import { standIn } from '../../tools/compare/hermetic.mjs';
 
 const all = variants();
 // An issue that has a -latest variant, chosen from the registry so the test does not depend on one issue staying registered.
 const latest = all.find((x) => /-latest$/.test(x.slug) && all.some((y) => y.slug === `${x.issue}-pinned`));
 const noCoder = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('CODER_')));
-const cli = (args, env = noCoder) => spawnSync(process.execPath, [path.join(labRoot, 'scripts/test-mr.mjs'), ...args], { cwd: os.tmpdir(), encoding: 'utf8', env });
+// Default: a DDEV that has no projects registered. Before 2026-11-27 the dry runs below asked the real DDEV, and failed in any
+// checkout while another lab copy (the main one, for a worktree) held the drupal-compare name.
+const stand = fs.mkdtempSync(path.join(os.tmpdir(), 'test-mr-stand-'));
+after(() => fs.rmSync(stand, { recursive: true, force: true }));
+const emptyDdev = path.join(stand, 'empty'); standIn(emptyDdev, 'ddev', { stdout: '{"level":"info","raw":[]}', log: path.join(stand, 'empty.log') });
+const withBin = (bin, env = noCoder) => ({ ...env, PATH: `${bin}${path.delimiter}${env.PATH}` });
+const cli = (args, env = withBin(emptyDdev)) => spawnSync(process.execPath, [path.join(labRoot, 'scripts/test-mr.mjs'), ...args], { cwd: os.tmpdir(), encoding: 'utf8', env });
 
 test('resolveVariant: a slug, an issue number (with or without #), and errors that say what to type', () => {
   assert.ok(latest, 'the registry has an issue with -latest and -pinned variants');
@@ -65,7 +73,7 @@ test('test-mr.mjs: --help, an invented flag, an unknown issue, and dry runs that
   assert.match(local.stdout, new RegExp(`using variant ${latest.issue}-latest`));
   assert.match(local.stdout, new RegExp(`Would run: node tools/compare/setup\\.mjs ${latest.issue}-latest`));
   assert.match(local.stdout, /Dry run finished; nothing was changed\./);
-  const coder = cli([String(latest.issue), '--dry-run', '--no-update'], { ...noCoder, CODER_WORKSPACE_NAME: 'ws', CODER_WORKSPACE_OWNER_NAME: 'me', CODER_AGENT_URL: 'https://coder.example' });
+  const coder = cli([String(latest.issue), '--dry-run', '--no-update'], withBin(emptyDdev, { ...noCoder, CODER_WORKSPACE_NAME: 'ws', CODER_WORKSPACE_OWNER_NAME: 'me', CODER_AGENT_URL: 'https://coder.example' }));
   assert.equal(coder.status, 0, coder.stderr);
   assert.match(coder.stdout, new RegExp(`Would run: node scripts/cloud-bootstrap\\.mjs ${latest.issue}-latest --install-autostart --core-url=https://github\\.com/drupal/drupal\\.git`));
   assert.equal(spawnSync('git', ['status', '--porcelain'], { cwd: labRoot, encoding: 'utf8' }).stdout, before, 'a dry run leaves the checkout as it was');
@@ -116,4 +124,42 @@ test('test-mr.mjs stops before building when another lab copy holds a DDEV name,
   const own = cli([String(latest.issue), '--dry-run', '--no-update'], env);
   assert.equal(own.status, 0, own.stderr);
   assert.match(own.stdout, /Would run: node tools\/compare\/setup\.mjs/);
+});
+
+test('test-mr.mjs plans the same whatever DDEV this machine has, and only ever asks DDEV for its list (nothing stopped, unlisted or changed)', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'test-mr-states-'));
+  after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const args = [String(latest.issue), '--dry-run', '--no-update'], plan = /Would run: node tools\/compare\/setup\.mjs/;
+  const state = (name, { stdout = '', stderr = '', status = 0 }) => {
+    const bin = path.join(root, name), log = path.join(root, `${name}.log`);
+    standIn(bin, 'ddev', { stdout, stderr, status, log }); fs.writeFileSync(log, '');
+    return { r: cli(args, withBin(bin)), calls: () => fs.readFileSync(log, 'utf8').trim().split('\n').filter(Boolean) };
+  };
+  const raw = (projects) => `{"level":"info","raw":${JSON.stringify(projects)}}`;
+
+  // DDEV not installed at all: a PATH with git and nothing else (node is run by its full path).
+  const gitOnly = path.join(root, 'git-only'); fs.mkdirSync(gitOnly);
+  fs.symlinkSync(spawnSync('sh', ['-c', 'command -v git'], { encoding: 'utf8' }).stdout.trim(), path.join(gitOnly, 'git'));
+  const none = cli(args, { ...noCoder, PATH: gitOnly });
+  assert.equal(none.status, 0, none.stderr); assert.match(none.stdout, /DDEV is not available here, so there is nothing to check or stop/); assert.match(none.stdout, plan);
+
+  const down = state('docker-down', { stderr: 'Could not connect to a Docker provider. Please start or install Docker and try again.', status: 1 });
+  assert.equal(down.r.status, 0, down.r.stderr); assert.match(down.r.stdout, /DDEV is not available here/); assert.match(down.r.stdout, plan);
+
+  const own = envDir(latest.before.env), other = path.join(labRoot, 'envs', 'zz-another-comparison');
+  const busy = state('busy', { stdout: raw([
+    { name: ddevName(latest.before.env), approot: own, status: 'running' },
+    { name: 'repro-zz-another-comparison', approot: other, status: 'running' },
+    { name: 'unrelated-site', approot: path.join(root, 'elsewhere'), status: 'running' },
+  ]) });
+  assert.equal(busy.r.status, 0, busy.r.stderr);
+  assert.match(busy.r.stdout, /Would stop repro-zz-another-comparison \(envs\/zz-another-comparison\)/, 'another comparison of this checkout would be stopped, in a real run');
+  assert.doesNotMatch(busy.r.stdout, /Would stop unrelated-site/, 'a project outside this checkout\'s envs/ is never touched');
+  assert.match(busy.r.stdout, plan);
+
+  const otherLab = path.join(root, 'drupal-core-lab'); fs.mkdirSync(path.join(otherLab, 'tools/compare'), { recursive: true }); fs.writeFileSync(path.join(otherLab, 'tools/compare/variants.json'), '[]');
+  const held = state('held', { stdout: raw([{ name: ddevName(latest.before.env), approot: path.join(otherLab, 'envs', latest.before.env), status: 'stopped' }]) });
+  assert.equal(held.r.status, 1); assert.match(held.r.stderr, /STOPPED: DDEV already has .* it belongs to the lab copy in /);
+
+  for (const s of [down, busy, held]) assert.deepEqual([...new Set(s.calls())], ['ddev list -j'], 'the only DDEV call is the read-only list');
 });

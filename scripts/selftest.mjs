@@ -1,5 +1,8 @@
 // Does the lab itself work? Checks the lab's own tools, not a Drupal issue.
 //   node scripts/selftest.mjs                   static: syntax of every script, unit tests, variants, docs, cloud/ (no DDEV, no network; CI runs this)
+//                                               Hermetic (tools/compare/hermetic.mjs): ddev, docker, mutagen and gh are refusing stand-ins, only
+//                                               loopback connections and local git remotes are allowed, git config is empty plus
+//                                               safe.bareRepository=explicit. Anything refused is listed and fails the run.
 //   node scripts/selftest.mjs --live <slug>     also, against that built pair: doctor, lint (the tools must RUN: PASS or FAIL, never ERROR),
 //                                               and tools/playwright/evaluate-<nid>.mjs if it exists (output to a temp folder; results.json must be complete)
 //   node scripts/selftest.mjs --network         also read one issue's status from drupal.org (scripts/issue-status.mjs, read-only)
@@ -18,6 +21,7 @@ import { matrixProblems } from '../tools/compare/coverage-matrix.mjs';
 import { testRunSummary } from '../tools/compare/test-output.mjs';
 import { runProblems } from '../tools/playwright/lib/run-schema.mjs';
 import { checkTask, describeRow, trackedDependencyProblems, primaryCheckout } from '../tools/compare/deps.mjs';
+import { hermeticEnv } from '../tools/compare/hermetic.mjs';
 
 const args = process.argv.slice(2);
 const liveIdx = args.indexOf('--live'); const liveSlug = liveIdx >= 0 ? args[liveIdx + 1] : null;
@@ -25,6 +29,8 @@ if (liveIdx >= 0 && (!liveSlug || liveSlug.startsWith('--'))) { console.error('u
 const results = [];
 const record = (name, status, detail = '') => { results.push({ name, status, detail }); console.log(`${status.padEnd(4)}  ${name}${detail ? `: ${detail}` : ''}`); };
 const run = (cmd, a, opts = {}) => spawnSync(cmd, a, { cwd: labRoot, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, ...opts });
+const H = hermeticEnv();   // the static checks below run in it; --live and --network use the real environment
+const runStatic = (cmd, a, opts = {}) => run(cmd, a, { env: H.env, ...opts });
 const has = (cmd) => run('sh', ['-c', `command -v ${cmd}`]).status === 0;
 const first = (r) => `${r.stderr || ''}${r.stdout || ''}`.trim().split('\n').filter(Boolean).slice(-3).join(' / ').slice(0, 300);
 
@@ -58,7 +64,7 @@ const glob = (dir) => (fs.existsSync(path.join(labRoot, dir)) ? fs.readdirSync(p
 for (const [name, list] of [['unit tests: lab tools', glob('tests/lab')], ['unit tests: issue packs', glob('tests/issue-pack')], ['unit tests: design observations', glob('tests/design')]]) {
   if (!list.length) { record(name, 'skip', 'no tests found'); continue; }
   if (unitTestsBlocked) { record(name, 'skip', `not run: a package they load is missing (first row); --keep-going runs them anyway`); continue; }
-  const r = run('node', ['--test', '--test-reporter=tap', '--test-concurrency=1', ...list], { timeout: 600000 });
+  const r = runStatic('node', ['--test', '--test-reporter=tap', '--test-concurrency=1', ...list], { timeout: 600000 });
   const summary = testRunSummary(r);
   record(name, summary.ok ? 'ok' : 'FAIL', summary.detail);
 }
@@ -102,10 +108,19 @@ for (const [name, list] of [['unit tests: lab tools', glob('tests/lab')], ['unit
 
 // 4. documentation links and the published guide
 for (const [name, a] of [['documentation links (check-docs.mjs)', ['scripts/check-docs.mjs']], ['cloud/ up to date (build-cloud.mjs --check)', ['scripts/build-cloud.mjs', '--check']]]) {
-  const r = run('node', a); record(name, r.status === 0 ? 'ok' : 'FAIL', first(r));
+  const r = runStatic('node', a); record(name, r.status === 0 ? 'ok' : 'FAIL', first(r));
 }
-{ const r = run('node', ['scripts/skill-evals.mjs', 'validate']); record('skill evals valid and grounded (skill-evals.mjs validate)', r.status === 0 ? 'ok' : 'FAIL', r.status === 0 ? first(r) : (r.stdout || '').split('\n').filter((l) => /^FAIL|^ {6}/.test(l)).slice(0, 6).join(' | ')); }
+{ const r = runStatic('node', ['scripts/skill-evals.mjs', 'validate']); record('skill evals valid and grounded (skill-evals.mjs validate)', r.status === 0 ? 'ok' : 'FAIL', r.status === 0 ? first(r) : (r.stdout || '').split('\n').filter((l) => /^FAIL|^ {6}/.test(l)).slice(0, 6).join(' | ')); }
 for (const t of ['REPRODUCE.md', 'EVIDENCE.md', 'ISSUE-COMMENT-DRAFT.md']) if (!fs.existsSync(path.join(labRoot, 'reports/_templates', t))) record(`template ${t}`, 'FAIL', 'missing');
+
+// 4b. the static checks above stayed hermetic: no live tool ran, no remote was reached
+{
+  const calls = H.calls();
+  record('static checks touched no live tool or network (hermetic)', calls.length ? 'FAIL' : 'ok', calls.length
+    ? `${calls.length} refused call(s): ${calls.slice(0, 6).map((c) => `${c.call}${c.count > 1 ? ` (x${c.count})` : ''}`).join('; ')}. A test needs its own stand-in (tools/compare/hermetic.mjs standIn) or a local server`
+    : 'ddev, docker, mutagen, gh and remote connections were refused stand-ins; none was called');
+  H.cleanup();
+}
 
 // 5. live: tools against a built pair
 if (liveSlug) {
