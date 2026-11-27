@@ -59,7 +59,13 @@ test('identifying files: core\'s Drupal.php plus every file the side\'s patches 
 
 test('HTTP: the server must return the one-off file written into this checkout; it is removed whatever happens', async () => {
   const dir = site('zz-f-before'), filesDir = path.join(dir, 'sites/default/files');
-  const serveFrom = (root) => async (p) => { const f = path.join(root, p.replace(/^\//, '')); return fs.existsSync(f) ? { status: 200, body: fs.readFileSync(f, 'utf8') } : { status: 404, body: '' }; };
+  // Like DDEV's nginx and Drupal's .htaccess: a hidden file (a path segment starting with a dot) is refused with 403.
+  const serveFrom = (root) => async (p) => {
+    if (/\/\.(?!well-known\/)/.test(p)) return { status: 403, body: 'Forbidden' };
+    const f = path.join(root, p.replace(/^\//, '')); return fs.existsSync(f) ? { status: 200, body: fs.readFileSync(f, 'utf8') } : { status: 404, body: '' };
+  };
+  const asked = []; await httpCheck({ env: 'zz-f-before', dir, raw: raw('zz-f-before', dir), get: async (p) => { asked.push(p); return serveFrom(dir)(p); } });
+  assert.match(asked[0], /^\/sites\/default\/files\/lab-identity-[0-9a-f]{24}\.txt$/, 'the probe is not a hidden file, which web servers refuse');
   const ok = await httpCheck({ env: 'zz-f-before', dir, raw: raw('zz-f-before', dir), get: serveFrom(dir) });
   assert.deepEqual(ok, { basePath: '/', problems: [] });
   const other = site('zz-g-before');
