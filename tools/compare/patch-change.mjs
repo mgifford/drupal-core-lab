@@ -24,16 +24,30 @@ export function resolveBase(labRoot, ref) {
 
 // Patch files modified, deleted or renamed since base (added ones are new, not changed). [{ status, path, oldPath, nid }]
 export function changedPatches(labRoot, base) {
-  const out = git(labRoot, ['diff', '--name-status', '-M', '--diff-filter=MDR', '-z', base, 'HEAD', '--', GLOB]).stdout.split('\0').filter(Boolean);
+  // Compare the base with the working tree, not HEAD: this checkout is shared and a patch may be untracked.
+  const out = git(labRoot, ['diff', '--name-status', '-M', '--diff-filter=MDR', '-z', base, '--', GLOB]).stdout.split('\0').filter(Boolean);
   const list = [];
   for (let i = 0; i < out.length;) {
     const s = out[i][0];
     if (s === 'R') { list.push({ status: 'R', oldPath: out[i + 1], path: out[i + 2] }); i += 3; } else { list.push({ status: s, oldPath: out[i + 1], path: out[i + 1] }); i += 2; }
   }
-  // the working tree counts too: a change not yet committed is still a change
-  const wt = git(labRoot, ['diff', '--name-status', '--diff-filter=MD', '-z', 'HEAD', '--', GLOB]).stdout.split('\0').filter(Boolean);
-  for (let i = 0; i + 1 < wt.length; i += 2) if (!list.some((x) => x.path === wt[i + 1])) list.push({ status: wt[i][0], oldPath: wt[i + 1], path: wt[i + 1] });
-  return list.map((x) => ({ ...x, nid: nidOf(x.path) })).filter((x) => x.nid);
+  // An untracked file that the base has shows as "deleted" in a working-tree diff. Keep it only when its bytes
+  // differ from the base; otherwise it is not a change. This is the shared-worktree case (branch behind main).
+  const resolved = list.map((x) => {
+    if (x.status !== 'D') return x;
+    const file = path.join(labRoot, x.path);
+    if (!fs.existsSync(file)) {
+      // A file the branch never had (added on main after the branch point) is not a deletion here. A file in
+      // the merge base was part of this branch, so its deletion is real even when the deletion is committed.
+      const mb = git(labRoot, ['merge-base', base, 'HEAD']).stdout.trim();
+      const known = [mb, 'HEAD'].filter(Boolean).some((r) => git(labRoot, ['cat-file', '-e', `${r}:${x.path}`]).status === 0);
+      return known ? x : null;
+    }
+    const old = git(labRoot, ['show', `${base}:${x.path}`], { buffer: true });
+    if (old.status !== 0) return x;
+    return sha8(fs.readFileSync(file)) === sha8(old.stdout) ? null : { ...x, status: 'M' };
+  }).filter(Boolean);
+  return resolved.map((x) => ({ ...x, nid: nidOf(x.path) })).filter((x) => x.nid);
 }
 
 export function readRecord(labRoot, nid) {

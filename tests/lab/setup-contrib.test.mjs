@@ -53,7 +53,7 @@ for (const tool of ['ddev', 'docker', 'npm']) fs.writeFileSync(path.join(bin, to
 const base = ['--core-from=' + core];
 const co = () => spawnSync('node', [path.join(labRoot, 'tools/compare/setup.mjs'), 'zz-contrib-latest', '--checkout-only', ...base], { cwd: labRoot, encoding: 'utf8' });
 // --skip-pin-check: the pin check reads the add-on's releases from GitHub (scripts/check-pins.mjs has its own offline tests).
-const full = (...extra) => spawnSync('node', [path.join(labRoot, 'tools/compare/setup.mjs'), 'zz-contrib-latest', ...base, '--skip-pin-check', ...extra], { cwd: labRoot, encoding: 'utf8', env: { ...process.env, PATH: `${bin}:${process.env.PATH}` } });
+const full = (...extra) => spawnSync('node', [path.join(labRoot, 'tools/compare/setup.mjs'), 'zz-contrib-latest', ...base, '--ignore-resources', '--skip-pin-check', ...extra], { cwd: labRoot, encoding: 'utf8', env: { ...process.env, PATH: `${bin}:${process.env.PATH}` } });
 const js = (side) => fs.readFileSync(path.join(env(side), 'modules/contrib/zzcontrib/js/a.js'), 'utf8').split('\n')[1];
 const twig = (side) => fs.readFileSync(path.join(env(side), 'themes/contrib/zztheme/templates/node.html.twig'), 'utf8').split('\n')[1];
 
