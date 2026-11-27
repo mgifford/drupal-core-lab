@@ -70,6 +70,14 @@
     <p id="completeness" class="note"></p>
   </section>
 
+  <section id="host-section" hidden aria-labelledby="host-h">
+    <h2 id="host-h">Host capacity (sampled)</h2>
+    <p class="note">Point-in-time samples from the same checks as <code>scripts/preflight.mjs</code>, collected on demand. The level uses the conservative build/run thresholds. This is not a live monitor, and a gap between samples is not proof of idle time.</p>
+    <p id="host-status" class="note"></p>
+    <div class="tablewrap" role="region" aria-label="Host capacity samples table" tabindex="0"><table id="host-table"></table></div>
+    <p id="host-note" class="note"></p>
+  </section>
+
   <section id="filters-section" hidden aria-labelledby="filters-h">
     <h2 id="filters-h">Filter</h2>
     <form id="filters" class="filters">
@@ -377,6 +385,17 @@ function renderProvenance() {
   ]);
 }
 
+function renderHost() {
+  const h = DATA.host || {};
+  const rows = (h.series || []).slice().reverse().map((x) => [x.sampled_at, x.level, bytes(x.disk_free_bytes), x.memory_free_percent == null ? MISSING : `${fmt(x.memory_free_percent, 1)}%`, x.swap_used_percent == null ? MISSING : `${fmt(x.swap_used_percent, 1)}%`, x.docker_used_percent == null ? MISSING : `${fmt(x.docker_used_percent, 1)}%`, fmt(x.lab_pairs), fmt(x.lab_containers)]);
+  const latest = h.latest;
+  $('host-section').hidden = !latest;
+  if (!latest) return;
+  $('host-status').textContent = `Latest sample: ${latest.level.toUpperCase()} at ${latest.sampled_at}. ${fmt(h.samples)} sample(s) recorded; ${fmt(h.levels?.block)} block, ${fmt(h.levels?.warn)} warn.`;
+  table($('host-table'), 'Host capacity samples, newest first. Missing values are shown as —; zero is a measured zero.', ['Sample', 'Level', 'Disk free', 'Memory free', 'Swap used', 'Docker lab memory', 'Pairs', 'Containers'], rows);
+  $('host-note').textContent = h.note || '';
+}
+
 function render() {
   const provider = (r) => r.token_basis === 'provider-reported';
   const tokens = sum('tokens', provider);
@@ -504,6 +523,7 @@ function render() {
   ]);
   $('energy-note').textContent = DATA.energy ? `Uncertainty: ${DATA.energy.method.uncertainty}. The headline uses ${DATA.energy.method.intensity_column || 'energy_wh_per_usd'}; CLEER's verbosity-adjusted ${DATA.energy.method.adjusted_column || 'vadj_energy_wh_per_usd'} would imply ${wh(DATA.energy.totals.vadj_central_wh)}, a modelling alternative shown separately. The bridge assumes our token-category mix resembles CLEER's workload mix; that is unverified. Read the limitations in the method section.` : 'No energy estimate is available in this data.';
 
+  renderHost();
   renderAttribution();
   renderInfrastructure();
   renderTasks();

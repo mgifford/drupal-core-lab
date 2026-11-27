@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/mgifford/drupal-core-lab/tools/resource/events.schema.json",
   "title": "Drupal Core Lab resource accounting event",
-  "description": "Version 1.1.0. Adds an optional measurements.energy block for derived or measured energy; absent means no estimate, never zero. One normalized measurement from one source. Missing values are null and described in quality.missing; zero is a real measured zero. Provider-reported, measured, derived and estimated values are kept distinct.",
+  "description": "Version 1.2.0. Adds an optional measurements.host block for point-in-time host capacity samples. One normalized measurement from one source. Missing values are null and described in quality.missing; zero is a real measured zero. Provider-reported, measured, derived and estimated values are kept distinct.",
   "type": "object",
   "required": [
     "schema_version",
@@ -32,7 +32,8 @@
     "schema_version": {
       "enum": [
         "1.0.0",
-        "1.1.0"
+        "1.1.0",
+        "1.2.0"
       ]
     },
     "event_id": {
@@ -50,7 +51,8 @@
         "budget",
         "monitoring",
         "manual",
-        "ai-request"
+        "ai-request",
+        "host-sample"
       ]
     },
     "recorded_at": {
@@ -1248,6 +1250,130 @@
                   "type": "string"
                 }
               }
+            }
+          }
+        },
+        "host": {
+          "type": "object",
+          "required": [
+            "disk_free_bytes",
+            "disk_total_bytes",
+            "memory_free_percent",
+            "swap_used_bytes",
+            "swap_total_bytes",
+            "swap_used_percent",
+            "docker_lab_used_bytes",
+            "docker_mem_total_bytes",
+            "docker_used_percent",
+            "lab_pairs",
+            "lab_containers",
+            "lab_projects",
+            "level",
+            "measurement"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "disk_free_bytes": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "disk_total_bytes": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "memory_free_percent": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 100
+            },
+            "swap_used_bytes": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "swap_total_bytes": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "swap_used_percent": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 100
+            },
+            "docker_lab_used_bytes": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "docker_mem_total_bytes": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "docker_used_percent": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 100
+            },
+            "lab_pairs": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "lab_containers": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "lab_projects": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "level": {
+              "enum": [
+                "pass",
+                "warn",
+                "block",
+                "unknown"
+              ]
+            },
+            "measurement": {
+              "enum": [
+                "measured",
+                "sampled",
+                "unavailable"
+              ]
             }
           }
         }

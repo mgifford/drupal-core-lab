@@ -8,7 +8,7 @@ import { validateAgainst } from '../observability/schema.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const SCHEMA_PATH = path.join(here, 'events.schema.json');
-export const SCHEMA_VERSION = '1.1.0';
+export const SCHEMA_VERSION = '1.2.0';
 const schema = JSON.parse(fs.readFileSync(SCHEMA_PATH, 'utf8'));
 
 export const ACTIVITIES = [
@@ -42,6 +42,7 @@ export function blankMeasurements() {
     io: { read_ops: null, write_ops: null, read_bytes: null, write_bytes: null, measurement: 'unavailable' },
     network: { rx_bytes: null, tx_bytes: null, measurement: 'unavailable' },
     github: { workflow: null, job: null, event: null, runner: null, attempt: null, potentially_superseded: null, billable_minutes: null, queue_seconds: null },
+    host: { disk_free_bytes: null, disk_total_bytes: null, memory_free_percent: null, swap_used_bytes: null, swap_total_bytes: null, swap_used_percent: null, docker_lab_used_bytes: null, docker_mem_total_bytes: null, docker_used_percent: null, lab_pairs: null, lab_containers: null, lab_projects: null, level: 'unknown', measurement: 'unavailable' },
   };
 }
 
@@ -172,6 +173,14 @@ export function publicEvent(event) {
       workflow: m.github.workflow, job: m.github.job, event: m.github.event, runner: m.github.runner,
       attempt: num(m.github.attempt), potentially_superseded: m.github.potentially_superseded,
     },
+    host: m.host ? {
+      disk_free_bytes: num(m.host.disk_free_bytes), disk_total_bytes: num(m.host.disk_total_bytes),
+      memory_free_percent: num(m.host.memory_free_percent),
+      swap_used_bytes: num(m.host.swap_used_bytes), swap_total_bytes: num(m.host.swap_total_bytes), swap_used_percent: num(m.host.swap_used_percent),
+      docker_lab_used_bytes: num(m.host.docker_lab_used_bytes), docker_mem_total_bytes: num(m.host.docker_mem_total_bytes), docker_used_percent: num(m.host.docker_used_percent),
+      lab_pairs: num(m.host.lab_pairs), lab_containers: num(m.host.lab_containers), lab_projects: num(m.host.lab_projects),
+      level: m.host.level || 'unknown', measurement: m.host.measurement || 'unavailable',
+    } : null,
     classification: e.classification ? {
       version: e.classification.version, method: e.classification.method, method_version: e.classification.method_version ?? null,
       provenance: e.classification.provenance, confidence: e.classification.confidence, subcategory: e.classification.subcategory ?? null,
@@ -218,5 +227,5 @@ export const totalTokens = (t) => {
 
 export const publicFields = Object.freeze([
   'id', 'date', 'event_type', 'issue', 'variant', 'activity', 'tool', 'model', 'provider', 'outcome', 'validation',
-  'duration_seconds', 'quality', 'classification', 'provenance', 'reconciliation', 'tokens', 'cost', 'tools', 'exploration', 'cpu', 'memory', 'mutagen', 'energy', 'github', 'source', 'allocations',
+  'duration_seconds', 'quality', 'classification', 'provenance', 'reconciliation', 'tokens', 'cost', 'tools', 'exploration', 'cpu', 'memory', 'mutagen', 'energy', 'github', 'host', 'source', 'allocations',
 ]);
