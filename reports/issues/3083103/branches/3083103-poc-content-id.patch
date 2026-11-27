@@ -1,0 +1,117 @@
+diff --git a/core/lib/Drupal/Core/Form/FormErrorHandler.php b/core/lib/Drupal/Core/Form/FormErrorHandler.php
+index a76a873eb5..75cd68d24a 100644
+--- a/core/lib/Drupal/Core/Form/FormErrorHandler.php
++++ b/core/lib/Drupal/Core/Form/FormErrorHandler.php
+@@ -13,6 +13,25 @@ class FormErrorHandler implements FormErrorHandlerInterface {
+ 
+   use MessengerTrait;
+ 
++  /**
++   * Resolves the container ID for an element's error message.
++   *
++   * One resolver, so the container, the control's ARIA reference and the
++   * Inline Form Errors summary link cannot drift apart.
++   *
++   * @param array $element
++   *   The form element.
++   *
++   * @return string
++   *   The error container ID.
++   */
++  public static function getErrorId(array $element): string {
++    if (!empty($element['#error_id'])) {
++      return $element['#error_id'];
++    }
++    return $element['#id'] . '--error-message';
++  }
++
+   /**
+    * {@inheritdoc}
+    */
+@@ -40,9 +59,22 @@ public function handleFormErrors(array &$form, FormStateInterface $form_state) {
+   protected function displayErrorMessages(array $form, FormStateInterface $form_state) {
+     $errors = $form_state->getErrors();
+ 
+-    // Loop through all form errors and set an error message.
+-    foreach ($errors as $error) {
+-      $this->messenger()->addMessage($error, 'error');
++    // Loop through all form errors and set an error message. The message
++    // carries its own ID, so the association resolves even when the theme
++    // renders no inline error container (Inline Form Errors disabled).
++    foreach ($errors as $name => $error) {
++      $form_element = FormElementHelper::getElementByName($name, $form);
++      if (!empty($form_element['#id']) && empty($form_element['#error_no_message'])) {
++        $message = [
++          '#markup' => $error,
++          '#prefix' => '<span id="' . static::getErrorId($form_element) . '">',
++          '#suffix' => '</span>',
++        ];
++        $this->messenger()->addMessage($message, 'error');
++      }
++      else {
++        $this->messenger()->addMessage($error, 'error');
++      }
+     }
+   }
+ 
+@@ -164,6 +196,20 @@ protected function setElementErrorsFromFormState(array &$form, FormStateInterfac
+ 
+     // Store the errors for this element on the element directly.
+     $elements['#errors'] = $form_state->getError($elements);
++
++    // Tables and tableselects render no error container of their own; that is
++    // #2848307. Do not point a control at a container that will not exist.
++    $type = $elements['#type'] ?? '';
++    if ($elements['#errors'] !== NULL && empty($elements['#error_no_message']) && !empty($elements['#id']) && !in_array($type, ['table', 'tableselect'], TRUE)) {
++      $error_id = static::getErrorId($elements);
++      $elements['#attributes']['aria-invalid'] = 'true';
++      $elements['#attributes']['aria-errormessage'] = $error_id;
++      $tokens = preg_split('/\s+/', trim((string) ($elements['#attributes']['aria-describedby'] ?? '')), -1, PREG_SPLIT_NO_EMPTY);
++      if (!in_array($error_id, $tokens, TRUE)) {
++        array_unshift($tokens, $error_id);
++      }
++      $elements['#attributes']['aria-describedby'] = implode(' ', $tokens);
++    }
+   }
+ 
+ }
+diff --git a/core/lib/Drupal/Core/Render/Element/RenderElementBase.php b/core/lib/Drupal/Core/Render/Element/RenderElementBase.php
+index e6f01da5cc..a198c2ad53 100644
+--- a/core/lib/Drupal/Core/Render/Element/RenderElementBase.php
++++ b/core/lib/Drupal/Core/Render/Element/RenderElementBase.php
+@@ -151,7 +151,7 @@ public static function setAttributes(&$element, $class = []) {
+       $element['#attributes']['class'][] = 'required';
+       $element['#attributes']['required'] = 'required';
+     }
+-    if (isset($element['#parents']) && isset($element['#errors']) && !empty($element['#validated'])) {
++    if (isset($element['#parents']) && isset($element['#errors']) && !empty($element['#validated']) && empty($element['#error_no_message'])) {
+       $element['#attributes']['class'][] = 'error';
+       $element['#attributes']['aria-invalid'] = 'true';
+     }
+diff --git a/core/modules/inline_form_errors/src/Hook/InlineFormErrorsThemeHooks.php b/core/modules/inline_form_errors/src/Hook/InlineFormErrorsThemeHooks.php
+index 642d031399..4f48eb7933 100644
+--- a/core/modules/inline_form_errors/src/Hook/InlineFormErrorsThemeHooks.php
++++ b/core/modules/inline_form_errors/src/Hook/InlineFormErrorsThemeHooks.php
+@@ -2,6 +2,7 @@
+ 
+ namespace Drupal\inline_form_errors\Hook;
+ 
++use Drupal\Core\Form\FormErrorHandler;
+ use Drupal\Core\Hook\Attribute\Hook;
+ 
+ /**
+@@ -74,7 +75,13 @@ public function preprocessDatetimeWrapper(&$variables): void {
+   protected function setErrors(&$variables): void {
+     $element = $variables['element'];
+     if (!empty($element['#errors']) && empty($element['#error_no_message'])) {
+-      $variables['errors'] = $element['#errors'];
++      // The ID is part of the error value, so any theme that prints errors
++      // prints the ID too; no template change and no template variable.
++      $variables['errors'] = [
++        '#markup' => $element['#errors'],
++        '#prefix' => '<span id="' . FormErrorHandler::getErrorId($element) . '">',
++        '#suffix' => '</span>',
++      ];
+     }
+   }
+ 
