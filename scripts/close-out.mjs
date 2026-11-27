@@ -1,21 +1,24 @@
 // Close an issue's work before the next one starts: nothing uncommitted, no orphaned evidence. Pushes nothing.
-//   node scripts/close-out.mjs <nid> [--commit] [--message "<subject>"] [--no-refresh]
+//   node scripts/close-out.mjs <nid> [--commit] [--message "<subject>"] [--no-refresh] [--keep-running]
 // 1. unless --no-refresh: regenerates COVERAGE.md (scripts/coverage.mjs) and the issue list (scripts/index-issues.mjs)
 // 2. lists every uncommitted or untracked path (git status, each file) and sorts it into "this issue" (its report folder, recipes,
 //    evaluator, variants.json, the generated issue list and cloud/) or "other" (not touched here: decide what it is)
 // 3. flags incomplete evidence runs: a reports/issues/<nid>/playwright/<run> folder with no results.json, no infrastructure-error.json
 //    and no ABORTED.md (a note saying why it stopped; the folder is kept as history, never deleted by this script)
-// 4. says which of the issue's sites are still running (scripts/lab-env.mjs stop <slug>)
+// 4. stops the issue's own environments (not a shared baseline another running variant uses); --keep-running skips this
 // --commit stages only the "this issue" paths and commits them locally (AI-assisted trailer included). Exit 0 only when the working
 // tree is clean afterwards, no run is incomplete and nothing is "other". A push still needs the owner's approval (AGENTS.md rule 4).
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { labRoot, variants } from '../tools/compare/lib.mjs';
+import { labRoot, variants, envDir } from '../tools/compare/lib.mjs';
+import { releaseLease } from '../tools/compare/leases.mjs';
 
 const args = process.argv.slice(2);
+const keepRunning = args.includes('--keep-running');
+const LEASE_FILE = path.join(labRoot, '.lab-cache/lab-env-leases.json');
 const nid = args.find((a, i) => /^\d{5,8}$/.test(a) && args[i - 1] !== '--message');
-if (!nid) { console.error('usage: node scripts/close-out.mjs <nid> [--commit] [--message "<subject>"] [--no-refresh]'); process.exit(2); }
+if (!nid) { console.error('usage: node scripts/close-out.mjs <nid> [--commit] [--message "<subject>"] [--no-refresh] [--keep-running]'); process.exit(2); }
 const mi = args.indexOf('--message'), message = mi >= 0 && args[mi + 1] ? args[mi + 1] : `Close out #${nid}: retain evidence and record the final state`;
 const run = (cmd, a, o = {}) => spawnSync(cmd, a, { cwd: labRoot, encoding: 'utf8', ...o });
 const git = (a) => run('git', a);
@@ -63,8 +66,25 @@ show('Incomplete evidence runs (no results.json: re-run it, or add an ABORTED.md
 const sites = variants().filter((v) => v.slug.startsWith(`${nid}-`) || String(v.issue) === nid).map((v) => v.slug);
 const st = run('node', ['scripts/lab-env.mjs', 'status']);
 const running = sites.filter((s) => new RegExp(`${s}[^\\n]*running`, 'i').test(st.stdout || ''));
-if (running.length) console.log(`\nStill running: ${running.join(', ')}. Stop them: ${running.map((s) => `node scripts/lab-env.mjs stop ${s}`).join(' ; ')}`);
+let stopFailed = false;
+if (running.length && !keepRunning) {
+  // Stop only environments no other running variant shares. A shared baseline may belong to another issue's pair.
+  const runningSites = run('docker', ['ps', '--format', '{{.Label "com.ddev.site-name"}}']).stdout.split('\n').filter(Boolean).map((x) => x.replace(/^repro-/, ''));
+  const mine = new Set(running.flatMap((slug) => { const v = variants().find((x) => x.slug === slug); return v ? [v.before.env, v.after.env] : []; }));
+  const owners = (e) => variants().filter((v) => v.before.env === e || v.after.env === e);
+  const shared = [...mine].filter((e) => owners(e).some((v) => !sites.includes(v.slug) && (runningSites.includes(v.before.env) || runningSites.includes(v.after.env))));
+  const stoppable = [...mine].filter((e) => !shared.includes(e) && fs.existsSync(envDir(e)));
+  for (const e of stoppable) {
+    const r = run('ddev', ['stop'], { cwd: envDir(e) });
+    if (r.status === 0) console.log(`stopped ${e}`);
+    else { stopFailed = true; console.error(`could not stop ${e}`); }
+  }
+  if (shared.length) console.log(`Kept shared environment(s) used by another running variant: ${shared.join(', ')}`);
+  for (const slug of sites) releaseLease(LEASE_FILE, { slug, force: true });
+} else if (running.length) {
+  console.log(`\nStill running (kept with --keep-running): ${running.join(', ')}. Stop them: ${running.map((s) => `node scripts/lab-env.mjs stop ${s}`).join(' ; ')}`);
+}
 
-const ok = !list.length && !incomplete.length;
+const ok = !list.length && !incomplete.length && !stopFailed;
 console.log(ok ? `\n#${nid} is closed out: working tree clean, no incomplete runs. Nothing is pushed; ask the owner before pushing.` : `\n#${nid} is NOT closed out.`);
 process.exit(ok ? 0 : 1);

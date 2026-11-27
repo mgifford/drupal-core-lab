@@ -69,6 +69,14 @@ Build-only dependencies are not evidence. After a lint or CSS build, release `co
 environments with `node scripts/lab-env.mjs release-deps <slug> --yes`; it reinstalls on demand. `vendor` is runtime:
 release it only with `--vendor`, and `lab-env.mjs start` restores it with `ddev composer install` before the site is used.
 
+## Environment ownership and shutdown
+
+`lab-env.mjs start` claims a 120-minute lease that names the DSH session (`DSH_SESSION_ID`), and `stop` releases it.
+`close-out.mjs` stops the issue's own environments by default (`--keep-running` keeps them) and leaves a shared
+baseline alone while another running variant uses it. `lab-env.mjs reconcile [--apply]` shows every running project
+with its lease/session and stops only the ones that are safe (no live session, recent evidence or active process);
+dry run is the default. Never use `docker system prune`/`docker volume prune` for this.
+
 ## Start here (the normal sequence for an issue)
 
     node scripts/doctor.mjs [slug]                       1. is this machine ready? fix what it reports (read-only)

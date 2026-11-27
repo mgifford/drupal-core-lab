@@ -16,6 +16,7 @@
 //   node scripts/lab-env.mjs trim <slug|all> [--deep]  free regenerable disk space (test output, snapshots); --deep also removes core/node_modules (about 400 MB each)
 //   node scripts/lab-env.mjs disk                   free space, what each environment uses, and what is safe to remove
 //   node scripts/lab-env.mjs deps [--json]          read-only: node_modules/vendor sizes and lockfile keys per environment
+//   node scripts/lab-env.mjs reconcile [--apply] [--grace=30] [--json]  show running lab projects, their lease/session and whether they are safe to stop; --apply stops only the safe ones (data is kept)
 //   node scripts/lab-env.mjs release-deps <slug|all> [--yes] [--vendor]  dry-run by default: remove regenerable dependencies from STOPPED, unleased environments; --vendor also removes composer vendor (restored on start)
 // `stop all` stops every lab environment but leaves the small drupal-compare address project running.
 import fs from 'node:fs';
@@ -32,6 +33,7 @@ import { parsePair } from '../tools/resource/units.mjs';
 import { loadTasks } from '../tools/resource/tasks.mjs';
 import { readRunning, loadBudgets } from '../tools/resource/budgets.mjs';
 import { capacityDecision } from '../tools/compare/scheduler.mjs';
+import { decideEnvironment, findSessionActivity } from '../tools/compare/reconcile.mjs';
 import { dependencyKeys, releasePlan, formatReleased } from '../tools/compare/deps.mjs';
 
 const [cmd, target, action] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
@@ -293,19 +295,27 @@ switch (cmd) {
   case 'chrome': chromeLifecycle(); break;
   case 'start': {
     if (!target) { console.error('usage: start <slug>'); process.exit(2); }
-    for (const e of envsOf(target)) {
-      if (!fs.existsSync(path.join(envDir(e), '.ddev/config.yaml'))) { console.error(`${e} does not exist yet. Build it: node tools/compare/setup.mjs ${target}`); process.exit(1); }
+    const targetEnvs = envsOf(target);   // validate the slug before writing a lease
+    try {
+      claimLease(LEASE_FILE, { slug: target, operation: 'run', session: process.env.DSH_SESSION_ID || null, minutes: 120 });
+    } catch (e) {
+      console.error(`Cannot start ${target}: ${e.message}`);
+      process.exit(3);
+    }
+    const fail = (msg) => { releaseLease(LEASE_FILE, { slug: target, force: true }); console.error(msg); process.exit(1); };
+    for (const e of targetEnvs) {
+      if (!fs.existsSync(path.join(envDir(e), '.ddev/config.yaml'))) fail(`${e} does not exist yet. Build it: node tools/compare/setup.mjs ${target}`);
       let ok = false; for (let i = 1; i <= 3 && !ok; i++) { ok = ddev(envDir(e), ['start']).status === 0; if (!ok) { console.log('Failed; DDEV\'s router sometimes times out and recovers. Waiting 20 s and retrying.'); spawnSync('sleep', ['20']); } }
-      if (!ok) { console.error(`could not start ${e}`); process.exit(1); }
+      if (!ok) fail(`could not start ${e}`);
       // A released vendor is restored before the site is used. ddev start works without it; composer needs the container.
       if (!fs.existsSync(path.join(envDir(e), 'vendor/autoload.php'))) {
         console.log(`${e}: vendor is missing (released); restoring it with ddev composer install.`);
-        if (ddev(envDir(e), ['composer', 'install', '--no-interaction']).status !== 0) { console.error(`could not restore vendor in ${e}`); process.exit(1); }
+        if (ddev(envDir(e), ['composer', 'install', '--no-interaction']).status !== 0) fail(`could not restore vendor in ${e}`);
       }
     }
     const url = startViewer(target);
     if (wantBrowser) await openLabBrowser();
-    console.log(`\nStarted both environments of ${target} and the viewer: ${url}\n(The viewer shows a "still loading" message until both sites answer.) Stop everything: node scripts/lab-env.mjs stop ${target}`); break; }
+    console.log(`\nStarted both environments of ${target} and the viewer: ${url}\nThe lease ${process.env.DSH_SESSION_ID ? `names session ${process.env.DSH_SESSION_ID}` : 'has no session (terminal)'} and expires in 120 minutes. Stop everything: node scripts/lab-env.mjs stop ${target}`); break; }
   case 'browser': {
     if (process.argv.includes('--reset')) { try { await viewerApi({ close: true }); } catch { /* viewer not running */ } fs.rmSync(path.join(labRoot, '.lab-browser'), { recursive: true, force: true }); console.log('Deleted the lab browser profile (saved choices, ticks and notes).'); break; }
     await openLabBrowser(); break; }
@@ -368,6 +378,54 @@ switch (cmd) {
     if (yes) console.log(`\nFreed about ${formatReleased(freed)}.${vendor ? ' Vendor restores automatically on the next lab-env start (ddev composer install).' : ''} Node modules reinstall on demand: cd envs/<env>/core && yarn install --immutable`);
     else console.log(`\nDry run (${plan.filter((p) => p.action === 'remove').length} environment(s) would lose ${vendor ? 'core/node_modules and vendor' : 'core/node_modules'}). Re-run with --yes${vendor ? ' (vendor is restored on the next start)' : ''}.`);
     break; }
+  case 'reconcile': {
+    const apply = process.argv.includes('--apply');
+    const graceArg = process.argv.find((a) => a.startsWith('--grace='));
+    const grace = Number(graceArg ? graceArg.slice('--grace='.length) : 30);
+    if (!Number.isFinite(grace) || grace < 0) { console.error('reconcile: --grace must be 0 or a positive number of minutes'); process.exit(2); }
+    const web = dockerContainers().filter((c) => c.role === 'web' && c.site && c.site.startsWith('repro-'));
+    const envs = [...new Set(web.map((c) => c.env))].filter(Boolean).sort();
+    if (!envs.length) { console.log('No running lab environments.'); break; }
+    const leases = leaseRows(LEASE_FILE);
+    const proc = spawnSync('pgrep', ['-fl', 'node'], { encoding: 'utf8' });
+    const procLines = proc.status === 0 ? proc.stdout.split('\n').filter((l) => /setup\.mjs|evaluate-|try-tests|lab-run/.test(l)).join('\n') : '';
+    const rows = envs.map((env) => {
+      const site = web.find((c) => c.env === env).site;
+      const mine = vs.filter((v) => v.before.env === env || v.after.env === env);
+      const candidates = leases.filter((l) => mine.some((v) => v.slug === l.slug));
+      const lease = candidates.find((l) => l.status === 'active') || candidates[0] || null;
+      const session = lease?.session ? findSessionActivity(lease.session) : null;
+      let evidenceAge = null;
+      for (const v of mine) {
+        try {
+          const dir = reportsDir(v);
+          const times = ['EVIDENCE.md', 'SUMMARY.md', 'REVIEW.md'].map((f) => { try { return fs.statSync(path.join(dir, f)).mtimeMs; } catch { return 0; } });
+          times.push(fs.statSync(dir).mtimeMs);
+          const age = (Date.now() - Math.max(...times)) / 60000;
+          evidenceAge = evidenceAge == null ? age : Math.min(evidenceAge, age);
+        } catch { /* no report folder */ }
+      }
+      let projectAge = null;
+      const started = spawnSync('docker', ['inspect', '--format', '{{.State.StartedAt}}', `ddev-${site}-web`], { encoding: 'utf8' });
+      if (started.status === 0) { const at = Date.parse(started.stdout.trim()); if (Number.isFinite(at)) projectAge = (Date.now() - at) / 60000; }
+      const processActive = mine.some((v) => procLines.includes(v.slug)) || procLines.includes(env);
+      const decision = decideEnvironment({ lease, sessionAgeMinutes: session?.ageMinutes ?? null, processActive, recentEvidence: evidenceAge != null && evidenceAge < grace, projectAgeMinutes: projectAge, graceMinutes: grace });
+      return { env, slugs: mine.map((v) => v.slug).join(','), lease: lease?.slug || '', session: lease?.session || '', session_age: session ? Math.round(session.ageMinutes) : null, project_age: projectAge == null ? null : Math.round(projectAge), action: decision.action, reason: decision.reason };
+    });
+    if (process.argv.includes('--json')) console.log(JSON.stringify(rows, null, 2));
+    else {
+      console.log(`${'Environment'.padEnd(30)} ${'Lease'.padEnd(28)} ${'Session'.padEnd(30)} ${'Age'.padStart(5)} ${'Decision'.padEnd(8)} Reason`);
+      for (const r of rows) console.log(`${r.env.padEnd(30)} ${String(r.lease || '—').padEnd(28)} ${String(r.session || '—').padEnd(30)} ${String(r.project_age ?? '?').padStart(5)} ${r.action.padEnd(8)} ${r.reason}`);
+    }
+    if (!apply) { console.log(`\nDry run. Re-run with --apply to stop the ${rows.filter((r) => r.action === 'stop').length} environment(s) marked stop. Data is kept.`); break; }
+    let failed = 0;
+    for (const r of rows.filter((x) => x.action === 'stop')) {
+      const stopped = ddev(envDir(r.env), ['stop']).status === 0;
+      if (stopped) { for (const slug of r.slugs.split(',')) releaseLease(LEASE_FILE, { slug, force: true }); console.log(`stopped ${r.env}`); }
+      else { failed++; console.error(`could not stop ${r.env}`); }
+    }
+    if (failed) process.exit(1);
+    break; }
   case 'disk': {
     const df = spawnSync('df', ['-k', labRoot], { encoding: 'utf8' }).stdout.trim().split('\n').pop().split(/\s+/);
     console.log(`Free disk: ${(Number(df[3]) / 1048576).toFixed(1)} GB\n`);
@@ -384,11 +442,20 @@ switch (cmd) {
   npm cache clean --force                      npm's cache (reinstalls on demand)`); break; }
   case 'stop': {
     if (!target) { console.error('usage: stop <slug|all> [--force]'); process.exit(2); }
-    const blocked = protectionMessage(LEASE_FILE, target === 'all' ? vs.map((v) => v.slug) : [target], { force, action: 'stop' });
-    if (blocked) { console.error(blocked); process.exit(1); }
+    const slugs = target === 'all' ? vs.map((v) => v.slug) : [target];
+    const session = process.env.DSH_SESSION_ID || null;
+    const active = leaseRows(LEASE_FILE).filter((l) => slugs.includes(l.slug) && l.status === 'active');
+    // A TTL lease from this session (or a terminal start with no session) is ours to release. A lease held by
+    // another DSH session, or by a live wrapped process, still protects the environment.
+    const foreign = active.filter((l) => l.pid != null || (l.session && l.session !== session));
+    if (foreign.length && !force) {
+      console.error(`Refusing to stop: active lease on ${foreign.map((l) => `${l.slug} (${l.session || `pid ${l.pid}`})`).join(', ')}. Release it or use --force only after that work has ended.`);
+      process.exit(1);
+    }
     const list = present(target === 'all' ? allEnvs : envsOf(target));   // before stopViewer: it stops every viewer on the machine
     stopViewer();
     for (const e of list) { process.stdout.write(`${e}: `); ddev(envDir(e), ['stop']); }
+    for (const slug of slugs) releaseLease(LEASE_FILE, { slug, force: true });
     break; }
   case 'retire': {
     if (!target) { console.error('usage: retire <slug> --yes [--force]'); process.exit(2); }
@@ -431,5 +498,5 @@ switch (cmd) {
     const list = present(envsOf(target)); if (!yes) { console.error(`This DELETES ${list.join(' and ')} (containers, database and worktree). Evidence in reports/ is kept. Re-run with --yes.`); process.exit(2); }
     for (const e of list) { ddev(envDir(e), ['delete', '--omit-snapshot', '--yes']); spawnSync('git', [`--git-dir=${path.join(envsDir, 'core.git')}`, 'worktree', 'remove', '--force', envDir(e)], { stdio: 'inherit' }); }
     break; }
-  default: console.error('usage: lab-env.mjs status | resources [--json] | deps [--json] | release-deps <slug|all> [--yes] [--vendor] | chrome <slug> start|stop | disk | start <slug> [--browser] | browser [--reset] | stop <slug|all> | reset <slug> --yes | trim <slug|all> [--deep] | delete <slug> --yes | retire <slug> --yes [--force]'); process.exit(2);
+  default: console.error('usage: lab-env.mjs status | resources [--json] | deps [--json] | reconcile [--apply] [--grace=30] [--json] | release-deps <slug|all> [--yes] [--vendor] | chrome <slug> start|stop | disk | start <slug> [--browser] | browser [--reset] | stop <slug|all> | reset <slug> --yes | trim <slug|all> [--deep] | delete <slug> --yes | retire <slug> --yes [--force]'); process.exit(2);
 }
