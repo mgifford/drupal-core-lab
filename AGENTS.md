@@ -65,6 +65,10 @@ the environment `unknown`, do not reuse it, and say what was interrupted.
 Before stopping, record the preflight output, the last completed stage, the next command, and whether each environment
 is running, stopped or unknown. `setup.mjs` is resumable; the record is what makes the stop safe.
 
+Build-only dependencies are not evidence. After a lint or CSS build, release `core/node_modules` from stopped
+environments with `node scripts/lab-env.mjs release-deps <slug> --yes`; it reinstalls on demand. `vendor` is runtime:
+do not release it by hand.
+
 ## Start here (the normal sequence for an issue)
 
     node scripts/doctor.mjs [slug]                       1. is this machine ready? fix what it reports (read-only)
