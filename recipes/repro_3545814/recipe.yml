@@ -1,0 +1,27 @@
+name: 'Repro: #3545814 Exposed filters with exposed operators are missing accessible names'
+description: 'An Article content type with a Tags term reference field, the Tags vocabulary, four seeded articles and a page View whose numeric ID, content type and taxonomy filters are all exposed with their operators. A second numeric ID filter is exposed with a fixed operator (the issue summary manual-test case).'
+type: 'Testing'
+recipes:
+  - core/tests/fixtures/recipes/article_content_type
+  - core/recipes/tags_taxonomy
+install:
+  - taxonomy
+  - field
+  - views_ui
+config:
+  # The View config gains generated keys (uuid) after its first import, so a
+  # second application must not fail on the comparison.
+  strict: false
+  import:
+    field:
+      - field.storage.node.field_tags
+      - field.field.node.article.field_tags
+    views:
+      - views.view.repro_3545814
+  actions:
+    core.entity_form_display.node.article.default:
+      setComponents:
+        - name: field_tags
+          options:
+            type: entity_reference_autocomplete_tags
+            weight: 10

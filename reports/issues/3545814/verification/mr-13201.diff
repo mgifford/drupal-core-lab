@@ -1,0 +1,38 @@
+diff --git a/core/modules/views/src/Plugin/views/filter/FilterPluginBase.php b/core/modules/views/src/Plugin/views/filter/FilterPluginBase.php
+index 70cdc9e997ec7c57dc158ea329a93241006f52dd..a0df96c7ec5cc4795ef97467d088f616ed7d63be 100644
+--- a/core/modules/views/src/Plugin/views/filter/FilterPluginBase.php
++++ b/core/modules/views/src/Plugin/views/filter/FilterPluginBase.php
+@@ -1083,8 +1083,9 @@ public function buildExposedForm(&$form, FormStateInterface $form_state) {
+       $this->valueForm($form, $form_state);
+       $form[$value] = $form['value'];
+ 
+-      if (isset($form[$value]['#title']) && !empty($form[$value]['#type']) && $form[$value]['#type'] != 'checkbox') {
+-        unset($form[$value]['#title']);
++      // Hide label when operator is exposed.
++      if ($this->options['expose']['use_operator'] && isset($form[$value]['#title']) && !empty($form[$value]['#type']) && $form[$value]['#type'] != 'checkbox') {
++        $form[$value]['#title_display'] = 'invisible';
+       }
+ 
+       $this->exposedTranslate($form[$value], 'value');
+diff --git a/core/modules/views/src/Plugin/views/filter/NumericFilter.php b/core/modules/views/src/Plugin/views/filter/NumericFilter.php
+index 637c362cc84f2925ab6ddeb4ad6cc518087f00c2..d6f3fa56e319b7510ce91c70e017175508ab38fc 100644
+--- a/core/modules/views/src/Plugin/views/filter/NumericFilter.php
++++ b/core/modules/views/src/Plugin/views/filter/NumericFilter.php
+@@ -242,7 +242,7 @@ protected function valueForm(&$form, FormStateInterface $form_state) {
+     if ($which == 'all') {
+       $form['value']['value'] = [
+         '#type' => 'textfield',
+-        '#title' => !$exposed ? $this->t('Value') : '',
++        '#title' => $this->t('Value'),
+         '#size' => 30,
+         '#default_value' => $this->value['value'],
+       ];
+@@ -265,7 +265,7 @@ protected function valueForm(&$form, FormStateInterface $form_state) {
+       // the operator is locked.
+       $form['value'] = [
+         '#type' => 'textfield',
+-        '#title' => !$exposed ? $this->t('Value') : '',
++        '#title' => $this->t('Value'),
+         '#size' => 30,
+         '#default_value' => $this->value['value'],
+       ];
