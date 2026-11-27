@@ -50,7 +50,7 @@ Slugs and environments are in `tools/compare/variants.json`; `node scripts/lab-e
 ## Commands (usage and flags: `docs/COMMANDS.md`)
 All are `node <path> ...` from the repository root; `<slug>` is a variant in `tools/compare/variants.json`.
 
-    scripts/doctor.mjs [slug] [--network]  |  scripts/lab-env.mjs status|start|stop|reset|delete|trim|disk|retire <slug>
+    scripts/doctor.mjs [slug] [--network] [--for=<task>]  |  scripts/deps.mjs check [--for=<task>] | link  (packages per task; a worktree reuses the primary's)  |  scripts/lab-env.mjs status|start|stop|reset|delete|trim|disk|retire <slug>
     tools/compare/setup.mjs <slug> [--check-patches | --refresh-patches | --checkout-only | --reinstall | --core-from=<path>]
     tools/compare/serve.mjs <slug>  |  tools/compare/diff.mjs <slug>  |  tools/playwright/walkthrough.mjs <slug>  |  tools/playwright/tree-diff.mjs <nid|slug>  (accessibility tree, ARIA, speech: docs/ACCESSIBILITY-TREE-DIFF.md)
     scripts/css-build.mjs <slug> [--check | --build [--corrective]] [--side=after] [--dry-run] [--json] [--stylelint]    .pcss.css to .css with core's own build:css (docs/COMMANDS.md)  |  scripts/lint.mjs <slug> [--contrib]  |  scripts/coverage.mjs <nid>  |  scripts/check-draft.mjs <nid>  |  scripts/findings.mjs add|from-run|set|list  |  scripts/run-mark.mjs <run>
@@ -116,6 +116,7 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
 
 18. **Generated CSS.** Whenever Drupal Core CSS source files ending in `.pcss.css` are modified during patch authoring, rebuild their compiled `.css` counterparts using the exact checkout's supported build toolchain, verify consistency, run applicable code-quality checks, and include both files in the final patch. `node scripts/css-build.mjs <slug> --build` does it with core's own `yarn run build:css` (only the affected files, After checkout only), and `scripts/capture-patch.mjs` runs it before it writes a patch. Core's CI fails a merge request whose `.css` does not match its `.pcss.css`.
 19. **Reviewing generated CSS.** When reviewing imported patches, report inconsistent generated artifacts without silently modifying the proposal. `node scripts/css-build.mjs <slug> --check` reports them (PASS, FAIL, BLOCKED, SKIPPED). A repair is a separate, explicit `--build --corrective` in the After checkout that leaves the imported patch byte for byte unchanged and writes a follow-up patch and an interdiff. Never report the original MR as passing because the lab repaired its files, never write into Before, and never substitute an approximate CSS transformation: if the toolchain cannot run, the result is BLOCKED. A passing CSS build says nothing about accessibility.
+20. **Dependencies are installed, never committed.** No `node_modules`, `.deps` or symlink that leaves the repository is tracked (`selftest` fails one). In a secondary worktree run `node scripts/deps.mjs link` instead of a second install; it refuses unless the lockfiles match. Check a task's packages with `node scripts/deps.mjs check --for=<task>` before a long run, not after it fails.
 
 ### Shell Compatibility (macOS / zsh)
 - **Never include `#` comments inside executable shell blocks.** In interactive zsh (the macOS default), `#` is treated as an unknown command unless the user has `setopt INTERACTIVE_COMMENTS` set.

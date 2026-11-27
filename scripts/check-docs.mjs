@@ -25,7 +25,7 @@ const handWritten = (f) => {
 };
 // Paths that are intentionally absent (MIGRATION.md lists what was left out on purpose) or are examples.
 // tools/compare/.deps/ is installed by setup.mjs and never committed (see tools/compare/README.md).
-const INTENTIONALLY_ABSENT = /(\/shards\/|reports\/auth-state\.json|reports\/axe-results\/|scripts\/reset-site\.sh|tools\/compare\/\.deps)/;
+const INTENTIONALLY_ABSENT = /(\/shards\/|reports\/auth-state\.json|reports\/axe-results\/|scripts\/reset-site\.sh|tools\/compare\/\.deps|tools\/playwright\/node_modules)/;
 let bad = 0, checked = 0;
 const tops = '(?:tools|scripts|reports|docs|recipes|bundles)';
 for (const f of files.filter(handWritten)) {

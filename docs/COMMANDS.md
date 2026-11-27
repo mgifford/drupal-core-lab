@@ -8,6 +8,9 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
 `main`), which two environments, which patches, the recipe that creates the starting state, the steps, and the checks.
 
     node scripts/doctor.mjs [slug]                       # preflight: prerequisites, disk, what is running
+    node scripts/doctor.mjs --for=<git|selftest|browser|viewer|lighthouse>   # only what that task needs: a git-only task does not fail on a missing Docker, a static selftest needs no browser; that task's missing packages FAIL
+    node scripts/deps.mjs [check] [--for=<task>] [--json]   # the lab's JavaScript packages, RESOLVED the way the code loads them: missing, found in a parent folder's node_modules, a version other than the lockfile's, a Node.js outside a package's engines
+    node scripts/deps.mjs link [--from=<checkout>] [--dry-run]   # in a secondary worktree: symlink tools/playwright/node_modules and tools/compare/.deps/node_modules to the primary checkout's trees (identical lockfile and locked versions only; never replaces a real folder or a working link)
     node scripts/doctor.mjs <slug> --network [--core-url=<mirror>]   # can the hosts a build of that variant needs be reached (core, contrib, Composer, GitHub, npm)? Run it before a build under filtered egress
     node scripts/lab-env.mjs reset <slug> --yes          # cheapest reset: reinstall both SITES (database, files, recipe, languages); keeps checkout and patches
     node scripts/lab-env.mjs disk | trim <slug|all> [--deep]   # what uses disk; free regenerable space (--deep also removes core/node_modules, ~400 MB each)
@@ -67,7 +70,7 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/findings.mjs add | from-run <run> | set | list   # barriers spotted outside the issue (reports/findings/); every entry starts unconfirmed
     node scripts/run-mark.mjs <run> --superseded --reason "<why>" [--by <run>]   # keep a run as history; coverage stops counting it (coverage also marks a run stale by itself when its recorded patch hashes, recipe or pin no longer match)
     node scripts/lab-env.mjs retire <slug> --yes         # delete a pair only once reports/issues/<nid>/ is committed and pushed
-    node scripts/selftest.mjs [--live <slug>] [--network]   # does the lab itself work: syntax, unit tests, variants, docs; --live runs lint and the evaluator
+    node scripts/selftest.mjs [--live <slug>] [--network] [--keep-going]   # does the lab itself work: packages first (deps.mjs), syntax, unit tests, variants, docs; a missing package stops the unit tests unless --keep-going; --live runs lint and the evaluator
     node scripts/skill-evals.mjs list | validate [skill] | run <skill> [--model M] [--judge-model M] [--endpoint URL] [--only <case>] [--baseline] [--dry-run]   # evals for .agents/skills (docs/SKILL-EVALS.md): validate is deterministic and part of selftest; run needs an Ollama-compatible model (LAB_EVAL_MODEL, OLLAMA_HOST)
     node scripts/issue-from-url.mjs <url> [--pack <file>] [--ai-recipe] [--mr <n>] [--no-import] [--dry-run]  # start from a Drupal.org issue URL (prepare→validate→import)
     node scripts/issue-pack.mjs validate <pack> | import <pack> [--recipe <dir>] [--depth 2000] [--dry-run]  # validate/import an issue pack; --ai-recipe at prepare time

@@ -3,7 +3,8 @@ envs/*
 !envs/README.md
 # A second clone made inside this one by mistake (scripts/test-mr.mjs says so): keep it out of `git status` and `git stash -u`.
 /drupal-core-lab/
-node_modules/
+# No trailing slash: a symlink named node_modules is not a directory to git, and one was committed that way (2026-11-25).
+node_modules
 vendor/
 .DS_Store
 .playwright-mcp/
@@ -21,9 +22,9 @@ playwright-report/
 # Built bundles (regenerate with scripts/make-bundle.mjs)
 dist/
 
-# axe-core is installed from npm at setup time, not committed
-tools/compare/.deps/
-tools/playwright/node_modules/
+# axe-core is installed from npm at setup time, not committed. Shared between worktrees with node scripts/deps.mjs link.
+tools/compare/.deps
+tools/playwright/node_modules
 .lab-viewer.*
 .lab-browser/
 
