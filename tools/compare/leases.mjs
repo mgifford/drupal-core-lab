@@ -48,7 +48,7 @@ export function activeLease(file, slug, options = {}) {
 }
 
 // A new claim by another live pid is refused. An expired/stale lease is replaceable; a remote active lease is protected.
-export function claimLease(file, { slug, task = null, operation = 'working', minutes = 60, pid = null, host = os.hostname(), now = Date.now(), force = false } = {}) {
+export function claimLease(file, { slug, task = null, operation = 'working', minutes = 60, pid = null, session = null, host = os.hostname(), now = Date.now(), force = false } = {}) {
   if (!slug) throw new Error('claimLease needs a slug');
   if (!Number.isFinite(minutes) || minutes <= 0) throw new Error('minutes must be greater than 0');
   const leases = readLeases(file);
@@ -59,7 +59,7 @@ export function claimLease(file, { slug, task = null, operation = 'working', min
   }
   const at = nowIso(now);
   const lease = {
-    slug, task: task || null, operation: operation || 'working', pid: pid == null ? null : Number(pid), host,
+    slug, task: task || null, operation: operation || 'working', pid: pid == null ? null : Number(pid), session: session || null, host,
     started_at: prev && prev.pid === pid ? prev.started_at : at,
     heartbeat_at: at, expires_at: nowIso(now + minutes * 60 * 1000),
   };
