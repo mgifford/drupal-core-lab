@@ -11,6 +11,11 @@
 // files of both checkouts are compared before and after (AGENTS.md rule 1: the baseline is never edited). A file that already exists
 // at its destination stops the run, since removing it afterwards would delete someone's work. In a git worktree of this
 // repository the environments are taken from the main checkout's envs/.
+// Before anything is copied, each side's identity is established (tools/compare/serving-identity.mjs, env-state.mjs, patch-state.mjs):
+// DDEV answers from that folder with that environment's project, running; the web container holds the host's bytes for core's Drupal.php
+// and every file the side's patches touch; the core base, pin and recipe are what the variant asks; the patches are applied as recorded;
+// and, for Functional, FunctionalJavascript and Build tests, the web server serves a file written into that checkout. A mismatch stops
+// the run with exit 3 and no test result. The identity is printed and kept with the raw logs (identity.json) and in --report.
 // Exit code: 0 nothing to flag, 1 something to flag (a test that is not useful, a regression, lint, the patch, a checkout changed), 2 usage, 3 environment problem.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -19,6 +24,10 @@ import { spawn, spawnSync, execFileSync } from 'node:child_process';
 import { labRoot, variants } from '../tools/compare/lib.mjs';
 import { needsChrome, chromeContainerName } from '../tools/compare/browser-tests.mjs';
 import { parsePhpunit, summaryLine, testMethods, methodStatus, verdictFor, verdictExisting, classifyLint, renderTable, renderMarkdownTable } from '../tools/compare/phpunit-output.mjs';
+import { servingIdentity } from '../tools/compare/serving-identity.mjs';
+import { identity, blockMessage, identityRecord } from '../tools/compare/env-state.mjs';
+import { runBlockReason } from '../tools/compare/patch-state.mjs';
+import { sideState } from '../tools/compare/contrib-state.mjs';
 
 const USAGE = 'usage: node scripts/try-tests.mjs <slug> <test file or folder...> [--existing <core test path...>] [--patch-out <file>] [--mr-ref <git ref>] [--report <file>]';
 const die = (msg, code = 3) => { console.error(msg); process.exit(code); };
@@ -57,6 +66,16 @@ for (const s of SIDES) {
   if (state !== 'running') die(`${x.env} (${s}) is not running (${state || 'ddev did not answer'}). Start both sites: ${labEnv} start ${slug}`);
   x.commit = spawnSync('git', ['rev-parse', '--short=11', 'HEAD'], { cwd: x.dir, encoding: 'utf8' }).stdout.trim();
 }
+// 2b. identity: the variant's state (base, pin, recipe; patches as recorded), then what actually answers on each side
+let variantIdentity;
+{
+  const id = identity(v, { labRoot, envDir: (e) => path.join(envsDir, e) }), block = blockMessage(id);
+  if (block) die(`${block}\nNo test was run.`, 3);
+  const states = Object.fromEntries(SIDES.map((s) => [s, sideState(sides[s].dir, labRoot, v[s].patches || [], { modules: v.contrib || [], patches: v[s].contribPatches || [] })]));
+  const patchBlock = runBlockReason(states, slug, { before: v.before.env, after: v.after.env });
+  if (patchBlock) die(patchBlock, 3);
+  variantIdentity = { variant: identityRecord(id), patchState: Object.fromEntries(SIDES.map((s) => [s, { state: states[s].state, patches: states[s].current }])) };
+}
 const gitStatus = (dir) => spawnSync('git', ['status', '--short', '--untracked-files=all'], { cwd: dir, encoding: 'utf8' }).stdout.trim();
 const gitStatusTracked = (dir) => spawnSync('git', ['status', '--short', '--untracked-files=no'], { cwd: dir, encoding: 'utf8' }).stdout.trim();
 
@@ -85,6 +104,14 @@ const browserTest = needsChrome({
   ],
 });
 if (browserTest) ensureChrome();
+// Functional, FunctionalJavascript and Build tests reach the site over HTTP, so for them the web server must be shown to serve the checkout.
+const viaHttp = [...items.map((it) => it.rel), ...existing].some((p) => /\/tests\/src\/(Functional|FunctionalJavascript|Build)\//.test(p));
+const idProblems = [];
+for (const s of SIDES) {
+  const r = await servingIdentity({ side: s, env: sides[s].env, dir: sides[s].dir, labRoot, patchPaths: v[s].patches || [], http: viaHttp });
+  sides[s].identity = r.record; idProblems.push(...r.problems.map((p) => `${s} (${sides[s].env}): ${p}`));
+}
+if (idProblems.length) die(`IDENTITY MISMATCH: the site that would run the tests is not the checkout the variant names, so no test result is reported.\n  ${idProblems.join('\n  ')}`, 3);
 const lintable = items.filter((it) => /\.(php|module|inc|install|theme|profile|engine)$/.test(it.rel));
 
 // 4. cleanup registry: the copies are removed on every way out (normal end, an exception, Ctrl-C)
@@ -250,6 +277,9 @@ if (patch.file) {
   sections.push({ title: 'Patch', lines: [`${patch.file} (${patch.files} file${patch.files === 1 ? '' : 's'}, ${patch.lines} lines)`, ...(patch.ref ? [patch.applies ? `applies to ${patch.ref}` : `does NOT apply to ${patch.ref}: ${patch.detail}`] : [])] });
 }
 sections.push({ title: 'Checkouts', lines: state });
+const idLine = (x) => `${x.side}: ${x.ddevProject} at ${path.relative(labRoot, x.dir) || x.dir}, ${x.status}; container ${x.container?.name}${x.container?.image ? ` (${x.container.image})` : ''}: ${x.containerFiles?.checked ?? 0} identifying file(s) match the checkout; database ${[x.database?.type, x.database?.version, x.database?.file || x.database?.name].filter(Boolean).join(' ') || 'unknown'}; ${x.url || 'no URL'}${x.basePath ? ` (base path ${x.basePath})` : ''}; HTTP: ${x.http || 'not checked'}`;
+sections.push({ title: 'Identity (checked before the run)', lines: [...SIDES.map((s) => idLine(sides[s].identity)), `core base ${variantIdentity.variant.base.before?.slice(0, 12) || '?'} / ${variantIdentity.variant.base.after?.slice(0, 12) || '?'}${variantIdentity.variant.pin ? `, pin ${variantIdentity.variant.pin.slice(0, 12)}` : ''}${variantIdentity.variant.recipe ? `, recipe ${variantIdentity.variant.recipe.name}` : ''}; patches: ${SIDES.map((s) => `${s} ${variantIdentity.patchState[s].state}${variantIdentity.patchState[s].patches.length ? ` (${variantIdentity.patchState[s].patches.map((x) => `${path.basename(x.path)} ${x.sha256.slice(0, 12)}`).join(', ')})` : ''}`).join('; ')}`] });
+fs.writeFileSync(path.join(logDir, 'identity.json'), `${JSON.stringify({ slug, variant: variantIdentity.variant, patchState: variantIdentity.patchState, before: sides.before.identity, after: sides.after.identity }, null, 1)}\n`);
 const result = problems.length ? `PROBLEMS (${problems.length}): ${problems.join('; ')}` : 'nothing to flag';
 const head = `try-tests ${slug}: Before ${sides.before.env}@${sides.before.commit}, After ${sides.after.env}@${sides.after.commit}${(v.after.patches || []).length ? ` plus ${(v.after.patches || []).length} patch(es)` : ''}${fromMain ? ' (environments from the main checkout)' : ''}`;
 
