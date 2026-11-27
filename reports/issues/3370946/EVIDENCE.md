@@ -18,6 +18,7 @@ commit/tool/browser record. Re-check the issue before relying on anything here.
 
 ## Folder hygiene
 
-`3370946-supporting-artifacts/` duplicates 9 of the top-level files byte-for-byte and holds
-`3370946-supporting-artifacts.zip` (~57 KB). Per `AGENTS.md` the zip belongs in `bundles/` and raw logs should be
-summarised, not committed in full. Flagged, not changed here.
+`3370946-supporting-artifacts.zip` held 11 files, all byte-identical to the top-level copies; it was deleted on
+2026-11-26 with the owner's approval, after a per-member `shasum` comparison, and no evidence was lost. The
+`3370946-supporting-artifacts/` directory described earlier no longer existed at that point. The raw Guidepup logs are
+still committed in full; they should be summarised here at some point rather than left as the only record.

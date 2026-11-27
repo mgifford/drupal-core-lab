@@ -37,6 +37,10 @@ Edit `recipes/repro_<nid>/recipe.yml` so the starting state exists (modules, con
 Full field reference: `tools/compare/README.md`.
 
 ## 3. Build, check, look
+Before the first build, run `node scripts/preflight.mjs`. A `block` is a refusal; a `warn` means finish the current
+stage and ask before adding a pair. `setup.mjs` is resumable, so stop between stages rather than interrupting
+Composer or a database install. See "Resource checkpoints" in `AGENTS.md` for the safe boundaries.
+
 Build the **`-latest`** pair first (updated core, and updated core plus the patch): that is the day-to-day pair. Build `-pinned` later,
 when you want the exact original reproduction recorded. Stop the previous issue's pair first (`node scripts/lab-env.mjs stop <slug>`).
     node tools/compare/setup.mjs <nid>-pinned --check-patches    # do the patches apply to the pinned core?

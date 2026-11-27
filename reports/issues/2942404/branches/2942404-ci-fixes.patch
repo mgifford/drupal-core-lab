@@ -1,0 +1,182 @@
+diff --git a/core/misc/message.js b/core/misc/message.js
+index 5fb5d12ab9..ae1c893a14 100644
+--- a/core/misc/message.js
++++ b/core/misc/message.js
+@@ -11,11 +11,11 @@
+   const LANDMARK_ATTRIBUTE = 'data-drupal-message-landmark';
+ 
+   /**
+-   * The role Drupal assigns to a system messages landmark.
++   * Selector for elements that already carry live-region semantics.
+    *
+    * @type {string}
+    */
+-  const LANDMARK_ROLE = 'region';
++  const LIVE = '[role="alert"], [role="status"], [aria-live]';
+ 
+   /**
+    * Instances that use the default system messages container.
+@@ -40,20 +40,13 @@
+    * @return {boolean}
+    *   TRUE when the element holds a message.
+    */
+-  const isMessage = (element) => {
+-    if (element.hasAttribute('data-drupal-message-id')) {
+-      return true;
+-    }
+-    if (!element.classList.contains('messages')) {
+-      return false;
+-    }
+-    return (
+-      element.textContent.trim() !== '' ||
+-      element.querySelector(
+-        'img, svg, picture, video, iframe, [role="img"]',
+-      ) !== null
+-    );
+-  };
++  const isMessage = (element) =>
++    element.hasAttribute('data-drupal-message-id') ||
++    (element.classList.contains('messages') &&
++      (element.textContent.trim() !== '' ||
++        element.querySelector(
++          'img, svg, picture, video, iframe, [role="img"]',
++        ) !== null));
+ 
+   /**
+    * Determines whether a messages container still holds a message.
+@@ -72,9 +65,9 @@
+   /**
+    * Adds landmark semantics to a default system messages container.
+    *
+-   * Existing roles, names and labelled-by references are author-provided and
+-   * are never overwritten. The values Drupal assigns are recorded so cleanup
+-   * can leave later changes by another script in place.
++   * Existing roles, names and labelled-by references are never overwritten.
++   * The values Drupal assigns are recorded so cleanup can leave later changes
++   * by another script in place.
+    *
+    * @param {HTMLElement} container
+    *   The outer system messages container.
+@@ -88,17 +81,17 @@
+       return;
+     }
+     const label = Drupal.t('System messages');
+-    container.setAttribute('role', LANDMARK_ROLE);
++    container.setAttribute('role', 'region');
+     container.setAttribute('aria-label', label);
+     container.setAttribute(LANDMARK_ATTRIBUTE, '');
+-    landmarks.set(container, { role: LANDMARK_ROLE, label });
++    landmarks.set(container, { role: 'region', label });
+   };
+ 
+   /**
+    * Removes landmark semantics that Drupal still owns.
+    *
+    * If another script changed the role, the name or added aria-labelledby,
+-   * Drupal relinquishes the landmark and leaves the changed attributes alone.
++   * Drupal relinquishes the landmark and leaves both attributes alone.
+    *
+    * @param {HTMLElement} container
+    *   The outer system messages container.
+@@ -208,17 +201,11 @@
+       const internalWrapper = wrapper.querySelector(
+         ':scope > .messages__wrapper',
+       );
+-      if (
+-        internalWrapper &&
+-        !internalWrapper.matches('[role="alert"], [role="status"], [aria-live]')
+-      ) {
++      if (internalWrapper && !internalWrapper.matches(LIVE)) {
+         return internalWrapper;
+       }
+       const firstChild = wrapper.firstElementChild;
+-      if (
+-        firstChild &&
+-        !firstChild.matches('[role="alert"], [role="status"], [aria-live]')
+-      ) {
++      if (firstChild && !firstChild.matches(LIVE)) {
+         return firstChild;
+       }
+       return Drupal.Message.messageInternalWrapper(wrapper, 'beforeend');
+diff --git a/core/modules/big_pipe/tests/modules/big_pipe_test/src/BigPipePlaceholderTestCases.php b/core/modules/big_pipe/tests/modules/big_pipe_test/src/BigPipePlaceholderTestCases.php
+index 552f6337c5..bc9d720691 100644
+--- a/core/modules/big_pipe/tests/modules/big_pipe_test/src/BigPipePlaceholderTestCases.php
++++ b/core/modules/big_pipe/tests/modules/big_pipe_test/src/BigPipePlaceholderTestCases.php
+@@ -105,11 +105,11 @@ public static function cases(?ContainerInterface $container = NULL, ?AccountInte
+           'method' => 'replaceWith',
+           // cspell:disable-next-line
+           'selector' => '[data-big-pipe-placeholder-id="callback=Drupal%5CCore%5CRender%5CElement%5CStatusMessages%3A%3ArenderMessages&args%5B0%5D&token=_HAdUpwWmet0TOTe2PSiJuMntExoshbm1kh2wQzzzAA"]',
+-          'data' => '<div data-drupal-messages>' . "\n" . ' <div role="status" aria-label="Status message">' . "\n" . ' <h2 class="visually-hidden">Status message</h2>' . "\n" . ' Hello from BigPipe!' . "\n" . ' </div>' . "\n" . '</div>' . "\n",
++          'data' => '<div data-drupal-messages role="region" aria-label="System messages">' . "\n" . ' <div role="status" aria-label="Status message">' . "\n" . ' <h2 class="visually-hidden">Status message</h2>' . "\n" . ' Hello from BigPipe!' . "\n" . ' </div>' . "\n" . '</div>' . "\n",
+           'settings' => NULL,
+         ],
+       ];
+-      $status_messages->embeddedHtmlResponse = '<div data-drupal-messages-fallback class="hidden"></div><div data-drupal-messages>' . "\n" . '  <div role="status" aria-label="Status message">' . "\n" . '          <h2 class="visually-hidden">Status message</h2>' . "\n" . '              Hello from BigPipe!' . "\n" . '      </div>' . "\n" . '</div>' . "\n";
++      $status_messages->embeddedHtmlResponse = '<div data-drupal-messages-fallback class="hidden"></div><div data-drupal-messages role="region" aria-label="System messages">' . "\n" . '  <div role="status" aria-label="Status message">' . "\n" . '          <h2 class="visually-hidden">Status message</h2>' . "\n" . '              Hello from BigPipe!' . "\n" . '      </div>' . "\n" . '</div>' . "\n";
+     }
+ 
+     // 2. Real-world example of HTML attribute value placeholder: form action.
+diff --git a/core/profiles/demo_umami/tests/src/FunctionalJavascript/MultipleRequestsPerformanceTestAssertions/umamiFrontAndRecipePagesAuthenticated.yml b/core/profiles/demo_umami/tests/src/FunctionalJavascript/MultipleRequestsPerformanceTestAssertions/umamiFrontAndRecipePagesAuthenticated.yml
+index c8ed75e5e3..9280cfd3c5 100644
+--- a/core/profiles/demo_umami/tests/src/FunctionalJavascript/MultipleRequestsPerformanceTestAssertions/umamiFrontAndRecipePagesAuthenticated.yml
++++ b/core/profiles/demo_umami/tests/src/FunctionalJavascript/MultipleRequestsPerformanceTestAssertions/umamiFrontAndRecipePagesAuthenticated.yml
+@@ -1,4 +1,4 @@
+ ScriptCount: 7
+-ScriptBytes: 60671
++ScriptBytes: 62549
+ StylesheetCount: 12
+ StylesheetBytes: 40149
+diff --git a/core/profiles/demo_umami/tests/src/FunctionalJavascript/OpenTelemetryPerformanceTestAssertions/administratorNodePage.yml b/core/profiles/demo_umami/tests/src/FunctionalJavascript/OpenTelemetryPerformanceTestAssertions/administratorNodePage.yml
+index 23318cbddb..a38f8f01f5 100644
+--- a/core/profiles/demo_umami/tests/src/FunctionalJavascript/OpenTelemetryPerformanceTestAssertions/administratorNodePage.yml
++++ b/core/profiles/demo_umami/tests/src/FunctionalJavascript/OpenTelemetryPerformanceTestAssertions/administratorNodePage.yml
+@@ -129,6 +129,6 @@ CacheTagGroupedLookups:
+   -
+     - block_content_view
+ ScriptCount: 12
+-ScriptBytes: 187160
++ScriptBytes: 189038
+ StylesheetCount: 16
+ StylesheetBytes: 78251
+diff --git a/core/profiles/standard/tests/src/FunctionalJavascript/StandardPerformanceTestAssertions/testAdmin.yml b/core/profiles/standard/tests/src/FunctionalJavascript/StandardPerformanceTestAssertions/testAdmin.yml
+index 4b0a0499dc..09bf9bb3b9 100644
+--- a/core/profiles/standard/tests/src/FunctionalJavascript/StandardPerformanceTestAssertions/testAdmin.yml
++++ b/core/profiles/standard/tests/src/FunctionalJavascript/StandardPerformanceTestAssertions/testAdmin.yml
+@@ -39,6 +39,6 @@ CacheTagGroupedLookups:
+     - 'config:user.role.authenticated'
+     - 'user:2'
+ ScriptCount: 10
+-ScriptBytes: 155112
++ScriptBytes: 156990
+ StylesheetCount: 9
+ StylesheetBytes: 234587
+diff --git a/core/tests/Drupal/FunctionalJavascriptTests/Core/JsMessageTest.php b/core/tests/Drupal/FunctionalJavascriptTests/Core/JsMessageTest.php
+index 78add07ce7..ba7c83662b 100644
+--- a/core/tests/Drupal/FunctionalJavascriptTests/Core/JsMessageTest.php
++++ b/core/tests/Drupal/FunctionalJavascriptTests/Core/JsMessageTest.php
+@@ -212,6 +212,25 @@ public function testLandmarkOwnership(): void {
+     $this->getSession()->executeScript("const el = document.querySelector('[data-drupal-messages]'); el.removeAttribute('aria-labelledby'); document.getElementById('external-name').remove(); window.__testMessage.clear();");
+   }
+ 
++  /**
++   * Tests that cleanup uses the name recorded when the landmark was added.
++   */
++  public function testLandmarkNameChange(): void {
++    $web_assert = $this->assertSession();
++    $this->drupalGet('js_message_test_link');
++    $web_assert->waitForElement('css', '[data-drupal-messages]');
++
++    // Add a message with the original translation.
++    $this->getSession()->executeScript("window.__originalT = Drupal.t; window.__testMessage = new Drupal.Message(); window.__testMessage.add('Original language', {type: 'status', announce: ''});");
++    $web_assert->elementExists('css', '[data-drupal-messages][role="region"][aria-label="System messages"]');
++
++    // Change what Drupal.t() returns for the landmark name, then clear.
++    $this->getSession()->executeScript("Drupal.t = function (str) { return str === 'System messages' ? 'Renamed messages' : window.__originalT.apply(Drupal, arguments); }; window.__testMessage.clear(); Drupal.t = window.__originalT;");
++    $web_assert->elementNotExists('css', '[data-drupal-messages][role="region"]');
++    $web_assert->elementNotExists('css', '[data-drupal-messages][aria-label="System messages"]');
++    $web_assert->elementNotExists('css', '[data-drupal-messages][data-drupal-message-landmark]');
++  }
++
+   /**
+    * Tests that multiple instances share one container and one landmark.
+    */
