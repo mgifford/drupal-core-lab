@@ -359,7 +359,20 @@ switch (cmd) {
     }
     if (why.length && !process.argv.includes('--force')) { console.error(`Not retiring ${target}:\n- ${why.join('\n- ')}\nCommit and push the evidence (or use --force to delete anyway).`); process.exit(1); }
     if (!yes) { console.error(`Evidence for ${v.issue ? `#${v.issue}` : rel} is safe${why.length ? ' (checks overridden with --force)' : ''}. This DELETES ${list.join(' and ') || 'nothing (not built)'}. Re-run with --yes.`); process.exit(2); }
-    for (const e of list) { ddev(envDir(e), ['delete', '--omit-snapshot', '--yes']); spawnSync('git', [`--git-dir=${path.join(envsDir, 'core.git')}`, 'worktree', 'remove', '--force', envDir(e)], { stdio: 'inherit' }); }
+    // DDEV and Git are two separate removals. Report either failure instead of printing success when a directory
+    // (for example an independent clone, not a worktree of envs/core.git) is left behind.
+    const failed = [];
+    for (const e of list) {
+      const dir = envDir(e);
+      const del = ddev(dir, ['delete', '--omit-snapshot', '--yes']);
+      if (del.status !== 0) failed.push(`${e}: ddev delete exited ${del.status}`);
+      const wt = spawnSync('git', [`--git-dir=${path.join(envsDir, 'core.git')}`, 'worktree', 'remove', '--force', dir], { stdio: 'inherit' });
+      if (wt.status !== 0 || fs.existsSync(dir)) failed.push(`${e}: directory not removed${wt.status !== 0 ? ` (git worktree remove exited ${wt.status})` : ''}`);
+    }
+    if (failed.length) {
+      console.error(`DDEV project(s) for ${target} were deleted, but these environments were not fully removed:\n- ${failed.join('\n- ')}\nA directory here may be an independent clone rather than a worktree of envs/core.git. Inspect it, confirm it holds no unique work, then remove it explicitly. Evidence stays in ${rel}/.`);
+      process.exit(1);
+    }
     console.log(`Retired ${target}. Evidence stays in ${rel}/; rebuild with node tools/compare/setup.mjs ${target}`);
     break; }
   case 'delete': {

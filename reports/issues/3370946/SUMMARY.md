@@ -42,8 +42,10 @@ Guidepup screen-reader logs.
 
 ## Notes
 
-- **This folder carries ~1 MB of artifacts, and `3370946-supporting-artifacts/` duplicates 9 of the top-level files
-  byte-for-byte** plus a `3370946-supporting-artifacts.zip`. Per `AGENTS.md`, zips belong in `bundles/` and raw scan/log
-  output should be summarised rather than committed. Flagged for cleanup; not changed here.
-- The refresh keeps the configurable switch and update-path machinery; the note lists "remove configurability" as an open
-  decision.
+- **Duplicate artifacts removed 2026-11-26** (owner approved): `3370946-supporting-artifacts.zip` was deleted after
+  verifying all 11 members were byte-identical to the top-level copies (`shasum` per member). The
+  `3370946-supporting-artifacts/` directory the original note described no longer existed. The folder is now ~808 KB;
+  no evidence was lost, because every member survives as a top-level file.
+- The refresh keeps the configurable switch and update-path machinery. The "remove configurability" question is now
+  **answered by the owner (2026-11-26): aim to be more configurable, not less** — see
+  [DECISIONS-2026-11-26.md](DECISIONS-2026-11-26.md).

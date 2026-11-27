@@ -67,8 +67,11 @@ export function checkProbe(probe) {
   const bad = code.match(ALWAYS) || code.match(CALLS) || code.match(GLOBALS);
   if (bad) problems.push(`uses "${bad[0].replace(/\s*\($/, '').trim()}", which a read-only probe may not use`);
   if (/\+\+|--/.test(code)) problems.push('uses ++ or --');
-  if (/=/.test(code.replace(/===|!==|==|!=|<=|>=|=>/g, ''))) problems.push('contains an assignment (a probe only reads)');
-  if (/;/.test(code)) problems.push('contains a semicolon; a probe is one expression');
+  // A const/let/var declaration is not a mutation; the #2847425 probes use one inside an IIFE.
+  const noDecl = code.replace(/\b(?:const|let|var)\s+[A-Za-z_$][\w$]*\s*=/g, '');
+  if (/=/.test(noDecl.replace(/===|!==|==|!=|<=|>=|=>/g, ''))) problems.push('contains an assignment (a probe only reads)');
+  // A parenthesized IIFE may contain semicolons; "1; 2" is still rejected.
+  if (/;/.test(code) && !/^\s*\(/.test(probe)) problems.push('contains a semicolon; a probe is one expression');
   try { new Function(`return (${probe})`); } catch (e) { problems.push(`is not a valid JavaScript expression (${String(e.message).slice(0, 80)})`); }
   return problems;
 }
