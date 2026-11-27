@@ -23,7 +23,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { labRoot, resolveVariant, envDir, ddevName, parseDdevList, ddevNameClashes } from '../tools/compare/lib.mjs';
+import { labRoot, resolveVariant, envDir, ddevName, parseDdevList, ddevNameClashes, replacedByFolders } from '../tools/compare/lib.mjs';
 import { PROXY_PROJECTS } from '../tools/compare/cloud/config.mjs';
 
 const USAGE = 'Usage: node scripts/test-mr.mjs <issue number | variant slug> [--diff=<file|url>] [--mr=<number|url>] [--patch=<path>] [--no-update] [--no-start] [--dry-run] [--core-url=<url>]';
@@ -70,6 +70,10 @@ else {
       else if (ahead) note(`This branch has ${ahead} commit(s) of its own and is ${behind} behind ${upstream}; not updating it automatically.`);
       else {
         if (git('merge', '--ff-only', '--quiet', upstream).status !== 0) {
+          // A stash puts back a tracked file that a folder replaced and deletes the folder's ignored contents, which it never saved.
+          const folders = replacedByFolders(labRoot);
+          if (folders.length) fail(`local changes block the update, and setting them aside with git stash would delete ${folders.map((f) => `${f}/`).join(', ')} (a folder where git tracks a file or symlink; its contents are ignored, so a stash would not keep them).`,
+            `untrack ${folders.length === 1 ? 'it' : 'them'} (the folder stays as it is): git rm --cached ${folders.join(' ')}\n  then run this again. For tools/playwright/node_modules this is the expected one-time migration (docs/PITFALLS.md).`);
           const label = `test-mr ${new Date().toISOString()}: local changes set aside to update to ${upstream}`;
           const st = git('stash', 'push', '--include-untracked', '-m', label);
           if (st.status !== 0) fail(`local changes block the update and could not be set aside (${firstLine(st)}).`, 'commit or move them (git status shows them), then run this again.');

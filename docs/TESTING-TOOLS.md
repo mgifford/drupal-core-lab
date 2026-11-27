@@ -24,6 +24,10 @@ Install the locked JavaScript packages before running the lab self-test:
     npm install --no-save --prefix tools/compare/.deps js-yaml@4
     node scripts/selftest.mjs
 
+`node scripts/deps.mjs check --for=selftest` says whether those packages resolve here (selftest checks the same first, and does not
+start its unit tests without them). In a secondary git worktree, `node scripts/deps.mjs link` reuses the primary checkout's installed
+trees when the lockfiles are identical, instead of a second 90 MB install.
+
 The shared unpublished-status tests use jsdom and Guidepup without a browser.
 CI installs these dependencies rather than skipping the tests. Browser binaries
 and live Drupal comparisons remain separate setup steps.

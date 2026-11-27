@@ -3,6 +3,8 @@
 //   node scripts/selftest.mjs --live <slug>     also, against that built pair: doctor, lint (the tools must RUN: PASS or FAIL, never ERROR),
 //                                               and tools/playwright/evaluate-<nid>.mjs if it exists (output to a temp folder; results.json must be complete)
 //   node scripts/selftest.mjs --network         also read one issue's status from drupal.org (scripts/issue-status.mjs, read-only)
+//   node scripts/selftest.mjs --keep-going      run the unit tests even when a package they load is missing (normally they are not run:
+//                                               the dependency row says what to install, before minutes are spent on known failures)
 // Writes nothing into reports/. Exit 1 if any check fails; skipped checks say why.
 import { staticSurvey, isAuthoredPatch } from '../tools/compare/css-build.mjs';
 import fs from 'node:fs';
@@ -15,15 +17,29 @@ import { resolveBase, unrecorded } from '../tools/compare/patch-change.mjs';
 import { matrixProblems } from '../tools/compare/coverage-matrix.mjs';
 import { testRunSummary } from '../tools/compare/test-output.mjs';
 import { runProblems } from '../tools/playwright/lib/run-schema.mjs';
+import { checkTask, describeRow, trackedDependencyProblems, primaryCheckout } from '../tools/compare/deps.mjs';
 
 const args = process.argv.slice(2);
 const liveIdx = args.indexOf('--live'); const liveSlug = liveIdx >= 0 ? args[liveIdx + 1] : null;
-if (liveIdx >= 0 && (!liveSlug || liveSlug.startsWith('--'))) { console.error('usage: node scripts/selftest.mjs [--live <slug>] [--network]'); process.exit(2); }
+if (liveIdx >= 0 && (!liveSlug || liveSlug.startsWith('--'))) { console.error('usage: node scripts/selftest.mjs [--live <slug>] [--network] [--keep-going]'); process.exit(2); }
 const results = [];
 const record = (name, status, detail = '') => { results.push({ name, status, detail }); console.log(`${status.padEnd(4)}  ${name}${detail ? `: ${detail}` : ''}`); };
 const run = (cmd, a, opts = {}) => spawnSync(cmd, a, { cwd: labRoot, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, ...opts });
 const has = (cmd) => run('sh', ['-c', `command -v ${cmd}`]).status === 0;
 const first = (r) => `${r.stderr || ''}${r.stdout || ''}`.trim().split('\n').filter(Boolean).slice(-3).join(' / ').slice(0, 300);
+
+// 0. before anything slow: do the packages the unit tests load resolve here (tools/compare/deps.mjs), and is no dependency tree or
+// machine-specific symlink tracked (tools/playwright/node_modules was a committed symlink that only worked five folders deep)?
+const deps = checkTask(labRoot, 'selftest');
+{
+  const primary = primaryCheckout(labRoot), reuse = primary && primary !== labRoot ? ` (or reuse ${primary}'s: node scripts/deps.mjs link)` : '';
+  const warn = deps.warnings.length ? `; warning: ${deps.warnings.map((r) => describeRow(r)).join('; ')}` : '';
+  record('packages the unit tests load (deps.mjs check --for=selftest)', deps.ok ? 'ok' : 'FAIL',
+    deps.ok ? `${deps.rows.map((r) => `${r.name} ${r.version}`).join(', ')}${warn}` : `${deps.problems.map((r) => describeRow(r)).join('; ')}. Fix: ${deps.fixes.join(' && ')}${reuse}`);
+  const tracked = trackedDependencyProblems(labRoot);
+  record('no tracked dependency trees or out-of-repository symlinks', tracked.length ? 'FAIL' : 'ok', tracked.length ? `${tracked.map((x) => `${x.path}: ${x.problem}`).join('; ')}. Untrack: git rm --cached <path> (the files on disk stay)` : '');
+}
+const unitTestsBlocked = !deps.ok && !args.includes('--keep-going');
 
 // 1. syntax of the lab's own code
 const SKIP = new Set(['node_modules', '.deps', '.git', 'envs', 'cloud', '.lab-browser', '.claude', '.agents', 'bundles', 'reports']);
@@ -39,10 +55,9 @@ if (!has('php')) record('php -l', 'skip', 'no php on this machine');
 
 // 2. unit tests
 const glob = (dir) => (fs.existsSync(path.join(labRoot, dir)) ? fs.readdirSync(path.join(labRoot, dir)).filter((f) => f.endsWith('.test.mjs')).map((f) => path.join(dir, f)) : []);
-const yamlThere = fs.existsSync(path.join(labRoot, 'tools/compare/.deps/node_modules/js-yaml'));
-for (const [name, list, needsYaml] of [['unit tests: lab tools', glob('tests/lab'), false], ['unit tests: issue packs', glob('tests/issue-pack'), true], ['unit tests: design observations', glob('tests/design'), false]]) {
+for (const [name, list] of [['unit tests: lab tools', glob('tests/lab')], ['unit tests: issue packs', glob('tests/issue-pack')], ['unit tests: design observations', glob('tests/design')]]) {
   if (!list.length) { record(name, 'skip', 'no tests found'); continue; }
-  if (needsYaml && !yamlThere) { record(name, 'skip', 'js-yaml not installed: npm install --prefix tools/compare/.deps js-yaml@4'); continue; }
+  if (unitTestsBlocked) { record(name, 'skip', `not run: a package they load is missing (first row); --keep-going runs them anyway`); continue; }
   const r = run('node', ['--test', '--test-reporter=tap', '--test-concurrency=1', ...list], { timeout: 600000 });
   const summary = testRunSummary(r);
   record(name, summary.ok ? 'ok' : 'FAIL', summary.detail);

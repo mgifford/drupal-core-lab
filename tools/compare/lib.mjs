@@ -1,5 +1,5 @@
 // Shared helpers: find environments, talk to DDEV, normalise pages for diffing.
-import { execFileSync, execFile } from 'node:child_process';
+import { execFileSync, execFile, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import http from 'node:http';
 import https from 'node:https';
@@ -80,6 +80,17 @@ export function ddevNameClashes(projects, wanted) {
     if (!p || !p.approot || path.resolve(p.approot) === path.resolve(dir)) return [];
     return [{ name, dir, approot: p.approot, lab: labCheckoutOf(p.approot) }];
   });
+}
+
+// Tracked files or symlinks that a real folder has replaced in the working tree (git status shows them as deleted). `git stash`
+// and `git checkout` put the tracked file back and DELETE the folder's ignored contents, which they never saved: npm replacing the
+// committed tools/playwright/node_modules symlink with a 90 MB install is the case that prompted this (2026-11-26). The safe step is
+// `git rm --cached <path>`, which changes only the index.
+export function replacedByFolders(repo) {
+  const st = spawnSync('git', ['status', '--porcelain=v1', '-z', '--untracked-files=no'], { cwd: repo, encoding: 'utf8' });
+  if (st.status !== 0) return [];
+  return st.stdout.split('\0').filter((e) => /^.[DT] /.test(e)).map((e) => e.slice(3))
+    .filter((p) => { try { const s = fs.lstatSync(path.join(repo, p)); return s.isDirectory() && !s.isSymbolicLink(); } catch { return false; } });
 }
 
 // DDEV hostname and router port for an environment (the router needs a Host header).

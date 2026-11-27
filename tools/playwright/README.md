@@ -7,8 +7,12 @@ moments, record what assistive technology would be given, and write the result t
 
 ## Install (once)
     cd tools/playwright
-    npm install
+    npm ci
     npx playwright install chromium        # large download (the browser)
+
+`npm ci` installs exactly `package-lock.json`. `node_modules` is never committed. In a secondary git worktree, reuse the primary
+checkout's tree instead (`node scripts/deps.mjs link`, from the lab root). `node scripts/deps.mjs check --for=browser` says whether
+everything a browser run needs resolves here, Chromium included.
 
 ## Run (both DDEV sites must be running; see ../compare/README.md)
     node tools/playwright/walkthrough.mjs 3619127-pinned     # steps 6 to 10, mouse and keyboard-only, axe at each stage
