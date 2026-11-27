@@ -74,15 +74,23 @@ const gitWords = (repo) => (repo.bare ? `git --git-dir=${repo.dir}` : `git -C ${
 
 // The fetch that gives the missing history, smallest first. need: { source, target } (a tip that is not here) and ancestry (merge-base
 // failed at the shallow boundary). The day that matters is the day before the declared base (when given) or before the local commit's
-// oldest shallow boundary. If core's branch does not reach back that far, it is fetched with --shallow-since=<that day>. If it already
-// does, the local side is what is cut short (its boundary lies inside the merge request's own commits), so the source branch is deepened.
-// Measured 2026-11-27: a LATER --shallow-since SHORTENS a ref's existing history, so a ref that already reaches the day gets
-// --deepen=<n>, which only deepens. Never --unshallow (all of core's history). Only refs/lab/prepare-push/<nid>/* are written.
+// oldest shallow boundary. If core's branch does not reach back that far, it is fetched to that day. If it already does, the local side
+// is what is cut short (its boundary lies inside the merge request's own commits), so the source branch is deepened.
+// Measured 2026-11-27 on temporary repositories; the shared clone serves every issue, so no fetch may cut what any ref already has:
+//   --shallow-since=<day> moves the shallow boundary of EVERY ref through that history, so a day later than the oldest commit some ref
+//     reaches shortens that ref (25 commits to 18). Here it is never later than the day before the oldest commit any ref or worktree
+//     HEAD reaches (`floor`); when that is earlier than needed, the plan says so.
+//   --deepen=<n> never shortens, and is bounded for a tip that is already here; for a NEW tip whose history meets nothing here it
+//     fetched the whole history (23 of 23 commits), so it is used only for a tip that is present.
+//   --depth=<n> shortened another ref from 25 commits to 1: never used. Nor --unshallow (all of core's history).
+// Only refs/lab/prepare-push/<nid>/* are written.
 export function fetchPlan(repo, { nid, need, local, base, sourceUrl, sourceBranch, sourceSha = '', targetUrl, targetBranch, targetSha = '' }) {
   const oldest = (sha) => (has(repo, sha) ? boundaries(repo, sha)[0] || null : null);
   const lb = oldest(local), baseTime = base && has(repo, base) ? commitInfo(repo, base).time : 0;
   const times = [baseTime, lb && lb.time].filter(Boolean);
   const since = times.length ? Math.min(...times) - DAY : (local && has(repo, local) ? commitInfo(repo, local).time : Math.floor(Date.now() / 1000)) - 30 * DAY;
+  const roots = git(repo, ['log', '--max-parents=0', '--all', '--format=%ct']).stdout.split('\n').filter(Boolean).map(Number);
+  const floor = roots.length ? Math.min(...roots) - DAY : Infinity;   // every commit here is newer than this (boundaries and true roots, all worktrees)
   const want = { source: !!need.source, target: !!need.target }, deepen = { source: false, target: false };
   if (need.ancestry && repo.shallow) {
     const mb = oldest(revParse(repo, labRef(nid, 'target')) || targetSha);
@@ -92,13 +100,15 @@ export function fetchPlan(repo, { nid, need, local, base, sourceUrl, sourceBranc
   for (const [name, url, branch, tipSha] of [['source', sourceUrl, sourceBranch, sourceSha], ['target', targetUrl, targetBranch, targetSha]]) {
     if (!want[name] || !url || !branch) continue;
     const ref = labRef(nid, name), have = revParse(repo, ref) || tipSha, b = oldest(have);
-    let depth = [];
+    let depth = [], why = '';
     if (repo.shallow) {
-      if (deepen[name] || (b && b.time <= since)) depth = [`--deepen=${Math.max(100, Number(git(repo, ['rev-list', '--count', has(repo, have) ? have : local]).stdout.trim()) || 0)}`];
-      else if (b || !has(repo, have)) depth = [`--shallow-since=${isoDay(since)}`];
+      const present = has(repo, have);
+      if (present && (deepen[name] || !b || b.time <= since || since > floor)) depth = [`--deepen=${Math.max(100, Number(git(repo, ['rev-list', '--count', have]).stdout.trim()) || 0)}`];
+      else if (since <= floor) depth = [`--shallow-since=${isoDay(since)}`];
+      else { depth = [`--shallow-since=${isoDay(floor)}`]; why = `earlier than the ${isoDay(since)} needed: history here already reaches ${isoDay(floor + DAY)}, and a later day would cut it`; }
     }
     const args = ['fetch', '--no-tags', ...depth, url, `+refs/heads/${branch}:${ref}`];
-    plan.push({ ref, args, text: `${gitWords(repo)} -c gc.auto=0 ${args.join(' ')}` });
+    plan.push({ ref, args, why, text: `${gitWords(repo)} -c gc.auto=0 ${args.join(' ')}` });
   }
   return plan;
 }

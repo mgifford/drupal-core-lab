@@ -11,7 +11,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { openRepo } from '../../tools/compare/patch-validate.mjs';
-import { readIssue, prepare, labRef } from '../../tools/compare/prepare-push.mjs';
+import { readIssue, prepare, fetchPlan, labRef } from '../../tools/compare/prepare-push.mjs';
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'prepare-push-test-'));
 after(() => fs.rmSync(root, { recursive: true, force: true }));
@@ -55,6 +55,7 @@ function world({ forkAt = 25, mainDepth = 40, branchDepth = 40, aliceCommits = 1
   const opts = (o = {}) => ({ repo: openRepo(lab), nid: '123', local: 'review/123', sourceBranch: '123-fix', target: 'main', fetchUrl: fork, pushUrl: 'git@example.test:issue/drupal-123.git', coreUrl: up, ...o });
   return { w, up, fork, lab, wt, work, mains, aliceSha, local, opts };
 }
+const revOf = (lab, ref) => ok(git([`--git-dir=${lab}`, 'rev-parse', ref]));
 const find = (rep, name) => rep.checks.find((c) => c.name === name) || {};
 const snapshot = (lab) => ({ refs: ok(git([`--git-dir=${lab}`, 'for-each-ref'])), shallow: fs.existsSync(path.join(lab, 'shallow')) ? fs.readFileSync(path.join(lab, 'shallow'), 'utf8') : 'not shallow' });
 
@@ -131,6 +132,30 @@ test('a branch cut short inside its own commits, with main already reaching furt
   assert.ok(Number(ok(git([`--git-dir=${x.lab}`, 'rev-list', '--count', labRef('123', 'target')]))) >= mainBefore, 'main was not shortened');
   rep = prepare(x.opts({ offline: true }));
   assert.match(find(rep, 'common ancestry with main').detail, new RegExp(`merge-base ${x.mains[9].slice(0, 12)}`));
+});
+
+test('the shared clone is never shortened: a new tip with a recent --base gets a date no later than the oldest commit any ref reaches', () => {
+  // review finding 2026-11-27: --shallow-since moves the boundary of EVERY ref through that history, not only the fetched one
+  const x = world({ mainDepth: 25, branchDepth: 2 }), repo = openRepo(x.lab);
+  const up2 = path.join(x.w, 'upstream2'); ok(git(['clone', '-q', x.up, up2])); const newTip = commit(up2, 'core/new.txt', 'new\n', 'core 31', { day: 31 });
+  const count = (ref) => Number(ok(git([`--git-dir=${x.lab}`, 'rev-list', '--count', ref])));
+  const reach = count('refs/lab/new-issue/main');
+  // the control: the day the base alone asks for (day 27) is later than refs/lab/new-issue/main reaches, and cuts it
+  const ctl = path.join(x.w, 'control.git'); ok(git(['clone', '-q', '--bare', '--no-local', `--depth=25`, `file://${x.up}`, ctl]));
+  const ctlBefore = Number(ok(git([`--git-dir=${ctl}`, 'rev-list', '--count', 'HEAD'])));
+  ok(git([`--git-dir=${ctl}`, 'fetch', '-q', '--no-tags', '--shallow-since=2026-01-27', up2, '+refs/heads/main:refs/lab/x']));
+  assert.ok(Number(ok(git([`--git-dir=${ctl}`, 'rev-list', '--count', 'HEAD']))) < ctlBefore, 'git still shortens other refs (the reason for the rule)');
+  // the plan: a new tip, so --shallow-since, but no later than the day before the oldest commit here, and it says why
+  const plan = fetchPlan(repo, { nid: '123', need: { target: true }, local: '', base: x.mains[27], targetUrl: up2, targetBranch: 'main', targetSha: newTip });
+  assert.equal(plan.length, 1);
+  const since = plan[0].args.find((a) => a.startsWith('--shallow-since=')).slice('--shallow-since='.length);
+  const oldest = Math.min(...ok(git([`--git-dir=${x.lab}`, 'log', '--max-parents=0', '--all', '--format=%cs'])).split('\n').map((d) => Date.parse(d)));
+  assert.ok(Date.parse(since) < oldest, `${since} is before every commit here`); assert.match(plan[0].why, /earlier than the 2026-01-27 needed: history here already reaches/);
+  ok(git([`--git-dir=${x.lab}`, ...plan[0].args]));
+  assert.ok(count('refs/lab/new-issue/main') >= reach, 'nothing here was shortened'); assert.equal(revOf(x.lab, labRef('123', 'target')), newTip);
+  // a tip that is already here is deepened instead (bounded, never shortens)
+  const again = fetchPlan(repo, { nid: '123', need: { target: true }, local: '', base: x.mains[27], targetUrl: up2, targetBranch: 'main', targetSha: newTip });
+  assert.match(again[0].args.join(' '), /--deepen=\d+/); assert.doesNotMatch(again[0].args.join(' '), /--depth|shallow-since|unshallow/);
 });
 
 test('a linked worktree (its .git is a file) is found through --git-common-dir; an untracked test fixture stops the push', () => {

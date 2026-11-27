@@ -61,7 +61,7 @@ console.log(`  ${F.target.padEnd(9)} ${s12(F.main.sha)} (${F.main.how}${F.main.s
 for (const f of fetched) console.log(`${f.ok ? 'fetched' : 'FETCH FAILED'}  ${f.command}${f.detail ? `\n         ${f.detail}` : ''}`);
 if (fetched.length) console.log('');
 for (const c of rep.checks) console.log(`${c.status.padEnd(4)}  ${c.name}${c.detail ? `: ${c.detail}` : ''}`);
-if (rep.fetch.length) console.log(`\nMinimum history to fetch (named refs only, into refs/lab/prepare-push/${nid}/*; never --unshallow). Run these, or this command with --fetch, then run it again:\n${rep.fetch.map((f) => `  ${f.text}`).join('\n')}`);
+if (rep.fetch.length) console.log(`\nMinimum history to fetch (named refs only, into refs/lab/prepare-push/${nid}/*; never later than history already here, never --depth or --unshallow). Run these, or this command with --fetch, then run it again:\n${rep.fetch.map((f) => `  ${f.text}${f.why ? `\n    (${f.why})` : ''}`).join('\n')}`);
 const say = {
   published: 'PUBLISHED: the fork branch already has this commit. Do not push again.',
   ready: 'READY: a plain push (fast-forward, no force) would publish it. Only after the owner approves:',
