@@ -4022,6 +4022,122 @@
       "executionEvidence": null
     },
     {
+      "slug": "2847425-pinned",
+      "issue": "2847425",
+      "label": "#2847425: #states visibility and requirement of managed_file (MR !7305), pinned core",
+      "description": "Before: core 0387fb948f (the merge base of MR !7305) plus the issue's test fixture. After: the same core plus MR !7305 at 7362966e15, with the fixture extended identically so both sides serve the same form. Open /file-test-states-form and toggle the three independent triggers.",
+      "issueMeta": {
+        "status": "Needs review",
+        "status_code": 8,
+        "priority": "Major",
+        "category": "Bug report",
+        "changed": "2026-11-26",
+        "comments": 109,
+        "title": "#states not affecting visibility/requirement of managed_file",
+        "since": "2026-11-27",
+        "tags": [
+          "Accessibility",
+          "Bug Smash Initiative",
+          "wcag331",
+          "Needs Review Queue Initiative"
+        ],
+        "mr": {
+          "state": "opened",
+          "sha": "7362966e",
+          "draft": false
+        }
+      },
+      "before": {},
+      "after": {
+        "label": "full proposal"
+      },
+      "steps": [
+        {
+          "text": "The fixture form at /file-test-states-form is installed by the recipe and is the same on both sides.",
+          "how": "recipe"
+        },
+        {
+          "text": "Open /file-test-states-form without touching anything. The three triggers are unchecked.",
+          "how": "each",
+          "lookFor": "Before: the managed file whose visible state is false is still shown and has no required marker. After: it is hidden."
+        },
+        {
+          "text": "Check 'Toggle fields'. A managed file with visible state true appears, the one with visible state false disappears, and the textfield inside the details group stays visible.",
+          "how": "each",
+          "lookFor": "Both: the details group must not collapse when the managed file inside it is hidden or shown."
+        },
+        {
+          "text": "Check 'Toggle requirement' on its own. The required marker should appear on the label of 'Single file, conditional requirement', 'Multiple files, conditional requirement', 'Combined visibility and requirement' and 'Managed file in fieldset'.",
+          "how": "each",
+          "lookFor": "Before: no marker. After: a marker on the upload control's label."
+        },
+        {
+          "text": "Check 'Toggle disabled'. The file and remove controls (not just the wrapper) should become disabled, including a previously uploaded file's remove button.",
+          "how": "each",
+          "lookFor": "Before: the controls stay enabled. After: the upload input, upload button and remove button are disabled."
+        },
+        {
+          "text": "Upload a file to 'Single file, conditional requirement' with the Upload button, wait for the AJAX replacement, then check the label association and the required marker again.",
+          "how": "each",
+          "lookFor": "The label's for attribute must resolve to a rendered control, and the wrapper must stay in the same place."
+        }
+      ],
+      "expected": "Conditional visibility hides or shows the managed file's own form item without hiding an enclosing details, fieldset or container, conditional requirement updates the label's required marker and the upload control's required attribute, and conditional disabled disables the interactive controls.",
+      "actual": "Not yet run.",
+      "observe": [
+        {
+          "label": "Is the managed file whose visible state is false shown on load?",
+          "expectBefore": true,
+          "expectAfter": false
+        },
+        {
+          "label": "When the managed file inside the details group is hidden, is the details' textfield still visible?",
+          "expectBefore": true,
+          "expectAfter": true
+        },
+        {
+          "label": "With 'Toggle requirement' checked, does the element's label carry the required marker?",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "With 'Toggle disabled' checked, is the file input (not only its wrapper) disabled?",
+          "expectBefore": false,
+          "expectAfter": true
+        }
+      ],
+      "checks": [
+        {
+          "label": "The fixture form is on the page",
+          "probe": "!!document.querySelector('#edit-managed-file-initially-hidden-upload')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "A managed file whose visible state is false is hidden on load",
+          "probe": "(() => { const i = document.querySelector('#edit-managed-file-initially-hidden-upload'); if (!i) return false; return !(i.offsetWidth || i.offsetHeight || i.getClientRects().length); })()",
+          "expect": true,
+          "kind": "fix"
+        },
+        {
+          "label": "Hiding the managed file inside details does not hide the details' own textfield",
+          "probe": "(() => { const t = document.querySelector('#edit-textfield-in-details'); return !!t && !!(t.offsetWidth || t.offsetHeight || t.getClientRects().length); })()",
+          "expect": true,
+          "kind": "regression"
+        },
+        {
+          "label": "A managed file with no states is still visible",
+          "probe": "(() => { const i = document.querySelector('#edit-no-states-file-upload'); return !!i && !!(i.offsetWidth || i.offsetHeight || i.getClientRects().length); })()",
+          "expect": true,
+          "kind": "regression"
+        }
+      ],
+      "pages": [
+        "/file-test-states-form"
+      ],
+      "executionEvidence": null
+    },
+    {
       "slug": "2848307-latest",
       "issue": "2848307",
       "label": "#2848307: inline errors on table and tableselect",
