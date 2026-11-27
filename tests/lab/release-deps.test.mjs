@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { hashFile, dependencyKeys, releasePlan, planSummary } from '../../tools/compare/deps.mjs';
+import { hashFile, dependencyKeys, releasePlan, planSummary, formatReleased } from '../../tools/compare/deps.mjs';
 
 test('dependencyKeys hashes both lockfiles and tolerates missing ones', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'deps-'));
@@ -58,4 +58,11 @@ test('releasePlan can include vendor only when asked', () => {
 test('planSummary counts removals and skips', () => {
   const plan = releasePlan({ envs: ['a', 'b', 'c'], states: { a: 'stopped', b: 'running', c: 'paused' } });
   assert.deepEqual(planSummary(plan), { remove: 2, skip: 1, total: 3 });
+});
+
+
+test('formatReleased reports GB from KiB', () => {
+  assert.equal(formatReleased(5_693_200), '5.4 GB');
+  assert.equal(formatReleased(0), '0.0 GB');
+  assert.equal(formatReleased(1_048_576), '1.0 GB');
 });

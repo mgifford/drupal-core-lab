@@ -32,7 +32,7 @@ import { parsePair } from '../tools/resource/units.mjs';
 import { loadTasks } from '../tools/resource/tasks.mjs';
 import { readRunning, loadBudgets } from '../tools/resource/budgets.mjs';
 import { capacityDecision } from '../tools/compare/scheduler.mjs';
-import { dependencyKeys, releasePlan } from '../tools/compare/deps.mjs';
+import { dependencyKeys, releasePlan, formatReleased } from '../tools/compare/deps.mjs';
 
 const [cmd, target, action] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const yes = process.argv.includes('--yes');
@@ -355,7 +355,7 @@ switch (cmd) {
       } else console.log(`skip ${p.env}: ${p.reason}`);
     }
     if (yes) console.log(`
-Freed about ${(freed / 1024).toFixed(1)} GB. Reinstall when needed: cd envs/<env>/core && yarn install --immutable`);
+Freed about ${formatReleased(freed)}. Reinstall when needed: cd envs/<env>/core && yarn install --immutable`);
     else console.log(`
 Dry run (${plan.filter((p) => p.action === 'remove').length} environment(s) would lose core/node_modules). Re-run with --yes to remove; they reinstall on demand.`);
     break; }

@@ -279,3 +279,8 @@ export function planSummary(plan) {
   const skip = plan.filter((p) => p.action === 'skip').length;
   return { remove, skip, total: plan.length };
 }
+
+// The release commands report KiB; this is the one place that turns it into GB, so the unit cannot drift again.
+export function formatReleased(kb) {
+  return `${(Number(kb) / 1024 / 1024).toFixed(1)} GB`;
+}
