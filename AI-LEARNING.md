@@ -513,8 +513,10 @@ The contribution work of 2026-11-25/26 kept stopping on the lab itself, not on D
 
 - MR !17049's test used an exact root-relative `href`; GitLab CI runs under `/subdirectory/` (fixed for #2574721 by suffix
   matching, PR #114). A static advisory check and a CI-equivalent base-path run are still to do.
-- The shared bare clone is shallow: `merge-base` fails and publication needed manual history work. No `prepare-push` yet.
+- The shared bare clone is shallow: `merge-base` fails and publication needed manual history work. Addressed on branch `feat/prepare-push`:
+  `scripts/prepare-push.mjs` (read-only; reports shallow ancestry as unknown and lists the minimum named-ref fetch; AGENTS.md rule 24).
 - Upstream CI was read by hand: pending and allowed-failure jobs, merge commits against source commits.
-- `git diff --check`-style whitespace checks on stored `.patch` files flag a unified diff's empty context lines.
+- `git diff --check`-style whitespace checks on stored `.patch` files flag a unified diff's empty context lines. Addressed on branch
+  `feat/prepare-push`: `scripts/patch-validate.mjs` checks whitespace in the resulting source, in a temporary index.
 - Lab "done" was read as upstream progress; the lifecycle states and the 7-day assignment rule are not reconciled by a tool.
 - Recovery work (reinstalls, repeated failing runs) is not separated from productive testing in the resource ledger.
