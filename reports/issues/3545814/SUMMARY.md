@@ -28,7 +28,7 @@ Why the MR alone is not ready for review:
 Why the MR + C + tests is the review candidate:
 
 - The reported defect and the comment #8 cases are reproduced on the MR's base and fixed by the MR; computed accessible names, not only axe, confirm it.
-- The proposed PHPUnit assertions fail on Before and pass on After, and also pass on proposal C (two existing functional test classes; no new Nightwatch test).
+- The proposed PHPUnit assertions fail on Before and pass on After and on proposal C (two existing functional test classes; no new Nightwatch test).
 - The fixed-operator filter and all tested submissions are unchanged.
 - Each patch applies to its declared starting tree; the test interdiff and the corrected proposal C also apply at the MR tip, and the stacked proposal applies to core `main` `8a7df6cc` (checked 2026-11-27; `main` moves daily).
 
@@ -67,6 +67,7 @@ The MR and proposal C both work; the open choice is whether the numeric `Value` 
 | Accessibility tree and synthetic speech | not produced — needs both sites running; see [NEXT-STEPS.md](NEXT-STEPS.md) |
 | Core code checks | [`lint/`](lint/) |
 | Coverage report | [COVERAGE.md](COVERAGE.md) |
+| GitHub pull request with these reports and the two drafts | [#138](https://github.com/mgifford/drupal-core-lab/pull/138) |
 | What remains, with the commands | [NEXT-STEPS.md](NEXT-STEPS.md) |
 
 ## Revisions
