@@ -1,0 +1,265 @@
+RootWebArea "Full HTML | Drupal core test site" focusable focused url=https://HOST/admin/config/content/formats/manage/full_html
+  link "Skip to main content" focusable url=https://HOST/admin/config/content/formats/manage/full_html#main-content
+  navigation "Administrative sidebar"
+    heading "Administrative sidebar" level=2
+    link "Home page" focusable url=https://HOST/
+    heading "Content" level=3
+    list
+      listitem level=1
+        link "Create" focusable url=https://HOST/node/add
+      listitem level=1
+        link "Blocks" focusable url=https://HOST/admin/content/block
+      listitem level=1
+        link "Content" focusable url=https://HOST/admin/content
+      listitem level=1
+        link "Files" focusable url=https://HOST/admin/content/files
+    heading "Administration" level=3
+    list
+      listitem level=1
+        link "Welcome" description="Learn about Drupal Core and Drupal CMS." focusable url=https://HOST/admin/welcome
+      listitem level=1
+        button "Extend Structure" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-structure-RANDOM
+          text "Extend"
+          text "Structure"
+      listitem level=1
+        link "Appearance" description="Select and configure themes." focusable url=https://HOST/admin/appearance
+      listitem level=1
+        link "Extend" description="Add and install modules to extend site functionality." focusable url=https://HOST/admin/modules
+      listitem level=1
+        button "Extend Configuration" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-config-RANDOM
+          text "Extend"
+          text "Configuration"
+      listitem level=1
+        link "People" description="Manage user accounts, roles, and permissions." focusable url=https://HOST/admin/people
+      listitem level=1
+        button "Extend Reports" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-reports-RANDOM
+          text "Extend"
+          text "Reports"
+      listitem level=1
+        link "Announcements" description="Displays announcements from the Drupal community." focusable url=https://HOST/admin/announcements_feed
+    heading "Help" level=3
+    list
+      listitem level=1
+        link "Help" focusable url=https://HOST/admin/help
+    heading "User" level=3
+    list
+      listitem level=1
+        button "Extend admin" invalid=false focusable expanded=false controls=#navigation-link--navigationuser-linksuserwrapper-RANDOM
+          text "Extend"
+          text "admin"
+    button "Collapse sidebar" invalid=false focusable expanded
+  region "Administrative top bar"
+    navigation "Breadcrumb"
+      heading "Breadcrumb" level=2
+      list
+        listitem level=1
+          link "Back to site" description="Return to site content" focusable url=https://HOST/
+        listitem level=1
+          link "Administration" focusable url=https://HOST/admin
+        listitem level=1
+          link "Configuration" focusable url=https://HOST/admin/config
+        listitem level=1
+          link "Content authoring" focusable url=https://HOST/admin/config/content
+        listitem level=1
+          link "Text formats and editors" focusable url=https://HOST/admin/config/content/formats
+  banner
+    heading "Full HTML" level=1
+  main
+    generic focusable
+    complementary
+      paragraph
+        text "A text format contains filters that change the display of user input; for example, stripping out malicious HTML or making URLs clickable. Filters are executed from top to bottom and the order is important, since one filter may prevent another filter from doing its job. For example, when URLs are co…"
+    form
+      LabelText
+        text "Name"
+        text "*"
+      textbox "Name *" value="Full HTML" invalid=false focusable multiline=false readonly=false required
+        text "Full HTML"
+      text "Machine name:"
+      text "full_html"
+      group "Roles" invalid=false
+        Legend
+          text "Roles"
+        checkbox "Anonymous user" invalid=false focusable checked=false
+        checkbox "Authenticated user" invalid=false focusable checked=false
+        checkbox "Content editor" invalid=false focusable checked=false
+        checkbox "Administrator" invalid=false focusable checked
+      LabelText
+        text "Text editor"
+      combobox "Text editor" value="CKEditor 5" invalid=false focusable hasPopup=menu expanded=false
+        MenuListPopup
+          option "None" focusable selected=false
+          option "CKEditor 5" focusable selected
+      group "Toolbar configuration" description="Move a button into the Active toolbar to enable it, or into the list of Available buttons to disable it. Buttons may be moved with the mouse or keyboard arrow keys." invalid=false
+        Legend
+          text "Toolbar configuration"
+        text "Move a button into the"
+        emphasis
+          text "Active toolbar"
+        text "to enable it, or into the list of"
+        emphasis
+          text "Available buttons"
+        text "to disable it. Buttons may be moved with the mouse or keyboard arrow keys."
+        paragraph
+          text "The toolbar buttons that don't fit the user's browser window width will be grouped in a dropdown. If multiple toolbar rows are preferred, those can be configured by adding an explicit wrapping breakpoint wherever you want to start a new row."
+        LabelText
+          text "Available buttons"
+        listbox "Available buttons" multiselectable=false orientation=horizontal required=false
+          option "available button Undo. Press the down arrow key to activate" focusable selected=false
+          option "available button Redo. Press the down arrow key to activate" focusable selected=false
+          option "available button Style. Press the down arrow key to activate" focusable selected=false
+          option "available button Special characters. Press the down arrow key to activate" focusable selected=false
+          option "available button Underline. Press the down arrow key to activate" focusable selected=false
+          option "available button Code. Press the down arrow key to activate" focusable selected=false
+          option "available button Text alignment. Press the down arrow key to activate" focusable selected=false
+          option "available button Indent. Press the down arrow key to activate" focusable selected=false
+          option "available button Outdent. Press the down arrow key to activate" focusable selected=false
+          option "available button Language. Press the down arrow key to activate" focusable selected=false
+          option "available button Show blocks. Press the down arrow key to activate" focusable selected=false
+          option "available button Fullscreen. Press the down arrow key to activate" focusable selected=false
+        LabelText
+          text "Button divider"
+        listbox "Button divider" multiselectable=false orientation=horizontal required=false
+          option "available button Divider. Press the down arrow key to use this divider in the active button list" focusable selected=false
+          option "available button Wrapping. Press the down arrow key to use this divider in the active button list" focusable selected=false
+        LabelText
+          text "Active toolbar"
+        listbox "Active toolbar" multiselectable=false orientation=horizontal required=false
+          option "active button Bold. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button Italic. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button Strikethrough. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button Superscript. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button Subscript. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button Remove Format. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button Divider. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button Link. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button Divider. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button Bulleted list. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button Numbered list. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button Divider. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button Block quote. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button Image. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button table. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button Horizontal line. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button Divider. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button Heading. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button Code Block. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button Divider. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+          option "active button Source. Press the up arrow key to deactivate. Use the right and left arrow keys to move position" focusable selected=false
+        text "{\"undo\":{\"label\":\"Undo\"},\"redo\":{\"label\":\"Redo\"},\"heading\":{\"label\":\"Heading\"},\"style\":{\"label\":\"Style\"},\"specialCharacters\":{\"label\":\"Special characters\"},\"sourceEditing\":{\"label\":\"Source\"},\"bold\":{\"label\":\"Bold\"},\"italic\":{\"label\":\"Italic\"},\"underline\":{\"label\":\"Underline\"},\"code\":{\"label\":\"Code\"…"
+        LabelText
+          text "Toolbar items"
+      text "Press the down arrow key to add to the toolbar."
+      text "Move this button in the toolbar by pressing the left or right arrow keys. Press the up arrow key to remove from the toolbar."
+      LabelText
+        text "CKEditor 5 plugin settings"
+      list
+        listitem focusable level=1
+          link "Headings" focusable url=https://HOST/admin/config/content/formats/manage/full_html#edit-editor-settings-plugins-ckeditor5-heading
+        listitem focusable level=1
+          link "Source editing" focusable url=https://HOST/admin/config/content/formats/manage/full_html#edit-editor-settings-plugins-ckeditor5-sourceediting
+        listitem focusable level=1
+          link "Code Block" focusable url=https://HOST/admin/config/content/formats/manage/full_html#edit-editor-settings-plugins-ckeditor5-codeblock
+        listitem focusable level=1
+          link "List" focusable url=https://HOST/admin/config/content/formats/manage/full_html#edit-editor-settings-plugins-ckeditor5-list
+        listitem focusable level=1
+          link "Image Images can only be uploaded." focusable url=https://HOST/admin/config/content/formats/manage/full_html#edit-editor-settings-plugins-ckeditor5-image
+            text "Image"
+            text "Images can only be uploaded."
+        listitem focusable level=1
+          link "Image resize" focusable url=https://HOST/admin/config/content/formats/manage/full_html#edit-editor-settings-plugins-ckeditor5-imageresize
+      group
+        group "Enabled Headings" description="These are the headings that will appear in the headings dropdown. If a heading is not chosen here, it does not necessarily mean the corresponding tag is disallowed in the text format." invalid=false
+          Legend
+            text "Enabled Headings"
+          checkbox "Heading 1" invalid=false focusable checked=false
+          checkbox "Heading 2" invalid=false focusable checked
+          checkbox "Heading 3" invalid=false focusable checked
+          checkbox "Heading 4" invalid=false focusable checked
+          checkbox "Heading 5" invalid=false focusable checked
+          checkbox "Heading 6" invalid=false focusable checked
+          text "These are the headings that will appear in the headings dropdown. If a heading is not chosen here, it does not necessarily mean the corresponding tag is disallowed in the text format."
+      LabelText
+        text "Enabled filters"
+      checkbox "Limit allowed HTML tags and correct faulty HTML" invalid=false focusable checked=false
+      checkbox "Display any HTML as plain text" invalid=false focusable checked=false
+      checkbox "Entity links" description="Updates entity links with data-entity-type and data-entity-uuid attributes to point to the latest entity URL aliases." invalid=false focusable checked=false
+      text "Updates entity links with"
+      code
+        text "data-entity-type"
+      text "and"
+      code
+        text "data-entity-uuid"
+      text "attributes to point to the latest entity URL aliases."
+      checkbox "Convert line breaks into HTML (i.e. <br> and <p>)" invalid=false focusable checked=false
+      LabelText
+        text "Convert line breaks into HTML (i.e."
+        code
+          text "<br>"
+        text "and"
+        code
+          text "<p>"
+        text ")"
+      checkbox "Convert URLs into links" invalid=false focusable checked=false
+      checkbox "Align images" description="Uses a data-align attribute on <img> tags to align images." invalid=false focusable checked
+      text "Uses a"
+      code
+        text "data-align"
+      text "attribute on"
+      code
+        text "<img>"
+      text "tags to align images."
+      checkbox "Caption images" description="Uses a data-caption attribute on <img> tags to caption images." invalid=false focusable checked
+      text "Uses a"
+      code
+        text "data-caption"
+      text "attribute on"
+      code
+        text "<img>"
+      text "tags to caption images."
+      checkbox "Restrict images to this site" description="Disallows usage of <img> tag sources that are not hosted on this site by replacing them with a placeholder image." invalid=false focusable checked=false
+      text "Disallows usage of <img> tag sources that are not hosted on this site by replacing them with a placeholder image."
+      checkbox "Correct faulty and chopped off HTML" invalid=false focusable checked
+      checkbox "Track images uploaded via a Text Editor" description="Ensures that the latest versions of images uploaded via a Text Editor are displayed, along with their dimensions." invalid=false focusable checked
+      text "Ensures that the latest versions of images uploaded via a Text Editor are displayed, along with their dimensions."
+      checkbox "Lazy load images" description="Instruct browsers to lazy load images if dimensions are specified. Use in conjunction with and place after the 'Track images uploaded via a Text Editor' filter that adds image dimensions required for lazy loading. Results can be overridden by <img loading=\"eager\">." invalid=false focusable checked
+      text "Instruct browsers to lazy load images if dimensions are specified. Use in conjunction with and place after the 'Track images uploaded via a Text Editor' filter that adds image dimensions required for lazy loading. Results can be overridden by"
+      code
+        text "<img loading=\"eager\">"
+      text "."
+      LabelText
+        text "Filter processing order"
+      button "Show row weights" invalid=false focusable
+      table
+        row
+          cell "Change order Align images"
+            link "Change order" focusable url=https://HOST/admin/config/content/formats/manage/full_html#
+            text "Align images"
+          cell
+          cell
+        row
+          cell "Change order Caption images"
+            link "Change order" focusable url=https://HOST/admin/config/content/formats/manage/full_html#
+            text "Caption images"
+          cell
+          cell
+        row
+          cell "Change order Correct faulty and chopped off HTML"
+            link "Change order" focusable url=https://HOST/admin/config/content/formats/manage/full_html#
+            text "Correct faulty and chopped off HTML"
+          cell
+          cell
+        row
+          cell "Change order Track images uploaded via a Text Editor"
+            link "Change order" focusable url=https://HOST/admin/config/content/formats/manage/full_html#
+            text "Track images uploaded via a Text Editor"
+          cell
+          cell
+        row
+          cell "Change order Lazy load images"
+            link "Change order" focusable url=https://HOST/admin/config/content/formats/manage/full_html#
+            text "Lazy load images"
+          cell
+          cell
+      button "Save configuration" invalid=false focusable
+  generic live=polite atomic=false relevant="additions text"

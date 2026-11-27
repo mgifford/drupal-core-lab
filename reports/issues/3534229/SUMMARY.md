@@ -48,6 +48,10 @@ operable and accessible names are unchanged, so this is a recognition/non-text-c
   drag keeps the icon visible; Save persists the order across a reload and the original order can be restored
   and saved. A pre-existing focus-after-move quirk appears identically Before and After (recorded; needs a
   manual keyboard pass to judge).
+- **WebKit normal mode** (Safari engine): 35/35 controls render, 0 differences — no normal-mode regression;
+  forced colors cannot be emulated there. A second full Chromium pass reproduced every verdict (runs
+  `23-19-55`–`23-29-04`). Coverage is now **7 of 9** matrix rows; the only gaps are Firefox (Playwright
+  Firefox crashes on this host) and WebKit forced colours (not possible on macOS).
 - **Core code checks PASS**: CSpell, PHPStan, Stylelint; no generated CSS involved.
 
 ## What was not verified
@@ -57,8 +61,8 @@ operable and accessible names are unchanged, so this is a recognition/non-text-c
 - A real Windows contrast theme (Edge/Chromium/Firefox), custom user palettes, Firefox forced-colors
   rendering (Playwright Firefox crashes on this host), Safari/WebKit, a person's keyboard pass and a
   screen-reader pass. See `MANUAL-WINDOWS.md`.
-- The three automated gaps are the blocked browsers only (Firefox normal + forced, WebKit normal); the 480 px
-  normal-mode and forced-dark rows now pass. See `COVERAGE.md`.
+- The two automated gaps are Firefox normal and Firefox forced colours only (Playwright Firefox crashes on
+  this host); WebKit normal mode now passes and WebKit cannot emulate forced colours. See `COVERAGE.md`.
 - `node scripts/index-issues.mjs` crashes on unrelated pre-existing data (`reports/issues/3603162/status.json`
   stores `mr` as a string; `tools/compare/issue-tracking.mjs:112` expects an object), so
   `reports/issues/README.md` was not refreshed by this run.

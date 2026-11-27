@@ -64,6 +64,23 @@ dividers); `drupalMedia` is not available for Full HTML because its `media_embed
 | `16-14-01` | forced dark RTL 1280 | 31/35 | 0/35 | 21:1 | 0 | 0 | 35/35 | 0 | reproduced-and-fixed |
 | `16-15-49` | forced dark 1280, 480 px | 31/35 | 0/35 | 21:1 | 0 | 0 | 35/35 | 0 | reproduced-and-fixed |
 
+A second full pass on the evening of 2026-11-27 (runs `23-19-55` to `23-29-04`) re-ran the matrix against the
+same final patch and reproduced every verdict: forced dark, forced dark RTL and forced dark 480 px all
+`reproduced-and-fixed` (31/35 → 0/35, `unexpected 0`), forced light `not-reproduced`, normal light/dark
+`unexpected 0`, interaction `unexpected 0`. Two additions to the matrix:
+
+- **Accessibility tree, ARIA and speech** (`tools/playwright/tree-diff.mjs 3534229-pinned`, report in
+  `tree-diff/3534229-pinned/SUMMARY.md`): on `/admin/config/content/formats/manage/full_html` and
+  `/admin/config/content/formats` the tree, ARIA state and spoken output are **the same in all three views**
+  Before and After; 0 unresolved ID references were added or removed (3 pre-existing on both sides). A
+  CSS-only change therefore does not alter names, roles, states or announcements.
+- **WebKit normal mode** (`23-19-55-260Z-webkit-light-1280x900`): runs on the Safari engine, 35/35 controls
+  render, `unexpected 0` — no normal-mode regression. WebKit cannot emulate forced colors on macOS, so it is
+  a regression row only. This closes the WebKit coverage gap (7 of 9 matrix rows now tested).
+- **Firefox**: attempted again (`18:22:33`); all four side retries fail with `browserContext.newPage: Target
+  crashed` before a page exists. It remains blocked on this host (the Lab already records the same for
+  #3619127); it is not evidence either way, and a real Windows/Firefox pass is still manual.
+
 Reading the table:
 
 - **The defect reproduces only in the dark forced palette.** In the light palette the icons were already
@@ -199,8 +216,10 @@ requests, no JavaScript, no DOM changes, no duplicated SVG assets (all icons kee
   is visible to a person in normal use; a manual keyboard pass should check it.
 - A real Windows contrast theme in Edge/Chromium/Firefox, and custom user palettes (`MANUAL-WINDOWS.md`);
   Chromium's emulated light/dark palettes are not a substitute.
-- Firefox forced-colors rendering: Playwright Firefox crashes on this macOS host before a page exists.
-- Safari/WebKit forced colors: not available on macOS; Safari cannot test Windows contrast themes.
+- Firefox rendering: Playwright Firefox crashes on this macOS host (`browserContext.newPage: Target crashed`)
+  before a page exists; attempted again on 2026-11-27. A real Windows/Firefox pass is manual.
+- Safari/WebKit forced colors: not available on macOS; WebKit was run in normal mode only (no regression) and
+  cannot test Windows contrast themes.
 - A human keyboard pass and a screen-reader pass. The accessible names are unchanged by this CSS-only
   patch, but no person has confirmed it.
 - The Standalone fixture is representative, not pixel-identical to Default Admin.
