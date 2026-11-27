@@ -2586,7 +2586,7 @@
       },
       {
         "label": "Every aria-errormessage IDREF resolves to exactly one element",
-        "probe": "(() => { const els = [...document.querySelectorAll('[aria-errormessage]')]; if (!els.length) return false; return els.every(e => { const id = e.getAttribute('aria-errormessage'); return id && document.querySelectorAll('#' + CSS.escape(id)).length === 1; }); })()",
+        "probe": "[...document.querySelectorAll('[aria-errormessage]')].length > 0 && [...document.querySelectorAll('[aria-errormessage]')].every(el => !!el.getAttribute('aria-errormessage') && document.querySelectorAll('#' + CSS.escape(el.getAttribute('aria-errormessage'))).length === 1)",
         "expect": true,
         "kind": "fix"
       }
@@ -2658,7 +2658,7 @@
       },
       {
         "label": "Every aria-errormessage IDREF resolves to exactly one element",
-        "probe": "(() => { const els = [...document.querySelectorAll('[aria-errormessage]')]; if (!els.length) return false; return els.every(e => { const id = e.getAttribute('aria-errormessage'); return id && document.querySelectorAll('#' + CSS.escape(id)).length === 1; }); })()",
+        "probe": "[...document.querySelectorAll('[aria-errormessage]')].length > 0 && [...document.querySelectorAll('[aria-errormessage]')].every(el => !!el.getAttribute('aria-errormessage') && document.querySelectorAll('#' + CSS.escape(el.getAttribute('aria-errormessage'))).length === 1)",
         "expect": true,
         "kind": "fix"
       }
