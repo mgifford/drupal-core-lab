@@ -54,7 +54,8 @@ const run = (name) => {
 const evalName = (r) => {
   if (r.kind === 'skip') return 'Skip link';
   if (r.kind === 'toggle') return 'Navigation toggle';
-  const h = r.md.split('\n')[0].replace(/^#\s*/, '').replace(/^#\d+\s*/, '').replace(/\s*\(.*$/, '').trim();
+  const heading = r.md.split('\n').find((l) => /^#\s/.test(l)) || r.md.split('\n')[0];
+  const h = heading.replace(/^#\s*/, '').replace(/^#\d+\s*/, '').replace(/\s*\(.*$/, '').trim();
   return h ? h.charAt(0).toUpperCase() + h.slice(1) : 'Scripted evaluation';
 };
 const EVAL_NOTES = {
@@ -65,7 +66,7 @@ const EVAL_NOTES = {
 const envLabel = (r) => {
   const e = r.results?.environment || {};
   const vp = e.viewport ? `${e.viewport.width}x${e.viewport.height}` : r.name.match(/\d+x\d+$/)?.[0];
-  const bits = [e.colorScheme && `${e.colorScheme} OS scheme`, e.forcedColors && 'forced colors', vp && `${vp} viewport`, e.direction === 'rtl-simulation' && 'RTL simulated', e.reducedMotion && 'reduced motion'];
+  const bits = [e.colorScheme && `${e.colorScheme} OS scheme`, e.forcedColors && 'forced colors', vp && `${vp} viewport`, e.direction === 'rtl-simulation' && 'RTL simulated', e.reducedMotion && e.reducedMotion !== 'no-preference' && 'reduced motion'];
   return bits.filter(Boolean).join(', ') || r.name;
 };
 
