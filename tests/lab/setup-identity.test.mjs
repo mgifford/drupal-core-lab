@@ -14,6 +14,8 @@ import { lock, unlock } from './e2e-lock.mjs';
 await lock();   // one end-to-end setup test at a time (they share envs/core.git and envs/.setup.lock)
 
 const git = (cwd, ...a) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd, encoding: 'utf8' });
+// The shared clone is bare: name it with --git-dir (git will not discover a bare repository under safe.bareRepository=explicit).
+const bareGit = (dir, ...a) => spawnSync('git', [`--git-dir=${dir}`, ...a], { encoding: 'utf8' });
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'setup-identity-test-'));
 const issueDir = path.join(labRoot, 'reports/issues/99000006'), recipeDir = path.join(labRoot, 'recipes/zz_ident_rcp'), bare = path.join(labRoot, 'envs/core.git');
 const bareExisted = fs.existsSync(bare);
@@ -23,8 +25,8 @@ const out = (r) => `${r.stdout}\n${r.stderr}`;
 let pinRef = '';
 
 function cleanup() {
-  for (const side of ['before', 'after']) { if (fs.existsSync(bare)) git(bare, 'worktree', 'remove', '--force', env(side)); fs.rmSync(env(side), { recursive: true, force: true }); }
-  if (fs.existsSync(bare)) { git(bare, 'worktree', 'prune'); if (bareExisted) { git(bare, 'update-ref', '-d', 'refs/lab/zz-ident'); if (pinRef) git(bare, 'update-ref', '-d', pinRef); } else fs.rmSync(bare, { recursive: true, force: true }); }
+  for (const side of ['before', 'after']) { if (fs.existsSync(bare)) bareGit(bare, 'worktree', 'remove', '--force', env(side)); fs.rmSync(env(side), { recursive: true, force: true }); }
+  if (fs.existsSync(bare)) { bareGit(bare, 'worktree', 'prune'); if (bareExisted) { bareGit(bare, 'update-ref', '-d', 'refs/lab/zz-ident'); if (pinRef) bareGit(bare, 'update-ref', '-d', pinRef); } else fs.rmSync(bare, { recursive: true, force: true }); }
   fs.rmSync(issueDir, { recursive: true, force: true }); fs.rmSync(recipeDir, { recursive: true, force: true });
 }
 after(() => { cleanup(); fs.rmSync(tmp, { recursive: true, force: true }); unlock(); });
@@ -40,7 +42,7 @@ writeVariants();
 const run = (slug, ...extra) => spawnSync('node', [path.join(labRoot, 'tools/compare/setup.mjs'), slug, `--core-from=${up}`, ...extra], { cwd: labRoot, encoding: 'utf8' });
 const co = (slug = 'zz-ident-latest') => run(slug, '--checkout-only');
 const head = (side) => git(env(side), 'rev-parse', 'HEAD').stdout.trim();
-const removeAfter = () => { git(bare, 'worktree', 'remove', '--force', env('after')); fs.rmSync(env('after'), { recursive: true, force: true }); };
+const removeAfter = () => { bareGit(bare, 'worktree', 'remove', '--force', env('after')); fs.rmSync(env('after'), { recursive: true, force: true }); };
 
 test('identity through setup.mjs: one base for the pair, a pin that must match, and a recipe that changed', (t) => {
   let r = co();
@@ -55,7 +57,7 @@ test('identity through setup.mjs: one base for the pair, a pin that must match, 
   assert.equal(co().status, 0, 'a pair on one base passes again');
 
   // a pair that is already on two bases (an After made by hand at the newest core): blocked before anything is touched
-  removeAfter(); assert.equal(git(bare, 'worktree', 'add', '--detach', env('after'), B).status, 0);
+  removeAfter(); assert.equal(bareGit(bare, 'worktree', 'add', '--detach', env('after'), B).status, 0);
   r = co(); assert.equal(r.status, 4, out(r));
   assert.match(r.stderr, new RegExp(`BLOCKED: the environments of zz-ident-latest[\\s\\S]*Before \\(zz-ident-before\\) is at ${A.slice(0, 12)} and After \\(zz-ident-after\\) is at ${B.slice(0, 12)}[\\s\\S]*lab-env\\.mjs delete zz-ident-latest --yes, then node tools/compare/setup\\.mjs zz-ident-latest`));
   assert.equal(head('after'), B); assert.equal(fs.readFileSync(path.join(env('after'), 'core/x.txt'), 'utf8'), 'one\ntwo\nthree\nfour\n', 'the patch was not applied to a pair that is blocked');

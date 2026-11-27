@@ -47,7 +47,7 @@ function writeRecord(dir, rec, projects, patches) {
 export function ensureShared(m, sharedRoot, log = () => {}) {
   const shared = path.join(sharedRoot, `${m.name}.git`);
   if (!fs.existsSync(shared)) { fs.mkdirSync(path.dirname(shared), { recursive: true }); log(`$ git clone --bare ${m.url} ${shared}`); const r = spawnSync('git', ['clone', '--bare', m.url, shared], { encoding: 'utf8' }); if (r.status !== 0) return `could not clone ${m.url}: ${errLine(r)}`; }
-  if (spawnSync('git', ['-C', shared, 'rev-parse', '--verify', '-q', `${m.commit}^{commit}`], { stdio: 'ignore' }).status !== 0) { log(`$ git -C ${shared} fetch --depth 1 origin ${m.commit}`); const r = spawnSync('git', ['-C', shared, 'fetch', '--depth', '1', 'origin', m.commit], { encoding: 'utf8' }); if (r.status !== 0) return `could not fetch ${m.commit.slice(0, 12)} for ${m.name}: ${errLine(r)}`; }
+  if (spawnSync('git', [`--git-dir=${shared}`, 'rev-parse', '--verify', '-q', `${m.commit}^{commit}`], { stdio: 'ignore' }).status !== 0) { log(`$ git --git-dir=${shared} fetch --depth 1 origin ${m.commit}`); const r = spawnSync('git', [`--git-dir=${shared}`, 'fetch', '--depth', '1', 'origin', m.commit], { encoding: 'utf8' }); if (r.status !== 0) return `could not fetch ${m.commit.slice(0, 12)} for ${m.name}: ${errLine(r)}`; }
   return '';
 }
 
@@ -56,7 +56,7 @@ export function ensureShared(m, sharedRoot, log = () => {}) {
 export function buildExpected(m, patchFiles, sharedRoot) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lab-contrib-')), projectPath = contribProjectPath(m), folder = path.join(tmp, projectPath); fs.mkdirSync(folder, { recursive: true });
   const shared = path.join(sharedRoot, `${m.name}.git`);
-  const x = spawnSync('bash', ['-c', `set -o pipefail; git -C '${shared}' archive '${m.commit}' | tar -x -C '${folder}'`], { encoding: 'utf8' });
+  const x = spawnSync('bash', ['-c', `set -o pipefail; git --git-dir='${shared}' archive '${m.commit}' | tar -x -C '${folder}'`], { encoding: 'utf8' });
   if (x.status !== 0) { fs.rmSync(tmp, { recursive: true, force: true }); return { ok: false, error: `could not extract ${m.commit.slice(0, 12)} of ${m.name}: ${errLine(x)}` }; }
   for (const [i, pf] of patchFiles.entries()) {
     const r = spawnSync('git', ['apply', `--directory=${projectPath}`, pf], { cwd: tmp, encoding: 'utf8' });

@@ -6,6 +6,8 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { labRoot, variants } from '../tools/compare/lib.mjs';
 const core = path.resolve(process.argv[2] || 'envs/core.git');
+// A bare clone is named with --git-dir: git refuses to discover one by itself under safe.bareRepository=explicit (agent shells set it).
+const gitAt = fs.existsSync(path.join(core, '.git')) ? ['-C', core] : [`--git-dir=${core}`];
 const v = variants().filter(x => ['3631321-pinned', '3631337-pinned', '3631337-independent'].includes(x.slug));
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'forced-colors-patches-'));
 let scratchIndex;
@@ -19,8 +21,8 @@ try {
     const dest = path.join(temp, `${variant.slug}-${side}`);
     fs.mkdirSync(dest);
     scratchIndex = path.join(temp, `${variant.slug}-${side}.index`);
-    cmd('git', ['-C', core, 'read-tree', variant.core.commit]);
-    cmd('git', ['-C', core, 'checkout-index', '--all', `--prefix=${dest}/`]);
+    cmd('git', [...gitAt, 'read-tree', variant.core.commit]);
+    cmd('git', [...gitAt, 'checkout-index', '--all', `--prefix=${dest}/`]);
     scratchIndex = undefined;
     cmd('git', ['init', '--quiet'], dest);
     for (const patch of variant[side].patches) {
