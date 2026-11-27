@@ -15,6 +15,8 @@
 //   node scripts/lab-env.mjs reset <slug> --yes     reset both SITES (database and files) to the variant's starting state: minutes, almost no disk, keeps checkout and patches
 //   node scripts/lab-env.mjs trim <slug|all> [--deep]  free regenerable disk space (test output, snapshots); --deep also removes core/node_modules (about 400 MB each)
 //   node scripts/lab-env.mjs disk                   free space, what each environment uses, and what is safe to remove
+//   node scripts/lab-env.mjs deps [--json]          read-only: node_modules/vendor sizes and lockfile keys per environment
+//   node scripts/lab-env.mjs release-deps <slug|all> [--yes]  dry-run by default: remove build-only core/node_modules from STOPPED, unleased environments
 // `stop all` stops every lab environment but leaves the small drupal-compare address project running.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -30,6 +32,7 @@ import { parsePair } from '../tools/resource/units.mjs';
 import { loadTasks } from '../tools/resource/tasks.mjs';
 import { readRunning, loadBudgets } from '../tools/resource/budgets.mjs';
 import { capacityDecision } from '../tools/compare/scheduler.mjs';
+import { dependencyKeys, releasePlan } from '../tools/compare/deps.mjs';
 
 const [cmd, target, action] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const yes = process.argv.includes('--yes');
@@ -69,6 +72,7 @@ function startViewer(slug) {
   return ddevAddr ? 'https://drupal-compare.ddev.site' : 'http://localhost:8100';
 }
 const state = () => { try { const raw = JSON.parse(execFileSync('ddev', ['list', '-j'], { encoding: 'utf8' })).raw; return Object.fromEntries(raw.filter((p) => p.approot).map((p) => [p.approot, p])); } catch { return {}; } };
+const dirKb = (p) => { try { return Number(execFileSync('du', ['-sk', p], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).split('\t')[0]); } catch { return 0; } };
 
 // Read-only resource view. It never starts or stops anything and classifies an environment as unknown when it cannot tell.
 const dockerAvailable = () => { try { execFileSync('docker', ['info'], { stdio: 'ignore', timeout: 15000 }); return true; } catch { return false; } };
@@ -319,6 +323,42 @@ switch (cmd) {
       console.log(`${path.basename(d)}: trimmed${deep ? ' (including node_modules)' : ''}`);
     }
     console.log(`\nFreed about ${(freed / 1024).toFixed(0)} MB.${deep ? ' To use CSS builds or lint again: cd envs/<name>/core && yarn install (needs network).' : ' --deep also removes core/node_modules (about 400 MB each).'}`); break; }
+  case 'deps': {
+    const st = state();
+    const active = leaseRows(LEASE_FILE).filter((l) => l.status === 'active');
+    const leased = new Map();
+    for (const l of active) { const v = vs.find((x) => x.slug === l.slug); if (v) for (const e of [v.before.env, v.after.env]) leased.set(e, l.slug); }
+    const rows = allEnvs.map((e) => {
+      const d = envDir(e), k = dependencyKeys(d);
+      return { env: e, state: (st[d] || {}).status || 'unknown', node_mb: Math.round(dirKb(path.join(d, 'core/node_modules')) / 1024), vendor_mb: Math.round(dirKb(path.join(d, 'vendor')) / 1024), composer: k.composer, yarn: k.yarn, lease: leased.get(e) || null };
+    });
+    if (process.argv.includes('--json')) console.log(JSON.stringify(rows, null, 2));
+    else {
+      console.log(`${'Environment'.padEnd(30)} ${'State'.padEnd(9)} ${'Node MB'.padStart(7)} ${'Vendor MB'.padStart(9)} ${'Composer'.padEnd(14)} ${'Yarn'.padEnd(14)} Lease`);
+      for (const r of rows) console.log(`${r.env.padEnd(30)} ${r.state.padEnd(9)} ${String(r.node_mb).padStart(7)} ${String(r.vendor_mb).padStart(9)} ${String(r.composer || '—').padEnd(14)} ${String(r.yarn || '—').padEnd(14)} ${r.lease || ''}`);
+    }
+    break; }
+  case 'release-deps': {
+    if (!target) { console.error('usage: release-deps <slug|all> [--yes]'); process.exit(2); }
+    const envs = target === 'all' ? allEnvs : present(envsOf(target));
+    const st = state();
+    const states = Object.fromEntries(envs.map((e) => [e, (st[envDir(e)] || {}).status || 'unknown']));
+    const active = leaseRows(LEASE_FILE).filter((l) => l.status === 'active');
+    const protectedEnvs = new Set(active.flatMap((l) => { const v = vs.find((x) => x.slug === l.slug); return v ? [v.before.env, v.after.env] : []; }));
+    const plan = releasePlan({ envs, states, protectedEnvs });
+    let freed = 0;
+    for (const p of plan) {
+      const dir = envDir(p.env), kb = dirKb(path.join(dir, 'core/node_modules')), mb = Math.round(kb / 1024);
+      if (p.action === 'remove') {
+        if (yes) { fs.rmSync(path.join(dir, 'core/node_modules'), { recursive: true, force: true }); freed += kb; console.log(`removed ${p.env}: core/node_modules (${mb} MB)`); }
+        else console.log(`would remove ${p.env}: core/node_modules (${mb} MB)`);
+      } else console.log(`skip ${p.env}: ${p.reason}`);
+    }
+    if (yes) console.log(`
+Freed about ${(freed / 1024).toFixed(1)} GB. Reinstall when needed: cd envs/<env>/core && yarn install --immutable`);
+    else console.log(`
+Dry run (${plan.filter((p) => p.action === 'remove').length} environment(s) would lose core/node_modules). Re-run with --yes to remove; they reinstall on demand.`);
+    break; }
   case 'disk': {
     const df = spawnSync('df', ['-k', labRoot], { encoding: 'utf8' }).stdout.trim().split('\n').pop().split(/\s+/);
     console.log(`Free disk: ${(Number(df[3]) / 1048576).toFixed(1)} GB\n`);
@@ -382,5 +422,5 @@ switch (cmd) {
     const list = present(envsOf(target)); if (!yes) { console.error(`This DELETES ${list.join(' and ')} (containers, database and worktree). Evidence in reports/ is kept. Re-run with --yes.`); process.exit(2); }
     for (const e of list) { ddev(envDir(e), ['delete', '--omit-snapshot', '--yes']); spawnSync('git', ['-C', path.join(envsDir, 'core.git'), 'worktree', 'remove', '--force', envDir(e)], { stdio: 'inherit' }); }
     break; }
-  default: console.error('usage: lab-env.mjs status | resources [--json] | chrome <slug> start|stop | disk | start <slug> [--browser] | browser [--reset] | stop <slug|all> | reset <slug> --yes | trim <slug|all> [--deep] | delete <slug> --yes | retire <slug> --yes [--force]'); process.exit(2);
+  default: console.error('usage: lab-env.mjs status | resources [--json] | deps [--json] | release-deps <slug|all> [--yes] | chrome <slug> start|stop | disk | start <slug> [--browser] | browser [--reset] | stop <slug|all> | reset <slug> --yes | trim <slug|all> [--deep] | delete <slug> --yes | retire <slug> --yes [--force]'); process.exit(2);
 }
