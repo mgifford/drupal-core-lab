@@ -67,7 +67,7 @@ is running, stopped or unknown. `setup.mjs` is resumable; the record is what mak
 
 Build-only dependencies are not evidence. After a lint or CSS build, release `core/node_modules` from stopped
 environments with `node scripts/lab-env.mjs release-deps <slug> --yes`; it reinstalls on demand. `vendor` is runtime:
-do not release it by hand.
+release it only with `--vendor`, and `lab-env.mjs start` restores it with `ddev composer install` before the site is used.
 
 ## Start here (the normal sequence for an issue)
 

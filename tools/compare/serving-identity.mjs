@@ -59,11 +59,13 @@ export function containerCheck({ dir, files, ddev = defaultDdev }) {
   return { checked: files.length, problems: differ.length ? [`the web container's copy differs from this checkout for ${differ.slice(0, 4).join(', ')}${differ.length > 4 ? ` and ${differ.length - 4} more` : ''}: it is another installation, or Mutagen has not synced (ddev mutagen status)`] : [] };
 }
 
-// 3. The web server serves this folder: a one-off file in sites/default/files, fetched over HTTP, then removed.
+// 3. The web server serves this folder: a one-off file in sites/default/files, fetched over HTTP, then removed. Its name must not
+// start with a dot: DDEV's Drupal nginx configuration and Drupal's .htaccess refuse hidden files (403), so a dot-file would make
+// every real site look like the wrong one.
 export async function httpCheck({ env, dir, raw, get = (pathAndQuery) => envFetch(env, { host: raw.hostname, routerHttpsPort: Number(raw.router_https_port || 443) }, pathAndQuery), waitMs = 15000 }) {
   const filesDir = path.join(dir, 'sites/default/files');
   if (!fs.existsSync(filesDir)) return { problems: [`${filesDir} does not exist (is the site installed?), so the web server could not be checked`] };
-  const token = crypto.randomBytes(12).toString('hex'), name = `.lab-identity-${token}.txt`, file = path.join(filesDir, name);
+  const token = crypto.randomBytes(12).toString('hex'), name = `lab-identity-${token}.txt`, file = path.join(filesDir, name);
   const basePath = (() => { try { return new URL(raw.primary_url || raw.httpsurl || 'https://x/').pathname.replace(/\/$/, ''); } catch { return ''; } })();
   fs.writeFileSync(file, token);
   try {
