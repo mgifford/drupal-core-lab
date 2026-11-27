@@ -1,0 +1,125 @@
+/*
+ * Variant B: Kent's 2024-07-24 whole-element mask experiment from
+ * drupal.org issue #3534229, comment #7, extended mechanically to every
+ * Core toolbar item so that all three variants can be compared on the same
+ * page. The original CSS is in the issue comment; only the selector list is
+ * extended. It repaints every .ckeditor5-toolbar-button with
+ * `background: buttontext`, then masks the whole control with the item icon.
+ */
+@media (forced-colors: active) {
+  .ckeditor5-toolbar-button {
+    background: buttontext;
+    mask-repeat: no-repeat;
+    mask-position: center;
+  }
+  .ckeditor5-toolbar-button-alignment\:left {
+    mask-image: url(../assets/icons/align-left.svg);
+  }
+  .ckeditor5-toolbar-button-alignment\:right {
+    mask-image: url(../assets/icons/align-right.svg);
+  }
+  .ckeditor5-toolbar-button-alignment\:center {
+    mask-image: url(../assets/icons/align-center.svg);
+  }
+  .ckeditor5-toolbar-button-alignment\:justify {
+    mask-image: url(../assets/icons/align-justify.svg);
+  }
+  .ckeditor5-toolbar-button-alignment {
+    mask-image: url(../assets/icons/align-left.svg);
+  }
+  .ckeditor5-toolbar-button-bold {
+    mask-image: url(../assets/icons/bold.svg);
+  }
+  .ckeditor5-toolbar-button-italic {
+    mask-image: url(../assets/icons/italic.svg);
+  }
+  .ckeditor5-toolbar-button-underline {
+    mask-image: url(../assets/icons/underline.svg);
+  }
+  .ckeditor5-toolbar-button-code {
+    mask-image: url(../assets/icons/code.svg);
+  }
+  .ckeditor5-toolbar-button-strikethrough {
+    mask-image: url(../assets/icons/strikethrough.svg);
+  }
+  .ckeditor5-toolbar-button-subscript {
+    mask-image: url(../assets/icons/subscript.svg);
+  }
+  .ckeditor5-toolbar-button-superscript {
+    mask-image: url(../assets/icons/superscript.svg);
+  }
+  .ckeditor5-toolbar-button-blockQuote {
+    mask-image: url(../assets/icons/blockquote.svg);
+  }
+  .ckeditor5-toolbar-button-codeBlock {
+    mask-image: url(../assets/icons/code-block.svg);
+  }
+  .ckeditor5-toolbar-button-drupalMedia {
+    mask-image: url(../assets/icons/medialibrary.svg);
+  }
+  .ckeditor5-toolbar-button-divider {
+    mask-image: url(../assets/icons/divider.svg);
+  }
+  .ckeditor5-toolbar-button-wrapping {
+    mask-image: url(../assets/icons/separator.svg);
+  }
+  .ckeditor5-toolbar-button-undo {
+    mask-image: url(../assets/icons/undo.svg);
+  }
+  .ckeditor5-toolbar-button-redo {
+    mask-image: url(../assets/icons/redo.svg);
+  }
+  .ckeditor5-toolbar-button-fullscreen {
+    mask-image: url(../assets/icons/fullscreen-enter.svg);
+  }
+  .ckeditor5-toolbar-button-horizontalLine {
+    mask-image: url(../assets/icons/horizontalline.svg);
+  }
+  .ckeditor5-toolbar-button-drupalInsertImage {
+    mask-image: url(../assets/icons/image.svg);
+  }
+  .ckeditor5-toolbar-button-indent {
+    mask-image: url(../assets/icons/indent.svg);
+  }
+  .ckeditor5-toolbar-button-outdent {
+    mask-image: url(../assets/icons/outdent.svg);
+  }
+  .ckeditor5-toolbar-button-link {
+    mask-image: url(../assets/icons/link.svg);
+  }
+  .ckeditor5-toolbar-button-bulletedList {
+    mask-image: url(../assets/icons/bulletedlist.svg);
+  }
+  .ckeditor5-toolbar-button-numberedList {
+    mask-image: url(../assets/icons/numberedlist.svg);
+  }
+  .ckeditor5-toolbar-button-removeFormat {
+    mask-image: url(../assets/icons/remove-format.svg);
+  }
+  .ckeditor5-toolbar-button-showBlocks {
+    mask-image: url(../assets/icons/show-blocks.svg);
+  }
+  .ckeditor5-toolbar-button-sourceEditing {
+    mask-image: url(../assets/icons/source-editing.svg);
+  }
+  .ckeditor5-toolbar-button-specialCharacters {
+    mask-image: url(../assets/icons/special-characters.svg);
+  }
+  .ckeditor5-toolbar-button-insertTable {
+    mask-image: url(../assets/icons/table.svg);
+  }
+
+  /* Text-based simulated dropdowns: Kent coloured these as buttons instead. */
+  .ckeditor5-toolbar-button-heading,
+  .ckeditor5-toolbar-button-style,
+  .ckeditor5-toolbar-button-textPartLanguage {
+    background: buttonface;
+    color: buttontext;
+  }
+
+  .ckeditor5-toolbar-button-heading::after,
+  .ckeditor5-toolbar-button-style::after,
+  .ckeditor5-toolbar-button-textPartLanguage::after {
+    border-color: buttontext;
+  }
+}

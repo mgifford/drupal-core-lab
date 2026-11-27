@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#3534229 toolbar configuration fixture — variant comparison</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0; padding: 16px; background: Canvas; color: CanvasText; font: 15px/1.5 system-ui, sans-serif; }
+  h1 { font-size: 1.2rem; margin: 0 0 0.5rem; }
+  p { max-width: 75ch; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+  section { border: 1px solid GrayText; padding: 8px; }
+  h2 { font-size: 1rem; margin: 0 0 4px; }
+  iframe { width: 100%; height: 820px; border: 1px solid GrayText; background: Canvas; }
+  code { font-family: ui-monospace, monospace; }
+</style>
+</head>
+<body>
+<h1>#3534229 — CKEditor 5 toolbar configuration, three implementations</h1>
+<p>This page frames the same Core toolbar-configuration markup with three implementations:
+<strong>A</strong> current core (<code>background-image</code>), <strong>B</strong> Kent's whole-element mask
+experiment from <a href="https://www.drupal.org/project/drupal/issues/3534229#comment-16705093">issue comment #7</a>,
+and <strong>C</strong> the proposed dedicated mask in <code>CanvasText</code>. A simulated contributed plugin
+(<code>contribExample</code>, last in Available buttons) only sets a <code>background-image</code>, as the
+backward-compatibility control.</p>
+<p>Serve this directory over HTTP and enable forced colours in the browser (Chromium: DevTools → Rendering →
+Emulate CSS media feature <code>forced-colors: active</code>, plus <code>prefers-color-scheme: dark</code> for the
+dark palette; the Lab browser has a forced-colours switch). Do not open it with <code>file://</code>: Chromium
+refuses to load <code>mask-image</code> resources from <code>file://</code> (CORS), which would be mistaken for a
+broken fix.</p>
+<div class="grid">
+  <section><h2>A — current core: background-image</h2><iframe src="toolbar.html?variant=A" title="Variant A"></iframe></section>
+  <section><h2>B — Kent's whole-element mask</h2><iframe src="toolbar.html?variant=B" title="Variant B"></iframe></section>
+  <section><h2>C — proposed dedicated mask (CanvasText)</h2><iframe src="toolbar.html?variant=C" title="Variant C"></iframe></section>
+</div>
+</body>
+</html>

@@ -1,0 +1,55 @@
+--- a/3534229-forced-colors-mask.v1-b32cc1b2.patch
++++ b/3534229-forced-colors-mask.v2-a3044de4.patch
+@@ -1,5 +1,5 @@
+ diff --git a/core/modules/ckeditor5/css/alignment.admin.css b/core/modules/ckeditor5/css/alignment.admin.css
+-index 2830a9d55656594a2079b6fc9858f08800da7028..9607de29193a30531859091fd2051e57f6189b40 100644
++index 2830a9d55656594a2079b6fc9858f08800da7028..9b17cc2543d28cb12369e4cf45570511eed3c5a3 100644
+ --- a/core/modules/ckeditor5/css/alignment.admin.css
+ +++ b/core/modules/ckeditor5/css/alignment.admin.css
+ @@ -1,17 +1,37 @@
+@@ -45,7 +45,7 @@
+  }
+  
+  .ckeditor5-toolbar-button-alignment {
+-@@ -43,3 +63,34 @@
++@@ -43,3 +63,35 @@
+    right: 10px;
+    background-position-x: 10px;
+  }
+@@ -57,7 +57,8 @@
+ +     * on the control itself would clip the caret, so the icon moves to the free
+ +     * ::before surface and the caret keeps its forced CanvasText border.
+ +     */
+-+    .ckeditor5-toolbar-button.ckeditor5-toolbar-button-alignment {
+++    .ckeditor5-toolbar-item .ckeditor5-toolbar-button.ckeditor5-toolbar-button-alignment,
+++    .ckeditor5-toolbar-item .ckeditor5-toolbar-button.ckeditor5-toolbar-button-alignment:hover {
+ +      position: relative;
+ +      background-color: transparent;
+ +      background-image: none;
+@@ -392,7 +393,7 @@
+ +  background-image: var(--ckeditor5-toolbar-icon);
+  }
+ diff --git a/core/modules/ckeditor5/css/toolbar.admin.css b/core/modules/ckeditor5/css/toolbar.admin.css
+-index 40b04dd951244e04e41468289d5ce8a86f137361..fbcc2c25e98bcca26a0b5b063a2fdd5fff23f030 100644
++index 40b04dd951244e04e41468289d5ce8a86f137361..f8a6e9d8da99591b25411b9e9787e3e7c105d066 100644
+ --- a/core/modules/ckeditor5/css/toolbar.admin.css
+ +++ b/core/modules/ckeditor5/css/toolbar.admin.css
+ @@ -97,3 +97,50 @@
+@@ -431,7 +432,7 @@
+ +     * }
+ +     * @endcode
+ +     */
+-+    .ckeditor5-toolbar-button {
+++    .ckeditor5-toolbar-item .ckeditor5-toolbar-button {
+ +      background-color: CanvasText;
+ +      background-image: none;
+ +      mask-image: var(--ckeditor5-toolbar-icon);
+@@ -441,7 +442,7 @@
+ +    }
+ +
+ +    /* Keep the icon painted when the pointer hovers the control. */
+-+    .ckeditor5-toolbar-button:hover {
+++    .ckeditor5-toolbar-item .ckeditor5-toolbar-button:hover {
+ +      background-color: CanvasText;
+ +    }
+ +  }

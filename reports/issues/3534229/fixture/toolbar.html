@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CKEditor 5 toolbar configuration — standalone fixture (#3534229)</title>
+<link rel="stylesheet" href="assets/fixture.css">
+<script>
+  // The variant is chosen with ?variant=A|B|C|D and the reading direction with
+  // &dir=rtl. Everything else mirrors core's theme functions
+  // (core/modules/ckeditor5/js/ckeditor5.admin.js).
+  const params = new URLSearchParams(location.search);
+  const variant = (params.get('variant') || 'A').toUpperCase();
+  const rtl = params.get('dir') === 'rtl';
+  document.documentElement.dir = rtl ? 'rtl' : 'ltr';
+  document.documentElement.dataset.variant = variant;
+
+  // Order: the shared toolbar stylesheet first (as internal.admin is attached
+  // before the plugin admin libraries), then the plugin stylesheets.
+  const CORE_CSS = [
+    'toolbar.admin.css',
+    'alignment.admin.css',
+    'basic.admin.css',
+    'blockquote.admin.css',
+    'code-block.admin.css',
+    'drupalmedia.admin.css',
+    'essentials.admin.css',
+    'fullscreen.admin.css',
+    'horizontal-line.admin.css',
+    'image.admin.css',
+    'indent.admin.css',
+    'language.admin.css',
+    'link.admin.css',
+    'list.admin.css',
+    'remove-format.css',
+    'show-blocks.admin.css',
+    'source-editing.admin.css',
+    'special-characters.css',
+    'style.admin.css',
+    'table.admin.css',
+  ];
+  // A and B load pristine core CSS; C loads the proposed (patched) CSS.
+  const cssBase = variant === 'C' ? 'assets/css-patched/' : 'assets/css/';
+  for (const file of CORE_CSS) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = cssBase + file;
+    link.dataset.coreCss = file;
+    document.head.appendChild(link);
+  }
+  if (variant === 'B') {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'variants/B-kent-whole-element-mask.css';
+    document.head.appendChild(link);
+  }
+</script>
+</head>
+<body>
+<main>
+  <h1>Toolbar configuration <small>(fixture, variant <span id="variant-name"></span>)</small></h1>
+  <p class="fixture-note">Standalone reproduction of the CKEditor 5 toolbar configuration fieldset on
+    <code>/admin/config/content/formats/manage/full_html</code>. Toolbar items are built with core's
+    <code>Drupal.theme.ckeditor5Button()</code> markup.</p>
+  <div id="app"></div>
+</main>
+<script>
+  // Every Core-provided toolbar item (29 plugin items) plus the two structural
+  // controls (divider, wrapping) and one simulated contributed plugin that only
+  // supplies a background-image (control D).
+  const ITEMS = [
+    ['bold', 'Bold', 'icon'],
+    ['italic', 'Italic', 'icon'],
+    ['underline', 'Underline', 'icon'],
+    ['strikethrough', 'Strikethrough', 'icon'],
+    ['code', 'Code', 'icon'],
+    ['subscript', 'Subscript', 'icon'],
+    ['superscript', 'Superscript', 'icon'],
+    ['removeFormat', 'Remove Format', 'icon'],
+    ['blockQuote', 'Block quote', 'icon'],
+    ['codeBlock', 'Code Block', 'icon'],
+    ['link', 'Link', 'icon'],
+    ['bulletedList', 'Bulleted list', 'icon'],
+    ['numberedList', 'Numbered list', 'icon'],
+    ['indent', 'Indent', 'icon'],
+    ['outdent', 'Outdent', 'icon'],
+    ['undo', 'Undo', 'icon'],
+    ['redo', 'Redo', 'icon'],
+    ['fullscreen', 'Fullscreen', 'icon'],
+    ['showBlocks', 'Show blocks', 'icon'],
+    ['sourceEditing', 'Source', 'icon'],
+    ['specialCharacters', 'Special characters', 'icon'],
+    ['horizontalLine', 'Horizontal line', 'icon'],
+    ['insertTable', 'table', 'icon'],
+    ['drupalMedia', 'Drupal media', 'icon'],
+    ['drupalInsertImage', 'Image', 'icon'],
+    ['alignment', 'Text alignment', 'mixed'],
+    ['heading', 'Heading', 'text'],
+    ['style', 'Style', 'text'],
+    ['textPartLanguage', 'Language', 'text'],
+    ['divider', 'Divider', 'structural'],
+    ['wrapping', 'Wrapping', 'structural'],
+    ['contribExample', 'Contributed example', 'icon'],
+  ];
+  // The Active toolbar of the Standard install's Full HTML format
+  // (core/profiles/standard/config/install/editor.editor.full_html.yml).
+  // '|' is the divider.
+  const ACTIVE = [
+    'bold', 'italic', 'strikethrough', 'superscript', 'subscript',
+    'removeFormat', '|', 'link', '|', 'bulletedList', 'numberedList', '|',
+    'blockQuote', 'drupalInsertImage', 'insertTable', 'horizontalLine', '|',
+    'heading', 'codeBlock', '|', 'sourceEditing',
+  ];
+
+  const INSTRUCTIONS = {
+    divider: 'Press the down arrow key to use this divider in the active button list',
+    available: 'Press the down arrow key to activate',
+    active: 'Press the up arrow key to deactivate. Use the right and left arrow keys to move position',
+  };
+
+  function buttonMarkup(id, label, listType) {
+    const t = INSTRUCTIONS[listType];
+    const hidden = `${listType !== 'divider' ? listType : 'available'} button ${label}. ${t}`;
+    return `
+      <li class="ckeditor5-toolbar-item ckeditor5-toolbar-item-${id}" role="option" tabindex="0"
+          data-drupal-selector="ckeditor5-toolbar-button" data-id="${id}" data-label="${label}"
+          data-divider="${listType === 'divider'}">
+        <span class="ckeditor5-toolbar-button ckeditor5-toolbar-button-${id}">
+          <span class="visually-hidden">${hidden}</span>
+        </span>
+        <span class="ckeditor5-toolbar-tooltip" aria-hidden="true">${label} </span>
+      </li>`;
+  }
+
+  const byId = new Map(ITEMS.map(([id, label, kind]) => [id, { id, label, kind }]));
+  const divider = byId.get('divider');
+  const activeItems = ACTIVE.map((id) => (id === '|' ? divider : byId.get(id)));
+  const activeIds = new Set(activeItems.map((i) => i.id));
+  const availableItems = ITEMS
+    .filter(([id, , kind]) => kind !== 'structural' && !activeIds.has(id))
+    .map(([id]) => byId.get(id));
+  const dividerItems = [divider, byId.get('wrapping')];
+
+  const tray = (items, listType) => `
+    <ul class="ckeditor5-toolbar-tray ckeditor5-toolbar-${listType}__buttons"
+        data-button-list="ckeditor5-toolbar-${listType}-buttons" role="listbox"
+        aria-orientation="horizontal" aria-labelledby="ckeditor5-toolbar-${listType}-buttons-label">
+      ${items.map((i) => buttonMarkup(i.id, i.label, listType)).join('')}
+    </ul>`;
+
+  document.getElementById('variant-name').textContent = variant;
+  document.getElementById('app').innerHTML = `
+    <fieldset class="ckeditor5-toolbar-fieldset">
+      <legend>Toolbar configuration</legend>
+      <div class="fieldset-wrapper">
+        <div class="fieldset-description">Move a button into the <em>Active toolbar</em> to enable it, or into
+          the list of <em>Available buttons</em> to disable it. Buttons may be moved with the mouse or
+          keyboard arrow keys.</div>
+        <div class="ckeditor5-toolbar-disabled">
+          <div class="ckeditor5-toolbar-available">
+            <label id="ckeditor5-toolbar-available-buttons-label">Available buttons</label>
+            ${tray(availableItems, 'available')}
+          </div>
+          <div class="ckeditor5-toolbar-divider">
+            <label id="ckeditor5-toolbar-divider-buttons-label">Button divider</label>
+            ${tray(dividerItems, 'divider')}
+          </div>
+        </div>
+        <div class="ckeditor5-toolbar-active">
+          <label id="ckeditor5-toolbar-active-buttons-label">Active toolbar</label>
+          ${tray(activeItems, 'active')}
+        </div>
+      </div>
+    </fieldset>`;
+
+  // Tooltips: core shows them on mouseenter/focus of the item and hides them on
+  // mouseleave/blur (ckeditor5.admin.js, "expandButton"/"retractButton").
+  document.querySelectorAll('[data-drupal-selector="ckeditor5-toolbar-button"]').forEach((el) => {
+    const set = (on) => el.querySelectorAll('.ckeditor5-toolbar-button')
+      .forEach((b) => b.setAttribute('data-expanded', String(on)));
+    el.addEventListener('mouseenter', () => set(true));
+    el.addEventListener('focus', () => set(true));
+    el.addEventListener('mouseleave', () => set(false));
+    el.addEventListener('blur', () => set(false));
+  });
+</script>
+</body>
+</html>

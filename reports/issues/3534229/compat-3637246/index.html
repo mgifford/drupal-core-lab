@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#3637246 CSS × #3534229 forced-colors mask — compatibility fixture</title>
+<style>
+  /*
+   * Standalone fixture. No Drupal CSS or theme CSS is loaded.
+   *
+   * The rules in "pinned core" and "MR !17909" below copy the relevant
+   * declarations from:
+   *   core 8a7df6cc3e69b6b5d427cb25ce8f66dda8393c29
+   *     core/modules/ckeditor5/css/toolbar.admin.css
+   *   drupal.org MR !17909 (branch 3637246-ckeditor5-buttons-styling,
+   *     head 5917a35e0aaedcdc0403349b335cea6297833c99)
+   * The #3534229 correction copies the shape proposed in kentr's comment
+   * (background = a system colour, mask-image = the existing SVG icon).
+   *
+   * Icons are referenced from ../fixture/assets/icons/ and are not duplicated.
+   *
+   * Colours: Canvas / CanvasText / LinkText etc. are CSS system colours. In a
+   * forced-colours context Chromium resolves them to the user's palette; in a
+   * normal context they resolve to the browser's light or dark system palette.
+   */
+
+  html {
+    color-scheme: light;
+  }
+  /* core/themes/default_admin/css/base/elements.css:273-275 */
+  .dark-mode {
+    color-scheme: dark;
+  }
+
+  body {
+    margin: 0;
+    padding: 18px 22px 36px;
+    font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  h1 {
+    margin: 0 0 6px;
+    font-size: 17px;
+    line-height: 1.25;
+  }
+  h2 {
+    margin: 20px 0 6px;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .note {
+    max-width: 900px;
+    margin: 0 0 8px;
+  }
+  .status {
+    margin: 0 0 4px;
+    padding: 4px 8px;
+    border: 1px solid currentColor;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+  }
+  code {
+    font-size: 11px;
+  }
+
+  /* --------------------------------------------------------------------
+   * core/modules/ckeditor5/css/toolbar.admin.css — pinned core, before MR
+   * -------------------------------------------------------------------- */
+  .ckeditor5-toolbar-tray {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    min-height: 40px;
+    margin: 0 0 0.5em 0;
+    padding: 0;
+    list-style: none;
+    user-select: none;
+  }
+  .ckeditor5-toolbar-active__buttons {
+    display: inline-flex;
+    gap: 8px;
+    margin: 5px 0;
+    padding: 0.1667em 0.1667em 0.08em;
+    border: 1px solid #c4c4c4;
+    border-radius: 2px;
+    background: #fafafa;
+  }
+  .ckeditor5-toolbar-item,
+  .ckeditor5-toolbar-button {
+    display: block;
+    min-width: 36px;
+    height: 36px;
+    border-radius: 2px;
+  }
+  .ckeditor5-toolbar-button {
+    border: none;
+    background-color: #eee;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 20px;
+    background-image: url(../fixture/assets/icons/bold.svg);
+  }
+
+  /* --------------------------------------------------------------------
+   * MR !17909 additions to the same file (diff, 1095 bytes)
+   * -------------------------------------------------------------------- */
+  .dark-mode .ckeditor5-toolbar-button {
+    filter: invert(1);
+  }
+
+  /* --------------------------------------------------------------------
+   * Fixture controls: disable the MR invert on "without invert" probes,
+   * and force invert(1) on the palette probe that must be inverted even
+   * in a light context.
+   * -------------------------------------------------------------------- */
+  .dark-mode .ckeditor5-toolbar-button.no-invert {
+    filter: none;
+  }
+  .ckeditor5-toolbar-button.always-invert {
+    filter: invert(1);
+  }
+
+  /* --------------------------------------------------------------------
+   * #3534229 proposed correction, kentr's comment (POC shape):
+   * paint the button with a system colour and use the icon SVG as a mask.
+   * -------------------------------------------------------------------- */
+  @media (forced-colors: active) {
+    .ckeditor5-toolbar-button.masked {
+      background-color: CanvasText;
+      background-image: none;
+      mask-image: url(../fixture/assets/icons/bold.svg);
+      mask-repeat: no-repeat;
+      mask-position: center;
+      mask-size: 20px;
+    }
+  }
+
+  /*
+   * Proposed #3534229 companion: in forced-colours mode, explicitly reset any
+   * filter (such as #3637246's invert) instead of inheriting it, so the mask
+   * paints the user's palette colour and not its inverse. The selector
+   * matches the specificity of .dark-mode .ckeditor5-toolbar-button.
+   */
+  @media (forced-colors: active) {
+    .ckeditor5-toolbar-button.masked.reset-filter,
+    .dark-mode .ckeditor5-toolbar-button.masked.reset-filter {
+      filter: none;
+    }
+  }
+
+  /*
+   * User-palette probe: a masked icon painted with the LinkText system
+   * colour. Chromium's forced dark palette resolves LinkText to yellow, so
+   * this measures what invert(1) does to a palette colour that is neither
+   * black nor white. These declarations are deliberately outside the
+   * forced-colours media query so the same probe also runs in normal modes.
+   */
+  .palette-linktext,
+  .palette-linktext-invert {
+    background-color: LinkText;
+    background-image: none;
+    mask-image: url(../fixture/assets/icons/bold.svg);
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: 20px;
+  }
+
+  /* --------------------------------------------------------------------
+   * Tray fill probes: #fafafa replaced by var(--admin-color-bg).
+   * The variable is deliberately undefined on .tray-var-undefined (the
+   * situation in every theme except Default Admin) and defined exactly as
+   * Default Admin defines it on .tray-var-defined.
+   * -------------------------------------------------------------------- */
+  .tray-probes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    align-items: flex-start;
+  }
+  .tray-probe {
+    box-sizing: border-box;
+    width: 150px;
+    height: 30px;
+    border: 1px solid #c4c4c4;
+    border-radius: 2px;
+  }
+  .tray-current {
+    background: #fafafa;
+  }
+  .tray-var-undefined {
+    background: #fafafa;
+    background: var(--admin-color-bg);
+  }
+  .tray-var-defined {
+    background: #fafafa;
+    background: var(--admin-color-bg);
+    --admin-color-bg: light-dark(color-mix(in lch, #015efe, #fff 97%), #1b1b1d);
+  }
+
+  /* --------------------------------------------------------------------
+   * Layout and captions
+   * -------------------------------------------------------------------- */
+  .probe {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+  }
+  .probe .label {
+    max-width: 170px;
+    font-size: 10.5px;
+    line-height: 1.3;
+  }
+  .probe-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    align-items: flex-start;
+    padding: 6px 0;
+  }
+  .tray-item .label {
+    display: block;
+    max-width: 170px;
+    margin-top: 3px;
+    font-size: 10.5px;
+    line-height: 1.3;
+  }
+  .swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    align-items: center;
+    margin-top: 18px;
+    font-size: 10.5px;
+  }
+  .swatch {
+    display: inline-block;
+    width: 46px;
+    height: 18px;
+    margin-right: 4px;
+    border: 1px solid currentColor;
+    vertical-align: middle;
+  }
+  #sys-canvas { background: Canvas; }
+  #sys-canvastext { background: CanvasText; }
+  #sys-linktext { background: LinkText; }
+  #sys-buttonface { background: ButtonFace; }
+  #sys-buttontext { background: ButtonText; }
+  #sys-graytext { background: GrayText; }
+</style>
+<script>
+  /*
+   * Mirror Default Admin's dark-mode activation
+   * (core/themes/default_admin/migration/js/init.js): the theme setting
+   * "auto" adds .dark-mode to <html> when the OS reports a dark scheme.
+   * ?darkMode=force simulates the explicit "always dark" setting and
+   * ?darkMode=off forces light. Default is auto.
+   */
+  (function () {
+    const params = new URLSearchParams(location.search);
+    const forced = params.get('darkMode');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (forced === 'force' || (forced !== 'off' && prefersDark)) {
+      document.documentElement.classList.add('dark-mode');
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      const status = document.getElementById('status');
+      if (status) {
+        status.textContent =
+          'prefers-color-scheme: dark=' + prefersDark +
+          ' \u00b7 forced-colors: active=' + window.matchMedia('(forced-colors: active)').matches +
+          ' \u00b7 html.dark-mode=' + document.documentElement.classList.contains('dark-mode');
+      }
+    });
+  })();
+</script>
+</head>
+<body>
+<h1>Forced-colours compatibility: #3637246 (!17909) &times; #3534229 mask correction</h1>
+<p class="note">
+  Standalone probe. Every box is a <code>.ckeditor5-toolbar-button</code> (core's markup uses a
+  <code>span</code>). Rows 1&ndash;2 reproduce the current Core background-image icons and the
+  proposed forced-colours mask. Row 3 checks what <code>filter: invert(1)</code> does to a
+  system colour that is not black or white (LinkText is yellow in Chromium's forced dark palette).
+  Row 4 checks the replacement of <code>#fafafa</code> with <code>var(--admin-color-bg)</code>,
+  with the variable undefined (any theme except Default Admin) and defined (Default Admin).
+</p>
+<p id="status" class="status">status pending</p>
+
+<h2>1. Core background-image icons (a, b)</h2>
+<div class="ckeditor5-toolbar-tray">
+  <div class="ckeditor5-toolbar-active__buttons">
+    <div class="probe">
+      <span id="a-bg-image-current" class="ckeditor5-toolbar-button no-invert" aria-hidden="true"></span>
+      <span class="label">(a) black SVG background-image, no invert</span>
+    </div>
+    <div class="probe">
+      <span id="b-bg-image-invert" class="ckeditor5-toolbar-button always-invert" aria-hidden="true"></span>
+      <span class="label">(b) same + <code>filter: invert(1)</code> (forced here; MR only applies it under <code>html.dark-mode</code>)</span>
+    </div>
+  </div>
+</div>
+
+<h2>2. Proposed #3534229 forced-colours mask correction (c, d)</h2>
+<div class="ckeditor5-toolbar-tray">
+  <div class="ckeditor5-toolbar-active__buttons">
+    <div class="probe">
+      <span id="c-mask-canvastext" class="ckeditor5-toolbar-button masked no-invert" aria-hidden="true"></span>
+      <span class="label">(c) mask painted CanvasText, no invert</span>
+    </div>
+    <div class="probe">
+      <span id="d-mask-canvastext-invert" class="ckeditor5-toolbar-button masked always-invert" aria-hidden="true"></span>
+      <span class="label">(d) same + <code>filter: invert(1)</code> (forced here; MR only applies it under <code>html.dark-mode</code>)</span>
+    </div>
+    <div class="probe">
+      <span id="e-mask-invert-reset" class="ckeditor5-toolbar-button masked always-invert reset-filter" aria-hidden="true"></span>
+      <span class="label">(e) same as (d) plus the proposed forced-colours <code>filter: none</code> reset</span>
+    </div>
+  </div>
+</div>
+
+<h2>3. User-palette probe: masked icon painted LinkText</h2>
+<div class="probe-row">
+  <div class="probe">
+    <span id="p-linktext-mask" class="ckeditor5-toolbar-button palette-linktext no-invert" aria-hidden="true"></span>
+    <span class="label">mask painted LinkText (yellow in Chromium's forced dark palette), no invert</span>
+  </div>
+  <div class="probe">
+    <span id="p-linktext-mask-invert" class="ckeditor5-toolbar-button palette-linktext-invert always-invert" aria-hidden="true"></span>
+    <span class="label">same + <code>filter: invert(1)</code></span>
+  </div>
+</div>
+
+<h2>4. Tray fill: #fafafa replaced by var(--admin-color-bg)</h2>
+<div class="tray-probes">
+  <div class="tray-item">
+    <div id="tray-current" class="tray-probe tray-current"></div>
+    <span class="label"><code>background: #fafafa</code> (pinned core)</span>
+  </div>
+  <div class="tray-item">
+    <div id="tray-var-undefined" class="tray-probe tray-var-undefined"></div>
+    <span class="label"><code>background: var(--admin-color-bg)</code>, variable undefined (theme is not Default Admin)</span>
+  </div>
+  <div class="tray-item">
+    <div id="tray-var-defined" class="tray-probe tray-var-defined"></div>
+    <span class="label"><code>background: var(--admin-color-bg)</code>, variable defined (Default Admin)</span>
+  </div>
+</div>
+
+<div class="swatches">
+  <span><span class="swatch" id="sys-canvas"></span>Canvas</span>
+  <span><span class="swatch" id="sys-canvastext"></span>CanvasText</span>
+  <span><span class="swatch" id="sys-linktext"></span>LinkText</span>
+  <span><span class="swatch" id="sys-buttonface"></span>ButtonFace</span>
+  <span><span class="swatch" id="sys-buttontext"></span>ButtonText</span>
+  <span><span class="swatch" id="sys-graytext"></span>GrayText</span>
+</div>
+</body>
+</html>

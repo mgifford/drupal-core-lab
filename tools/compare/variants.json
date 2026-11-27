@@ -2778,5 +2778,318 @@
         }
       ]
     }
+  },
+  {
+    "slug": "3534229-pinned",
+    "issue": "3534229",
+    "label": "#3534229: CKEditor 5 toolbar-configuration icons are invisible in forced-colors mode, pinned core",
+    "description": "Before: upstream core at the pinned commit. After: a local proposal that defines each toolbar icon URL once as a CSS custom property (--ckeditor5-toolbar-icon) and, in forced-colors mode, repaints opted-in icons as a mask in CanvasText. Open /admin/config/content/formats/manage/full_html with forced colours and the dark colour scheme: Before every icon-only control in Available buttons, Button divider and Active toolbar is an empty 36x36 box (black SVG background images on a black Canvas); After the icons are drawn in the user's CanvasText. Heading, Style and Language keep their text labels and carets. The proposed scoping uses a container style query so contributed plugins that only set background-image are unchanged.",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "8a7df6cc3e69b6b5d427cb25ce8f66dda8393c29"
+    },
+    "before": {
+      "env": "baseline-3534229"
+    },
+    "after": {
+      "env": "issue-3534229",
+      "patches": [
+        "reports/issues/3534229/branches/3534229-forced-colors-mask.patch"
+      ]
+    },
+    "pages": [
+      "/admin/config/content/formats/manage/full_html",
+      "/admin/config/content/formats"
+    ],
+    "login": true,
+    "recipe": "repro_3534229",
+    "steps": [
+      {
+        "text": "Standard install. Default Admin is both the default and the admin theme, and the Full HTML text format with CKEditor 5 exists.",
+        "how": "recipe"
+      },
+      {
+        "text": "The viewer has loaded /admin/config/content/formats/manage/full_html in both frames. Scroll to the \"Toolbar configuration\" fieldset.",
+        "how": "mirror"
+      },
+      {
+        "text": "Switch the colour mode to forced colours in the viewer (or DevTools: Rendering > Emulate CSS media feature forced-colors), and use the dark colour scheme for the dark palette. Test both palettes: forced light and forced dark.",
+        "how": "mirror",
+        "lookFor": "The page keeps its layout; the toolbar configuration fieldset still lists Available buttons, Button divider and Active toolbar."
+      },
+      {
+        "text": "Compare the same lists in both frames. In EACH frame, hover one toolbar item and press Tab through a few items so the tooltip and the focus outline appear.",
+        "how": "each",
+        "lookFor": "Before (forced dark): the icon-only controls are empty boxes. After: every icon-only control shows its icon. Heading, Style and Language show their text and caret in both."
+      },
+      {
+        "text": "Press Run checks.",
+        "how": "mirror"
+      }
+    ],
+    "expected": "In forced-colors dark, every icon-only toolbar-configuration control renders a recognizable icon in the user's CanvasText, while text dropdowns, carets, focus outlines, tooltips, hover, dragging and normal-mode presentation are unchanged.",
+    "actual": "Before (pristine pinned core): reproduced. In forced-colors dark the SVG background images keep their black fill and disappear on the black Canvas; forced-colors light still shows them (black on white). After (with the proposed CSS): the 25 icon-only items plus the 2 structural controls are repainted as masks in CanvasText in both palettes; the simulated un-opted contributed control is unchanged.",
+    "checks": [
+      {
+        "label": "Toolbar configuration UI is present (Available buttons + Button divider + Active toolbar: 35 items, including dividers in the active list)",
+        "probe": "document.querySelectorAll('#ckeditor5-toolbar-app .ckeditor5-toolbar-item').length",
+        "expect": 35,
+        "kind": "precondition"
+      },
+      {
+        "label": "All three lists rendered their controls (drupalMedia is not available on Full HTML because its media_embed filter is off)",
+        "probe": "[document.querySelectorAll('.ckeditor5-toolbar-available__buttons .ckeditor5-toolbar-item').length, document.querySelectorAll('.ckeditor5-toolbar-divider__buttons .ckeditor5-toolbar-item').length, document.querySelectorAll('.ckeditor5-toolbar-active__buttons .ckeditor5-toolbar-item').length].join('/')",
+        "expect": "12/2/21",
+        "kind": "precondition"
+      },
+      {
+        "label": "JavaScript errors on the page (ignoring the harmless \"ResizeObserver loop\" notice)",
+        "probe": "(window.__cmpErrors || []).filter((m) => !/ResizeObserver loop/.test(m)).length",
+        "expect": 0,
+        "kind": "regression"
+      },
+      {
+        "label": "Each icon-only control has exactly one icon URL in its CSS chain (background-image in normal modes, mask-image under forced colours)",
+        "probe": "(() => { const b = document.querySelector('.ckeditor5-toolbar-button-bold'); if (!b) return 'missing'; const s = getComputedStyle(b); const has = (v) => v && v !== 'none'; return has(s.backgroundImage) || has(s.maskImage); })()",
+        "expect": true,
+        "kind": "fix"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Forced colours, dark palette: the Available buttons show recognizable icons",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Forced colours, dark palette: the Active toolbar shows recognizable icons",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Forced colours, light palette: every icon is recognizable",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Heading, Style and Language keep their text labels and carets in forced colours",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Alignment keeps both its icon and its caret in forced colours, LTR and RTL",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "A keyboard focus outline is visible on the focused toolbar item and is not clipped",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Tooltips still appear on focus and hover",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Available and active toolbars remain distinguishable",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Normal light and dark mode look the same as Before",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "The toolbar configuration can still be saved and restored",
+        "expectBefore": true,
+        "expectAfter": true
+      }
+    ],
+    "coverage": {
+      "note": "Forced colours is the question of this issue, so all four palette combinations are counted. Forced-colors emulation is Chromium-only in Playwright; Firefox and WebKit rows are normal-mode regression checks. A real Windows contrast-theme pass is manual (see MANUAL-WINDOWS.md).",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": true,
+          "width": 480
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 480
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ],
+      "blocked": {
+        "firefox": "Playwright Firefox crashes on this machine before a page can be created (\"browser.newPage: Target crashed\"; also recorded for #3619127). Playwright cannot emulate forced colours in Firefox anyway. Real Windows contrast-theme verification is manual.",
+        "webkit": "Playwright WebKit does not emulate forced colors on macOS, and Safari cannot test Windows contrast themes. Normal-mode regression only."
+      },
+      "manual": [
+        "Windows 11 contrast theme, light and dark, Chromium/Edge and Firefox, both palettes (MANUAL-WINDOWS.md)",
+        "Keyboard-only pass through all three lists, including reordering and tooltips",
+        "A person comparing normal-mode Before/After screenshots"
+      ]
+    },
+    "demo": {
+      "viewport": "wide",
+      "start": "/admin/config/content/formats/manage/full_html"
+    }
+  },
+  {
+    "slug": "3534229-latest",
+    "extends": "3534229-pinned",
+    "label": "#3534229: same steps against the LATEST core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3534229-latest"
+    },
+    "after": {
+      "env": "issue-3534229-latest"
+    }
+  },
+  {
+    "slug": "3534229-combined-3637246",
+    "issue": "3534229",
+    "label": "#3534229 combined with #3637246 MR !17909: forced-colors mask + dark-mode filter",
+    "description": "Compatibility evaluation only. Before: pristine pinned core (shared baseline-3534229). After: its own environment issue-3534229-3637246, built with #3637246 MR !17909 (dark-mode filter: invert(1) and --admin-color-bg backgrounds) applied first, then the #3534229 forced-colors mask proposal, which includes a forced-colors filter reset. Confirms the two changes do not invert or obscure the user's forced-colors palette. The #3637246 MR was not modified.",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "8a7df6cc3e69b6b5d427cb25ce8f66dda8393c29"
+    },
+    "before": {
+      "env": "baseline-3534229"
+    },
+    "after": {
+      "env": "issue-3534229-3637246",
+      "patches": [
+        "reports/issues/3534229/branches/3637246-mr-17909.patch",
+        "reports/issues/3534229/branches/3534229-forced-colors-mask.patch"
+      ]
+    },
+    "pages": [
+      "/admin/config/content/formats/manage/full_html"
+    ],
+    "login": true,
+    "recipe": "repro_3534229",
+    "steps": [
+      {
+        "text": "Standard install. Default Admin is the admin and default theme.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /admin/config/content/formats/manage/full_html and turn on forced colours plus the dark colour scheme.",
+        "how": "mirror",
+        "lookFor": "The default_admin dark-mode class is applied by JavaScript; the palette must stay the user's forced palette, not an inversion of it."
+      },
+      {
+        "text": "Compare the three toolbar lists with the 3534229-pinned frames. The combined build must look the same as the mask-only fix in forced colours.",
+        "how": "each"
+      }
+    ],
+    "expected": "In forced colours the user's palette is respected (no inversion) and every icon remains visible in CanvasText, exactly as with the mask-only fix.",
+    "actual": "Measured 2026-11-27 on envs/issue-3534229-3637246: forced dark 31/35 -> 0/35 invisible, every button computes filter: none (the #3637246 dark-mode invert is cancelled); forced light 0/35 -> 0/35. Same keyboard/drag/save results as the mask-only variant.",
+    "checks": [
+      {
+        "label": "Toolbar configuration UI is present",
+        "probe": "document.querySelectorAll('#ckeditor5-toolbar-app .ckeditor5-toolbar-item').length",
+        "expect": 35,
+        "kind": "precondition"
+      },
+      {
+        "label": "The forced-colors build does not apply a colour filter to toolbar buttons",
+        "probe": "(() => { const b = document.querySelector('.ckeditor5-toolbar-button-bold'); return b ? getComputedStyle(b).filter : 'missing'; })()",
+        "expect": "none",
+        "kind": "fix"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Forced colours, dark palette: every toolbar icon is recognizable, exactly as with the mask-only fix",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "The forced palette itself is not inverted (Canvas and CanvasText keep their system colours)",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Normal light and dark mode are no worse than #3637246 alone",
+        "expectBefore": true,
+        "expectAfter": true
+      }
+    ],
+    "demo": {
+      "viewport": "wide",
+      "start": "/admin/config/content/formats/manage/full_html"
+    },
+    "coverage": {
+      "note": "Compatibility variant: only the forced-colours combinations that matter for the interaction, Chromium.",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": true,
+          "width": 1280
+        }
+      ],
+      "manual": [
+        "A person comparing this build with 3534229-pinned in forced light and forced dark."
+      ]
+    }
   }
 ]

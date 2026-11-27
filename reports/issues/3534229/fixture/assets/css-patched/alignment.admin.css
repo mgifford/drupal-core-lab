@@ -1,0 +1,97 @@
+.ckeditor5-toolbar-item-alignment\:left {
+  --ckeditor5-toolbar-icon: url(../icons/align-left.svg);
+}
+
+.ckeditor5-toolbar-button-alignment\:left {
+  background-image: var(--ckeditor5-toolbar-icon);
+}
+.ckeditor5-toolbar-item-alignment\:right {
+  --ckeditor5-toolbar-icon: url(../icons/align-right.svg);
+}
+
+.ckeditor5-toolbar-button-alignment\:right {
+  background-image: var(--ckeditor5-toolbar-icon);
+}
+.ckeditor5-toolbar-item-alignment\:center {
+  --ckeditor5-toolbar-icon: url(../icons/align-center.svg);
+}
+
+.ckeditor5-toolbar-button-alignment\:center {
+  background-image: var(--ckeditor5-toolbar-icon);
+}
+.ckeditor5-toolbar-item-alignment\:justify {
+  --ckeditor5-toolbar-icon: url(../icons/align-justify.svg);
+}
+
+.ckeditor5-toolbar-button-alignment\:justify {
+  background-image: var(--ckeditor5-toolbar-icon);
+}
+.ckeditor5-toolbar-item-alignment {
+  --ckeditor5-toolbar-icon: url(../icons/align-left.svg);
+}
+
+.ckeditor5-toolbar-button-alignment {
+  background-image: var(--ckeditor5-toolbar-icon);
+}
+
+.ckeditor5-toolbar-button-alignment {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 20px;
+  background-position-x: 10px;
+}
+[dir="rtl"] .ckeditor5-toolbar-button-alignment {
+  padding-right: 0;
+  padding-left: 20px;
+  background-position-x: 30px;
+}
+.ckeditor5-toolbar-button-alignment::after {
+  position: relative;
+  right: -10px;
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  content: "";
+  transform: rotate(135deg);
+  color: #000;
+  border-width: 2px 2px 0 0;
+  border-style: solid;
+  background-position-x: -10px;
+}
+[dir="rtl"] .ckeditor5-toolbar-button-alignment::after {
+  right: 10px;
+  background-position-x: 10px;
+}
+
+@media (forced-colors: active) {
+  @container style(--ckeditor5-toolbar-icon) {
+    /*
+     * The alignment dropdown carries both an icon and a ::after caret. A mask
+     * on the control itself would clip the caret, so the icon moves to the free
+     * ::before surface and the caret keeps its forced CanvasText border.
+     */
+    .ckeditor5-toolbar-item .ckeditor5-toolbar-button.ckeditor5-toolbar-button-alignment,
+    .ckeditor5-toolbar-item .ckeditor5-toolbar-button.ckeditor5-toolbar-button-alignment:hover {
+      position: relative;
+      background-color: transparent;
+      background-image: none;
+      mask-image: none;
+    }
+
+    .ckeditor5-toolbar-button-alignment::before {
+      position: absolute;
+      inset: 0;
+      content: "";
+      background-color: CanvasText;
+      mask-image: var(--ckeditor5-toolbar-icon);
+      mask-repeat: no-repeat;
+      mask-position: 10px center;
+      mask-size: 20px;
+    }
+
+    [dir="rtl"] .ckeditor5-toolbar-button-alignment::before {
+      mask-position: 30px center;
+    }
+  }
+}

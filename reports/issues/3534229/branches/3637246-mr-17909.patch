@@ -1,0 +1,41 @@
+# #3637246 MR !17909 (branch 3637246-ckeditor5-buttons-styling, head 5917a35e0aaedcdc0403349b335cea6297833c99)
+# Extracted from the drupal.org issue snapshot (.lab-cache/sources/3637246/snapshot.json) on 2026-11-27.
+# Used ONLY to evaluate the interaction with the #3534229 proposal; the MR was not modified.
+# sha256 of the diff body is recorded in COMPATIBILITY-3637246.md.
+diff --git a/core/modules/ckeditor5/css/toolbar.admin.css b/core/modules/ckeditor5/css/toolbar.admin.css
+index 40b04dd951244e04e41468289d5ce8a86f137361..991972ac12f9274f127ede6089acb097e3d12dc7 100644
+--- a/core/modules/ckeditor5/css/toolbar.admin.css
++++ b/core/modules/ckeditor5/css/toolbar.admin.css
+@@ -16,6 +16,7 @@
+   list-style: none;
+   /* Disallow any user selections in the drag-and-drop toolbar config UI. */
+   user-select: none;
++  background: var(--admin-color-bg);
+ }
+ 
+ .ckeditor5-toolbar-active__buttons {
+@@ -23,7 +24,7 @@
+   padding: 0.1667em 0.1667em 0.08em;
+   border: 1px solid #c4c4c4;
+   border-radius: 2px;
+-  background: #fafafa;
++  background: var(--admin-color-bg);
+ }
+ 
+ .ckeditor5-toolbar-item,
+@@ -52,6 +53,15 @@
+   background-size: 20px;
+ }
+ 
++ /* 
++  * Toolbar icon is defined as svg image applied as background-image 
++  * css property, so there is no possibility to set the fill color 
++  * directly. 
++  */
++.dark-mode .ckeditor5-toolbar-button {
++  filter: invert(1);
++}
++
+ .ckeditor5-toolbar-button:focus,
+ .ckeditor5-toolbar-button:hover {
+   color: #000;
