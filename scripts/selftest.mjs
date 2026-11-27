@@ -8,7 +8,9 @@
 //   node scripts/selftest.mjs --network         also read one issue's status from drupal.org (scripts/issue-status.mjs, read-only)
 //   node scripts/selftest.mjs --keep-going      run the unit tests even when a package they load is missing (normally they are not run:
 //                                               the dependency row says what to install, before minutes are spent on known failures)
-// Writes nothing into reports/. Exit 1 if any check fails; skipped checks say why.
+// Writes nothing into reports/. Exit 1 if any check fails; skipped checks say why. Every run also writes .lab-cache/selftest-last.json
+// (git-ignored): each check, and each failing unit test with its class, file, line, root error, missing package or executable, the
+// command that reruns it alone and the usual fix, so a person or an agent reads that instead of the TAP (tools/compare/test-output.mjs).
 import { staticSurvey, isAuthoredPatch } from '../tools/compare/css-build.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -26,7 +28,7 @@ import { hermeticEnv } from '../tools/compare/hermetic.mjs';
 const args = process.argv.slice(2);
 const liveIdx = args.indexOf('--live'); const liveSlug = liveIdx >= 0 ? args[liveIdx + 1] : null;
 if (liveIdx >= 0 && (!liveSlug || liveSlug.startsWith('--'))) { console.error('usage: node scripts/selftest.mjs [--live <slug>] [--network] [--keep-going]'); process.exit(2); }
-const results = [];
+const results = [], testFailures = [], started = Date.now();
 const record = (name, status, detail = '') => { results.push({ name, status, detail }); console.log(`${status.padEnd(4)}  ${name}${detail ? `: ${detail}` : ''}`); };
 const run = (cmd, a, opts = {}) => spawnSync(cmd, a, { cwd: labRoot, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, ...opts });
 const H = hermeticEnv();   // the static checks below run in it; --live and --network use the real environment
@@ -65,7 +67,8 @@ for (const [name, list] of [['unit tests: lab tools', glob('tests/lab')], ['unit
   if (!list.length) { record(name, 'skip', 'no tests found'); continue; }
   if (unitTestsBlocked) { record(name, 'skip', `not run: a package they load is missing (first row); --keep-going runs them anyway`); continue; }
   const r = runStatic('node', ['--test', '--test-reporter=tap', '--test-concurrency=1', ...list], { timeout: 600000 });
-  const summary = testRunSummary(r);
+  const summary = testRunSummary(r, { root: labRoot });
+  testFailures.push(...summary.failures.map((f) => ({ group: name, ...f })));
   record(name, summary.ok ? 'ok' : 'FAIL', summary.detail);
 }
 
@@ -158,5 +161,12 @@ if (args.includes('--network')) {
 }
 
 const failed = results.filter((x) => x.status === 'FAIL').length, skipped = results.filter((x) => x.status === 'skip').length;
+const lastFile = path.join(labRoot, '.lab-cache/selftest-last.json');
+try {
+  fs.mkdirSync(path.dirname(lastFile), { recursive: true });
+  fs.writeFileSync(lastFile, `${JSON.stringify({ schema: 1, finished: new Date().toISOString(), seconds: Math.round((Date.now() - started) / 1000), node: process.versions.node,
+    args, ok: !failed, checks: results.map(({ name, status }) => ({ name, status })), failures: testFailures }, null, 1)}\n`);
+  if (failed) console.log(`\nEach failure, classified, with the command that reruns it alone: ${path.relative(process.cwd(), lastFile) || lastFile}`);
+} catch (e) { console.log(`(could not write ${lastFile}: ${e.message})`); }
 console.log(`\n${failed ? `${failed} check(s) FAILED` : 'Self-test passed'} (${results.length - failed - skipped} ok, ${skipped} skipped${liveSlug ? '' : '; add --live <slug> to test the tools against a built pair'}).`);
 process.exit(failed ? 1 : 0);
