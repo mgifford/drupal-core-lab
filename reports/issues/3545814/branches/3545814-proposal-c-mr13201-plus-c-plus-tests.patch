@@ -1,0 +1,300 @@
+diff --git a/core/modules/views/src/Plugin/views/filter/FilterPluginBase.php b/core/modules/views/src/Plugin/views/filter/FilterPluginBase.php
+index 70cdc9e..a0df96c 100644
+--- a/core/modules/views/src/Plugin/views/filter/FilterPluginBase.php
++++ b/core/modules/views/src/Plugin/views/filter/FilterPluginBase.php
+@@ -1083,8 +1083,9 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
+       $this->valueForm($form, $form_state);
+       $form[$value] = $form['value'];
+ 
+-      if (isset($form[$value]['#title']) && !empty($form[$value]['#type']) && $form[$value]['#type'] != 'checkbox') {
+-        unset($form[$value]['#title']);
++      // Hide label when operator is exposed.
++      if ($this->options['expose']['use_operator'] && isset($form[$value]['#title']) && !empty($form[$value]['#type']) && $form[$value]['#type'] != 'checkbox') {
++        $form[$value]['#title_display'] = 'invisible';
+       }
+ 
+       $this->exposedTranslate($form[$value], 'value');
+diff --git a/core/modules/views/src/Plugin/views/filter/NumericFilter.php b/core/modules/views/src/Plugin/views/filter/NumericFilter.php
+index 637c362..a658357 100644
+--- a/core/modules/views/src/Plugin/views/filter/NumericFilter.php
++++ b/core/modules/views/src/Plugin/views/filter/NumericFilter.php
+@@ -242,7 +242,10 @@ class NumericFilter extends FilterPluginBase implements FilterOperatorsInterface
+     if ($which == 'all') {
+       $form['value']['value'] = [
+         '#type' => 'textfield',
+-        '#title' => !$exposed ? $this->t('Value') : '',
++        '#title' => $this->t('Value'),
++        // The exposed-operator fieldset already labels this group; keep the
++        // value control's accessible name without adding a visible label.
++        '#title_display' => $exposed ? 'invisible' : 'before',
+         '#size' => 30,
+         '#default_value' => $this->value['value'],
+       ];
+@@ -265,7 +268,7 @@ class NumericFilter extends FilterPluginBase implements FilterOperatorsInterface
+       // the operator is locked.
+       $form['value'] = [
+         '#type' => 'textfield',
+-        '#title' => !$exposed ? $this->t('Value') : '',
++        '#title' => $this->t('Value'),
+         '#size' => 30,
+         '#default_value' => $this->value['value'],
+       ];
+diff --git a/core/modules/views/tests/modules/views_test_config/test_views/views.view.test_filter_exposed_operator_labels.yml b/core/modules/views/tests/modules/views_test_config/test_views/views.view.test_filter_exposed_operator_labels.yml
+new file mode 100644
+index 0000000..f1ffdd9
+--- /dev/null
++++ b/core/modules/views/tests/modules/views_test_config/test_views/views.view.test_filter_exposed_operator_labels.yml
+@@ -0,0 +1,175 @@
++langcode: en
++status: true
++dependencies:
++  module:
++    - node
++id: test_filter_exposed_operator_labels
++label: test_filter_exposed_operator_labels
++module: views
++description: ''
++tag: ''
++base_table: node_field_data
++base_field: nid
++display:
++  default:
++    display_options:
++      access:
++        type: none
++      cache:
++        type: tag
++      exposed_form:
++        type: basic
++      fields:
++        nid:
++          id: nid
++          table: node_field_data
++          field: nid
++          relationship: none
++          group_type: group
++          admin_label: ''
++          label: ''
++          exclude: false
++          empty: ''
++          hide_empty: false
++          empty_zero: false
++          hide_alter_empty: true
++          click_sort_column: value
++          type: number_integer
++          settings:
++            thousand_separator: ''
++            prefix_suffix: true
++          group_column: value
++          group_columns: {  }
++          group_rows: true
++          delta_limit: 0
++          delta_offset: 0
++          delta_reversed: false
++          delta_first_last: false
++          multi_type: separator
++          separator: ', '
++          field_api_classes: false
++          entity_type: node
++          entity_field: nid
++          plugin_id: field
++      filters:
++        id:
++          id: id
++          table: node_field_data
++          field: nid
++          relationship: none
++          group_type: group
++          admin_label: ''
++          operator: '='
++          value:
++            min: ''
++            max: ''
++            value: ''
++          group: 1
++          exposed: true
++          expose:
++            operator_id: id_op
++            label: ID
++            description: ''
++            use_operator: true
++            operator: id_op
++            operator_limit_selection: false
++            operator_list: {  }
++            identifier: id
++            required: false
++            remember: false
++            multiple: false
++            remember_roles:
++              authenticated: authenticated
++          is_grouped: false
++          group_info:
++            label: ''
++            description: ''
++            identifier: ''
++            optional: true
++            widget: select
++            multiple: false
++            remember: false
++            default_group: All
++            default_group_multiple: {  }
++            group_items: {  }
++          entity_type: node
++          entity_field: nid
++          plugin_id: numeric
++        type:
++          id: type
++          table: node_field_data
++          field: type
++          relationship: none
++          group_type: group
++          admin_label: ''
++          operator: in
++          value: {  }
++          group: 1
++          exposed: true
++          expose:
++            operator_id: type_op
++            label: 'Content type'
++            description: ''
++            use_operator: true
++            operator: type_op
++            operator_limit_selection: false
++            operator_list: {  }
++            identifier: type
++            required: false
++            remember: false
++            multiple: false
++            remember_roles:
++              authenticated: authenticated
++            reduce: false
++          is_grouped: false
++          group_info:
++            label: ''
++            description: ''
++            identifier: ''
++            optional: true
++            widget: select
++            multiple: false
++            remember: false
++            default_group: All
++            default_group_multiple: {  }
++            group_items: {  }
++          entity_type: node
++          entity_field: type
++          plugin_id: bundle
++      pager:
++        type: full
++      style:
++        type: default
++      row:
++        type: fields
++      display_extenders: {  }
++    display_plugin: default
++    display_title: Default
++    id: default
++    position: 0
++    cache_metadata:
++      max-age: -1
++      contexts:
++        - 'languages:language_content'
++        - 'languages:language_interface'
++        - url
++        - url.query_args
++        - 'user.node_grants:view'
++      tags: {  }
++  page_1:
++    display_options:
++      path: test-filter-exposed-operator-labels
++      display_extenders: {  }
++    display_plugin: page
++    display_title: Page
++    id: page_1
++    position: 0
++    cache_metadata:
++      max-age: -1
++      contexts:
++        - 'languages:language_content'
++        - 'languages:language_interface'
++        - url
++        - url.query_args
++        - 'user.node_grants:view'
++      tags: {  }
+diff --git a/core/modules/views/tests/src/Functional/Plugin/FilterTest.php b/core/modules/views/tests/src/Functional/Plugin/FilterTest.php
+index 66c6b79..870ff11 100644
+--- a/core/modules/views/tests/src/Functional/Plugin/FilterTest.php
++++ b/core/modules/views/tests/src/Functional/Plugin/FilterTest.php
+@@ -24,7 +24,7 @@ class FilterTest extends ViewTestBase {
+    *
+    * @var array
+    */
+-  public static $testViews = ['test_filter', 'test_filter_in_operator_ui'];
++  public static $testViews = ['test_filter', 'test_filter_in_operator_ui', 'test_filter_exposed_operator_labels'];
+ 
+   /**
+    * {@inheritdoc}
+@@ -177,6 +177,31 @@ class FilterTest extends ViewTestBase {
+     $this->assertSession()->pageTextNotContains('The submitted value "page" in the Type element is not allowed.');
+   }
+ 
++  /**
++   * Tests that exposed filters with exposed operators keep their labels.
++   *
++   * A value control must have a native label association, and therefore an
++   * accessible name, when its operator is exposed too.
++   */
++  public function testExposedOperatorLabels(): void {
++    $this->drupalGet('test-filter-exposed-operator-labels');
++    $this->assertSession()->statusCodeEquals(200);
++    $page = $this->getSession()->getPage();
++
++    $value = $page->find('css', 'input[name="id[value]"]');
++    $this->assertNotNull($value, 'The numeric value field is rendered.');
++    // Take the ID from the rendered element instead of assuming a generated one.
++    $label = $page->find('css', 'label[for="' . $value->getAttribute('id') . '"]');
++    $this->assertNotNull($label, 'The numeric value field has a native label.');
++    $this->assertSame('Value', trim($label->getText()), 'The numeric value field is labelled "Value".');
++
++    $type = $page->find('css', 'select[name="type"]');
++    $this->assertNotNull($type, 'The content type select is rendered.');
++    $label = $page->find('css', 'label[for="' . $type->getAttribute('id') . '"]');
++    $this->assertNotNull($label, 'The content type select has a native label.');
++    $this->assertSame('Content types', trim($label->getText()), 'The content type select is labelled "Content types".');
++  }
++
+   /**
+    * Tests the limit of the expose operator functionality.
+    */
+diff --git a/core/modules/views_ui/tests/src/Functional/FilterNumericWebTest.php b/core/modules/views_ui/tests/src/Functional/FilterNumericWebTest.php
+index 3145b85..bd79eb5 100644
+--- a/core/modules/views_ui/tests/src/Functional/FilterNumericWebTest.php
++++ b/core/modules/views_ui/tests/src/Functional/FilterNumericWebTest.php
+@@ -150,6 +150,28 @@ class FilterNumericWebTest extends UITestBase {
+     // Make sure the label is visible and that there's no fieldset wrapper.
+     $this->assertSession()->elementsCount('xpath', '//label[contains(@for, "edit-age") and contains(text(), "Age greater than")]', 1);
+     $this->assertSession()->elementNotExists('xpath', '//fieldset[contains(@id, "edit-age-wrapper")]');
++
++    // Expose the operator. The value field must keep a native label: an
++    // exposed filter whose operator is also exposed used to lose the title of
++    // its value control, leaving it without an accessible name.
++    $this->drupalGet('admin/structure/views/nojs/handler/test_view/default/filter/age');
++    $this->submitForm([
++      'options[expose][use_operator]' => TRUE,
++      'options[expose][operator_id]' => 'age_op',
++    ], 'Apply');
++    $this->drupalGet('admin/structure/views/view/test_view');
++    $this->submitForm([], 'Save');
++    $this->submitForm([], 'Update preview');
++
++    $page = $this->getSession()->getPage();
++    $value = $page->find('css', 'fieldset#edit-age-wrapper input[name="age[value]"]');
++    $this->assertNotNull($value, 'The numeric value field is rendered in the exposed-operator wrapper.');
++    // Take the ID from the rendered element instead of assuming a generated one.
++    $label = $page->find('css', 'label[for="' . $value->getAttribute('id') . '"]');
++    $this->assertNotNull($label, 'The numeric value field has a native label.');
++    $this->assertSame('Value', trim($label->getText()), 'The numeric value field is labelled "Value".');
++    // The configured filter label still groups the operator and value controls.
++    $this->assertSession()->elementTextContains('css', 'fieldset#edit-age-wrapper legend', 'Age greater than');
+   }
+ 
+ }

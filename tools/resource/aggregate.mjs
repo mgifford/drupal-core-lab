@@ -218,6 +218,21 @@ export function aggregate(events, { now = new Date(), tasks = [] } = {}) {
     note: 'The latest sampled Mutagen session per variant. File counts and content sizes are Mutagen session values, not a directory walk or disk usage; a flush or reset can change them.',
   };
 
+  // Host capacity is stored as monitoring events, outside activity totals. The public view is the latest sample plus a
+  // capped series; it is a sampled trend, not a continuous time series.
+  const hostEvents = all.filter((e) => e.measurements?.host?.measurement === 'measured');
+  const hostSamples = hostEvents.map((e) => { const date = String(e.occurred_at).slice(0, 10); const hour = String(e.occurred_at).slice(11, 13); return { date, hour, sampled_at: `${date} ${hour}:00`, event_id: e.event_id.slice(0, 12), ...e.measurements.host }; }).sort((a, b) => a.sampled_at.localeCompare(b.sampled_at));
+  const hostLatest = hostSamples.at(-1) || null;
+  const hostLevels = { pass: 0, warn: 0, block: 0, unknown: 0 };
+  for (const e of hostEvents) hostLevels[e.measurements.host.level || 'unknown'] = (hostLevels[e.measurements.host.level || 'unknown'] || 0) + 1;
+  const host = {
+    samples: hostEvents.length,
+    latest: hostLatest,
+    series: hostSamples.slice(-120),
+    levels: hostLevels,
+    note: 'Point-in-time host samples collected on demand. Disk, memory, swap, Docker lab memory and running pairs are measured; the level is the conservative preflight assessment. This is not a live monitor and a gap between samples is not proof of idle time.',
+  };
+
   const trendMap = new Map();
   for (const e of countedData) {
     const date = String(e.occurred_at).slice(0, 10);
@@ -265,7 +280,7 @@ export function aggregate(events, { now = new Date(), tasks = [] } = {}) {
     },
     period: { from: dates[0] || null, to: dates.at(-1) || null },
     completeness: quality.events.partial + quality.events.unavailable > 0 ? 'partial' : 'complete',
-    totals, by_activity: activityRows, by_issue: issueRows, by_model: modelRows, by_tool: toolRows, github_workflows: githubWorkflows, trend, infrastructure,
+    totals, by_activity: activityRows, by_issue: issueRows, by_model: modelRows, by_tool: toolRows, github_workflows: githubWorkflows, trend, infrastructure, host,
     attribution, by_task: byTask, by_unknown_reason: byUnknownReason, by_exploration_subcategory: byExploration,
     repetition: { ...repetition.summary, groups: repetitionRows(countedData) }, reconciliation, provenance, exploration,
     quality,

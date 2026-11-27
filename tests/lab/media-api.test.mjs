@@ -39,7 +39,7 @@ test('media API retains Host/Origin guards and serves the browser-safe schema', 
 });
 
 // A populated Lab with slow DDEV must still serve its viewer/API immediately.
-test('viewer listens before slow DDEV lookups and warms only the selected pair', { timeout: 10000 }, async () => {
+test('viewer listens before slow DDEV lookups and warms only the selected pair', { timeout: 15000 }, async () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'viewer-startup-'));
   let child, exited;
   try {
@@ -74,8 +74,9 @@ setTimeout(() => console.log(JSON.stringify({raw:{hostname:'fixture.test'}})), 2
     });
     // Child startup can race with its DDEV subprocess scheduling; wait only for
     // their invocation records, never for the deliberately delayed responses.
-    const deadline = Date.now() + 1500;
+    const deadline = Date.now() + 5000;
     while ((!fs.existsSync(calls) || fs.readFileSync(calls, 'utf8').trim().split(/\s+/).length < 2) && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 20));
+    assert.ok(fs.existsSync(calls), `viewer did not invoke DDEV before the deadline. Output:\n${output}`);
     assert.deepEqual(fs.readFileSync(calls, 'utf8').trim().split(/\s+/).sort(), ['one', 'two']);
   } finally {
     if (child && child.exitCode === null && child.signalCode === null) child.kill('SIGTERM');

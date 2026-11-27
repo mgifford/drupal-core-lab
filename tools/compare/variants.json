@@ -2780,6 +2780,206 @@
     }
   },
   {
+    "slug": "3545814-pinned",
+    "issue": "3545814",
+    "label": "#3545814: Exposed filters with exposed operators are missing accessible names, pinned core",
+    "description": "Before: pristine core at the merge request base. After: MR !13201 (numeric filter value field gets a title, base class keeps the title and hides it only when the operator is exposed). Open /repro-3545814: every value control of an exposed filter with an exposed operator must have a native label association and a non-empty accessible name; the second numeric filter with a fixed operator must look the same on both sides.",
+    "status": "stub: fill in pages, steps, expected, checks, observe",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "87de7098664fd7bb741f51d47ec750ab0a178c5a"
+    },
+    "before": {
+      "env": "baseline-3545814"
+    },
+    "after": {
+      "env": "issue-3545814",
+      "patches": [
+        "reports/issues/3545814/branches/3545814-numeric-filter-value-field-missing-name.patch"
+      ]
+    },
+    "pages": [
+      "/repro-3545814",
+      "/admin/structure/views/view/repro_3545814/edit"
+    ],
+    "login": true,
+    "recipe": "repro_3545814",
+    "steps": [
+      {
+        "text": "The Article content type has a Tags term reference field, the Tags vocabulary exists, and four articles (Alpha, Beta, Gamma, Delta) carry News and Tutorial terms.",
+        "how": "recipe"
+      },
+      {
+        "text": "A View at /repro-3545814 exposes a numeric ID filter, a content type filter and a taxonomy term filter, each with its operator exposed; a second numeric ID filter is exposed with a fixed operator.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /repro-3545814 (both frames load it when you press Go).",
+        "how": "mirror"
+      },
+      {
+        "text": "Look at the exposed filters: the ID filter, the content type filter and the Tags filter each have an operator select and a value control.",
+        "how": "mirror"
+      },
+      {
+        "text": "Check the accessible name (label association) of each value control without and with the change.",
+        "how": "each"
+      },
+      {
+        "text": "Open the View configuration preview at /admin/structure/views/view/repro_3545814/edit and check the same controls there.",
+        "how": "mirror"
+      },
+      {
+        "text": "The second ID filter is already configured with a fixed operator: it exposes a value but no operator. Confirm its configuration form and rendered control look the same on both sides.",
+        "how": "each"
+      },
+      {
+        "text": "Submit the filters (for example ID greater than 2, Tags = News) and confirm the results and the selected values.",
+        "how": "each"
+      }
+    ],
+    "expected": "Every value control of an exposed filter whose operator is exposed has a native label association and a non-empty accessible name, and the fixed-operator numeric filter is visually unchanged.",
+    "actual": "Before: the numeric ID value field has no label at all, and the content type and Tags selects are unnamed when their operators are exposed. After: each control has an invisible native label.",
+    "checks": [
+      {
+        "label": "The exposed filter form is on the page",
+        "probe": "!!document.querySelector(\"form.views-exposed-form\") && !!document.querySelector(\"input[name=\\\"id_open[value]\\\"]\")",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "Numeric ID value field has a native label",
+        "probe": "(() => { const i=document.querySelector(\"input[name=\\\"id_open[value]\\\"]\"); if(!i || !i.id) return false; const l=document.querySelector(\"label[for=\\\"\"+CSS.escape(i.id)+\"\\\"]\"); return !!l && l.textContent.trim().length > 0; })()",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "Content type select has a native label",
+        "probe": "(() => { const i=document.querySelector(\"select[name=\\\"type\\\"]\"); if(!i || !i.id) return false; const l=document.querySelector(\"label[for=\\\"\"+CSS.escape(i.id)+\"\\\"]\"); return !!l && l.textContent.trim().length > 0; })()",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "Tags select has a native label",
+        "probe": "(() => { const i=document.querySelector(\"select[name=\\\"tags\\\"]\"); if(!i || !i.id) return false; const l=document.querySelector(\"label[for=\\\"\"+CSS.escape(i.id)+\"\\\"]\"); return !!l && l.textContent.trim().length > 0; })()",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "Fixed-operator numeric filter keeps its visible label",
+        "probe": "(() => { const i=document.querySelector(\"input[name=\\\"id_fixed\\\"]\"); if(!i || !i.id) return false; const l=document.querySelector(\"label[for=\\\"\"+CSS.escape(i.id)+\"\\\"]\"); return !!l && l.textContent.trim() === \"ID (fixed operator)\" && l.offsetParent !== null; })()",
+        "expect": true,
+        "kind": "regression"
+      },
+      {
+        "label": "Exposed-operator filters keep their fieldset grouping",
+        "probe": "[...document.querySelectorAll(\"fieldset legend\")].some(l => l.textContent.trim() === \"ID (exposed operator)\")",
+        "expect": true,
+        "kind": "regression"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Does the numeric ID value field have a label naming it?",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Do the Content type and Tags selects have an accessible name?",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Is the fixed-operator ID filter visually unchanged (same visible label, no fieldset)?",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Does filtering by ID > 2 return Gamma and Delta only?",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "Does filtering by Tags = News return Alpha and Beta only?",
+        "expectBefore": true,
+        "expectAfter": true
+      }
+    ],
+    "coverage": {
+      "note": "The combinations that count as tested for this issue (scripts/coverage.mjs). Edit to fit the question the issue asks.",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 480
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ],
+      "blocked": {
+        "firefox": "Firefox 158 (Playwright firefox-1569) launched but every new page crashed (\"Target crashed\") on this macOS 27 host; recorded as blocked, not a pass."
+      }
+    }
+  },
+  {
+    "slug": "3545814-latest",
+    "extends": "3545814-pinned",
+    "label": "#3545814: same steps against the LATEST core main",
+    "core": {
+      "ref": "main",
+      "commit": null
+    },
+    "before": {
+      "env": "baseline-3545814-latest"
+    },
+    "after": {
+      "env": "issue-3545814-latest"
+    }
+  },
+  {
+    "slug": "3545814-proposal-c",
+    "issue": "3545814",
+    "extends": "3545814-pinned",
+    "label": "#3545814: MR !13201 plus proposal C (numeric label kept, hidden when the operator is exposed)",
+    "description": "Before: pristine core at the MR base. After: MR !13201 plus proposal C, which sets #title_display invisible on the numeric value field only when its operator is exposed, so the accessible name is added without the visible \"Value\" label the MR alone adds. Everything else is the pinned comparison.",
+    "after": {
+      "env": "issue-3545814-c",
+      "patches": [
+        "reports/issues/3545814/branches/3545814-numeric-filter-value-field-missing-name.patch",
+        "reports/issues/3545814/branches/3545814-proposal-c-hide-numeric-value-label.patch"
+      ]
+    }
+  },
+  {
     "slug": "3534229-pinned",
     "issue": "3534229",
     "label": "#3534229: CKEditor 5 toolbar-configuration icons are invisible in forced-colors mode, pinned core",

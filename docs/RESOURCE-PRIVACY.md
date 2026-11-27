@@ -12,6 +12,7 @@ The local ledger is intended to answer “where did resources go?” without kee
 | Aggregated provider-reported token counts, model requests, tool calls, tool-result bytes, repeated reads | Local event; aggregated report/dashboard | Yes, aggregates only |
 | Client-reported or estimated cost, with its basis | Local event; aggregate | Yes, labelled estimate; not an invoice |
 | CPU-seconds, CPU percentages, peak memory, disk/block I/O operations, network bytes from samples | Local event; aggregate | Yes, labelled measured/sampled/derived |
+| Host capacity: disk free/total, memory free, swap used/total, Docker lab memory, running pairs/containers, preflight level | Local event; aggregate | Yes, latest sample and a capped series at hour resolution |
 | GitHub Actions workflow/job, trigger, runner label, duration, conclusion, attempt, potential overlap | Local event; aggregate buckets | Yes, aggregated by day/activity/tool; no run ids |
 | Activity category, tool name, model/provider name, public issue number, variant slug, commit/patch reference (where known) | Local event; aggregate | Yes, where the source provides it |
 | Source adapter and confidence | Local event; aggregate | Yes |
@@ -55,6 +56,7 @@ measurement, not identifiers that reveal a person.
 - Cost as an **estimate** where no provider invoice exists. If cost is missing, it is `—`, not `$0.00`.
 - CPU-hours and memory as computational measurements, not energy or emissions.
 - GitHub Actions time from the public API; no run ids or account details.
+- Host capacity samples at hour resolution: no precise working timestamps, process lists or container names.
 - Issue numbers, which are public Drupal issue identifiers.
 
 The page makes no network request except for `resources.json` beside it. It does not call an AI provider, Drupal, a trace

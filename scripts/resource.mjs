@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Deterministic resource accounting CLI.
-//   node scripts/resource.mjs collect [--source=claude,model-eval,measure-resources,github,docker,mutagen|all]
+//   node scripts/resource.mjs collect [--source=claude,model-eval,measure-resources,github,docker,mutagen,host|all]
 //        [--activity=...] [--issue=...] [--variant=...] [--since=YYYY-MM-DD] [--samples=3] [--interval=1000] [--dry-run] [--json]
 //        [--prompt-content] [--inspect-artifacts]   prompt/artifact metadata is the default; content and ZIP/patch reads are opt-in
 //   node scripts/resource.mjs recent [--limit=20] [--json]
@@ -27,6 +27,7 @@ import { collectMeasureResources } from '../tools/resource/adapters/measure-reso
 import { collectDocker } from '../tools/resource/adapters/docker.mjs';
 import { collectGithubActions } from '../tools/resource/adapters/github-actions.mjs';
 import { collectMutagen } from '../tools/resource/adapters/mutagen.mjs';
+import { collectHost } from '../tools/resource/adapters/host.mjs';
 
 const args = process.argv.slice(2), cmd = args[0];
 const val = (n, d = null) => {
@@ -49,6 +50,7 @@ async function collect() {
   if (wants('github')) { const r = await collectGithubActions({ limit: Number(val('limit', '100')), jobsFor: Number(val('jobs', '20')), issue: val('issue'), variant: val('variant') }); all.push(...r.events); errors.push(...r.errors); metadata.github = r.metadata; }
   if (wants('docker')) { const r = await collectDocker({ samples: Number(val('samples', '1')), intervalMs: Number(val('interval', '1000')), issue: val('issue'), variant: val('variant') }); all.push(...r.events); errors.push(...r.errors); metadata.docker = r.metadata; }
   if (wants('mutagen')) { const r = collectMutagen(); all.push(...r.events); errors.push(...r.errors); metadata.mutagen = r.metadata; }
+  if (wants('host')) { const r = await collectHost({ samples: Number(val('samples', '1')), intervalMs: Number(val('interval', '1000')) }); all.push(...r.events); errors.push(...r.errors); metadata.host = r.metadata; }
   // Explicit labels are a deliberate human override; otherwise the adapter's deterministic classification stands.
   const label = val('activity'), issue = val('issue'), variant = val('variant');
   const events = all.filter((e) => !val('since') || String(e.occurred_at).slice(0, 10) >= val('since'))
@@ -211,6 +213,17 @@ function markdown(s, baseline = false) {
       for (const m of s.infrastructure.mutagen.snapshots) md += `| ${m.label} | ${n(m.files)} | ${formatBytes(m.bytes)} | ${n(m.sessions)} | ${m.occurred_at} |\n`;
       md += '\n';
     }
+  }
+  if (s.host?.latest) {
+    const h = s.host.latest;
+    const pc = (v) => (v == null ? '—' : `${Number(v).toFixed(1)}%`);
+    md += `## Host capacity (sampled)\n\nPoint-in-time host samples, collected on demand by \`scripts/host-monitor.mjs\` or \`node scripts/resource.mjs collect --source=host\`. The level uses the same conservative preflight thresholds as \`scripts/preflight.mjs\`. This is not a live monitor; a gap between samples is not proof of idle time.\n\n| Sample | Level | Disk free | Memory free | Swap used | Docker lab memory | Pairs | Containers |\n|---|---|---:|---:|---:|---:|---:|---:|\n`;
+    md += `| ${h.sampled_at} | ${h.level} | ${formatBytes(h.disk_free_bytes)} | ${pc(h.memory_free_percent)} | ${pc(h.swap_used_percent)} | ${pc(h.docker_used_percent)} | ${n(h.lab_pairs)} | ${n(h.lab_containers)} |\n`;
+    if (s.host.series.length > 1) {
+      md += `\n| Sample | Level | Disk free | Memory free | Swap used | Docker lab memory | Pairs |\n|---|---|---:|---:|---:|---:|---:|\n`;
+      for (const x of s.host.series.slice(-12)) md += `| ${x.sampled_at} | ${x.level} | ${formatBytes(x.disk_free_bytes)} | ${pc(x.memory_free_percent)} | ${pc(x.swap_used_percent)} | ${pc(x.docker_used_percent)} | ${n(x.lab_pairs)} |\n`;
+    }
+    md += '\n';
   }
   if (s.by_exploration_subcategory?.length) {
     md += `## Code exploration subcategories\n\n| Subcategory | Events | Tokens | Share |\n|---|---:|---:|---:|\n`;
