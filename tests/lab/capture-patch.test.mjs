@@ -136,5 +136,6 @@ test('setup.mjs stops with BLOCKED (exit 4) for a variant whose After has nothin
   writeVariants([{ slug: 'zz-cap-empty', issue: '99000012', core: { ref: 'main' }, before: { env: 'zz-cap-before' }, after: { env: 'zz-cap-after', patches: [], authoring: true } }]);
   // past the guard setup looks for DDEV; a stand-in that answers at once keeps this test from depending on Docker being up
   const fake = path.join(root, 'fake-bin'); fs.mkdirSync(fake, { recursive: true }); fs.writeFileSync(path.join(fake, 'ddev'), '#!/bin/sh\necho "ddev version v1.24.0"\n', { mode: 0o755 });
+  fs.writeFileSync(path.join(fake, 'docker'), '#!/bin/sh\necho "Docker version 27.0.0"\n', { mode: 0o755 });   // setup checks docker --version too
   const ok = spawnSync('node', [path.join(labRoot, 'tools/compare/setup.mjs'), 'zz-cap-empty', '--dry-run'], { cwd: labRoot, encoding: 'utf8', env: { ...process.env, PATH: `${fake}:${process.env.PATH}` }, timeout: 60000 }); assert.doesNotMatch(ok.stderr, /BLOCKED/);
 });

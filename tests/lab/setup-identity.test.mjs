@@ -73,6 +73,6 @@ test('identity through setup.mjs: one base for the pair, a pin that must match, 
   fs.mkdirSync(path.join(env('before'), 'sites/default'), { recursive: true }); fs.writeFileSync(path.join(env('before'), 'sites/default/settings.php'), '<?php\n');
   fs.cpSync(recipeDir, path.join(env('before'), 'recipes/zz_ident_rcp'), { recursive: true });
   fs.writeFileSync(path.join(recipeDir, 'recipe.yml'), 'name: zz_ident_rcp\nweight: 10\n');   // the recipe is edited after the site was set up
-  r = spawnSync('node', [path.join(labRoot, 'tools/compare/setup.mjs'), 'zz-ident-latest', `--core-from=${up}`], { cwd: labRoot, encoding: 'utf8', env: { ...process.env, PATH: `${bin}:${process.env.PATH}` } });
+  r = spawnSync('node', [path.join(labRoot, 'tools/compare/setup.mjs'), 'zz-ident-latest', `--core-from=${up}`, '--skip-pin-check'], { cwd: labRoot, encoding: 'utf8', env: { ...process.env, PATH: `${bin}:${process.env.PATH}` } });
   assert.equal(r.status, 4, out(r)); assert.match(r.stderr, /BLOCKED[\s\S]*the recipe applied to zz-ident-before \([0-9a-f]{12}\) is not recipes\/zz_ident_rcp as it is now[\s\S]*lab-env\.mjs reset zz-ident-latest --yes/); assert.doesNotMatch(r.stderr, /delete/);
 });
