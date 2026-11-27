@@ -11,6 +11,7 @@ import { spawnSync } from 'node:child_process';
 import { labRoot, variants, envDir } from '../tools/compare/lib.mjs';
 import { hostsFor, checkHosts } from '../tools/compare/hosts.mjs';
 import { TASKS, checkTask, describeRow, primaryCheckout } from '../tools/compare/deps.mjs';
+import { measure, assessResources } from '../tools/compare/preflight.mjs';
 
 const slug = process.argv.slice(2).find((a) => !a.startsWith('--'));
 const task = (process.argv.find((a) => a.startsWith('--for=')) || '').slice('--for='.length);
@@ -37,12 +38,12 @@ if (needs.includes('docker')) {
 if (needs.includes('ddev')) {
   const dv = sh('ddev', ['--version']);
   add(dv.ok ? (atLeast(ver(dv.out), [1, 24]) ? 'PASS' : 'WARN') : 'FAIL', 'DDEV', dv.out || 'not installed', dv.ok ? 'Upgrade: DDEV 1.24 or newer is expected' : 'Install DDEV: https://ddev.com/get-started/');
+  // Disk, memory, Docker memory and running pairs: the same checks setup.mjs and lab-run.mjs enforce before a build. Work that uses no
+  // sites (--for=git, --for=selftest) does not need them.
+  for (const c of assessResources(measure({ root: labRoot })).checks) {
+    add(c.status === 'block' ? 'FAIL' : c.status === 'warn' ? 'WARN' : 'PASS', c.label, c.value, c.detail);
+  }
 }
-// Disk
-try {
-  const df = sh('df', ['-k', labRoot]).out.split('\n').pop().split(/\s+/); const freeGB = Number(df[3]) / 1048576;
-  add(freeGB >= 15 ? 'PASS' : freeGB >= 3 ? 'WARN' : 'FAIL', 'Free disk', `${freeGB.toFixed(1)} GB`, 'Building two environments needs about 10 GB; running ones need little. Below 3 GB things fail in odd ways. Free space: node scripts/lab-env.mjs delete <slug> --yes (a variant you are not using), docker builder prune, remove ~/Library/Caches/ms-playwright (reinstall later)');
-} catch { add('WARN', 'Free disk', 'could not read', 'Check with df -h'); }
 // Shared core clone
 const bare = path.join(labRoot, 'envs/core.git');
 add(fs.existsSync(bare) ? 'PASS' : 'WARN', 'Shared core clone (envs/core.git)', fs.existsSync(bare) ? 'present' : 'not yet created', 'Created by: node tools/compare/setup.mjs <slug>');
@@ -62,8 +63,6 @@ if (needs.includes('ddev')) {
   const ls = sh('ddev', ['list', '-j']);
   let running = {};
   try { for (const p of JSON.parse(ls.out).raw || []) if (p.approot) running[p.approot] = p.status; } catch { /* ddev list unavailable */ }
-  const labRunning = Object.entries(running).filter(([a, s]) => a.startsWith(path.join(labRoot, 'envs')) && s === 'running').length;
-  add(labRunning <= 3 ? 'PASS' : 'WARN', 'Lab DDEV projects running', String(labRunning), 'Normal is 2. Stop others: node scripts/lab-env.mjs stop <slug|all>');
   if (slug) {
     const v = variants().find((x) => x.slug === slug);
     if (!v) add('FAIL', `Variant ${slug}`, 'unknown', `Known: ${variants().map((x) => x.slug).join(', ')}`);

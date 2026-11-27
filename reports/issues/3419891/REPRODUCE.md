@@ -1,48 +1,73 @@
-# Reproduce #3419891: Increase size of alternative text field in Image dialog
+# Reproduce #3419891: alternative text textarea
+
+**DRAFT.** Rewritten 2026-11-26 for the re-pinned core. A person has not reviewed it.
 
 Issue: https://www.drupal.org/project/drupal/issues/3419891
-Pinned core: `47430c368bbd` (main, 2026-10-06). Verified: 2026-10-15.
+MR: https://git.drupalcode.org/project/drupal/-/merge_requests/16984
 
 ## The problem in one paragraph
 
-The alternative text field in the CKEditor5 image dialog is a single-line `<input>` showing ~35 characters. When appropriate alternative text is longer, content scrolls horizontally out of view. The fix changes it to a `<textarea>` with `minRows=1, maxRows=6` that grows vertically, keeping all content visible.
+The CKEditor 5 image dialog's Alternative text field was a single-line `<input>` showing about 35 characters; longer text scrolled horizontally out of view. MR !16984 replaces it with a `TextareaView` (`minRows=1`, `maxRows=6`). Reviewer feedback raised two further points: no scrollbar appears when the field is full, and reopening the dialog after an accidental outside click restores the saved text but keeps the previous height.
 
-## Reproduce it (pinned core, exactly as verified)
+## Registered comparisons
 
-    node tools/compare/setup.mjs 3419891-pinned        # builds Before and After, applies recipe and patch
-    node scripts/lab-env.mjs start 3419891-pinned --browser
-    node tools/compare/serve.mjs 3419891-pinned        # side-by-side viewer
-    node tools/playwright/evaluate-3419891.mjs 3419891-pinned   # scripted replay with real input
-
-The patch is from the issue fork branch `3419891-increase-size-of` (7 files changed).
-
-## Steps in the viewer
-
-1. Standard install: Basic page content type with body field using CKEditor5.
-2. Open `/node/add/page` in both frames (the viewer logs in).
-3. Click in the Body field to activate CKEditor5, then click the Image icon in the toolbar.
-4. In the Alternative text field, type a long string: `012345678 12345678 22345678 32345678 42345678 52345678 62345678 72345678`.
-5. Before: content scrolls horizontally out of view. After: field grows vertically (up to 6 rows), all content visible.
-
-## Try it on the latest core
-
-    node tools/compare/setup.mjs 3419891-pinned --check-patches    # use 3419891-latest for current core
-    node tools/compare/setup.mjs 3419891-latest
-    node tools/playwright/evaluate-3419891.mjs 3419891-latest
-
-`3419891-latest` follows `main`, so it answers "does this still reproduce upstream?".
-
-## If the result is not what you expect
-
-| What you see | What it probably means | What to do |
+| Slug | Before | After |
 |---|---|---|
-| **Before does not fail** (input doesn't scroll) | Upstream may have fixed it, or selectors no longer match | Check the issue and recent commits to the files in the patch. |
-| **After still fails** (textarea doesn't grow) | The fix no longer works there | Review the diff of the changed files against current core; update the patch. |
-| A patch **does not apply** | Core changed the same lines | Regenerate the patch from the issue fork branch. |
-| Everything as expected | Still reproducible | Record the new core commit (see "Re-pin" below). |
+| `3419891-pinned` | pristine `0387fb948f7` | MR patch only |
+| `3419891-followup` | the same pristine environment | MR patch + follow-up patch |
 
-## Re-pin to a newer core after verifying
+Both share `envs/baseline-3419891`; the After checkouts are `envs/issue-3419891` (MR) and `envs/issue-3419891-followup` (MR + follow-up). Patches are listed in [BRANCHES.md](BRANCHES.md).
 
-1. Run the `-latest` variant to the end and confirm the walkthrough reports "Reproduced and fixed".
-2. Put the verified commit (`git -C envs/issue-3419891-latest rev-parse HEAD`) in `core.commit` of the `-pinned` variant in `tools/compare/variants.json`.
-3. Re-run the walkthrough and the diff report, commit the new evidence, update "Pinned core" above.
+## Build
+
+```
+node scripts/doctor.mjs 3419891-pinned
+node tools/compare/setup.mjs 3419891-pinned --reinstall
+node tools/compare/setup.mjs 3419891-followup --reinstall
+node scripts/lab-env.mjs start 3419891-followup
+```
+
+`--reinstall` is required when a site exists: applying the recipe a second time is refused by core's recipe applier when the active config differs (`The configuration 'core.entity_form_display.node.page.default' exists already and does not match the recipe's configuration`). It reinstalls both sides, so Before and After still start from the same state.
+
+The follow-up checkout's bundle is already in the patch. If the JavaScript source is edited again:
+
+```
+cd envs/issue-3419891-followup
+ddev exec bash -lc "cd core && corepack yarn build:ckeditor5"
+```
+
+## Recipe path
+
+`recipes/repro_3419891/config/` (not `config/install/`). At this core revision a recipe's own configuration is read from `<recipe>/config`; the old `config/install` layout imported nothing. Both sides use the corrected recipe.
+
+## Run the evidence
+
+```
+node tools/playwright/evaluate-3419891.mjs 3419891-pinned --browser=chromium
+node tools/playwright/evaluate-3419891.mjs 3419891-pinned --browser=webkit
+node tools/playwright/evaluate-3419891.mjs 3419891-followup --browser=chromium
+node tools/playwright/evaluate-3419891.mjs 3419891-followup --browser=webkit
+node tools/playwright/evaluate-3419891.mjs 3419891-followup --browser=chromium --scheme=dark
+node tools/playwright/evaluate-3419891.mjs 3419891-followup --browser=chromium --forced-colors
+node tools/playwright/evaluate-3419891.mjs 3419891-followup --browser=chromium --viewport=480x900
+node tools/playwright/screenreader-3419891.mjs 3419891-followup
+node scripts/lint.mjs 3419891-followup
+```
+
+Expected: `3419891-pinned` → `reproduced-not-fixed` with `reopen-cancel` failing; `3419891-followup` → `reproduced-and-fixed` with no failing functional requirement. Each run writes `results.json`, `SUMMARY.md` and screenshots to `reports/issues/<nid>/playwright/<stamp>-<condition>/`.
+
+## Regression test
+
+```
+cd envs/issue-3419891-followup
+ddev phpunit core/modules/ckeditor5/tests/src/FunctionalJavascript/CKEditor5Test.php --filter testAlternativeTextFormResetsAfterCancel
+```
+
+Passes on the follow-up. On the MR alone it fails with `Failed asserting that 136.0 is less than 136.0`.
+
+## Known lab-side pitfalls seen while building this
+
+- The add-on rebuilds a per-project web image; a per-project image is the same DDEV web image under a different tag. Reusing an existing built tag avoids a 13-minute build. This does not change site code, which comes from the checkout.
+- Mutagen can lag behind `lab-site.sh` on a busy machine; `dr recipe:apply` may run before the `recipes/` copy reaches the container. A retry after a successful flush, or `--reinstall`, recovers.
+- `ddev stop` removes the project containers; this DDEV configuration keeps the database in the web container, so stopping a project discards its site database. Use `ddev restart` for a pause.
+- Docker Desktop restarted during this work and stopped every container. `docker start ddev-router` followed by `ddev start` in each project restored the sites with their databases intact.
