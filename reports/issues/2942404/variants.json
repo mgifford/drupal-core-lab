@@ -1,0 +1,59 @@
+[
+  {
+    "slug": "2942404-final",
+    "extends": "2942404-consolidated",
+    "label": "#2942404: final Variant C, consolidated landmark with ownership-safe lifecycle",
+    "description": "The final Variant C proposal: one named System messages region on the default messages container, with the Drupal.Message lifecycle, ownership-safe cleanup, narrower message detection and the regression tests. Before is the same pristine core as 2942404-consolidated; After adds the retained Twig patch, the lifecycle patch and the ownership/detection patch in order. The 2026-11-26 follow-up fixes the BigPipe fixture strings, updates the three performance ScriptBytes centres by the measured compact delta, and simplifies message.js without changing behaviour.",
+    "status": "DRAFT: final candidate; human review and upstream handoff pending",
+    "after": {
+      "env": "issue-2942404-consolidated",
+      "patches": [
+        "reports/issues/2942404/branches/2942404-consolidated-region.patch",
+        "reports/issues/2942404/branches/2942404-consolidated-message-landmark.patch",
+        "reports/issues/2942404/branches/2942404-consolidated-ownership.patch",
+        "reports/issues/2942404/branches/2942404-ci-fixes.patch"
+      ]
+    },
+    "coverage": {
+      "active": true,
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 480
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,268 @@
+diff --git a/core/modules/file/tests/modules/file_test_states/file_test_states.info.yml b/core/modules/file/tests/modules/file_test_states/file_test_states.info.yml
+new file mode 100644
+index 0000000..fdda293
+--- /dev/null
++++ b/core/modules/file/tests/modules/file_test_states/file_test_states.info.yml
+@@ -0,0 +1,7 @@
++name: 'File test states'
++type: module
++description: 'Provides a simple form with file fields using states.'
++package: Testing
++version: VERSION
++dependencies:
++  - drupal:file
+diff --git a/core/modules/file/tests/modules/file_test_states/file_test_states.routing.yml b/core/modules/file/tests/modules/file_test_states/file_test_states.routing.yml
+new file mode 100644
+index 0000000..e155829
+--- /dev/null
++++ b/core/modules/file/tests/modules/file_test_states/file_test_states.routing.yml
+@@ -0,0 +1,7 @@
++file_test_states_form.form:
++  path: '/file-test-states-form'
++  defaults:
++    _title: 'File test states form'
++    _form: '\Drupal\file_test_states\Form\FileTestStatesForm'
++  requirements:
++    _access: 'TRUE'
+diff --git a/core/modules/file/tests/modules/file_test_states/src/Form/FileTestStatesForm.php b/core/modules/file/tests/modules/file_test_states/src/Form/FileTestStatesForm.php
+new file mode 100644
+index 0000000..6b60693
+--- /dev/null
++++ b/core/modules/file/tests/modules/file_test_states/src/Form/FileTestStatesForm.php
+@@ -0,0 +1,236 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\file_test_states\Form;
++
++use Drupal\Core\Form\FormBase;
++use Drupal\Core\Form\FormStateInterface;
++
++/**
++ * A simple form with a file and manage_file to test states.
++ */
++class FileTestStatesForm extends FormBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  public function getFormId(): string {
++    return 'file_test_states_form';
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function buildForm(array $form, FormStateInterface $form_state): array {
++    // Independent controlling conditions, so that interactions between states
++    // cannot mask one another.
++    $form['toggle'] = [
++      '#type' => 'checkbox',
++      '#title' => $this->t('Toggle fields'),
++    ];
++    $form['toggle_required'] = [
++      '#type' => 'checkbox',
++      '#title' => $this->t('Toggle requirement'),
++    ];
++    $form['toggle_disabled'] = [
++      '#type' => 'checkbox',
++      '#title' => $this->t('Toggle disabled'),
++    ];
++
++    $form['managed_file_initially_visible'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Managed File Initially Visible'),
++      '#description' => $this->t('Description for the initially visible managed file.'),
++      '#states' => [
++        'visible' => [':input[name="toggle"]' => ['checked' => FALSE]],
++      ],
++    ];
++    $form['managed_file_initially_hidden'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Managed File Initially Hidden'),
++      '#description' => $this->t('Description for the initially hidden managed file.'),
++      '#states' => [
++        'visible' => [':input[name="toggle"]' => ['checked' => TRUE]],
++      ],
++    ];
++    $form['managed_file_initially_optional'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Managed File Initially Optional'),
++      '#description' => $this->t('Description for the initially optional managed file.'),
++      '#states' => [
++        'required' => [':input[name="toggle"]' => ['checked' => TRUE]],
++      ],
++    ];
++
++    // Requirement controlled independently from visibility.
++    $form['single_required'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Single file, conditional requirement'),
++      '#description' => $this->t('Description for the single file with conditional requirement.'),
++      '#states' => [
++        'required' => [':input[name="toggle_required"]' => ['checked' => TRUE]],
++      ],
++    ];
++
++    // The inverse state: "optional" is the negation of "required".
++    $form['single_optional_inverse'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Single file, conditional optional'),
++      '#description' => $this->t('Description for the single file with the inverse optional state.'),
++      '#states' => [
++        'optional' => [':input[name="toggle_required"]' => ['checked' => FALSE]],
++      ],
++    ];
++
++    // Visibility of a multiple-file widget controlled independently.
++    $form['multi_visible'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Multiple files, conditional visibility'),
++      '#description' => $this->t('Description for the multiple files with conditional visibility.'),
++      '#multiple' => TRUE,
++      '#states' => [
++        'visible' => [':input[name="toggle"]' => ['checked' => TRUE]],
++      ],
++    ];
++
++    $form['multi_required'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Multiple files, conditional requirement'),
++      '#description' => $this->t('Description for the multiple files with conditional requirement.'),
++      '#multiple' => TRUE,
++      '#states' => [
++        'required' => [':input[name="toggle_required"]' => ['checked' => TRUE]],
++      ],
++    ];
++
++    $form['single_disabled'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Single file, conditional disabled'),
++      '#description' => $this->t('Description for the single file with conditional disabled state.'),
++      '#states' => [
++        'disabled' => [':input[name="toggle_disabled"]' => ['checked' => TRUE]],
++      ],
++    ];
++
++    $form['multi_disabled'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Multiple files, conditional disabled'),
++      '#description' => $this->t('Description for the multiple files with conditional disabled state.'),
++      '#multiple' => TRUE,
++      '#states' => [
++        'disabled' => [':input[name="toggle_disabled"]' => ['checked' => TRUE]],
++      ],
++    ];
++
++    // Visibility and requirement combined, driven by two independent controls.
++    $form['combined'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Combined visibility and requirement'),
++      '#description' => $this->t('Description for the combined visibility and requirement file.'),
++      '#states' => [
++        'visible' => [':input[name="toggle"]' => ['checked' => TRUE]],
++        'required' => [':input[name="toggle_required"]' => ['checked' => TRUE]],
++      ],
++    ];
++
++    // A managed file with no states of its own must never change.
++    $form['no_states_file'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Managed file without states'),
++      '#description' => $this->t('Description for the managed file without states.'),
++    ];
++
++    // A single file with an upload validator, to test recovery after an
++    // invalid upload and the description association of the upload control.
++    $form['validated_file'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Validated single file'),
++      '#description' => $this->t('Only .txt files up to 1 KB are accepted.'),
++      '#upload_validators' => [
++        'FileExtension' => ['extensions' => 'txt'],
++        'FileSizeLimit' => ['fileLimit' => 1024],
++      ],
++    ];
++
++    $form['details'] = [
++      '#type' => 'details',
++      '#title' => $this->t('Details'),
++      '#open' => TRUE,
++    ];
++    $form['details']['managed_file_in_details'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Managed File In Details'),
++      '#description' => $this->t('Description for the managed file inside details.'),
++      '#states' => [
++        'visible' => [':input[name="toggle"]' => ['checked' => TRUE]],
++      ],
++    ];
++    $form['details']['textfield_in_details'] = [
++      '#type' => 'textfield',
++      '#title' => $this->t('Textfield In Details'),
++    ];
++    $form['details']['unrelated_in_details'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Unrelated managed file in details'),
++      '#description' => $this->t('Description for the unrelated managed file inside details.'),
++    ];
++
++    $form['fieldset_group'] = [
++      '#type' => 'fieldset',
++      '#title' => $this->t('Fieldset'),
++    ];
++    $form['fieldset_group']['managed_file_in_fieldset'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Managed file in fieldset'),
++      '#description' => $this->t('Description for the managed file inside a fieldset.'),
++      '#states' => [
++        'required' => [':input[name="toggle_required"]' => ['checked' => TRUE]],
++      ],
++    ];
++    $form['fieldset_group']['textfield_in_fieldset'] = [
++      '#type' => 'textfield',
++      '#title' => $this->t('Textfield in fieldset'),
++    ];
++
++    $form['container_group'] = [
++      '#type' => 'container',
++    ];
++    $form['container_group']['managed_file_in_container'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Managed file in container'),
++      '#description' => $this->t('Description for the managed file inside a container.'),
++      '#states' => [
++        'visible' => [':input[name="toggle"]' => ['checked' => TRUE]],
++      ],
++    ];
++    $form['container_group']['textfield_in_container'] = [
++      '#type' => 'textfield',
++      '#title' => $this->t('Textfield in container'),
++    ];
++
++    $form['plain_textfield'] = [
++      '#type' => 'textfield',
++      '#title' => $this->t('Unrelated textfield'),
++    ];
++
++    $form['actions'] = ['#type' => 'actions'];
++    $form['actions']['submit'] = [
++      '#type' => 'submit',
++      '#value' => $this->t('Save'),
++    ];
++
++    return $form;
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function validateForm(array &$form, FormStateInterface $form_state): void {}
++
++  /**
++   * {@inheritdoc}
++   */
++  public function submitForm(array &$form, FormStateInterface $form_state): void {}
++
++}

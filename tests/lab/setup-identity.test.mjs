@@ -37,7 +37,7 @@ fs.mkdirSync(issueDir, { recursive: true }); fs.mkdirSync(recipeDir, { recursive
 fs.writeFileSync(path.join(labRoot, PATCH), 'diff --git a/core/x.txt b/core/x.txt\n--- a/core/x.txt\n+++ b/core/x.txt\n@@ -1,3 +1,3 @@\n one\n-two\n+PATCHED\n three\n');
 const writeVariants = (extra = []) => fs.writeFileSync(path.join(issueDir, 'variants.json'), JSON.stringify([{ slug: 'zz-ident-latest', issue: '99000006', core: { url: up, ref: 'zz-ident' }, recipe: 'zz_ident_rcp', before: { env: 'zz-ident-before' }, after: { env: 'zz-ident-after', patches: [PATCH] } }, ...extra]));
 writeVariants();
-const run = (slug, ...extra) => spawnSync('node', [path.join(labRoot, 'tools/compare/setup.mjs'), slug, `--core-from=${up}`, ...extra], { cwd: labRoot, encoding: 'utf8' });
+const run = (slug, ...extra) => spawnSync('node', [path.join(labRoot, 'tools/compare/setup.mjs'), slug, `--core-from=${up}`, '--ignore-resources', ...extra], { cwd: labRoot, encoding: 'utf8' });
 const co = (slug = 'zz-ident-latest') => run(slug, '--checkout-only');
 const head = (side) => git(env(side), 'rev-parse', 'HEAD').stdout.trim();
 const removeAfter = () => { git(bare, 'worktree', 'remove', '--force', env('after')); fs.rmSync(env('after'), { recursive: true, force: true }); };
@@ -71,6 +71,6 @@ test('identity through setup.mjs: one base for the pair, a pin that must match, 
   fs.mkdirSync(path.join(env('before'), 'sites/default'), { recursive: true }); fs.writeFileSync(path.join(env('before'), 'sites/default/settings.php'), '<?php\n');
   fs.cpSync(recipeDir, path.join(env('before'), 'recipes/zz_ident_rcp'), { recursive: true });
   fs.writeFileSync(path.join(recipeDir, 'recipe.yml'), 'name: zz_ident_rcp\nweight: 10\n');   // the recipe is edited after the site was set up
-  r = spawnSync('node', [path.join(labRoot, 'tools/compare/setup.mjs'), 'zz-ident-latest', `--core-from=${up}`], { cwd: labRoot, encoding: 'utf8', env: { ...process.env, PATH: `${bin}:${process.env.PATH}` } });
+  r = spawnSync('node', [path.join(labRoot, 'tools/compare/setup.mjs'), 'zz-ident-latest', `--core-from=${up}`, '--ignore-resources'], { cwd: labRoot, encoding: 'utf8', env: { ...process.env, PATH: `${bin}:${process.env.PATH}` } });
   assert.equal(r.status, 4, out(r)); assert.match(r.stderr, /BLOCKED[\s\S]*the recipe applied to zz-ident-before \([0-9a-f]{12}\) is not recipes\/zz_ident_rcp as it is now[\s\S]*lab-env\.mjs reset zz-ident-latest --yes/); assert.doesNotMatch(r.stderr, /delete/);
 });

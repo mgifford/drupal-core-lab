@@ -9,6 +9,7 @@
 //   (a variant with "testExtensions": true gets `ddev drupal test:extensions-enable` before its recipe, so it can install test modules)
 //   node tools/compare/setup.mjs [slug] --with-lighthouse   also install Lighthouse (optional background audits in the viewer; Node 22.19+)
 //   node tools/compare/setup.mjs [slug] --skip-pin-check    do not run scripts/check-pins.mjs first (exit 5 when a pinned chromium or add-on release no longer resolves)
+//   node tools/compare/setup.mjs [slug] --ignore-resources  start even when the disk/memory preflight says block (exit 6); owner-approved exceptions only
 //   node tools/compare/setup.mjs [slug] --checkout-only     only the git worktrees with their patches: no DDEV, no site (enough for scripts/lint.mjs --host);
 //                                                           a later run without the flag carries on from there
 //   node tools/compare/setup.mjs [slug] --core-url=<url>    fetch core from another remote (e.g. https://github.com/drupal/drupal.git when
@@ -31,6 +32,7 @@ import { identity, blockMessage, headOf, recipeStatus } from './env-state.mjs';
 import { ensureContrib } from './contrib-state.mjs';
 import { noChangeProblem } from './change-under-test.mjs';
 import { isStaleAptCache, ADDON, ADDON_VERSION } from './ddev-build-failure.mjs';
+import { measure, assessResources, formatPreflight } from './preflight.mjs';
 
 const args = process.argv.slice(2);
 const dry = args.includes('--dry-run');
@@ -49,6 +51,17 @@ const REINSTALL = args.includes('--reinstall');   // wipe each site's database a
 // An After with nothing to test would equal Before and every check would say "no difference": stop before building one (exit 4, like a patch mismatch).
 { const none = noChangeProblem(v); if (none) { console.error(`BLOCKED: ${none}.`); process.exit(4); } }
 const bare = path.join(labRoot, 'envs/core.git');
+
+// Refuse to start when the host is below the resource floor. A warning is printed but does not stop; the agent
+// instructions say to ask before building on a warning. The same assessment runs in doctor and lab-run.
+if (!dry && !CHECK && !CHECKOUT_ONLY) {
+  const pf = assessResources(measure({ root: labRoot }));
+  if (pf.level !== 'pass') console.error(formatPreflight(pf));
+  if (pf.level === 'block' && !args.includes('--ignore-resources')) {
+    console.error('Refusing to build: free disk or memory is below the block threshold. Free regenerable space or stop an unused pair. --ignore-resources is only for an owner-approved exception.');
+    process.exit(6);
+  }
+}
 
 function run(cmd, argv, opts = {}) {
   console.log(`$ ${[cmd, ...argv].join(' ')}${opts.cwd ? `   (in ${path.relative(labRoot, opts.cwd) || '.'})` : ''}`);

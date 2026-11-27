@@ -1,0 +1,612 @@
+diff --git a/core/misc/message.js b/core/misc/message.js
+index 28c3f599f881c15c47451fc25aa7c3582d510360..5fb5d12ab9f0ac59244337de296267e6514f6e22 100644
+--- a/core/misc/message.js
++++ b/core/misc/message.js
+@@ -3,6 +3,144 @@
+  * Message API.
+  */
+ ((Drupal) => {
++  /**
++   * Marks landmark semantics that Drupal.Message added to a container.
++   *
++   * @type {string}
++   */
++  const LANDMARK_ATTRIBUTE = 'data-drupal-message-landmark';
++
++  /**
++   * The role Drupal assigns to a system messages landmark.
++   *
++   * @type {string}
++   */
++  const LANDMARK_ROLE = 'region';
++
++  /**
++   * Instances that use the default system messages container.
++   *
++   * @type {WeakSet}
++   */
++  const defaultInstances = new WeakSet();
++
++  /**
++   * Landmark values Drupal assigned, keyed by container.
++   *
++   * @type {WeakMap}
++   */
++  const landmarks = new WeakMap();
++
++  /**
++   * Determines whether an element is a message or an empty group.
++   *
++   * @param {HTMLElement} element
++   *   A candidate message or group.
++   *
++   * @return {boolean}
++   *   TRUE when the element holds a message.
++   */
++  const isMessage = (element) => {
++    if (element.hasAttribute('data-drupal-message-id')) {
++      return true;
++    }
++    if (!element.classList.contains('messages')) {
++      return false;
++    }
++    return (
++      element.textContent.trim() !== '' ||
++      element.querySelector(
++        'img, svg, picture, video, iframe, [role="img"]',
++      ) !== null
++    );
++  };
++
++  /**
++   * Determines whether a messages container still holds a message.
++   *
++   * @param {HTMLElement} container
++   *   The outer system messages container.
++   *
++   * @return {boolean}
++   *   TRUE when at least one message is present.
++   */
++  const hasMessages = (container) =>
++    [...container.querySelectorAll('[data-drupal-message-id], .messages')].some(
++      isMessage,
++    );
++
++  /**
++   * Adds landmark semantics to a default system messages container.
++   *
++   * Existing roles, names and labelled-by references are author-provided and
++   * are never overwritten. The values Drupal assigns are recorded so cleanup
++   * can leave later changes by another script in place.
++   *
++   * @param {HTMLElement} container
++   *   The outer system messages container.
++   */
++  const addLandmark = (container) => {
++    if (
++      container.hasAttribute('role') ||
++      container.hasAttribute('aria-label') ||
++      container.hasAttribute('aria-labelledby')
++    ) {
++      return;
++    }
++    const label = Drupal.t('System messages');
++    container.setAttribute('role', LANDMARK_ROLE);
++    container.setAttribute('aria-label', label);
++    container.setAttribute(LANDMARK_ATTRIBUTE, '');
++    landmarks.set(container, { role: LANDMARK_ROLE, label });
++  };
++
++  /**
++   * Removes landmark semantics that Drupal still owns.
++   *
++   * If another script changed the role, the name or added aria-labelledby,
++   * Drupal relinquishes the landmark and leaves the changed attributes alone.
++   *
++   * @param {HTMLElement} container
++   *   The outer system messages container.
++   */
++  const removeLandmark = (container) => {
++    const owned = landmarks.get(container);
++    if (!owned) {
++      return;
++    }
++    if (
++      !container.hasAttribute('aria-labelledby') &&
++      container.getAttribute('role') === owned.role &&
++      container.getAttribute('aria-label') === owned.label
++    ) {
++      container.removeAttribute('role');
++      container.removeAttribute('aria-label');
++    }
++    container.removeAttribute(LANDMARK_ATTRIBUTE);
++    landmarks.delete(container);
++  };
++
++  /**
++   * Adds or removes the system messages landmark for an instance.
++   *
++   * @param {Drupal.Message~messageDefinition} instance
++   *   The message instance whose container should be synchronized.
++   */
++  const updateLandmark = (instance) => {
++    if (!defaultInstances.has(instance)) {
++      return;
++    }
++    const container = instance.messageWrapper.closest('[data-drupal-messages]');
++    if (!container) {
++      return;
++    }
++    if (hasMessages(container)) {
++      addLandmark(container);
++    } else {
++      removeLandmark(container);
++    }
++  };
++
+   /**
+    * @typedef {class} Drupal.Message~messageDefinition
+    */
+@@ -24,6 +162,9 @@
+     constructor(messageWrapper = null) {
+       if (!messageWrapper) {
+         this.messageWrapper = Drupal.Message.defaultWrapper();
++        // Only the default system messages container gets the landmark. A
++        // caller-supplied wrapper is contextual and is left untouched.
++        defaultInstances.add(this);
+       } else {
+         this.messageWrapper = messageWrapper;
+       }
+@@ -58,9 +199,29 @@
+       }
+       wrapper.setAttribute('data-drupal-messages', '');
+ 
+-      return wrapper.childElementCount === 0
+-        ? Drupal.Message.messageInternalWrapper(wrapper)
+-        : wrapper.firstElementChild;
++      // The first child is an internal wrapper in some themes (Default Admin
++      // and Umami) and a message group in others (the system and starterkit
++      // templates). Adding a message to a message group would nest a new live
++      // region inside an existing alert or status region, so reuse a wrapper
++      // this class created earlier, or a first child that is not a live
++      // region, and otherwise create a wrapper after the existing groups.
++      const internalWrapper = wrapper.querySelector(
++        ':scope > .messages__wrapper',
++      );
++      if (
++        internalWrapper &&
++        !internalWrapper.matches('[role="alert"], [role="status"], [aria-live]')
++      ) {
++        return internalWrapper;
++      }
++      const firstChild = wrapper.firstElementChild;
++      if (
++        firstChild &&
++        !firstChild.matches('[role="alert"], [role="status"], [aria-live]')
++      ) {
++        return firstChild;
++      }
++      return Drupal.Message.messageInternalWrapper(wrapper, 'beforeend');
+     }
+ 
+     /**
+@@ -131,6 +292,7 @@
+       this.messageWrapper.appendChild(
+         Drupal.theme('message', { text: message }, options),
+       );
++      updateLandmark(this);
+ 
+       return options.id;
+     }
+@@ -165,7 +327,9 @@
+      *   Returns the removed message element.
+      */
+     remove(id) {
+-      return this.messageWrapper.removeChild(this.select(id));
++      const message = this.messageWrapper.removeChild(this.select(id));
++      updateLandmark(this);
++      return message;
+     }
+ 
+     /**
+@@ -179,6 +343,7 @@
+         .forEach((message) => {
+           this.messageWrapper.removeChild(message);
+         });
++      updateLandmark(this);
+     }
+ 
+     /**
+@@ -217,14 +382,16 @@
+      *
+      * @param {HTMLElement} messageWrapper
+      *   The message wrapper.
++     * @param {string} [position=afterbegin]
++     *   Where to insert the wrapper in the message wrapper.
+      *
+      * @return {HTMLElement}
+      *   The internal wrapper DOM element.
+      */
+-    static messageInternalWrapper(messageWrapper) {
++    static messageInternalWrapper(messageWrapper, position = 'afterbegin') {
+       const innerWrapper = document.createElement('div');
+       innerWrapper.setAttribute('class', 'messages__wrapper');
+-      messageWrapper.insertAdjacentElement('afterbegin', innerWrapper);
++      messageWrapper.insertAdjacentElement(position, innerWrapper);
+       return innerWrapper;
+     }
+   };
+diff --git a/core/modules/big_pipe/tests/src/FunctionalJavascript/BigPipeMessagesTest.php b/core/modules/big_pipe/tests/src/FunctionalJavascript/BigPipeMessagesTest.php
+index 295e371d15ae405e20977465520449fadd651193..c42dd322172a7822c5cd4c66447d398069c0dede 100644
+--- a/core/modules/big_pipe/tests/src/FunctionalJavascript/BigPipeMessagesTest.php
++++ b/core/modules/big_pipe/tests/src/FunctionalJavascript/BigPipeMessagesTest.php
+@@ -58,6 +58,8 @@ public function testMessages(): void {
+       $assert->elementContains('css', 'p.logged-message:nth-of-type(1)', 'Message: P1');
+       $assert->elementContains('css', 'p.logged-message:nth-of-type(2)', 'Message: P2');
+       $assert->responseContains($messages_markup);
++      $assert->elementExists('css', '[data-drupal-messages][role="region"][aria-label="System messages"]');
++      $assert->elementsCount('css', '[data-drupal-messages][role="region"]', 1);
+       $assert->elementExists('css', 'div[aria-label="Status message"]');
+       $assert->responseContains('aria-label="Status message">P1');
+       $assert->responseContains('aria-label="Status message">P2');
+diff --git a/core/modules/system/templates/status-messages.html.twig b/core/modules/system/templates/status-messages.html.twig
+index 417aa6d845c6aeb9100acb41cbc8e52512b63dd0..5f68ca089bd3b20d41163a525a8766646de2ca63 100644
+--- a/core/modules/system/templates/status-messages.html.twig
++++ b/core/modules/system/templates/status-messages.html.twig
+@@ -17,6 +17,11 @@
+  * and is intentionally not used here, which avoids duplicate landmark and
+  * non-unique landmark accessibility violations.
+  *
++ * All message groups are inside one "region" landmark named "System messages",
++ * so assistive technology users can find the current messages again by landmark
++ * navigation. The region is not a live region: announcements still come only
++ * from the "alert" and "status" roles of the individual groups.
++ *
+  * Available variables:
+  * - message_list: List of messages to be displayed, grouped by type.
+  * - status_headings: List of all status types.
+@@ -26,7 +31,7 @@
+  * @ingroup themeable
+  */
+ #}
+-<div data-drupal-messages>
++<div data-drupal-messages role="region" aria-label="{{ 'System messages'|t }}">
+ {% for type, messages in message_list %}
+   <div role="{{ type in ['error', 'warning'] ? 'alert' : 'status' }}" aria-label="{{ status_headings[type] }}"{{ attributes|without('role', 'aria-label') }}>
+     {% if status_headings[type] %}
+diff --git a/core/modules/system/tests/themes/test_messages/templates/status-messages.html.twig b/core/modules/system/tests/themes/test_messages/templates/status-messages.html.twig
+index b05b443a4ff044914653cf314a2ee9ea0a42eaf6..147af8e8e0a9d2df5dbba6079d31203fe90df1fb 100644
+--- a/core/modules/system/tests/themes/test_messages/templates/status-messages.html.twig
++++ b/core/modules/system/tests/themes/test_messages/templates/status-messages.html.twig
+@@ -2,9 +2,12 @@
+ /**
+  * @file
+  * Test templates file with extra messages div.
++ *
++ * The extra messages div is a contextual wrapper supplied by the caller and does
++ * not get the system messages landmark.
+  */
+ #}
+-<div data-drupal-messages>
++<div data-drupal-messages role="region" aria-label="{{ 'System messages'|t }}">
+ {% block messages %}
+ {% for type, messages in message_list %}
+   {%
+diff --git a/core/profiles/demo_umami/themes/umami/templates/components/messages/status-messages.html.twig b/core/profiles/demo_umami/themes/umami/templates/components/messages/status-messages.html.twig
+index f4d9619e3111ec7af896c4d7e6e8eb802c5bdebc..a76edadfd273610b22d9a50f6caea16ffed29975 100644
+--- a/core/profiles/demo_umami/themes/umami/templates/components/messages/status-messages.html.twig
++++ b/core/profiles/demo_umami/themes/umami/templates/components/messages/status-messages.html.twig
+@@ -13,6 +13,11 @@
+  * user agents announce it appropriately: "alert" for errors and warnings
+  * (assertive) and "status" for other message types (polite).
+  *
++ * All message groups are inside one "region" landmark named "System messages",
++ * so assistive technology users can find the current messages again by landmark
++ * navigation. The region is not a live region: announcements still come only
++ * from the "alert" and "status" roles of the individual groups.
++ *
+  * Available variables:
+  * - message_list: List of messages to be displayed, grouped by type.
+  * - status_headings: List of all status types.
+@@ -20,7 +25,7 @@
+  *   - class: HTML classes.
+  */
+ #}
+-<div data-drupal-messages>
++<div data-drupal-messages role="region" aria-label="{{ 'System messages'|t }}">
+   <div class="messages__wrapper container">
+   {% block messages %}
+     {% for type, messages in message_list %}
+diff --git a/core/tests/Drupal/FunctionalJavascriptTests/Ajax/MessageCommandTest.php b/core/tests/Drupal/FunctionalJavascriptTests/Ajax/MessageCommandTest.php
+index 26efca46cffdf541294e43106625b4603fb38a8e..88a19b40b05b242a1f62fcb2785cc078582fa66e 100644
+--- a/core/tests/Drupal/FunctionalJavascriptTests/Ajax/MessageCommandTest.php
++++ b/core/tests/Drupal/FunctionalJavascriptTests/Ajax/MessageCommandTest.php
+@@ -39,6 +39,8 @@ public function testMessageCommand(): void {
+     $this->waitForMessageVisible('I am a message in the default location.');
+     $this->assertAnnounceContains('I am a message in the default location.');
+     $assert_session->elementsCount('css', '.messages__wrapper .messages', 1);
++    $assert_session->elementExists('css', '[data-drupal-messages][role="region"][aria-label="System messages"]');
++    $assert_session->elementsCount('css', '[data-drupal-messages][role="region"]', 1);
+ 
+     $page->pressButton('Make Message In Alternate Location');
+     $this->waitForMessageVisible('I am a message in an alternate location.', '#alternate-message-container');
+@@ -46,6 +48,9 @@ public function testMessageCommand(): void {
+     $this->assertAnnounceContains('I am a message in an alternate location.');
+     $assert_session->elementsCount('css', '.messages__wrapper .messages', 1);
+     $assert_session->elementsCount('css', '#alternate-message-container .messages', 1);
++    $assert_session->elementNotExists('css', '#alternate-message-container[role]');
++    $assert_session->elementNotExists('css', '#alternate-message-container[aria-label]');
++    $assert_session->elementsCount('css', '[data-drupal-messages][role="region"]', 1);
+ 
+     $page->pressButton('Make Warning Message');
+     $this->waitForMessageVisible('I am a warning message in the default location.', NULL, 'warning');
+@@ -67,6 +72,8 @@ public function testMessageCommand(): void {
+       $this->assertAnnounceNotContains('I am a warning message in the default location.');
+       $this->waitForMessageRemoved('I am a message in the default location.');
+       $assert_session->elementsCount('css', '.messages__wrapper .messages', 1);
++      $assert_session->elementExists('css', '[data-drupal-messages][role="region"][aria-label="System messages"]');
++      $assert_session->elementsCount('css', '[data-drupal-messages][role="region"]', 1);
+     }
+ 
+     // Test that if MessageCommand::clearPrevious is FALSE, messages will not
+diff --git a/core/tests/Drupal/FunctionalJavascriptTests/Core/JsMessageTest.php b/core/tests/Drupal/FunctionalJavascriptTests/Core/JsMessageTest.php
+index 0308ef63a8f5ccaf53defebb0f0b37a4fa5cd03d..78add07ce74c3c868953cd6ee7dd6cc3e6b9c482 100644
+--- a/core/tests/Drupal/FunctionalJavascriptTests/Core/JsMessageTest.php
++++ b/core/tests/Drupal/FunctionalJavascriptTests/Core/JsMessageTest.php
+@@ -105,6 +105,131 @@ public function testAddRemoveMessages(): void {
+ 
+   }
+ 
++  /**
++   * Tests the System messages landmark lifecycle.
++   */
++  public function testLandmarkLifecycle(): void {
++    $web_assert = $this->assertSession();
++    $this->drupalGet('js_message_test_link');
++    $web_assert->waitForElement('css', '[data-drupal-messages]');
++
++    // Constructing a Drupal.Message instance must not create the landmark.
++    $web_assert->elementNotExists('css', '[data-drupal-messages][role]');
++    $web_assert->elementNotExists('css', '[data-drupal-messages][aria-label]');
++
++    // The first successful add creates one consolidated landmark.
++    $this->click('[id="add--status"]');
++    $web_assert->waitForElement('css', '[data-drupal-messages][role="region"][aria-label="System messages"]');
++    $web_assert->elementsCount('css', '[data-drupal-messages][role="region"][aria-label="System messages"]', 1);
++
++    // Repeated additions keep one landmark.
++    $this->click('[id="add--warning"]');
++    $web_assert->elementsCount('css', '[data-drupal-messages][role="region"][aria-label="System messages"]', 1);
++
++    // Removing one message keeps the landmark while another remains.
++    $this->click('[id="remove--status"]');
++    $web_assert->elementExists('css', '[data-drupal-messages][role="region"][aria-label="System messages"]');
++
++    // Removing the last message removes the landmark.
++    $this->click('[id="remove--warning"]');
++    $web_assert->elementNotExists('css', '[data-drupal-messages][role="region"]');
++    $web_assert->elementNotExists('css', '[data-drupal-messages][aria-label="System messages"]');
++
++    // Adding again restores it.
++    $this->click('[id="add--status"]');
++    $web_assert->elementExists('css', '[data-drupal-messages][role="region"][aria-label="System messages"]');
++
++    // Adding and clearing messages does not move focus.
++    $this->getSession()->executeScript("document.getElementById('add--status').focus();");
++    $this->click('[id="add--status"]');
++    $focus = $this->getSession()->evaluateScript("return document.activeElement.id;");
++    $this->assertSame('add--status', $focus, 'Adding a message moved focus.');
++    $this->getSession()->executeScript("window.__testMessage = new Drupal.Message(); window.__testMessage.clear();");
++    $focus = $this->getSession()->evaluateScript("return document.activeElement.id;");
++    $this->assertSame('add--status', $focus, 'Clearing messages moved focus.');
++
++    // A contextual wrapper supplied by the caller gets no landmark.
++    $this->click('[id="add-[data-drupal-messages-other]-status"]');
++    $web_assert->elementExists('css', '[data-drupal-messages-other] .messages--status');
++    $web_assert->elementNotExists('css', '[data-drupal-messages-other][role]');
++    $web_assert->elementNotExists('css', '[data-drupal-messages-other][aria-label]');
++    $web_assert->elementNotExists('css', '[data-drupal-messages][role="region"]');
++
++    // Author-provided role and name are preserved.
++    $this->getSession()->executeScript("document.querySelector('[data-drupal-messages]').setAttribute('role', 'region'); document.querySelector('[data-drupal-messages]').setAttribute('aria-label', 'Author messages');");
++    $this->click('[id="add--status"]');
++    $web_assert->elementExists('css', '[data-drupal-messages][role="region"][aria-label="Author messages"]');
++    $web_assert->elementNotExists('css', '[data-drupal-messages][aria-label="System messages"]');
++    $this->getSession()->executeScript("const el = document.querySelector('[data-drupal-messages]'); el.removeAttribute('role'); el.removeAttribute('aria-label');");
++  }
++
++  /**
++   * Tests that message detection ignores non-message live regions and empty groups.
++   */
++  public function testMessageDetection(): void {
++    $web_assert = $this->assertSession();
++    $this->drupalGet('js_message_test_link');
++    $web_assert->waitForElement('css', '[data-drupal-messages]');
++
++    // An unrelated status region must not keep the landmark.
++    $this->getSession()->executeScript("document.querySelector('[data-drupal-messages]').insertAdjacentHTML('beforeend', '<div id=\"unrelated-live\" role=\"status\">Not a message</div>');");
++    $this->getSession()->executeScript("window.__testMessage = new Drupal.Message(); window.__testMessage.add('Landmark owner', {type: 'status', announce: ''});");
++    $web_assert->elementExists('css', '[data-drupal-messages][role="region"]');
++    $this->getSession()->executeScript("window.__testMessage.clear();");
++    $web_assert->elementNotExists('css', '[data-drupal-messages][role="region"]');
++    $this->getSession()->executeScript("document.getElementById('unrelated-live').remove();");
++
++    // An empty .messages group is not a message.
++    $this->getSession()->executeScript("document.querySelector('[data-drupal-messages]').insertAdjacentHTML('beforeend', '<div class=\"messages\" id=\"empty-group\"></div>');");
++    $this->getSession()->executeScript("window.__testMessage.add('Landmark owner', {type: 'status', announce: ''});");
++    $this->getSession()->executeScript("window.__testMessage.clear();");
++    $web_assert->elementNotExists('css', '[data-drupal-messages][role="region"]');
++    $this->getSession()->executeScript("document.getElementById('empty-group').remove();");
++  }
++
++  /**
++   * Tests that cleanup respects attributes another script changed.
++   */
++  public function testLandmarkOwnership(): void {
++    $web_assert = $this->assertSession();
++    $this->drupalGet('js_message_test_link');
++    $web_assert->waitForElement('css', '[data-drupal-messages]');
++
++    // Another script changes the role and name after Drupal added them.
++    $this->getSession()->executeScript("window.__testMessage = new Drupal.Message(); window.__testMessage.add('Owned by Drupal', {type: 'status', announce: ''}); document.querySelector('[data-drupal-messages]').setAttribute('role', 'alert'); document.querySelector('[data-drupal-messages]').setAttribute('aria-label', 'External messages');");
++    $this->getSession()->executeScript("window.__testMessage.clear();");
++    $web_assert->elementExists('css', '[data-drupal-messages][role="alert"][aria-label="External messages"]');
++    $web_assert->elementNotExists('css', '[data-drupal-messages][data-drupal-message-landmark]');
++    $this->getSession()->executeScript("const el = document.querySelector('[data-drupal-messages]'); el.removeAttribute('role'); el.removeAttribute('aria-label');");
++
++    // Author-provided aria-labelledby is preserved and is not replaced by the
++    // system messages name.
++    $this->getSession()->executeScript("document.querySelector('[data-drupal-messages]').insertAdjacentHTML('beforeend', '<span id=\"external-name\" class=\"visually-hidden\">External name</span>'); document.querySelector('[data-drupal-messages]').setAttribute('aria-labelledby', 'external-name');");
++    $this->getSession()->executeScript("window.__testMessage.add('Labelled by author', {type: 'status', announce: ''});");
++    $web_assert->elementExists('css', '[data-drupal-messages][aria-labelledby="external-name"]');
++    $web_assert->elementNotExists('css', '[data-drupal-messages][aria-label="System messages"]');
++    $web_assert->elementNotExists('css', '[data-drupal-messages][role="region"]');
++    $this->getSession()->executeScript("const el = document.querySelector('[data-drupal-messages]'); el.removeAttribute('aria-labelledby'); document.getElementById('external-name').remove(); window.__testMessage.clear();");
++  }
++
++  /**
++   * Tests that multiple instances share one container and one landmark.
++   */
++  public function testMultipleInstances(): void {
++    $web_assert = $this->assertSession();
++    $this->drupalGet('js_message_test_link');
++    $web_assert->waitForElement('css', '[data-drupal-messages]');
++
++    $this->getSession()->executeScript("window.__testA = new Drupal.Message(); window.__testB = new Drupal.Message(); window.__testAId = window.__testA.add('Instance A', {type: 'status', announce: ''}); window.__testBId = window.__testB.add('Instance B', {type: 'status', announce: ''});");
++    $web_assert->elementsCount('css', '[data-drupal-messages][role="region"][aria-label="System messages"]', 1);
++    $this->getSession()->executeScript("window.__testA.remove(window.__testAId);");
++    $web_assert->elementExists('css', '[data-drupal-messages][role="region"][aria-label="System messages"]');
++    $this->getSession()->executeScript("window.__testB.remove(window.__testBId);");
++    $web_assert->elementNotExists('css', '[data-drupal-messages][role="region"]');
++    $this->getSession()->executeScript("window.__testA.add('Again', {type: 'status', announce: ''}); window.__testA.clear();");
++    $web_assert->elementNotExists('css', '[data-drupal-messages][role="region"]');
++  }
++
+   /**
+    * Asserts that currently shown messages match expected messages.
+    *
+diff --git a/core/tests/Drupal/FunctionalJavascriptTests/Core/MessageLandmarkTest.php b/core/tests/Drupal/FunctionalJavascriptTests/Core/MessageLandmarkTest.php
+new file mode 100644
+index 0000000000000000000000000000000000000000..186d29fa20308285aac5f61274f02af30af90132
+--- /dev/null
++++ b/core/tests/Drupal/FunctionalJavascriptTests/Core/MessageLandmarkTest.php
+@@ -0,0 +1,69 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\FunctionalJavascriptTests\Core;
++
++use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++
++/**
++ * Tests the System messages landmark in the system status messages template.
++ */
++#[Group('Javascript')]
++#[RunTestsInSeparateProcesses]
++class MessageLandmarkTest extends WebDriverTestBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  protected static $modules = ['js_message_test'];
++
++  /**
++   * {@inheritdoc}
++   */
++  protected $defaultTheme = 'stark';
++
++  /**
++   * Tests one consolidated landmark around server and JavaScript messages.
++   */
++  public function testConsolidatedLandmark(): void {
++    $web_assert = $this->assertSession();
++    $this->drupalGet('js_message_test_link_with_system_messages');
++
++    // Server-rendered messages: one region, and the per-type roles unchanged.
++    $web_assert->elementExists('css', '[data-drupal-messages][role="region"][aria-label="System messages"]');
++    $web_assert->elementsCount('css', '[data-drupal-messages][role="region"]', 1);
++    $web_assert->elementExists('css', '[data-drupal-messages] [role="status"][aria-label="Status message"]');
++    $web_assert->elementExists('css', '[data-drupal-messages] [role="alert"][aria-label="Warning message"]');
++    $web_assert->elementExists('css', '[data-drupal-messages] [role="alert"][aria-label="Error message"]');
++
++    // The system template has no internal wrapper. A JavaScript message must
++    // not be appended inside an existing alert or status group.
++    $this->click('[id="add--status"]');
++    $web_assert->waitForElement('css', '[data-drupal-messages] .messages--status[data-drupal-message-id]');
++    $nested = $this->getSession()->evaluateScript("return !!document.querySelector('[data-drupal-messages] [data-drupal-message-id]').parentElement.closest('[role=alert],[role=status],[aria-live]');");
++    $this->assertFalse($nested, 'A JavaScript message was nested inside an existing live region.');
++    $web_assert->elementsCount('css', '[data-drupal-messages][role="region"]', 1);
++    $web_assert->elementExists('css', '[data-drupal-messages][role="region"][aria-label="System messages"]');
++
++    // Removing the JavaScript message leaves the server-rendered landmark and
++    // the server messages in place.
++    $this->click('[id="clear-all"]');
++    $web_assert->elementNotExists('css', '[data-drupal-messages] [data-drupal-message-id]');
++    $web_assert->elementExists('css', '[data-drupal-messages][role="region"][aria-label="System messages"]');
++    $web_assert->elementsCount('css', '[data-drupal-messages][role="region"]', 1);
++    $web_assert->pageTextContains('PHP Status');
++    $web_assert->pageTextContains('PHP Warning');
++    $web_assert->pageTextContains('PHP Error');
++
++    // A caller-supplied contextual wrapper keeps its own semantics.
++    $this->click('[id="add-[data-drupal-messages-other]-status"]');
++    $web_assert->waitForElement('css', '[data-drupal-messages-other] .messages--status');
++    $web_assert->elementNotExists('css', '[data-drupal-messages-other][role]');
++    $web_assert->elementNotExists('css', '[data-drupal-messages-other][aria-label]');
++    $web_assert->elementsCount('css', '[data-drupal-messages][role="region"]', 1);
++  }
++
++}
+diff --git a/core/themes/default_admin/templates/misc/status-messages.html.twig b/core/themes/default_admin/templates/misc/status-messages.html.twig
+index f82cb87e32fcb2997da6868aa523ce3318318f3d..486600b7aa9a31f1b141f9c9ee3fe7ee3a8a2c9c 100644
+--- a/core/themes/default_admin/templates/misc/status-messages.html.twig
++++ b/core/themes/default_admin/templates/misc/status-messages.html.twig
+@@ -17,6 +17,11 @@
+  * and is intentionally not used here, which avoids duplicate landmark and
+  * non-unique landmark accessibility violations.
+  *
++ * All message groups are inside one "region" landmark named "System messages",
++ * so assistive technology users can find the current messages again by landmark
++ * navigation. The region is not a live region: announcements still come only
++ * from the "alert" and "status" roles of the individual groups.
++ *
+  * Available variables:
+  * - message_list: List of messages to be displayed, grouped by type.
+  * - status_headings: List of all status types.
+@@ -27,7 +32,7 @@
+  * @see \Drupal\default_admin\Hook\PreprocessHooks::preprocessStatusMessages()
+  */
+ #}
+-<div data-drupal-messages class="messages-list">
++<div data-drupal-messages class="messages-list" role="region" aria-label="{{ 'System messages'|t }}">
+   <div class="messages__wrapper">
+     {% for type, messages in message_list %}
+       {%
+diff --git a/core/themes/starterkit_theme/templates/misc/status-messages.html.twig b/core/themes/starterkit_theme/templates/misc/status-messages.html.twig
+index 34570521d9630d51953a0a03e03b4e32bc4f1a3b..37fc3832977f8e304d3884d02cb41bba657945e4 100644
+--- a/core/themes/starterkit_theme/templates/misc/status-messages.html.twig
++++ b/core/themes/starterkit_theme/templates/misc/status-messages.html.twig
+@@ -17,6 +17,11 @@
+  * and is intentionally not used here, which avoids duplicate landmark and
+  * non-unique landmark accessibility violations.
+  *
++ * All message groups are inside one "region" landmark named "System messages",
++ * so assistive technology users can find the current messages again by landmark
++ * navigation. The region is not a live region: announcements still come only
++ * from the "alert" and "status" roles of the individual groups.
++ *
+  * Available variables:
+  * - message_list: List of messages to be displayed, grouped by type.
+  * - status_headings: List of all status types.
+@@ -24,7 +29,7 @@
+  *   - class: HTML classes.
+  */
+ #}
+-<div data-drupal-messages>
++<div data-drupal-messages role="region" aria-label="{{ 'System messages'|t }}">
+ {% block messages %}
+ {% for type, messages in message_list %}
+   {%

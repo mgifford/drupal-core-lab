@@ -10,8 +10,9 @@ import { labRoot, variants, envDir } from '../tools/compare/lib.mjs';
 import { loadBudgets, readRunning, registerRunning, unregisterRunning } from '../tools/resource/budgets.mjs';
 import { claimLease, releaseLease, leaseRows } from '../tools/compare/leases.mjs';
 import { capacityDecision } from '../tools/compare/scheduler.mjs';
+import { measure, assessResources, formatPreflight, measureHost, criticalReason } from '../tools/compare/preflight.mjs';
 
-const USAGE = 'usage: node scripts/lab-run.mjs <slug> --kind=test|build|composer|setup|lint [--side=before|after] [--task=<id>] [--minutes=240] [--cwd=lab] [--mode=observe|warn|enforce] [--limit=N] -- <command...>';
+const USAGE = 'usage: node scripts/lab-run.mjs <slug> --kind=test|build|composer|setup|lint [--side=before|after] [--task=<id>] [--minutes=240] [--cwd=lab] [--mode=observe|warn|enforce] [--limit=N] [--ignore-resources] -- <command...>';
 const argv = process.argv.slice(2), split = argv.indexOf('--');
 if (split < 0 || split === argv.length - 1) { console.error(USAGE); process.exit(2); }
 const head = argv.slice(0, split), command = argv.slice(split + 1);
@@ -30,6 +31,12 @@ const mode = opt.mode || budgets.config.mode;
 if (!['observe', 'warn', 'enforce'].includes(mode)) { console.error(`lab-run: invalid --mode=${mode}`); process.exit(2); }
 const limit = opt.limit != null ? Number(opt.limit) : budgets.config.limits.max_concurrent_cpu_jobs;
 if (!Number.isFinite(limit) || limit < 0) { console.error(`lab-run: invalid --limit=${opt.limit}`); process.exit(2); }
+const preflight = assessResources(measure({ root: labRoot }));
+if (preflight.level !== 'pass') console.error(formatPreflight(preflight));
+if (preflight.level === 'block' && !opt['ignore-resources']) {
+  console.error('lab-run refused: free disk or memory is below the block threshold. No command was started. Free regenerable space or stop an unused pair; --ignore-resources is only for an owner-approved exception.');
+  process.exit(3);
+}
 const decision = capacityDecision({ running: readRunning(), leases: leaseRows(leaseFile), kind, mode, limit, memoryPercent: null });
 if (decision.action === 'refuse') {
   console.error(`lab-run refused (${decision.mode}): ${decision.reasons.join('; ')}`);
@@ -61,5 +68,15 @@ try {
   console.error(e.message); cleanup(); process.exit(3);
 }
 child = spawn(command[0], command.slice(1), { cwd, stdio: 'inherit', env: process.env });
-child.on('error', (e) => { console.error(`lab-run could not start ${command[0]}: ${e.message}`); cleanup(); process.exit(127); });
-child.on('close', (code) => { cleanup(); process.exit(code ?? 1); });
+let stoppedForResources = false;
+const watchdog = setInterval(() => {
+  const why = criticalReason(measureHost({ root: labRoot }));
+  if (why && !stoppedForResources) {
+    stoppedForResources = true;
+    console.error(`lab-run: stopping ${slug}: ${why}`);
+    try { child.kill('SIGTERM'); } catch { /* already gone */ }
+  }
+}, 30000);
+watchdog.unref?.();
+child.on('error', (e) => { clearInterval(watchdog); console.error(`lab-run could not start ${command[0]}: ${e.message}`); cleanup(); process.exit(127); });
+child.on('close', (code) => { clearInterval(watchdog); cleanup(); process.exit(code ?? 1); });
