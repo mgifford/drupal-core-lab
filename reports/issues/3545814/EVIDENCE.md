@@ -12,7 +12,7 @@
 | MR base / both Lab sides | `87de7098664fd7bb741f51d47ec750ab0a178c5a` (2026-07-25, Drupal 12.0-dev) |
 | Current core `main` checked for applicability | `8a7df6cc3e69b6b5d427cb25ce8f66dda8393c29` (2026-11-27), checked 2026-11-27; the MR, test and C patches apply when stacked. `main` moves several times a day, so this is a timestamped check, not a standing claim. |
 | MR review threads | 0 human threads; the 5 entries on the MR are system notes (target-branch change and commit pushes). The GitLab API v4 discussions endpoint answered HTTP 401, so the MR page's `discussions.json` endpoint was read instead. |
-| MR CI | Pipeline **1071860 running** on the `12d23affb9` merge ref (started 2026-11-27T21:55Z). Previous: 1071829 warning on the pre-C tip (21:19Z), 902552 warning (2026-07-26, one `PHPUnit Unit (Component): [8.6-ubuntu]` job failed). |
+| MR CI | Pipeline **1071860 finished: passed with warnings** on the `12d23affb9` merge ref (2026-11-27T21:55Z). Lint **passed**; Tests **warning**. The two failed jobs are `PHPUnit Unit (Core): [8.6-ubuntu]` and `PHPUnit Unit (Component): [8.6-ubuntu]` (experimental PHP 8.6, allowed to fail); they also failed on the pre-C pipeline 1071829. Kernel, Functional, FunctionalJavascript and Nightwatch jobs passed. Additional tests were skipped. |
 
 ## Revision history (2026-11-27)
 

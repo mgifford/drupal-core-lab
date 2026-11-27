@@ -16,11 +16,11 @@ The merge request does two things. It stops `FilterPluginBase::buildExposedForm(
 
 **The visual difference is now fixed in the MR.** The 26 July revision added a *visible* `Value` label and grew the numeric fieldset by 18 px. Proposal C sets `#title_display => 'invisible'` only when the operator is exposed (and `'before'`, the Form API default, in the filter configuration form), keeping the accessible name and the configuration form unchanged. It was recorded in the Lab (five environments) and **folded into the MR on 2026-11-27** as commit `12d23affb9`, together with regression tests in `FilterNumericWebTest` and `ExposedFormTest` (`2b30abc36b`). The published revision therefore carries the fix, the tests and the no-visual-change outcome.
 
-The Lab's browser runs used the 26 July tip `d7e538c3` on core `87de7098`; the 27 November revision rebases the same change onto `main` `c706424d`. The one-line C change is byte-identical and applies cleanly there. CI is running on the new tip.
+The Lab's browser runs used the 26 July tip `d7e538c3` on core `87de7098`; the 27 November revision rebases the same change onto `main` `c706424d`. The one-line C change is byte-identical and applies cleanly there. **CI on the new tip finished: pipeline 1071860 passed with warnings.** Lint passed; the two failed jobs are the experimental PHP 8.6 unit jobs, which also failed on the pre-C pipeline; the Kernel, Functional, FunctionalJavascript and Nightwatch jobs passed.
 
 ## Recommendation
 
-**Needs review**, once the CI pipeline on `12d23affb9` finishes and a person has looked at the revision. RTBC is not appropriate yet.
+**Needs review**, now that CI on `12d23affb9` has finished and a person has looked at the revision. RTBC is not appropriate yet.
 
 Why the published revision is a review candidate:
 
@@ -32,7 +32,7 @@ Why the published revision is a review candidate:
 
 What still blocks RTBC:
 
-- CI on `12d23affb9` is **running**; the previous pipelines ended with warnings, including one failed `PHPUnit Unit (Component)` job. Wait for the result.
+- CI on `12d23affb9` finished as **passed with warnings** (pipeline 1071860). The only failures are the experimental PHP 8.6 unit jobs, unrelated to this change and present before C. A clean pipeline is still needed before RTBC if the project treats those as blocking.
 - Firefox has no recorded run (launch crashes on this host); no synthetic Guidepup/tree-diff speech was produced; the wider related test classes were not run.
 - No person has done an independent keyboard and screen-reader pass; the Lab runs are synthetic.
 - The Lab's browser runs are on the 26 July tip; the new tip has the same one-line change and the tests but was not re-run in the browser here.

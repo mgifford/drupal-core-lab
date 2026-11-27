@@ -4,7 +4,7 @@
 
 C was folded into !13201 as `12d23affb9`, after the regression tests at `2b30abc36b`. The MR now carries the fix, the tests and the no-visual-change outcome. `ISSUE-COMMENT-DECISION.md` is kept for history and marked resolved.
 
-Remaining before Needs review: CI pipeline 1071860 on `12d23affb9`, then a person's review. Before RTBC: the human keyboard/screen-reader pass and a clean pipeline.
+Remaining before Needs review: a person's review. Before RTBC: the human keyboard/screen-reader pass. CI pipeline 1071860 finished as passed with warnings (only the experimental PHP 8.6 unit jobs failed, as before C).
 
 
 **DRAFT.** Written 2026-11-27 after the host ran out of capacity for another DDEV start. Nothing here is a substitute for the recorded evidence; it is the short list of what the evidence still lacks.

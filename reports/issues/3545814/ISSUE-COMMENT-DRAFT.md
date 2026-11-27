@@ -7,7 +7,7 @@ Without the change, the three value controls have no accessible name. The fields
 
 With the fix they are named Value, Content types and Select terms from vocabulary Tags. Axe reports none. Filter results and the fixed-operator filter are unchanged.
 
-The latest revision (12d23a) hides the numeric Value label, so the 18px visual change is gone. It also adds regression tests in FilterNumericWebTest and ExposedFormTest. The new CI pipeline is running.
+The latest revision (12d23a) hides the numeric Value label, so the 18px visual change is gone. It also adds regression tests in FilterNumericWebTest and ExposedFormTest. CI passed with warnings; only the PHP 8.6 unit jobs failed, as before the change.
 
 Not tested: a real screen reader, Firefox, and date or string filters.
 
