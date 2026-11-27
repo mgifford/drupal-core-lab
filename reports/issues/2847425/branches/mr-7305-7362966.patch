@@ -1,0 +1,255 @@
+diff --git a/core/modules/file/src/Element/ManagedFile.php b/core/modules/file/src/Element/ManagedFile.php
+index 407f93ae5a..6327a63141 100644
+--- a/core/modules/file/src/Element/ManagedFile.php
++++ b/core/modules/file/src/Element/ManagedFile.php
+@@ -391,6 +391,20 @@ class ManagedFile extends FormElementBase {
+       $element['upload']['#attached']['drupalSettings']['file']['elements']['#' . $id] = $extension_list;
+     }
+ 
++    // The wrapper rendered by file_managed_file keeps #attributes, including
++    // data-drupal-states, so visibility states already apply to the whole
++    // element. The required state marks the label of the element that carries
++    // #states, so copy #states to the upload control, or to the file IDs
++    // element when a file is present and the upload control is not rendered.
++    if (!empty($element['#states'])) {
++      if ($fids) {
++        $element['fids']['#states'] = $element['#states'];
++      }
++      else {
++        $element['upload']['#states'] = $element['#states'];
++      }
++    }
++
+     // Prefix and suffix used for Ajax replacement.
+     $element['#prefix'] = '<div id="' . $ajax_wrapper_id . '">';
+     $element['#suffix'] = '</div>';
+diff --git a/core/modules/file/src/Hook/FileThemeHooks.php b/core/modules/file/src/Hook/FileThemeHooks.php
+index b877669b62..dffb639168 100644
+--- a/core/modules/file/src/Hook/FileThemeHooks.php
++++ b/core/modules/file/src/Hook/FileThemeHooks.php
+@@ -198,7 +198,8 @@ class FileThemeHooks {
+   public function preprocessManagedFile(array &$variables): void {
+     $element = $variables['element'];
+ 
+-    $variables['attributes'] = [];
++    // Initialize only if the attributes is not already set.
++    $variables['attributes'] ??= [];
+     if (isset($element['#id'])) {
+       $variables['attributes']['id'] = $element['#id'];
+     }
+diff --git a/core/modules/file/tests/modules/file_test_states/file_test_states.info.yml b/core/modules/file/tests/modules/file_test_states/file_test_states.info.yml
+new file mode 100644
+index 0000000000..fdda29358a
+--- /dev/null
++++ b/core/modules/file/tests/modules/file_test_states/file_test_states.info.yml
+@@ -0,0 +1,7 @@
++name: 'File test states'
++type: module
++description: 'Provides a simple form with file fields using states.'
++package: Testing
++version: VERSION
++dependencies:
++  - drupal:file
+diff --git a/core/modules/file/tests/modules/file_test_states/file_test_states.routing.yml b/core/modules/file/tests/modules/file_test_states/file_test_states.routing.yml
+new file mode 100644
+index 0000000000..e155829b56
+--- /dev/null
++++ b/core/modules/file/tests/modules/file_test_states/file_test_states.routing.yml
+@@ -0,0 +1,7 @@
++file_test_states_form.form:
++  path: '/file-test-states-form'
++  defaults:
++    _title: 'File test states form'
++    _form: '\Drupal\file_test_states\Form\FileTestStatesForm'
++  requirements:
++    _access: 'TRUE'
+diff --git a/core/modules/file/tests/modules/file_test_states/src/Form/FileTestStatesForm.php b/core/modules/file/tests/modules/file_test_states/src/Form/FileTestStatesForm.php
+new file mode 100644
+index 0000000000..753e31b988
+--- /dev/null
++++ b/core/modules/file/tests/modules/file_test_states/src/Form/FileTestStatesForm.php
+@@ -0,0 +1,80 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\file_test_states\Form;
++
++use Drupal\Core\Form\FormBase;
++use Drupal\Core\Form\FormStateInterface;
++
++/**
++ * A simple form with a file and manage_file to test states.
++ */
++class FileTestStatesForm extends FormBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  public function getFormId(): string {
++    return 'file_test_states_form';
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function buildForm(array $form, FormStateInterface $form_state): array {
++    $form['toggle'] = [
++      '#type' => 'checkbox',
++      '#title' => $this->t('Toggle fields'),
++    ];
++    $form['managed_file_initially_visible'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Managed File Initially Visible'),
++      '#states' => [
++        'visible'  => [':input[name="toggle"]' => ['checked' => FALSE]],
++      ],
++    ];
++    $form['managed_file_initially_hidden'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Managed File Initially Hidden'),
++      '#states' => [
++        'visible'  => [':input[name="toggle"]' => ['checked' => TRUE]],
++      ],
++    ];
++    $form['managed_file_initially_optional'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Managed File Initially Optional'),
++      '#states' => [
++        'required'  => [':input[name="toggle"]' => ['checked' => TRUE]],
++      ],
++    ];
++    $form['details'] = [
++      '#type' => 'details',
++      '#title' => $this->t('Details'),
++      '#open' => TRUE,
++    ];
++    $form['details']['managed_file_in_details'] = [
++      '#type' => 'managed_file',
++      '#title' => $this->t('Managed File In Details'),
++      '#states' => [
++        'visible' => [':input[name="toggle"]' => ['checked' => TRUE]],
++      ],
++    ];
++    $form['details']['textfield_in_details'] = [
++      '#type' => 'textfield',
++      '#title' => $this->t('Textfield In Details'),
++    ];
++    return $form;
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function validateForm(array &$form, FormStateInterface $form_state): void {}
++
++  /**
++   * {@inheritdoc}
++   */
++  public function submitForm(array &$form, FormStateInterface $form_state): void {}
++
++}
+diff --git a/core/modules/file/tests/src/FunctionalJavascript/FileManagedStateTest.php b/core/modules/file/tests/src/FunctionalJavascript/FileManagedStateTest.php
+new file mode 100644
+index 0000000000..0fe7993312
+--- /dev/null
++++ b/core/modules/file/tests/src/FunctionalJavascript/FileManagedStateTest.php
+@@ -0,0 +1,85 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Drupal\Tests\file\FunctionalJavascript;
++
++use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
++use PHPUnit\Framework\Attributes\Group;
++use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
++
++/**
++ * Tests visibility of managed files.
++ */
++#[Group('file')]
++#[RunTestsInSeparateProcesses]
++class FileManagedStateTest extends WebDriverTestBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  protected static $modules = ['file_test_states', 'file'];
++
++  /**
++   * {@inheritdoc}
++   */
++  protected $defaultTheme = 'stark';
++
++  /**
++   * Tests if the managed file element is correctly hidden using states.
++   */
++  public function testFileStateVisible(): void {
++    $this->drupalLogin($this->drupalCreateUser());
++    $this->drupalGet('file-test-states-form');
++    $page = $this->getSession()->getPage();
++    $assert_session = $this->assertSession();
++
++    $field_initially_visible = $page->findField('files[managed_file_initially_visible]');
++    $field_initially_hidden = $page->findField('files[managed_file_initially_hidden]');
++    $field_initially_optional = $page->findField('files[managed_file_initially_optional]');
++    $field_in_details = $page->findField('files[managed_file_in_details]');
++    $textfield_in_details = $page->findField('textfield_in_details');
++    $required_label = 'label.form-required[for="edit-managed-file-initially-optional-upload"]';
++
++    // Check that the initially visible managed file is visible.
++    $this->assertTrue($field_initially_visible->isVisible());
++
++    // Check that the initially hidden managed file is hidden.
++    $this->assertFalse($field_initially_hidden->isVisible());
++
++    // Check that the initially optional managed file is optional and that its
++    // label has no required marker.
++    $this->assertFalse($field_initially_optional->hasAttribute('required'));
++    $assert_session->elementNotExists('css', $required_label);
++
++    // Check that a hidden managed file inside a details element does not hide
++    // the details element or its other children.
++    $this->assertFalse($field_in_details->isVisible());
++    $this->assertTrue($textfield_in_details->isVisible());
++
++    // Toggle the fields.
++    $page->findField('toggle')->click();
++
++    // Check that the initially visible managed file is now hidden.
++    $this->assertFalse($field_initially_visible->isVisible());
++
++    // Check that the initially hidden managed file is now visible.
++    $this->assertTrue($field_initially_hidden->isVisible());
++
++    // Check that the initially optional managed file is now required and that
++    // its label has the required marker.
++    $this->assertTrue($field_initially_optional->hasAttribute('required'));
++    $assert_session->elementExists('css', $required_label);
++
++    // Check that the managed file inside the details element is now visible
++    // and that the details element is unchanged.
++    $this->assertTrue($field_in_details->isVisible());
++    $this->assertTrue($textfield_in_details->isVisible());
++
++    // Toggle back and check the details element is still visible.
++    $page->findField('toggle')->click();
++    $this->assertFalse($field_in_details->isVisible());
++    $this->assertTrue($textfield_in_details->isVisible());
++  }
++
++}
+diff --git a/core/modules/system/tests/src/Functional/Form/FormTest.php b/core/modules/system/tests/src/Functional/Form/FormTest.php
+index 08901316a4..1e12ca4617 100644
+--- a/core/modules/system/tests/src/Functional/Form/FormTest.php
++++ b/core/modules/system/tests/src/Functional/Form/FormTest.php
+@@ -807,7 +807,7 @@ class FormTest extends BrowserTestBase {
+     // All the elements should be marked as disabled, including the ones below
+     // the disabled container.
+     $actual_count = count($disabled_elements);
+-    $expected_count = 44;
++    $expected_count = 45;
+     $this->assertEquals($expected_count, $actual_count, sprintf('Found %s elements with disabled property (expected %s).', count($disabled_elements), $expected_count));
+ 
+     // Mink does not "see" hidden elements, so we need to set the value of the
