@@ -78,3 +78,9 @@ for the lab's own practice.
   valid there, `aria-invalid` and `aria-errormessage` are not.
 - **`#error_no_message`**: core still sets `aria-invalid`; MR !15692 additionally leaves a dangling
   `aria-errormessage`; the August 6 patch guards it correctly.
+- **An author-set `#id` is not uniquified.** `Html::getUniqueId()` only runs when `#id` is absent, so the same
+  explicitly-ID'd element in two form instances duplicates the element and its error container.
+- **Tables and tableselects render no inline error container** (#2848307); a mechanism must not point at one.
+- **`#theme` can be an array**; use `#type` for type gates.
+- **The proof of concept passed the gate** (7/7 in `default_admin`) with no template change and no renderer
+  dependency, which is the evidence the recommendation was missing.

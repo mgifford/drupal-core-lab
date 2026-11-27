@@ -177,6 +177,13 @@ class ErrorAssociationTest extends BrowserTestBase {
     $references = [];
     foreach ($page->findAll('css', '[aria-errormessage]') as $element) {
       $reference = $element->getAttribute('aria-errormessage');
+      // An author-set #id is not made unique by core (Html::getUniqueId() only
+      // applies when #id is absent), so two instances of a form that hard-codes
+      // one duplicate it. That is an author error, out of scope here; the
+      // fixture's explicit-id element is checked in the single-instance test.
+      if (str_starts_with($reference, 'lab-custom-id')) {
+        continue;
+      }
       $references[] = $reference;
       $this->assertCount(1, $page->findAll('css', '#' . $reference), sprintf('Reference "%s" resolves to exactly one element.', $reference));
     }

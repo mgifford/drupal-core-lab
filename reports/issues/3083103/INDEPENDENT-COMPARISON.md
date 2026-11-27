@@ -88,9 +88,9 @@ placement but not its delivery mechanism:
 4. **Test in `default_admin`, not `stark`.** A Functional test that submits the fixture and asserts every
    `aria-errormessage`/`aria-describedby` token resolves to exactly one element would have failed both
    proposals. That test is the acceptance criterion.
-5. **Do not open a new MR before the proof-of-concept in (1) is run.** If it fails, the fallback is to
-   narrow this issue to Inline Form Errors, document the Standard-install gap in a separate Core issue, and
-   land the suppression/composite fixes that are correct in either case.
+5. **The proof of concept has been run and passes the gate** (7 of 7 in `default_admin`, Before 2 failures;
+   [ACCEPTANCE-TEST-poc.md](ACCEPTANCE-TEST-poc.md)). It is still lab-only: no MR, no comment. The next step
+   is to turn it into a minimal patch plus interdiff once the ID source (#3557245 / MR !16520) is settled.
 
 Do not merge the August 6 patch as-is: it is inert on a default install, and its table method is dead code
 that would be unsafe if called. Do not merge !15692 as-is: it is a fatal error on `main` and its

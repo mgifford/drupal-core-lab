@@ -684,7 +684,7 @@
       {
         "text": "Focus the sidebar toggle (top of the meta sidebar) and press the Space key.",
         "how": "each",
-        "lookFor": "After: the sidebar toggles. Before: nothing happens \u2014 an <a role=button> does not activate on Space."
+        "lookFor": "After: the sidebar toggles. Before: nothing happens — an <a role=button> does not activate on Space."
       },
       {
         "text": "Desktop (>=1024px): toggle the sidebar closed, then reload the frame.",
@@ -714,7 +714,7 @@
       {
         "text": "Forced colours (local DDEV: the lab browser's switch; any lab: DevTools > Rendering > Emulate forced-colors, or a Windows contrast theme), below 976px: open the sidebar with Enter.",
         "how": "each",
-        "lookFor": "After: the close button has focus and its \u00d7 icon is visible inside the focus ring. With revision 6f7766cb only the ring showed (comment #23); with 175e6f17 the icon shows (measured 2026-10-18, Chromium). Before: the close button is under the top bar."
+        "lookFor": "After: the close button has focus and its × icon is visible inside the focus ring. With revision 6f7766cb only the ring showed (comment #23); with 175e6f17 the icon shows (measured 2026-10-18, Chromium). Before: the close button is under the top bar."
       },
       {
         "text": "Below 976px: close the sidebar once with the close button and once by clicking the overlay.",
@@ -833,7 +833,7 @@
         "expectAfter": true
       },
       {
-        "label": "Forced colours, below 976px: the close button's \u00d7 is visible when the button has focus (comment #23)",
+        "label": "Forced colours, below 976px: the close button's × is visible when the button has focus (comment #23)",
         "expectBefore": false,
         "expectAfter": true
       },
@@ -2683,6 +2683,78 @@
       "patches": [
         "reports/issues/3083103/branches/3083103-fixture.patch",
         "reports/issues/3083103/branches/3083103-aria-error-association-main.patch"
+      ]
+    },
+    "coverage": {
+      "note": "Declared minimum for this comparison: one browser, one scheme, one width. Firefox/WebKit, forced colours, dark scheme and mobile width were not run (see EVIDENCE.md).",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ]
+    }
+  },
+  {
+    "issue": "3083103",
+    "status": "local proof of concept, 2026-11-27",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "0387fb948f786bc344a5cc54aa0d98b8f552e378"
+    },
+    "before": {
+      "env": "baseline-3083103",
+      "patches": [
+        "reports/issues/3083103/branches/3083103-fixture.patch"
+      ]
+    },
+    "pages": [
+      "/form-test/error-association",
+      "/form-test/error-association/two",
+      "/form-test/error-association/no-ife"
+    ],
+    "login": true,
+    "recipe": "repro_3083103",
+    "testExtensions": true,
+    "steps": [],
+    "expected": "Every invalid control or group has a programmatic association to the error text that is actually rendered, and every IDREF resolves.",
+    "actual": "Not yet run.",
+    "checks": [
+      {
+        "label": "The fixture form is on the page",
+        "probe": "!!document.querySelector('form#form-test-error-association-form')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "Every aria-errormessage IDREF resolves to exactly one element",
+        "probe": "[...document.querySelectorAll('[aria-errormessage]')].length > 0 && [...document.querySelectorAll('[aria-errormessage]')].every(el => !!el.getAttribute('aria-errormessage') && document.querySelectorAll('#' + CSS.escape(el.getAttribute('aria-errormessage'))).length === 1)",
+        "expect": true,
+        "kind": "fix"
+      }
+    ],
+    "observe": [
+      {
+        "label": "On the invalid field, is the error announced when navigating to it?",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "Is the error announced twice (aria-errormessage plus aria-describedby)?",
+        "expectBefore": false,
+        "expectAfter": false
+      }
+    ],
+    "slug": "3083103-poc",
+    "label": "#3083103: proof of concept — the error ID travels with the content",
+    "description": "Before: the shared baseline + fixture. After: the same core + fixture + a PoC that puts the error container ID on the error value itself (span around the markup) so any theme prints it, resolves the ID in one helper, and guards #error_no_message. Not a proposal for upstream; it exists to test the recommendation.",
+    "after": {
+      "env": "issue-3083103-poc",
+      "patches": [
+        "reports/issues/3083103/branches/3083103-fixture.patch",
+        "reports/issues/3083103/branches/3083103-poc-content-id.patch"
       ]
     },
     "coverage": {

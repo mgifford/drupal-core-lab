@@ -161,6 +161,27 @@ patch [3083103-acceptance-test.patch](branches/3083103-acceptance-test.patch).
 This is the gate: a fix has to make all seven pass. It also separates the two failure modes — Before has no
 association at all; the MR associates to a container the default theme does not render.
 
+## Proof of concept (2026-11-27)
+
+A lab-only PoC of the recommended mechanism: the error ID travels with the error **value** (a `<span id>` around
+the message), resolved by one helper, with `aria-invalid`/`aria-errormessage`/`aria-describedby` set in core so
+it works with Inline Form Errors on and off. **No template change, no template variable, no renderer
+dependency.** Patch: [3083103-poc-content-id.patch](branches/3083103-poc-content-id.patch), variant
+`3083103-poc`, report [ACCEPTANCE-TEST-poc.md](ACCEPTANCE-TEST-poc.md).
+
+Result in `default_admin`: **Before 2 failures, PoC 7 of 7 pass**, PHPCS and PHPStan clean. The two failures
+Before are the expected ones (no association at all). The PoC therefore answers the open question: a mechanism
+that a theme cannot drop does satisfy the gate.
+
+Limits found while building it:
+
+- Tables and tableselects render no inline error container at all; the PoC deliberately does not associate them
+  (#2848307), because pointing at a container that will never exist is the defect being fixed.
+- An author-set `#id` is not made unique by core (`Html::getUniqueId()` only applies when `#id` is absent), so
+  the same explicitly-ID'd element in two instances duplicates both the element and its error container. That is
+  an author error, excluded from the two-instance assertion and recorded here.
+- `#theme` can be an array on some elements, so the gate uses `#type` (a string) rather than `#theme`.
+
 ## Not verified
 
 - Firefox and WebKit accessibility trees; forced colours; dark scheme; mobile width.

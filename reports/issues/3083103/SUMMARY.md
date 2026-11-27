@@ -24,7 +24,8 @@ Neither recorded proposal associates the error with its control in the default c
   one; the comparison document compared unlike bases and is unverified.
 
 Recommendation: a **minimal Core association mechanism** that carries the ID with the error content rather
-than a template variable, with Inline Form Errors keeping presentation. See
+than a template variable, with Inline Form Errors keeping presentation. **A lab-only proof of concept now
+passes the acceptance test 7/7 in `default_admin`** — it is not an upstream proposal yet. See
 [INDEPENDENT-COMPARISON.md](INDEPENDENT-COMPARISON.md).
 
 ## Runs
@@ -35,6 +36,7 @@ than a template variable, with Inline Form Errors keeping presentation. See
 | August 6 (`3083103-aug6`) | `playwright/2026-11-26T06-49-21-012Z-chromium-light-1280x900/` — verdict `reproduced-not-fixed` |
 | Virtual screen reader | `screenreader/2026-11-26T06-43-46-673Z/` |
 | Acceptance test, both After states | [ACCEPTANCE-TEST.md](ACCEPTANCE-TEST.md), [ACCEPTANCE-TEST-aug6.md](ACCEPTANCE-TEST-aug6.md) |
+| Proof of concept (7/7 pass) | [ACCEPTANCE-TEST-poc.md](ACCEPTANCE-TEST-poc.md), [patch](branches/3083103-poc-content-id.patch) |
 
 Core `0387fb948f7`, Chromium (Playwright 1.59.1), light scheme, 1280×900, `default_admin`, logged in.
 
