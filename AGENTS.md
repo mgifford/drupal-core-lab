@@ -47,6 +47,24 @@ installs or builds: `setup.mjs`, `lab-env.mjs start`, `ddev start`, `composer in
 - **On `ENOSPC`**: stop builds. Do not run `docker system prune` or `docker volume prune`. Free regenerable space first
   (`lab-env.mjs trim`, `trim --deep`), then report what was freed.
 
+## Resource checkpoints (during a session)
+
+The start-of-session preflight is not enough: other sessions allocate between your commands. Re-run
+`node scripts/preflight.mjs` before the first build, start, install or test, and again before each new stage or
+allocation: a worktree, a pair, `composer install`, `yarn install`, `ddev start`, an evidence batch.
+
+- `warn`: finish the stage you are in, then ask before starting another. Do not add a pair.
+- `block`: do not start the next command. If a write is already running, let that one command finish, then stop. The
+  `lab-run.mjs` 30-second watchdog is a last resort, not a substitute for stopping at a boundary.
+
+Stop at a boundary, not mid-write. Safe boundaries: a command has returned, a setup stage has completed, a test or
+evidence run has finished, a pair is stopped. Do not interrupt Composer/Yarn extraction, `drupal install`, a database
+import or migration, Mutagen sync, a `git apply`/commit, or an evidence write. If an interruption is unavoidable, mark
+the environment `unknown`, do not reuse it, and say what was interrupted.
+
+Before stopping, record the preflight output, the last completed stage, the next command, and whether each environment
+is running, stopped or unknown. `setup.mjs` is resumable; the record is what makes the stop safe.
+
 ## Start here (the normal sequence for an issue)
 
     node scripts/doctor.mjs [slug]                       1. is this machine ready? fix what it reports (read-only)
