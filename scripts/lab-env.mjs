@@ -16,7 +16,7 @@
 //   node scripts/lab-env.mjs trim <slug|all> [--deep]  free regenerable disk space (test output, snapshots); --deep also removes core/node_modules (about 400 MB each)
 //   node scripts/lab-env.mjs disk                   free space, what each environment uses, and what is safe to remove
 //   node scripts/lab-env.mjs deps [--json]          read-only: node_modules/vendor sizes and lockfile keys per environment
-//   node scripts/lab-env.mjs release-deps <slug|all> [--yes]  dry-run by default: remove build-only core/node_modules from STOPPED, unleased environments
+//   node scripts/lab-env.mjs release-deps <slug|all> [--yes] [--vendor]  dry-run by default: remove regenerable dependencies from STOPPED, unleased environments; --vendor also removes composer vendor (restored on start)
 // `stop all` stops every lab environment but leaves the small drupal-compare address project running.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -32,7 +32,7 @@ import { parsePair } from '../tools/resource/units.mjs';
 import { loadTasks } from '../tools/resource/tasks.mjs';
 import { readRunning, loadBudgets } from '../tools/resource/budgets.mjs';
 import { capacityDecision } from '../tools/compare/scheduler.mjs';
-import { dependencyKeys, releasePlan } from '../tools/compare/deps.mjs';
+import { dependencyKeys, releasePlan, formatReleased } from '../tools/compare/deps.mjs';
 
 const [cmd, target, action] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const yes = process.argv.includes('--yes');
@@ -297,6 +297,11 @@ switch (cmd) {
       if (!fs.existsSync(path.join(envDir(e), '.ddev/config.yaml'))) { console.error(`${e} does not exist yet. Build it: node tools/compare/setup.mjs ${target}`); process.exit(1); }
       let ok = false; for (let i = 1; i <= 3 && !ok; i++) { ok = ddev(envDir(e), ['start']).status === 0; if (!ok) { console.log('Failed; DDEV\'s router sometimes times out and recovers. Waiting 20 s and retrying.'); spawnSync('sleep', ['20']); } }
       if (!ok) { console.error(`could not start ${e}`); process.exit(1); }
+      // A released vendor is restored before the site is used. ddev start works without it; composer needs the container.
+      if (!fs.existsSync(path.join(envDir(e), 'vendor/autoload.php'))) {
+        console.log(`${e}: vendor is missing (released); restoring it with ddev composer install.`);
+        if (ddev(envDir(e), ['composer', 'install', '--no-interaction']).status !== 0) { console.error(`could not restore vendor in ${e}`); process.exit(1); }
+      }
     }
     const url = startViewer(target);
     if (wantBrowser) await openLabBrowser();
@@ -339,25 +344,29 @@ switch (cmd) {
     }
     break; }
   case 'release-deps': {
-    if (!target) { console.error('usage: release-deps <slug|all> [--yes]'); process.exit(2); }
+    if (!target) { console.error('usage: release-deps <slug|all> [--yes] [--vendor]'); process.exit(2); }
+    const vendor = process.argv.includes('--vendor');
     const envs = target === 'all' ? allEnvs : present(envsOf(target));
     const st = state();
     const states = Object.fromEntries(envs.map((e) => [e, (st[envDir(e)] || {}).status || 'unknown']));
     const active = leaseRows(LEASE_FILE).filter((l) => l.status === 'active');
     const protectedEnvs = new Set(active.flatMap((l) => { const v = vs.find((x) => x.slug === l.slug); return v ? [v.before.env, v.after.env] : []; }));
-    const plan = releasePlan({ envs, states, protectedEnvs });
+    const plan = releasePlan({ envs, states, protectedEnvs, vendor });
     let freed = 0;
     for (const p of plan) {
-      const dir = envDir(p.env), kb = dirKb(path.join(dir, 'core/node_modules')), mb = Math.round(kb / 1024);
-      if (p.action === 'remove') {
-        if (yes) { fs.rmSync(path.join(dir, 'core/node_modules'), { recursive: true, force: true }); freed += kb; console.log(`removed ${p.env}: core/node_modules (${mb} MB)`); }
-        else console.log(`would remove ${p.env}: core/node_modules (${mb} MB)`);
-      } else console.log(`skip ${p.env}: ${p.reason}`);
+      if (p.action !== 'remove') { console.log(`skip ${p.env}: ${p.reason}`); continue; }
+      const dir = envDir(p.env), parts = [];
+      for (const rel of p.paths) {
+        const full = path.join(dir, rel), kb = dirKb(full);
+        if (!kb && !fs.existsSync(full)) continue;
+        if (yes) fs.rmSync(full, { recursive: true, force: true });
+        freed += kb;
+        parts.push(`${rel} (${Math.round(kb / 1024)} MB)`);
+      }
+      if (parts.length) console.log(`${yes ? 'removed' : 'would remove'} ${p.env}: ${parts.join(', ')}`);
     }
-    if (yes) console.log(`
-Freed about ${(freed / 1024).toFixed(1)} GB. Reinstall when needed: cd envs/<env>/core && yarn install --immutable`);
-    else console.log(`
-Dry run (${plan.filter((p) => p.action === 'remove').length} environment(s) would lose core/node_modules). Re-run with --yes to remove; they reinstall on demand.`);
+    if (yes) console.log(`\nFreed about ${formatReleased(freed)}.${vendor ? ' Vendor restores automatically on the next lab-env start (ddev composer install).' : ''} Node modules reinstall on demand: cd envs/<env>/core && yarn install --immutable`);
+    else console.log(`\nDry run (${plan.filter((p) => p.action === 'remove').length} environment(s) would lose ${vendor ? 'core/node_modules and vendor' : 'core/node_modules'}). Re-run with --yes${vendor ? ' (vendor is restored on the next start)' : ''}.`);
     break; }
   case 'disk': {
     const df = spawnSync('df', ['-k', labRoot], { encoding: 'utf8' }).stdout.trim().split('\n').pop().split(/\s+/);
@@ -422,5 +431,5 @@ Dry run (${plan.filter((p) => p.action === 'remove').length} environment(s) woul
     const list = present(envsOf(target)); if (!yes) { console.error(`This DELETES ${list.join(' and ')} (containers, database and worktree). Evidence in reports/ is kept. Re-run with --yes.`); process.exit(2); }
     for (const e of list) { ddev(envDir(e), ['delete', '--omit-snapshot', '--yes']); spawnSync('git', [`--git-dir=${path.join(envsDir, 'core.git')}`, 'worktree', 'remove', '--force', envDir(e)], { stdio: 'inherit' }); }
     break; }
-  default: console.error('usage: lab-env.mjs status | resources [--json] | deps [--json] | release-deps <slug|all> [--yes] | chrome <slug> start|stop | disk | start <slug> [--browser] | browser [--reset] | stop <slug|all> | reset <slug> --yes | trim <slug|all> [--deep] | delete <slug> --yes | retire <slug> --yes [--force]'); process.exit(2);
+  default: console.error('usage: lab-env.mjs status | resources [--json] | deps [--json] | release-deps <slug|all> [--yes] [--vendor] | chrome <slug> start|stop | disk | start <slug> [--browser] | browser [--reset] | stop <slug|all> | reset <slug> --yes | trim <slug|all> [--deep] | delete <slug> --yes | retire <slug> --yes [--force]'); process.exit(2);
 }
