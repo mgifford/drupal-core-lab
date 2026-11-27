@@ -1,0 +1,471 @@
+diff --git a/core/core.services.yml b/core/core.services.yml
+index 31c3d7c0..bd1457a3 100644
+--- a/core/core.services.yml
++++ b/core/core.services.yml
+@@ -558,6 +558,7 @@ services:
+   Drupal\Core\Form\FormSubmitterInterface: '@form_submitter'
+   form_error_handler:
+     class: Drupal\Core\Form\FormErrorHandler
++    arguments: ['@renderer']
+   Drupal\Core\Form\FormErrorHandlerInterface: '@form_error_handler'
+   form_cache:
+     class: Drupal\Core\Form\FormCache
+diff --git a/core/lib/Drupal/Core/Form/FormErrorHandler.php b/core/lib/Drupal/Core/Form/FormErrorHandler.php
+index a76a873e..15a73456 100644
+--- a/core/lib/Drupal/Core/Form/FormErrorHandler.php
++++ b/core/lib/Drupal/Core/Form/FormErrorHandler.php
+@@ -5,6 +5,7 @@
+ use Drupal\Component\Utility\NestedArray;
+ use Drupal\Core\Messenger\MessengerTrait;
+ use Drupal\Core\Render\Element;
++use Drupal\Core\Render\RendererInterface;
+ 
+ /**
+  * Handles form errors.
+@@ -13,6 +14,23 @@ class FormErrorHandler implements FormErrorHandlerInterface {
+ 
+   use MessengerTrait;
+ 
++  /**
++   * The renderer service.
++   *
++   * @var \Drupal\Core\Render\RendererInterface
++   */
++  protected RendererInterface $renderer;
++
++  /**
++   * Constructs a FormErrorHandler instance.
++   *
++   * @param \Drupal\Core\Render\RendererInterface $renderer
++   *   The renderer service.
++   */
++  public function __construct(RendererInterface $renderer) {
++    $this->renderer = $renderer;
++  }
++
+   /**
+    * {@inheritdoc}
+    */
+@@ -39,10 +57,27 @@ public function handleFormErrors(array &$form, FormStateInterface $form_state) {
+    */
+   protected function displayErrorMessages(array $form, FormStateInterface $form_state) {
+     $errors = $form_state->getErrors();
+-
+-    // Loop through all form errors and set an error message.
+-    foreach ($errors as $error) {
+-      $this->messenger()->addMessage($error, 'error');
++    // Loop through all form errors and sets an ID & error messages.
++    foreach ($errors as $name => $error) {
++      $form_element = FormElementHelper::getElementByName($name, $form);
++      $error_id = $form_element['#error_id'] ?? (isset($form_element['#id']) ? $form_element['#id'] . '--error-message' : NULL);
++      if ($error_id) {
++        // Render the error messages as HTML.
++        $message = [
++          '#type' => 'container',
++          '#attributes' => [
++            'id' => $error_id,
++          ],
++          'message' => [
++            '#markup' => $error,
++          ],
++        ];
++        $message = $this->renderer->renderInIsolation($message);
++        $this->messenger()->addMessage($message, 'error');
++      }
++      else {
++        $this->messenger()->addMessage($error, 'error');
++      }
+     }
+   }
+ 
+@@ -164,6 +199,21 @@ protected function setElementErrorsFromFormState(array &$form, FormStateInterfac
+ 
+     // Store the errors for this element on the element directly.
+     $elements['#errors'] = $form_state->getError($elements);
++
++    // Add aria-errormessage and aria-describedby attributes to the
++    // form element.
++    if (($elements['#errors']) !== NULL) {
++      $error_id = $elements['#error_id'] ?? ($elements['#id'] . '--error-message');
++      $elements['#attributes']['aria-errormessage'] = $error_id;
++      $elements['#attributes']['aria-invalid'] = TRUE;
++      // Also add to aria-describedby for broader assistive technology support,
++      // since aria-errormessage is not yet supported by all AT/browser
++      // combinations (e.g. VoiceOver+Safari, TalkBack).
++      $existing = $elements['#attributes']['aria-describedby'] ?? '';
++      if (!str_contains($existing, $error_id)) {
++        $elements['#attributes']['aria-describedby'] = trim($existing . ' ' . $error_id);
++      }
++    }
+   }
+ 
+ }
+diff --git a/core/lib/Drupal/Core/Form/FormPreprocess.php b/core/lib/Drupal/Core/Form/FormPreprocess.php
+index 3908989c..501e09dd 100644
+--- a/core/lib/Drupal/Core/Form/FormPreprocess.php
++++ b/core/lib/Drupal/Core/Form/FormPreprocess.php
+@@ -117,8 +117,15 @@ public function preprocessFormElement(array &$variables): void {
+     // Pass elements disabled status to template.
+     $variables['disabled'] = !empty($element['#attributes']['disabled']) ? $element['#attributes']['disabled'] : NULL;
+ 
+-    // Suppress error messages.
++    // Pass error messages and error ID to the template.
+     $variables['errors'] = NULL;
++    $variables['error_id'] = NULL;
++    if (!empty($element['#errors']) && empty($element['#error_no_message'])) {
++      $variables['errors'] = $element['#errors'];
++      if (!empty($element['#id'])) {
++        $variables['error_id'] = $element['#id'] . '--error-message';
++      }
++    }
+ 
+     // If #title is not set, we don't display any label.
+     if (!isset($element['#title'])) {
+@@ -331,8 +338,15 @@ public function preprocessFieldset(array &$variables): void {
+       $variables['attributes']['aria-describedby'] = $description_id;
+     }
+ 
+-    // Suppress error messages.
++    // Pass error messages and error ID to the template.
+     $variables['errors'] = NULL;
++    $variables['error_id'] = NULL;
++    if (!empty($element['#errors']) && empty($element['#error_no_message'])) {
++      $variables['errors'] = $element['#errors'];
++      if (!empty($element['#id'])) {
++        $variables['error_id'] = $element['#id'] . '--error-message';
++      }
++    }
+   }
+ 
+   /**
+@@ -368,8 +382,15 @@ public function preprocessDetails(array &$variables): void {
+     $variables['value'] = (isset($element['#value'])) ? $element['#value'] : '';
+     $variables['required'] = !empty($element['#required']) ? $element['#required'] : NULL;
+ 
+-    // Suppress error messages.
++    // Pass error messages and error ID to the template.
+     $variables['errors'] = NULL;
++    $variables['error_id'] = NULL;
++    if (!empty($element['#errors'])) {
++      $variables['errors'] = $element['#errors'];
++      if (!empty($element['#id'])) {
++        $variables['error_id'] = $element['#id'] . '--error-message';
++      }
++    }
+   }
+ 
+   /**
+diff --git a/core/lib/Drupal/Core/Render/Element/Checkboxes.php b/core/lib/Drupal/Core/Render/Element/Checkboxes.php
+index 14d371f5..075534b8 100644
+--- a/core/lib/Drupal/Core/Render/Element/Checkboxes.php
++++ b/core/lib/Drupal/Core/Render/Element/Checkboxes.php
+@@ -66,12 +66,14 @@ public static function processCheckboxes(&$element, FormStateInterface $form_sta
+       }
+       $weight = 0;
+       $child_attributes = $element['#attributes'];
+-      // Prevent child elements from inheriting an aria-describedby attribute.
+-      // The individual children won't have descriptions and the attribute will
+-      // be invalid.
+-      if (isset($child_attributes['aria-describedby'])) {
+-        unset($child_attributes['aria-describedby']);
+-      }
++      // Prevent child elements from inheriting aria attributes meant for the
++      // parent. The individual children won't have descriptions or error
++      // associations and these attributes would be invalid.
++      unset(
++        $child_attributes['aria-describedby'],
++        $child_attributes['aria-errormessage'],
++        $child_attributes['aria-invalid'],
++      );
+       foreach ($element['#options'] as $key => $choice) {
+         // Integer 0 is not a valid #return_value, so use '0' instead.
+         // @see \Drupal\Core\Render\Element\Checkbox::valueCallback().
+diff --git a/core/lib/Drupal/Core/Render/Element/Radios.php b/core/lib/Drupal/Core/Render/Element/Radios.php
+index bf395f82..248e3d36 100644
+--- a/core/lib/Drupal/Core/Render/Element/Radios.php
++++ b/core/lib/Drupal/Core/Render/Element/Radios.php
+@@ -61,12 +61,14 @@ public static function processRadios(&$element, FormStateInterface $form_state,
+     if (count($element['#options']) > 0) {
+       $weight = 0;
+       $child_attributes = $element['#attributes'];
+-      // Prevent child elements from inheriting an aria-describedby attribute.
+-      // The individual children won't have descriptions and the attribute will
+-      // be invalid.
+-      if (isset($child_attributes['aria-describedby'])) {
+-        unset($child_attributes['aria-describedby']);
+-      }
++      // Prevent child elements from inheriting aria attributes meant for the
++      // parent. The individual children won't have descriptions or error
++      // associations and these attributes would be invalid.
++      unset(
++        $child_attributes['aria-describedby'],
++        $child_attributes['aria-errormessage'],
++        $child_attributes['aria-invalid'],
++      );
+       foreach ($element['#options'] as $key => $choice) {
+         // Maintain order of options as defined in #options, in case the element
+         // defines custom option sub-elements, but does not define all option
+diff --git a/core/lib/Drupal/Core/Render/Element/RenderElementBase.php b/core/lib/Drupal/Core/Render/Element/RenderElementBase.php
+index e6f01da5..8562b2c7 100644
+--- a/core/lib/Drupal/Core/Render/Element/RenderElementBase.php
++++ b/core/lib/Drupal/Core/Render/Element/RenderElementBase.php
+@@ -153,7 +153,17 @@ public static function setAttributes(&$element, $class = []) {
+     }
+     if (isset($element['#parents']) && isset($element['#errors']) && !empty($element['#validated'])) {
+       $element['#attributes']['class'][] = 'error';
+-      $element['#attributes']['aria-invalid'] = 'true';
++      if (empty($element['#error_no_message'])) {
++        $element['#attributes']['aria-invalid'] = 'true';
++        if (isset($element['#id'])) {
++          $error_id = $element['#error_id'] ?? ($element['#id'] . '--error-message');
++          $element['#attributes']['aria-errormessage'] = $error_id;
++          $existing = $element['#attributes']['aria-describedby'] ?? '';
++          if (!str_contains($existing, $error_id)) {
++            $element['#attributes']['aria-describedby'] = trim($existing . ' ' . $error_id);
++          }
++        }
++      }
+     }
+   }
+ 
+diff --git a/core/misc/cspell/dictionary.txt b/core/misc/cspell/dictionary.txt
+index 34ad1e03..b49530d6 100644
+--- a/core/misc/cspell/dictionary.txt
++++ b/core/misc/cspell/dictionary.txt
+@@ -145,6 +145,7 @@ endtrans
+ enoki
+ entityviewedit
+ errmode
++errormessages
+ eslintcache
+ español
+ eurozone
+diff --git a/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php b/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php
+index 146b5e1a..44de9bfa 100644
+--- a/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php
++++ b/core/modules/inline_form_errors/tests/src/Unit/FormErrorHandlerTest.php
+@@ -206,8 +206,11 @@ public function testErrorMessagesNotInline(): void {
+         FALSE
+       );
+ 
+-    $this->renderer->expects($this->never())
+-      ->method('renderInIsolation');
++    $this->renderer->expects($this->atLeastOnce())
++      ->method('renderInIsolation')
++      ->willReturnCallback(function ($message) {
++        return $message['message']['#markup'];
++      });
+ 
+     $this->testForm['#disable_inline_form_errors'] = TRUE;
+ 
+diff --git a/core/modules/system/templates/details.html.twig b/core/modules/system/templates/details.html.twig
+index 1e235a07..8072ed5c 100644
+--- a/core/modules/system/templates/details.html.twig
++++ b/core/modules/system/templates/details.html.twig
+@@ -28,8 +28,11 @@
+     <summary{{ summary_attributes.addClass(summary_classes) }}>{{ title }}</summary>
+   {%- endif -%}
+ 
++  {{ children }}
++  {{ value }}
++
+   {% if errors %}
+-    <div>
++    <div{{ create_attribute({id: error_id, class: ['form-item--error-message']}) }}>
+       {{ errors }}
+     </div>
+   {% endif %}
+@@ -38,7 +41,4 @@
+     {% set description_attributes = create_attribute({id: attributes['aria-describedby']}) %}
+     <div{{ description_attributes }}>{{ description }}</div>
+   {%- endif -%}
+-
+-  {{ children }}
+-  {{ value }}
+ </details>
+diff --git a/core/modules/system/templates/fieldset.html.twig b/core/modules/system/templates/fieldset.html.twig
+index 19c970f3..555503f0 100644
+--- a/core/modules/system/templates/fieldset.html.twig
++++ b/core/modules/system/templates/fieldset.html.twig
+@@ -52,11 +52,6 @@
+     {% if description_display == 'before' and description.content %}
+       <div{{ description.attributes.addClass('description') }}>{{ description.content }}</div>
+     {% endif %}
+-    {% if errors %}
+-      <div>
+-        {{ errors }}
+-      </div>
+-    {% endif %}
+     {% if prefix %}
+       <span class="field-prefix">{{ prefix }}</span>
+     {% endif %}
+@@ -64,6 +59,11 @@
+     {% if suffix %}
+       <span class="field-suffix">{{ suffix }}</span>
+     {% endif %}
++    {% if errors %}
++      <div{{ create_attribute({id: error_id, class: ['form-item--error-message']}) }}>
++        {{ errors }}
++      </div>
++    {% endif %}
+     {% if description_display in ['after', 'invisible'] and description.content %}
+       <div{{ description.attributes.addClass('description') }}>{{ description.content }}</div>
+     {% endif %}
+diff --git a/core/modules/system/templates/form-element.html.twig b/core/modules/system/templates/form-element.html.twig
+index 7b94a519..eba80c28 100644
+--- a/core/modules/system/templates/form-element.html.twig
++++ b/core/modules/system/templates/form-element.html.twig
+@@ -85,7 +85,7 @@
+     {{ label }}
+   {% endif %}
+   {% if errors %}
+-    <div class="form-item--error-message">
++    <div{{ create_attribute({id: error_id, class: ['form-item--error-message']}) }}>
+       {{ errors }}
+     </div>
+   {% endif %}
+diff --git a/core/modules/system/tests/src/Functional/Form/ElementTest.php b/core/modules/system/tests/src/Functional/Form/ElementTest.php
+index 4d4ea415..01d649ad 100644
+--- a/core/modules/system/tests/src/Functional/Form/ElementTest.php
++++ b/core/modules/system/tests/src/Functional/Form/ElementTest.php
+@@ -145,9 +145,14 @@ protected function testWrapperIds(): void {
+   protected function testChildAttributes(): void {
+     $this->drupalGet('form-test/checkboxes-radios');
+ 
+-    // Verify that the child elements don't have aria-describedby attributes.
++    // Verify that the child elements don't have aria-describedby,
++    // aria-errormessage, or aria-invalid attributes inherited from the parent.
+     $this->assertSession()->elementsCount('xpath', "//input[@type='checkbox' and @aria-describedby]", 0);
+     $this->assertSession()->elementsCount('xpath', "//input[@type='radio' and @aria-describedby]", 0);
++    $this->assertSession()->elementsCount('xpath', "//input[@type='checkbox' and @aria-errormessage]", 0);
++    $this->assertSession()->elementsCount('xpath', "//input[@type='radio' and @aria-errormessage]", 0);
++    $this->assertSession()->elementsCount('xpath', "//input[@type='checkbox' and @aria-invalid]", 0);
++    $this->assertSession()->elementsCount('xpath', "//input[@type='radio' and @aria-invalid]", 0);
+   }
+ 
+   /**
+diff --git a/core/modules/system/tests/src/Functional/Form/FormTest.php b/core/modules/system/tests/src/Functional/Form/FormTest.php
+index 08901316..b82370d8 100644
+--- a/core/modules/system/tests/src/Functional/Form/FormTest.php
++++ b/core/modules/system/tests/src/Functional/Form/FormTest.php
+@@ -216,6 +216,7 @@ public function testRequiredCheckboxesRadio(): void {
+     $edit = [];
+     $this->drupalGet('form-test/validate-required');
+     $this->submitForm($edit, 'Submit');
++    $session = $this->assertSession();
+ 
+     // The only error messages that should appear are the relevant 'required'
+     // messages for each field.
+@@ -230,26 +231,32 @@ public function testRequiredCheckboxesRadio(): void {
+       else {
+         $expected[] = $form[$key]['#title'] . ' field is required.';
+       }
++      // Ensure errors are wrapped with an ID that can be referenced by
++      // aria-errormessage. With inline_form_errors enabled the container is
++      // rendered inline; with the module disabled it is in the messenger.
++      $error_id = $form[$key]['#id'] . '--error-message';
++      $session->elementExists('css', '#' . $error_id);
++      // Make sure form element references error. For composite elements
++      // (checkboxes, radios), aria-errormessage is on the fieldset wrapper,
++      // not on individual child inputs.
++      $type = match ($form[$key]['#type']) {
++        'textfield' => 'input',
++        'checkboxes', 'radios' => 'fieldset',
++        'select' => 'select',
++      };
++      $session->elementExists('css', $type . '[aria-errormessage=' . $error_id . ']');
+     }
+ 
+     // Check the page for error messages.
+     $errors = $this->getNodeElementsByXpath('//div[contains(@class, "error")]//li');
+     foreach ($errors as $error) {
++      $this->assertContains($error->getText(), array_map(fn($n) => (string) $n, $expected));
+       $expected_key = array_search($error->getText(), $expected);
+-      // If the error message is not one of the expected messages, fail.
+-      if ($expected_key === FALSE) {
+-        $this->fail("Unexpected error message: " . $error[0]);
+-      }
+-      // Remove the expected message from the list once it is found.
+-      else {
+-        unset($expected[$expected_key]);
+-      }
++      unset($expected[$expected_key]);
+     }
+ 
+     // Fail if any expected messages were not found.
+-    foreach ($expected as $not_found) {
+-      $this->fail("Found error message: " . $not_found);
+-    }
++    $this->assertEmpty($expected, 'Found unexpected error messages');
+ 
+     // Verify that input elements are still empty.
+     $this->assertSession()->fieldValueEquals('textfield', '');
+diff --git a/core/tests/Drupal/Tests/Core/Form/FormErrorHandlerTest.php b/core/tests/Drupal/Tests/Core/Form/FormErrorHandlerTest.php
+index a9c1be2a..afdd787c 100644
+--- a/core/tests/Drupal/Tests/Core/Form/FormErrorHandlerTest.php
++++ b/core/tests/Drupal/Tests/Core/Form/FormErrorHandlerTest.php
+@@ -8,7 +8,9 @@
+ use Drupal\Core\Form\FormErrorHandler;
+ use Drupal\Core\Form\FormState;
+ use Drupal\Core\Messenger\MessengerInterface;
++use Drupal\Core\Render\RendererInterface;
+ use Drupal\Tests\UnitTestCase;
++use Prophecy\Argument;
+ use PHPUnit\Framework\Attributes\CoversClass;
+ use PHPUnit\Framework\Attributes\Group;
+ 
+@@ -29,6 +31,13 @@ class FormErrorHandlerTest extends UnitTestCase {
+    */
+   protected MessengerInterface $messenger;
+ 
++  /**
++   * The renderer service.
++   *
++   * @var \Drupal\Core\Render\RendererInterface|\Prophecy\Prophecy\ObjectProphecy
++   */
++  protected $renderer;
++
+   /**
+    * {@inheritdoc}
+    */
+@@ -40,7 +49,8 @@ protected function setUp(): void {
+     $container->set('messenger', $this->messenger);
+     \Drupal::setContainer($container);
+ 
+-    $this->formErrorHandler = new FormErrorHandler();
++    $this->renderer = $this->prophesize(RendererInterface::class);
++    $this->formErrorHandler = new FormErrorHandler($this->renderer->reveal());
+   }
+ 
+   /**
+@@ -80,6 +90,9 @@ public function testDisplayErrorMessages(): void {
+         'error',
+       );
+ 
++    $this->renderer->renderInIsolation(Argument::any())
++      ->will(fn(array $args) => $args[0]['message']['#markup']);
++
+     $form = [
+       '#parents' => [],
+       '#array_parents' => [],
+@@ -217,6 +230,20 @@ public function testSetElementErrorsFromFormState(): void {
+     $form_state->setErrorByName('fieldset][nested_test2', 'invalid2');
+     $this->formErrorHandler->handleFormErrors($form, $form_state);
+     $this->assertSame('invalid', $form['test']['#errors']);
++
++    // Verify that aria-errormessage and aria-invalid are set on errored
++    // elements.
++    $this->assertSame('edit-test--error-message', $form['test']['#attributes']['aria-errormessage']);
++    $this->assertTrue($form['test']['#attributes']['aria-invalid']);
++
++    // Verify that aria-describedby also references the error message for
++    // broader assistive technology support.
++    $this->assertStringContainsString('edit-test--error-message', $form['test']['#attributes']['aria-describedby']);
++
++    // Verify that nested element errors also get aria attributes.
++    $this->assertSame('edit-nested_test--error-message', $form['fieldset']['nested_test']['#attributes']['aria-errormessage']);
++    $this->assertStringContainsString('edit-nested_test--error-message', $form['fieldset']['nested_test']['#attributes']['aria-describedby']);
++
+     $this->assertSame([
+       'grouping_test' => 'invalid',
+       'grouping_test2' => 'invalid',

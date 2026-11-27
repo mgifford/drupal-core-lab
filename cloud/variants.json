@@ -4022,6 +4022,204 @@
       "executionEvidence": null
     },
     {
+      "slug": "3083103-latest",
+      "issue": "3083103",
+      "label": "#3083103: error association, MR !15692 ported to current main",
+      "description": "Before: current main (0387fb948f7) plus the lab fixture. After: the same core plus MR !15692 (branch 3083103-improve-error-accessibility, tip ed60e948) ported to main. Does not include the August 6 proposal.",
+      "issueMeta": {
+        "status": "Needs work",
+        "status_code": 13,
+        "priority": "Normal",
+        "category": "Feature request",
+        "changed": "2026-08-06",
+        "comments": 84,
+        "title": "Programmatically associate error messages with inputs",
+        "since": "2026-10-18",
+        "tags": [
+          "Accessibility",
+          "Needs issue summary update",
+          "Needs tests",
+          "wcag331",
+          "Needs steps to reproduce",
+          "Needs rebase"
+        ],
+        "mr": {
+          "state": "opened",
+          "sha": "ed60e948",
+          "draft": false
+        }
+      },
+      "before": {},
+      "after": {},
+      "steps": [],
+      "expected": "Every invalid control or group has a programmatic association to the error text that is actually rendered, and every IDREF resolves.",
+      "actual": "Not yet run.",
+      "observe": [
+        {
+          "label": "On the invalid field, is the error announced when navigating to it?",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Is the error announced twice (aria-errormessage plus aria-describedby)?",
+          "expectBefore": false,
+          "expectAfter": false
+        }
+      ],
+      "checks": [
+        {
+          "label": "The fixture form is on the page",
+          "probe": "!!document.querySelector('form#form-test-error-association-form')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Every aria-errormessage IDREF resolves to exactly one element",
+          "probe": "[...document.querySelectorAll('[aria-errormessage]')].length > 0 && [...document.querySelectorAll('[aria-errormessage]')].every(el => !!el.getAttribute('aria-errormessage') && document.querySelectorAll('#' + CSS.escape(el.getAttribute('aria-errormessage'))).length === 1)",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/form-test/error-association",
+        "/form-test/error-association/two",
+        "/form-test/error-association/no-ife"
+      ],
+      "executionEvidence": null
+    },
+    {
+      "slug": "3083103-aug6",
+      "issue": "3083103",
+      "label": "#3083103: error association, August 6 proposal ported from 11.4.x",
+      "description": "Before: the same current main plus the lab fixture. After: the same core plus the August 6 proposal (originally an 11.4.x diff at b2ce2022) ported to main.",
+      "issueMeta": {
+        "status": "Needs work",
+        "status_code": 13,
+        "priority": "Normal",
+        "category": "Feature request",
+        "changed": "2026-08-06",
+        "comments": 84,
+        "title": "Programmatically associate error messages with inputs",
+        "since": "2026-10-18",
+        "tags": [
+          "Accessibility",
+          "Needs issue summary update",
+          "Needs tests",
+          "wcag331",
+          "Needs steps to reproduce",
+          "Needs rebase"
+        ],
+        "mr": {
+          "state": "opened",
+          "sha": "ed60e948",
+          "draft": false
+        }
+      },
+      "before": {},
+      "after": {},
+      "steps": [],
+      "expected": "Every invalid control or group has a programmatic association to the error text that is actually rendered, and every IDREF resolves.",
+      "actual": "Not yet run.",
+      "observe": [
+        {
+          "label": "On the invalid field, is the error announced when navigating to it?",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Is the error announced twice (aria-errormessage plus aria-describedby)?",
+          "expectBefore": false,
+          "expectAfter": false
+        }
+      ],
+      "checks": [
+        {
+          "label": "The fixture form is on the page",
+          "probe": "!!document.querySelector('form#form-test-error-association-form')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Every aria-errormessage IDREF resolves to exactly one element",
+          "probe": "[...document.querySelectorAll('[aria-errormessage]')].length > 0 && [...document.querySelectorAll('[aria-errormessage]')].every(el => !!el.getAttribute('aria-errormessage') && document.querySelectorAll('#' + CSS.escape(el.getAttribute('aria-errormessage'))).length === 1)",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/form-test/error-association",
+        "/form-test/error-association/two",
+        "/form-test/error-association/no-ife"
+      ],
+      "executionEvidence": null
+    },
+    {
+      "slug": "3083103-poc",
+      "issue": "3083103",
+      "label": "#3083103: proof of concept — the error ID travels with the content",
+      "description": "Before: the shared baseline + fixture. After: the same core + fixture + a PoC that puts the error container ID on the error value itself (span around the markup) so any theme prints it, resolves the ID in one helper, and guards #error_no_message. Not a proposal for upstream; it exists to test the recommendation.",
+      "issueMeta": {
+        "status": "Needs work",
+        "status_code": 13,
+        "priority": "Normal",
+        "category": "Feature request",
+        "changed": "2026-08-06",
+        "comments": 84,
+        "title": "Programmatically associate error messages with inputs",
+        "since": "2026-10-18",
+        "tags": [
+          "Accessibility",
+          "Needs issue summary update",
+          "Needs tests",
+          "wcag331",
+          "Needs steps to reproduce",
+          "Needs rebase"
+        ],
+        "mr": {
+          "state": "opened",
+          "sha": "ed60e948",
+          "draft": false
+        }
+      },
+      "before": {},
+      "after": {},
+      "steps": [],
+      "expected": "Every invalid control or group has a programmatic association to the error text that is actually rendered, and every IDREF resolves.",
+      "actual": "Not yet run.",
+      "observe": [
+        {
+          "label": "On the invalid field, is the error announced when navigating to it?",
+          "expectBefore": false,
+          "expectAfter": true
+        },
+        {
+          "label": "Is the error announced twice (aria-errormessage plus aria-describedby)?",
+          "expectBefore": false,
+          "expectAfter": false
+        }
+      ],
+      "checks": [
+        {
+          "label": "The fixture form is on the page",
+          "probe": "!!document.querySelector('form#form-test-error-association-form')",
+          "expect": true,
+          "kind": "precondition"
+        },
+        {
+          "label": "Every aria-errormessage IDREF resolves to exactly one element",
+          "probe": "[...document.querySelectorAll('[aria-errormessage]')].length > 0 && [...document.querySelectorAll('[aria-errormessage]')].every(el => !!el.getAttribute('aria-errormessage') && document.querySelectorAll('#' + CSS.escape(el.getAttribute('aria-errormessage'))).length === 1)",
+          "expect": true,
+          "kind": "fix"
+        }
+      ],
+      "pages": [
+        "/form-test/error-association",
+        "/form-test/error-association/two",
+        "/form-test/error-association/no-ife"
+      ],
+      "executionEvidence": null
+    },
+    {
       "slug": "2847425-pinned",
       "issue": "2847425",
       "label": "#2847425: #states visibility and requirement of managed_file (MR !7305), pinned core",
