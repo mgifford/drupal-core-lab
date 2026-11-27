@@ -470,3 +470,51 @@ workspace. No environment was built; the issue stays unassigned with 121 comment
 - **`TextareaView.value` is programmatic in CKEditor 5 49.1.0.** Typing updates the DOM and recalculates height on `input`, but never updates `value`; `change:value` is what recalculates. Restoring an equal value after Cancel kept a stale height and a stale `isEmpty`. Calling the public `reset()` after the balloon is shown fixes both.
 - **Per-project DDEV web images share every layer.** Re-tagging an existing `ddev-webserver:v1.25.3-<project>-built` avoided a 13-minute rebuild; site code still came from the checkout.
 - **Never stage a shared `variants.json` wholesale.** Other sessions had uncommitted entries in it. This commit was built in a clean `origin/main` worktree and splices only the `3419891-*` entries.
+## 2026-11-25 to 2026-11-27: contribution infrastructure (#2574721, #2848307, #3415961, #3587661, #3604037)
+
+The contribution work of 2026-11-25/26 kept stopping on the lab itself, not on Drupal. On 2026-11-27 a fresh clone on a Mac (Node
+22.21.1, DDEV 1.25.5) reproduced the problems below; branches `fix/portable-playwright-deps`, `fix/bare-repo-git-dir`,
+`fix/hermetic-selftest`, `fix/selftest-diagnostics` and `fix/phpunit-identity` fix them. The rules are AGENTS.md 20 to 23.
+
+### Reproduced and fixed
+
+1. **A committed dependency symlink.** `tools/playwright/node_modules -> ../../../../../tools/playwright/node_modules` (0e16887) only
+   resolved in a worktree five folders below a main checkout. `.gitignore`'s `node_modules/` (trailing slash) matches folders, not a
+   symlink, so `git add` took it. `npm ci` then replaced it with an 88 MB folder ("Removing non-directory") and a tracked deletion.
+2. **Untracking it has a trap.** On such a checkout the pull that untracks the link is refused ("Your local changes to the following
+   files would be overwritten by merge"), and `git stash -u`, which `test-mr.mjs` ran when a fast-forward failed, restored the
+   dangling link and deleted the install (ignored files are expendable to git). `git rm --cached tools/playwright/node_modules` first
+   is the safe step; `test-mr.mjs` now refuses to stash over a folder that replaced a tracked file.
+3. **"Static" tests touched live infrastructure.** `test-mr.test.mjs` asked the real DDEV and failed whenever another lab copy held
+   `drupal-compare`; the setup tests ran `git ls-remote` against GitHub (6 per run); a capture-patch test ran the real `docker`.
+   The static self-test now runs behind refusing stand-ins and fails on any live call.
+4. **Agent shells harden git.** The desktop app's terminal exports `GIT_CONFIG_PARAMETERS='safe.bareRepository=explicit'`, so every
+   `git -C envs/core.git` failed (13 unit tests, and setup, new-issue, lab-env, try-tests for real). The fix is `--git-dir=<bare>`,
+   not unsetting the protection (the earlier advice in this file).
+5. **The selftest hid the cause.** A test file that cannot load gets only "test failed"; node prints the real
+   `ERR_MODULE_NOT_FOUND` as `# ` lines BEFORE the file's `# Subtest:` line, and the summary dropped them. Failures are now classified,
+   with the root error, the rerun command and the fix, and kept in `.lab-cache/selftest-last.json`.
+6. **A running site is not the right site.** `try-tests` accepted any project `ddev describe -j` called running; DDEV 1.25 answers
+   from an unregistered folder with the project around it. It now checks project, approot, container bytes, base, patches and (for
+   Functional tests) the web server, and reports no result on a mismatch.
+7. **Module resolution walks up.** With the lab's own `tools/compare/.deps` empty, `lighthouse` resolved to a stray
+   `~/node_modules/lighthouse` 2.9.4. A check by `fs.existsSync` would never have seen it; `deps.mjs` resolves as the code does.
+8. **Engines are not enforced by npm.** jsdom 31.0.1 declares Node ^22.22.2; the speech tests passed on 22.21.1. Reported as WARN.
+
+### Measured (2026-11-27, this Mac)
+
+- Static selftest in the desktop terminal: before, 13 failures in 45 s; after, 13 of 13 checks and 357 lab tests pass in 61 s (more
+  tests). In the Claude Code Bash sandbox the old run took 160 s, 7 of its 9 failures being the sandbox refusing local ports.
+- A secondary worktree without packages: the selftest stops in 10 s naming both installs, instead of running every test file.
+- `node scripts/deps.mjs link` reused the main checkout's 88 MB `tools/playwright/node_modules` (90,328 KB by `du -sk`) in a
+  worktree; its full selftest then passed in 56 s with a clean `git status`. The locked install itself took 1.9 s with a warm npm cache.
+
+### Reported by the owner, not yet addressed here
+
+- MR !17049's test used an exact root-relative `href`; GitLab CI runs under `/subdirectory/` (fixed for #2574721 by suffix
+  matching, PR #114). A static advisory check and a CI-equivalent base-path run are still to do.
+- The shared bare clone is shallow: `merge-base` fails and publication needed manual history work. No `prepare-push` yet.
+- Upstream CI was read by hand: pending and allowed-failure jobs, merge commits against source commits.
+- `git diff --check`-style whitespace checks on stored `.patch` files flag a unified diff's empty context lines.
+- Lab "done" was read as upstream progress; the lifecycle states and the 7-day assignment rule are not reconciled by a tool.
+- Recovery work (reinstalls, repeated failing runs) is not separated from productive testing in the resource ledger.

@@ -9,7 +9,7 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
 
     node scripts/doctor.mjs [slug]                       # preflight: prerequisites, disk, what is running
     node scripts/doctor.mjs --for=<git|selftest|browser|viewer|lighthouse>   # only what that task needs: a git-only task does not fail on a missing Docker, a static selftest needs no browser; that task's missing packages FAIL
-    node scripts/deps.mjs [check] [--for=<task>] [--json]   # the lab's JavaScript packages, RESOLVED the way the code loads them: missing, found in a parent folder's node_modules, a version other than the lockfile's, a Node.js outside a package's engines
+    node scripts/deps.mjs [check] [--for=<task>] [--json]   # the LAB's own JavaScript packages (the environments' core node_modules and vendor are `lab-env.mjs deps`), RESOLVED the way the code loads them: missing, found in a parent folder's node_modules, a version other than the lockfile's, a Node.js outside a package's engines
     node scripts/deps.mjs link [--from=<checkout>] [--dry-run]   # in a secondary worktree: symlink tools/playwright/node_modules and tools/compare/.deps/node_modules to the primary checkout's trees (identical lockfile and locked versions only; never replaces a real folder or a working link)
     node scripts/doctor.mjs <slug> --network [--core-url=<mirror>]   # can the hosts a build of that variant needs be reached (core, contrib, Composer, GitHub, npm)? Run it before a build under filtered egress
     node scripts/preflight.mjs [--json]                  # read-only resource preflight: host disk/memory, Docker memory, running pairs; exit 3 when a build should not start
