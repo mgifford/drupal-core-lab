@@ -1,103 +1,200 @@
 # Reproduce #2942404: System messages should be accessible
 
-**DRAFT: setup instructions, not evidence that the barrier or correction has been verified.**
+**DRAFT: setup and verification instructions. The scripted evidence is in [EVIDENCE.md](EVIDENCE.md);
+a person has not reviewed it.**
 
 Issue: https://www.drupal.org/project/drupal/issues/2942404
-Pinned core: `66a4c78b453b` (selected base; not a verification claim).
-Prepared: 2026-11-19. Last verified: 2026-11-19 on `2942404-latest` ([playwright/](playwright/README.md); scripted, no person). The pinned pair has not been built.
+Variant: `2942404-final` (issue-scoped, extends `2942404-consolidated`). The shared
+`2942404-consolidated` entry still lists the two earlier patches; use `2942404-final` for the final
+three-patch stack.
+Core built and run on 2026-11-26: `0387fb948f786bc344a5cc54aa0d98b8f552e378` (2026-11-25).
 
-## Task and barrier
+## What this compares
 
-Task: learn that an action succeeded or failed (save content, submit a form, an AJAX update) without moving focus. Reported barrier: messages wrapped in `role="contentinfo"` (a landmark for page footer information). Open questions (untested): whether messages are discoverable and announced once after a redirect, after AJAX and with BigPipe. Source: the issue and the implementation prompt; no testing with people.
+- **Before:** pristine current main.
+- **After:** the same commit plus, in order:
+  1. [`branches/2942404-consolidated-region.patch`](branches/2942404-consolidated-region.patch):
+     one named `region` on the outer `[data-drupal-messages]` container in the system, Default Admin
+     and starterkit templates.
+  2. [`branches/2942404-consolidated-message-landmark.patch`](branches/2942404-consolidated-message-landmark.patch):
+     the `Drupal.Message` lifecycle, the containment fix, the Umami and `test_messages` templates,
+     and the first regression tests.
+  3. [`branches/2942404-consolidated-ownership.patch`](branches/2942404-consolidated-ownership.patch):
+     ownership-safe cleanup, narrower message detection, one-insertion wrapper handling, and the
+     expanded tests.
 
-## Preconditions and comparison identity
+The full squashed proposal is
+[`branches/2942404-consolidated-full.patch`](branches/2942404-consolidated-full.patch), sha256
+`162da4576775cd4925f414a3e7bc8c6a142c18cd57f0eb34d91cadfc43f1f779`. The interdiff from the
+two-patch proposal is
+[`interdiff/interdiff-consolidated-v2-to-final.diff`](interdiff/interdiff-consolidated-v2-to-final.diff),
+sha256 `6cb142553971da7038a5d886c5c37e060677eaed3e05ef62991cce7f5f32bdbe`.
 
-- Selected variant: `2942404-pinned`; latest variant: `2942404-latest`.
-- Before/After environments: record the resolved variant's environment names.
-- Core: record the full resolved commit on BOTH sides.
-- Recipe: `recipes/repro_2942404` (applies core's `article_content_type` fixture recipe, giving the Article content type). Both sides get it; the lab's plain install has none.
-- Patches: `2942404-latest` Before none; After `branches/2942404-main-region-option.patch` (lab-authored; the old MRs do not apply to main). `2942404-pinned` After applies `branches/2942404-11.patch` (MR !6112) on old core; not built.
-- Page and state: as `admin`, `/node/add/article` (save with a title for a status message; save with an empty title and browser validation off for an error), `/admin/config/development/performance` (Clear all caches), and `/user/login` logged out (wrong password).
-- Environment: record relevant browser, OS, assistive technology, input, viewport, zoom, preferences and locale.
+The original `role="contentinfo"` defect does not reproduce on current main. This comparison tests a
+design addition (a landmark), not the original defect.
 
-Confirm preconditions on both sides before assessing the change. Do not include credentials or live login tokens.
+## Preconditions
 
-## Start locally
+- Docker and DDEV available. Run `node scripts/doctor.mjs 2942404-final`.
+- Recipe: `recipes/repro_2942404`. It installs the Article content type, core's `system_test`
+  module, and (through `apply.sh`) the lab-only `lab_status_messages` module with
+  `/lab/status-messages` and `/admin/lab/status-messages`.
+- Test extensions are enabled first (`testExtensions: true` in the variant).
+- The recipe is applied to both sides. Re-apply with
+  `bash scripts/lab-site.sh apply <env> repro_2942404`; a full reinstall is not needed.
+- Both sites are Standard installs with `admin` / `admin`. Default Admin is the default and admin
+  theme on this core.
 
-Run from the Lab repository root with Docker and DDEV available. Keep every command block safe to paste into zsh as well as bash:
-no `#` comments (zsh reads them as comments only with `setopt interactivecomments`), no `!` (zsh history expansion: `!16335` gives
-"no such event" and stops the whole paste), and no `<placeholder>` or `a|b` choices on a command line. Explain the commands in a list
-under the block, and give real environment names and URLs.
+## Build and start
 
-```bash
-node tools/compare/setup.mjs 2942404-pinned --check-patches
-node tools/compare/setup.mjs 2942404-pinned
-node scripts/lab-env.mjs start 2942404-pinned
-```
-
-Open the viewer and log in both frames. Use this issue's actual evaluator if one exists.
-`tools/playwright/walkthrough.mjs` is specific to #3619127, not a generic evaluator.
-If no evaluator exists, record that gap and perform the manual steps below.
-
-## Start in DDEV Coder
-
-Read `docs/CLOUD-QUICKSTART.md` and `tools/compare/cloud/README.md` first.
-In the Freeform workspace form, DDEV project names must be:
-`drupal-compare,drupal-compare-before,drupal-compare-after`.
-The repository's copyable value comes from `node tools/compare/cloud/config.mjs --project-names`.
-In the workspace repository root:
-
-```bash
-node scripts/cloud-bootstrap.mjs 2942404-pinned --check --core-url=https://github.com/drupal/drupal.git
-node scripts/cloud-bootstrap.mjs 2942404-pinned --install-autostart --core-url=https://github.com/drupal/drupal.git
-```
-
-Open the printed viewer URL in a browser signed in to Coder. Confirm both real Coder frames and login yourself;
-the smoke check cannot verify that authenticated browser interaction. Record setup and browser results separately.
-
-## Shortest reproduction
-
-Complete these steps before calling the comparison ready for evaluation:
-
-| Step and input | Expected user outcome | Observed Before | Observed After |
-|---|---|---|---|
-| Reach the required page/state | State is available on both sides | Not tested | Not tested |
-| Perform the action under test with Mirror off in each frame | Describe the correction in user terms | Not tested | Not tested |
-| Repeat the relevant adjacent interaction or state | Describe the regression guard | Not tested | Not tested |
-
-Use real input for focus and activation. Describe what to inspect, not just what to click.
-Label scripted results separately from a person's keyboard or assistive technology evaluation.
-
-## Evidence and investigation
-
-Record reproduction status (reproduced / intermittent / not observed / not tested / needs evidence), attempts and dated run links.
-If direct reproduction is unavailable, preserve supporting evidence, limits and the next investigative action.
-Keep raw tool outcomes separate from human interpretation. Describe visual attachments and redact sensitive details.
-Put results in `EVIDENCE.md`; preserve earlier runs when a patch or recipe changes.
-
-## Acceptance and verification plan
-
-Define measurable user-facing outcomes. Repeat the original interaction and assess relevant regressions.
-Record automated checks, manual evaluation and any planned testing with disabled people separately, with scope and limitations.
-Record why each method is required or unnecessary. Do not infer conformance or RTBC from setup or automated passes.
-
-## Try current core
+From the lab repository root:
 
 ```bash
-node tools/compare/setup.mjs 2942404-latest --check-patches
-node tools/compare/setup.mjs 2942404-latest
-node scripts/lab-env.mjs start 2942404-latest
+node scripts/doctor.mjs 2942404-final
+node tools/compare/setup.mjs 2942404-final
+node scripts/lab-env.mjs start 2942404-final
 ```
 
-For Coder use the same bootstrap procedure with `2942404-latest`. Repeat the steps and record the resolved commit.
-If a patch does not apply, inspect changed files and provenance before proposing a reroll; do not silently alter the stack.
-If Before no longer fails, check the scenario, setup and upstream history before concluding that it was fixed.
-If After still fails, distinguish setup failures from a remaining barrier. Preserve credible user reports after a failed rerun.
+`setup.mjs` is resumable and safe to re-run. It reuses `envs/core.git`, Composer and DDEV images. It
+does not reinstall JavaScript dependencies.
 
-Re-pin only after reviewing the current-core evidence. Update the registered pinned variant where it is defined,
-record the new revision and rerun; retain the old evidence with its original identity.
+If the environments already exist, reuse them. To apply only a changed patch stack without a
+rebuild:
 
-## Reporting guidance
+```bash
+node tools/compare/setup.mjs 2942404-final --refresh-patches
+```
 
-See [Accessibility Bug Reporting Best Practices](https://github.com/mgifford/ACCESSIBILITY.md/blob/main/examples/ACCESSIBILITY_BUG_REPORTING_BEST_PRACTICES.md).
-Use applicable fields; incomplete intake remains valid even when evaluation or remediation needs more investigation.
+The 2026-11-26 finalization applied the third patch to the existing environments this way. No
+environment was rebuilt.
+
+## Browser evidence
+
+```bash
+node tools/playwright/evaluate-2942404.mjs 2942404-final
+```
+
+The evaluator records, per scenario, the rendered theme (from `drupalSettings.labActiveTheme`), the
+containers and their roles/names, live regions, headings, duplicate IDs by value and element,
+focus, axe-core results, and the announcement recorder. It runs the `Drupal.Message` lifecycle
+assertions and compares Before/After duplicate-ID sets.
+
+Latest run:
+[`playwright/2026-11-26T03-33-47-385Z-chromium-light-1280x900`](playwright/2026-11-26T03-33-47-385Z-chromium-light-1280x900/SUMMARY.md).
+
+## Screen reader evidence
+
+```bash
+node tools/playwright/screenreader-2942404.mjs 2942404-final --mode=virtual
+```
+
+Real VoiceOver (`--mode=voiceover`) drives Safari and speaks aloud. It was not repeated after the
+ownership/detection patch. The real VoiceOver evidence for the two-patch code and the focused human
+protocol are in [SCREENREADER.md](SCREENREADER.md).
+
+Latest virtual run:
+[`screenreader/2026-11-26T03-34-45-279Z`](screenreader/2026-11-26T03-34-45-279Z/SUMMARY.md).
+
+## Core regression tests
+
+The tests are part of the After patch:
+
+```bash
+cd envs/issue-2942404-consolidated
+ddev phpunit core/tests/Drupal/FunctionalJavascriptTests/Core/MessageLandmarkTest.php
+ddev phpunit core/tests/Drupal/FunctionalJavascriptTests/Core/JsMessageTest.php
+ddev phpunit core/modules/big_pipe/tests/src/FunctionalJavascript/BigPipeMessagesTest.php
+ddev phpunit core/tests/Drupal/FunctionalJavascriptTests/Ajax/MessageCommandTest.php
+```
+
+`JsMessageTest` contains separate tests for the basic lifecycle, ownership, message detection and
+multiple instances. `MessageLandmarkTest` covers the system template, including server messages
+followed by JavaScript messages and clearing the JavaScript ones. `MessageCommandTest` covers AJAX
+default and contextual wrappers. `BigPipeMessagesTest` covers BigPipe-delivered messages.
+
+`MessageLandmarkTest` fails on unmodified Before at the first landmark assertion. To repeat that
+without editing the baseline permanently, copy the test file into
+`envs/baseline-2942404-latest` at the same path, run it with `ddev phpunit`, then remove the copy and
+check `git status`. The same applies to `BigPipeMessagesTest` and `MessageCommandTest`.
+
+The ownership and detection tests fail on the two-patch implementation (the code that introduced the
+lifecycle) and pass on the final code.
+
+## Code checks
+
+```bash
+node scripts/lint.mjs 2942404-final
+```
+
+It runs core's `commit-code-check.sh` in the After DDEV container on the files the patches change:
+CSpell, PHPStan, PHPCS, ESLint, Twig CS fixer and the generated-CSS check. Latest report:
+[`lint/2026-11-26-2942404-final-after.md`](lint/2026-11-26-2942404-final-after.md), PASS.
+
+## Patch verification
+
+```bash
+node tools/compare/setup.mjs 2942404-final --check-patches
+```
+
+This checks that the ordered three-patch stack applies to current main. To check the full squashed
+patch, apply it to a throwaway worktree of `envs/core.git` at `refs/lab/main` and compare the 10
+files with the After checkout. The 2026-11-26 verification found identical hashes.
+
+## Coverage
+
+```bash
+node scripts/coverage.mjs 2942404
+```
+
+`COVERAGE.md` uses `2942404-final` as the primary variant and reports 1 of 6 matrix environments
+tested (Chromium light 1280x900), plus 5 gaps.
+
+## Environment and lease notes
+
+- `node scripts/lab-env.mjs status` shows the two environments and which variants use them.
+- The November 25 environments were no longer present when this work started. New environments were
+  built at current main `0387fb948f`; they were not rebuilt at `92e5c3a304`.
+- Do not reset or rebuild the two environments while collecting evidence. Stop them with
+  `node scripts/lab-env.mjs stop 2942404-final` when done; do not delete them unless disk requires
+  it.
+- The recipe's `lab_status_messages` module is test support. It attaches
+  `drupalSettings.labActiveTheme` so the evaluator can record the theme that actually rendered the
+  page.
+
+## CI follow-up (2026-11-26)
+
+The follow-up patch is applied on top of the three-patch stack. `reports/issues/2942404/variants.json`
+lists it as the fourth After patch. To check it without rebuilding, from the repository root:
+
+```bash
+git -C envs/core.git worktree add --detach /tmp/2942404-check 0387fb948f786bc344a5cc54aa0d98b8f552e378
+git -C /tmp/2942404-check apply "$PWD/reports/issues/2942404/branches/2942404-consolidated-full-v2.patch"
+git -C envs/core.git worktree add --detach /tmp/2942404-mrcheck 0387fb948f786bc344a5cc54aa0d98b8f552e378
+for p in region message-landmark ownership; do git -C /tmp/2942404-mrcheck apply "$PWD/reports/issues/2942404/branches/2942404-consolidated-$p.patch"; done
+git -C /tmp/2942404-mrcheck apply "$PWD/reports/issues/2942404/branches/2942404-ci-fixes.patch"
+```
+
+The targeted tests, on the running After environment:
+
+```bash
+cd envs/issue-2942404-consolidated
+ddev phpunit core/tests/Drupal/FunctionalJavascriptTests/Core/MessageLandmarkTest.php
+ddev phpunit core/tests/Drupal/FunctionalJavascriptTests/Core/JsMessageTest.php
+ddev phpunit core/modules/big_pipe/tests/src/FunctionalJavascript/BigPipeMessagesTest.php
+ddev phpunit core/tests/Drupal/FunctionalJavascriptTests/Ajax/MessageCommandTest.php
+ddev phpunit core/modules/big_pipe/tests/src/Functional/BigPipeTest.php
+```
+
+The three performance tests skip here because the lab runs MariaDB and core's
+`PerformanceTestBase` only runs them on MySQL. The measured compact delta and the updated
+`ScriptBytes` centres are in [CI-FIXES.md](CI-FIXES.md).
+
+During this run Docker Desktop remounted its VM disk read-only when the host disk filled.
+The recovery was to restart Docker Desktop; no environment was rebuilt and no database was
+changed. The follow-up and full patches are in [BRANCHES.md](BRANCHES.md).
+
+## Not done here
+
+No drupal.org comment was posted and no issue status was changed. The draft is
+[ISSUE-COMMENT-DRAFT.md](ISSUE-COMMENT-DRAFT.md); the contribution handoff is
+[UPSTREAM-HANDOFF.md](UPSTREAM-HANDOFF.md).

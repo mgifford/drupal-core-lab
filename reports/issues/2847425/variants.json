@@ -1,0 +1,155 @@
+[
+  {
+    "slug": "2847425-pinned",
+    "issue": "2847425",
+    "label": "#2847425: #states visibility and requirement of managed_file (MR !7305), pinned core",
+    "description": "Before: core 0387fb948f (the merge base of MR !7305) plus the issue's test fixture. After: the same core plus MR !7305 at 7362966e15, with the fixture extended identically so both sides serve the same form. Open /file-test-states-form and toggle the three independent triggers.",
+    "status": "DRAFT: built for evaluation",
+    "core": {
+      "url": "https://git.drupalcode.org/project/drupal.git",
+      "commit": "0387fb948f786bc344a5cc54aa0d98b8f552e378"
+    },
+    "mr": "https://git.drupalcode.org/project/drupal/-/merge_requests/7305",
+    "before": {
+      "env": "baseline-2847425",
+      "patches": [
+        "reports/issues/2847425/branches/2847425-fixture-before.patch"
+      ]
+    },
+    "after": {
+      "env": "issue-2847425",
+      "patches": [
+        "reports/issues/2847425/branches/2847425-complete.patch"
+      ],
+      "label": "full proposal"
+    },
+    "pages": [
+      "/file-test-states-form"
+    ],
+    "login": true,
+    "recipe": "repro_2847425",
+    "testExtensions": true,
+    "steps": [
+      {
+        "text": "The fixture form at /file-test-states-form is installed by the recipe and is the same on both sides.",
+        "how": "recipe"
+      },
+      {
+        "text": "Open /file-test-states-form without touching anything. The three triggers are unchecked.",
+        "how": "each",
+        "lookFor": "Before: the managed file whose visible state is false is still shown and has no required marker. After: it is hidden."
+      },
+      {
+        "text": "Check 'Toggle fields'. A managed file with visible state true appears, the one with visible state false disappears, and the textfield inside the details group stays visible.",
+        "how": "each",
+        "lookFor": "Both: the details group must not collapse when the managed file inside it is hidden or shown."
+      },
+      {
+        "text": "Check 'Toggle requirement' on its own. The required marker should appear on the label of 'Single file, conditional requirement', 'Multiple files, conditional requirement', 'Combined visibility and requirement' and 'Managed file in fieldset'.",
+        "how": "each",
+        "lookFor": "Before: no marker. After: a marker on the upload control's label."
+      },
+      {
+        "text": "Check 'Toggle disabled'. The file and remove controls (not just the wrapper) should become disabled, including a previously uploaded file's remove button.",
+        "how": "each",
+        "lookFor": "Before: the controls stay enabled. After: the upload input, upload button and remove button are disabled."
+      },
+      {
+        "text": "Upload a file to 'Single file, conditional requirement' with the Upload button, wait for the AJAX replacement, then check the label association and the required marker again.",
+        "how": "each",
+        "lookFor": "The label's for attribute must resolve to a rendered control, and the wrapper must stay in the same place."
+      }
+    ],
+    "expected": "Conditional visibility hides or shows the managed file's own form item without hiding an enclosing details, fieldset or container, conditional requirement updates the label's required marker and the upload control's required attribute, and conditional disabled disables the interactive controls.",
+    "actual": "Not yet run.",
+    "checks": [
+      {
+        "label": "The fixture form is on the page",
+        "probe": "!!document.querySelector('#edit-managed-file-initially-hidden-upload')",
+        "expect": true,
+        "kind": "precondition"
+      },
+      {
+        "label": "A managed file whose visible state is false is hidden on load",
+        "probe": "!!document.querySelector('#edit-managed-file-initially-hidden-upload') && !(document.querySelector('#edit-managed-file-initially-hidden-upload').offsetWidth || document.querySelector('#edit-managed-file-initially-hidden-upload').offsetHeight || document.querySelector('#edit-managed-file-initially-hidden-upload').getClientRects().length)",
+        "expect": true,
+        "kind": "fix"
+      },
+      {
+        "label": "Hiding the managed file inside details does not hide the details' own textfield",
+        "probe": "!!document.querySelector('#edit-textfield-in-details') && !!(document.querySelector('#edit-textfield-in-details').offsetWidth || document.querySelector('#edit-textfield-in-details').offsetHeight || document.querySelector('#edit-textfield-in-details').getClientRects().length)",
+        "expect": true,
+        "kind": "regression"
+      },
+      {
+        "label": "A managed file with no states is still visible",
+        "probe": "!!document.querySelector('#edit-no-states-file-upload') && !!(document.querySelector('#edit-no-states-file-upload').offsetWidth || document.querySelector('#edit-no-states-file-upload').offsetHeight || document.querySelector('#edit-no-states-file-upload').getClientRects().length)",
+        "expect": true,
+        "kind": "regression"
+      }
+    ],
+    "observe": [
+      {
+        "label": "Is the managed file whose visible state is false shown on load?",
+        "expectBefore": true,
+        "expectAfter": false
+      },
+      {
+        "label": "When the managed file inside the details group is hidden, is the details' textfield still visible?",
+        "expectBefore": true,
+        "expectAfter": true
+      },
+      {
+        "label": "With 'Toggle requirement' checked, does the element's label carry the required marker?",
+        "expectBefore": false,
+        "expectAfter": true
+      },
+      {
+        "label": "With 'Toggle disabled' checked, is the file input (not only its wrapper) disabled?",
+        "expectBefore": false,
+        "expectAfter": true
+      }
+    ],
+    "coverage": {
+      "note": "Declared minimum for this comparison. Rows not run are reported by scripts/coverage.mjs as NOT TESTED.",
+      "matrix": [
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "dark",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": true,
+          "width": 1280
+        },
+        {
+          "browser": "chromium",
+          "scheme": "light",
+          "forced": false,
+          "width": 480
+        },
+        {
+          "browser": "firefox",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        },
+        {
+          "browser": "webkit",
+          "scheme": "light",
+          "forced": false,
+          "width": 1280
+        }
+      ]
+    }
+  }
+]
