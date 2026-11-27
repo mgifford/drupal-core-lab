@@ -164,15 +164,25 @@ fs.mkdirSync(issueDir, { recursive: true });
 fs.writeFileSync(path.join(issueDir, 'variants.json'), JSON.stringify([{ slug: 'zz-try', issue: '99000002', core: { ref: 'main' }, before: { env: 'zz-try-before' }, after: { env: 'zz-try-after', patches: [] } }]));
 for (const n of ['before', 'after']) {
   fs.mkdirSync(path.join(envPath(n), '.ddev'), { recursive: true }); fs.writeFileSync(path.join(envPath(n), '.ddev/config.yaml'), '');
-  fs.mkdirSync(path.join(envPath(n), 'core'), { recursive: true }); fs.writeFileSync(path.join(envPath(n), 'core/README.txt'), 'x\n');
-  git(envPath(n), 'init', '-q'); git(envPath(n), 'add', 'core/README.txt'); git(envPath(n), 'commit', '-q', '-m', 'x');
+  fs.mkdirSync(path.join(envPath(n), 'core/lib'), { recursive: true }); fs.writeFileSync(path.join(envPath(n), 'core/README.txt'), 'x\n');
+  fs.writeFileSync(path.join(envPath(n), 'core/lib/Drupal.php'), "<?php\nconst VERSION = '12.0-dev';\n");
+  // Fixed dates: both sides are one commit, the same base (try-tests checks that Before and After stand on one base).
+  git(envPath(n), 'init', '-q'); git(envPath(n), 'add', 'core');
+  spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '-m', 'x'], { cwd: envPath(n), env: { ...process.env, GIT_AUTHOR_DATE: '2026-01-01T00:00:00Z', GIT_COMMITTER_DATE: '2026-01-01T00:00:00Z' } });
 }
 const bin = path.join(tmp, 'bin'); fs.mkdirSync(bin);
 // TRY_MODE: normal (Before fails testB, After passes), both-fail, die (the run is killed while the tests run)
+// TRY_IDENTITY: wrong-site (DDEV answers with another environment's project, as in a nested-folder fallback), stale-container (the web
+// container holds other bytes than the checkout). describe answers like DDEV; exec sha256sum hashes the host files (the container's copy).
 fs.writeFileSync(path.join(bin, 'ddev'), `#!/bin/sh
 case "$1" in
-  describe) echo '{"raw":{"status":"running"}}' ;;
-  exec) exit 0 ;;
+  describe) n=$(basename "$PWD"); [ "$TRY_IDENTITY" = wrong-site ] && n=zz-try-other
+    printf '{"raw":{"name":"repro-%s","approot":"%s","status":"running","primary_url":"https://repro-%s.ddev.site","hostname":"repro-%s.ddev.site","database_type":"sqlite","services":{"web":{"full_name":"ddev-repro-%s-web","image":"ddev/ddev-webserver:test"}}}}\\n' "$n" "$(dirname "$PWD")/$n" "$n" "$n" "$n" ;;
+  exec) case "$2" in
+      sha256sum*) [ "$TRY_IDENTITY" = stale-container ] && { echo "$(printf '0%.0s' $(seq 1 64))  core/lib/Drupal.php"; exit 0; }
+        eval "set -- \${2#sha256sum }"; if command -v sha256sum >/dev/null; then sha256sum "$@"; else shasum -a 256 "$@"; fi ;;
+      *) exit 0 ;;
+    esac ;;
   phpunit)
     [ "$TRY_MODE" = die ] && { kill -TERM $PPID; sleep 5; exit 1; }
     case "$(pwd)" in
@@ -185,6 +195,7 @@ const proposal = path.join(tmp, 'proposal'), rel = 'core/modules/zz/tests/src/Zz
 fs.mkdirSync(path.join(proposal, path.dirname(rel)), { recursive: true });
 fs.writeFileSync(path.join(proposal, rel), '<?php\nclass ZzTryTest {\n  public function testA() {}\n  public function testB() {}\n  protected function testHelper() {}\n}\n');
 const tryTests = (mode, ...extra) => spawnSync('node', [path.join(labRoot, 'scripts/try-tests.mjs'), 'zz-try', proposal, ...extra], { cwd: labRoot, encoding: 'utf8', env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, TRY_MODE: mode } });
+const tryTestsAs = (identityCase) => spawnSync('node', [path.join(labRoot, 'scripts/try-tests.mjs'), 'zz-try', proposal], { cwd: labRoot, encoding: 'utf8', env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, TRY_MODE: 'normal', TRY_IDENTITY: identityCase } });
 const untouched = () => { for (const n of ['before', 'after']) { assert.equal(fs.existsSync(path.join(envPath(n), rel)), false, `${n}: the copy is still there`); assert.equal(fs.existsSync(path.join(envPath(n), 'core/modules')), false, `${n}: the folder it made is still there`); assert.equal(git(envPath(n), 'status', '--short', '--untracked-files=no').stdout.trim(), '', `${n}: git status is not clean`); } };
 
 test('the script: a test that fails Before and passes After, copies removed, patch written', () => {
@@ -196,6 +207,7 @@ test('the script: a test that fails Before and passes After, copies removed, pat
   assert.doesNotMatch(r.stdout, /testHelper/);
   assert.match(r.stdout, /PHPCS: clean\nPHPStan: clean/); assert.match(r.stdout, /Result: nothing to flag/);
   assert.match(r.stdout, /zz-try-before: tracked files unchanged \(clean\)/);
+  assert.match(r.stdout, /Identity \(checked before the run\)\nbefore: repro-zz-try-before at envs\/zz-try-before, running; container ddev-repro-zz-try-before-web \(ddev\/ddev-webserver:test\): 1 identifying file\(s\) match the checkout; database sqlite; https:\/\/repro-zz-try-before\.ddev\.site; HTTP: not checked/);
   untouched();
   const patch = fs.readFileSync(patchFile, 'utf8');
   assert.match(patch, new RegExp(`^diff --git a/${rel} b/${rel}\nnew file mode 100644\nindex 0000000\\.\\.[0-9a-f]{7}\n--- /dev/null\n\\+\\+\\+ b/${rel}\n@@ -0,0 \\+1,6 @@\n`));
@@ -230,5 +242,17 @@ test('the script: usage errors, a missing path and a path without core/ stop bef
   assert.equal(run('zz-try', path.join(tmp, 'missing')).status, 3);
   const noCore = path.join(tmp, 'nocore'); fs.mkdirSync(noCore); fs.writeFileSync(path.join(noCore, 'ZzTryTest.php'), '<?php\n');
   const r = run('zz-try', noCore); assert.equal(r.status, 3); assert.match(r.stderr, /no core\/ folder/);
+  untouched();
+});
+
+test('the script: a result from another site is never reported; DDEV answering for another project or a stale container stops it (exit 3)', () => {
+  const wrong = tryTestsAs('wrong-site');
+  assert.equal(wrong.status, 3, wrong.stdout + wrong.stderr);
+  assert.match(wrong.stderr, /IDENTITY MISMATCH: the site that would run the tests is not the checkout the variant names, so no test result is reported/);
+  assert.match(wrong.stderr, /before \(zz-try-before\): DDEV answered from .*zz-try-before with project repro-zz-try-other at .*zz-try-other, not this folder/);
+  assert.match(wrong.stderr, /ddev config --project-name=repro-zz-try-before/);
+  assert.doesNotMatch(wrong.stdout, /ZzTryTest::testB|Result:/, 'no test table, no result');
+  const stale = tryTestsAs('stale-container');
+  assert.equal(stale.status, 3); assert.match(stale.stderr, /web container's copy differs from this checkout for core\/lib\/Drupal\.php/);
   untouched();
 });
