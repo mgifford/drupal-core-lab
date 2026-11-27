@@ -98,8 +98,9 @@ association does not resolve in the theme most forms use.
 
 ## Still to do before a Drupal.org comment
 
-- Regression tests: written and run (see [ACCEPTANCE-TEST.md](ACCEPTANCE-TEST.md)); still open is an AJAX
-  (FunctionalJavascript) variant and running it against the August 6 port.
+- Regression tests: written and run against both After states (see
+  [ACCEPTANCE-TEST.md](ACCEPTANCE-TEST.md) and [ACCEPTANCE-TEST-aug6.md](ACCEPTANCE-TEST-aug6.md)); still open
+  is an AJAX (FunctionalJavascript) variant.
 - A real NVDA pass (Firefox/Chrome) and VoiceOver/Safari if available; the virtual reader is not enough.
 - Firefox/WebKit accessibility trees, forced colours, dark scheme, mobile width.
 - Proof-of-concept for recommendation (1).
