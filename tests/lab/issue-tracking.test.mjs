@@ -188,3 +188,29 @@ test('issue-archive.mjs: usage, a refusal without a reason, and a dry run that c
   assert.match(cli(nid, '--reason', 'fixed', '--commit', 'zz', '--dry-run').stderr, /not a commit hash/);
   assert.equal(spawnSync('git', ['status', '--porcelain'], { cwd: labRoot, encoding: 'utf8' }).stdout, before, 'a dry run leaves the checkout as it was');
 });
+
+test('retestReason handles incomplete MR metadata', () => {
+  const rec = {
+    mrIid: 17967,
+    tip: 'd4728a2a',
+  };
+
+  for (const mr of [
+    'https://git.drupalcode.org/project/drupal/-/merge_requests/17967',
+    {},
+    { sha: null },
+    { sha: '' },
+    { sha: 123 },
+  ]) {
+    assert.match(
+      retestReason(mr, rec),
+      /MR metadata incomplete/
+    );
+  }
+
+  assert.equal(retestReason(null, rec), '');
+  assert.equal(
+    retestReason({ iid: 17967, sha: 'd4728a2a' }, rec),
+    ''
+  );
+});
