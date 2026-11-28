@@ -11,6 +11,7 @@ import path from 'node:path';
 import { labRoot, variants } from '../tools/compare/lib.mjs';
 import { issueNids, issueDir, buildIndex } from '../tools/compare/issue-tracking.mjs';
 import { validateStatus } from '../tools/compare/issue-status.mjs';
+import { readCommunication, validateFile as validateCommunication, communicationPath } from '../tools/compare/communication.mjs';
 import { focusIssues, focusMarkdown } from '../tools/compare/issue-focus.mjs';
 
 const args = process.argv.slice(2);
@@ -24,6 +25,10 @@ for (const nid of issueNids(labRoot)) {
   try { raw = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { errors.push(`#${nid}: status.json is not JSON: ${e.message}`); continue; }
   const result = validateStatus(raw);
   for (const e of result.errors || []) errors.push(`#${nid}: status.json ${e.path || '/'} ${e.message}`);
+  if (fs.existsSync(communicationPath(labRoot, nid))) {
+    const comm = validateCommunication(readCommunication(labRoot, nid));
+    for (const e of comm.errors || []) errors.push(`#${nid}: communication.json ${e.path || '/'} ${e.message}`);
+  }
 }
 
 try {
