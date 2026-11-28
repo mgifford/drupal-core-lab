@@ -106,7 +106,14 @@ export function changes(s, prev) {
 // Whether the merge request has moved on from what the lab tested: '' when it has not, otherwise what to say. Worked out from the
 // stored MR and the current BRANCHES.md, so re-extracting the patch clears it at once.
 export function retestReason(mr, rec) {
-  if (!mr || !rec || !rec.tip) return '';
+  if (!mr) return '';
+  if (
+    typeof mr.sha !== 'string' ||
+    !/^[a-f0-9]{7,40}$/i.test(mr.sha)
+  ) {
+    return 'MR metadata incomplete; refresh issue status';
+  }
+  if (!rec || !rec.tip) return '';
   if (rec.mrIid && mr.iid !== rec.mrIid) return `the MR is now !${mr.iid}; the lab tested !${rec.mrIid}`;
   if (!rec.mrIid && rec.branch && mr.branch !== rec.branch) return `the MR is now !${mr.iid} on branch ${mr.branch}; the lab tested ${rec.branch}`;
   const head = mr.sha.toLowerCase(), tip = rec.tip.toLowerCase();
