@@ -100,7 +100,7 @@ test('changes, retestReason and nextStep: what changed, whether to re-test, and 
 
 test('saveStatus: the first check writes status.json only; no change writes nothing; a change also writes STATUS-<date>.md', () => {
   const dir = addIssue(fakeLab(), '1');
-  const s = { nid: '1', since: '2026-10-19', title: 't', url: 'u', status: 'Needs review', statusCode: 8, priority: 'Normal', category: 'Bug report', component: 'c', version: 'main', tags: [], changed: '2026-10-18', comments: 3, latest: [], mr: null, otherMrs: [] };
+  const s = { nid: '1', since: '2026-10-19', title: 't', url: 'https://www.drupal.org/project/drupal/issues/1', status: 'Needs review', statusCode: 8, priority: 'Normal', category: 'Bug report', component: 'c', version: 'main', tags: [], changed: '2026-10-18', comments: 3, latest: [], mr: null, otherMrs: [] };
   assert.deepEqual(saveStatus(dir, s).wrote, ['status.json']);
   assert.deepEqual(fs.readdirSync(dir), ['status.json']);
   assert.deepEqual(saveStatus(dir, { ...s, since: '2026-10-26' }).wrote, [], 'nothing new: no file is touched');

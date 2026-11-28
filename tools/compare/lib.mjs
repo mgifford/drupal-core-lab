@@ -5,6 +5,7 @@ import http from 'node:http';
 import https from 'node:https';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { normalizeStatus } from './issue-status-normalize.mjs';
 
 export const labRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 // A variant may `extends` another by slug: it inherits every field and overrides the ones it sets
@@ -211,7 +212,7 @@ export function issueMeta(v, { root = labRoot } = {}) {
   const file = path.join(root, 'reports/issues', nid, 'status.json');
   if (fs.existsSync(file)) {
     try {
-      const s = JSON.parse(fs.readFileSync(file, 'utf8'));
+      const s = normalizeStatus(JSON.parse(fs.readFileSync(file, 'utf8')));
       const count = Number(s.comments);
       meta = {
         status: s.status || null,
