@@ -574,3 +574,30 @@ Built the "evaluate the state the person reached, not just the page load" capabi
   and compared only equivalent ones (49 distinct findings after dedupe, all `existing-failure`), but the image dialog was
   skipped because its toolbar control opens an OS file chooser, and no person or screen reader reviewed anything. Say
   that every time; do not let a clean scan read as an accessibility pass.
+
+### 2026-11-28: shipping the checkpoint work (PR #143, merged)
+
+- **The merged tree, not this worktree, is the record.** PR #143 was squash-merged as `0389c99`; the local branch has
+  six commits, the remote branch had two (created through the REST API), and the squash is what persists. Keep the
+  worktree only for archeology; cite the merge commit in anything written afterwards.
+- **AccessLint reviews changed HTML, and it found the first real defect after the work was already code-complete.** The
+  generated `report.html` had no `<main>` landmark. A generated accessibility artefact is still an accessibility
+  artefact: landmarks, `lang`, captions and no script are part of the deliverable, and the report test now asserts one
+  main landmark. Read the bot finding, do not just wait for green.
+- **`git push` can be impossible from an agent sandbox while the REST API is not.** SSH dropped mid-transfer; HTTPS push
+  hung even for an empty commit; `gh api` GET/POST worked. The working fallback is blobs → tree → commit → ref through
+  the API, with retries on TLS/EOF (TLS handshake timeouts and "unexpected EOF" both happened) and a blob cache to make
+  a re-run cheap. Create a branch ref once and PATCH it afterwards; never force-push on a guess.
+- **A squash merge flattens remote history and that is fine.** The PR page is the review record; the full local history
+  is only useful for the person who wrote it. Do not try to "restore" the local commit chain onto main.
+- **CI runs twice for one push** (the `push` and `pull_request` events), so wait for both runs before saying "all
+  checks pass". AccessLint is a third, separate check.
+- **Auto-fix is a person's switch** even when `lab.config.yml` enables it; enabling it for a pull request happens in the
+  desktop app's CI popover. Say that instead of implying it was turned on.
+- **Merged `main` moves under a long-running branch.** PR #141 reorganised `reports/` and touched `docs/COMMANDS.md`,
+  `docs/RESULTS-LAYOUT.md` and `cloud/variants.json` while this branch was open. Merge `origin/main`, re-run
+  check-docs and `build-cloud --check`, and regenerate generated files (`cloud/variants.json`) rather than resolving
+  them by hand. `ready-to-push` is what catches "behind" before the merge request does.
+- **Scope the claim to what was verified.** The checkpoint work has live Before/After evidence for five states and ten
+  negative controls, but no person and no real screen reader ever reviewed it. Every manual checklist item is
+  `not-run`; the image-dialog state was not reached. Write that in the PR, the report and the final message.

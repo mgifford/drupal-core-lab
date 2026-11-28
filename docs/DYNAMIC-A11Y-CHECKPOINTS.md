@@ -350,3 +350,5 @@ review before anything is reported upstream.
 - Cross-session coordination in this repo is files in `reports/infrastructure/`; there is no messaging. Work that is
   ready to commit belongs on its own worktree/branch.
 - Run the negative-control suite and the real-MCP integration suite separately; a combined run can stall in a worktree.
+- The generated HTML report is itself an accessibility artefact: the generator wraps its content in one `<main>` landmark
+  (AccessLint on PR #143 caught the omission) and a test asserts it.
