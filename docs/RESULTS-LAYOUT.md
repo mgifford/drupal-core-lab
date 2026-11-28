@@ -36,6 +36,12 @@ Barriers found outside an issue's question go in `reports/findings/` (`scripts/f
 Reports are Markdown plus small artifacts. Do not commit large raw scan output (multi-MB JSON); summarise it and say where it lives.
 Built zips go in `bundles/`.
 
+### Evidence budget
+
+`node scripts/evidence-budget.mjs <nid>` inventories the issue's evidence and warns when it exceeds
+`evidence-budgets.yml`; `--all --write` produces `reports/issues/EVIDENCE-BUDGET.md`. It is warn-only and never deletes,
+moves or untracks. See [EVIDENCE-BUDGET.md](EVIDENCE-BUDGET.md).
+
 ### Checking the reports tree
 
 `node scripts/reports-audit.mjs [--json] [--max-mb=5] [--warn]` is a read-only check for the rules above: tracked files over the size ceiling,

@@ -86,6 +86,9 @@ if (running.length && !keepRunning) {
   console.log(`\nStill running (kept with --keep-running): ${running.join(', ')}. Stop them: ${running.map((s) => `node scripts/lab-env.mjs stop ${s}`).join(' ; ')}`);
 }
 
+const budget = run('node', ['scripts/evidence-budget.mjs', nid]);
+if (budget.stdout) console.log(`\nEvidence budget (warn-only; nothing is deleted):\n${budget.stdout.trim()}`);
+
 const ok = !list.length && !incomplete.length && !stopFailed;
 console.log(ok ? `\n#${nid} is closed out: working tree clean, no incomplete runs. Nothing is pushed; ask the owner before pushing.` : `\n#${nid} is NOT closed out.`);
 process.exit(ok ? 0 : 1);
