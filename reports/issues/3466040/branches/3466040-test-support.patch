@@ -1,0 +1,123 @@
+diff --git a/core/modules/system/tests/modules/dialog_renderer_test/dialog_renderer_test.routing.yml b/core/modules/system/tests/modules/dialog_renderer_test/dialog_renderer_test.routing.yml
+index 3828cf8c1396f1b8289543675f1c7b8f45b6fadd..4a5273852e4676f4f354d81cf0f44bb0edcaab3f 100644
+--- a/core/modules/system/tests/modules/dialog_renderer_test/dialog_renderer_test.routing.yml
++++ b/core/modules/system/tests/modules/dialog_renderer_test/dialog_renderer_test.routing.yml
+@@ -30,6 +30,14 @@ dialog_renderer_test.modal_content_input:
+   requirements:
+     _access: 'TRUE'
+ 
++dialog_renderer_test.modal_content_details:
++  path: '/dialog_renderer-content-details'
++  defaults:
++    _controller: '\Drupal\dialog_renderer_test\Controller\TestController::modalContentDetails'
++    _title: 'Thing 4'
++  requirements:
++    _access: 'TRUE'
++
+ dialog_renderer_test.collapsed_opener:
+   path: '/dialog_renderer-collapsed-opener'
+   defaults:
+diff --git a/core/modules/system/tests/modules/dialog_renderer_test/src/Controller/TestController.php b/core/modules/system/tests/modules/dialog_renderer_test/src/Controller/TestController.php
+index 110792f042b056010c4f95b250031c54e76dc15e..3cb5741b0a65f0b42c725d1319d2135fbc4d013a 100644
+--- a/core/modules/system/tests/modules/dialog_renderer_test/src/Controller/TestController.php
++++ b/core/modules/system/tests/modules/dialog_renderer_test/src/Controller/TestController.php
+@@ -70,6 +70,35 @@ class TestController {
+     ];
+   }
+ 
++  /**
++   * Return modal content with a collapsed details element.
++   *
++   * @return array
++   *   Render array for display in modal.
++   */
++  public function modalContentDetails() {
++    return [
++      '#type' => 'container',
++      'text' => [
++        '#type' => 'markup',
++        '#markup' => 'Look at me in a modal!',
++      ],
++      'details' => [
++        '#type' => 'details',
++        '#title' => 'Show more content',
++        '#open' => FALSE,
++        'content' => [
++          '#type' => 'html_tag',
++          '#tag' => 'div',
++          '#value' => 'Tall content',
++          '#attributes' => [
++            'style' => 'height: 2000px;',
++          ],
++        ],
++      ],
++    ];
++  }
++
+   /**
+    * Displays test links that will open in the modal dialog.
+    *
+@@ -254,6 +283,28 @@ class TestController {
+           ],
+         ],
+       ],
++      'details_modal' => [
++        '#title' => 'Details modal!',
++        '#type' => 'link',
++        '#url' => Url::fromRoute('dialog_renderer_test.modal_content_details'),
++        '#attributes' => [
++          'class' => ['use-ajax'],
++          'data-dialog-type' => 'modal',
++          'data-dialog-options' => Json::encode([
++            'buttons' => [
++              [
++                'text' => 'OK',
++                'click' => '() => {}',
++              ],
++            ],
++          ]),
++        ],
++        '#attached' => [
++          'library' => [
++            'core/drupal.ajax',
++          ],
++        ],
++      ],
+       'content_link_modal' => [
+         '#title' => 'Content link modal!',
+         '#type' => 'link',
+diff --git a/core/modules/system/tests/src/FunctionalJavascript/ModalRendererTest.php b/core/modules/system/tests/src/FunctionalJavascript/ModalRendererTest.php
+index d2ed339ecf915f9ae5bac97d3f9994674dc41f7f..1dfb9f27f8cf9d1ed1c86064425b9c885b4c991c 100644
+--- a/core/modules/system/tests/src/FunctionalJavascript/ModalRendererTest.php
++++ b/core/modules/system/tests/src/FunctionalJavascript/ModalRendererTest.php
+@@ -164,6 +164,30 @@ class ModalRendererTest extends WebDriverTestBase {
+     $this->assertStringContainsString('Raw combined attack', $button_pane_html_raw);
+   }
+ 
++  /**
++   * Tests that a modal stays inside the viewport when its content grows.
++   */
++  public function testModalContentGrows(): void {
++    $assert_session = $this->assertSession();
++    $page = $this->getSession()->getPage();
++
++    $this->drupalGet('/dialog_renderer-test-links');
++    $this->clickLink('Details modal!');
++    $assert_session->waitForElementVisible('css', '.ui-dialog');
++    $assert_session->assertVisibleInViewport('css', '.ui-dialog .ui-dialog-buttonpane');
++
++    // Opening the details element makes the content much taller than the
++    // viewport. The dialog must shrink its content area and keep the button
++    // pane inside the viewport.
++    $page->find('css', '.ui-dialog summary')->click();
++    $this->assertJsCondition('(() => {
++      const rect = document.querySelector(".ui-dialog").getBoundingClientRect();
++      return rect.top >= 0 && rect.bottom <= window.innerHeight;
++    })()');
++    $assert_session->assertVisibleInViewport('css', '.ui-dialog .ui-dialog-titlebar');
++    $assert_session->assertVisibleInViewport('css', '.ui-dialog .ui-dialog-buttonpane');
++  }
++
+   /**
+    * Confirm focus management of a dialog openers in a dropbutton.
+    */

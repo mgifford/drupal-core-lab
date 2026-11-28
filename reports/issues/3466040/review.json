@@ -1,0 +1,1079 @@
+{
+  "schema": "drupal-core-lab/independent-review/1",
+  "generatedAt": "2026-11-27T17:31:20.100Z",
+  "draft": true,
+  "aiAssisted": true,
+  "issue": {
+    "nid": 3466040,
+    "url": "https://www.drupal.org/project/drupal/issues/3466040",
+    "title": "Modal dialog does not adjust to increased inner height (pushes buttons out of reach)",
+    "component": "other",
+    "priority": "Normal",
+    "tags": [
+      "Accessibility"
+    ],
+    "drupalOrgStatusAtReview": "Needs review (8)"
+  },
+  "mergeRequest": {
+    "iid": 9088,
+    "url": "https://git.drupalcode.org/project/drupal/-/merge_requests/9088",
+    "title": "Issue #3466040: Dialog button/inputs not visible when open details element",
+    "branch": "3466040-dialog-buttoninputs-not",
+    "reviewedRevision": "aed1df5eeddf0b89c91bab47eb83847f44c58211",
+    "base": "97c6ff8b2534b242c0f1df3e4ba2493e56aebcec",
+    "baseDate": "2026-11-23",
+    "patch": {
+      "path": "reports/issues/3466040/branches/3466040-dialog-buttoninputs-not.patch",
+      "sha256": "1adba92d55f15f34d4f98a90277c391efa96b196d4329bdc6efe30f65bfbfae8",
+      "files": 4
+    }
+  },
+  "review": {
+    "kind": "independent accessibility and regression review",
+    "productionCodeChanged": false,
+    "mergeRequestChanged": false,
+    "issueStatusChanged": false,
+    "labArtifactsAdded": [
+      "tools/playwright/review-3466040.mjs",
+      "tools/playwright/matrix-3466040.mjs"
+    ],
+    "beforeTestSupport": {
+      "patch": "reports/issues/3466040/branches/3466040-test-support.patch",
+      "sha256": "262dd0fc8d71ec586f3f85ab5f8c2f2fb8de9bf071721975b4b002d871674222",
+      "purpose": "MR fixture and testModalContentGrows on the Before side only; no production JavaScript. Declared by variant 3466040-regression-pinned."
+    },
+    "independence": "The reviewer did not write, push or edit the MR. The fixture on Before is the MR test-support hunks only, verified byte-for-byte by patch hash; the only production difference between the sides is core/misc/dialog/dialog.position.js."
+  },
+  "environments": {
+    "before": {
+      "env": "baseline-3466040",
+      "core": "97c6ff8b2534b242c0f1df3e4ba2493e56aebcec",
+      "coreShort": "97c6ff8b25 2026-11-23",
+      "patches": [
+        "reports/issues/3466040/branches/3466040-test-support.patch"
+      ],
+      "note": "Pristine core plus the declared test-support fixture only."
+    },
+    "after": {
+      "env": "issue-3466040",
+      "core": "97c6ff8b2534b242c0f1df3e4ba2493e56aebcec",
+      "coreShort": "97c6ff8b25 2026-11-23",
+      "patches": [
+        "reports/issues/3466040/branches/3466040-dialog-buttoninputs-not.patch"
+      ],
+      "note": "Same core plus MR !9088."
+    },
+    "equivalence": {
+      "sameCoreCommit": true,
+      "sameRecipe": "recipes/repro_3466040 (article content type, language fr, config_translation)",
+      "sameModulesIncludingFixture": true,
+      "sameDrupal": "12.0-dev",
+      "samePhp": "8.5.7",
+      "sameTheme": "default_admin (dark mode auto, high contrast off)",
+      "onlyProductionDifference": "core/misc/dialog/dialog.position.js"
+    },
+    "residualState": "baseline-3466040 currently holds the declared test-support patch. Revert before using 3466040-pinned: node tools/compare/setup.mjs 3466040-pinned --refresh-patches"
+  },
+  "site": {
+    "php": "8.5.7",
+    "drupal": "12.0-dev",
+    "profile": "standard",
+    "theme": {
+      "default": "default_admin",
+      "admin": "default_admin"
+    },
+    "themes": [
+      "default_admin"
+    ],
+    "themeSettings": {
+      "default_admin": {
+        "enable_dark_mode": "auto",
+        "high_contrast_mode": false,
+        "layout_density": "default"
+      }
+    },
+    "modules": [
+      "announcements_feed",
+      "automated_cron",
+      "big_pipe",
+      "block",
+      "block_content",
+      "breakpoint",
+      "ckeditor5",
+      "config",
+      "config_translation",
+      "contextual",
+      "datetime",
+      "dblog",
+      "dialog_renderer_test",
+      "dynamic_page_cache",
+      "editor",
+      "field",
+      "field_ui",
+      "file",
+      "filter",
+      "help",
+      "image",
+      "language",
+      "layout_builder",
+      "layout_discovery",
+      "link",
+      "locale",
+      "menu_link_content",
+      "menu_ui",
+      "navigation",
+      "node",
+      "options",
+      "page_cache",
+      "path",
+      "path_alias",
+      "sqlite",
+      "standard",
+      "system",
+      "taxonomy",
+      "text",
+      "update",
+      "user",
+      "views",
+      "views_ui"
+    ],
+    "defaultLangcode": "en",
+    "languages": [
+      "fr"
+    ]
+  },
+  "browser": {
+    "automated": {
+      "engine": "chromium",
+      "version": "159.0.8154.6",
+      "runner": "Playwright",
+      "os": "darwin arm64",
+      "input": "trusted Playwright clicks, Tab, Escape"
+    },
+    "manual": {
+      "engine": "Google Chrome (Playwright MCP)",
+      "version": "157.x (MCP Chrome)",
+      "os": "darwin arm64",
+      "note": "exploratory manual confirmation at 1280x1080"
+    },
+    "viewportsTested": [
+      "1024x768",
+      "1280x1080 (manual)",
+      "1920x1080 (Views and Field UI)"
+    ],
+    "zoomMethod": null
+  },
+  "reproduction": {
+    "fixture": {
+      "description": "The MR adds a modal route and test-support link: opening the details element makes the content 2000px tall after the dialog has been positioned.",
+      "steps": [
+        "Enable test extension discovery and install dialog_renderer_test on both sides (ddev drupal test:extensions-enable; ddev drupal module:install dialog_renderer_test).",
+        "Before: apply 3466040-test-support.patch (fixture and test only). After: apply the MR patch.",
+        "Log in as an administrator and go to /dialog_renderer-test-links.",
+        "Click \"Details modal!\". Wait for .ui-dialog; it is 302x265 at 1024x768 and fits.",
+        "Measure .ui-dialog: 251.3 to 516.7.",
+        "Click the \"Show more content\" summary (real click).",
+        "Measure .ui-dialog, .ui-dialog-content, .ui-dialog-buttonpane and the OK button."
+      ],
+      "selectors": {
+        "fixtureLink": "a[href=\"/dialog_renderer-content-details\"]",
+        "dialog": ".ui-dialog",
+        "titlebar": ".ui-dialog-titlebar",
+        "close": ".ui-dialog-titlebar-close",
+        "content": ".ui-dialog-content",
+        "buttonPane": ".ui-dialog-buttonpane",
+        "primary": ".ui-dialog-buttonpane button",
+        "summary": ".ui-dialog details summary"
+      }
+    },
+    "viewsUi": {
+      "url": "/admin/structure/views/view/content",
+      "steps": "Open \"Content: Content type\" handler dialog, expand its details elements.",
+      "result": "Does not reproduce: Views UI dialog.views.js already sizes an inner [data-drupal-views-scroll] container and dispatches dialogContentResize on summary clicks; the dialog stays 845.4px and the inner container scrolls (689/960)."
+    },
+    "fieldUi": {
+      "url": "/admin/structure/types/manage/article/fields",
+      "steps": "Add a Date and time field, open the field config modal, enable \"Set default value\".",
+      "result": "Does not reproduce at 1920x1080: the config dialog is already at max-height (95% of 1080 = 1026px) and the content area scrolls (878/1272); the button pane stays in view on both sides. A taller viewport is an untested hypothesis."
+    }
+  },
+  "fixtureResults": {
+    "viewport": {
+      "width": 1024,
+      "height": 768
+    },
+    "before": {
+      "open": {
+        "fits": true,
+        "rect": {
+          "top": 251.3,
+          "right": 663,
+          "bottom": 516.7,
+          "left": 361,
+          "width": 302,
+          "height": 265.4
+        },
+        "overflowBottomPx": 0,
+        "content": {
+          "clientHeight": 114,
+          "scrollHeight": 114,
+          "scrollableY": false,
+          "overflowY": "auto"
+        },
+        "titlebar": {
+          "inViewport": true,
+          "hittable": true
+        },
+        "closeButton": {
+          "inViewport": true,
+          "hittable": true
+        },
+        "buttonPane": {
+          "inViewport": true,
+          "hittable": true
+        },
+        "primary": {
+          "label": "OK",
+          "inViewport": true,
+          "hittable": true,
+          "rect": {
+            "top": 462.7,
+            "right": 442.4,
+            "bottom": 503.7,
+            "left": 386,
+            "width": 56.4,
+            "height": 41
+          }
+        }
+      },
+      "expanded": {
+        "fits": false,
+        "rect": {
+          "top": 251.3,
+          "right": 663,
+          "bottom": 980.3,
+          "left": 361,
+          "width": 302,
+          "height": 729
+        },
+        "overflowBottomPx": 212.3,
+        "content": {
+          "clientHeight": 578,
+          "scrollHeight": 2146,
+          "scrollableY": true,
+          "overflowY": "auto"
+        },
+        "titlebar": {
+          "inViewport": true,
+          "hittable": true
+        },
+        "closeButton": {
+          "inViewport": true,
+          "hittable": true
+        },
+        "buttonPane": {
+          "inViewport": false,
+          "hittable": false
+        },
+        "primary": {
+          "label": "OK",
+          "inViewport": false,
+          "hittable": false,
+          "rect": {
+            "top": 926.3,
+            "right": 442.4,
+            "bottom": 967.3,
+            "left": 386,
+            "width": 56.4,
+            "height": 41
+          }
+        }
+      },
+      "clickToSettleMs": null,
+      "notes": "The dialog grows downward from its centred position: bottom 980.3 in a 768px viewport, 212.3px below the fold. The content area scrolls (578/2146) but the button pane (913.3 to 979.3) and OK button (926.3 to 967.3) are outside the viewport and not hit-testable. Titlebar and close button stay in view."
+    },
+    "after": {
+      "open": {
+        "fits": true,
+        "rect": {
+          "top": 251.3,
+          "right": 663,
+          "bottom": 516.7,
+          "left": 361,
+          "width": 302,
+          "height": 265.4
+        },
+        "overflowBottomPx": 0,
+        "content": {
+          "clientHeight": 114,
+          "scrollHeight": 114,
+          "scrollableY": false,
+          "overflowY": "auto"
+        },
+        "titlebar": {
+          "inViewport": true,
+          "hittable": true
+        },
+        "closeButton": {
+          "inViewport": true,
+          "hittable": true
+        },
+        "buttonPane": {
+          "inViewport": true,
+          "hittable": true
+        },
+        "primary": {
+          "label": "OK",
+          "inViewport": true,
+          "hittable": true,
+          "rect": {
+            "top": 462.7,
+            "right": 442.4,
+            "bottom": 503.7,
+            "left": 386,
+            "width": 56.4,
+            "height": 41
+          }
+        }
+      },
+      "expanded": {
+        "fits": true,
+        "rect": {
+          "top": 19.5,
+          "right": 663,
+          "bottom": 748.5,
+          "left": 361,
+          "width": 302,
+          "height": 729
+        },
+        "overflowBottomPx": 0,
+        "content": {
+          "clientHeight": 578,
+          "scrollHeight": 2146,
+          "scrollableY": true,
+          "overflowY": "auto"
+        },
+        "titlebar": {
+          "inViewport": true,
+          "hittable": true
+        },
+        "closeButton": {
+          "inViewport": true,
+          "hittable": true
+        },
+        "buttonPane": {
+          "inViewport": true,
+          "hittable": true
+        },
+        "primary": {
+          "label": "OK",
+          "inViewport": true,
+          "hittable": true,
+          "rect": {
+            "top": 694.5,
+            "right": 442.4,
+            "bottom": 735.5,
+            "left": 386,
+            "width": 56.4,
+            "height": 41
+          }
+        }
+      },
+      "notes": "The observer fires once, resetSize re-applies maxHeight and re-centres: top 19.5, bottom 748.5, 0px overflow. The content area scrolls (578/2146); the button pane (681.5 to 747.5) and OK button (694.5 to 735.5) are in view and hit-testable."
+    },
+    "delta": {
+      "bottomPx": -231.8,
+      "overflowPx": 212.3
+    },
+    "manualAt1280x1080": {
+      "before": {
+        "top": 407.3,
+        "bottom": 1433.3,
+        "overflowBottomPx": 353.3,
+        "primaryTop": 1379.3,
+        "primaryInViewport": false,
+        "closeInViewport": true
+      },
+      "after": {
+        "top": 27,
+        "bottom": 1053,
+        "overflowBottomPx": 0,
+        "primaryTop": 999,
+        "primaryInViewport": true,
+        "closeInViewport": true
+      }
+    }
+  },
+  "resizeObserver": {
+    "instrumentationMethod": "page-level: window.ResizeObserver subclassed pass-through before page scripts; patch observer discovered from jQuery data(\"drupalAutoResizeObserver\") on .ui-dialog-content; dialogContentResize captured in capture phase. The patch and its files were not modified.",
+    "limitation": "The debounced autoResize function used by the observer is a closure, so wrapping data(\"drupalAutoResize\") does not count observer-triggered calls. dialogContentResize dispatched on .ui-dialog-content is the reliable proxy for \"resetSize ran\".",
+    "before": {
+      "patchObserver": false,
+      "observerCallbacksDuringExpansion": 0,
+      "dialogContentResizeDuringExpansion": 0,
+      "idleWindowMs": 800,
+      "observerCallbacksWhileIdle": 0,
+      "callbacksAfterCloseMs900": 0,
+      "dialogContentResizeAfterCloseMs900": 0,
+      "cycles": [
+        {
+          "cycle": 1,
+          "expandedBottom": 980.3,
+          "collapsedBottom": 516.7,
+          "ro": 9
+        },
+        {
+          "cycle": 2,
+          "expandedBottom": 980.3,
+          "collapsedBottom": 516.7,
+          "ro": 9
+        },
+        {
+          "cycle": 3,
+          "expandedBottom": 980.3,
+          "collapsedBottom": 516.7,
+          "ro": 9
+        },
+        {
+          "cycle": 4,
+          "expandedBottom": 980.3,
+          "collapsedBottom": 516.7,
+          "ro": 9
+        },
+        {
+          "cycle": 5,
+          "expandedBottom": 980.3,
+          "collapsedBottom": 516.7,
+          "ro": 9
+        }
+      ]
+    },
+    "after": {
+      "patchObserver": true,
+      "observerCallbacksDuringExpansion": 1,
+      "dialogContentResizeDuringExpansion": 1,
+      "idleWindowMs": 800,
+      "observerCallbacksWhileIdle": 0,
+      "callbacksAfterCloseMs900": 0,
+      "dialogContentResizeAfterCloseMs900": 0,
+      "close": {
+        "closeButtonClicked": true,
+        "dialogVisible": false,
+        "patchObservers": 1,
+        "disconnected": 1,
+        "observerCallbacks": 13
+      },
+      "reopen": [
+        {
+          "open": 1,
+          "patchObservers": 2,
+          "patchObserverCallbacks": 14,
+          "primaryInViewport": true,
+          "fits": true,
+          "afterCloseObservers": 2,
+          "afterCloseDisconnected": 2,
+          "afterCloseEvents": 14
+        },
+        {
+          "open": 2,
+          "patchObservers": 3,
+          "patchObserverCallbacks": 15,
+          "primaryInViewport": true,
+          "fits": true,
+          "afterCloseObservers": 3,
+          "afterCloseDisconnected": 3,
+          "afterCloseEvents": 15
+        },
+        {
+          "open": 3,
+          "patchObservers": 4,
+          "patchObserverCallbacks": 16,
+          "primaryInViewport": true,
+          "fits": true,
+          "afterCloseObservers": 4,
+          "afterCloseDisconnected": 4,
+          "afterCloseEvents": 16
+        }
+      ],
+      "cycleCallbacksPerExpandCollapse": 2,
+      "cycles": [
+        {
+          "cycle": 1,
+          "expandedBottom": 748.5,
+          "collapsedBottom": 516.7,
+          "ro": 13,
+          "events": 4
+        },
+        {
+          "cycle": 2,
+          "expandedBottom": 748.5,
+          "collapsedBottom": 516.7,
+          "ro": 15,
+          "events": 6
+        },
+        {
+          "cycle": 3,
+          "expandedBottom": 748.5,
+          "collapsedBottom": 516.7,
+          "ro": 17,
+          "events": 8
+        },
+        {
+          "cycle": 4,
+          "expandedBottom": 748.5,
+          "collapsedBottom": 516.7,
+          "ro": 19,
+          "events": 10
+        },
+        {
+          "cycle": 5,
+          "expandedBottom": 748.5,
+          "collapsedBottom": 516.7,
+          "ro": 21,
+          "events": 12
+        }
+      ]
+    },
+    "settles": {
+      "confirmed": true,
+      "statement": "One callback and one resetSize per expansion at 1024x768; two per expand+collapse cycle; zero in the 800 ms idle window; no drift over five cycles (expanded bottom 748.5, collapsed 516.7 on every cycle)."
+    },
+    "teardown": {
+      "observerCreatedPerDialog": 1,
+      "disconnectOnClose": true,
+      "opensTested": 4,
+      "observersCreatedByPatch": 4,
+      "disconnected": 4,
+      "remainingAfterLastClose": 0,
+      "callbacksAfterClose": 0,
+      "dialogContentResizeAfterClose": 0,
+      "pageErrorsAfterClose": 0
+    },
+    "immediateCloseRace": {
+      "trials": 3,
+      "pageErrors": 0,
+      "dialogResizeAfterClose": 0,
+      "note": "Click summary then immediately Escape (inside the 20 ms debounce window); beforeclose cancels the debounce and disconnects the observer."
+    },
+    "accumulation": {
+      "confirmedLeak": false,
+      "note": "No accumulation across four AJAX dialog opens because each open creates a new element. Theoretical: calling show()/showModal() twice on the same Drupal.dialog object without close would overwrite the stored observer and leak the first; not observed in a core flow."
+    },
+    "fractionalPixels": {
+      "relatedIssue": 3458272,
+      "statusInThisBase": "fixed (dialog.position.js already rounds parent outerHeight before comparing)",
+      "observed": "No oscillation; one callback per expansion; no ResizeObserver loop page error.",
+      "testBoundaryRisk": "The new assertion rect.bottom <= window.innerHeight has no tolerance. At 1024x768 the corrected dialog has 19.5px headroom, so fractional rounding is not a practical risk here; at smaller effective viewports (zoom) the margin scales to about 2.5% of the viewport height and was not measured."
+    }
+  },
+  "keyboard": {
+    "before": {
+      "reachedPrimary": true,
+      "tabPressesToPrimary": 1,
+      "primaryInViewport": false,
+      "primaryHittable": false,
+      "windowScrolled": false,
+      "contentScrolled": true,
+      "trail": [
+        {
+          "step": 0,
+          "active": "summary.details__summary \"Show more content\"",
+          "inViewport": false,
+          "hittable": false,
+          "primary": false
+        },
+        {
+          "step": 1,
+          "active": "button.ui-button.ui-corner-all.ui-widget \"OK\"",
+          "inViewport": false,
+          "hittable": false,
+          "primary": true
+        }
+      ]
+    },
+    "after": {
+      "reachedPrimary": true,
+      "tabPressesToPrimary": 1,
+      "primaryInViewport": true,
+      "primaryHittable": true,
+      "windowScrolled": false,
+      "contentScrolled": true,
+      "trail": [
+        {
+          "step": 0,
+          "active": "summary.details__summary \"Show more content\"",
+          "inViewport": false,
+          "hittable": false,
+          "primary": false
+        },
+        {
+          "step": 1,
+          "active": "button.ui-button.ui-corner-all.ui-widget \"OK\"",
+          "inViewport": true,
+          "hittable": true,
+          "primary": true
+        }
+      ]
+    },
+    "note": "The walk starts after the content was programmatically scrolled to the bottom, so the summary itself is out of view in step 0; the action button is the step that matters. One Tab from the summary reaches OK on both sides; only After keeps it visible and hit-testable."
+  },
+  "components": {
+    "note": "Component checks used Drupal.dialog() with showModal()/show() and real clicks; they are component-level evidence, not a core user flow.",
+    "cases": [
+      {
+        "case": "explicit height: 300 (modal)",
+        "before": {
+          "height": 300,
+          "fits": true,
+          "overflowBottomPx": 0,
+          "content": "149/1309",
+          "primaryInViewport": true
+        },
+        "after": {
+          "height": 300,
+          "fits": true,
+          "overflowBottomPx": 0,
+          "content": "149/1309",
+          "primaryInViewport": true,
+          "observer": true,
+          "observerCallbacks": 0,
+          "measured": {
+            "title": "Lab lab-height",
+            "rect": {
+              "top": 234,
+              "bottom": 534,
+              "height": 300
+            },
+            "fits": true,
+            "overflowBottomPx": 0,
+            "content": {
+              "clientHeight": 149,
+              "scrollHeight": 1309,
+              "scrollableY": true
+            },
+            "primaryInViewport": true,
+            "autoResizeObserver": true,
+            "viewport": {
+              "width": 1024,
+              "height": 768
+            }
+          }
+        }
+      },
+      {
+        "case": "explicit maxHeight: 400 (modal)",
+        "before": {
+          "height": 400,
+          "fits": true,
+          "overflowBottomPx": 0,
+          "content": "249/1309",
+          "primaryInViewport": true
+        },
+        "after": {
+          "height": 400,
+          "fits": true,
+          "overflowBottomPx": 0,
+          "content": "249/1309",
+          "primaryInViewport": true,
+          "observer": true,
+          "observerCallbacks": 1,
+          "measured": {
+            "title": "Lab lab-maxheight",
+            "rect": {
+              "top": 253.9,
+              "bottom": 653.9,
+              "height": 400
+            },
+            "fits": true,
+            "overflowBottomPx": 0,
+            "content": {
+              "clientHeight": 249,
+              "scrollHeight": 1309,
+              "scrollableY": true
+            },
+            "primaryInViewport": true,
+            "autoResizeObserver": true,
+            "viewport": {
+              "width": 1024,
+              "height": 768
+            }
+          }
+        }
+      },
+      {
+        "case": "autoResize: false (control, modal)",
+        "before": {
+          "height": 1460.1,
+          "fits": false,
+          "overflowBottomPx": 946,
+          "content": "1309/1309",
+          "primaryInViewport": false
+        },
+        "after": {
+          "height": 1460.1,
+          "fits": false,
+          "overflowBottomPx": 946,
+          "content": "1309/1309",
+          "primaryInViewport": false,
+          "observer": false,
+          "measured": {
+            "title": "Lab lab-noautoresize",
+            "rect": {
+              "top": 253.9,
+              "bottom": 1714,
+              "height": 1460.1
+            },
+            "fits": false,
+            "overflowBottomPx": 946,
+            "content": {
+              "clientHeight": 1309,
+              "scrollHeight": 1309,
+              "scrollableY": false
+            },
+            "primaryInViewport": false,
+            "autoResizeObserver": false,
+            "viewport": {
+              "width": 1024,
+              "height": 768
+            }
+          }
+        },
+        "note": "Opted out by design; the MR does not claim to fix this path."
+      },
+      {
+        "case": "two non-modal Drupal dialogs, grow one",
+        "before": {
+          "grownDialog": {
+            "top": 120,
+            "bottom": 849,
+            "overflowBottomPx": 81,
+            "primaryInViewport": false
+          },
+          "other": {
+            "top": 120,
+            "bottom": 380.1,
+            "unchanged": true
+          }
+        },
+        "after": {
+          "grownDialog": {
+            "top": 19.5,
+            "bottom": 748.5,
+            "overflowBottomPx": 0,
+            "primaryInViewport": true
+          },
+          "other": {
+            "top": 120,
+            "bottom": 380.1,
+            "unchanged": true
+          },
+          "bothObservers": true
+        },
+        "note": "Not two core AJAX modals: core reuses #drupal-modal for those."
+      }
+    ],
+    "multipleMeasured": {
+      "before": [
+        {
+          "title": "Lab lab-multi-1",
+          "rect": {
+            "top": 120,
+            "bottom": 380.1,
+            "height": 260.1
+          },
+          "top": 120
+        },
+        {
+          "title": "Lab lab-multi-2",
+          "rect": {
+            "top": 120,
+            "bottom": 380.1,
+            "height": 260.1
+          },
+          "top": 120
+        }
+      ],
+      "after": [
+        {
+          "title": "Lab lab-multi-1",
+          "rect": {
+            "top": 19.5,
+            "bottom": 748.5,
+            "height": 729
+          },
+          "top": 19.5,
+          "autoResizeObserver": true,
+          "primaryInViewport": true
+        },
+        {
+          "title": "Lab lab-multi-2",
+          "rect": {
+            "top": 120,
+            "bottom": 380.1,
+            "height": 260.1
+          },
+          "top": 120,
+          "autoResizeObserver": true,
+          "primaryInViewport": true
+        }
+      ],
+      "lifecycleDelta": {
+        "resizeObserverCallbacks": 1,
+        "observersCreated": 0,
+        "observerDisconnects": 0,
+        "autoResizeCalls": 0,
+        "autoResizeWrappedDialogs": 0,
+        "patchObservers": 0,
+        "patchObserverCallbacks": 1,
+        "patchObserverDisconnected": 0,
+        "dialogResizeEvents": 1,
+        "dialogResizeFromDialogContent": 1,
+        "pageErrors": 0,
+        "consoleErrorsPage": 0
+      }
+    }
+  },
+  "viewsScenario": {
+    "run": "reports/issues/3466040/playwright/2026-11-27T16-24-50-391Z-chromium-light-1920x1080",
+    "before": {
+      "dialog": "121.3→966.7 (h 845.4)",
+      "content": "697/697",
+      "overflowY": "hidden",
+      "scrollContainer": "689/960 auto"
+    },
+    "after": {
+      "dialog": "117.3→962.7 (h 845.4)",
+      "content": "697/697",
+      "overflowY": "hidden",
+      "scrollContainer": "689/960 auto"
+    },
+    "finding": "Does not reproduce. Views UI dialog.views.js already sizes [data-drupal-views-scroll] to the dialog and dispatches dialogContentResize on summary clicks, so the dialog height is unchanged and the inner container scrolls. Before and After are equivalent within 4px. The evaluator's automated toggle loop did not click (no B2 stages); a manual MCP click on \"Style settings\" succeeded and confirmed the unchanged height and the 960px inner scrollHeight."
+  },
+  "fieldUiScenario": {
+    "run": "reports/issues/3466040/playwright/2026-11-27T15-35-43-499Z-chromium-light-1920x1080",
+    "before": {
+      "dialog": "27→1053 (h 1026)",
+      "content": "878/1272",
+      "primary": "in view"
+    },
+    "after": {
+      "dialog": "27→1053 (h 1026)",
+      "content": "878/1272",
+      "primary": "in view"
+    },
+    "finding": "Does not reproduce at 1920x1080: the config dialog is already capped at 95% of the viewport (1026px) and content growth is absorbed by the content scroll area. This is the issue's own \"with a small viewport the problem does not happen\" condition inverted: at this height the dialog is already at its cap when it opens."
+  },
+  "regressionTest": {
+    "test": "Drupal\\Tests\\system\\FunctionalJavascript\\ModalRendererTest::testModalContentGrows",
+    "testFile": "core/modules/system/tests/src/FunctionalJavascript/ModalRendererTest.php:170-189",
+    "ci": {
+      "pipeline": 1063751,
+      "job": "Test-only changes",
+      "jobId": 13926147,
+      "log": "reports/issues/3466040/ci/gitlab-job-13926147-test-only-changes.log",
+      "result": "Tests: 3, Assertions: 49, Failures: 1",
+      "failure": "testModalContentGrows failed at ModalRendererTest.php:183 (assertJsCondition), \"Failed asserting that false is true.\" — this job reverts the non-test change, so it proves the test fails without the production JavaScript change.",
+      "withChange": "The pipeline's PHPUnit Functional Javascript jobs passed with the production change (pipeline success; three allowed-to-fail PHP 8.6 unit jobs and the manual test-only job are excluded)."
+    },
+    "independentAssertionEvaluation": {
+      "before": "Measured .ui-dialog bottom 980.3 > window.innerHeight 768, so rect.bottom <= window.innerHeight is false: the assertion fails.",
+      "after": "Measured bottom 748.5 <= 768: the assertion passes. Same fixture, same viewport, same assertion."
+    },
+    "localRun": {
+      "status": "not run",
+      "reason": "Docker Desktop stopped under host memory pressure (16 GB host, load 25-73 from other lab environments). Both DDEV sites and the Selenium chrome container became unreachable; the local PHPUnit run could not be executed. CI evidence above is the substitute, and it is not a local independent execution."
+    },
+    "gaps": [
+      "No assertion that the details element actually opened: a click that does nothing (or a fixture that ships #open => TRUE) leaves the dialog short and passes.",
+      "No assertion that .ui-dialog-content scrolls (scrollHeight > clientHeight and overflow-y auto/scroll): a fix that clipped the content would pass the geometry checks.",
+      "The titlebar assertion is not discriminating: on pristine core the titlebar is at the top of the still-centred dialog and passes while the button pane is off-screen.",
+      "No AJAX growth into an already open dialog, which the author says is not fixed (\"works only for some use-cases. Not for ajax stuff\").",
+      "No autoResize:false case, no explicit height/maxHeight case, one implicit viewport only.",
+      "The boundary rect.bottom <= window.innerHeight has no sub-pixel tolerance."
+    ],
+    "conclusion": "The regression test does fail without the production change and pass with it (CI plus independent assertion evaluation). Its assertions are weaker than the claim: it can pass when the details did not open or when the content is clipped rather than scrollable."
+  },
+  "wcag": [
+    {
+      "criterion": "2.4.7 Focus Visible",
+      "level": "AA",
+      "status": "confirmed failure on Before",
+      "evidence": "Tab from the summary focuses the OK button, which is at y=926.3 in a 768px viewport; windowScrolled false and the fixed dialog cannot scroll its button pane into view."
+    },
+    {
+      "criterion": "2.4.11 Focus Not Obscured (Minimum)",
+      "level": "AA (WCAG 2.2)",
+      "status": "confirmed failure on Before (the focused component is entirely outside the viewport)",
+      "evidence": "same measurement; After moves it to y=694.5–735.5."
+    },
+    {
+      "criterion": "2.1.1 Keyboard",
+      "level": "A",
+      "status": "not a failure: the button is reachable and activatable by keyboard",
+      "evidence": "one Tab reaches OK; Escape and the close button remain available, so this is not a keyboard trap."
+    },
+    {
+      "criterion": "1.4.10 Reflow",
+      "level": "AA",
+      "status": "risk, not verified",
+      "evidence": "the dialog must fit at 320 CSS px width / 400% zoom; the configuration matrix could not be run."
+    },
+    {
+      "criterion": "1.4.4 Resize Text",
+      "level": "AA",
+      "status": "risk, not verified",
+      "evidence": "200% zoom / text-only enlargement not run."
+    },
+    {
+      "criterion": "2.4.3 Focus Order",
+      "level": "A",
+      "status": "unchanged",
+      "evidence": "the Tab order is the same on both sides; only visibility of the focused control changed."
+    }
+  ],
+  "confirmedDefects": [
+    {
+      "id": "D1",
+      "scope": "product, Before (pristine core)",
+      "statement": "Growing dialog content beyond the initially calculated max-height moves the action buttons outside the viewport; the content area scrolls but the button pane does not, so pointer users cannot activate the action and keyboard focus moves off-screen.",
+      "evidence": "1024x768: 212.3px overflow, OK off-screen; 1280x1080: 353.3px overflow, OK off-screen; keyboard Tab reaches OK but inViewport=false, hittable=false."
+    },
+    {
+      "id": "D2",
+      "scope": "test quality, MR",
+      "statement": "testModalContentGrows can pass without the details element opening and without the content area being scrollable; the titlebar assertion cannot fail on pristine core.",
+      "evidence": "source reading of the test plus measured geometry; see regressionTest.gaps."
+    }
+  ],
+  "theoreticalConcerns": [
+    {
+      "id": "T1",
+      "statement": "Calling show()/showModal() twice on the same Drupal.dialog object without close would create a second ResizeObserver, overwrite data(\"drupalAutoResizeObserver\") and leak the first observer.",
+      "status": "not observed; each core AJAX open creates a new element, and four opens produced four disconnects."
+    },
+    {
+      "id": "T2",
+      "statement": "Fractional pixel rounding could make the test boundary flaky or cause an observer loop.",
+      "status": "not observed: one callback per expansion, no loop error, 19.5px headroom at 1024x768; #3458272 is already fixed in this base."
+    },
+    {
+      "id": "T3",
+      "statement": "AJAX content inserted into an already open dialog may not be repositioned correctly.",
+      "status": "not tested in a real core flow; the author says it is not fixed. A synthetic insertion was planned but not executed before the environment failed."
+    },
+    {
+      "id": "T4",
+      "statement": "The observer watches only the content element; growth that changes only the titlebar or another sibling would not be observed.",
+      "status": "not observed in the fixture; not tested."
+    },
+    {
+      "id": "T5",
+      "statement": "Dialogs that opt out with autoResize:false still overflow when content grows.",
+      "status": "confirmed as a control (946px overflow) but by design and out of the MR scope."
+    }
+  ],
+  "regressions": {
+    "confirmed": [],
+    "note": "No confirmed regression in the tested scenarios. The Views dialog height is identical before and after (845.4px, top differs by 4px because After re-centres); the Field UI dialog is identical; axe reports 0 violations in the expanded fixture on both sides; no console or page errors; keyboard order unchanged."
+  },
+  "untested": [
+    "Configuration matrix: zoom 90/100/110/125/200/400 (reflow-equivalent CSS viewport), viewports 480x900 and 320x900, dark mode, forced colours, reduced motion. The runner tools/playwright/matrix-3466040.mjs is written and was started, but Docker Desktop stopped under host memory pressure and both sites became unreachable before the first configuration completed.",
+    "Genuine browser zoom (Ctrl/Cmd +/-) and device scale factor; only CSS viewport emulation was used. Real zoom requires manual verification.",
+    "A real OS forced-colours/contrast theme, dark mode and reduced motion; Playwright emulation only.",
+    "Real screen reader (NVDA/VoiceOver) and a person's keyboard pass. No real AT was run.",
+    "Cross-browser: Firefox, WebKit/Safari. Chromium only.",
+    "Local PHPUnit execution of testModalContentGrows; CI evidence only.",
+    "The issue's Media library + image_widget_crop flow and the multilingual Views translation modal (comment #24).",
+    "Two simultaneous core AJAX modal dialogs (core reuses #drupal-modal); only two Drupal.dialog() instances were tested.",
+    "Touch, mobile browsers, Windows scrollbar metrics, and high-DPI screens."
+  ],
+  "recommendedStatus": {
+    "status": "Needs review — not RTBC on this evidence",
+    "rtbc": false,
+    "rationale": [
+      "The fix is confirmed for the MR fixture at 1024x768 and manually at 1280x1080: no overflow, action button visible and hit-testable, clean observer lifecycle, no console errors, no confirmed regression.",
+      "The MR test has false-pass doors (details not asserted open, no content-scroll assertion, non-discriminating titlebar assertion); ask for the two small assertions before RTBC.",
+      "The issue's listed real-world scenarios do not reproduce on this core revision in the tested viewports (Views UI already has a scroll workaround; Field UI is already capped at 1080). The fixture is the only confirmed reproduction, so the missing AJAX path and the real-world path matter for the issue's scope.",
+      "The configuration matrix and a person's keyboard/AT pass were blocked; RTBC should not rely on this automated run alone."
+    ],
+    "decision": "The final decision remains with the independent human reviewer. This review does not change the issue status or the MR."
+  },
+  "evidence": {
+    "primaryRun": "reports/issues/3466040/playwright/2026-11-27T16-43-04-546Z-chromium-light-1024x768-fixture",
+    "runs": [
+      {
+        "run": "2026-11-27T16-43-04-546Z-chromium-light-1024x768-fixture",
+        "what": "Full probe: fixture, keyboard, 5 cycles, close/reopen/race, components",
+        "verdict": "Before overflow 212.3px and OK off-screen; After fits (0px) and OK visible"
+      },
+      {
+        "run": "2026-11-27T16-24-50-391Z-chromium-light-1920x1080",
+        "what": "Views UI details scenario, both sides",
+        "verdict": "Does not reproduce; Views scroll workaround; Before/After equivalent"
+      },
+      {
+        "run": "2026-11-27T15-35-43-499Z-chromium-light-1920x1080",
+        "what": "Field UI Set default value scenario, both sides",
+        "verdict": "Does not reproduce at 1080; dialog already at max-height"
+      },
+      {
+        "run": "manual MCP Chrome, 2026-11-27T16:24-16:28Z",
+        "what": "Manual fixture at 1280x1080",
+        "verdict": "Before 353.3px overflow; After fits"
+      }
+    ],
+    "screenshots": [
+      "reports/issues/3466040/playwright/2026-11-27T16-43-04-546Z-chromium-light-1024x768-fixture/before-F2-expanded-viewport.png",
+      "reports/issues/3466040/playwright/2026-11-27T16-43-04-546Z-chromium-light-1024x768-fixture/after-F2-expanded-viewport.png",
+      "reports/issues/3466040/playwright/2026-11-27T16-43-04-546Z-chromium-light-1024x768-fixture/before-F4-after-tab-viewport.png",
+      "reports/issues/3466040/playwright/2026-11-27T16-43-04-546Z-chromium-light-1024x768-fixture/after-F4-after-tab-viewport.png",
+      "reports/issues/3466040/playwright/2026-11-27T16-24-50-391Z-chromium-light-1920x1080/before-B1-filter-dialog-open-viewport.png",
+      "reports/issues/3466040/playwright/2026-11-27T16-24-50-391Z-chromium-light-1920x1080/after-B1-filter-dialog-open-viewport.png"
+    ],
+    "logs": [
+      "reports/issues/3466040/ci/gitlab-job-13926147-test-only-changes.log"
+    ],
+    "scripts": [
+      "tools/playwright/review-3466040.mjs",
+      "tools/playwright/matrix-3466040.mjs"
+    ]
+  },
+  "consoleErrors": {
+    "before": [],
+    "after": [],
+    "note": "No console errors, page errors or unhandled rejections were recorded in the probe stages of either side; the evaluator runs also recorded 0."
+  },
+  "commands": [
+    "node tools/compare/setup.mjs 3466040-regression-pinned",
+    "node tools/playwright/review-3466040.mjs 3466040-regression-pinned --viewport=1024x768",
+    "node tools/playwright/evaluate-3466040.mjs 3466040-pinned --scenario=views --viewport=1920x1080",
+    "node tools/playwright/review-3466040.mjs 3466040-regression-pinned --viewport=1280x720 --lite",
+    "node tools/playwright/matrix-3466040.mjs 3466040-regression-pinned --side=after  (not completed: Docker Desktop stopped)"
+  ],
+  "finding": {
+    "title": "Modal dialog: action buttons leave the viewport when content grows",
+    "severity": "Major",
+    "severityBasis": "The primary action cannot be activated with a pointer after the content grows; the content area scrolls but the button pane does not. Closing the dialog loses the half-completed form unless the person can use the keyboard and can find an off-screen focus target.",
+    "priorityNote": "Priority is for the maintainers to set; reach depends on how many modal forms can grow after opening (only the fixture was confirmed to reproduce on this core revision).",
+    "confidence": "Confirmed for the fixture in Chromium at 1024x768 and manually at 1280x1080; not confirmed for the issue's Views/Field UI steps in the tested viewports.",
+    "evidenceBasis": [
+      "manual evaluation (Playwright MCP)",
+      "automated geometry probe (Playwright)",
+      "source review",
+      "CI regression job"
+    ],
+    "peopleAffected": "People who use a mouse, touch or other pointer, and sighted keyboard users whose focus moves to an off-screen control. Screen reader users can still reach the buttons in the DOM; the fixture does not establish whether the off-screen state is announced. Not confirmed with disabled participants.",
+    "workaround": "Tab to the action (it remains focusable) or press Escape and lose the form state. Neither is a reasonable workaround for a pointer user who cannot see the button.",
+    "verification": {
+      "automated": "completed",
+      "manualKeyboard": "automated Tab walk only; a person's keyboard pass not done",
+      "testingWithDisabledPeople": "not done",
+      "requiredNext": [
+        "person's keyboard pass in Chromium/Firefox/Safari",
+        "NVDA/VoiceOver pass",
+        "zoom/reflow matrix",
+        "forced colours/dark/reduced motion"
+      ]
+    }
+  }
+}

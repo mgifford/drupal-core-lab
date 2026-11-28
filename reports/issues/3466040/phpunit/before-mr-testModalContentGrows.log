@@ -1,0 +1,24 @@
+# Local PHPUnit: ModalRendererTest::testModalContentGrows on Before (pristine 97c6ff8b2534 + declared test-support fixture)
+# Command (variant 3466040-regression-pinned state):
+#   cd envs/baseline-3466040 && ddev phpunit core/modules/system/tests/src/FunctionalJavascript/ModalRendererTest.php --filter testModalContentGrows
+# Run 2026-11-27 (session, Drupal 12.0-dev, PHP 8.5.7, Chromium via ddev chrome container)
+
+F                                                                   1 / 1 (100%)
+
+Time: 01:21.381, Memory: 10.00 MB
+
+There was 1 failure:
+
+1) Drupal\Tests\system\FunctionalJavascript\ModalRendererTest::testModalContentGrows
+JavaScript condition met:
+(() => {
+      const rect = document.querySelector(".ui-dialog").getBoundingClientRect();
+      return rect.top >= 0 && rect.bottom <= window.innerHeight;
+    })()
+Failed asserting that false is true.
+
+/var/www/html/core/tests/Drupal/FunctionalJavascriptTests/WebDriverTestBase.php:161
+/var/www/html/core/modules/system/tests/src/FunctionalJavascript/ModalRendererTest.php:183
+
+FAILURES!
+Tests: 1, Assertions: 3, Failures: 1.
