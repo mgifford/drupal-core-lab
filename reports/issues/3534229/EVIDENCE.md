@@ -27,6 +27,66 @@ checks …". `tools/compare/setup.mjs 3534229-pinned` recorded the environment i
 `verified`. Browser: Chromium `159.0.8154.6` (the Lab's Playwright install), macOS arm64, emulated
 forced colors; Drupal `12.0-dev`; default + admin theme Default Admin (Standard install).
 
+## Upstream implementation: MR !18007 (2026-11-28)
+
+The issue is now **Needs review** (status 8) with an open, non-draft merge request:
+[MR !18007](https://git.drupalcode.org/project/drupal/-/merge_requests/18007), "Resolve #3534229
+"Ckeditor config buttons"", author `mgifford`, branch `3534229-ckeditor-config-buttons`, head
+`50833b7592`, target `main`, opened 2026-11-28 (issue comment #9). It is a consolidated implementation that
+builds on kentr's mask proof of concept in comment #7 and the development and testing recorded here.
+
+How the Lab represents it (registered by PR #140):
+
+- `3534229-pinned` now applies the final Lab mask patch **then**
+  [`3534229-consolidated-mask.patch`](branches/3534229-consolidated-mask.patch) (the incremental delta), and
+  the resulting CKEditor stylesheets are identical to the published MR. `issue-3534229` has both patches
+  applied and its patch-state reads `verified`.
+- `3534229-latest` applies [`3534229-mr-18007.patch`](branches/3534229-mr-18007.patch) directly (not built in
+  this session).
+- `3534229-combined-3637246` now expects #3637246 + the MR patch; its environment is still on the old stack
+  (patch-state `mismatch`) and needs `tools/compare/setup.mjs 3534229-combined-3637246 --refresh-patches`
+  before a valid compatibility run.
+
+Verification runs against the **MR-identical** stack, 2026-11-28 (Chromium 159, emulated forced colors):
+
+| Run (UTC) | Mode | Before invisible | After invisible | Unexpected | Verdict |
+|---|---|---|---|---|---|
+| `01-13-56` | forced dark 1280 | 31/35 | 0/35 | 0 | reproduced-and-fixed (`filteredButtons` 0; min contrast 19.43:1; tooltips 35/35) |
+| `01-28-28` | forced dark 480 | 31/35 | 0/35 | 0 | reproduced-and-fixed |
+| `01-35-54` | forced dark RTL | 31/35 | 0/35 | 0 | reproduced-and-fixed |
+| `01-38-30` | WebKit normal 1280 | 0/35 | 0/35 | 0 | no normal-mode regression (Safari engine) |
+| `01-41-46` | tree-diff | — | — | — | tree, ARIA and speech identical in all three views; 0 ID references gained/lost |
+| `01-20-28` / `01-22-20` / `01-24-07` | forced light / normal light / normal dark | 0/35 | 0/35 | 0 | not-reproduced / unchanged (run by the parallel session) |
+
+**Combined with #3637246 (MR stack):** after refreshing the environment to
+`[3637246-mr-17909.patch, 3534229-mr-18007.patch]` (patch-state `verified`), forced dark is
+`reproduced-and-fixed` (31/35 → 0/35; `filteredButtons` 0; every toolbar button computes `filter: none`) and
+forced light is `not-reproduced` (0/35). The #3637246 dark-mode invert is therefore still cancelled in forced
+colors with the published MR applied.
+
+**Code checks on the MR stack: FAIL (stylelint).** `node scripts/lint.mjs 3534229-pinned` on the MR-identical
+checkout reports **35 stylelint errors in 18 CSS files** (34 auto-fixable): `declaration-empty-line-before` for
+the new custom-property blocks, one `prettier/prettier` selector-list formatting error in `toolbar.admin.css`,
+and one `order/properties-order` violation (`pointer-events` before `background-color`, same file). This matches
+the failed CSS-linting job in MR !18007's pipeline 1071935 and is why the issue moved to Needs work. The earlier
+single-patch Lab proposal passed lint; the formatting defects came with the consolidation. Report:
+[`lint/2026-11-28-3534229-pinned-after.md`](lint/2026-11-28-3534229-pinned-after.md).
+
+A follow-up repair is prepared: [`branches/3534229-stylelint-fix.patch`](branches/3534229-stylelint-fix.patch)
+(sha256 `e42c2bb30151ada8`, 18 files). It applies cleanly to the MR tip `50833b75`; with it,
+`node scripts/lint.mjs 3534229-pinned` **passes**. The sorted declarations are unchanged, so it is formatting only
+and the measured forced-colors result is unaffected. The imported MR patch stays byte-identical and the After
+checkout was reverted to `patch-state: verified`. See `BRANCHES.md`.
+
+The 27 Nov runs are retained as history but `COVERAGE.md` marks them **stale for the MR stack**: they measured
+the earlier single-patch proposal, not the consolidated MR.
+
+One methodological note from the 480 px normal-mode run: a single item (`blockQuote`) produced a different
+pixel hash with identical geometry, dominant colour, icon colour, contrast and share. That is sub-pixel
+rasterization at fractional element positions, not a rendering change. Normal-mode "unchanged" is therefore
+asserted from the rendered colour statistics and geometry (with byte hashes kept as diagnostics), which is
+what a person would see.
+
 ## The patch (local proposal, not an upstream patch)
 
 18 files under `core/modules/ckeditor5/css/`, +238/−32, plain `.css`. The module has **no** `.pcss.css`

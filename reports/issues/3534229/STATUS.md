@@ -71,3 +71,46 @@ Then the manual work that is still required:
 
 Readiness: **Needs review** on the automated evidence; **not RTBC**. Nothing was posted to drupal.org. A clean
 branch with only this issue's files was prepared from `origin/main` for review (see the pull request).
+
+## Update 2026-11-28: upstream MR !18007, MR-identical re-verification
+
+**Upstream:** issue #3534229 is **Needs review** (status 8, 9 comments). [MR !18007](https://git.drupalcode.org/project/drupal/-/merge_requests/18007)
+("Resolve #3534229 \"Ckeditor config buttons\"") is **open, not draft**, author `mgifford`, branch
+`3534229-ckeditor-config-buttons`, head `50833b75`, target `main`. It is the consolidated implementation built on
+kentr's comment-#7 mask PoC and this Lab work.
+
+**Lab:** the evaluation PR #137 is merged in `main`; follow-up PR #140 registered the MR and re-pointed the
+comparisons — `3534229-pinned` = final Lab mask patch + `3534229-consolidated-mask.patch` (stylesheets identical
+to the MR), `3534229-latest` = `3534229-mr-18007.patch`, `3534229-combined-3637246` = #3637246 + MR patch.
+
+**MR-stack verification (2026-11-28, Chromium 159 emulated forced colors):** forced dark 31/35 → 0/35
+(19.43:1 min, tooltips 35/35); forced dark RTL and 480 px also 31/35 → 0/35; forced light not reproduced;
+normal light/dark and 480 px unchanged (colour-statistic comparison); WebKit normal mode clean; accessibility
+tree/ARIA/speech identical Before/After; interaction (keyboard reorder, drag, save/restore) clean. Older
+27 Nov runs are retained but marked stale for the MR stack. `COVERAGE.md`: 7 of 9 rows current; remaining gaps
+are Firefox normal + forced only (Playwright Firefox crashes on this host).
+
+**Combined #3637246 + MR compatibility: done.** After refreshing the combined environment to the MR patch stack
+(patch-state `verified`): forced dark `reproduced-and-fixed` (31/35 → 0/35, `filteredButtons` 0, every button
+`filter: none`), forced light `not-reproduced`. The MR's dark-mode invert is still cancelled in forced colors.
+
+**Why the issue is "Needs work":** the Needs Review Queue Bot changed the status on 2026-11-28 01:25Z because
+the MR fails the Drupal core commit checks. MR !18007's mirrored pipeline 1071935 is failed; its failed jobs are
+CSS linting (stylelint), PHPUnit Unit (Component and Core, 8.6-ubuntu) and Nightwatch. Running the Lab's core
+lint on the MR-identical stack reproduces the CSS-lint failure: **stylelint 35 errors in 18 files** — 34
+auto-fixable — mostly `declaration-empty-line-before` for the new custom-property blocks, one
+`prettier/prettier` selector-list formatting error in `toolbar.admin.css`, and one `order/properties-order`
+(`pointer-events` before `background-color`). Report: `lint/2026-11-28-3534229-pinned-after.md`. The earlier Lab
+proposal passed lint; these are formatting defects introduced by the consolidation. The PHPUnit/Nightwatch
+failures were not reproduced locally.
+
+**Stylelint repair prepared:** [`branches/3534229-stylelint-fix.patch`](branches/3534229-stylelint-fix.patch)
+(sha256 `e42c2bb30151ada8`, 18 files, +138/−32) applies cleanly to the MR tip `50833b75`, and with it
+`node scripts/lint.mjs 3534229-pinned` **passes**. The sorted declarations are unchanged, so it is formatting-only.
+The imported MR patch was not modified and the After checkout was reverted to the imported state (`patch-state:
+verified`). The MR author still needs to apply and push it, then re-run the review queue.
+
+**Still outstanding:** pushing the repair to MR !18007 and re-running the review queue; the unrelated failed CI
+jobs (PHPUnit Unit 8.6, Nightwatch) were not reproduced locally; real Windows contrast themes; a human keyboard and
+screen-reader pass. Nothing was posted to drupal.org; MR !18007 has not been reviewed or commented on by this
+session.

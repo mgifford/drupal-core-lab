@@ -86,3 +86,49 @@ DRAFT. Written 2026-11-27 from the evaluation in this folder. Facts are from the
     reported; verify the PR's state and CI before doing conflict work.
 23. **Automated checks are supplementary.** axe results were identical Before/After; that says nothing
     about icon visibility. Pixels and a person's review are the evidence.
+
+## Lessons from the second pass (MR verification, publishing and the CI repair, 2026-11-28)
+
+24. **Upstream can overtake the lab proposal while you are still measuring it.** Before reporting, check the issue
+    and its MRs again: by the next morning a consolidated MR (!18007) existed and the issue was Needs review, then
+    Needs work. Re-read `status.json`/the issue before writing anything that says "the proposal".
+25. **Changing a variant's patch stack invalidates every earlier run.** When the lab re-pointed `3534229-pinned`
+    at the MR-identical stack (mask patch + consolidated delta), `coverage.mjs` correctly marked 20 earlier runs
+    `stale` and the tested count fell from 7/9 to 4/9. That is the ledger working, not a regression: re-run the
+    matrix against the new stack before quoting coverage. Keep the old runs — they explain the older state.
+26. **"Same rendering" needs a tolerance, not a byte hash.** At 480 px one item (`blockQuote`) produced a
+    different pixel hash with identical geometry, dominant colour, icon colour, contrast and share: sub-pixel
+    rasterization at fractional positions. Assert normal mode from geometry + rendered colour statistics (contrast
+    ±1, share ±0.01) and keep byte/pixel hashes as diagnostics; otherwise you report a change that is not one.
+27. **The Needs Review Queue Bot names a class of failure, not a cause.** Its comment only says "fails the Drupal
+    core commit checks". The failed pipeline's job list (CSS linting, PHPUnit Unit 8.6, Nightwatch) and a local run
+    of the lab's `lint.mjs` on the MR-identical checkout turn that into an actionable finding: 35 stylelint errors
+    in 18 files.
+28. **Repair the imported proposal without editing it.** Fix in the After checkout with core's own stylelint, prove
+    the change is formatting-only (the sorted declaration multiset is unchanged), capture an incremental patch,
+    validate it on the pristine tip (`patch --dry-run`, then byte-identical trees), and revert the checkout so the
+    variant still reads `patch-state: verified`. The imported MR patch must stay byte-for-byte the same.
+29. **A patch validated against "the MR tip" only applies to that tree.** Running `git apply` in an unrelated
+    checkout fails every hunk at line 1. Identify the branch and commit first (`git rev-parse HEAD` must equal the
+    MR head), then `git apply --check`. Worktree pointers are files, not directories: a checkout may have `.git` as
+    a one-line `gitdir:` file.
+30. **Push to the issue fork, not to `project/drupal`.** Drupal's project repository rejects protected branch
+    names (`review/...` was refused by the pre-receive hook). MR source branches live in
+    `https://git.drupalcode.org/issue/drupal-<nid>.git`; check `git ls-remote` there and push
+    `HEAD:<mr-source-branch>`.
+31. **`main` keeps moving while a PR is open.** After merging, `main` gained new conventions (curated
+    human/AI `contributions.json`, warn-only evidence budgets) and changed the layout. Rebuild the PR branch from
+    the current base, merge conflicts in generated files (`variants.json`, `cloud/variants.json`) semantically and
+    regenerate, then run `ready-to-push` again; a branch that was green yesterday can be stale today.
+32. **Record contributions, do not infer them.** The new `contributions.json` is a curated account: kentr's
+    mechanism first, then inherited decisions, AI additions and discoveries, rejected approaches, human decisions
+    and remaining uncertainty. Commit metadata is not attribution.
+33. **Respect the evidence budget as a warning with a reason.** This issue is far over the starting budget
+    (files and bytes), mostly because it keeps rendered-pixel evidence and screenshots. That is a deliberate
+    trade-off for an accessibility issue where pixels are the proof; say so instead of deleting history.
+34. **A transient SSH disconnect is normal; retry with keepalives.** `git push` failed once with "remote end hung
+    up" and succeeded on retry with `GIT_SSH_COMMAND='ssh -o ServerAliveInterval=20'`. Do not rewrite history for
+    it.
+35. **Another session can hold a lock; do the narrow operation instead.** `setup.mjs --refresh-patches` stopped
+    on "another setup is already running (pid …)". The patch refresh itself is git-only: `ensurePatches(...)`
+    applied the two patches, recorded them and left `patch-state: verified` without waiting for the lock.
