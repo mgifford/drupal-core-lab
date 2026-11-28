@@ -12,6 +12,7 @@ import { labRoot, variants } from '../tools/compare/lib.mjs';
 import { issueNids, issueDir, buildIndex } from '../tools/compare/issue-tracking.mjs';
 import { validateStatus } from '../tools/compare/issue-status.mjs';
 import { readCommunication, validateFile as validateCommunication, communicationPath } from '../tools/compare/communication.mjs';
+import { readContributions, validateFile as validateContributions, contributionPath } from '../tools/compare/contributions.mjs';
 import { focusIssues, focusMarkdown } from '../tools/compare/issue-focus.mjs';
 
 const args = process.argv.slice(2);
@@ -28,6 +29,10 @@ for (const nid of issueNids(labRoot)) {
   if (fs.existsSync(communicationPath(labRoot, nid))) {
     const comm = validateCommunication(readCommunication(labRoot, nid));
     for (const e of comm.errors || []) errors.push(`#${nid}: communication.json ${e.path || '/'} ${e.message}`);
+  }
+  if (fs.existsSync(contributionPath(labRoot, nid))) {
+    const contrib = validateContributions(readContributions(labRoot, nid));
+    for (const e of contrib.errors || []) errors.push(`#${nid}: contributions.json ${e.path || '/'} ${e.message}`);
   }
 }
 
