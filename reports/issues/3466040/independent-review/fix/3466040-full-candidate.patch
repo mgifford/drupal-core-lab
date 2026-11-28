@@ -1,0 +1,195 @@
+diff --git a/core/misc/dialog/dialog.position.js b/core/misc/dialog/dialog.position.js
+index 36f1ccf07c..6bb9a33c16 100644
+--- a/core/misc/dialog/dialog.position.js
++++ b/core/misc/dialog/dialog.position.js
+@@ -134,7 +134,14 @@
+         .dialog('option', { resizable: false, draggable: false })
+         .dialog('widget');
+       uiDialog[0].style.position = 'fixed';
+-      // Keep a reference so that a scheduled call can be cancelled on close.
++      // A dialog can receive dialog:aftercreate more than once without a
++      // beforeclose, for example when an Ajax response replaces its content.
++      // Cancel the previous debounced call and reuse a single observer, so
++      // callbacks and observers do not accumulate.
++      const previousAutoResize = $element.data('drupalAutoResize');
++      if (previousAutoResize) {
++        previousAutoResize.cancel();
++      }
+       $element.data('drupalAutoResize', autoResize);
+       $(window)
+         .on('resize.dialogResize scroll.dialogResize', eventData, autoResize)
+@@ -144,6 +151,26 @@
+         eventData,
+         autoResize,
+       );
++      // Content can change its size after the dialog opened, for example when
++      // a details element opens or an Ajax request adds elements. Recalculate
++      // the size and the position, so the dialog stays inside the viewport.
++      let resizeObserver = $element.data('drupalAutoResizeObserver');
++      if (!resizeObserver) {
++        resizeObserver = new ResizeObserver(() => {
++          const latestEventData = $element.data('drupalAutoResizeEventData');
++          $element.data('drupalAutoResize')?.({ data: latestEventData });
++        });
++        $element.data('drupalAutoResizeObserver', resizeObserver);
++      }
++      // Reuse the observer. If the dialog content element was replaced, stop
++      // observing the old one; observing the same element again is a no-op.
++      const previousTarget = $element.data('drupalAutoResizeTarget');
++      if (previousTarget && previousTarget !== e.target) {
++        resizeObserver.unobserve(previousTarget);
++      }
++      $element.data('drupalAutoResizeTarget', e.target);
++      $element.data('drupalAutoResizeEventData', eventData);
++      resizeObserver.observe(e.target);
+     }
+   });
+ 
+@@ -153,6 +180,12 @@
+     // destroys the jQuery UI instance, so a call that runs after this point
+     // would act on a destroyed dialog and throw.
+     $(e.target).data('drupalAutoResize')?.cancel();
++    $(e.target).data('drupalAutoResizeObserver')?.disconnect();
++    $(e.target)
++      .removeData('drupalAutoResizeObserver')
++      .removeData('drupalAutoResizeTarget')
++      .removeData('drupalAutoResizeEventData')
++      .removeData('drupalAutoResize');
+     $(window).off('.dialogResize');
+     $(document).off('.dialogResize');
+   });
+diff --git a/core/modules/system/tests/modules/dialog_renderer_test/dialog_renderer_test.routing.yml b/core/modules/system/tests/modules/dialog_renderer_test/dialog_renderer_test.routing.yml
+index 3828cf8c13..4a5273852e 100644
+--- a/core/modules/system/tests/modules/dialog_renderer_test/dialog_renderer_test.routing.yml
++++ b/core/modules/system/tests/modules/dialog_renderer_test/dialog_renderer_test.routing.yml
+@@ -30,6 +30,14 @@ dialog_renderer_test.modal_content_input:
+   requirements:
+     _access: 'TRUE'
+ 
++dialog_renderer_test.modal_content_details:
++  path: '/dialog_renderer-content-details'
++  defaults:
++    _controller: '\Drupal\dialog_renderer_test\Controller\TestController::modalContentDetails'
++    _title: 'Thing 4'
++  requirements:
++    _access: 'TRUE'
++
+ dialog_renderer_test.collapsed_opener:
+   path: '/dialog_renderer-collapsed-opener'
+   defaults:
+diff --git a/core/modules/system/tests/modules/dialog_renderer_test/src/Controller/TestController.php b/core/modules/system/tests/modules/dialog_renderer_test/src/Controller/TestController.php
+index 110792f042..3cb5741b0a 100644
+--- a/core/modules/system/tests/modules/dialog_renderer_test/src/Controller/TestController.php
++++ b/core/modules/system/tests/modules/dialog_renderer_test/src/Controller/TestController.php
+@@ -70,6 +70,35 @@ public function modalContentInput() {
+     ];
+   }
+ 
++  /**
++   * Return modal content with a collapsed details element.
++   *
++   * @return array
++   *   Render array for display in modal.
++   */
++  public function modalContentDetails() {
++    return [
++      '#type' => 'container',
++      'text' => [
++        '#type' => 'markup',
++        '#markup' => 'Look at me in a modal!',
++      ],
++      'details' => [
++        '#type' => 'details',
++        '#title' => 'Show more content',
++        '#open' => FALSE,
++        'content' => [
++          '#type' => 'html_tag',
++          '#tag' => 'div',
++          '#value' => 'Tall content',
++          '#attributes' => [
++            'style' => 'height: 2000px;',
++          ],
++        ],
++      ],
++    ];
++  }
++
+   /**
+    * Displays test links that will open in the modal dialog.
+    *
+@@ -254,6 +283,28 @@ public function linksDisplay() {
+           ],
+         ],
+       ],
++      'details_modal' => [
++        '#title' => 'Details modal!',
++        '#type' => 'link',
++        '#url' => Url::fromRoute('dialog_renderer_test.modal_content_details'),
++        '#attributes' => [
++          'class' => ['use-ajax'],
++          'data-dialog-type' => 'modal',
++          'data-dialog-options' => Json::encode([
++            'buttons' => [
++              [
++                'text' => 'OK',
++                'click' => '() => {}',
++              ],
++            ],
++          ]),
++        ],
++        '#attached' => [
++          'library' => [
++            'core/drupal.ajax',
++          ],
++        ],
++      ],
+       'content_link_modal' => [
+         '#title' => 'Content link modal!',
+         '#type' => 'link',
+diff --git a/core/modules/system/tests/src/FunctionalJavascript/ModalRendererTest.php b/core/modules/system/tests/src/FunctionalJavascript/ModalRendererTest.php
+index d2ed339ecf..695135dfce 100644
+--- a/core/modules/system/tests/src/FunctionalJavascript/ModalRendererTest.php
++++ b/core/modules/system/tests/src/FunctionalJavascript/ModalRendererTest.php
+@@ -164,6 +164,42 @@ public function testModalRenderer(): void {
+     $this->assertStringContainsString('Raw combined attack', $button_pane_html_raw);
+   }
+ 
++  /**
++   * Tests that a modal stays inside the viewport when its content grows.
++   */
++  public function testModalContentGrows(): void {
++    $assert_session = $this->assertSession();
++    $page = $this->getSession()->getPage();
++
++    $this->drupalGet('/dialog_renderer-test-links');
++    $this->clickLink('Details modal!');
++    $assert_session->waitForElementVisible('css', '.ui-dialog');
++    $assert_session->assertVisibleInViewport('css', '.ui-dialog .ui-dialog-buttonpane');
++    // The tall content must be hidden until the details element is opened, so
++    // that the growth happens after the dialog has been positioned.
++    $this->assertJsCondition('document.querySelector(".ui-dialog details").open === false');
++
++    // Opening the details element makes the content much taller than the
++    // viewport. The dialog must shrink its content area and keep the button
++    // pane inside the viewport.
++    $page->find('css', '.ui-dialog summary')->click();
++    $this->assertJsCondition('document.querySelector(".ui-dialog details").open === true');
++    $this->assertJsCondition('(() => {
++      const rect = document.querySelector(".ui-dialog").getBoundingClientRect();
++      return rect.top >= 0 && rect.bottom <= window.innerHeight;
++    })()');
++    $assert_session->assertVisibleInViewport('css', '.ui-dialog .ui-dialog-titlebar');
++    $assert_session->assertVisibleInViewport('css', '.ui-dialog .ui-dialog-buttonpane');
++    // The dialog can only stay in the viewport if the content area scrolls.
++    // Clipping the content would also satisfy the geometry checks above.
++    $this->assertJsCondition('(() => {
++      const content = document.querySelector(".ui-dialog .ui-dialog-content");
++      const overflowY = getComputedStyle(content).overflowY;
++      return content.scrollHeight > content.clientHeight &&
++        (overflowY === "auto" || overflowY === "scroll");
++    })()');
++  }
++
+   /**
+    * Confirm focus management of a dialog openers in a dropbutton.
+    */

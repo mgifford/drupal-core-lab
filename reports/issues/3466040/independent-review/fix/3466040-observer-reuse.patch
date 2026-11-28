@@ -1,0 +1,60 @@
+diff --git a/core/misc/dialog/dialog.position.js b/core/misc/dialog/dialog.position.js
+index 505f906..6bb9a33 100644
+--- a/core/misc/dialog/dialog.position.js
++++ b/core/misc/dialog/dialog.position.js
+@@ -134,7 +134,14 @@
+         .dialog('option', { resizable: false, draggable: false })
+         .dialog('widget');
+       uiDialog[0].style.position = 'fixed';
+-      // Keep a reference so that a scheduled call can be cancelled on close.
++      // A dialog can receive dialog:aftercreate more than once without a
++      // beforeclose, for example when an Ajax response replaces its content.
++      // Cancel the previous debounced call and reuse a single observer, so
++      // callbacks and observers do not accumulate.
++      const previousAutoResize = $element.data('drupalAutoResize');
++      if (previousAutoResize) {
++        previousAutoResize.cancel();
++      }
+       $element.data('drupalAutoResize', autoResize);
+       $(window)
+         .on('resize.dialogResize scroll.dialogResize', eventData, autoResize)
+@@ -147,11 +154,23 @@
+       // Content can change its size after the dialog opened, for example when
+       // a details element opens or an Ajax request adds elements. Recalculate
+       // the size and the position, so the dialog stays inside the viewport.
+-      const resizeObserver = new ResizeObserver(() => {
+-        autoResize({ data: eventData });
+-      });
++      let resizeObserver = $element.data('drupalAutoResizeObserver');
++      if (!resizeObserver) {
++        resizeObserver = new ResizeObserver(() => {
++          const latestEventData = $element.data('drupalAutoResizeEventData');
++          $element.data('drupalAutoResize')?.({ data: latestEventData });
++        });
++        $element.data('drupalAutoResizeObserver', resizeObserver);
++      }
++      // Reuse the observer. If the dialog content element was replaced, stop
++      // observing the old one; observing the same element again is a no-op.
++      const previousTarget = $element.data('drupalAutoResizeTarget');
++      if (previousTarget && previousTarget !== e.target) {
++        resizeObserver.unobserve(previousTarget);
++      }
++      $element.data('drupalAutoResizeTarget', e.target);
++      $element.data('drupalAutoResizeEventData', eventData);
+       resizeObserver.observe(e.target);
+-      $element.data('drupalAutoResizeObserver', resizeObserver);
+     }
+   });
+ 
+@@ -162,6 +181,11 @@
+     // would act on a destroyed dialog and throw.
+     $(e.target).data('drupalAutoResize')?.cancel();
+     $(e.target).data('drupalAutoResizeObserver')?.disconnect();
++    $(e.target)
++      .removeData('drupalAutoResizeObserver')
++      .removeData('drupalAutoResizeTarget')
++      .removeData('drupalAutoResizeEventData')
++      .removeData('drupalAutoResize');
+     $(window).off('.dialogResize');
+     $(document).off('.dialogResize');
+   });
