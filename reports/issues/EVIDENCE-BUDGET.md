@@ -1,8 +1,8 @@
 # Evidence budget
 
-Generated 2026-11-28T04:32:04.360Z by `node scripts/evidence-budget.mjs --all --write` from `evidence-budgets.yml` (mode: **warn**). Warn-only: nothing is deleted, moved or untracked.
+Generated 2026-11-28T04:34:34.604Z by `node scripts/evidence-budget.mjs --all --write` from `evidence-budgets.yml` (mode: **warn**). Warn-only: nothing is deleted, moved or untracked.
 
-45 issue(s), 8879 files, 938.7 MiB. 25 issue(s) have a warning.
+46 issue(s), 9534 files, 1003.3 MiB. 26 issue(s) have a warning.
 
 | Issue | Files | Size | Human | Structured | Raw | Images | Runs | Duplicate runs | Warnings |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---|
@@ -10,6 +10,7 @@ Generated 2026-11-28T04:32:04.360Z by `node scripts/evidence-budget.mjs --all --
 | #3631337 | 126 | 136.1 MiB | 16 | 5 | 9 | 0 | 0 | 0 | 126 files > 100; 142695061 bytes > 5242880; 7 JSON file(s) over 262144 bytes |
 | #3630425 | 124 | 110.5 MiB | 31 | 25 | 2 | 18 | 8 | 5 | 124 files > 100; 115842931 bytes > 5242880; 5 duplicate run(s) for the same configuration/revision; 2 JSON file(s) over 262144 bytes |
 | #3636143 | 846 | 67.9 MiB | 54 | 143 | 0 | 482 | 19 | 5 | 846 files > 100; 71249621 bytes > 5242880; 482 images > 152 allowed for 19 run(s); 5 duplicate run(s) for the same configuration/revision; 87 JSON file(s) over 262144 bytes |
+| #3466040 | 655 | 64.6 MiB | 46 | 97 | 0 | 497 | 29 | 12 | 655 files > 100; 67744294 bytes > 5242880; 497 images > 232 allowed for 29 run(s); 12 duplicate run(s) for the same configuration/revision; 28 JSON file(s) over 262144 bytes |
 | #3426468 | 300 | 51.9 MiB | 30 | 29 | 0 | 236 | 9 | 2 | 300 files > 100; 54388607 bytes > 5242880; 236 images > 72 allowed for 9 run(s); 2 duplicate run(s) for the same configuration/revision; 9 JSON file(s) over 262144 bytes |
 | #3604037 | 531 | 35.8 MiB | 24 | 10 | 0 | 482 | 7 | 6 | 531 files > 100; 37492888 bytes > 5242880; 482 images > 56 allowed for 7 run(s); 6 duplicate run(s) for the same configuration/revision |
 | #867830 | 528 | 35.2 MiB | 48 | 82 | 0 | 344 | 26 | 8 | 528 files > 100; 36903033 bytes > 5242880; 344 images > 208 allowed for 26 run(s); 8 duplicate run(s) for the same configuration/revision |

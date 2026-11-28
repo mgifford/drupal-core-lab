@@ -13,7 +13,7 @@ Built from the local `status.json` snapshots, `BRANCHES.md` and `ARCHIVED.md` by
 | P3 · Watch | 13 |
 | P4 · Postponed | 1 |
 | P5 · Close out | 5 |
-| P6 · Not checked | 1 |
+| P6 · Not checked | 2 |
 | P7 · Archived | 0 |
 
 ## P0 · Review now — Needs review (6)
@@ -102,12 +102,13 @@ Fixed or closed upstream: confirm, then archive. Confirm the fix is in core main
 | [#3087389](3087389/SUMMARY.md) | When selecting media to add through the media library modal, the # of #… | Closed (duplicate) | Closed (duplicate): confirm, then `node scripts/issue-archive.mjs 3087389` |
 | [#3273806](3273806/SUMMARY.md) | WCAG color constrast fails on toolbar direction icon | Closed (duplicate) | Closed (duplicate): confirm, then `node scripts/issue-archive.mjs 3273806` |
 
-## P6 · Not checked (1)
+## P6 · Not checked (2)
 
 No status.json yet.
 
 | Issue | Next action |
 |---|---|
+| [#3466040](3466040/SUMMARY.md) | Run `node scripts/issue-status.mjs 3466040 --write` |
 | [#3545814](3545814/SUMMARY.md) | Run `node scripts/issue-status.mjs 3545814 --write` |
 
 ## How this is ranked
