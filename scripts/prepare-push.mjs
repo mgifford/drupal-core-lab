@@ -16,6 +16,7 @@ import { labRoot } from '../tools/compare/lib.mjs';
 import { primaryCheckout } from '../tools/compare/deps.mjs';
 import { openRepo, git } from '../tools/compare/patch-validate.mjs';
 import { readIssue, prepare, CORE_URL, forkPushUrl } from '../tools/compare/prepare-push.mjs';
+import { acquireGitLock, releaseGitLock } from '../tools/compare/git-lock.mjs';
 
 const args = process.argv.slice(2);
 const val = (n) => { const i = args.indexOf(`--${n}`); return i >= 0 && args[i + 1] && !args[i + 1].startsWith('--') ? args[i + 1] : ''; };
@@ -39,13 +40,21 @@ if (/^https?:\/\//.test(opts.pushUrl)) console.error(`note: --push-url ${opts.pu
 let rep = prepare(opts), fetched = [];
 if (args.includes('--fetch') && rep.fetch.length) {
   // setup.mjs fetches into envs/core.git under this lock; two fetches at once fail with "shallow file has changed since we read it"
-  const lock = path.join(path.dirname(repo.dir), '.setup.lock');
-  let busy = 0; try { busy = Number(fs.readFileSync(lock, 'utf8')) || 0; process.kill(busy, 0); } catch { busy = 0; }
+  const setupLock = path.join(path.dirname(repo.dir), '.setup.lock');
+  let busy = 0; try { busy = Number(fs.readFileSync(setupLock, 'utf8')) || 0; process.kill(busy, 0); } catch { busy = 0; }
   if (busy) { console.error(`A setup is fetching into ${repo.dir} (pid ${busy}); nothing was fetched. Run this again when it has finished.`); process.exit(3); }
-  for (const f of rep.fetch) {
-    const r = git(repo, f.args, { env: { ...process.env, GIT_TERMINAL_PROMPT: '0' } });
-    fetched.push({ command: f.text, ok: r.status === 0, detail: r.status === 0 ? '' : `${r.stderr || r.stdout}`.trim().split('\n').slice(-1)[0] });
+  const gitLock = acquireGitLock({ repo, operation: `prepare-push fetch #${nid}`, session: process.env.DSH_SESSION_ID || 'unknown' });
+  if (!gitLock.ok) {
+    const o = gitLock.owner;
+    console.error(`Shared Git repository is busy: ${gitLock.reason}.` + (o ? `\n  ${o.operation} (${o.session}, pid ${o.pid}) has held it since ${new Date(o.started).toISOString()}.` : '') + '\nNo fetch was run; wait for that operation to finish, then run this again.');
+    process.exit(3);
   }
+  try {
+    for (const f of rep.fetch) {
+      const r = git(repo, f.args, { env: { ...process.env, GIT_TERMINAL_PROMPT: '0' } });
+      fetched.push({ command: f.text, ok: r.status === 0, detail: r.status === 0 ? '' : `${r.stderr || r.stdout}`.trim().split('\n').slice(-1)[0] });
+    }
+  } finally { releaseGitLock({ repo, pid: gitLock.owner.pid }); }
   rep = prepare(opts);
 }
 

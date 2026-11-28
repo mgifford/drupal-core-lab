@@ -12,11 +12,12 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { openRepo } from '../../tools/compare/patch-validate.mjs';
 import { readIssue, prepare, fetchPlan, labRef } from '../../tools/compare/prepare-push.mjs';
+import { acquireGitLock, releaseGitLock } from '../../tools/compare/git-lock.mjs';
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'prepare-push-test-'));
 after(() => fs.rmSync(root, { recursive: true, force: true }));
 fs.writeFileSync(path.join(root, 'gitconfig'), '');
-Object.assign(process.env, { GIT_CONFIG_GLOBAL: path.join(root, 'gitconfig'), GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_PARAMETERS: "'safe.bareRepository=explicit'", GIT_TERMINAL_PROMPT: '0' });
+Object.assign(process.env, { GIT_CONFIG_GLOBAL: path.join(root, 'gitconfig'), GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_PARAMETERS: "'safe.bareRepository=explicit'", GIT_TERMINAL_PROMPT: '0', LAB_GIT_LOCK_DIR: path.join(root, 'git-locks') });
 const labRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const OWNER = ['Lab Owner', 'owner@example.test'], ALICE = ['Alice', 'alice@example.test'], BOB = ['Bob', 'bob@example.test'];
 const day = (d) => new Date(Date.UTC(2026, 0, d, 12)).toISOString();
@@ -217,6 +218,12 @@ test('scripts/prepare-push.mjs: exit 3 and the fetch to run, then --fetch recove
   assert.equal(r.status, 3, r.stdout + r.stderr);
   assert.match(r.stdout, /read-only: nothing was fetched, pushed or written/); assert.match(r.stdout, /Minimum history to fetch[\s\S]*--shallow-since=2026-01-09/);
   assert.match(r.stdout, /NEEDS HISTORY OR NETWORK/); assert.match(r.stdout, /push {6}git@git\.drupal\.org:issue\/drupal-123\.git {3}\(never run by this tool\)/);
+  const held = acquireGitLock({ repo: openRepo(x.lab), operation: 'a concurrent fetch', session: 'other-session', pid: process.pid });
+  assert.equal(held.ok, true);
+  r = run('--fetch');
+  assert.equal(r.status, 3, r.stdout + r.stderr);
+  assert.match(r.stderr, /Shared Git repository is busy/);
+  releaseGitLock({ repo: openRepo(x.lab), pid: process.pid });
   r = run('--fetch');
   assert.equal(r.status, 0, r.stdout + r.stderr);
   assert.match(r.stdout, /^fetched {2}git --git-dir=/m); assert.match(r.stdout, /READY: a plain push/);

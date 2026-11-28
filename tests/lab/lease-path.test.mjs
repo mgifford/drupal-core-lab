@@ -41,3 +41,12 @@ test('a legacy checkout lease is copied once and is not deleted', () => {
     assert.match(fs.readFileSync(target, 'utf8'), /kept/);
   } finally { clean(home); clean(lab); }
 });
+
+test('when ~/.dsh cannot be created, the checkout-local file is used instead of failing', () => {
+  const home = tmp(), lab = tmp();
+  try {
+    fs.writeFileSync(path.join(home, '.dsh'), 'not a directory');
+    const legacy = path.join(lab, '.lab-cache/lab-env-leases.json');
+    assert.equal(leaseFileFor(lab, { env: {}, home }), legacy);
+  } finally { clean(home); clean(lab); }
+});

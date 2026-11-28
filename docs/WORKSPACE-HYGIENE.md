@@ -178,4 +178,5 @@ Environment leases moved out of the checkout: the canonical file is
 `~/.dsh/lab-coordination/lab-env-leases.json` (override with `LAB_LEASE_FILE`). A legacy
 `.lab-cache/lab-env-leases.json` is copied there once when the first command runs, so an in-flight session does not lose
 its lease during the change. Start/stop environments through `lab-env.mjs start|stop`; a lease created in one clone is
-now visible to every other clone on the same machine.
+now visible to every other clone on the same machine. If a sandbox cannot create `~/.dsh`, it falls back to the checkout-local
+`.lab-cache/lab-env-leases.json`; that fallback protects only that checkout.
