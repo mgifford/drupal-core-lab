@@ -1,0 +1,987 @@
+{
+  "schema": "drupal-core-lab/independent-review/1",
+  "generatedAt": "2026-11-28T02:30:00Z",
+  "draft": true,
+  "aiAssisted": true,
+  "issue": {
+    "id": "3466040",
+    "url": "https://www.drupal.org/project/drupal/issues/3466040",
+    "title": "Modal dialog does not adjust to increased inner height",
+    "statusOnReview": "Needs review",
+    "statusChanged": false
+  },
+  "mergeRequest": {
+    "id": "!9088",
+    "url": "https://git.drupalcode.org/project/drupal/-/merge_requests/9088",
+    "reviewedRevision": "aed1df5eeddf0b89c91bab47eb83847f44c58211",
+    "base": "97c6ff8b2534b242c0f1df3e4ba2493e56aebcec",
+    "baseDate": "2026-11-23",
+    "patch": "reports/issues/3466040/branches/3466040-dialog-buttoninputs-not.patch",
+    "patchSha256": "1adba92d55f15f34d4f98a90277c391efa96b196d4329bdc6efe30f65bfbfae8",
+    "files": 4,
+    "productionChange": "core/misc/dialog/dialog.position.js: +9 lines (ResizeObserver on dialog:aftercreate, disconnect on dialog:beforeclose)"
+  },
+  "reviewedEvidence": [
+    {
+      "path": "reports/issues/3466040/REVIEW.md",
+      "sha256": "24a8cef38c45117cd08422df3e63d5afaf283e8af292bcef4ce818145b13140a",
+      "mtime": "2026-11-27T14:25:26"
+    },
+    {
+      "path": "reports/issues/3466040/EVIDENCE.md",
+      "sha256": "768e553878ad25099635a7f24c9ed21494cd457a9095671026846ac1ca1c8326",
+      "mtime": "2026-11-27T14:27:25"
+    },
+    {
+      "path": "reports/issues/3466040/SUMMARY.md",
+      "sha256": "dc816970da06d1ecc111fd7195a4856c2f346353b8672f1b2e80993aa01753e9",
+      "mtime": "2026-11-27T14:25:26"
+    },
+    {
+      "path": "reports/issues/3466040/review.json",
+      "sha256": "13ffd6673ee1060a05fde2ab9398ca3bb54b77498b2091c913bc959ad308a251",
+      "mtime": "2026-11-27T12:31:32",
+      "note": "stale: does not contain the 19:25Z addendum"
+    },
+    {
+      "path": "reports/issues/3466040/playwright/2026-11-27T16-43-04-546Z-chromium-light-1024x768-fixture/results.json",
+      "sha256": "2e1029905db8d02a0c62373a1e8e1d5b6424fbffc2e0790bcd9ffe8dd1753d17"
+    },
+    {
+      "path": "reports/issues/3466040/playwright/2026-11-27T15-35-43-499Z-chromium-light-1920x1080/results.json",
+      "sha256": "795c066381a9ee78cd091ae3749e886a68592f389ceee61932c2aca0d6839ab1"
+    },
+    {
+      "path": "reports/issues/3466040/playwright/2026-11-27T16-24-50-391Z-chromium-light-1920x1080/results.json",
+      "sha256": "cf532e14752aebe54921a6aad68c875d402ef71515cfef35a10be312c19e2d4e"
+    },
+    {
+      "path": "reports/issues/3466040/playwright/2026-11-27T19-21-54-847Z-chromium-light-1920x1080-translation/results.json",
+      "sha256": "e99708f6be1ce7338dc6145089413238b263e81416eb221dfcc41b34bea86dc8"
+    },
+    {
+      "path": "reports/issues/3466040/playwright/2026-11-27T19-23-17-323Z-chromium-light-1920x720-translation/results.json",
+      "sha256": "c79614e424da8a64b31c720d25b98b981dd814b6c2619bb3163042efc99c5e9d"
+    },
+    {
+      "path": "reports/issues/3466040/independent-review/runs/field-ui-1920x1080-verify/results.json",
+      "sha256": "393fe0e999b154f80ea92f61a86a285e23611792b0f3366c640409c33d85444d",
+      "mtime": "2026-11-27T20:18:01"
+    },
+    {
+      "path": "reports/issues/3466040/ci/gitlab-job-13926147-test-only-changes.log",
+      "sha256": "1d775aa565f3dd82ad4ba9b9ac046bbe565e4de1eb1d7fc3b87bfd89f9af1cbb"
+    },
+    {
+      "path": "reports/issues/3466040/independent-review/runs/translation-1920x1080-verify/results.json",
+      "sha256": "57fb1f9dfdb1a0b8b2178d2ccf0511ec930f1876bff42d623352e9c4d0b36463",
+      "mtime": "2026-11-27T20:19:44"
+    },
+    {
+      "path": "reports/issues/3466040/independent-review/regression/after-testModalContentGrows.log",
+      "sha256": "dcb846fd0f00da9b3083bc93ab9b2137f1cf750df381ddc3b86b3ca361f04cf1",
+      "note": "local PHPUnit pass on After; hash captured below"
+    },
+    {
+      "path": "reports/issues/3466040/independent-review/runs/translation-zoom200/results.json",
+      "sha256": "ab4fbd73805f2cfcebe3268a704cb0ad4b90948e6894ffe3544c98bec4df8ded"
+    },
+    {
+      "path": "reports/issues/3466040/independent-review/runs/translation-zoom400/results.json",
+      "sha256": "af0130252eb4f9b5a9a0ea2cc1cf9ad30bf009207626a323fd5b5869a7783b1e"
+    },
+    {
+      "path": "reports/issues/3466040/independent-review/runs/translation-zoom125/results.json",
+      "sha256": "5e60cb9349e4f085f7e39f098aa33a90ee4c3d3781502730697a96e70991c64b",
+      "mtime": "2026-11-27T20:37:17"
+    },
+    {
+      "path": "reports/issues/3466040/independent-review/fix/3466040-observer-reuse.patch",
+      "sha256": "56f4e12e7d56b62141821f4b602c596ca880af344cecfa524fde48606158a0ed"
+    },
+    {
+      "path": "reports/issues/3466040/independent-review/fix/3466040-interdiff-vs-mr.patch",
+      "sha256": "3e77ac86bda079c6a5f9c8b8163b647834685f6e4d7dd66b7b9a900a53145c68"
+    },
+    {
+      "path": "reports/issues/3466040/independent-review/fix/3466040-full-candidate.patch",
+      "sha256": "5287096fe8760fd9c0a174fa393e6844f8180df83bf7fc575f4275b00e46656c"
+    },
+    {
+      "path": "reports/issues/3466040/independent-review/runs/field-ui-fix-refined-1920x1080/results.json",
+      "sha256": "e29902c3a00ca25e059f2eea529f3f1cc6296552870e9ee1ea01c1fced3f9758"
+    },
+    {
+      "path": "reports/issues/3466040/independent-review/runs/translation-125-fix-verify/results.json",
+      "sha256": "e00d5ccf425bde180bb69e3e3dc06c704a2e5836755950c81da03eaf99b9dd40"
+    },
+    {
+      "path": "reports/issues/3466040/independent-review/regression/after-hardened-testModalContentGrows.log",
+      "sha256": "239d8744d8b2c8302b8a026154a1312b6ed8a2d38a9787a44615d0ed9a63a71a"
+    },
+    {
+      "path": "reports/issues/3466040/independent-review/READY.md",
+      "sha256": "9767e6bc295f3a7b71280bbc6cfd60bcb832e046811638208cab39bd4dc4a44c"
+    }
+  ],
+  "method": "Read-only cross-check of the owner's reports against the raw results.json for the fixture, Field UI, Views and translation runs; plus a current-probe Field UI lifecycle run on the pristine 3466040-pinned pair during the handoff window. No PHPUnit run and no person's keyboard/AT pass. The 3466040 pair was started only after the handoff approval.",
+  "runtime": {
+    "performedForThisReview": true,
+    "handoffWindow": "2026-11-27 20:11-20:30 EST",
+    "checksRun": [
+      "Current-probe Field UI lifecycle on 3466040-pinned: node tools/playwright/evaluate-3466040.mjs 3466040-pinned --scenario=field-ui --viewport=1920x1080 --settle=1200 --out=reports/issues/3466040/independent-review/runs/field-ui-1920x1080-verify",
+      "Translation runs reviewed and re-read from the owner's 19:21/19:23 runs; a corrected translation probe is written but its result is not required for the finding.",
+      "Corrected translation re-run: node tools/playwright/evaluate-3466040-translation.mjs 3466040-pinned --viewport=1920x1080 --out=reports/issues/3466040/independent-review/runs/translation-1920x1080-verify",
+      "Local PHPUnit After: ddev phpunit core/modules/system/tests/src/FunctionalJavascript/ModalRendererTest.php --filter testModalContentGrows -> OK (1 test, 3 assertions), 1:30",
+      "Candidate fix probe: node tools/playwright/evaluate-3466040.mjs 3466040-fix-probe --scenario=field-ui --viewport=1920x1080 --settle=1200 (1 patch observer, 1 disconnect, no leak)",
+      "Hardened PHPUnit with candidate: ddev phpunit ... --filter testModalContentGrows -> OK (1 test, 6 assertions)",
+      "Translation 125% with candidate: reproduces before, fixed after"
+    ],
+    "notRun": [
+      "local PHPUnit on Before (After passed)",
+      "90/110% reflow",
+      "dark/forced/reduced motion",
+      "Firefox/WebKit",
+      "person's keyboard/AT pass"
+    ],
+    "localPhpunitAttempt": {
+      "command": "ddev phpunit core/modules/system/tests/src/FunctionalJavascript/ModalRendererTest.php --filter testModalContentGrows (in envs/baseline-3466040)",
+      "result": "no result: terminated after 600 s during the environment outage; log at reports/issues/3466040/independent-review/regression/before-testModalContentGrows.log",
+      "usedAsEvidence": false
+    },
+    "note": "All reported runs completed before 2026-11-27T20:37:47, when another session re-applied the test-support patch to baseline-3466040. The pristine 3466040-pinned pair no longer matches its variant; this review did not restore it."
+  },
+  "supportedClaims": [
+    {
+      "claim": "The fixture opens short (265.4 px) and grows; Before overflows by 212.3 px at 1024x768.",
+      "verdict": "supported",
+      "evidence": "Before F2-expanded: rect top 251.3, bottom 980.3, height 729; viewport 768; content client 578 / scroll 2146; button pane 913.3-979.3; OK 926.3-967.3; fit=false."
+    },
+    {
+      "claim": "The MR fixes the fixture: 0 px overflow, OK in view and hit-testable, content still scrolls.",
+      "verdict": "supported",
+      "evidence": "After F2-expanded: rect top 19.5, bottom 748.5; pane 681.5-747.5; OK 694.5-735.5; content 578/2146; fit=true."
+    },
+    {
+      "claim": "Keyboard focus reaches OK but the control is off-screen on Before and on-screen on After.",
+      "verdict": "supported",
+      "evidence": "Tab walk: Before inViewport=false, hittable=false; After inViewport=true, hittable=true."
+    },
+    {
+      "claim": "In the fixture the observer fires once per expansion, settles, and is disconnected on close.",
+      "verdict": "supported-for-fixture",
+      "evidence": "F2: +1 patch callback, +1 dialogContentResize; 800 ms idle 0; postClose 900 ms 0/0; reopen 1-3: 4 observers created and 4 disconnected in total."
+    },
+    {
+      "claim": "testModalContentGrows fails without the production JS change.",
+      "verdict": "supported-by-CI",
+      "evidence": "CI test-only job 13926147: Tests: 3, Assertions: 49, Failures: 1; ModalRendererTest.php:183 assertJsCondition false."
+    },
+    {
+      "claim": "testModalContentGrows can pass without the details opening and without the content scrolling; the titlebar assertion is non-discriminating.",
+      "verdict": "supported",
+      "evidence": "Test source: no details.open assertion, no scrollHeight > clientHeight assertion; titlebar is visible on pristine core while the pane is off-screen."
+    },
+    {
+      "claim": "Views filter at 1920x1080 and Field UI at 1920x1080 do not overflow in the measured states.",
+      "verdict": "supported-for-measured-states",
+      "evidence": "Views B1: 845.4 px both sides, inner scroll 689/960; Field UI A4-A6: 1026 px both sides, content 878/1272."
+    },
+    {
+      "claim": "axe 0 violations and no console/page errors in the fixture.",
+      "verdict": "supported",
+      "evidence": "axe.total 0 both sides; jsErrors []; pageErrors []; no ResizeObserver loop notice."
+    },
+    {
+      "claim": "Explicit height, explicit maxHeight, autoResize:false and two non-modal dialogs were exercised.",
+      "verdict": "supported-component-only",
+      "evidence": "Owner's component table and 16:43 components data; autoResize:false overflows 946 px by design; two non-modal dialogs do not move each other."
+    },
+    {
+      "claim": "Translation modal: Before dialog bottom overflows 2.9px at 1920x1080 and 5.8px at 1920x720; the MR re-centres it.",
+      "verdict": "supported",
+      "evidence": "Before T2 221.8→1082.9 and 41.8→725.8; After 109.5→970.6 and 18→702."
+    },
+    {
+      "claim": "Translation modal: 'Save translation' is hidden on Before and reachable only on After.",
+      "verdict": "not-supported",
+      "evidence": "The real Tab trail reaches Save at step 4 on Before at both heights (and step 7/2 on After); primaryFocus puts Save inside the viewport on both sides. reachedPrimary=false is a label-regex bug."
+    },
+    {
+      "claim": "Independent corrected translation re-run: geometry before fails / after passes, while Save is in viewport and reached on both sides.",
+      "verdict": "supported",
+      "evidence": "Verdict reproduced-and-fixed; checks: fits false->true, Save in viewport true/true, Save reached true/true."
+    },
+    {
+      "claim": "Translation modal at 125% reflow: Before Save translation is outside the 864px viewport and not hittable; After fits and is hittable.",
+      "verdict": "supported",
+      "evidence": "translation-zoom125 results: Before 113.8→933.8, 69.8px overflow, Save 882.8-920.8; After 22→842, Save 791-829; verdict reproduced-and-fixed."
+    }
+  ],
+  "findings": [
+    {
+      "id": "I1",
+      "severity": "moderate",
+      "status": "confirmed",
+      "title": "Observer accumulation and partial teardown in the Field UI AJAX flow",
+      "ownerClaimContradicted": "REVIEW.md:20 (\"observer lifecycle is clean\"), REVIEW.md:185 (leak \"theoretical, not confirmed\"), STATUS.md:9/17/21, review.json theoreticalConcerns[0].",
+      "evidence": {
+        "run": "reports/issues/3466040/playwright/2026-11-27T15-35-43-499Z-chromium-light-1920x1080/results.json",
+        "afterStages": [
+          {
+            "stage": "A2-add-field-modal",
+            "patchObservers": 1,
+            "observerIds": [
+              10
+            ],
+            "patchObserverCallbacks": 1,
+            "dialogContentResize": 1,
+            "disconnects": 0
+          },
+          {
+            "stage": "A4-continue-1",
+            "patchObservers": 3,
+            "observerIds": [
+              10,
+              11,
+              12
+            ],
+            "patchObserverCallbacks": 9,
+            "dialogContentResize": 9,
+            "disconnects": 0
+          },
+          {
+            "stage": "A8-dialog-closed",
+            "patchObservers": 3,
+            "observerIds": [
+              10,
+              11,
+              12
+            ],
+            "patchObserverCallbacks": 11,
+            "dialogContentResize": 9,
+            "disconnects": 1,
+            "disconnectedIds": [
+              12
+            ],
+            "stillConnectedIds": [
+              10,
+              11
+            ]
+          }
+        ],
+        "beforeSameStages": {
+          "patchObservers": 0,
+          "patchObserverCallbacks": 0,
+          "dialogContentResize": 6
+        },
+        "target": "All three observers observe the same element: div#drupal-modal.ui-front.ui-dialog-content.ui-widget-content",
+        "extraWork": "9 dialogContentResize events on After during A4 versus 6 total on Before through A4; 2 observers remain connected after close."
+      },
+      "mechanism": "OpenModalDialogCommand reuses #drupal-modal; each showModal() fires dialog:aftercreate again without dialog:beforeclose; the single data('drupalAutoResizeObserver') key is overwritten; beforeclose disconnects only the newest observer.",
+      "userVisible": false,
+      "userVisibleNote": "No geometry difference at A4-A6 and no console/page errors in the measured state. The confirmed effect is extra resetSize work and retained observers; visible jank in a long-lived AJAX dialog is untested.",
+      "requestedFix": "Disconnect and removeData() any existing drupalAutoResizeObserver before constructing a new one, or create one per element and reuse it; add a test with repeated AJAX aftercreate without beforeclose and assert one observer and zero callbacks after close.",
+      "severityNote": "Confirmed implementation defect; no user-visible geometry change or error was measured in this path. Blocking for code quality/RTBC, not a demonstrated accessibility regression.",
+      "currentProbeConfirmation": {
+        "run": "reports/issues/3466040/independent-review/runs/field-ui-1920x1080-verify/results.json",
+        "variant": "3466040-pinned (pristine Before, MR After)",
+        "browser": "Chromium 159.0.8154.6",
+        "viewport": "1920x1080",
+        "afterStages": [
+          {
+            "stage": "A2-add-field-modal",
+            "patchObservers": 1,
+            "ids": [
+              10
+            ],
+            "callbacks": 1,
+            "dialogContentResize": 1,
+            "disconnects": 0
+          },
+          {
+            "stage": "A3-type-chosen",
+            "patchObservers": 2,
+            "ids": [
+              10,
+              11
+            ],
+            "callbacks": 3,
+            "dialogContentResize": 3,
+            "disconnects": 0
+          },
+          {
+            "stage": "A4-continue-1",
+            "patchObservers": 3,
+            "ids": [
+              10,
+              11,
+              12
+            ],
+            "callbacks": 9,
+            "dialogContentResize": 9,
+            "disconnects": 0
+          },
+          {
+            "stage": "A8-dialog-closed",
+            "patchObservers": 3,
+            "ids": [
+              10,
+              11,
+              12
+            ],
+            "callbacks": 11,
+            "dialogContentResize": 9,
+            "disconnects": 1,
+            "disconnectedIds": [
+              12
+            ],
+            "stillConnectedIds": [
+              10,
+              11
+            ]
+          }
+        ],
+        "before": {
+          "patchObservers": 0,
+          "dialogContentResize": 6
+        },
+        "verdict": "Confirmed with the current probe on the pristine pair; the earlier 15:35 run is corroboration, not the sole basis."
+      }
+    },
+    {
+      "id": "I2",
+      "severity": "moderate",
+      "status": "partially-supported",
+      "title": "Translation addendum: geometry supported; keyboard claim is viewport-specific and was understated",
+      "ownerClaim": "REVIEW.md addendum 2026-11-27 19:25Z: Before does not reach 'Save translation' and After does; 'the keyboard difference is the material part'.",
+      "evidence": {
+        "before1080": {
+          "dialog": "221.8→1082.9 (861.1), 2.9px overflow",
+          "content": "713/713 not scrollable",
+          "saveRect": "1031.9-1069.9, inside 1080",
+          "tabTrail": "Save reached at step 4, inViewport true"
+        },
+        "after1080": {
+          "dialog": "109.5→970.6 fits; second expansion 27→1053, 1026, content 878/1307 scrolls",
+          "saveRect": "1002-1040 inside",
+          "tabTrail": "Save reached at step 7, inViewport true"
+        },
+        "before720": {
+          "dialog": "41.8→725.8 (684), 5.8px overflow",
+          "content": "536/713 scrollable",
+          "saveRect": "674.8-712.8 inside 720",
+          "tabTrail": "Save reached at step 4, inViewport true"
+        },
+        "after720": {
+          "dialog": "18→702 fits",
+          "saveRect": "651-689 inside",
+          "tabTrail": "Save reached at step 2, inViewport true"
+        },
+        "flagBug": "results.json reachedPrimary=false and verdict=reproduced-not-fixed because the shared PRIMARY_LABEL regex does not match 'Save translation'; primaryFocus and the trail both show Save inside the viewport and focused.",
+        "independentRun": {
+          "run": "reports/issues/3466040/independent-review/runs/translation-1920x1080-verify/results.json",
+          "verdict": "reproduced-and-fixed",
+          "checks": [
+            {
+              "label": "Dialog fits viewport after expansions",
+              "before": false,
+              "after": true,
+              "ok": true
+            },
+            {
+              "label": "Save translation inside the viewport after expansions",
+              "before": true,
+              "after": true,
+              "ok": true
+            },
+            {
+              "label": "Save translation reached with real Tab presses",
+              "before": true,
+              "after": true,
+              "ok": true
+            }
+          ],
+          "before": {
+            "fits": false,
+            "overflow": 2.9,
+            "saveInViewport": true,
+            "saveStep": 4
+          },
+          "after": {
+            "fits": true,
+            "overflow": 0,
+            "saveInViewport": true,
+            "saveStep": 7
+          }
+        },
+        "independent125": {
+          "run": "reports/issues/3466040/independent-review/runs/translation-zoom125/results.json",
+          "viewport": "1536x864 (125% reflow-equivalent)",
+          "before": {
+            "dialog": "113.8→933.8 (820)",
+            "overflow": 69.8,
+            "saveRect": "882.8-920.8 outside 864",
+            "saveInViewport": false,
+            "saveHit": false,
+            "tabReachedOffscreen": true
+          },
+          "after": {
+            "dialog": "22→842 fits",
+            "saveRect": "791-829",
+            "saveInViewport": true,
+            "saveHit": true,
+            "saveStep": 2
+          },
+          "verdict": "reproduced-and-fixed"
+        }
+      },
+      "impact": "The translation path does reproduce the accessibility barrier at 125% reflow (69.8px overflow, Save off-screen and not hittable), and the MR fixes it. At 100%/720 the owner's runs show only a 2.9/5.8px bottom overflow with Save still visible, so their claim that Before does not reach Save at those viewports is not supported. The addendum should cite the 125% case, not the 100%/720 case, for the keyboard impact. Media library, 90/110% and other Field UI heights remain untested."
+    },
+    {
+      "id": "I3",
+      "severity": "minor",
+      "status": "overclaim",
+      "title": "\"No confirmed regression\" and \"geometrically unchanged\" ignore the lifecycle defect and a stage mismatch",
+      "ownerClaim": "REVIEW.md:22/187; STATUS.md:21; review.json regressions.confirmed = [].",
+      "evidence": {
+        "lifecycle": "See I1: confirmed implementation regression.",
+        "fieldUiA3": "Before A3-type-chosen: top 216.5, bottom 863.4, height 646.9, pane present; After: top 269.1, bottom 810.9, height 541.8, no pane. The stages are not the same UI state; likely an evaluator timing/state mismatch, not a product difference, but the global \"unchanged\" wording is too broad.",
+        "viewsTop": "Before top 121.3, After 117.3, same height 845.4: a real 4 px re-centring, benign at this viewport."
+      },
+      "impact": "Replace \"no confirmed regression\" with \"no user-visible geometry regression in the tested states; one confirmed observer-lifecycle regression in the Field UI AJAX flow; one unexplained A3 stage mismatch.\""
+    },
+    {
+      "id": "I4",
+      "severity": "moderate",
+      "status": "debatable",
+      "title": "WCAG 2.4.11 is labelled a confirmed failure",
+      "ownerClaim": "REVIEW.md:171 and review.json wcag entry: 2.4.11 confirmed failure on Before.",
+      "evidence": "The focused OK button is entirely outside the viewport because the dialog is taller than the window; no other author-created layer covers it. 2.4.7 Focus Visible is the solid mapping. 2.4.11's normative wording (\"entirely hidden due to author-created content\") is aimed at sticky headers, footers and overlays; an off-viewport control is more naturally 2.4.7 and 1.4.10.",
+      "impact": "Lead with 2.4.7; label 2.4.11 potential/likely, not confirmed, unless a maintainer interprets it otherwise."
+    },
+    {
+      "id": "I5",
+      "severity": "info",
+      "status": "evidence-gap",
+      "title": "Per-event resize geometry is not stored",
+      "evidence": "lifecycle.recentEvents stores target and time only; the stage tables give the dialog rect and content client/scroll after each stage, but not at each dialogContentResize delivery.",
+      "impact": "The counts and stage geometry support the conclusions; the task's request for per-event rect/clientHeight/scrollHeight is only partially met."
+    },
+    {
+      "id": "I6",
+      "severity": "info",
+      "status": "supported",
+      "title": "Fixture reproduction, fix, keyboard outcome and test-quality gaps are sound",
+      "evidence": "See supportedClaims; the Before/After screenshots visually corroborate the geometry."
+    },
+    {
+      "id": "I7",
+      "severity": "info",
+      "status": "gap",
+      "title": "The configuration/AT matrix and a local PHPUnit run were not done",
+      "evidence": "COVERAGE.md lists six automated environments NOT TESTED (chromium dark, forced colours, firefox, webkit, 960 px, 480 px); REVIEW.md lists zoom 90/100/110/125/200/400, reduced motion, real browser zoom, real OS contrast, screen reader and person's keyboard pass as untested; local PHPUnit not run.",
+      "impact": "The evidence supports \"Needs work\", not RTBC. A handoff window is requested for the material checks."
+    },
+    {
+      "id": "I8",
+      "severity": "minor",
+      "status": "sync-defect",
+      "title": "Owner's review.json is stale after the Markdown/EVIDENCE addendum",
+      "evidence": "REVIEW.md, EVIDENCE.md and SUMMARY.md were updated at 14:25-14:27 with the translation addendum; review.json is still the 12:31 file, still lists the translation modal as untested, and still labels the observer leak theoretical.",
+      "impact": "The owner's Markdown and JSON are no longer synchronized. Regenerate review.json from the updated Markdown."
+    },
+    {
+      "id": "I9",
+      "severity": "moderate",
+      "status": "confirmed-preexisting",
+      "title": "Translation modal does not reflow horizontally at 400% reflow (480x270 CSS px)",
+      "evidence": "reports/issues/3466040/independent-review/runs/translation-zoom400/results.json: modal 882px wide at left 0/right 882 in a 480px viewport; button pane 880px wide, inViewport false; Save translation at 25-168.6 remains visible; 402px of the form is off-screen horizontally.",
+      "scope": "pre-existing width choice (config_translation width 880), not introduced by the MR",
+      "impact": "WCAG 1.4.10 reflow concern in the translation path at 400%; the MR fixes vertical re-centring only. Not a regression from this MR."
+    }
+  ],
+  "wcag": [
+    {
+      "criterion": "2.4.7 Focus Visible",
+      "level": "AA",
+      "ownerLabel": "confirmed failure on Before",
+      "thisReview": "confirmed in two paths",
+      "basis": "Fixture at 1024x768: focused OK outside 768. Translation at 125% reflow: focused Save 882.8-920.8 outside 864. No scroll."
+    },
+    {
+      "criterion": "2.4.11 Focus Not Obscured (Minimum)",
+      "level": "AA (WCAG 2.2)",
+      "ownerLabel": "confirmed failure on Before",
+      "thisReview": "potential/likely, not confirmed",
+      "basis": "Off-viewport rather than obscured by another author-created layer; lead with 2.4.7 and 1.4.10."
+    },
+    {
+      "criterion": "2.1.1 Keyboard",
+      "level": "A",
+      "ownerLabel": "not a failure",
+      "thisReview": "agree",
+      "basis": "The button remains focusable and activatable; Escape and close remain available."
+    },
+    {
+      "criterion": "1.4.10 Reflow",
+      "level": "AA",
+      "ownerLabel": "risk, not verified",
+      "thisReview": "confirmed pre-existing horizontal overflow in the translation modal at 400% reflow (882px wide in 480px); Save remains visible; not caused by the MR",
+      "basis": "Fixed-position dialog at narrow CSS viewports is a real reflow risk; no run covers it."
+    },
+    {
+      "criterion": "1.4.4 Resize Text",
+      "level": "AA",
+      "ownerLabel": "risk, not verified",
+      "thisReview": "agree",
+      "basis": "Text-only zoom and genuine browser zoom were not run."
+    }
+  ],
+  "confirmedDefects": [
+    {
+      "scope": "product, Before",
+      "statement": "Growing dialog content past the initial cap moves the button pane out of the viewport; pointer activation is impossible and keyboard focus becomes invisible.",
+      "evidence": "1024x768: 212.3 px overflow, OK off-screen; 1280x1080 owner-reported: 353.3 px; translation at 125% reflow: 69.8px overflow, Save 882.8-920.8 outside 864, not hittable."
+    },
+    {
+      "scope": "implementation, MR",
+      "statement": "Three ResizeObservers on the same #drupal-modal in the Field UI AJAX flow; only the newest is disconnected; two remain connected after close; extra resetSize work (9 vs 6 events through A4).",
+      "evidence": "Current probe on 3466040-pinned: A4 3 observers (ids 10/11/12), 9 callbacks/9 events; A8 1 disconnect, ids 10/11 still connected. Owner's 15:35 run corroborates."
+    },
+    {
+      "scope": "test quality, MR",
+      "statement": "testModalContentGrows can pass without details.open being asserted and without the content area being scrollable; the titlebar assertion cannot fail on pristine core.",
+      "evidence": "Test source and measured geometry."
+    },
+    {
+      "scope": "pre-existing, not the MR",
+      "statement": "Translation modal at 400% reflow is 882px wide in a 480px viewport; 402px is off-screen horizontally. Save remains visible at the left.",
+      "evidence": "reports/issues/3466040/independent-review/runs/translation-zoom400/results.json (dialog left 0/right 882, viewport 480; button pane 880 wide, inViewport false; Save 25-168.6 visible)"
+    }
+  ],
+  "regressions": {
+    "confirmedUserVisible": [],
+    "confirmedImplementation": [
+      "Observer accumulation/leak in the Field UI AJAX flow (I1)."
+    ],
+    "unexplained": [
+      "Field UI A3 stage shows different UI states on Before and After (646.9 px with pane vs 541.8 px without); likely evaluator timing, needs a targeted rerun."
+    ],
+    "benignChanges": [
+      "Views dialog top edge moves 4 px (121.3 -> 117.3) because After re-centres; height is identical."
+    ],
+    "noneClaimSupported": false
+  },
+  "untested": [
+    "Local PHPUnit on Before (After passed locally)",
+    "Zoom/reflow 90/110 (blocked by the concurrent baseline patch switch at 20:37; 100/125/200/400 done)",
+    "Translation modal at viewports/zoom other than 1920x1080/720",
+    "Zoom 90/100/110/125/200/400 (reflow-equivalent CSS viewport and genuine browser zoom)",
+    "480x900 and 320x900 viewports; 400% reflow",
+    "Dark mode, forced colours, reduced motion (Playwright emulation)",
+    "Real OS contrast theme, real browser zoom, device scale factor",
+    "Firefox, WebKit/Safari",
+    "Media library with image_widget_crop",
+    "Views multi-toggle automated path (no B2 stages in the 16:24 run)",
+    "Field UI at heights other than 1920x1080",
+    "Two simultaneous core AJAX modals (core reuses #drupal-modal; only two Drupal.dialog() instances tested)",
+    "A person's keyboard pass and a real screen reader (NVDA/VoiceOver)",
+    "Touch/mobile and Windows scrollbar metrics"
+  ],
+  "handoffRequest": {
+    "needed": true,
+    "reason": "Remaining checks need another runtime window; the pair is now pristine 3466040-pinned and running.",
+    "completed": [
+      "Current-probe Field UI lifecycle: 3 observers on #drupal-modal, 1 disconnect (ids 10/11 still connected).",
+      "Translation geometry reviewed at 1920x1080/720; keyboard claim corrected."
+    ],
+    "checks": [
+      "Field UI at 1920x1440 and a Views multi-toggle with the current probe.",
+      "Translation at 200%/400% reflow and other heights.",
+      "Zoom/reflow 90/100/110/125/200/400, 480x900, 320x900.",
+      "Dark, forced colours, reduced motion, Firefox, WebKit.",
+      "Local PHPUnit --filter testModalContentGrows on both sides.",
+      "A person's keyboard pass and NVDA/VoiceOver pass."
+    ]
+  },
+  "recommendedStatus": {
+    "status": "Needs work",
+    "rtbc": false,
+    "rationale": [
+      "The fixture reproduction/fix is supported; the translation path also reproduces a real barrier at 125% reflow (69.8px overflow, Save off-screen) and the MR fixes it.",
+      "The MR introduces a confirmed observer-accumulation/teardown defect in the Field UI AJAX flow: 3 observers on #drupal-modal, 2 still connected after close, 9 resetSize events vs 6 on Before.",
+      "The added test has false-pass doors; add details.open and content-scroll assertions.",
+      "The owner's review.json is stale and the translation addendum's keyboard claim is contradicted by the raw trail.",
+      "Local PHPUnit passes on After; the Before failure is CI-only. The colour/motion/browser matrix, 90/110% reflow, and a person's keyboard/AT pass remain untested. If maintainers accept the leak as a follow-up, the issue can be Needs review, not RTBC.",
+      "A tested candidate (one observer, hardened test, 125% translation still fixed) is supplied in fix/. Once merged and CI is green, the issue can move to Needs review; RTBC still needs maintainer/AT review."
+    ],
+    "decision": "The final decision remains with the independent human reviewer. This review does not change the issue status, the MR, or its production code.",
+    "issueStatus": "Needs work",
+    "mrRecommendation": "Needs work: disconnect/reuse the existing observer, and harden the test with details.open and content-scroll assertions.",
+    "ifLeakAccepted": "Needs review, not RTBC",
+    "withCandidate": "Needs review"
+  },
+  "provenance": {
+    "beforeCore": "97c6ff8b2534b242c0f1df3e4ba2493e56aebcec",
+    "beforePatch": "reports/issues/3466040/branches/3466040-test-support.patch",
+    "beforePatchSha256": "262dd0fc8d71ec586f3f85ab5f8c2f2fb8de9bf071721975b4b002d871674222",
+    "afterPatchSha256": "1adba92d55f15f34d4f98a90277c391efa96b196d4329bdc6efe30f65bfbfae8",
+    "drupal": "12.0-dev",
+    "php": "8.5.7",
+    "browser": "Chromium 159.0.8154.6 (Playwright)",
+    "os": "darwin arm64",
+    "viewport": "1024x768 (fixture); 1920x1080 (Field UI/Views)",
+    "ownerReportReadAt": "2026-11-27T14:00Z"
+  },
+  "reproduction": {
+    "fixture": "/dialog_renderer-test-links -> Details modal! -> Show more content",
+    "testSupport": "Before side carries reports/issues/3466040/branches/3466040-test-support.patch (route, controller, test only); After side carries the full MR.",
+    "steps": [
+      "Log in as an administrator; open /dialog_renderer-test-links.",
+      "Click the link 'Details modal!' (a[href=\"/dialog_renderer-content-details\"]); wait for .ui-dialog.",
+      "Click 'Show more content' (.ui-dialog details summary); this reveals a 2000 px block.",
+      "Measure .ui-dialog rect, .ui-dialog-content clientHeight/scrollHeight, .ui-dialog-buttonpane, and .ui-dialog-buttonpane button."
+    ],
+    "selectors": {
+      "dialog": ".ui-dialog",
+      "titlebar": ".ui-dialog-titlebar",
+      "close": ".ui-dialog-titlebar-close",
+      "content": ".ui-dialog-content",
+      "buttonPane": ".ui-dialog-buttonpane",
+      "primary": ".ui-dialog-buttonpane button",
+      "detailsSummary": ".ui-dialog details summary",
+      "fixtureOpener": "a[href=\"/dialog_renderer-content-details\"]"
+    },
+    "screenshots": [
+      "reports/issues/3466040/playwright/2026-11-27T16-43-04-546Z-chromium-light-1024x768-fixture/before-F2-expanded-viewport.png",
+      "reports/issues/3466040/playwright/2026-11-27T16-43-04-546Z-chromium-light-1024x768-fixture/after-F2-expanded-viewport.png"
+    ],
+    "consoleErrors": {
+      "before": 0,
+      "after": 0
+    },
+    "pageErrors": {
+      "before": 0,
+      "after": 0
+    },
+    "resizeObserverLoopNotice": false,
+    "axeViolations": {
+      "before": 0,
+      "after": 0
+    }
+  },
+  "environment": {
+    "browser": "chromium",
+    "browserVersion": "159.0.8154.6",
+    "os": "darwin arm64",
+    "viewport": {
+      "width": 1024,
+      "height": 768
+    },
+    "drupal": "12.0-dev",
+    "php": "8.5.7",
+    "theme": "default_admin",
+    "colorScheme": "light",
+    "forcedColors": false,
+    "reducedMotion": "no-preference"
+  },
+  "resizeObserverMeasurements": {
+    "fixture1024x768": {
+      "before": {
+        "patchObserverStored": false,
+        "callbacksDuringExpansion": 0,
+        "dialogContentResizeDuringExpansion": 0,
+        "idleWindowMs": 800,
+        "callbacksWhileIdle": 0,
+        "callbacksAfterCloseMs900": 0,
+        "dialogContentResizeAfterCloseMs900": 0,
+        "perExpandCollapseCycle": "0 callbacks / 0 events",
+        "expandedBottomOver5Cycles": 980.3,
+        "collapsedBottomOver5Cycles": 516.7
+      },
+      "after": {
+        "patchObserverStored": true,
+        "callbacksDuringExpansion": 1,
+        "dialogContentResizeDuringExpansion": 1,
+        "idleWindowMs": 800,
+        "callbacksWhileIdle": 0,
+        "callbacksAfterCloseMs900": 0,
+        "dialogContentResizeAfterCloseMs900": 0,
+        "perExpandCollapseCycle": "2 callbacks / 2 events",
+        "expandedBottomOver5Cycles": 748.5,
+        "collapsedBottomOver5Cycles": 516.7,
+        "opens": 4,
+        "observersCreated": 4,
+        "observersDisconnected": 4,
+        "raceExpandThenEscapeTrials": 3,
+        "racePageErrors": 0
+      }
+    },
+    "fieldUi1920x1080After": {
+      "A2-add-field-modal": {
+        "patchObservers": 1,
+        "observerIds": [
+          10
+        ],
+        "patchObserverCallbacks": 1,
+        "dialogContentResize": 1,
+        "disconnects": 0
+      },
+      "A4-continue-1": {
+        "patchObservers": 3,
+        "observerIds": [
+          10,
+          11,
+          12
+        ],
+        "patchObserverCallbacks": 9,
+        "dialogContentResize": 9,
+        "disconnects": 0
+      },
+      "A8-dialog-closed": {
+        "patchObservers": 3,
+        "observerIds": [
+          10,
+          11,
+          12
+        ],
+        "patchObserverCallbacks": 11,
+        "dialogContentResize": 9,
+        "disconnects": 1,
+        "disconnectedIds": [
+          12
+        ],
+        "stillConnectedIds": [
+          10,
+          11
+        ]
+      },
+      "beforeSameStages": {
+        "patchObservers": 0,
+        "patchObserverCallbacks": 0,
+        "dialogContentResize": 6
+      },
+      "sameTarget": "div#drupal-modal.ui-front.ui-dialog-content.ui-widget-content"
+    },
+    "settling": "In the fixture the observer settles after one callback per expansion; the 800 ms idle window and the 900 ms post-close window are both 0. In the Field UI AJAX flow the observers do not settle to one per element: three observers remain, two connected after close.",
+    "fractionalPixels": "The base already contains #3458272's Math.round(...outerHeight()) fix. No ResizeObserver loop notice or oscillation was observed; the fixture has 19.5 px headroom at 1024x768. The 400% / fractional-DPR case was not measured; theoretical only.",
+    "fieldUiCurrentProbe1920x1080": {
+      "run": "reports/issues/3466040/independent-review/runs/field-ui-1920x1080-verify/results.json",
+      "after": {
+        "A2": {
+          "patch": 1,
+          "ids": [
+            10
+          ],
+          "cb": 1,
+          "events": 1
+        },
+        "A3": {
+          "patch": 2,
+          "ids": [
+            10,
+            11
+          ],
+          "cb": 3,
+          "events": 3
+        },
+        "A4": {
+          "patch": 3,
+          "ids": [
+            10,
+            11,
+            12
+          ],
+          "cb": 9,
+          "events": 9
+        },
+        "A8": {
+          "patch": 3,
+          "cb": 11,
+          "events": 9,
+          "disconnects": 1,
+          "stillConnected": [
+            10,
+            11
+          ]
+        }
+      },
+      "before": {
+        "patch": 0,
+        "events": 6
+      }
+    }
+  },
+  "regressionTest": {
+    "failsWithout": {
+      "basis": "CI test-only job 13926147: Tests: 3, Assertions: 49, Failures: 1 at ModalRendererTest.php:183",
+      "localRun": false,
+      "note": "Before is pristine; a local Before run needs the declared test-support patch."
+    },
+    "passesWith": {
+      "basis": "Local ddev phpunit on issue-3466040 during the handoff window",
+      "result": "OK (1 test, 3 assertions)",
+      "time": "1:30",
+      "php": "8.5.7",
+      "browser": "Selenium Chrome",
+      "log": "reports/issues/3466040/independent-review/regression/after-testModalContentGrows.log"
+    },
+    "testQualityGaps": [
+      "No details.open assertion",
+      "No content scroll assertion",
+      "Titlebar assertion passes on pristine core",
+      "No AJAX-growth coverage"
+    ],
+    "hardened": {
+      "result": "OK (1 test, 6 assertions)",
+      "time": "1:01",
+      "stack": "MR + observer-reuse + branches/3466040-test-hardening.patch",
+      "log": "reports/issues/3466040/independent-review/regression/after-hardened-testModalContentGrows.log"
+    }
+  },
+  "zoomMatrix": {
+    "method": "reflow-equivalent CSS viewport (physical viewport / zoom factor); devicePixelRatio stays 1; NOT genuine browser zoom",
+    "translationModal": [
+      {
+        "level": "100%",
+        "cssViewport": "1920x1080",
+        "result": "Before 2.9px overflow, Save visible/reached; After fits",
+        "run": "runs/translation-1920x1080-verify"
+      },
+      {
+        "level": "125%",
+        "cssViewport": "1536x864",
+        "result": "Reproduced: Before 69.8px overflow, Save outside 864 and not hittable; After fits and Save hittable",
+        "run": "runs/translation-zoom125"
+      },
+      {
+        "level": "200%",
+        "cssViewport": "960x540",
+        "result": "Both fit; dialog 513px at cap, content scrolls; no vertical barrier",
+        "run": "runs/translation-zoom200"
+      },
+      {
+        "level": "400%",
+        "cssViewport": "480x270",
+        "result": "Dialog 882px wide, 402px off-screen horizontally; Save visible at left; pre-existing 1.4.10 issue",
+        "run": "runs/translation-zoom400"
+      },
+      {
+        "level": "90%",
+        "cssViewport": "2133x1200",
+        "result": "not run: a concurrent session re-applied the test-support patch to baseline-3466040 at 2026-11-27T20:37:47; the pristine 3466040-pinned pair no longer matched the variant and was not overwritten"
+      },
+      {
+        "level": "110%",
+        "cssViewport": "1745x982",
+        "result": "not run: a concurrent session re-applied the test-support patch to baseline-3466040 at 2026-11-27T20:37:47; the pristine 3466040-pinned pair no longer matched the variant and was not overwritten"
+      }
+    ]
+  },
+  "candidateFix": {
+    "scope": "local proposal, not the MR; nothing pushed",
+    "patches": [
+      {
+        "path": "reports/issues/3466040/independent-review/fix/3466040-observer-reuse.patch",
+        "sha256": "56f4e12e7d56b62141821f4b602c596ca880af344cecfa524fde48606158a0ed",
+        "description": "production-only interdiff vs MR head"
+      },
+      {
+        "path": "reports/issues/3466040/independent-review/fix/3466040-interdiff-vs-mr.patch",
+        "sha256": "3e77ac86bda079c6a5f9c8b8163b647834685f6e4d7dd66b7b9a900a53145c68",
+        "description": "production fix + test hardening vs MR head"
+      },
+      {
+        "path": "reports/issues/3466040/independent-review/fix/3466040-full-candidate.patch",
+        "sha256": "5287096fe8760fd9c0a174fa393e6844f8180df83bf7fc575f4275b00e46656c",
+        "description": "base 97c6ff8b + MR + both changes"
+      }
+    ],
+    "change": [
+      "Reuse one ResizeObserver per dialog content element; create only if absent and observe the current target.",
+      "Cancel the previous debounced autoResize before replacing it; store the current eventData and target.",
+      "Observer callback calls the latest debounced function with the latest event data.",
+      "On beforeclose, disconnect and removeData observer, target, event data and debounced function."
+    ],
+    "verification": {
+      "run": "reports/issues/3466040/independent-review/runs/field-ui-fix-refined-1920x1080/results.json",
+      "variant": "3466040-fix-probe (pristine Before, After MR + candidate)",
+      "before": {
+        "patchObservers": 0,
+        "dialogContentResize": 6
+      },
+      "mrOnly": {
+        "observersCreated": 12,
+        "patchObserverIds": [
+          10,
+          11,
+          12
+        ],
+        "disconnects": 1,
+        "stillConnected": [
+          10,
+          11
+        ]
+      },
+      "candidate": {
+        "observersCreated": 10,
+        "patchObserverIds": [
+          10
+        ],
+        "disconnects": 1,
+        "stillConnected": []
+      },
+      "note": "The probe records one patchObservers entry per aftercreate even when the same observer is reused; observersCreated and the repeated id 10 are authoritative. Callback/event totals are not like-for-like because the candidate run captured an extra A4-continue-2 stage."
+    },
+    "hardenedTest": {
+      "log": "reports/issues/3466040/independent-review/regression/after-hardened-testModalContentGrows.log",
+      "sha256": "239d8744d8b2c8302b8a026154a1312b6ed8a2d38a9787a44615d0ed9a63a71a",
+      "result": "OK (1 test, 6 assertions)",
+      "time": "1:01",
+      "stack": "MR + observer-reuse + branches/3466040-test-hardening.patch"
+    },
+    "userFacing": {
+      "run": "reports/issues/3466040/independent-review/runs/translation-125-fix-verify/results.json",
+      "result": "reproduced-and-fixed at 125% reflow: Before 69.8px overflow, Save off-screen; After fits, Save hittable"
+    },
+    "caveats": [
+      "Does not address the pre-existing re-registration of window resize/scroll handlers.",
+      "Does not address the pre-existing 400% width/reflow overflow.",
+      "No person's keyboard/AT pass."
+    ],
+    "checkoutState": "The After checkout was restored to MR !9088 only after testing; the candidate patches are the proposal and are not applied to the shared pair.",
+    "lint": {
+      "command": "node scripts/lint.mjs 3466040-fix-probe --no-save",
+      "result": "PASS",
+      "checks": {
+        "CSpell": "0 issues",
+        "PHPStan": "no errors",
+        "PHPCS": "passed",
+        "ESLint": "passed"
+      },
+      "exit": 0,
+      "time": "43s"
+    },
+    "beforeHardenedFail": {
+      "log": "reports/issues/3466040/independent-review/regression/before-hardened-testModalContentGrows.log",
+      "result": "FAIL at the geometry assertJsCondition (ModalRendererTest.php:187)",
+      "tests": 1,
+      "assertions": 5,
+      "failures": 1,
+      "stack": "Before + test-support + branches/3466040-test-hardening.patch (no production JS)"
+    },
+    "gates": {
+      "fieldUiLifecycle": "1 patch observer (id 10), 1 disconnect, 0 leaked",
+      "hardenedTestAfter": "OK (1 test, 6 assertions)",
+      "hardenedTestBefore": "FAIL at geometry (5 assertions)",
+      "translation125": "reproduced-and-fixed",
+      "lint": "PASS (ESLint, PHPCS, PHPStan, CSpell)"
+    },
+    "readyFor": "Needs review once the interdiff + hardening are applied and CI is green",
+    "readyDoc": {
+      "path": "reports/issues/3466040/independent-review/READY.md",
+      "sha256": "9767e6bc295f3a7b71280bbc6cfd60bcb832e046811638208cab39bd4dc4a44c"
+    }
+  }
+}

@@ -143,3 +143,39 @@ sessions, or at least make every session declare the paths it will write before 
 Related lessons: `AI-LEARNING.md` ("2026-11-26: shared-machine builds", "2026-11-27: #3566687 ... concurrency
 tax"); the DSH workspace sandbox and DDEV global state need the one-shot wider permission for builds.
 `docs/ENVIRONMENTS.md` covers environment lifecycle; `docs/PITFALLS.md` covers the router/Mutagen errors.
+
+## Per-session scope and staging index
+
+A scope claim is advisory and local. It records what this session intends to touch; it does not lock files and it never
+stages, reverts, stashes or deletes anything.
+
+```bash
+node scripts/agent-scope.mjs start --issue 3466040 \
+  --path reports/issues/3466040 --path reports/infrastructure
+node scripts/agent-scope.mjs check          # names changed paths outside the claim
+node scripts/agent-scope.mjs show
+node scripts/agent-scope.mjs clear
+```
+
+`check` reports the outside paths and exits 1; it is a review aid, not a hook. Use `git status --porcelain` yourself
+before a commit and stage only paths you created.
+
+For a long-running session that must have its own staging index:
+
+```bash
+node scripts/agent-scope.mjs index
+# prints: GIT_INDEX_FILE=/.../.lab-cache/agent-indexes/<session>.index
+GIT_INDEX_FILE=/.../<session>.index git add -- reports/issues/3466040
+GIT_INDEX_FILE=/.../<session>.index git commit -m "..."
+```
+
+The per-session index is local and is not a branch. It does not isolate the working tree, and it does not replace the
+rule against `git add -A` in a shared checkout.
+
+## Machine-global environment leases
+
+Environment leases moved out of the checkout: the canonical file is
+`~/.dsh/lab-coordination/lab-env-leases.json` (override with `LAB_LEASE_FILE`). A legacy
+`.lab-cache/lab-env-leases.json` is copied there once when the first command runs, so an in-flight session does not lose
+its lease during the change. Start/stop environments through `lab-env.mjs start|stop`; a lease created in one clone is
+now visible to every other clone on the same machine.

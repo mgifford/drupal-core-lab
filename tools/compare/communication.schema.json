@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mgifford/drupal-core-lab/tools/compare/communication.schema.json",
+  "title": "Drupal Core Lab upstream communication record",
+  "description": "Version 1. Per-issue findings and their upstream communication state. This is deliberately separate from test results: a finding can be technically verified and still have no upstream comment.",
+  "type": "object",
+  "required": ["schemaVersion", "issue", "entries"],
+  "additionalProperties": true,
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "issue": { "type": "string", "pattern": "^[0-9]{5,8}$" },
+    "entries": { "type": "array", "items": { "$ref": "#/$defs/entry" } }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "required": ["id", "summary", "state", "discovered", "evidence", "updated"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "pattern": "^C[0-9]{3}$" },
+        "summary": { "type": "string", "minLength": 1 },
+        "state": {
+          "enum": ["new", "draft-prepared", "awaiting-human-review", "ready-to-post", "posted", "independently-addressed", "superseded", "withdrawn", "no-upstream-communication"]
+        },
+        "discovered": {
+          "type": "object",
+          "required": ["by", "date"],
+          "additionalProperties": true,
+          "properties": {
+            "by": { "enum": ["human", "ai", "joint", "unknown"] },
+            "date": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+            "note": { "type": ["string", "null"] }
+          }
+        },
+        "tested_revision": { "type": ["string", "null"] },
+        "evidence": { "type": "array", "items": { "type": "string" } },
+        "draft": { "type": ["string", "null"] },
+        "posted": {
+          "type": ["object", "null"],
+          "properties": {
+            "url": { "type": ["string", "null"] },
+            "date": { "type": ["string", "null"] }
+          },
+          "additionalProperties": true
+        },
+        "independently_addressed": {
+          "type": ["object", "null"],
+          "properties": {
+            "by": { "type": ["string", "null"] },
+            "url": { "type": ["string", "null"] },
+            "date": { "type": ["string", "null"] }
+          },
+          "additionalProperties": true
+        },
+        "superseded_by": { "type": ["string", "null"] },
+        "decisions": { "type": "array", "items": { "type": "string" } },
+        "updated": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "history": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+      }
+    }
+  }
+}

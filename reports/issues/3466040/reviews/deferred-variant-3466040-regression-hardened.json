@@ -1,0 +1,20 @@
+{
+  "slug": "3466040-regression-hardened",
+  "extends": "3466040-pinned",
+  "label": "#3466040: regression-test run with the proposed test hardening",
+  "description": "Same environments as 3466040-pinned. Both sides also get branches/3466040-test-hardening.patch (test-only: details open/closed assertions and a content-scroll assertion). Used only to prove the hardened ModalRendererTest::testModalContentGrows fails on Before and passes on After; the hardening is a proposal for the MR, not part of the imported MR.",
+  "before": {
+    "env": "baseline-3466040",
+    "patches": [
+      "reports/issues/3466040/branches/3466040-test-support.patch",
+      "reports/issues/3466040/branches/3466040-test-hardening.patch"
+    ]
+  },
+  "after": {
+    "env": "issue-3466040",
+    "patches": [
+      "reports/issues/3466040/branches/3466040-dialog-buttoninputs-not.patch",
+      "reports/issues/3466040/branches/3466040-test-hardening.patch"
+    ]
+  }
+}

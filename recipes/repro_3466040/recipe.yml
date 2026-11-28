@@ -1,0 +1,13 @@
+name: 'Repro: #3466040 Modal dialog does not adjust to increased inner height'
+description: 'Starting state for the steps to reproduce #3466040: an Article content type (the Field UI "Add field" modal needs a bundle), a second language (French) and Config Translation, so the Views translation modal from comment #24 can be opened as well. Safe to apply more than once.'
+type: 'Testing'
+# The core fixture recipe creates the Article content type and its body/image/path
+# configuration on top of the Standard install. field_ui, views_ui and datetime are
+# installed by the Standard profile; language is pulled in by config_translation.
+recipes:
+  - core/tests/fixtures/recipes/article_content_type
+install:
+  - language
+  - config_translation
+config:
+  strict: false
