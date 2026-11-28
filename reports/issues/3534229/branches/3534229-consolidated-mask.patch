@@ -1,0 +1,530 @@
+diff --git a/core/modules/ckeditor5/css/alignment.admin.css b/core/modules/ckeditor5/css/alignment.admin.css
+index 9b17cc2543d28cb12369e4cf45570511eed3c5a3..60c98f5c45cd75fb477f7a83df8fdadef47b1e72 100644
+--- a/core/modules/ckeditor5/css/alignment.admin.css
++++ b/core/modules/ckeditor5/css/alignment.admin.css
+@@ -1,37 +1,22 @@
+-.ckeditor5-toolbar-item-alignment\:left {
+-  --ckeditor5-toolbar-icon: url(../icons/align-left.svg);
+-}
+-
+ .ckeditor5-toolbar-button-alignment\:left {
+-  background-image: var(--ckeditor5-toolbar-icon);
+-}
+-.ckeditor5-toolbar-item-alignment\:right {
+-  --ckeditor5-toolbar-icon: url(../icons/align-right.svg);
++  --ckeditor5-toolbar-icon: url(../icons/align-left.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+-
+ .ckeditor5-toolbar-button-alignment\:right {
+-  background-image: var(--ckeditor5-toolbar-icon);
+-}
+-.ckeditor5-toolbar-item-alignment\:center {
+-  --ckeditor5-toolbar-icon: url(../icons/align-center.svg);
++  --ckeditor5-toolbar-icon: url(../icons/align-right.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+-
+ .ckeditor5-toolbar-button-alignment\:center {
+-  background-image: var(--ckeditor5-toolbar-icon);
+-}
+-.ckeditor5-toolbar-item-alignment\:justify {
+-  --ckeditor5-toolbar-icon: url(../icons/align-justify.svg);
++  --ckeditor5-toolbar-icon: url(../icons/align-center.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+-
+ .ckeditor5-toolbar-button-alignment\:justify {
+-  background-image: var(--ckeditor5-toolbar-icon);
+-}
+-.ckeditor5-toolbar-item-alignment {
+-  --ckeditor5-toolbar-icon: url(../icons/align-left.svg);
++  --ckeditor5-toolbar-icon: url(../icons/align-justify.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+-
+ .ckeditor5-toolbar-button-alignment {
+-  background-image: var(--ckeditor5-toolbar-icon);
++  --ckeditor5-toolbar-icon: url(../icons/align-left.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+ 
+ .ckeditor5-toolbar-button-alignment {
+@@ -63,35 +48,3 @@
+   right: 10px;
+   background-position-x: 10px;
+ }
+-
+-@media (forced-colors: active) {
+-  @container style(--ckeditor5-toolbar-icon) {
+-    /*
+-     * The alignment dropdown carries both an icon and a ::after caret. A mask
+-     * on the control itself would clip the caret, so the icon moves to the free
+-     * ::before surface and the caret keeps its forced CanvasText border.
+-     */
+-    .ckeditor5-toolbar-item .ckeditor5-toolbar-button.ckeditor5-toolbar-button-alignment,
+-    .ckeditor5-toolbar-item .ckeditor5-toolbar-button.ckeditor5-toolbar-button-alignment:hover {
+-      position: relative;
+-      background-color: transparent;
+-      background-image: none;
+-      mask-image: none;
+-    }
+-
+-    .ckeditor5-toolbar-button-alignment::before {
+-      position: absolute;
+-      inset: 0;
+-      content: "";
+-      background-color: CanvasText;
+-      mask-image: var(--ckeditor5-toolbar-icon);
+-      mask-repeat: no-repeat;
+-      mask-position: 10px center;
+-      mask-size: 20px;
+-    }
+-
+-    [dir="rtl"] .ckeditor5-toolbar-button-alignment::before {
+-      mask-position: 30px center;
+-    }
+-  }
+-}
+diff --git a/core/modules/ckeditor5/css/basic.admin.css b/core/modules/ckeditor5/css/basic.admin.css
+index 290f9b0c2a7b270b42035e15d6cbf1140d2e549b..eda4a8c498ff0efa30e7ffe9179a742f9c429869 100644
+--- a/core/modules/ckeditor5/css/basic.admin.css
++++ b/core/modules/ckeditor5/css/basic.admin.css
+@@ -1,55 +1,34 @@
+-.ckeditor5-toolbar-item-bold {
+-  --ckeditor5-toolbar-icon: url(../icons/bold.svg);
+-}
+-
+ .ckeditor5-toolbar-button-bold {
+-  background-image: var(--ckeditor5-toolbar-icon);
+-}
+-
+-.ckeditor5-toolbar-item-italic {
+-  --ckeditor5-toolbar-icon: url(../icons/italic.svg);
++  --ckeditor5-toolbar-icon: url(../icons/bold.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+ 
+ .ckeditor5-toolbar-button-italic {
+-  background-image: var(--ckeditor5-toolbar-icon);
+-}
+-
+-.ckeditor5-toolbar-item-underline {
+-  --ckeditor5-toolbar-icon: url(../icons/underline.svg);
++  --ckeditor5-toolbar-icon: url(../icons/italic.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+ 
+ .ckeditor5-toolbar-button-underline {
+-  background-image: var(--ckeditor5-toolbar-icon);
+-}
+-
+-.ckeditor5-toolbar-item-code {
+-  --ckeditor5-toolbar-icon: url(../icons/code.svg);
++  --ckeditor5-toolbar-icon: url(../icons/underline.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+ 
+ .ckeditor5-toolbar-button-code {
+-  background-image: var(--ckeditor5-toolbar-icon);
+-}
+-
+-.ckeditor5-toolbar-item-strikethrough {
+-  --ckeditor5-toolbar-icon: url(../icons/strikethrough.svg);
++  --ckeditor5-toolbar-icon: url(../icons/code.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+ 
+ .ckeditor5-toolbar-button-strikethrough {
+-  background-image: var(--ckeditor5-toolbar-icon);
+-}
+-
+-.ckeditor5-toolbar-item-subscript {
+-  --ckeditor5-toolbar-icon: url(../icons/subscript.svg);
++  --ckeditor5-toolbar-icon: url(../icons/strikethrough.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+ 
+ .ckeditor5-toolbar-button-subscript {
+-  background-image: var(--ckeditor5-toolbar-icon);
+-}
+-
+-.ckeditor5-toolbar-item-superscript {
+-  --ckeditor5-toolbar-icon: url(../icons/superscript.svg);
++  --ckeditor5-toolbar-icon: url(../icons/subscript.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+ 
+ .ckeditor5-toolbar-button-superscript {
+-  background-image: var(--ckeditor5-toolbar-icon);
++  --ckeditor5-toolbar-icon: url(../icons/superscript.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+diff --git a/core/modules/ckeditor5/css/blockquote.admin.css b/core/modules/ckeditor5/css/blockquote.admin.css
+index 6b3cab892534889e31a0c462fa8cd59677c2e702..70c56143240b57511a718408a7af64db0011b18b 100644
+--- a/core/modules/ckeditor5/css/blockquote.admin.css
++++ b/core/modules/ckeditor5/css/blockquote.admin.css
+@@ -1,7 +1,4 @@
+-.ckeditor5-toolbar-item-blockQuote {
+-  --ckeditor5-toolbar-icon: url(../icons/blockquote.svg);
+-}
+-
+ .ckeditor5-toolbar-button-blockQuote {
+-  background-image: var(--ckeditor5-toolbar-icon);
++  --ckeditor5-toolbar-icon: url(../icons/blockquote.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+diff --git a/core/modules/ckeditor5/css/code-block.admin.css b/core/modules/ckeditor5/css/code-block.admin.css
+index e4b0651836630ff3de3ec794baaabd12b9e18ca2..5b7baf02eb68983b5e8b7cd4f75e7d54815166b3 100644
+--- a/core/modules/ckeditor5/css/code-block.admin.css
++++ b/core/modules/ckeditor5/css/code-block.admin.css
+@@ -1,7 +1,4 @@
+-.ckeditor5-toolbar-item-codeBlock {
+-  --ckeditor5-toolbar-icon: url(../icons/code-block.svg);
+-}
+-
+ .ckeditor5-toolbar-button-codeBlock {
+-  background-image: var(--ckeditor5-toolbar-icon);
++  --ckeditor5-toolbar-icon: url(../icons/code-block.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+diff --git a/core/modules/ckeditor5/css/drupalmedia.admin.css b/core/modules/ckeditor5/css/drupalmedia.admin.css
+index 7b5e40b2f27044e905e7b84cf92b795b54f5eb64..a52b9f77627eb4bd979d79f8887ef8b08e4b3523 100644
+--- a/core/modules/ckeditor5/css/drupalmedia.admin.css
++++ b/core/modules/ckeditor5/css/drupalmedia.admin.css
+@@ -1,8 +1,5 @@
+ /* cspell:ignore medialibrary */
+-.ckeditor5-toolbar-item-drupalMedia {
+-  --ckeditor5-toolbar-icon: url(../icons/medialibrary.svg);
+-}
+-
+ .ckeditor5-toolbar-button-drupalMedia {
+-  background-image: var(--ckeditor5-toolbar-icon);
++  --ckeditor5-toolbar-icon: url(../icons/medialibrary.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+diff --git a/core/modules/ckeditor5/css/essentials.admin.css b/core/modules/ckeditor5/css/essentials.admin.css
+index b0a60829cf157cce8bb4fa8bc2c4c1bee22e9c55..38107a0b3f2b2cdd2acd068f80ffe1ad4f9c10ef 100644
+--- a/core/modules/ckeditor5/css/essentials.admin.css
++++ b/core/modules/ckeditor5/css/essentials.admin.css
+@@ -1,33 +1,21 @@
+-.ckeditor5-toolbar-item-divider {
+-  --ckeditor5-toolbar-icon: url(../icons/divider.svg);
+-}
+-
+ .ckeditor5-toolbar-button-divider {
+-  background-image: var(--ckeditor5-toolbar-icon);
+-}
+-
+-.ckeditor5-toolbar-item-wrapping {
+-  --ckeditor5-toolbar-icon: url(../icons/separator.svg);
++  --ckeditor5-toolbar-icon: url(../icons/divider.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+ 
+ .ckeditor5-toolbar-button-wrapping {
+-  background-image: var(--ckeditor5-toolbar-icon);
+-}
+-
+-.ckeditor5-toolbar-item-undo {
+-  --ckeditor5-toolbar-icon: url(../icons/undo.svg);
++  --ckeditor5-toolbar-icon: url(../icons/separator.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+ 
+ .ckeditor5-toolbar-button-undo {
+-  background-image: var(--ckeditor5-toolbar-icon);
+-}
+-
+-.ckeditor5-toolbar-item-redo {
+-  --ckeditor5-toolbar-icon: url(../icons/redo.svg);
++  --ckeditor5-toolbar-icon: url(../icons/undo.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+ 
+ .ckeditor5-toolbar-button-redo {
+-  background-image: var(--ckeditor5-toolbar-icon);
++  --ckeditor5-toolbar-icon: url(../icons/redo.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+ 
+ .ckeditor5-toolbar-button-heading {
+diff --git a/core/modules/ckeditor5/css/fullscreen.admin.css b/core/modules/ckeditor5/css/fullscreen.admin.css
+index 1eced756a324a2136dd525f0b866be7085e4c6f6..6c4ae4fe4a34b1a68823a1d14f9170b72fb6ec56 100644
+--- a/core/modules/ckeditor5/css/fullscreen.admin.css
++++ b/core/modules/ckeditor5/css/fullscreen.admin.css
+@@ -1,7 +1,4 @@
+-.ckeditor5-toolbar-item-fullscreen {
+-  --ckeditor5-toolbar-icon: url(../icons/fullscreen-enter.svg);
+-}
+-
+ .ckeditor5-toolbar-button-fullscreen {
+-  background-image: var(--ckeditor5-toolbar-icon);
++  --ckeditor5-toolbar-icon: url(../icons/fullscreen-enter.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+diff --git a/core/modules/ckeditor5/css/horizontal-line.admin.css b/core/modules/ckeditor5/css/horizontal-line.admin.css
+index 2bb825c99dca4dd4def80548fea5060c36fa0105..1b4c420ad6ca92e467975afd0de9d328081ebd5b 100644
+--- a/core/modules/ckeditor5/css/horizontal-line.admin.css
++++ b/core/modules/ckeditor5/css/horizontal-line.admin.css
+@@ -1,7 +1,4 @@
+-.ckeditor5-toolbar-item-horizontalLine {
+-  --ckeditor5-toolbar-icon: url(../icons/horizontalline.svg);
+-}
+-
+ .ckeditor5-toolbar-button-horizontalLine {
+-  background-image: var(--ckeditor5-toolbar-icon);
++  --ckeditor5-toolbar-icon: url(../icons/horizontalline.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+diff --git a/core/modules/ckeditor5/css/image.admin.css b/core/modules/ckeditor5/css/image.admin.css
+index 3eb30cc21255967ba4e41662b2ec730bd8be8465..94d9ce8cc8186f6ee2b7af1df71e412093399b4b 100644
+--- a/core/modules/ckeditor5/css/image.admin.css
++++ b/core/modules/ckeditor5/css/image.admin.css
+@@ -1,7 +1,4 @@
+-.ckeditor5-toolbar-item-drupalInsertImage {
+-  --ckeditor5-toolbar-icon: url(../icons/image.svg);
+-}
+-
+ .ckeditor5-toolbar-button-drupalInsertImage {
+-  background-image: var(--ckeditor5-toolbar-icon);
++  --ckeditor5-toolbar-icon: url(../icons/image.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+diff --git a/core/modules/ckeditor5/css/indent.admin.css b/core/modules/ckeditor5/css/indent.admin.css
+index b07764e0dc137b4ea113e46ebe04e1a3a09b2f2d..48e9d5bf979405d61f43e6d3de20a4f49122492c 100644
+--- a/core/modules/ckeditor5/css/indent.admin.css
++++ b/core/modules/ckeditor5/css/indent.admin.css
+@@ -1,15 +1,9 @@
+-.ckeditor5-toolbar-item-indent {
+-  --ckeditor5-toolbar-icon: url(../icons/indent.svg);
+-}
+-
+ .ckeditor5-toolbar-button-indent {
+-  background-image: var(--ckeditor5-toolbar-icon);
+-}
+-
+-.ckeditor5-toolbar-item-outdent {
+-  --ckeditor5-toolbar-icon: url(../icons/outdent.svg);
++  --ckeditor5-toolbar-icon: url(../icons/indent.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+ 
+ .ckeditor5-toolbar-button-outdent {
+-  background-image: var(--ckeditor5-toolbar-icon);
++  --ckeditor5-toolbar-icon: url(../icons/outdent.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+diff --git a/core/modules/ckeditor5/css/link.admin.css b/core/modules/ckeditor5/css/link.admin.css
+index df98031f7f238687db7240b0073e657a76b71961..7ff8aa8003cc7d20f0922e8437fe79b369d4557d 100644
+--- a/core/modules/ckeditor5/css/link.admin.css
++++ b/core/modules/ckeditor5/css/link.admin.css
+@@ -1,7 +1,4 @@
+-.ckeditor5-toolbar-item-link {
+-  --ckeditor5-toolbar-icon: url(../icons/link.svg);
+-}
+-
+ .ckeditor5-toolbar-button-link {
+-  background-image: var(--ckeditor5-toolbar-icon);
++  --ckeditor5-toolbar-icon: url(../icons/link.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+diff --git a/core/modules/ckeditor5/css/list.admin.css b/core/modules/ckeditor5/css/list.admin.css
+index a1bb5fe6c792f4d23f4f2180c83210b9d176648c..3ed545659d74871fa808fac4a1ad9661ee7c923a 100644
+--- a/core/modules/ckeditor5/css/list.admin.css
++++ b/core/modules/ckeditor5/css/list.admin.css
+@@ -1,16 +1,10 @@
+ /* cspell:ignore bulletedlist numberedlist */
+-.ckeditor5-toolbar-item-bulletedList {
+-  --ckeditor5-toolbar-icon: url(../icons/bulletedlist.svg);
+-}
+-
+ .ckeditor5-toolbar-button-bulletedList {
+-  background-image: var(--ckeditor5-toolbar-icon);
+-}
+-
+-.ckeditor5-toolbar-item-numberedList {
+-  --ckeditor5-toolbar-icon: url(../icons/numberedlist.svg);
++  --ckeditor5-toolbar-icon: url(../icons/bulletedlist.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+ 
+ .ckeditor5-toolbar-button-numberedList {
+-  background-image: var(--ckeditor5-toolbar-icon);
++  --ckeditor5-toolbar-icon: url(../icons/numberedlist.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+diff --git a/core/modules/ckeditor5/css/remove-format.css b/core/modules/ckeditor5/css/remove-format.css
+index 7aaf84c4bc9ae494c178ea0c5ba44ac0ad770aef..c8f7757a8e1023d35b01377f8be499f6281a8966 100644
+--- a/core/modules/ckeditor5/css/remove-format.css
++++ b/core/modules/ckeditor5/css/remove-format.css
+@@ -1,7 +1,4 @@
+-.ckeditor5-toolbar-item-removeFormat {
+-  --ckeditor5-toolbar-icon: url(../icons/remove-format.svg);
+-}
+-
+ .ckeditor5-toolbar-button-removeFormat {
+-  background-image: var(--ckeditor5-toolbar-icon);
++  --ckeditor5-toolbar-icon: url(../icons/remove-format.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+diff --git a/core/modules/ckeditor5/css/show-blocks.admin.css b/core/modules/ckeditor5/css/show-blocks.admin.css
+index ce021faf42ec191d4513df9815d9359733b88838..e656ea47b5272595643c04ee57bdb838192c683f 100644
+--- a/core/modules/ckeditor5/css/show-blocks.admin.css
++++ b/core/modules/ckeditor5/css/show-blocks.admin.css
+@@ -1,7 +1,4 @@
+-.ckeditor5-toolbar-item-showBlocks {
+-  --ckeditor5-toolbar-icon: url(../icons/show-blocks.svg);
+-}
+-
+ .ckeditor5-toolbar-button-showBlocks {
+-  background-image: var(--ckeditor5-toolbar-icon);
++  --ckeditor5-toolbar-icon: url(../icons/show-blocks.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+diff --git a/core/modules/ckeditor5/css/source-editing.admin.css b/core/modules/ckeditor5/css/source-editing.admin.css
+index 43dbec37ccbaa6d20f102f5f4334f445d1adb20b..da8f28269dbb08f7a30c7c36f99b4f8258549fef 100644
+--- a/core/modules/ckeditor5/css/source-editing.admin.css
++++ b/core/modules/ckeditor5/css/source-editing.admin.css
+@@ -1,7 +1,4 @@
+-.ckeditor5-toolbar-item-sourceEditing {
+-  --ckeditor5-toolbar-icon: url(../icons/source-editing.svg);
+-}
+-
+ .ckeditor5-toolbar-button-sourceEditing {
+-  background-image: var(--ckeditor5-toolbar-icon);
++  --ckeditor5-toolbar-icon: url(../icons/source-editing.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+diff --git a/core/modules/ckeditor5/css/special-characters.css b/core/modules/ckeditor5/css/special-characters.css
+index e9062386dfd8940ef211ec43f6d7f82d402ef0ad..459f35fb892aacb498a95f5d190274ea4858f580 100644
+--- a/core/modules/ckeditor5/css/special-characters.css
++++ b/core/modules/ckeditor5/css/special-characters.css
+@@ -1,7 +1,4 @@
+-.ckeditor5-toolbar-item-specialCharacters {
+-  --ckeditor5-toolbar-icon: url(../icons/special-characters.svg);
+-}
+-
+ .ckeditor5-toolbar-button-specialCharacters {
+-  background-image: var(--ckeditor5-toolbar-icon);
++  --ckeditor5-toolbar-icon: url(../icons/special-characters.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+diff --git a/core/modules/ckeditor5/css/table.admin.css b/core/modules/ckeditor5/css/table.admin.css
+index 8fc27d396916d3355402fe4b4aea32eff6c15b68..cd8c315421bd5df11e141756b445a97503388577 100644
+--- a/core/modules/ckeditor5/css/table.admin.css
++++ b/core/modules/ckeditor5/css/table.admin.css
+@@ -1,7 +1,4 @@
+-.ckeditor5-toolbar-item-insertTable {
+-  --ckeditor5-toolbar-icon: url(../icons/table.svg);
+-}
+-
+ .ckeditor5-toolbar-button-insertTable {
+-  background-image: var(--ckeditor5-toolbar-icon);
++  --ckeditor5-toolbar-icon: url(../icons/table.svg);
++  background-image: var(--ckeditor5-toolbar-background-image, var(--ckeditor5-toolbar-icon));
+ }
+diff --git a/core/modules/ckeditor5/css/toolbar.admin.css b/core/modules/ckeditor5/css/toolbar.admin.css
+index f049a2eba70ff92e327ba8c396efb35406b2c924..844be557acb9464af01acc5793d296bfe4ea4876 100644
+--- a/core/modules/ckeditor5/css/toolbar.admin.css
++++ b/core/modules/ckeditor5/css/toolbar.admin.css
+@@ -108,39 +108,66 @@
+     filter: none;
+   }
+ 
+-  @container style(--ckeditor5-toolbar-icon) {
+-    /*
+-     * Forced-colors mode keeps `url()` background images (only background
+-     * images without a `url()` are forced to `none`), but an SVG keeps its
+-     * baked-in black fill and disappears on a dark Canvas. Repaint the icon as
+-     * a mask in the user's CanvasText instead. This applies only to toolbar
+-     * items whose stylesheet defines --ckeditor5-toolbar-icon, so contributed
+-     * plugins that only supply a background-image keep their current
+-     * rendering. To opt in, a CKEditor 5 plugin's admin stylesheet defines the
+-     * icon URL once:
+-     *
+-     * @code
+-     * .ckeditor5-toolbar-item-myToolbarItem {
+-     *   --ckeditor5-toolbar-icon: url(../icons/my-icon.svg);
+-     * }
+-     *
+-     * .ckeditor5-toolbar-button-myToolbarItem {
+-     *   background-image: var(--ckeditor5-toolbar-icon);
+-     * }
+-     * @endcode
+-     */
+-    .ckeditor5-toolbar-item .ckeditor5-toolbar-button {
+-      background-color: CanvasText;
+-      background-image: none;
+-      mask-image: var(--ckeditor5-toolbar-icon);
+-      mask-repeat: no-repeat;
+-      mask-position: center;
+-      mask-size: 20px;
+-    }
++  .ckeditor5-toolbar-button {
++    --ckeditor5-toolbar-background-image: none;
++    position: relative;
++  }
++
++  /*
++   * Render SVG icons using the user's system foreground color.
++   * Mask only the decorative icon, preserving the control's focus
++   * indicator and dropdown arrow.
++   */
++  .ckeditor5-toolbar-button:where(
++    .ckeditor5-toolbar-button-alignment,
++    .ckeditor5-toolbar-button-alignment\:center,
++    .ckeditor5-toolbar-button-alignment\:justify,
++    .ckeditor5-toolbar-button-alignment\:left,
++    .ckeditor5-toolbar-button-alignment\:right,
++    .ckeditor5-toolbar-button-blockQuote,
++    .ckeditor5-toolbar-button-bold,
++    .ckeditor5-toolbar-button-bulletedList,
++    .ckeditor5-toolbar-button-code,
++    .ckeditor5-toolbar-button-codeBlock,
++    .ckeditor5-toolbar-button-divider,
++    .ckeditor5-toolbar-button-drupalInsertImage,
++    .ckeditor5-toolbar-button-drupalMedia,
++    .ckeditor5-toolbar-button-fullscreen,
++    .ckeditor5-toolbar-button-horizontalLine,
++    .ckeditor5-toolbar-button-indent,
++    .ckeditor5-toolbar-button-insertTable,
++    .ckeditor5-toolbar-button-italic,
++    .ckeditor5-toolbar-button-link,
++    .ckeditor5-toolbar-button-numberedList,
++    .ckeditor5-toolbar-button-outdent,
++    .ckeditor5-toolbar-button-redo,
++    .ckeditor5-toolbar-button-removeFormat,
++    .ckeditor5-toolbar-button-showBlocks,
++    .ckeditor5-toolbar-button-sourceEditing,
++    .ckeditor5-toolbar-button-specialCharacters,
++    .ckeditor5-toolbar-button-strikethrough,
++    .ckeditor5-toolbar-button-subscript,
++    .ckeditor5-toolbar-button-superscript,
++    .ckeditor5-toolbar-button-underline,
++    .ckeditor5-toolbar-button-undo,
++    .ckeditor5-toolbar-button-wrapping
++  )::before {
++    position: absolute;
++    inset: 0;
++    content: "";
++    background-color: CanvasText;
++    mask-image: var(--ckeditor5-toolbar-icon);
++    mask-repeat: no-repeat;
++    mask-position: center;
++    mask-size: 20px;
++    pointer-events: none;
++  }
++
++  .ckeditor5-toolbar-button-alignment::before {
++    mask-position: 10px center;
++  }
+ 
+-    /* Keep the icon painted when the pointer hovers the control. */
+-    .ckeditor5-toolbar-item .ckeditor5-toolbar-button:hover {
+-      background-color: CanvasText;
+-    }
++  [dir="rtl"] .ckeditor5-toolbar-button-alignment::before {
++    mask-position: 30px center;
+   }
+ }
