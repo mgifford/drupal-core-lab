@@ -6,6 +6,7 @@ This is the report area of the Drupal Core Lab. The current, maintained reports 
 |---|---|
 | [issues/README.md](issues/README.md) | Every issue the lab has evaluated, grouped by what needs attention, what is waiting and what is archived |
 | [issues/FOCUS.md](issues/FOCUS.md) | The shorter priority-ordered view |
+| [issues/COMMUNICATION.md](issues/COMMUNICATION.md) | Findings that need a human upstream step; generated from each issue's `communication.json` |
 | `issues/<nid>/SUMMARY.md` | **The entry point for one issue**: what was tested, what was and was not verified, and links to the evidence |
 | [resources/SUMMARY.md](resources/SUMMARY.md) | Resource accounting: AI tokens/cost, CPU/memory, CI time, host capacity, energy estimate |
 | [infrastructure/](infrastructure/) | Cross-issue infrastructure and coordination evidence |

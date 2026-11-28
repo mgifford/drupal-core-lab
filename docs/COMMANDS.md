@@ -65,6 +65,7 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/new-issue.mjs <nid> --branch <branch> --refresh   # the MR got a new push: extract that patch again, say what changed (ignores git's abbreviated index lines), update only its BRANCHES.md row
     node scripts/capture-patch.mjs <slug> [--name <name> [--exclude <path>...]]   # no MR yet: the edits made in the After environment become reports/issues/<nid>/branches/<nid>-<name>.patch, listed in the variant; without --name it only lists them
     node scripts/make-bundle.mjs <slug>                  # a self-contained zip for someone else
+    node scripts/communication.mjs add|update|list|check   # upstream communication state per finding (draft, posted, superseded, independently addressed); never posts or changes drupal.org (docs/COMMUNICATION.md)
     node scripts/index-issues.mjs                        # refresh reports/issues/README.md: issues grouped by next step (offline)
     node scripts/focus-issues.mjs [--write|--summary]    # where to focus: Needs review > RTBC > Needs work > watch > close-out (offline); --write makes reports/issues/FOCUS.md
     node scripts/run-readmes.mjs <nid> [--check]   # README.md in every reports/issues/<nid>/playwright/<run>/ (Before/After image pairs, what each state is) plus an index; --check exits 1 when out of date
