@@ -1,0 +1,105 @@
+{
+  "schema": "lab-a11y-scenario/1",
+  "id": "sidebar-error-link-navigation",
+  "issue": 3619127,
+  "variant": "3619127-pinned",
+  "title": "Default Admin sidebar does not open from an Inline Form Errors link",
+  "description": "Replay the narrow-window Article form flow: open the advanced sidebar, set an invalid URL alias, close the sidebar, save, then use the 'URL alias' link in the error summary. Both sides must reach the same error-summary state; the assertion under test is that the sidebar opens and the invalid field receives focus. Real clicks are used: the pinned evidence found that script-generated clicks do not trigger the focus behaviour.",
+  "preconditions": [
+    "Default Admin is the admin theme, the Path module is on, the Article content type exists, and Inline Form Errors is enabled (recipe ife_sidebar_repro).",
+    "Variant 3619127-pinned is built: Before envs/baseline-main, After envs/issue-3619127-vanilla (MR !16895 plus patch-0 no jQuery and patch-1 no-persist).",
+    "The viewport is narrow (480x900 in the evaluator) so the advanced-fields sidebar starts collapsed."
+  ],
+  "fixture": {
+    "recipe": "ife_sidebar_repro",
+    "standardInstall": false,
+    "notes": "recipes/ife_sidebar_repro/ exists and is the recipe named by variant 3619127-pinned. It sets up Default Admin, the Article content type with Path, and Inline Form Errors."
+  },
+  "route": "/node/add/article",
+  "login": true,
+  "viewport": { "width": 480, "height": 900 },
+  "browser": "chromium",
+  "colourScheme": "light",
+  "forcedColors": false,
+  "reducedMotion": "no-preference",
+  "steps": [
+    {
+      "action": "goto",
+      "path": "/node/add/article",
+      "readiness": { "selector": ".meta-sidebar__trigger", "state": "visible" },
+      "label": "Open the Add Article form in a narrow window"
+    },
+    { "action": "checkpoint", "id": "form-initial", "label": "The Article form is loaded with the sidebar collapsed" },
+    { "action": "click", "locator": { "role": "button", "name": "Hide sidebar panel" }, "label": "Open the advanced-fields sidebar" },
+    { "action": "click", "locator": { "selector": "#edit-path-0 > summary" }, "label": "Open the URL alias details section" },
+    { "action": "waitFor", "readiness": { "selector": "#edit-path-0[open]", "state": "visible" }, "label": "Wait for the URL alias section to be open" },
+    { "action": "fill", "locator": { "label": "URL alias" }, "value": "no-slash", "label": "Enter an invalid URL alias (no leading slash)" },
+    { "action": "click", "locator": { "role": "button", "name": "Hide sidebar panel" }, "label": "Close the advanced-fields sidebar" },
+    { "action": "click", "locator": { "role": "button", "name": "Save" }, "label": "Save the article and wait for the validation error" },
+    { "action": "waitFor", "readiness": { "selector": "a[href$=\"#edit-path-0-alias\"]", "state": "visible" }, "label": "Wait for the error summary link to the URL alias field" },
+    { "action": "checkpoint", "id": "error-summary-shown", "label": "The error summary links to the URL alias field" },
+    {
+      "action": "click",
+      "locator": { "role": "link", "name": "URL alias" },
+      "label": "Use the URL alias error link with a real click"
+    },
+    { "action": "waitFor", "readiness": { "selector": "[data-drupal-messages]", "state": "visible" }, "timeoutMs": 3000, "label": "Wait for the message region to remain (do not wait for the field: Before never shows it)" },
+    { "action": "checkpoint", "id": "error-link-used", "label": "State after using the URL alias error link" },
+    {
+      "action": "assert",
+      "check": { "focus": { "role": "textbox", "name": "URL alias", "within": "#default_admin_sidebar" } },
+      "label": "The sidebar opened and the invalid URL alias field has focus"
+    },
+    { "action": "evaluate", "expression": "document.body.getAttribute('data-meta-sidebar')", "label": "Read the sidebar state attribute (read-only)" }
+  ],
+  "checkpoints": [
+    {
+      "id": "form-initial",
+      "label": "The Article form is loaded with the sidebar collapsed",
+      "profile": "quick",
+      "expected": { "content": ["URL alias"] }
+    },
+    {
+      "id": "error-summary-shown",
+      "label": "The error summary links to the URL alias field",
+      "profile": "dynamic",
+      "scope": "[data-drupal-messages]",
+      "readiness": { "selector": "a[href$=\"#edit-path-0-alias\"]", "state": "visible" },
+      "expected": { "states": [{ "path": "state.application.formErrors", "countMin": 1 }], "content": ["error has been found"] }
+    },
+    {
+      "id": "error-link-used",
+      "label": "State after using the URL alias error link",
+      "profile": "quick",
+      "scope": "#default_admin_sidebar",
+      "readiness": { "selector": "[data-drupal-messages]", "state": "visible" },
+      "expected": { "states": [{ "path": "state.application.formErrors", "countMin": 1 }], "content": ["error has been found"] }
+    }
+  ],
+  "expected": [
+    { "focus": { "role": "textbox", "name": "URL alias", "within": "#default_admin_sidebar" } },
+    { "state": { "path": "state.application.formErrors", "countMin": 1 } }
+  ],
+  "regressionAssertions": [
+    { "state": { "path": "state.application.landmarks", "countMin": 1 } }
+  ],
+  "resetInstructions": [
+    "node tools/compare/setup.mjs 3619127-pinned --check-patches",
+    "node scripts/lab-env.mjs reset 3619127-pinned --yes (the save is rejected, but a reset clears the draft and the saved sidebar preference)"
+  ],
+  "manualReview": [
+    "Repeat the final step with the keyboard only (Tab to the error link, press Enter) and confirm the sidebar opens and focus moves to the field; the pinned evidence found that script-generated clicks do not trigger the focus behaviour, so a person's keyboard pass is the confirmatory check.",
+    "Confirm the page does not scroll away and the field is not hidden behind sticky UI.",
+    "Confirm the user's saved sidebar preference is not overwritten: reload the form after the flow and check the sidebar returns to the state the user last chose.",
+    "Press Enter on the same error link a second time and check it still works.",
+    "A real screen-reader pass on the error summary and the field."
+  ],
+  "limits": [
+    "Only the error-summary link path is covered; the other error-summary and sidebar combinations (Authoring information, other validation errors) are not.",
+    "The exact trigger accessible name is the label Default Admin renders ('Hide sidebar panel' on the initial narrow state, from core/themes/default_admin/src/Hook/FormHooks.php); if the theme label changes the locator needs updating.",
+    "The URL alias details summary is reached with a CSS selector because <summary> has no Playwright role mapping.",
+    "The scenario has not been replayed in this session; no Drupal site was running."
+  ],
+  "verified": false,
+  "notes": "Read reports/issues/3619127/EVIDENCE.md, REPRODUCE.md, the registered variant 3619127-pinned and tools/playwright/evaluate-3619127.mjs. The flow, the 480x900 viewport, the error-link selector a[href$=\"#edit-path-0-alias\"], the URL alias field name and the real-click requirement come from that evaluator and the pinned evidence. The trigger markup and its 'Hide sidebar panel' label come from core/themes/default_admin/src/Hook/FormHooks.php and migration/js/sidebar.js in envs/issue-3619127-vanilla. Inferred, not observed: that getByRole('button') resolves the anchor trigger, and that focus lands on the textbox named 'URL alias'. Not run: no Drupal site was running in this session."
+}

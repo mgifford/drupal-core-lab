@@ -18,6 +18,7 @@ Current documentation for this lab (written or verified 2026-10-01), plus a `leg
 | [observability/](observability/README.md) | Optional execution tracing: architecture, setup, evidence schema, privacy, Playwright correlation, upstream research and limitations. Off by default. |
 | [RESOURCE-MONITORING.md](RESOURCE-MONITORING.md) | Resource accounting: AI tokens and estimated cost, process CPU/RSS, Docker samples, GitHub Actions, local ledger, budgets, dashboard and baseline. |
 | [RESOURCE-PRIVACY.md](RESOURCE-PRIVACY.md) | What resource data is collected, what is public, the export allowlist, retention and removal. |
+| [WORKSPACE-HYGIENE.md](WORKSPACE-HYGIENE.md) | Several agent sessions share one checkout: safe triage, the never-run list, coordination records and ownership. |
 
 Elsewhere:
 - `../AGENTS.md`: how to work here, and the rules (kept short: every agent session loads it). The reference material it points to:

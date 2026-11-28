@@ -11,6 +11,7 @@ One directory per issue: `reports/issues/<nid>/`.
 - `branches/*.patch` and `BRANCHES.md`: patches from the issue fork with source, tip, base, date; numbered `patch-N-*.patch` if stacked.
 - `EVIDENCE.md`: how it was validated, results with exact commits. DRAFT until a person has reviewed them. (`VALIDATION.md` is the old name; rename it.)
 - `STATUS.md`: the current status snapshot; `STATUS-<date>.md` is a dated snapshot kept for history. Related issues and review threads. Statuses go stale; re-check on drupal.org.
+- `checkpoints/` (`tools/a11y-mcp/`, [docs/DYNAMIC-A11Y-CHECKPOINTS.md](DYNAMIC-A11Y-CHECKPOINTS.md)): named accessibility checkpoints captured on a live page through Playwright MCP or a scenario replay. Each session folder has `session.json` (canonical index), `checkpoints/NNN-<id>.json` (the record), `evidence/` (raw engine output, accessibility-tree views, visual measurements, screenshots), `SUMMARY.md` and an accessible `report.html` generated from the JSON. Raw axe output is kept complete except `passes`/`inapplicable`, which are reduced to rule ids above 2 MB and the record says so. Exploratory MCP sessions for a local fixture live in `.lab-cache/a11y-mcp/` (not committed).
 - `playwright/`, `screenreader/`, `compare/`: generated, dated evidence. Each summary records the core commits.
   Run `node scripts/run-readmes.mjs <nid>` after new runs: it writes a `README.md` in each run folder (paired Before/After images, what each state means) and an index `playwright/README.md`; `--check` exits 1 if any is out of date.
 - `variants.json`: the issue's own variants (written by a pack import). Older issues keep theirs in `tools/compare/variants.json`; `tools/compare/lib.mjs` merges both.
@@ -27,6 +28,8 @@ One directory per issue: `reports/issues/<nid>/`.
 - `variants.json` of a new issue carries `coverage.matrix`: the browser, scheme and width combinations that count as tested (`tools/compare/coverage-matrix.mjs`).
   The coverage ledger's Pinned column uses the designated pinned variant only; other comparisons, including local experiments,
   are listed under Other runs and cannot fill a pinned environment gap.
+
+Cross-issue infrastructure evidence (for example the live Before/After checkpoint verification of the integration itself) goes in `reports/infrastructure/a11y-mcp/`, not in an issue folder.
 
 Barriers found outside an issue's question go in `reports/findings/` (`scripts/findings.mjs`), not in the issue's folder.
 

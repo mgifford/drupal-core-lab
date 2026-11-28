@@ -1,0 +1,564 @@
+{
+  "schema": "lab-a11y-fixture-expectations/1",
+  "description": "Independent, hand-written expectations for the dynamic accessibility-checkpoint negative controls. They are checked against the evidence the lab's captureCheckpoint() produces; they are NOT generated from the scanner's output. Each control is a valid page at load except where a defect is present from load, and the defect named in `what` must be observed only after the interaction/state named by the checkpoints.",
+  "fieldGuide": {
+    "fixture.stateDependent": "true when the defect does not exist at page load and only appears after the checkpoint steps (or a media state change). A state-dependent fixture must list at least one rule in pageLoadMustNotReport.",
+    "fixture.pageLoadMustNotReport": "engine rules that must NOT be reported at the initial (page-load) checkpoint. This is the proof that a page-load-only scan misses the defect. Every entry carries a `why`.",
+    "checkpoint.steps": "trusted Playwright input performed in order: {action:click, role?, name?, selector?}, {action:key, key}, {action:waitForSelector, selector, state}, {action:waitForFunction, expression}, {action:emulateMedia, forcedColors}. Waits are explicit conditions, never fixed sleeps.",
+    "expect.findings": "a finding matching engine.id and ruleId (or ruleStartsWith) and targetContains must be present; add \"absent\": true for a rule that must NOT be reported in this state. An empty array means no finding is required in this state: engine noise such as axe incomplete results is tolerated unless it is asserted.",
+    "expect.noFindings": "engines that must report nothing at all in this state (used for the valid-controls negative control).",
+    "expect.state": "facts read from record.state.application: dialogsOpen, ariaBrokenRefs, ariaBrokenRefsEmpty, expanded, messages, messagesEmpty, formErrors, visibleTextContains, visibleTextNotContains, details.",
+    "expect.focus": "record.focus for bodyFocus/focusVisible/dialogsOpen, otherwise an exact match on record.focus.active (tag, selector, name, role, inDialog, id).",
+    "expect.visual": "record.evidence.visual: selector, indicatorPresent/indicatorStyle (focus indicator evidence), iconDeclared/iconBackgroundImageNone (CSS background-image icon evidence).",
+    "expect.changes": "recorder evidence for the steps leading to this checkpoint: a change whose `where`/`text` contain the given strings and whose `how` is the expected classification. When how is not \"silent\", no matching change may be classified silent.",
+    "expect.attributes / expect.visibility": "read-only page facts asserted after the checkpoint: attribute presence/value, and whether a role/name or selector is visible to Playwright.",
+    "fixture.validControls": "selectors of correctly implemented controls; none of them may be the target of an asserted defect finding.",
+    "fixture.dedupe": "one defect observed at several checkpoints is one entry in session.session.findings with one observation per checkpoint.",
+    "fixture.manual": "checks a person must still do; the automated evidence cannot decide them."
+  },
+  "profile": "full",
+  "fixtures": [
+    {
+      "file": "dialog-unnamed-button.html",
+      "what": "A dialog that is closed at page load contains an icon button with no accessible name; axe-core's button-name defect exists only while the dialog is open.",
+      "stateDependent": true,
+      "pageLoadMustNotReport": [
+        {
+          "engine": "axe-core",
+          "ruleId": "button-name",
+          "why": "axe-core ignores the closed <dialog> because it is not rendered, so a page-load scan has no button-name violation. HTML_CodeSniffer reads the DOM regardless of rendering and does report the hidden button at load; this control's page-load miss is therefore axe-specific."
+        }
+      ],
+      "checkpoints": [
+        {
+          "id": "initial",
+          "label": "Page load (dialog closed)",
+          "steps": [],
+          "expect": {
+            "findings": [],
+            "state": { "dialogsOpen": 0 },
+            "focus": { "tag": "body", "bodyFocus": true }
+          }
+        },
+        {
+          "id": "dialog-open",
+          "label": "Dialog open",
+          "steps": [
+            { "action": "click", "role": "button", "name": "Open dialog" },
+            { "action": "waitForSelector", "selector": "#example-dialog[open]", "state": "visible" }
+          ],
+          "expect": {
+            "findings": [
+              { "engine": "axe-core", "ruleId": "button-name", "targetContains": "#icon-button" },
+              { "engine": "htmlcs", "ruleId": "WCAG2AA.Principle4.Guideline4_1.4_1_2.H91.Button.Name", "targetContains": "#icon-button" }
+            ],
+            "state": { "dialogsOpen": 1 },
+            "focus": { "inDialog": true, "bodyFocus": false }
+          }
+        }
+      ],
+      "validControls": ["#close"],
+      "manual": [
+        "Does the icon button need a name that describes its action, not merely any non-empty name? (4.1.2 cannot be judged from a rule pass alone.)",
+        "Is the dialog's own name announced when the dialog opens?"
+      ]
+    },
+    {
+      "file": "focus-indicator-disappears.html",
+      "what": "A button keeps its base :focus ring but loses it under :focus-visible, so the focus indicator disappears only for keyboard focus; nothing changes at page load.",
+      "stateDependent": true,
+      "pageLoadMustNotReport": [
+        {
+          "engine": "htmlcs",
+          "ruleStartsWith": "WCAG2AA.Principle2.Guideline2_4.2_4_7",
+          "why": "HTML_CodeSniffer ships SC 2.4.7 only as a manual-review prompt, and axe-core has no focus-indicator rule, so no engine finding is expected at page load (the page-load scan is clean). The defect is only visible in computed styles after trusted keyboard input."
+        }
+      ],
+      "checkpoints": [
+        {
+          "id": "initial",
+          "label": "Page load (nothing focused)",
+          "steps": [],
+          "expect": {
+            "findings": [],
+            "focus": { "tag": "body", "bodyFocus": true }
+          }
+        },
+        {
+          "id": "keyboard-focus",
+          "label": "Button focused with Tab",
+          "steps": [
+            { "action": "key", "key": "Tab" },
+            { "action": "waitForFunction", "expression": "document.activeElement && document.activeElement.id === 'focus-target'" }
+          ],
+          "expect": {
+            "findings": [],
+            "focus": { "selector": "#focus-target", "role": "button", "focusVisible": true, "bodyFocus": false },
+            "visual": {
+              "selector": "#focus-target",
+              "focused": true,
+              "focusVisible": true,
+              "indicatorPresent": false,
+              "indicatorStyle": "none"
+            }
+          }
+        }
+      ],
+      "validControls": [],
+      "manual": [
+        "A keyboard-only person must confirm the focused control is actually invisible against the page, not only that its computed outline is none (2.4.7).",
+        "Pointer focus still shows the ring by design; only keyboard focus loses it. Check both."
+      ]
+    },
+    {
+      "file": "aria-ref-break-after-ajax.html",
+      "what": "After a clicked button replaces its controlled panel with a new id, the button's aria-controls still names the removed panel, so the live ARIA reference is broken only in the updated state.",
+      "stateDependent": true,
+      "pageLoadMustNotReport": [
+        {
+          "engine": "axe-core",
+          "ruleId": "aria-valid-attr-value",
+          "why": "the aria-controls target exists at page load, so axe-core reports no aria-valid-attr-value violation there; it reports one after the panel id disappears."
+        }
+      ],
+      "checkpoints": [
+        {
+          "id": "initial",
+          "label": "Page load (reference valid)",
+          "steps": [],
+          "expect": {
+            "findings": [],
+            "state": {
+              "ariaBrokenRefsEmpty": true,
+              "expanded": [
+                { "selector": "#toggle-panel", "expanded": "false", "controls": "panel-1", "controlsResolved": [true] }
+              ]
+            },
+            "focus": { "tag": "body", "bodyFocus": true }
+          }
+        },
+        {
+          "id": "panel-replaced",
+          "label": "Panel replaced after click",
+          "steps": [
+            { "action": "click", "selector": "#toggle-panel" },
+            { "action": "waitForFunction", "expression": "document.getElementById('panel-2') !== null" }
+          ],
+          "expect": {
+            "findings": [
+              { "engine": "axe-core", "ruleId": "aria-valid-attr-value", "targetContains": "#toggle-panel" }
+            ],
+            "state": {
+              "ariaBrokenRefs": [
+                { "attr": "aria-controls", "id": "panel-1", "problem": "missing", "selectorContains": "#toggle-panel" }
+              ],
+              "expanded": [
+                { "selector": "#toggle-panel", "expanded": "true", "controls": "panel-1", "controlsResolved": [false] }
+              ],
+              "visibleTextContains": ["Second version of the panel"]
+            },
+            "focus": { "selector": "#toggle-panel" }
+          }
+        }
+      ],
+      "validControls": [],
+      "manual": [
+        "Is the new panel announced when it replaces the old one? The ARIA evidence says the reference is broken; it cannot say what was spoken."
+      ]
+    },
+    {
+      "file": "status-without-announcement.html",
+      "what": "Clicking Save writes \"Saved\" into a plain div with no role, no aria-live and no focus move; the page is clean at load and the change is silent.",
+      "stateDependent": true,
+      "pageLoadMustNotReport": [
+        {
+          "engine": "htmlcs",
+          "ruleStartsWith": "WCAG2AA.Principle4.Guideline4_1.4_1_3",
+          "why": "no engine in the profile reports status text that is painted outside a live region (HTML_CodeSniffer 2.5.1 only offers a manual SC 4.1.3 prompt), and at page load there is no status text at all. The recorder, not an engine, is the evidence."
+        }
+      ],
+      "checkpoints": [
+        {
+          "id": "initial",
+          "label": "Page load (no status text)",
+          "steps": [],
+          "expect": {
+            "findings": [],
+            "state": { "messagesEmpty": true, "visibleTextNotContains": ["Saved"] },
+            "focus": { "tag": "body", "bodyFocus": true }
+          }
+        },
+        {
+          "id": "saved",
+          "label": "After Save (plain div, not a live region)",
+          "steps": [
+            { "action": "click", "selector": "#save" },
+            { "action": "waitForFunction", "expression": "document.getElementById('save-status').textContent.trim() === 'Saved'" }
+          ],
+          "expect": {
+            "findings": [],
+            "state": { "messagesEmpty": true, "visibleTextContains": ["Saved"] },
+            "changes": [
+              { "whereContains": "#save-status", "textContains": "Saved", "how": "silent" }
+            ]
+          }
+        }
+      ],
+      "validControls": [],
+      "manual": [
+        "Would a person using a screen reader learn that the save succeeded? (4.1.3 requires the message to be exposed as a status message, not merely painted.)",
+        "Does any other perceivable mechanism (focus move, sound, persistent text) tell a keyboard user the save happened?"
+      ]
+    },
+    {
+      "file": "modal-no-focus-restore.html",
+      "what": "A modal dialog moves focus to its Close button when it opens and closes with Escape/Close without returning focus to the opener, so focus falls back to body.",
+      "stateDependent": true,
+      "pageLoadMustNotReport": [
+        {
+          "engine": "htmlcs",
+          "ruleStartsWith": "WCAG2AA.Principle2.Guideline2_4.2_4_3",
+          "why": "focus restoration is a dynamic behaviour that no engine rule checks, and at page load the dialog is closed, so a page-load scan cannot see it."
+        }
+      ],
+      "checkpoints": [
+        {
+          "id": "initial",
+          "label": "Page load (dialog closed)",
+          "steps": [],
+          "expect": {
+            "findings": [],
+            "state": { "dialogsOpen": 0 },
+            "focus": { "tag": "body", "bodyFocus": true }
+          }
+        },
+        {
+          "id": "dialog-open",
+          "label": "Dialog open, focus moved inside",
+          "steps": [
+            { "action": "click", "role": "button", "name": "Open dialog" },
+            { "action": "waitForFunction", "expression": "!document.getElementById('modal').hidden" }
+          ],
+          "expect": {
+            "findings": [],
+            "state": { "dialogsOpen": 1 },
+            "focus": { "selector": "#modal-close", "inDialog": true, "bodyFocus": false }
+          }
+        },
+        {
+          "id": "dialog-closed",
+          "label": "Dialog closed with Escape (focus not restored)",
+          "steps": [
+            { "action": "key", "key": "Escape" },
+            { "action": "waitForSelector", "selector": "#modal", "state": "hidden" }
+          ],
+          "expect": {
+            "findings": [],
+            "state": { "dialogsOpen": 0 },
+            "focus": { "tag": "body", "selector": "body", "bodyFocus": true }
+          }
+        }
+      ],
+      "validControls": [],
+      "manual": [
+        "Close the dialog with Escape and with the Close button: did focus return to the opener for a keyboard user?",
+        "Is the opener still reachable, or must the keyboard user start tabbing from the top of the page?"
+      ]
+    },
+    {
+      "file": "icon-forced-colors.html",
+      "what": "Two links get their icon only from a CSS background-image; in emulated forced-colours mode the first icon's background-image is removed while the second stays declared.",
+      "stateDependent": true,
+      "pageLoadMustNotReport": [
+        {
+          "engine": "axe-core",
+          "ruleId": "image-alt",
+          "why": "axe-core has no rule for a CSS background-image icon disappearing under forced colours, and the light page-load scan finds no image-alt because the page has no <img>. The evidence is the computed background-image before and after emulating forced colours."
+        }
+      ],
+      "checkpoints": [
+        {
+          "id": "initial",
+          "label": "Light rendering: first icon declared",
+          "profile": "full",
+          "scope": "#icon-forced",
+          "steps": [],
+          "expect": {
+            "findings": [],
+            "visual": { "selector": "#icon-forced", "iconDeclared": true },
+            "environment": { "forcedColors": "none" }
+          }
+        },
+        {
+          "id": "forced-colors",
+          "label": "Forced colours: first icon declaration removed",
+          "profile": "visual",
+          "scope": "#icon-forced",
+          "steps": [{ "action": "emulateMedia", "forcedColors": "active" }],
+          "expect": {
+            "visual": { "selector": "#icon-forced", "iconDeclared": false, "iconBackgroundImageNone": true },
+            "environment": { "forcedColors": "active" }
+          }
+        },
+        {
+          "id": "forced-colors-kept",
+          "label": "Forced colours: second icon still declared",
+          "profile": "visual",
+          "scope": "#icon-kept",
+          "steps": [],
+          "expect": {
+            "visual": { "selector": "#icon-kept", "iconDeclared": true },
+            "environment": { "forcedColors": "active" }
+          }
+        }
+      ],
+      "validControls": ["#icon-kept"],
+      "manual": [
+        "Does the icon convey meaning that is lost when it disappears? A background image is not exposed to assistive technology, so the link text must still carry the meaning.",
+        "Check the rendered screenshots in forced-colours mode; a declaration is not proof either. (The initial light checkpoint also shows axe's color-contrast returning incomplete on a background-image link: the engine cannot compute contrast there, which is noise, not the defect.)"
+      ]
+    },
+    {
+      "file": "hidden-menu-exposed.html",
+      "what": "A menu is correctly display:none at load, but open-then-close leaves it rendered with opacity:0 and position:absolute, so its items stay in the accessibility tree and are still reachable while the button reports aria-expanded=false.",
+      "stateDependent": true,
+      "pageLoadMustNotReport": [
+        {
+          "engine": "axe-core",
+          "ruleId": "aria-hidden-focus",
+          "why": "at page load the menu is genuinely display:none, so nothing is exposed; after close the content is exposed through opacity:0, which axe-core does not treat as hidden (it has no rule for opacity) and does not report."
+        }
+      ],
+      "checkpoints": [
+        {
+          "id": "initial",
+          "label": "Page load (menu display:none)",
+          "steps": [],
+          "expect": {
+            "findings": [],
+            "state": {
+              "expanded": [{ "selector": "#menu-toggle", "expanded": "false", "controls": "menu", "controlsResolved": [true] }],
+              "visibleTextNotContains": ["Menu item one"]
+            },
+            "visibility": [{ "role": "menuitem", "name": "Menu item one", "visible": false }],
+            "focus": { "tag": "body", "bodyFocus": true }
+          }
+        },
+        {
+          "id": "menu-open",
+          "label": "Menu open",
+          "steps": [{ "action": "click", "role": "button", "name": "Menu" }],
+          "expect": {
+            "state": {
+              "expanded": [{ "selector": "#menu-toggle", "expanded": "true" }],
+              "visibleTextContains": ["Menu item one"]
+            },
+            "visibility": [{ "role": "menuitem", "name": "Menu item one", "visible": true }],
+            "focus": { "selector": "#menu-toggle", "bodyFocus": false }
+          }
+        },
+        {
+          "id": "menu-closed",
+          "label": "Menu \"closed\" but still rendered",
+          "steps": [{ "action": "click", "role": "button", "name": "Menu" }],
+          "expect": {
+            "findings": [{ "engine": "axe-core", "ruleId": "aria-hidden-focus", "absent": true }],
+            "state": {
+              "expanded": [{ "selector": "#menu-toggle", "expanded": "false", "controls": "menu" }],
+              "menus": [{ "role": "menuitem", "name": "Menu item one" }],
+              "visibleTextContains": ["Menu item one"]
+            },
+            "visibility": [{ "role": "menuitem", "name": "Menu item one", "visible": true }]
+          }
+        }
+      ],
+      "validControls": [],
+      "manual": [
+        "After closing the menu, can a screen-reader user still reach the menu items? The ARIA/visibility evidence says yes; a real screen reader should confirm what is announced.",
+        "Can a keyboard user reach the invisible items with Tab? The evidence records the exposure, not the tab order."
+      ]
+    },
+    {
+      "file": "error-not-associated.html",
+      "what": "Submitting an empty required field shows \"Enter your name.\" next to it, but the input gets no aria-invalid, aria-describedby or aria-errormessage and there is no summary link, so the error exists with no programmatic relationship; nothing changes at load.",
+      "stateDependent": true,
+      "pageLoadMustNotReport": [
+        {
+          "engine": "htmlcs",
+          "ruleStartsWith": "WCAG2AA.Principle3.Guideline3_3.3_3_1",
+          "why": "no error exists at page load; when the error appears, neither engine reports an error-association failure (verified on this control), which is why the DOM attributes and the recorder evidence are asserted instead of an engine finding."
+        }
+      ],
+      "checkpoints": [
+        {
+          "id": "initial",
+          "label": "Page load (no error)",
+          "steps": [],
+          "expect": {
+            "findings": [],
+            "state": { "visibleTextNotContains": ["Enter your name"] },
+            "visibility": [{ "selector": "#full-name-error", "visible": false }],
+            "focus": { "tag": "body", "bodyFocus": true }
+          }
+        },
+        {
+          "id": "error-shown",
+          "label": "Error shown after Submit",
+          "steps": [
+            { "action": "click", "role": "button", "name": "Submit" },
+            { "action": "waitForSelector", "selector": "#full-name-error", "state": "visible" }
+          ],
+          "expect": {
+            "findings": [],
+            "state": {
+              "formErrors": [
+                { "selector": "#full-name-error", "errormessage": null, "errormessageResolved": false }
+              ],
+              "messagesEmpty": true,
+              "visibleTextContains": ["Enter your name."]
+            },
+            "attributes": [
+              { "selector": "#full-name", "attribute": "aria-invalid", "absent": true },
+              { "selector": "#full-name", "attribute": "aria-describedby", "absent": true },
+              { "selector": "#full-name", "attribute": "aria-errormessage", "absent": true }
+            ],
+            "visibility": [{ "selector": "#full-name-error", "visible": true }],
+            "changes": [{ "whereContains": "#full-name-error", "textContains": "Enter your name", "how": "silent" }],
+            "focus": { "selector": "#submit" }
+          }
+        }
+      ],
+      "validControls": [],
+      "manual": [
+        "Can a screen-reader user find the error message from the field, and is the field announced as invalid? (No aria-invalid/aria-describedby/aria-errormessage is present.)",
+        "There is no error summary link; if one is added it must reach a focusable error."
+      ]
+    },
+    {
+      "file": "persistent-finding.html",
+      "what": "An unnamed button is visible from page load and unchanged by opening a details element and by opening and closing a dialog; the same button-name finding is observed at every checkpoint and must count once.",
+      "stateDependent": false,
+      "pageLoadMustNotReport": [],
+      "checkpoints": [
+        {
+          "id": "initial",
+          "label": "Page load",
+          "steps": [],
+          "expect": {
+            "findings": [{ "engine": "axe-core", "ruleId": "button-name", "targetContains": "#unnamed-button" }],
+            "focus": { "tag": "body", "bodyFocus": true }
+          }
+        },
+        {
+          "id": "details-open",
+          "label": "Details opened",
+          "steps": [{ "action": "click", "selector": "summary" }],
+          "expect": {
+            "findings": [{ "engine": "axe-core", "ruleId": "button-name", "targetContains": "#unnamed-button" }],
+            "state": { "details": [{ "selector": "#more-details", "open": true }] }
+          }
+        },
+        {
+          "id": "dialog-closed",
+          "label": "Dialog opened and closed",
+          "steps": [
+            { "action": "click", "role": "button", "name": "Open dialog" },
+            { "action": "click", "role": "button", "name": "Close" },
+            { "action": "waitForSelector", "selector": "#persistent-dialog", "state": "hidden" }
+          ],
+          "expect": {
+            "findings": [{ "engine": "axe-core", "ruleId": "button-name", "targetContains": "#unnamed-button" }],
+            "state": { "dialogsOpen": 0 }
+          }
+        }
+      ],
+      "dedupe": {
+        "distinct": 1,
+        "observations": 3,
+        "match": { "engine": "axe-core", "ruleId": "button-name", "targetContains": "#unnamed-button" }
+      },
+      "validControls": ["#persistent-dialog-close", "#open-dialog"],
+      "manual": [
+        "One unnamed button is one defect: a fix must remove the finding in every state rather than hiding it in one.",
+        "The dialog and details controls are valid and must not gain findings when the unnamed button is fixed."
+      ]
+    },
+    {
+      "file": "valid-controls.html",
+      "what": "The valid counterpart: a dialog named with aria-labelledby, a labelled icon button, a status message in role=status, focus restored to the opener on close, and a labelled form. No axe findings, no silent change for the status message.",
+      "stateDependent": false,
+      "pageLoadMustNotReport": [
+        { "engine": "axe-core", "ruleId": "button-name", "why": "every button on this page is named; a page-load scan must report nothing." },
+        { "engine": "axe-core", "ruleId": "color-contrast", "why": "the page's text and controls meet AA contrast; a page-load scan must report nothing." }
+      ],
+      "checkpoints": [
+        {
+          "id": "initial",
+          "label": "Page load",
+          "steps": [],
+          "expect": {
+            "findings": [],
+            "noFindings": ["axe-core"],
+            "state": { "dialogsOpen": 0 },
+            "focus": { "tag": "body", "bodyFocus": true }
+          }
+        },
+        {
+          "id": "dialog-open",
+          "label": "Dialog open",
+          "steps": [
+            { "action": "click", "role": "button", "name": "Open dialog" },
+            { "action": "waitForSelector", "selector": "#valid-dialog[open]", "state": "visible" }
+          ],
+          "expect": {
+            "findings": [],
+            "noFindings": ["axe-core"],
+            "state": { "dialogsOpen": 1 },
+            "focus": { "inDialog": true, "bodyFocus": false }
+          }
+        },
+        {
+          "id": "status-shown",
+          "label": "Status message shown in role=status",
+          "steps": [
+            { "action": "click", "role": "button", "name": "Save preferences" },
+            { "action": "waitForFunction", "expression": "document.getElementById('status').textContent.trim() === 'Preferences saved'" }
+          ],
+          "expect": {
+            "findings": [],
+            "noFindings": ["axe-core"],
+            "state": {
+              "dialogsOpen": 1,
+              "messages": [{ "role": "status", "textContains": "Preferences saved", "hidden": false }]
+            },
+            "changes": [
+              { "whereContains": "#status", "textContains": "Preferences saved", "how": "live" }
+            ]
+          }
+        },
+        {
+          "id": "dialog-closed",
+          "label": "Dialog closed, focus restored to the opener",
+          "steps": [
+            { "action": "click", "role": "button", "name": "Close" },
+            { "action": "waitForSelector", "selector": "#valid-dialog", "state": "hidden" }
+          ],
+          "expect": {
+            "findings": [],
+            "noFindings": ["axe-core"],
+            "state": {
+              "dialogsOpen": 0,
+              "messages": [{ "role": "status", "textContains": "Preferences saved" }]
+            },
+            "focus": { "selector": "#open-dialog", "role": "button", "bodyFocus": false }
+          }
+        }
+      ],
+      "validControls": ["#open-dialog", "#icon-save", "#dialog-close", "#display-name"],
+      "manual": [
+        "Nothing to fix here: this control proves the checkpoints do not invent findings or silent changes on valid markup.",
+        "The status message is announced because it is inside role=status; confirm with a real screen reader if a claim about announcements is made."
+      ]
+    }
+  ]
+}

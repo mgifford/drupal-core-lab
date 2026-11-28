@@ -1,0 +1,116 @@
+{
+  "schema": "lab-a11y-live-verification/1",
+  "when": "2026-11-27T16:16:48.850Z",
+  "variant": "3419891-pinned",
+  "issue": "3419891",
+  "route": "/node/add/page",
+  "tool": "playwright-mcp",
+  "sides": [
+    {
+      "side": "before",
+      "env": "baseline-3419891",
+      "host": "repro-baseline-3419891.ddev.site",
+      "commit": "0387fb948f 2026-11-25",
+      "checkpoints": [],
+      "errors": [
+        "login navigation failed: ### Error\nTimeoutError: browserBackend.callTool: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"https://repro-baseline-3419891.ddev.site/user/reset/1/1795796262/nDvHPIDARVyqJcvp64lIp30QAzpTDc8WLv4Nvz6wuJg/login\", waiting until \"domcontentloaded\"\n"
+      ]
+    },
+    {
+      "side": "after",
+      "env": "issue-3419891",
+      "host": "repro-issue-3419891.ddev.site",
+      "commit": "0387fb948f 2026-11-25",
+      "checkpoints": [
+        {
+          "id": "editor-initialized",
+          "status": "captured",
+          "preserved": true,
+          "engines": [
+            {
+              "engine": "axe-core",
+              "version": "4.14.0",
+              "status": "executed",
+              "error": null,
+              "violations": 0,
+              "incomplete": 14
+            },
+            {
+              "engine": "htmlcs",
+              "version": "2.5.1",
+              "status": "executed",
+              "error": null,
+              "violations": 2,
+              "incomplete": 43
+            }
+          ],
+          "findings": {
+            "distinct": 49,
+            "observations": 49,
+            "byImpact": {
+              "serious": 14,
+              "unrated": 35
+            },
+            "byEngine": {
+              "axe-core": 14,
+              "htmlcs": 35
+            },
+            "byOutcome": {
+              "incomplete": 47,
+              "violation": 2
+            },
+            "byWcag": {
+              "1.4.3": 35,
+              "2.5.8": 2,
+              "1.4.10": 3,
+              "1.3.1": 7,
+              "2.4.1": 1,
+              "4.1.2": 1
+            }
+          }
+        }
+      ],
+      "errors": [
+        "no toolbar control whose name mentions \"image\" was found"
+      ],
+      "toolbar": [
+        "Bold (⌘B)",
+        "Italic (⌘I)",
+        "Link (⌘K)",
+        "Bulleted List",
+        "Bulleted List",
+        "Numbered List",
+        "Numbered List",
+        "Block quote",
+        "Upload image from computer",
+        "Paragraph, Heading",
+        "Show more items"
+      ]
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "editor-initialized",
+      "side": "after",
+      "sequence": 1,
+      "status": "captured",
+      "file": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/checkpoints/001-editor-initialized.json"
+    }
+  ],
+  "comparison": [
+    {
+      "checkpointId": "editor-initialized",
+      "comparable": false,
+      "reason": "no Before checkpoint at this state",
+      "checks": [],
+      "classifications": []
+    }
+  ],
+  "limits": [
+    "Chromium only (the MCP browser). Other engines are reported per checkpoint, not assumed.",
+    "No real screen reader and no person took part: announcements, focus order and icon meaning remain manual checks.",
+    "The CKEditor image dialog is reached and measured; inserting media, alternative-text editing and focus restoration are not exercised by this script."
+  ],
+  "session": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned",
+  "unexpected": 2
+}

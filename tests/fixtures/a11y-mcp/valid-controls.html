@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Valid controls</title>
+<!--
+  Control 10: the valid counterpart. All controls are named, the dialog is named with aria-labelledby, the status
+  message is a role="status" live region, focus returns to the opener when the dialog closes, and the form field has a
+  visible label. A clean scan here is the negative control for the other fixtures: the checkpoints must not invent
+  findings or silent changes on valid markup.
+-->
+<style>
+  body { margin: 2rem; font-family: system-ui, sans-serif; color: #1a1a1a; background: #ffffff; }
+  h1 { font-size: 1.5rem; }
+  button { font: inherit; padding: 0.4rem 0.9rem; background: #0b4fbf; color: #ffffff; border: 2px solid #0b4fbf; border-radius: 4px; }
+  button:focus-visible { outline: 4px solid #b30000; outline-offset: 3px; }
+  input { font: inherit; padding: 0.3rem; border: 2px solid #333333; }
+  .icon-button { width: 2.4rem; height: 2.4rem; display: inline-flex; align-items: center; justify-content: center; }
+  dialog { max-width: 34rem; padding: 1.5rem; border: 1px solid #333333; }
+  #status:empty { display: none; }
+  #status { margin-top: 1rem; font-weight: 600; }
+</style>
+</head>
+<body>
+<h1>Valid controls</h1>
+<p>Every control here is correctly labelled, the status message is a live region, and focus returns to the opener when
+  the dialog closes.</p>
+<p><button type="button" id="open-dialog">Open dialog</button></p>
+<dialog id="valid-dialog" aria-labelledby="valid-dialog-title">
+  <h2 id="valid-dialog-title">Preferences</h2>
+  <p>
+    <label for="display-name">Display name</label><br>
+    <input id="display-name" name="displayName" type="text" autocomplete="name">
+  </p>
+  <p>
+    <button type="button" id="icon-save" class="icon-button" aria-label="Save preferences">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M4 3h9l3 3v11H4z"></path></svg>
+    </button>
+    <button type="button" id="dialog-close">Close</button>
+  </p>
+</dialog>
+<div id="status" role="status"></div>
+<form id="newsletter-form" aria-label="Newsletter signup">
+  <p>
+    <label for="email">Email address</label><br>
+    <input id="email" name="email" type="email" autocomplete="email">
+  </p>
+  <p><button type="submit" id="subscribe">Subscribe</button></p>
+</form>
+<script>
+  const validDialog = document.getElementById('valid-dialog');
+  const status = document.getElementById('status');
+  document.getElementById('open-dialog').addEventListener('click', () => validDialog.showModal());
+  document.getElementById('icon-save').addEventListener('click', () => {
+    status.textContent = 'Preferences saved';
+  });
+  document.getElementById('dialog-close').addEventListener('click', () => validDialog.close());
+</script>
+</body>
+</html>

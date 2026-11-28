@@ -18,7 +18,7 @@ const cfg = (text) => { const p = parseConfig(text), r = resolveConfig(p.value);
 test('auto-fix is on by default: no file, an empty file, or a file that does not mention it', () => {
   assert.equal(readLabConfig(path.join(root, 'nowhere')).config.auto_fix.enabled, true);
   assert.equal(cfg('').config.auto_fix.enabled, true); assert.equal(cfg('# only a comment\n').config.auto_fix.enabled, true);
-  assert.equal(cfg('auto_fix:\n').config.auto_fix.enabled, true); assert.deepEqual(DEFAULTS, { auto_fix: { enabled: true } });
+  assert.equal(cfg('auto_fix:\n').config.auto_fix.enabled, true); assert.deepEqual(DEFAULTS, { auto_fix: { enabled: true }, a11y_mcp: { enabled: true, fixtures: true } }, 'defaults include the dynamic accessibility checkpoint switches, both on');
 });
 
 test('it can be switched off in the file, with comments around it', () => {

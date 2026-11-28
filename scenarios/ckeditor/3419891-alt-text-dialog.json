@@ -1,0 +1,157 @@
+{
+  "schema": "lab-a11y-scenario/1",
+  "id": "ckeditor-alt-text-dialog",
+  "issue": 3419891,
+  "variant": "3419891-pinned",
+  "title": "Alternative text field in the CKEditor 5 image dialog",
+  "description": "Replay the route into the image alternative-text flow on the Basic page form: reach the page, initialize CKEditor 5, focus the editable, and record that the image button is present and reachable. The alternative text balloon itself needs an image in the editor, which this representation cannot create (there is no file-input step); manualReview and evaluate-3419891.mjs cover that part.",
+  "preconditions": [
+    "Standard install with the Image module and the Basic page content type whose body field uses CKEditor 5 with the image plugin (recipe repro_3419891).",
+    "Variant 3419891-pinned is built: Before envs/baseline-3419891, After envs/issue-3419891.",
+    "The After side has the 3419891 MR patch (single-line input becomes an auto-growing textarea)."
+  ],
+  "fixture": {
+    "recipe": "repro_3419891",
+    "standardInstall": false,
+    "notes": "recipes/repro_3419891/recipe.yml exists and is the registered fixture for variant 3419891-pinned. It does not ship an image fixture; tools/playwright/evaluate-3419891.mjs generates a 64x64 PNG in memory, which is a host-side capability this data-step runner does not have."
+  },
+  "route": "/node/add/page",
+  "login": true,
+  "viewport": {
+    "width": 1280,
+    "height": 900
+  },
+  "browser": "chromium",
+  "colourScheme": "light",
+  "forcedColors": false,
+  "reducedMotion": "no-preference",
+  "steps": [
+    {
+      "action": "goto",
+      "path": "/node/add/page",
+      "readiness": {
+        "selector": ".ck-editor__editable",
+        "state": "visible"
+      },
+      "label": "Open the Add Basic page form"
+    },
+    {
+      "action": "checkpoint",
+      "id": "editor-initialized",
+      "label": "The CKEditor 5 body editor has initialized"
+    },
+    {
+      "action": "click",
+      "locator": {
+        "selector": ".ck-editor__editable"
+      },
+      "label": "Activate the body editor with a trusted click"
+    },
+    {
+      "action": "checkpoint",
+      "id": "editor-focused",
+      "label": "The body editor has focus"
+    },
+    {
+      "action": "checkpoint",
+      "id": "image-button-present",
+      "label": "The editor's image-insert control is present"
+    },
+    {
+      "action": "evaluate",
+      "expression": "Boolean(document.querySelector('.ck-file-dialog-button'))",
+      "label": "Read whether the image file-dialog control exists (read-only)"
+    },
+    {
+      "action": "assert",
+      "check": {
+        "state": {
+          "path": "state.application.scope.found",
+          "equals": true
+        }
+      },
+      "label": "The checkpoint's image-button scope was found on the page"
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "editor-initialized",
+      "label": "The CKEditor 5 body editor has initialized",
+      "profile": "quick",
+      "scope": ".ck-editor__editable",
+      "expected": {
+        "states": [
+          {
+            "path": "state.application.ckeditor.present",
+            "equals": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "editor-focused",
+      "label": "The body editor has focus",
+      "profile": "quick",
+      "scope": ".ck-editor__editable",
+      "expected": {
+        "states": [
+          {
+            "path": "focus.active.role",
+            "equals": "textbox"
+          }
+        ]
+      }
+    },
+    {
+      "id": "image-button-present",
+      "label": "The editor's image-insert control is present",
+      "profile": "visual",
+      "scope": ".ck-file-dialog-button",
+      "readiness": {
+        "selector": ".ck-file-dialog-button",
+        "state": "visible"
+      },
+      "expected": {
+        "states": [
+          {
+            "path": "state.application.scope.found",
+            "equals": true
+          }
+        ]
+      }
+    }
+  ],
+  "expected": [
+    {
+      "state": {
+        "path": "state.application.ckeditor.present",
+        "equals": true
+      }
+    }
+  ],
+  "regressionAssertions": [
+    {
+      "state": {
+        "path": "state.application.ckeditor.editables",
+        "countMin": 1
+      }
+    }
+  ],
+  "resetInstructions": [
+    "node tools/compare/setup.mjs 3419891-pinned --check-patches",
+    "node scripts/lab-env.mjs reset 3419891-pinned --yes (the page form writes a node when saved; the scenario does not save)"
+  ],
+  "manualReview": [
+    "Upload an image into the body field, select the image widget, open the alternative text balloon, and check that the field grows vertically (up to six rows), stops at its limit, stays scrollable, and resets its height after Cancel. This needs a file input, which the data-step vocabulary deliberately does not include; tools/playwright/evaluate-3419891.mjs scripts the full flow.",
+    "Check that the balloon field's visible label is 'Alternative text' and that focus enters the field when the balloon opens.",
+    "Check Save and Cancel stay reachable and that Escape returns focus to the editor.",
+    "A real keyboard and screen-reader pass on the long alternative text."
+  ],
+  "limits": [
+    "The image-insert and alternative-text-balloon checkpoints are NOT reached by this scenario: a file upload is not expressible with the approved data steps, and a state-changing evaluate callback is not allowed. The scenario stops at the image-insert control and records the gap instead of pretending to reach the balloon.",
+    "The alternative text field's grow/cap/scroll behaviour is verified by tools/playwright/evaluate-3419891.mjs, not by this replay.",
+    "No variant run in this session; the scenario has not been replayed."
+  ],
+  "verified": false,
+  "notes": "Read reports/issues/3419891/EVIDENCE.md, REPRODUCE.md and the registered variant 3419891-pinned. The route /node/add/page, the .ck-editor__editable readiness selector, and the .ck-file-dialog-button control are taken from tools/playwright/evaluate-3419891.mjs, which drives the real image upload and measures the field. Inferred, not observed: the accessible name and markup of the image-insert control on this core, and the exact focus role of the editable. Not replayed end to end: no complete Before/After run exists for this file; only the Before side was reached once before the After side was stopped by the writing session's sandbox."
+}

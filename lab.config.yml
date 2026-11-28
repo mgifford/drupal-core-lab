@@ -8,3 +8,10 @@ auto_fix:
   # Either way an auto-fix is never silent: its commits say so, and a patch file it changes is recorded in
   # reports/issues/<nid>/PATCH-CHANGES.md with the original kept (see "Auto-fix" in AGENTS.md).
   enabled: true
+
+a11y_mcp:
+  # The Playwright MCP accessibility-checkpoint integration (tools/a11y-mcp/, docs/DYNAMIC-A11Y-CHECKPOINTS.md).
+  # It only ever scans Lab environments under envs/ and loopback fixture pages; set enabled to false to switch it off.
+  enabled: true
+  # Allow loopback fixture pages (127.0.0.1 / localhost) as checkpoint targets. These are the negative controls and tests.
+  fixtures: true

@@ -1,0 +1,242 @@
+{
+  "schema": "lab-a11y-scenario/1",
+  "id": "ckeditor-toolbar-forced-colors",
+  "issue": 3534229,
+  "variant": "3534229-pinned",
+  "title": "CKEditor 5 toolbar-configuration icons in forced-colours mode",
+  "description": "Replay the Full HTML toolbar-configuration fieldset in forced-colours mode: reach the lists, hover and focus an icon-only toolbar option, move an active item with the documented arrow keys, then save the format. Both sides must reach the same toolbar configuration state before their rendered icons are compared.",
+  "preconditions": [
+    "Standard install with Default Admin as both default and admin theme and the Full HTML text format using CKEditor 5 (recipe repro_3534229).",
+    "Variant 3534229-pinned is built: Before envs/baseline-3534229, After envs/issue-3534229.",
+    "Chromium with forced-colours emulation. Run once with --scheme=light and once with --scheme=dark for the two forced palettes the issue describes."
+  ],
+  "fixture": {
+    "recipe": "repro_3534229",
+    "standardInstall": false,
+    "notes": "recipes/repro_3534229/recipe.yml exists in this checkout and is the registered fixture for variant 3534229-pinned. It is a standard install; the format page is ordinary core markup, so no extra fixture file is needed."
+  },
+  "route": "/admin/config/content/formats/manage/full_html",
+  "login": true,
+  "viewport": {
+    "width": 1280,
+    "height": 900
+  },
+  "browser": "chromium",
+  "colourScheme": "light",
+  "forcedColors": true,
+  "reducedMotion": "no-preference",
+  "steps": [
+    {
+      "action": "goto",
+      "path": "/admin/config/content/formats/manage/full_html",
+      "readiness": {
+        "selector": "#ckeditor5-toolbar-app .ckeditor5-toolbar-item",
+        "state": "visible"
+      },
+      "label": "Open the Full HTML text-format configuration"
+    },
+    {
+      "action": "checkpoint",
+      "id": "toolbar-lists-loaded",
+      "label": "Toolbar configuration lists are populated"
+    },
+    {
+      "action": "hover",
+      "locator": {
+        "role": "option",
+        "name": "Bold"
+      },
+      "label": "Hover an icon-only active toolbar item so its tooltip appears"
+    },
+    {
+      "action": "checkpoint",
+      "id": "tooltip-visible",
+      "label": "Toolbar item tooltip is visible"
+    },
+    {
+      "action": "press",
+      "key": "Shift",
+      "locator": {
+        "role": "option",
+        "name": "Bold"
+      },
+      "label": "Put trusted keyboard focus on the Bold option without activating it (Shift has no effect on this widget)"
+    },
+    {
+      "action": "checkpoint",
+      "id": "focused-toolbar-item",
+      "label": "An icon-only toolbar item has keyboard focus"
+    },
+    {
+      "action": "assert",
+      "check": {
+        "focus": {
+          "role": "option"
+        }
+      },
+      "label": "The focused element is a toolbar option"
+    },
+    {
+      "action": "press",
+      "key": "ArrowLeft",
+      "locator": {
+        "role": "option",
+        "name": "Bold"
+      },
+      "label": "Move the active item one position left with the keyboard"
+    },
+    {
+      "action": "checkpoint",
+      "id": "reordered-item",
+      "label": "Active toolbar order changed with the keyboard"
+    },
+    {
+      "action": "press",
+      "key": "ArrowRight",
+      "locator": {
+        "role": "option",
+        "name": "Bold"
+      },
+      "label": "Move it back so the saved configuration matches the starting order"
+    },
+    {
+      "action": "click",
+      "locator": {
+        "role": "button",
+        "name": "Save configuration"
+      },
+      "label": "Save the text-format configuration"
+    },
+    {
+      "action": "waitFor",
+      "readiness": {
+        "selector": "[data-drupal-messages] [role]",
+        "state": "visible"
+      },
+      "label": "Wait for the saved status message"
+    },
+    {
+      "action": "checkpoint",
+      "id": "saved-configuration",
+      "label": "Configuration saved and the status message is shown"
+    },
+    {
+      "action": "assert",
+      "check": {
+        "state": {
+          "path": "state.application.messages",
+          "countMin": 1
+        }
+      },
+      "label": "Saving is reported as a status message"
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "toolbar-lists-loaded",
+      "label": "Toolbar configuration lists are populated",
+      "profile": "quick",
+      "expected": {
+        "content": [
+          "Toolbar configuration"
+        ]
+      }
+    },
+    {
+      "id": "tooltip-visible",
+      "label": "Toolbar item tooltip is visible",
+      "profile": "visual",
+      "scope": ".ckeditor5-toolbar-item-bold .ckeditor5-toolbar-tooltip",
+      "readiness": {
+        "selector": ".ckeditor5-toolbar-item-bold .ckeditor5-toolbar-tooltip",
+        "state": "visible"
+      },
+      "expected": {
+        "states": [
+          {
+            "path": "state.readiness.satisfied",
+            "equals": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "focused-toolbar-item",
+      "label": "An icon-only toolbar item has keyboard focus",
+      "profile": "visual",
+      "scope": ".ckeditor5-toolbar-item-bold",
+      "expected": {
+        "states": [
+          {
+            "path": "focus.active.role",
+            "equals": "option"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reordered-item",
+      "label": "Active toolbar order changed with the keyboard",
+      "profile": "quick",
+      "scope": ".ckeditor5-toolbar-active__buttons",
+      "expected": {
+        "states": [
+          {
+            "path": "focus.active.role",
+            "equals": "option"
+          }
+        ]
+      }
+    },
+    {
+      "id": "saved-configuration",
+      "label": "Configuration saved and the status message is shown",
+      "profile": "dynamic",
+      "expected": {
+        "states": [
+          {
+            "path": "state.application.messages",
+            "countMin": 1
+          }
+        ],
+        "content": [
+          "has been updated"
+        ]
+      }
+    }
+  ],
+  "expected": [
+    {
+      "state": {
+        "path": "state.application.messages",
+        "countMin": 1
+      }
+    }
+  ],
+  "regressionAssertions": [
+    {
+      "state": {
+        "path": "state.application.formErrors",
+        "equals": []
+      }
+    }
+  ],
+  "resetInstructions": [
+    "node tools/compare/setup.mjs 3534229-pinned --check-patches",
+    "node scripts/lab-env.mjs reset 3534229-pinned --yes (only if a previous run reordered and saved a format configuration)"
+  ],
+  "manualReview": [
+    "Look at each icon-only control in forced light and forced dark: the automated checkpoint records the DOM, computed styles and a screenshot, not whether the mask paints the icon for a person.",
+    "Repeat with a real Windows contrast theme in Edge or Chrome, and in Firefox, if available; Chromium's emulated palettes are defaults, not a user's chosen colours.",
+    "Confirm the tooltip text is readable and appears on both hover and keyboard focus, and that the focus outline does not clip the icon.",
+    "A real keyboard-only pass (Tab, arrow keys, Save) by a person, not scripted input."
+  ],
+  "limits": [
+    "Playwright forced-colours emulation is not a real Windows contrast theme; the issue's manual Windows rows remain unverified.",
+    "Firefox forced-colours rendering is not reproduced here: Playwright Firefox crashes on this macOS host before a page exists.",
+    "The reordered item's order itself is recorded as step evidence (an evaluate step reads the list) and in the interaction history; the equivalence check only establishes that both sides reached a focused, populated toolbar state.",
+    "axe-core cannot decide whether a masked icon is visible; the visual profile records computed styles and screenshots for a person to read."
+  ],
+  "verified": false,
+  "notes": "Read reports/issues/3534229/EVIDENCE.md, REPRODUCE.md, TOOLBAR-INVENTORY.json and COMPATIBILITY-3637246.md, and the registered variant 3534229-pinned in tools/compare/variants.json. The toolbar item roles and accessible-name text come from core/modules/ckeditor5/js/ckeditor5.admin.js in envs/baseline-3534229 (li role=option with a visually-hidden label; toolbar lists are role=listbox). The route and the Save configuration button are those used by tools/playwright/evaluate-3534229.mjs. Inferred, not observed in this session: the exact accessible-name substring matching 'Bold', the tooltip becoming visible on hover at this viewport, and the wording of the saved status message. Not verified: this scenario has not been replayed; no Drupal site was running when it was written."
+}

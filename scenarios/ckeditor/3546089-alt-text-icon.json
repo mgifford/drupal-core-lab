@@ -1,0 +1,77 @@
+{
+  "schema": "lab-a11y-scenario/1",
+  "id": "ckeditor-alt-text-icon",
+  "issue": 3546089,
+  "variant": null,
+  "title": "Icon for editing alternative text should agree with current CKEditor",
+  "description": "Replay the editor states where the alternative-text icon appears: the image-insert control in the toolbar and the image widget once inserted. This data-step representation cannot upload an image, so the scenario records the toolbar control and stops there; the balloon's 'Edit alternative text' icon is compared by a person from a screenshot and from the upstream CKEditor 5 icon, and tools/playwright/evaluate-3419891.mjs can insert an image when a host-side file fixture is available.",
+  "preconditions": [
+    "Standard install with CKEditor 5 image support, or the recipe used for #3419891 (Basic page body with image plugin).",
+    "No environment is registered for #3546089 yet; the issue is Active with no merge request in the lab's records.",
+    "The comparison icon is the current CKEditor 5 'insert image' / 'edit alternative text' icon set, not a description from memory."
+  ],
+  "fixture": {
+    "standardInstall": true,
+    "notes": "No recipe, folder or variant for #3546089 exists in this checkout. Plain Standard install is named as the intended fixture, but the Standard Basic page body uses Basic HTML without the image button; the #3419891 recipe (recipes/repro_3419891) is the realistic way to get an image-capable CKEditor 5 body. That is why the scenario is marked unverified and the fixture is stated as a precondition, not a fact."
+  },
+  "route": "/node/add/page",
+  "login": true,
+  "viewport": { "width": 1280, "height": 900 },
+  "browser": "chromium",
+  "colourScheme": "light",
+  "forcedColors": false,
+  "reducedMotion": "no-preference",
+  "steps": [
+    {
+      "action": "goto",
+      "path": "/node/add/page",
+      "readiness": { "selector": ".ck-editor__editable", "state": "visible" },
+      "label": "Open a form with a CKEditor 5 body field"
+    },
+    { "action": "checkpoint", "id": "editor-initialized", "label": "The CKEditor 5 body editor has initialized" },
+    { "action": "checkpoint", "id": "image-button-present", "label": "The image-insert toolbar control is present" },
+    { "action": "evaluate", "expression": "Boolean(document.querySelector('.ck-file-dialog-button'))", "label": "Read whether the image file-dialog control exists (read-only)" },
+    { "action": "assert", "check": { "state": { "path": "state.application.scope.found", "equals": true } }, "label": "The image control's scope was found on the page" }
+  ],
+  "checkpoints": [
+    {
+      "id": "editor-initialized",
+      "label": "The CKEditor 5 body editor has initialized",
+      "profile": "quick",
+      "scope": ".ck-editor__editable",
+      "expected": { "states": [{ "path": "state.application.ckeditor.present", "equals": true }] }
+    },
+    {
+      "id": "image-button-present",
+      "label": "The image-insert toolbar control is present",
+      "profile": "visual",
+      "scope": ".ck-file-dialog-button",
+      "readiness": { "selector": ".ck-file-dialog-button", "state": "visible" },
+      "expected": { "states": [{ "path": "state.application.scope.found", "equals": true }] }
+    }
+  ],
+  "expected": [
+    { "state": { "path": "state.application.ckeditor.present", "equals": true } }
+  ],
+  "regressionAssertions": [
+    { "state": { "path": "state.application.ckeditor.editables", "countMin": 1 } }
+  ],
+  "resetInstructions": [
+    "No registered environment: scaffold one with node scripts/new-issue.mjs 3546089 --branch <fix-branch>, then node tools/compare/setup.mjs 3546089-pinned.",
+    "Use the #3419891 recipe (recipes/repro_3419891) or equivalent image-capable CKEditor 5 configuration for the fixture."
+  ],
+  "manualReview": [
+    "Insert an image (file upload is outside this vocabulary), select the image widget, open the balloon toolbar, and compare the 'Edit alternative text' icon with the icon in the current CKEditor 5 upstream build. 'Agree' means the same visual language and recognisable purpose, not just any icon.",
+    "Check the image dialog's own alternative text affordance as well, since the issue is about the icon used for editing alt text.",
+    "Check the icon at forced colours and in dark mode, where a background-image icon may disappear.",
+    "Screenshot both sides at the same state and inspect them side by side before calling anything changed."
+  ],
+  "limits": [
+    "There is no registered variant for #3546089 and no reports/issues/3546089 folder; the fixture and steps are inferred.",
+    "The alternative-text balloon is NOT reached: there is no file-upload step in this representation and a state-changing evaluate callback is not allowed. The scenario records the toolbar control only.",
+    "The icon comparison is a visual judgement. The checkpoint records a screenshot and computed styles; it does not decide whether the icon 'agrees' with upstream.",
+    "The scenario has not been replayed; no site was running."
+  ],
+  "verified": false,
+  "notes": "Read reports/known-issues.json, which lists #3546089 'Update icon for editing alt text to agree with current CKEditor' (Active, ckeditor5.module, main). No reports/issues/3546089 folder, brief or variant exists in this checkout. The route, the .ck-editor__editable readiness condition and the .ck-file-dialog-button control are borrowed from tools/playwright/evaluate-3419891.mjs; the fixture recommendation (the #3419891 recipe) is inferred from it needing an image-capable CKEditor 5 body. Not run: no Drupal site was running in this session."
+}

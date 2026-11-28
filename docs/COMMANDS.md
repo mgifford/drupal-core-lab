@@ -4,6 +4,19 @@ Moved out of `AGENTS.md` on 2026-10-15 so that file, which every session loads, 
 The short index is in `AGENTS.md`.
 
 
+Dynamic accessibility checkpoints (the state reached through interaction, not only the page load —
+[docs/DYNAMIC-A11Y-CHECKPOINTS.md](DYNAMIC-A11Y-CHECKPOINTS.md)):
+
+    node tools/a11y-mcp/cli.mjs verify                  # is .mcp.json wired to the init hook and page helper? no browser
+    node tools/a11y-mcp/cli.mjs engines                 # declared engines, versions, capabilities and availability
+    node tools/a11y-mcp/cli.mjs session --variant <slug> [--scenario <id>] [--label <text>] [--out <dir>] [--profile <name>]   # name the MCP session (optional); --clear removes it
+    node tools/a11y-mcp/cli.mjs list                    # checkpoint sessions under reports/ and .lab-cache/
+    node tools/a11y-mcp/cli.mjs check <session-dir>     # record completeness/consistency, no browser
+    node tools/a11y-mcp/cli.mjs report <session-dir>    # regenerate SUMMARY.md + report.html from the canonical JSON
+    node tools/a11y-mcp/cli.mjs compare <session-dir> [--json]   # equivalence checks first, then Before/After classifications
+    node tools/playwright/scenario-run.mjs <scenario> <slug> [--check] [--side=both|before|after] [--browser=] [--scheme=] [--forced-colors] [--viewport=WxH] [--out=<dir>]   # replay explored steps as a deterministic Before/After run; --check needs no browser
+    node tools/a11y-mcp/verify-live.mjs --slug=<slug> [--route=<path>] [--side=both|before|after] [--out=<dir>] [--no-compare]   # live MCP Before/After checkpoints on a running pair; logs in with the one-time link and compares only equivalent states
+
 Everything is driven by **variants** in `tools/compare/variants.json`. A variant says which core (a pinned commit, or the latest
 `main`), which two environments, which patches, the recipe that creates the starting state, the steps, and the checks.
 
@@ -67,7 +80,8 @@ Everything is driven by **variants** in `tools/compare/variants.json`. A variant
     node scripts/make-bundle.mjs <slug>                  # a self-contained zip for someone else
     node scripts/communication.mjs add|update|list|check   # upstream communication state per finding (draft, posted, superseded, independently addressed); never posts or changes drupal.org (docs/COMMUNICATION.md)
     node scripts/index-issues.mjs                        # refresh reports/issues/README.md: issues grouped by next step (offline)
-    node scripts/focus-issues.mjs [--write|--summary]    # where to focus: Needs review > RTBC > Needs work > watch > close-out (offline); --write makes reports/issues/FOCUS.md
+    node scripts/focus-issues.mjs [--write|--summary]    # where to focus: Needs review > RTBC > Needs work > watch > close-out (offline); --write makes reports/issues/FOCUS.md    node scripts/validate-data.mjs [--json] [--warn]    # validate issue status.json, the generated issue index and FOCUS report, variants and patch/recipe references; no network or Docker
+
     node scripts/run-readmes.mjs <nid> [--check]   # README.md in every reports/issues/<nid>/playwright/<run>/ (Before/After image pairs, what each state is) plus an index; --check exits 1 when out of date
     node scripts/mr-pipeline.mjs <nid> [--mr <iid>] [--pipeline <id>] [--all-failures] [--no-logs] [--json]   # read-only, anonymous: a merge request's GitLab pipeline (default: its head pipeline); each job and the pipeline as PASS, BLOCKING_FAILURE, ALLOWED_FAILURE, RUNNING, PENDING, INFRASTRUCTURE_ERROR, AUTHORIZATION_BLOCKED or UNKNOWN; the merge-result commit told apart from the source commit; failed tests with file and line, log excerpts and artifact links; facts printed apart from likely causes; single-job retry as instructions only. Logs and failed tests of finished jobs are cached, redacted, in .lab-cache/gitlab/jobs/ and not downloaded again. Exit 0 PASS, 1 blocking or infrastructure failure, 3 running or pending, 4 not readable or unknown
     node scripts/issue-status.mjs <nid> [--write] | --all [--write] [--include-archived]  # read-only: status, comments, MR head vs the patch the lab tested; --write keeps status.json, rewritten only on a change; --include-archived spots a reopened archive (weekly: .github/workflows/issue-status.yml)

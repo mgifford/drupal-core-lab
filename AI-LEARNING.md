@@ -520,3 +520,57 @@ The contribution work of 2026-11-25/26 kept stopping on the lab itself, not on D
   `feat/prepare-push`: `scripts/patch-validate.mjs` checks whitespace in the resulting source, in a temporary index.
 - Lab "done" was read as upstream progress; the lifecycle states and the 7-day assignment rule are not reconciled by a tool.
 - Recovery work (reinstalls, repeated failing runs) is not separated from productive testing in the resource ledger.
+
+## 2026-11-27: dynamic accessibility checkpoints (Playwright MCP), and the shared-checkout check-in
+
+Built the "evaluate the state the person reached, not just the page load" capability (`tools/a11y-mcp/`,
+`docs/DYNAMIC-A11Y-CHECKPOINTS.md`). What the next session should know before touching it:
+
+- **`@playwright/mcp` 0.0.84: `--init-page` is the useful hook.** It runs in the MCP server's Node process for every tab
+  before the first navigation and receives the Playwright `Page`, so the lab's existing axe/tree/screenshot code can run
+  on the page the agent is using. `--init-script` is the other half: an approved page helper installed before the page's
+  own scripts. No second browser, no reload; assert preservation with `performance.timeOrigin`, the navigation entry
+  count, the open dialog and the focused element, not with a screenshot.
+- **WebMCP tools cannot be fed from the page in this version.** Playwright evaluates page-registered tools in the
+  *utility* world (`webmcp.ts`, `world: "utility"`), where a `navigator.modelContext` polyfill installed by an init script is
+  invisible; `browser_webmcp_list` is not even in the advertised tool list. The working narrow route is
+  `browser_evaluate("() => window.__labA11y.checkpoint({...})")` over one exposed binding; do not depend on
+  `browser_run_code_unsafe`.
+- **`@axe-core/playwright` 4.14 needs a real context.** A page from `browser.newPage()` throws
+  "Please use browser.newContext()" because `finishRun` opens a second page in the same context. Catch that and retry with
+  `setLegacyMode(true)` (same-origin frames only), and record that the mode changed.
+- **Site-random ids are a comparison bug, not noise.** HTML_CodeSniffer selectors carried Drupal's
+  `#…--1676520538` ids; on two builds of identical code that produced 14 false `new-regression` and 14 false
+  `resolved-failure` pairs. Normalise selectors *and* HTML snippets with the tree-diff random-suffix rules before
+  fingerprinting (`lib/a11y/findings.mjs`).
+- **Readiness conditions need to describe the thing that matters.** Waiting for `.ck-balloon-panel_visible` to disappear
+  reported a good state (`focus-restored`) as `state-not-reached` because the element lingered; asserting
+  `activeElement.isContentEditable || role=textbox` was right. Keep readiness an explicit condition, never a sleep; the
+  expression validator should allow escaped quotes and non-ASCII labels but keep braces/backticks/statements out.
+- **Keep the old `axeScan()` shape while adding options.** The 33 evaluators read `total/rules/violations/url`; `target`
+  stays space-joined (add `targetTree` for frame/shadow structure), complete raw output goes to evidence and is trimmed
+  to rule ids only above 2 MB.
+- **HTML_CodeSniffer 2.5.1 is a usable second engine** (BSD-3-Clause, inject into the live page, evaluate frame by frame).
+  Its messages are type 1 error / 2 warning / 3 manual notice; only 1 and 2 are findings. It reads DOM regardless of
+  rendering, so it can report a hidden dialog's unnamed button at page load where axe cannot - a useful contrast, not a
+  contradiction.
+- **Cross-session messaging does not exist here.** `list_agents` is tree-only, the team board is per root, and
+  `send_message` rejects a session id that is not a subagent ("requires another agent in the subagent tree"). Coordination
+  is files in `reports/infrastructure/` (`COORDINATION-*`, `COMMIT-REQUESTS-*`), now documented at the top of
+  `docs/WORKSPACE-HYGIENE.md`. **Writing a note is not delivery**: three active sessions went two hours without reading
+  my notes, so the durable fix was a separate worktree/branch (`/private/tmp/lab-a11y-mcp`,
+  `a11y-mcp-checkpoints`, based on `origin/main`), 3-way-applying the 12 shared-file edits and copying only the new
+  paths. One `AGENTS.md` conflict was resolved by keeping both my line and a newer upstream line.
+- **A scenario's variant must exist on the base branch, not just in the shared checkout.** `3466040-pinned` exists only
+  as another session's uncommitted `variants.json` row; on a clean `origin/main` the scenario had to become
+  `variant: null` with a note. Check `variants()` on the branch, not in the working checkout.
+- **Browser suites can stall when run together.** The negative-control and real-MCP integration suites pass in 14 s and
+  11 s separately but stalled in one combined `node --test` run in the worktree; run them as separate suites in CI or give
+  them their own job.
+- **Host sandbox vs Chromium:** inside the DSH sandbox the MCP server needs `--headless --no-sandbox --isolated` and a
+  writable `PWTEST_SERVER_REGISTRY`; the production `.mcp.json` keeps Chromium's sandbox and the persistent profile. The
+  error "too many arguments ... got 1: .../cli.js" means the CLI path was passed twice (`.mcp.json` `args[0]` is the CLI).
+- **The honest limits are part of the deliverable.** The live run on #3419891 reached five CKEditor states on both sides
+  and compared only equivalent ones (49 distinct findings after dedupe, all `existing-failure`), but the image dialog was
+  skipped because its toolbar control opens an OS file chooser, and no person or screen reader reviewed anything. Say
+  that every time; do not let a clean scan read as an accessibility pass.

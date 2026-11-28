@@ -1,0 +1,3257 @@
+{
+  "schema": "lab-a11y-session/1",
+  "id": "2026-11-27T16-15-53-live-3419891-pinned",
+  "started": "2026-11-27T16:20:00.757Z",
+  "updated": "2026-11-27T16:20:05.251Z",
+  "issue": "3419891",
+  "variants": [
+    "3419891-pinned"
+  ],
+  "kinds": [
+    "lab-variant"
+  ],
+  "tool": {
+    "name": "playwright",
+    "integration": "playwright-mcp init-page + approved in-page helper; axe-core runs on the live page"
+  },
+  "mcp": {
+    "version": "0.0.84",
+    "integration": "playwright-mcp --init-page + --init-script; a single exposed binding; browser_evaluate calls the approved helper",
+    "initScript": "tools/playwright/lib/a11y/page-helper.js",
+    "initPage": "tools/a11y-mcp/init-page.cjs",
+    "serverStarted": "2026-11-27T16:18:26.561Z"
+  },
+  "configuredProfile": "full",
+  "pages": [
+    {
+      "origin": "https://repro-issue-3419891.ddev.site",
+      "path": "/node/add/page",
+      "host": "repro-issue-3419891.ddev.site",
+      "contextId": null,
+      "variant": "3419891-pinned",
+      "side": "after",
+      "env": "issue-3419891",
+      "when": "2026-11-27T16:20:00.764Z"
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "editor-initialized",
+      "sequence": 1,
+      "label": "CKEditor initialised",
+      "status": "captured",
+      "side": "after",
+      "when": "2026-11-27T16:20:00.841Z",
+      "page": "/node/add/page",
+      "variant": "3419891-pinned",
+      "scriptedOrExploratory": "playwright-mcp",
+      "engines": [
+        {
+          "engine": "axe-core",
+          "version": "4.14.0",
+          "status": "executed",
+          "findings": 0
+        },
+        {
+          "engine": "htmlcs",
+          "version": "2.5.1",
+          "status": "executed",
+          "findings": 0
+        }
+      ],
+      "findings": 49,
+      "manual": 4,
+      "evidenceDir": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized",
+      "file": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/checkpoints/001-editor-initialized.json"
+    }
+  ],
+  "findings": [
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "a86e7889c9ba38cc03e2cf38da95c3bf50e985b9468e3f5a9d43c29e9bcbfc62",
+      "displayId": "A11Y-PAT-A86E7889C9BA",
+      "occurrenceFingerprint": "82958a4f6990d95fe7415fdf3db5783918b68b1101b3116627d8e24746be6aa6",
+      "occurrenceDisplayId": "A11Y-OCC-82958A4F6990",
+      "engine": {
+        "id": "axe-core",
+        "version": "4.14.0"
+      },
+      "outcome": "incomplete",
+      "ruleId": "color-contrast",
+      "ruleLabel": "Elements must meet minimum color contrast ratio thresholds",
+      "impact": "serious",
+      "engineSeverity": null,
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
+      "element": {
+        "selector": ".toolbar-button--icon--navigation-blocks > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "normalizedSelector": ".toolbar-button--icon--navigation-blocks > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "xpath": null,
+        "html": "<span class=\"toolbar-button__label\" data-toolbar-text=\"\">Blocks</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            ".toolbar-button--icon--navigation-blocks > .toolbar-button__label[data-toolbar-text=\"\"]"
+          ],
+          "selector": ".toolbar-button--icon--navigation-blocks > .toolbar-button__label[data-toolbar-text=\"\"]",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "Fix any of the following: Element's background color could not be determined due to a background gradient",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "a685240c2a1017791971010736fe1d66ce45f2fc0f9dbdb61c189901b7d96d9b",
+      "displayId": "A11Y-PAT-A685240C2A10",
+      "occurrenceFingerprint": "9781cbd5febc969641c786d13122bac8583afdac0523f78ab68844c4d523e2a7",
+      "occurrenceDisplayId": "A11Y-OCC-9781CBD5FEBC",
+      "engine": {
+        "id": "axe-core",
+        "version": "4.14.0"
+      },
+      "outcome": "incomplete",
+      "ruleId": "color-contrast",
+      "ruleLabel": "Elements must meet minimum color contrast ratio thresholds",
+      "impact": "serious",
+      "engineSeverity": null,
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
+      "element": {
+        "selector": ".toolbar-button--icon--navigation-content > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "normalizedSelector": ".toolbar-button--icon--navigation-content > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "xpath": null,
+        "html": "<span class=\"toolbar-button__label\" data-toolbar-text=\"\">Content</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            ".toolbar-button--icon--navigation-content > .toolbar-button__label[data-toolbar-text=\"\"]"
+          ],
+          "selector": ".toolbar-button--icon--navigation-content > .toolbar-button__label[data-toolbar-text=\"\"]",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "Fix any of the following: Element's background color could not be determined due to a background gradient",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "832fbd830bd6bac3a170982a55e62eca007b50a3413eceab5b8cdca17235dae0",
+      "displayId": "A11Y-PAT-832FBD830BD6",
+      "occurrenceFingerprint": "ca675f6114dc471130997e5091bd0ddfff9aeb47e47abeb595de633293761694",
+      "occurrenceDisplayId": "A11Y-OCC-CA675F6114DC",
+      "engine": {
+        "id": "axe-core",
+        "version": "4.14.0"
+      },
+      "outcome": "incomplete",
+      "ruleId": "color-contrast",
+      "ruleLabel": "Elements must meet minimum color contrast ratio thresholds",
+      "impact": "serious",
+      "engineSeverity": null,
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
+      "element": {
+        "selector": ".toolbar-button--icon--navigation-files > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "normalizedSelector": ".toolbar-button--icon--navigation-files > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "xpath": null,
+        "html": "<span class=\"toolbar-button__label\" data-toolbar-text=\"\">Files</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            ".toolbar-button--icon--navigation-files > .toolbar-button__label[data-toolbar-text=\"\"]"
+          ],
+          "selector": ".toolbar-button--icon--navigation-files > .toolbar-button__label[data-toolbar-text=\"\"]",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "Fix any of the following: Element's background color could not be determined due to a background gradient",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "665be289d3483a723e6060f7d1bbc7273f9a7e480f8bb7b9e04e12e706f7e801",
+      "displayId": "A11Y-PAT-665BE289D348",
+      "occurrenceFingerprint": "376511eaaf596c24a95a98f04f144445ce2f83d626366c7c899021c21e024162",
+      "occurrenceDisplayId": "A11Y-OCC-376511EAAF59",
+      "engine": {
+        "id": "axe-core",
+        "version": "4.14.0"
+      },
+      "outcome": "incomplete",
+      "ruleId": "color-contrast",
+      "ruleLabel": "Elements must meet minimum color contrast ratio thresholds",
+      "impact": "serious",
+      "engineSeverity": null,
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
+      "element": {
+        "selector": ".toolbar-button--icon--signpost > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "normalizedSelector": ".toolbar-button--icon--signpost > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "xpath": null,
+        "html": "<span class=\"toolbar-button__label\" data-toolbar-text=\"\">Welcome</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            ".toolbar-button--icon--signpost > .toolbar-button__label[data-toolbar-text=\"\"]"
+          ],
+          "selector": ".toolbar-button--icon--signpost > .toolbar-button__label[data-toolbar-text=\"\"]",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "Fix any of the following: Element's background color could not be determined due to a background gradient",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "bae94ce3fd3c2ae9f7943ced8b1133f64647aa3bf34a48c3b20a7ec51e262d1f",
+      "displayId": "A11Y-PAT-BAE94CE3FD3C",
+      "occurrenceFingerprint": "5a57243a96fc3f7cbd10e4703849061192f34fb364ac67e7465aab9747847740",
+      "occurrenceDisplayId": "A11Y-OCC-5A57243A96FC",
+      "engine": {
+        "id": "axe-core",
+        "version": "4.14.0"
+      },
+      "outcome": "incomplete",
+      "ruleId": "color-contrast",
+      "ruleLabel": "Elements must meet minimum color contrast ratio thresholds",
+      "impact": "serious",
+      "engineSeverity": null,
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
+      "element": {
+        "selector": ".toolbar-button--icon--system-admin-structure > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "normalizedSelector": ".toolbar-button--icon--system-admin-structure > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "xpath": null,
+        "html": "<span class=\"toolbar-button__label\" data-toolbar-text=\"\">Structure</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            ".toolbar-button--icon--system-admin-structure > .toolbar-button__label[data-toolbar-text=\"\"]"
+          ],
+          "selector": ".toolbar-button--icon--system-admin-structure > .toolbar-button__label[data-toolbar-text=\"\"]",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "Fix any of the following: Element's background color could not be determined due to a background gradient",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "b837201bbd08f4d1d9cf0cf41a14d4b48f3e7a2c945996c1574d243de5cbbe86",
+      "displayId": "A11Y-PAT-B837201BBD08",
+      "occurrenceFingerprint": "77302f488ec012177373fd1ae08ee4324284e3b86e88dfeac3272664d5f38734",
+      "occurrenceDisplayId": "A11Y-OCC-77302F488EC0",
+      "engine": {
+        "id": "axe-core",
+        "version": "4.14.0"
+      },
+      "outcome": "incomplete",
+      "ruleId": "color-contrast",
+      "ruleLabel": "Elements must meet minimum color contrast ratio thresholds",
+      "impact": "serious",
+      "engineSeverity": null,
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
+      "element": {
+        "selector": ".toolbar-button--icon--system-themes-page > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "normalizedSelector": ".toolbar-button--icon--system-themes-page > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "xpath": null,
+        "html": "<span class=\"toolbar-button__label\" data-toolbar-text=\"\">Appearance</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            ".toolbar-button--icon--system-themes-page > .toolbar-button__label[data-toolbar-text=\"\"]"
+          ],
+          "selector": ".toolbar-button--icon--system-themes-page > .toolbar-button__label[data-toolbar-text=\"\"]",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "Fix any of the following: Element's background color could not be determined due to a background gradient",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "9705917eff4dd9d1d1357e34a1681e7f2c5dde82b0bbc48ece65310aab757be8",
+      "displayId": "A11Y-PAT-9705917EFF4D",
+      "occurrenceFingerprint": "0cea4163b7691fc1199af6c90d609a31e5014d07fe539db6ae5c3984cc42eb27",
+      "occurrenceDisplayId": "A11Y-OCC-0CEA4163B769",
+      "engine": {
+        "id": "axe-core",
+        "version": "4.14.0"
+      },
+      "outcome": "incomplete",
+      "ruleId": "color-contrast",
+      "ruleLabel": "Elements must meet minimum color contrast ratio thresholds",
+      "impact": "serious",
+      "engineSeverity": null,
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
+      "element": {
+        "selector": ".toolbar-button--icon--system-modules-list > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "normalizedSelector": ".toolbar-button--icon--system-modules-list > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "xpath": null,
+        "html": "<span class=\"toolbar-button__label\" data-toolbar-text=\"\">Extend</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            ".toolbar-button--icon--system-modules-list > .toolbar-button__label[data-toolbar-text=\"\"]"
+          ],
+          "selector": ".toolbar-button--icon--system-modules-list > .toolbar-button__label[data-toolbar-text=\"\"]",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "Fix any of the following: Element's background color could not be determined due to a background gradient",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "35877af37dc55638f1f33e09b0f5f3b8a4631f6533232d3019e58ba59623e496",
+      "displayId": "A11Y-PAT-35877AF37DC5",
+      "occurrenceFingerprint": "d00c529495e7a749aef125c8ed27ea378fd758333d1d17ff1cfe6911bcd24af0",
+      "occurrenceDisplayId": "A11Y-OCC-D00C529495E7",
+      "engine": {
+        "id": "axe-core",
+        "version": "4.14.0"
+      },
+      "outcome": "incomplete",
+      "ruleId": "color-contrast",
+      "ruleLabel": "Elements must meet minimum color contrast ratio thresholds",
+      "impact": "serious",
+      "engineSeverity": null,
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
+      "element": {
+        "selector": ".toolbar-button--icon--system-admin-config > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "normalizedSelector": ".toolbar-button--icon--system-admin-config > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "xpath": null,
+        "html": "<span class=\"toolbar-button__label\" data-toolbar-text=\"\">Configuration</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            ".toolbar-button--icon--system-admin-config > .toolbar-button__label[data-toolbar-text=\"\"]"
+          ],
+          "selector": ".toolbar-button--icon--system-admin-config > .toolbar-button__label[data-toolbar-text=\"\"]",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "Fix any of the following: Element's background color could not be determined due to a background gradient",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "87a1ce4465064303a387f64a8dbc3bf79d30ff709998add1692368a860faf0e6",
+      "displayId": "A11Y-PAT-87A1CE446506",
+      "occurrenceFingerprint": "b30c94a35066dfced6ff51d8628b6a622fb52db89abcfe52db4ce6192b10b2f6",
+      "occurrenceDisplayId": "A11Y-OCC-B30C94A35066",
+      "engine": {
+        "id": "axe-core",
+        "version": "4.14.0"
+      },
+      "outcome": "incomplete",
+      "ruleId": "color-contrast",
+      "ruleLabel": "Elements must meet minimum color contrast ratio thresholds",
+      "impact": "serious",
+      "engineSeverity": null,
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
+      "element": {
+        "selector": ".toolbar-button--icon--entity-user-collection > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "normalizedSelector": ".toolbar-button--icon--entity-user-collection > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "xpath": null,
+        "html": "<span class=\"toolbar-button__label\" data-toolbar-text=\"\">People</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            ".toolbar-button--icon--entity-user-collection > .toolbar-button__label[data-toolbar-text=\"\"]"
+          ],
+          "selector": ".toolbar-button--icon--entity-user-collection > .toolbar-button__label[data-toolbar-text=\"\"]",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "Fix any of the following: Element's background color could not be determined due to a background gradient",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "5a214cfda1bd443d0c57a6f3d98f5c46d0be5ce094b71b933efb8ae0c0efd853",
+      "displayId": "A11Y-PAT-5A214CFDA1BD",
+      "occurrenceFingerprint": "062c1e77b4bfb45f0d5850ebb8b720366803e01a87ec836bd9899251bce70b61",
+      "occurrenceDisplayId": "A11Y-OCC-062C1E77B4BF",
+      "engine": {
+        "id": "axe-core",
+        "version": "4.14.0"
+      },
+      "outcome": "incomplete",
+      "ruleId": "color-contrast",
+      "ruleLabel": "Elements must meet minimum color contrast ratio thresholds",
+      "impact": "serious",
+      "engineSeverity": null,
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
+      "element": {
+        "selector": ".toolbar-button--icon--system-admin-reports > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "normalizedSelector": ".toolbar-button--icon--system-admin-reports > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "xpath": null,
+        "html": "<span class=\"toolbar-button__label\" data-toolbar-text=\"\">Reports</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            ".toolbar-button--icon--system-admin-reports > .toolbar-button__label[data-toolbar-text=\"\"]"
+          ],
+          "selector": ".toolbar-button--icon--system-admin-reports > .toolbar-button__label[data-toolbar-text=\"\"]",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "Fix any of the following: Element's background color could not be determined due to a background gradient",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "b72cd1cf6f0c19b2cff25ea7bdb5b5c299f6f32f4da348085fc1bbbb4d8cd08a",
+      "displayId": "A11Y-PAT-B72CD1CF6F0C",
+      "occurrenceFingerprint": "6027e26d4a2bda25d5069bed88a9dde547250fd9916b40106ea9f4a3ffeb089e",
+      "occurrenceDisplayId": "A11Y-OCC-6027E26D4A2B",
+      "engine": {
+        "id": "axe-core",
+        "version": "4.14.0"
+      },
+      "outcome": "incomplete",
+      "ruleId": "color-contrast",
+      "ruleLabel": "Elements must meet minimum color contrast ratio thresholds",
+      "impact": "serious",
+      "engineSeverity": null,
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
+      "element": {
+        "selector": ".toolbar-button--icon--announcements-feed-announcement > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "normalizedSelector": ".toolbar-button--icon--announcements-feed-announcement > .toolbar-button__label[data-toolbar-text=\"\"]",
+        "xpath": null,
+        "html": "<span class=\"toolbar-button__label\" data-toolbar-text=\"\">Announcements</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            ".toolbar-button--icon--announcements-feed-announcement > .toolbar-button__label[data-toolbar-text=\"\"]"
+          ],
+          "selector": ".toolbar-button--icon--announcements-feed-announcement > .toolbar-button__label[data-toolbar-text=\"\"]",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "Fix any of the following: Element's background color could not be determined due to a background gradient",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "8911e086e74622824a8a54255433a6644b6260fbcdea16d824bd36c8234a2c67",
+      "displayId": "A11Y-PAT-8911E086E746",
+      "occurrenceFingerprint": "94e81e3b8bc60a1fd48f8d1954059d64f4ec7547b1684cd96ecb5c9c67240243",
+      "occurrenceDisplayId": "A11Y-OCC-94E81E3B8BC6",
+      "engine": {
+        "id": "axe-core",
+        "version": "4.14.0"
+      },
+      "outcome": "incomplete",
+      "ruleId": "color-contrast",
+      "ruleLabel": "Elements must meet minimum color contrast ratio thresholds",
+      "impact": "serious",
+      "engineSeverity": null,
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
+      "element": {
+        "selector": "#edit-field-body-0-format--2",
+        "normalizedSelector": "#edit-field-body-0-format--2",
+        "xpath": null,
+        "html": "<select class=\"js-filter-list edito...\" data-drupal-selector=\"edit-field-body-0-fo...\" data-editor-for=\"edit-field-body-0-va...\" id=\"edit-field-body-0-fo...\" name=\"field_body[0][format...\" data-once=\"editor\">",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#edit-field-body-0-format--2"
+          ],
+          "selector": "#edit-field-body-0-format--2",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "Fix any of the following: Element's background color could not be determined due to a background image",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "e43e44c8aa0a10745df79d50bf798232cd1c528355e0256a82e5870a1b1e866b",
+      "displayId": "A11Y-PAT-E43E44C8AA0A",
+      "occurrenceFingerprint": "415de4d5a1e52f4ccbf153b3798aa4c5f14db345707ff7123e911f88011ba36f",
+      "occurrenceDisplayId": "A11Y-OCC-415DE4D5A1E5",
+      "engine": {
+        "id": "axe-core",
+        "version": "4.14.0"
+      },
+      "outcome": "incomplete",
+      "ruleId": "target-size",
+      "ruleLabel": "All touch targets must be 24px large, or leave sufficient space",
+      "impact": "serious",
+      "engineSeverity": null,
+      "wcag": [
+        "2.5.8"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/target-size?application=playwright",
+      "element": {
+        "selector": ".ck-splitbutton__arrow[data-cke-tooltip-text=\"Bulleted List\"][aria-haspopup=\"true\"]",
+        "normalizedSelector": ".ck-splitbutton__arrow[data-cke-tooltip-text=\"Bulleted List\"][aria-haspopup=\"true\"]",
+        "xpath": null,
+        "html": "<button class=\"ck ck-button ck-off ck-splitbutton__arrow\" type=\"button\" tabindex=\"-1\" aria-labelledby=\"ck-editor__aria-label_ef67d61088bcbe5376236d9c4df261545\" data-cke-tooltip-text=\"Bulleted List\" data-cke-tooltip-position=\"s\" aria-haspopup=\"true\" aria-expanded=\"false\">",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            ".ck-splitbutton__arrow[data-cke-tooltip-text=\"Bulleted List\"][aria-haspopup=\"true\"]"
+          ],
+          "selector": ".ck-splitbutton__arrow[data-cke-tooltip-text=\"Bulleted List\"][aria-haspopup=\"true\"]",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "Fix any of the following: Element with negative tabindex has insufficient size (20px by 32px, should be at least 24px by 24px). Is this a target? Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 20px instead of at least 24px. Is the neighbor a target?",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 2.5.8); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "f441e5eb7ceac9c5571084cc09dee52d7547d2f92d7b1932e8249d12e915d140",
+      "displayId": "A11Y-PAT-F441E5EB7CEA",
+      "occurrenceFingerprint": "7b3f8289cbeaf920c7b28d29c47c28d65a580ea69b1a4242233dfedd5a4eda5f",
+      "occurrenceDisplayId": "A11Y-OCC-7B3F8289CBEA",
+      "engine": {
+        "id": "axe-core",
+        "version": "4.14.0"
+      },
+      "outcome": "incomplete",
+      "ruleId": "target-size",
+      "ruleLabel": "All touch targets must be 24px large, or leave sufficient space",
+      "impact": "serious",
+      "engineSeverity": null,
+      "wcag": [
+        "2.5.8"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/target-size?application=playwright",
+      "element": {
+        "selector": ".ck-splitbutton__arrow[data-cke-tooltip-text=\"Numbered List\"][aria-haspopup=\"true\"]",
+        "normalizedSelector": ".ck-splitbutton__arrow[data-cke-tooltip-text=\"Numbered List\"][aria-haspopup=\"true\"]",
+        "xpath": null,
+        "html": "<button class=\"ck ck-button ck-off ck-splitbutton__arrow\" type=\"button\" tabindex=\"-1\" aria-labelledby=\"ck-editor__aria-label_e67bedfe932aef1247a8f8a52ffae6640\" data-cke-tooltip-text=\"Numbered List\" data-cke-tooltip-position=\"s\" aria-haspopup=\"true\" aria-expanded=\"false\">",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            ".ck-splitbutton__arrow[data-cke-tooltip-text=\"Numbered List\"][aria-haspopup=\"true\"]"
+          ],
+          "selector": ".ck-splitbutton__arrow[data-cke-tooltip-text=\"Numbered List\"][aria-haspopup=\"true\"]",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "Fix any of the following: Element with negative tabindex has insufficient size (20px by 32px, should be at least 24px by 24px). Is this a target? Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 20px instead of at least 24px. Is the neighbor a target?",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 2.5.8); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/axe-core.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "adb4eec5fcd017d8ab79738dbabfa5c3a3ed9631f22de5ed25652325c93b672e",
+      "displayId": "A11Y-PAT-ADB4EEC5FCD0",
+      "occurrenceFingerprint": "7b889e8c52add07f0b639df32edc268e71fe6f29b7c9b23e2077718c4832a5d8",
+      "occurrenceDisplayId": "A11Y-OCC-7B889E8C52AD",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs",
+      "ruleLabel": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 4.5:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "body > a",
+        "normalizedSelector": "body > a",
+        "xpath": null,
+        "html": "<a href=\"#main-content\" class=\"visually-hidden focusable skip-link\"> Skip to main content </a>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "body > a"
+          ],
+          "selector": "body > a",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 4.5:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "2ac835c2d1cd85ee73df74f9028e87c21ea8d481bc26745edfb91358aa25088d",
+      "displayId": "A11Y-PAT-2AC835C2D1CD",
+      "occurrenceFingerprint": "f98aa3a9c1f678c3c5cdfb8fc08409ce40fa539012d6a9446aedcc614157d322",
+      "occurrenceDisplayId": "A11Y-OCC-F98AA3A9C1F6",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_10.C32,C31,C33,C38,SCR34,G206",
+      "ruleLabel": "This element has \"position: fixed\". This may require scrolling in two dimensions, which is considered a failure of this Success Criterion.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.10"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "body > div:nth-of-type(2)",
+        "normalizedSelector": "body > div",
+        "xpath": null,
+        "html": "<div class=\"admin-toolbar-overlay\" admin-toolbar-trigger=\"\" data-drupal-admin-styles=\"\" data-once=\"admin-toolbar-trigger\"></div>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "body > div:nth-of-type(2)"
+          ],
+          "selector": "body > div:nth-of-type(2)",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element has \"position: fixed\". This may require scrolling in two dimensions, which is considered a failure of this Success Criterion.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.10); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "992a4f26edd8741cb7d4040738a2aa1071a609ee3d3700b1201d7c6099d0f916",
+      "displayId": "A11Y-PAT-992A4F26EDD8",
+      "occurrenceFingerprint": "ab597588e2d5f34855c2c46b3f6f386e1523dd181a00a87f8026f9a7f3a5f771",
+      "occurrenceDisplayId": "A11Y-OCC-AB597588E2D5",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_3.1_3_1_A.G141",
+      "ruleLabel": "The heading structure is not logically nested. This h2 element appears to be the primary document heading, so should be an h1 element.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.3.1"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#system-breadcrumb",
+        "normalizedSelector": "#system-breadcrumb",
+        "xpath": null,
+        "html": "<h2 id=\"system-breadcrumb\" class=\"visually-hidden\">Breadcrumb</h2>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#system-breadcrumb"
+          ],
+          "selector": "#system-breadcrumb",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "The heading structure is not logically nested. This h2 element appears to be the primary document heading, so should be an h1 element.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.3.1); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "55611de348a88a410e1cb2a406103fd8d765283d6b92888ec8be8c4da97a564a",
+      "displayId": "A11Y-PAT-55611DE348A8",
+      "occurrenceFingerprint": "2f1f24fb9b5dd0bdda2b7553ada855207ee0f43cef8b79ff7d9453843f74e688",
+      "occurrenceDisplayId": "A11Y-OCC-2F1F24FB9B5D",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G145.Abs",
+      "ruleLabel": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 3:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#system-breadcrumb",
+        "normalizedSelector": "#system-breadcrumb",
+        "xpath": null,
+        "html": "<h2 id=\"system-breadcrumb\" class=\"visually-hidden\">Breadcrumb</h2>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#system-breadcrumb"
+          ],
+          "selector": "#system-breadcrumb",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 3:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "3f06bc3dcb1111787a32ebb3c0436694d79966f22fc2f00f4da71e4090eb62d1",
+      "displayId": "A11Y-PAT-3F06BC3DCB11",
+      "occurrenceFingerprint": "83e248e90e0a1b0ba7e5b690526e2386cdef4abb630a93f234dd6226cef3dc32",
+      "occurrenceDisplayId": "A11Y-OCC-83E248E90E0A",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "violation",
+      "ruleId": "WCAG2AA.Principle2.Guideline2_4.2_4_1.G1,G123,G124.NoSuchID",
+      "ruleLabel": "This link points to a named anchor \"toggle-sidebar\" within the document, but no anchor exists with that name.",
+      "impact": null,
+      "engineSeverity": "error",
+      "wcag": [
+        "2.4.1"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#edit-default-admin-sticky-actions > a",
+        "normalizedSelector": "#edit-default-admin-sticky-actions > a",
+        "xpath": null,
+        "html": "<a href=\"#toggle-sidebar\" class=\"meta-sidebar__trigger trigger is-active\" role=\"button\" title=\"Hide sidebar panel\" aria-controls=\"default_admin_sidebar\" aria-expanded=\"true\" data-once=\"adminSidebarToggle\"><span class=\"visually-hidden\">Hide sidebar panel</span></a>",
+        "semantic": {
+          "role": "button",
+          "name": null,
+          "source": "html-attribute"
+        },
+        "context": {
+          "targetTree": [
+            "#edit-default-admin-sticky-actions > a"
+          ],
+          "selector": "#edit-default-admin-sticky-actions > a",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This link points to a named anchor \"toggle-sidebar\" within the document, but no anchor exists with that name.",
+      "expectedBehaviour": "WCAG 2.4.1: the element should satisfy this requirement.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "engine-reported",
+      "reviewStatus": "unreviewed",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "ae49b15857af11d7fa4cfeb786ee5ef89206f5d186445a9a827711cfaf3e6d37",
+      "displayId": "A11Y-PAT-AE49B15857AF",
+      "occurrenceFingerprint": "d24580ce4bfca2101c1e4f2c640c4bfb234e494aa175a7c9ab6e33e73569b92a",
+      "occurrenceDisplayId": "A11Y-OCC-D24580CE4BFC",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs",
+      "ruleLabel": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 4.5:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#edit-default-admin-sticky-actions > a > span",
+        "normalizedSelector": "#edit-default-admin-sticky-actions > a > span",
+        "xpath": null,
+        "html": "<span class=\"visually-hidden\">Hide sidebar panel</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#edit-default-admin-sticky-actions > a > span"
+          ],
+          "selector": "#edit-default-admin-sticky-actions > a > span",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 4.5:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "30d84d5fcd4a4850dd9b4fd3b9e80362edd9691fcabec9f449e11930b1fc5da2",
+      "displayId": "A11Y-PAT-30D84D5FCD4A",
+      "occurrenceFingerprint": "e4068ec2b6f4184328bf18ab6ebeafda8c965656a61a4d56f8aef18d2b92d1de",
+      "occurrenceDisplayId": "A11Y-OCC-E4068EC2B6F4",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle4.Guideline4_1.4_1_2.H91.A.Empty",
+      "ruleLabel": "Anchor element found with an ID but without a href or link text. Consider moving its ID to a parent or nearby element.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "4.1.2"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#main-content",
+        "normalizedSelector": "#main-content",
+        "xpath": null,
+        "html": "<a id=\"main-content\" tabindex=\"-1\"></a>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#main-content"
+          ],
+          "selector": "#main-content",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "Anchor element found with an ID but without a href or link text. Consider moving its ID to a parent or nearby element.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 4.1.2); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "d44e905541b95acb8057fcddcbaf642568aa2f22bac1b432677ff8f842a0a187",
+      "displayId": "A11Y-PAT-D44E905541B9",
+      "occurrenceFingerprint": "9ead8164bff9a28595d545b72c000bdc1bd585c78ec9cde3bc83c77beab55ac3",
+      "occurrenceDisplayId": "A11Y-OCC-9EAD8164BFF9",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_10.C32,C31,C33,C38,SCR34,G206",
+      "ruleLabel": "This element has \"position: fixed\". This may require scrolling in two dimensions, which is considered a failure of this Success Criterion.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.10"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#node-page-form > div > div:nth-of-type(1) > div:nth-of-type(2)",
+        "normalizedSelector": "#node-page-form > div > div > div",
+        "xpath": null,
+        "html": "<div class=\"meta-sidebar__overlay trigger\" data-once=\"adminSidebarClose\"></div>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#node-page-form > div > div:nth-of-type(1) > div:nth-of-type(2)"
+          ],
+          "selector": "#node-page-form > div > div:nth-of-type(1) > div:nth-of-type(2)",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element has \"position: fixed\". This may require scrolling in two dimensions, which is considered a failure of this Success Criterion.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.10); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "ec3228ac846395594e23a3b3543847f9607fca068bf5807a477545fdac72a3e6",
+      "displayId": "A11Y-PAT-EC3228AC8463",
+      "occurrenceFingerprint": "168cc568751ce2ee257d57c86da98cfc788167f4cb853ee6c8791b06b0790c82",
+      "occurrenceDisplayId": "A11Y-OCC-168CC568751C",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_3.1_3_1.H85.2",
+      "ruleLabel": "If this selection list contains groups of related options, they should be grouped with optgroup.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.3.1"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#edit-field-body-0-format--2",
+        "normalizedSelector": "#edit-field-body-0-format--2",
+        "xpath": null,
+        "html": "<select class=\"js-filter-list editor form-element--extrasmall form-element--editor-format form-select form-element form-element--type-select\" data-drupal-selector=\"edit-field-body-0-format\" data-editor-for=\"edit-field-body-0-value\" id=\"edit-field-body-0-format--2\" name=\"field_body[0][format]\" data-…",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#edit-field-body-0-format--2"
+          ],
+          "selector": "#edit-field-body-0-format--2",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "If this selection list contains groups of related options, they should be grouped with optgroup.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.3.1); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "d521307e1fa29ce02cb6558a3efa2e1eddded317fdfbdab4aa8b38baea85717a",
+      "displayId": "A11Y-PAT-D521307E1FA2",
+      "occurrenceFingerprint": "5f1e27e396fc532a4597577887f008658e8ea86607d59f6b24a8a6c5ac170136",
+      "occurrenceDisplayId": "A11Y-OCC-5F1E27E396FC",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage",
+      "ruleLabel": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#edit-field-body-0-format--2 > option:nth-of-type(1)",
+        "normalizedSelector": "#edit-field-body-0-format--2 > option",
+        "xpath": null,
+        "html": "<option value=\"basic_html\" selected=\"selected\">Basic HTML</option>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#edit-field-body-0-format--2 > option:nth-of-type(1)"
+          ],
+          "selector": "#edit-field-body-0-format--2 > option:nth-of-type(1)",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "551bc9b47799e2433ce50a2bef3fb9ac5d44d455014794191edd01ff83857cd8",
+      "displayId": "A11Y-PAT-551BC9B47799",
+      "occurrenceFingerprint": "dbcaf31ee6cf292cd749a66379e4b300b82252ad3edcb2877f313e0bc1ae1063",
+      "occurrenceDisplayId": "A11Y-OCC-DBCAF31EE6CF",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_3.1_3_1_A.G141",
+      "ruleLabel": "The heading structure is not logically nested. This h4 element should be an h2 to be properly nested.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.3.1"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#edit-field-body-0-format-guidelines > div > h4",
+        "normalizedSelector": "#edit-field-body-0-format-guidelines > div > h4",
+        "xpath": null,
+        "html": "<h4 class=\"label\" style=\"display: none;\">Restricted HTML</h4>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#edit-field-body-0-format-guidelines > div > h4"
+          ],
+          "selector": "#edit-field-body-0-format-guidelines > div > h4",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "The heading structure is not logically nested. This h4 element should be an h2 to be properly nested.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.3.1); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "3b549cd3b2adff49e192b7c5d617d6e2bc335643603f3f2da8943a21db89dcff",
+      "displayId": "A11Y-PAT-3B549CD3B2AD",
+      "occurrenceFingerprint": "d8b7b0858af7b38f5789b43d91845fd07ac418c027f88db6ff8a170a3ca7889a",
+      "occurrenceDisplayId": "A11Y-OCC-D8B7B0858AF7",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_10.C32,C31,C33,C38,SCR34,G206",
+      "ruleLabel": "This element has \"position: fixed\". This may require scrolling in two dimensions, which is considered a failure of this Success Criterion.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.10"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#default_admin_sidebar",
+        "normalizedSelector": "#default_admin_sidebar",
+        "xpath": null,
+        "html": "<div class=\"layout-region layout-region-node-secondary layout-region--secondary\" id=\"default_admin_sidebar\" tabindex=\"0\" data-once=\"adminSidebarInit\"> <span class=\"sidebar-draggable\" id=\"sidebar-draggable\"></span> <div class=\"layout-region__content\"> <div class=\"entity-meta accordion js-form-wrappe…",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#default_admin_sidebar"
+          ],
+          "selector": "#default_admin_sidebar",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element has \"position: fixed\". This may require scrolling in two dimensions, which is considered a failure of this Success Criterion.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.10); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "2cb9f21bda8e8d9c135b85f5d85d194fb428c847e5ea6f971fff18d0eef1855f",
+      "displayId": "A11Y-PAT-2CB9F21BDA8E",
+      "occurrenceFingerprint": "ae29649fa106797754448c8e5d939528b65b259a7e8f42146b6cd0fc351b6584",
+      "occurrenceDisplayId": "A11Y-OCC-AE29649FA106",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_3.1_3_1.H44.NotFormControl",
+      "ruleLabel": "This label's \"for\" attribute contains an ID for an element that is not a form control. Ensure that you have entered the correct ID for the intended element.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.3.1"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#edit-meta-changed > label",
+        "normalizedSelector": "#edit-meta-changed > label",
+        "xpath": null,
+        "html": "<label for=\"edit-meta-changed\" class=\"form-item__label\">Last saved</label>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#edit-meta-changed > label"
+          ],
+          "selector": "#edit-meta-changed > label",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This label's \"for\" attribute contains an ID for an element that is not a form control. Ensure that you have entered the correct ID for the intended element.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.3.1); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "7ad3981761f2973cc65e26af5dc37082414cf5f5f92369aee5f7581e34eeee80",
+      "displayId": "A11Y-PAT-7AD3981761F2",
+      "occurrenceFingerprint": "52186772068de262d0873ef813b845697830974703a4d59629f4ffc70f4cbebe",
+      "occurrenceDisplayId": "A11Y-OCC-52186772068D",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_3.1_3_1.H44.NotFormControl",
+      "ruleLabel": "This label's \"for\" attribute contains an ID for an element that is not a form control. Ensure that you have entered the correct ID for the intended element.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.3.1"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#edit-meta-author > label",
+        "normalizedSelector": "#edit-meta-author > label",
+        "xpath": null,
+        "html": "<label for=\"edit-meta-author\" class=\"form-item__label\">Author</label>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#edit-meta-author > label"
+          ],
+          "selector": "#edit-meta-author > label",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This label's \"for\" attribute contains an ID for an element that is not a form control. Ensure that you have entered the correct ID for the intended element.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.3.1); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "ceca0ef18021eeb23faa1b77fcfc10ba81b5187ea578197424182980c3e91924",
+      "displayId": "A11Y-PAT-CECA0EF18021",
+      "occurrenceFingerprint": "d520da8274bda0a000bf6b79472434f2b0ee4409923dde798a51e3515dc43e67",
+      "occurrenceDisplayId": "A11Y-OCC-D520DA8274BD",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_3.1_3_1.H85.2",
+      "ruleLabel": "If this selection list contains groups of related options, they should be grouped with optgroup.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.3.1"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#edit-menu-menu-parent",
+        "normalizedSelector": "#edit-menu-menu-parent",
+        "xpath": null,
+        "html": "<select class=\"menu-parent-select form-select form-element form-element--type-select\" data-drupal-selector=\"edit-menu-menu-parent\" id=\"edit-menu-menu-parent\" name=\"menu[menu_parent]\"> <option value=\"main:\" selected=\"selected\">&lt;Main navigation&gt;</option> <option value=\"main:standard.front_page\"…",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#edit-menu-menu-parent"
+          ],
+          "selector": "#edit-menu-menu-parent",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "If this selection list contains groups of related options, they should be grouped with optgroup.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.3.1); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "6cb4ca31ef9e3d496a7bdc59288f3b8a39e0b407a54dfa1350625eecb5b4f30b",
+      "displayId": "A11Y-PAT-6CB4CA31EF9E",
+      "occurrenceFingerprint": "1369c748ac3caf9ffb98799adafccb6d7dcf1fecdd9b6762ba89df7a4b4dc6d9",
+      "occurrenceDisplayId": "A11Y-OCC-1369C748AC3C",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs",
+      "ruleLabel": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 4.5:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#edit-created-0-value > div:nth-of-type(1) > label",
+        "normalizedSelector": "#edit-created-0-value > div > label",
+        "xpath": null,
+        "html": "<label for=\"edit-created-0-value-date\" class=\"form-item__label visually-hidden\">Date</label>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#edit-created-0-value > div:nth-of-type(1) > label"
+          ],
+          "selector": "#edit-created-0-value > div:nth-of-type(1) > label",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 4.5:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "19e6c7117d72e23c98ff8535e098b1f9f94f9a443d87481cfc84ea81c1103807",
+      "displayId": "A11Y-PAT-19E6C7117D72",
+      "occurrenceFingerprint": "920a2cc8e82d5f706e247ddcc73fbd5d4dd3a18eb3d94c8ffffd3b8f4329abf4",
+      "occurrenceDisplayId": "A11Y-OCC-920A2CC8E82D",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G145.Abs",
+      "ruleLabel": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 3:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#admin-toolbar__scroll-wrapper-935526640",
+        "normalizedSelector": "#admin-toolbar__scroll-wrapper-935526640",
+        "xpath": null,
+        "html": "<h2 id=\"admin-toolbar__scroll-wrapper-935526640\" class=\"visually-hidden\">Administrative sidebar</h2>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#admin-toolbar__scroll-wrapper-935526640"
+          ],
+          "selector": "#admin-toolbar__scroll-wrapper-935526640",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 3:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "19e9f68fb594994b1d6f6774623c265bf207d810486c01ea7594dfe5e275b9ef",
+      "displayId": "A11Y-PAT-19E9F68FB594",
+      "occurrenceFingerprint": "39fb9c583196dc58757ee7a2569bed4803634c675197e3994b599d9b95da524f",
+      "occurrenceDisplayId": "A11Y-OCC-39FB9C583196",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G145.BgImage",
+      "ruleLabel": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 3:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#menu-builder > div:nth-of-type(2) > h3",
+        "normalizedSelector": "#menu-builder > div > h3",
+        "xpath": null,
+        "html": "<h3 class=\"visually-hidden focusable\">Content</h3>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#menu-builder > div:nth-of-type(2) > h3"
+          ],
+          "selector": "#menu-builder > div:nth-of-type(2) > h3",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 3:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "90c46bc2a8e9b95e7351780cc1db335bf05bdd0d5fa195690457370063d5ad25",
+      "displayId": "A11Y-PAT-90C46BC2A8E9",
+      "occurrenceFingerprint": "1f89212c7e068c30c80fac498fc1e781942945decb2e6eac4ea1bc64dbfd2105",
+      "occurrenceDisplayId": "A11Y-OCC-1F89212C7E06",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G145.Abs",
+      "ruleLabel": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 3:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#menu-footer > div:nth-of-type(1) > h3",
+        "normalizedSelector": "#menu-footer > div > h3",
+        "xpath": null,
+        "html": "<h3 class=\"visually-hidden focusable\">Help</h3>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#menu-footer > div:nth-of-type(1) > h3"
+          ],
+          "selector": "#menu-footer > div:nth-of-type(1) > h3",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 3:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "2e0782c6a641e94e1a08b558eb9057c2c04fdff6051f8e3360e18025068df79c",
+      "displayId": "A11Y-PAT-2E0782C6A641",
+      "occurrenceFingerprint": "16a8250080d17bf1e95c66c9fde07515a824252b5ffd9faaa3ca416d29fe9337",
+      "occurrenceDisplayId": "A11Y-OCC-16A8250080D1",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs",
+      "ruleLabel": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 4.5:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#menu-footer > button > span",
+        "normalizedSelector": "#menu-footer > button > span",
+        "xpath": null,
+        "html": "<span class=\"visually-hidden\" data-toolbar-text=\"\">Collapse sidebar</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#menu-footer > button > span"
+          ],
+          "selector": "#menu-footer > button > span",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 4.5:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "9c17f18b9a7d1ee9706245cf1cb337034ea06be3ff0cc2409e510fd70cdc4eb1",
+      "displayId": "A11Y-PAT-9C17F18B9A7D",
+      "occurrenceFingerprint": "6824ae15ca517cc43b2915cdadac910ab3dfd014636be7d3a4e718716cfc4941",
+      "occurrenceDisplayId": "A11Y-OCC-6824AE15CA51",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs",
+      "ruleLabel": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 4.5:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#menu-builder > div:nth-of-type(1) > a > span",
+        "normalizedSelector": "#menu-builder > div > a > span",
+        "xpath": null,
+        "html": "<span class=\"visually-hidden\">Home page</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#menu-builder > div:nth-of-type(1) > a > span"
+          ],
+          "selector": "#menu-builder > div:nth-of-type(1) > a > span",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 4.5:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "0e5c9f78f926b83b2352fcf769a1831ff9d354d6ad85ba0bb0b8d62db59f37b9",
+      "displayId": "A11Y-PAT-0E5C9F78F926",
+      "occurrenceFingerprint": "7709ea0f03fdb8602783bbed1225b8a8ad1455cd490c0a80543b541fe39e65f7",
+      "occurrenceDisplayId": "A11Y-OCC-7709EA0F03FD",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs",
+      "ruleLabel": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 4.5:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#navigation-link--navigationcreate-1676520538 > button > span:nth-of-type(1)",
+        "normalizedSelector": "#navigation-link--navigationcreate-1676520538 > button > span",
+        "xpath": null,
+        "html": "<span data-toolbar-action=\"\" class=\"visually-hidden\">Collapse</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#navigation-link--navigationcreate-1676520538 > button > span:nth-of-type(1)"
+          ],
+          "selector": "#navigation-link--navigationcreate-1676520538 > button > span:nth-of-type(1)",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 4.5:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "4f6c35e7805cdc3f91e78aa2e869d19010d3da346f70eeb3d5a18bdc5550ae15",
+      "displayId": "A11Y-PAT-4F6C35E7805C",
+      "occurrenceFingerprint": "91a630e61df5dc537694a6c6b81f8f7dfbf70a6ac3bfea71baad5eac3fd14b65",
+      "occurrenceDisplayId": "A11Y-OCC-91A630E61DF5",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage",
+      "ruleLabel": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#navigation-link--navigationblocks-465866846 > a > span",
+        "normalizedSelector": "#navigation-link--navigationblocks-465866846 > a > span",
+        "xpath": null,
+        "html": "<span class=\"toolbar-button__label\" data-toolbar-text=\"\">Blocks</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#navigation-link--navigationblocks-465866846 > a > span"
+          ],
+          "selector": "#navigation-link--navigationblocks-465866846 > a > span",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "3e0cd3f935af3ab62355da796bec69cead291efd7d92253b7f10c18ec98c6ce6",
+      "displayId": "A11Y-PAT-3E0CD3F935AF",
+      "occurrenceFingerprint": "0eb7fc7d33ccd8eed8e03d8cab1a65c8ab23f96b3227914978d40fd19632c4c6",
+      "occurrenceDisplayId": "A11Y-OCC-0EB7FC7D33CC",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage",
+      "ruleLabel": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#navigation-link--navigationcontent-797462560 > a > span",
+        "normalizedSelector": "#navigation-link--navigationcontent-797462560 > a > span",
+        "xpath": null,
+        "html": "<span class=\"toolbar-button__label\" data-toolbar-text=\"\">Content</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#navigation-link--navigationcontent-797462560 > a > span"
+          ],
+          "selector": "#navigation-link--navigationcontent-797462560 > a > span",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "4d542b3394ab9bdc557394c1b3dc9da8f74f5152ccc29f3760a98baebd98b1b4",
+      "displayId": "A11Y-PAT-4D542B3394AB",
+      "occurrenceFingerprint": "f0b514d06db57cfb3a439888031a54eb58d422d125de6d6ad4210adbccc03c65",
+      "occurrenceDisplayId": "A11Y-OCC-F0B514D06DB5",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage",
+      "ruleLabel": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#navigation-link--navigationfiles-56391285 > a > span",
+        "normalizedSelector": "#navigation-link--navigationfiles-56391285 > a > span",
+        "xpath": null,
+        "html": "<span class=\"toolbar-button__label\" data-toolbar-text=\"\">Files</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#navigation-link--navigationfiles-56391285 > a > span"
+          ],
+          "selector": "#navigation-link--navigationfiles-56391285 > a > span",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "0f44c87eedbcc9be7a64ff3f32d8d71072d8112fa13b402a49b4180cffa3aa6c",
+      "displayId": "A11Y-PAT-0F44C87EEDBC",
+      "occurrenceFingerprint": "577392ef5446aa416578744be1dc2ae229bb17ce9757cccc7f24630f1984853c",
+      "occurrenceDisplayId": "A11Y-OCC-577392EF5446",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage",
+      "ruleLabel": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#navigation-link--standardwelcome-572710013 > a > span",
+        "normalizedSelector": "#navigation-link--standardwelcome-572710013 > a > span",
+        "xpath": null,
+        "html": "<span class=\"toolbar-button__label\" data-toolbar-text=\"\">Welcome</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#navigation-link--standardwelcome-572710013 > a > span"
+          ],
+          "selector": "#navigation-link--standardwelcome-572710013 > a > span",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "17ec00359eb81ce344984d016bf1bab9bb1d0375745172fe827e72c1c88cc215",
+      "displayId": "A11Y-PAT-17EC00359EB8",
+      "occurrenceFingerprint": "e51faee1c66e5e9e97ab10a96032c7be25a8d606f632c20fb7e742d8b0e9de7b",
+      "occurrenceDisplayId": "A11Y-OCC-E51FAEE1C66E",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage",
+      "ruleLabel": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#navigation-link--systemadmin-structure-437146800 > button > span:nth-of-type(1)",
+        "normalizedSelector": "#navigation-link--systemadmin-structure-437146800 > button > span",
+        "xpath": null,
+        "html": "<span data-toolbar-action=\"\" class=\"visually-hidden\">Extend</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#navigation-link--systemadmin-structure-437146800 > button > span:nth-of-type(1)"
+          ],
+          "selector": "#navigation-link--systemadmin-structure-437146800 > button > span:nth-of-type(1)",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "d30c4e043a9a47d214b3777d0b6f455f8c4ff732c4ff306119060a9a2e03c010",
+      "displayId": "A11Y-PAT-D30C4E043A9A",
+      "occurrenceFingerprint": "a92c2cc944a1555d07f3cd4533f3cb516be88e3f337d53c9a35d2d4d2dcb2cb6",
+      "occurrenceDisplayId": "A11Y-OCC-A92C2CC944A1",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage",
+      "ruleLabel": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#navigation-link--systemthemes-page-1115983276 > a > span",
+        "normalizedSelector": "#navigation-link--systemthemes-page-1115983276 > a > span",
+        "xpath": null,
+        "html": "<span class=\"toolbar-button__label\" data-toolbar-text=\"\">Appearance</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#navigation-link--systemthemes-page-1115983276 > a > span"
+          ],
+          "selector": "#navigation-link--systemthemes-page-1115983276 > a > span",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "c9c5290787e0d36a140292d270bf424a3d9ae57d981032e62341178bedf96537",
+      "displayId": "A11Y-PAT-C9C5290787E0",
+      "occurrenceFingerprint": "5d0f1f5811d78eef9fb9857e176075f8a27152745b96ef7d343654f546a6342a",
+      "occurrenceDisplayId": "A11Y-OCC-5D0F1F5811D7",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage",
+      "ruleLabel": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#navigation-link--systemmodules-list-1014147636 > a > span",
+        "normalizedSelector": "#navigation-link--systemmodules-list-1014147636 > a > span",
+        "xpath": null,
+        "html": "<span class=\"toolbar-button__label\" data-toolbar-text=\"\">Extend</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#navigation-link--systemmodules-list-1014147636 > a > span"
+          ],
+          "selector": "#navigation-link--systemmodules-list-1014147636 > a > span",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "6973804b0d949af4f90be6ec8b017e0d6f63c023932c248717cf1ca4fc57e9d9",
+      "displayId": "A11Y-PAT-6973804B0D94",
+      "occurrenceFingerprint": "0c4467b1eebc6afe29ea07d521a22143c909091541a637c9503e0411d6e8467e",
+      "occurrenceDisplayId": "A11Y-OCC-0C4467B1EEBC",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage",
+      "ruleLabel": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#navigation-link--systemadmin-config-382479556 > button > span:nth-of-type(1)",
+        "normalizedSelector": "#navigation-link--systemadmin-config-382479556 > button > span",
+        "xpath": null,
+        "html": "<span data-toolbar-action=\"\" class=\"visually-hidden\">Extend</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#navigation-link--systemadmin-config-382479556 > button > span:nth-of-type(1)"
+          ],
+          "selector": "#navigation-link--systemadmin-config-382479556 > button > span:nth-of-type(1)",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "6b9f4f33baa2a257c984b72a203b68a5fcf4aedc096dac290e04881d0316dda9",
+      "displayId": "A11Y-PAT-6B9F4F33BAA2",
+      "occurrenceFingerprint": "38ca79e5e93830cfc2b5b87ba4b62902094f95fb4a7aefcaae43c5d446251158",
+      "occurrenceDisplayId": "A11Y-OCC-38CA79E5E938",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage",
+      "ruleLabel": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#navigation-link--entityusercollection-1790731261 > a > span",
+        "normalizedSelector": "#navigation-link--entityusercollection-1790731261 > a > span",
+        "xpath": null,
+        "html": "<span class=\"toolbar-button__label\" data-toolbar-text=\"\">People</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#navigation-link--entityusercollection-1790731261 > a > span"
+          ],
+          "selector": "#navigation-link--entityusercollection-1790731261 > a > span",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "2af01f4deec16194c0e779f2b8cc5c8a03ecbd5776dc255dc5c8b6b7ef3c7886",
+      "displayId": "A11Y-PAT-2AF01F4DEEC1",
+      "occurrenceFingerprint": "24b7e6a75db2050fc7b9e07141538bce6c3d56ca24d7eb231ad3d76b98b75317",
+      "occurrenceDisplayId": "A11Y-OCC-24B7E6A75DB2",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage",
+      "ruleLabel": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#navigation-link--systemadmin-reports-548518960 > button > span:nth-of-type(1)",
+        "normalizedSelector": "#navigation-link--systemadmin-reports-548518960 > button > span",
+        "xpath": null,
+        "html": "<span data-toolbar-action=\"\" class=\"visually-hidden\">Extend</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#navigation-link--systemadmin-reports-548518960 > button > span:nth-of-type(1)"
+          ],
+          "selector": "#navigation-link--systemadmin-reports-548518960 > button > span:nth-of-type(1)",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "2c5d39eb65a47f2934f13dccaa3bcd719074199b8d1d369afe5ec572e5b6a1d9",
+      "displayId": "A11Y-PAT-2C5D39EB65A4",
+      "occurrenceFingerprint": "110b4f4351ecb0f2c77b5222f32219d3e9d0abcdf7e7993c33571c44945557c6",
+      "occurrenceDisplayId": "A11Y-OCC-110B4F4351EC",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage",
+      "ruleLabel": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#navigation-link--announcements-feedannouncement-2130463987 > a > span",
+        "normalizedSelector": "#navigation-link--announcements-feedannouncement-2130463987 > a > span",
+        "xpath": null,
+        "html": "<span class=\"toolbar-button__label\" data-toolbar-text=\"\">Announcements</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#navigation-link--announcements-feedannouncement-2130463987 > a > span"
+          ],
+          "selector": "#navigation-link--announcements-feedannouncement-2130463987 > a > span",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element's text is placed on a background image. Ensure the contrast ratio between the text and all covered parts of the image are at least 4.5:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "a62ebd028606219938cf2c0794c007cb453eaef7547f76398db1cf2aa3acd195",
+      "displayId": "A11Y-PAT-A62EBD028606",
+      "occurrenceFingerprint": "df0f087e4286915c463fa0cddece947cbe89a0f0ef01724ed49853a1056d5349",
+      "occurrenceDisplayId": "A11Y-OCC-DF0F087E4286",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "incomplete",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs",
+      "ruleLabel": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 4.5:1.",
+      "impact": null,
+      "engineSeverity": "warning",
+      "wcag": [
+        "1.4.3"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#navigation-link--navigationuser-linksuserwrapper-1823988504 > button > span:nth-of-type(1)",
+        "normalizedSelector": "#navigation-link--navigationuser-linksuserwrapper-1823988504 > button > span",
+        "xpath": null,
+        "html": "<span data-toolbar-action=\"\" class=\"visually-hidden\">Extend</span>",
+        "semantic": {
+          "role": null,
+          "name": null,
+          "source": "none"
+        },
+        "context": {
+          "targetTree": [
+            "#navigation-link--navigationuser-linksuserwrapper-1823988504 > button > span:nth-of-type(1)"
+          ],
+          "selector": "#navigation-link--navigationuser-linksuserwrapper-1823988504 > button > span:nth-of-type(1)",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element is absolutely positioned and the background color can not be determined. Ensure the contrast ratio between the text and all covered parts of the background are at least 4.5:1.",
+      "expectedBehaviour": "The engine could not decide automatically (WCAG 1.4.3); a person must review it.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "needs-review",
+      "reviewStatus": "needs-review",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    },
+    {
+      "schema": "lab-a11y-finding/1",
+      "fingerprint": "c6ac7ccd9755edeaa21ad966b8dd49580a7ccd11797d1ab2ed58220dd28db762",
+      "displayId": "A11Y-PAT-C6AC7CCD9755",
+      "occurrenceFingerprint": "6ea0cda4d454c323399e5f6243467ffbe39c986b49996da2682543cc912ac073",
+      "occurrenceDisplayId": "A11Y-OCC-6EA0CDA4D454",
+      "engine": {
+        "id": "htmlcs",
+        "version": "2.5.1"
+      },
+      "outcome": "violation",
+      "ruleId": "WCAG2AA.Principle1.Guideline1_3.1_3_1.F92,ARIA4",
+      "ruleLabel": "This element's role is \"presentation\" but contains child elements with semantic meaning.",
+      "impact": null,
+      "engineSeverity": "error",
+      "wcag": [
+        "1.3.1"
+      ],
+      "actRuleIds": [],
+      "helpUrl": "https://squizlabs.github.io/HTML_CodeSniffer/",
+      "element": {
+        "selector": "#admin-toolbar",
+        "normalizedSelector": "#admin-toolbar",
+        "xpath": null,
+        "html": "<aside class=\"admin-toolbar\" id=\"admin-toolbar\" data-drupal-admin-styles=\"\" role=\"presentation\" data-once=\"navigation navigation-displace keyboard-processed\"> <div class=\"admin-toolbar__displace-placeholder\" data-offset-left=\"\"></div> <nav class=\"admin-toolbar__scroll-wrapper\" aria-labelledby=\"admi…",
+        "semantic": {
+          "role": "presentation",
+          "name": null,
+          "source": "html-attribute"
+        },
+        "context": {
+          "targetTree": [
+            "#admin-toolbar"
+          ],
+          "selector": "#admin-toolbar",
+          "contextPath": [],
+          "contextKinds": []
+        }
+      },
+      "observedFailure": "This element's role is \"presentation\" but contains child elements with semantic meaning.",
+      "expectedBehaviour": "WCAG 1.3.1: the element should satisfy this requirement.",
+      "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json",
+      "confidence": "engine-reported",
+      "reviewStatus": "unreviewed",
+      "provenance": {
+        "scenarioId": "live-3419891-pinned",
+        "checkpointId": "editor-initialized",
+        "side": "after",
+        "pagePath": "/node/add/page"
+      },
+      "observations": [
+        {
+          "checkpointId": "editor-initialized",
+          "sequence": 1,
+          "side": "after",
+          "when": "2026-11-27T16:20:00.841Z",
+          "status": "captured",
+          "evidenceRef": "reports/infrastructure/a11y-mcp/2026-11-27T16-15-53-live-3419891-pinned/evidence/001-editor-initialized/htmlcs.json"
+        }
+      ],
+      "manual": false
+    }
+  ],
+  "manual": [
+    {
+      "id": "status-understandable",
+      "question": "Is the status or error message understandable on its own, without seeing where it appeared?",
+      "procedure": "Trigger it; read/listen to the message in isolation.",
+      "why": "A message that only makes sense visually is not a status message for everyone.",
+      "side": "after",
+      "result": "not-run",
+      "requiresPerson": true,
+      "automated": false,
+      "checkpointId": "editor-initialized",
+      "when": "2026-11-27T16:20:00.841Z"
+    },
+    {
+      "id": "icon-recognisable",
+      "question": "Is the icon recognisable and, where it conveys meaning, is its name meaningful in this context?",
+      "procedure": "Compare the icon with its accessible name and with what a sighted user sees.",
+      "why": "Automated tools cannot judge whether a name is meaningful.",
+      "side": "after",
+      "result": "not-run",
+      "requiresPerson": true,
+      "automated": false,
+      "checkpointId": "editor-initialized",
+      "when": "2026-11-27T16:20:00.841Z"
+    },
+    {
+      "id": "engine-needs-review",
+      "question": "Review the engine results marked as needing review; they are not passes.",
+      "procedure": "Read the incomplete results and decide each one.",
+      "why": "An incomplete engine result is a question, not a clean result.",
+      "side": "after",
+      "result": "not-run",
+      "requiresPerson": true,
+      "automated": false,
+      "checkpointId": "editor-initialized",
+      "when": "2026-11-27T16:20:00.841Z"
+    },
+    {
+      "id": "screen-reader-repeat",
+      "question": "Does a screen reader announce anything unnecessarily repetitive at this state?",
+      "procedure": "Use a real screen reader (not a simulation) and listen.",
+      "why": "Repetition and verbosity are quality barriers automated tools cannot measure.",
+      "side": "after",
+      "result": "not-run",
+      "requiresPerson": true,
+      "automated": false,
+      "checkpointId": "editor-initialized",
+      "when": "2026-11-27T16:20:00.841Z"
+    }
+  ],
+  "resources": {
+    "checkpoints": 1,
+    "engineRuns": 2,
+    "scanMs": 4473,
+    "evidenceBytes": 417965,
+    "screenshots": 1,
+    "browserLaunches": 0,
+    "energy": null,
+    "energyNote": "not measured; the lab does not estimate energy use"
+  },
+  "limits": [
+    "Chromium only (the MCP browser); other engines/capabilities are reported per checkpoint, not assumed.",
+    "Automated engines see a minority of real barriers; a clean scan is not an accessibility pass.",
+    "No real screen reader, no person, was involved unless a manual step says so."
+  ],
+  "engineCapabilities": [
+    {
+      "id": "axe-core",
+      "label": "axe-core",
+      "version": "4.14.0",
+      "license": "MPL-2.0",
+      "livePage": true,
+      "requiresInjectedJavaScript": true,
+      "requiresNavigation": false,
+      "consumesDomSnapshot": false,
+      "iframes": true,
+      "shadowDom": true,
+      "computedStyles": true,
+      "preservesState": true,
+      "componentScope": true,
+      "resultKinds": [
+        "violations",
+        "incomplete",
+        "passes",
+        "inapplicable"
+      ],
+      "standards": [
+        "WCAG 2.0 A/AA",
+        "WCAG 2.1 A/AA",
+        "WCAG 2.2 A/AA",
+        "axe best-practice"
+      ],
+      "ruleset": "axe-core default ruleset; best-practice rules only when requested",
+      "available": true
+    },
+    {
+      "id": "htmlcs",
+      "label": "HTML_CodeSniffer",
+      "version": "2.5.1",
+      "license": "BSD-3-Clause",
+      "livePage": true,
+      "requiresInjectedJavaScript": true,
+      "requiresNavigation": false,
+      "consumesDomSnapshot": false,
+      "iframes": true,
+      "shadowDom": false,
+      "computedStyles": true,
+      "preservesState": true,
+      "componentScope": "filter",
+      "resultKinds": [
+        "error",
+        "warning",
+        "notice"
+      ],
+      "standards": [
+        "WCAG 2.0 A/AA/AAA (HTML_CodeSniffer standards)"
+      ],
+      "ruleset": "HTML_CodeSniffer 2.5.1 standard WCAG2AA; error = violation, warning = needs review, notice = manual review only",
+      "available": true
+    },
+    {
+      "id": "equal-access",
+      "label": "IBM Equal Access",
+      "version": "not installed",
+      "license": "Apache-2.0",
+      "livePage": false,
+      "requiresInjectedJavaScript": false,
+      "requiresNavigation": true,
+      "consumesDomSnapshot": false,
+      "iframes": true,
+      "shadowDom": true,
+      "computedStyles": true,
+      "preservesState": false,
+      "componentScope": false,
+      "resultKinds": [
+        "violation",
+        "recommendation",
+        "potential"
+      ],
+      "standards": [
+        "WCAG 2.2 A/AA",
+        "IBM Equal Access rulesets"
+      ],
+      "ruleset": "accessibility-checker rulesets (not applicable to live checkpoints yet)",
+      "unavailableReason": "accessibility-checker is not installed (optional: npm --prefix tools/playwright install accessibility-checker)",
+      "livePageVerdict": "not suitable for dynamic checkpoints: no API to inspect an existing page object",
+      "available": false
+    }
+  ]
+}

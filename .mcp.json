@@ -2,7 +2,13 @@
   "mcpServers": {
     "playwright": {
       "command": "node",
-      "args": ["tools/playwright/node_modules/@playwright/mcp/cli.js"]
+      "args": [
+        "tools/playwright/node_modules/@playwright/mcp/cli.js",
+        "--init-page=tools/a11y-mcp/init-page.cjs",
+        "--init-script=tools/playwright/lib/a11y/page-helper.js",
+        "--output-dir=.lab-cache/a11y-mcp/mcp-output",
+        "--redact-url-params=token,key,pass,password,code,signature"
+      ]
     }
   }
 }

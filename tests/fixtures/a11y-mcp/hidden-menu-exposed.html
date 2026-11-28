@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Menu that is hidden at load and left rendered after close</title>
+<!--
+  Control 7: the menu is correctly display:none at page load. After it is opened and closed, the script leaves it
+  rendered with opacity:0 and position:absolute instead of hiding it, so its items stay in the accessibility tree and
+  remain reachable while the button reports aria-expanded="false".
+  WCAG 2.2 SC 4.1.2 Name, Role, Value: https://www.w3.org/TR/WCAG22/#name-role-value
+-->
+<style>
+  body { margin: 2rem; font-family: system-ui, sans-serif; color: #1a1a1a; background: #ffffff; }
+  h1 { font-size: 1.5rem; }
+  button { font: inherit; padding: 0.4rem 0.9rem; background: #0b4fbf; color: #ffffff; border: 2px solid #0b4fbf; border-radius: 4px; }
+  #menu { margin: 0.5rem 0; padding: 0.5rem 0 0.5rem 0; list-style: none; border: 1px solid #666666; max-width: 22rem; background: #ffffff; }
+  #menu li { padding: 0.2rem 0.75rem; }
+  #menu a { color: #0b4fbf; }
+  [hidden] { display: none; }
+</style>
+</head>
+<body>
+<h1>Menu that is hidden at load and left rendered after close</h1>
+<p>The menu is correctly hidden at page load. Open it and close it again: after closing, its items are still rendered and exposed.</p>
+<p>
+  <button type="button" id="menu-toggle" aria-haspopup="menu" aria-expanded="false" aria-controls="menu">Menu</button>
+</p>
+<ul id="menu" role="menu" hidden>
+  <li role="none"><a role="menuitem" id="menu-item-1" href="#main">Menu item one</a></li>
+  <li role="none"><a role="menuitem" id="menu-item-2" href="#main">Menu item two</a></li>
+</ul>
+<main id="main">
+  <p>Main content continues here.</p>
+</main>
+<script>
+  const toggle = document.getElementById('menu-toggle');
+  const menu = document.getElementById('menu');
+  let open = false;
+  toggle.addEventListener('click', () => {
+    open = !open;
+    menu.hidden = false;
+    menu.style.opacity = '';
+    menu.style.position = '';
+    if (open) {
+      toggle.setAttribute('aria-expanded', 'true');
+      return;
+    }
+    // The defect: instead of hiding the menu again, it is left rendered and merely made invisible.
+    menu.style.opacity = '0';
+    menu.style.position = 'absolute';
+    toggle.setAttribute('aria-expanded', 'false');
+  });
+</script>
+</body>
+</html>

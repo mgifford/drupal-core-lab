@@ -17,7 +17,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { chromium, firefox, webkit } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { summariseAjaxResponse, limitRawCommands, AJAX_URL } from './a11y/drupal-ajax.mjs';
 import { labRoot, variants, envInfo, loginPath, envDir, reportsDir } from '../../compare/lib.mjs';
 import { runProblems, SCHEMA } from './run-schema.mjs';
 import { runBlockReason } from '../../compare/patch-state.mjs';
@@ -38,14 +38,15 @@ const BROWSERS = { chromium, firefox, webkit };
 export function runArgs({ slug: defaultSlug, viewport = '1280x900' } = {}) {
   const argv = process.argv.slice(2);
   const opt = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); return a ? a.slice(n.length + 3) : d; };
-  const browser = opt('browser', 'chromium'), scheme = opt('scheme', 'light'), forced = argv.includes('--forced-colors');
+  const browser = opt('browser', 'chromium'), scheme = opt('scheme', 'light'), forced = argv.includes('--forced-colors'), reducedMotion = opt('reduced-motion', 'no-preference');
+  if (!['no-preference', 'reduce'].includes(reducedMotion)) throw new Error('--reduced-motion must be reduce or no-preference');
   if (!BROWSERS[browser]) throw new Error('--browser must be chromium, firefox or webkit');
   const [vw, vh] = opt('viewport', viewport).split('x').map(Number);
   const slug = argv.find((a) => !a.startsWith('-')) || defaultSlug;
   const v = variants().find((x) => x.slug === slug);
   if (!v) throw new Error(`variant ${slug} not found`);
-  const envTag = `${browser}-${scheme}${forced ? '-forced' : ''}-${vw}x${vh}`;
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const envTag = `${browser}-${scheme}${forced ? '-forced' : ''}${reducedMotion === 'reduce' ? '-reduced' : ''}-${vw}x${vh}`;
   const out = path.resolve(opt('out', '') || path.join(labRoot, reportsDir(v), 'playwright', `${stamp}-${envTag}`));
   fs.mkdirSync(out, { recursive: true });
   // Observability is opt-in. --observe adds W3C trace context to same-origin document/XHR/fetch requests and writes a
@@ -53,7 +54,7 @@ export function runArgs({ slug: defaultSlug, viewport = '1280x900' } = {}) {
   const observe = argv.includes('--observe');
   const playwrightTrace = argv.includes('--playwright-trace');
   const runId = observe ? newRunId(v.slug) : null;
-  return { v, slug, browser, scheme, forced, viewport: { width: vw, height: vh }, envTag, out, observe, playwrightTrace, runId, scenarioId: v.slug };
+  return { v, slug, browser, scheme, forced, reducedMotion, viewport: { width: vw, height: vh }, envTag, out, observe, playwrightTrace, runId, scenarioId: v.slug };
 }
 
 // What each side's patches are, by content (tools/compare/patch-state.mjs). Recorded in every run; a run does not start on a mismatch.
@@ -74,7 +75,7 @@ export async function launch(a) {
     if (css.relevant && css.overall !== 'PASS') console.warn(`WARNING: CSS build ${css.overall} for ${a.v.slug} (After): ${css.entries.filter((e) => e.result !== 'PASS').map((e) => `${path.basename(e.source)} ${e.state}`).join(', ') || css.notes.join(' ')}. The browser may not be testing the CSS this patch's source produces, so this run does not validate the submitted patch. Details: node scripts/css-build.mjs ${a.v.slug}`);
   } catch (e) { a.cssBuild = { overall: 'NOT VERIFIED', files: [], error: String(e.message).slice(0, 160) }; }
   const b = await BROWSERS[a.browser].launch({ handleSIGINT: false, handleSIGTERM: false, handleSIGHUP: false, ...(a.executablePath ? { executablePath: a.executablePath } : {}) });   // executablePath: tree-diff.mjs --chromium=
-  const environment = { browser: a.browser, browserVersion: b.version(), colorScheme: a.scheme, forcedColors: a.forced, viewport: a.viewport, os: `${process.platform} ${process.arch}` };
+  const environment = { browser: a.browser, browserVersion: b.version(), colorScheme: a.scheme, forcedColors: a.forced, reducedMotion: a.reducedMotion || 'no-preference', viewport: a.viewport, os: `${process.platform} ${process.arch}` };
   return { browser: b, environment };
 }
 
@@ -88,14 +89,7 @@ export function siteContext(env) {
 
 // Runs in every page before its own scripts: lib/recorder.mjs.
 
-const strip = (s) => String(s ?? '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-const summarise = (c) => ({
-  command: c.command, method: c.method ?? null, selector: c.selector ?? null,
-  messageWrapperQuerySelector: c.messageWrapperQuerySelector ?? null, clearPrevious: c.clearPrevious ?? null,
-  messageType: c.messageOptions?.type ?? null, message: c.message != null ? strip(c.message).slice(0, 300) : null,
-  dataBytes: typeof c.data === 'string' ? c.data.length : null,
-  dataLiveRoles: typeof c.data === 'string' ? [...new Set([...c.data.matchAll(/role="(alert|status|log)"|aria-live="(polite|assertive)"/g)].map((m) => m[1] || m[2]))] : [],
-});
+// AJAX commands are summarised by lib/a11y/drupal-ajax.mjs, shared with the checkpoint integration.
 
 // Open one side: a fresh browser context with the recorders, logged in with a one-time link.
 export async function openSide(run, side) {
@@ -103,7 +97,7 @@ export async function openSide(run, side) {
   const info = envInfo(spec.env);
   const host = info.hosts.slice().sort((a, b) => a.length - b.length)[0];
   const base = `https://${host}`;
-  const ctx = await run.browser.newContext({ viewport: run.viewport, colorScheme: run.scheme, forcedColors: run.forced ? 'active' : 'none', ignoreHTTPSErrors: true });
+  const ctx = await run.browser.newContext({ viewport: run.viewport, colorScheme: run.scheme, forcedColors: run.forced ? 'active' : 'none', reducedMotion: run.reducedMotion || 'no-preference', ignoreHTTPSErrors: true });
   await ctx.addInitScript(RECORDER);
   const changes = [];   // changes after input arrive as each action's window ends, from every page of this side
   await ctx.exposeBinding('__labReport', (source, record) => { changes.push(record); });
@@ -114,12 +108,12 @@ export async function openSide(run, side) {
   const raw = []; const waits = [];
   page.on('pageerror', (e) => { const m = String(e.message); if (!/ResizeObserver loop/.test(m)) rec.jsErrors.push(m); });
   page.on('response', (r) => {
-    const u = r.url(); if (!/_wrapper_format=drupal_ajax|ajax_form=1|element_parents=/.test(u)) return;
+    const u = r.url(); if (!AJAX_URL.test(u)) return;
     waits.push(r.json().then((cmds) => {
       if (!Array.isArray(cmds)) return;
-      const p = new URL(u); const where = p.pathname + (p.search ? '?' + [...new Set(p.searchParams.keys())].join('&') : '');
-      rec.ajax.push({ url: where, status: r.status(), commands: cmds.map(summarise) });
-      raw.push({ url: where, status: r.status(), commands: cmds.map((c) => (typeof c.data === 'string' && c.data.length > 20000 ? { ...c, data: c.data.slice(0, 20000) + '…(cut)' } : c)) });
+      const summary = summariseAjaxResponse(u, r.status(), cmds);
+      rec.ajax.push(summary);
+      raw.push({ url: summary.url, status: summary.status, commands: limitRawCommands(cmds) });
     }).catch(() => {}));
   });
   page.on('load', () => { waits.push(pageContext(page).then((c) => rec.pages.push(c)).catch(() => {})); });
@@ -145,18 +139,36 @@ export async function openSide(run, side) {
 }
 
 export const pageContext = (page) => page.evaluate(() => ({
-  path: location.pathname, theme: window.drupalSettings?.ajaxPageState?.theme ?? null,
+  path: location.pathname, theme: window.drupalSettings?.labActiveTheme ?? window.drupalSettings?.ajaxPageState?.theme ?? null,
   lang: document.documentElement.lang || null, dir: document.documentElement.dir || null, title: document.title,
 }));
 
-export async function axeScan(page) {
-  const r = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+// axe on the page as it is now. The no-argument shape is unchanged for every existing evaluator; the options are the
+// checkpoint-aware extension (component scope, rule lists, best practice, tags) and the compact report still keeps at
+// most ten nodes a rule. Complete engine output is available with axeScanFull() for evidence files.
+export async function axeScan(page, options = {}) {
+  const { runAxe } = await import('./a11y/axe-engine.mjs');
+  const r = await runAxe(page, {
+    tags: options.tags || TAGS, rules: options.rules, include: options.include, exclude: options.exclude,
+    bestPractice: options.bestPractice === true, nodes: 10, raw: false, resultTypes: ['violations'],
+  }, { nodes: 10 });
+  const c = r.compact;
   return {
-    total: r.violations.reduce((n, x) => n + x.nodes.length, 0),
-    rules: Object.fromEntries(r.violations.map((x) => [x.id, x.nodes.length])),
-    violations: r.violations.map((x) => ({ id: x.id, impact: x.impact, help: x.help, helpUrl: x.helpUrl, tags: x.tags.filter((t) => /^wcag\d/.test(t)), nodes: x.nodes.slice(0, 10).map((n) => ({ target: n.target.join(' '), html: n.html.slice(0, 300) })) })),
+    total: c.total,
+    rules: c.rules,
+    violations: (c.violations || []).map((v) => ({ id: v.id, impact: v.impact, help: v.help, helpUrl: v.helpUrl, tags: (v.tags || []).filter((t) => /^wcag\d/.test(t)), wcag: v.wcag || [], nodes: (v.nodes || []).slice(0, 10).map((n) => ({ target: n.target, targetTree: n.targetTree, framePath: n.framePath, html: n.html.slice(0, 300) })) })),
     url: page.url().replace(/^https?:\/\/[^/]+/, ''),
+    incomplete: (c.incomplete || []).map((v) => ({ id: v.id, impact: v.impact, nodes: (v.nodes || []).slice(0, 10).map((n) => ({ target: n.target, html: n.html.slice(0, 300) })) })),
+    incompleteTotal: c.incompleteTotal,
+    engineVersion: r.engine.version,
+    execution: r.execution,
   };
+}
+
+// The complete axe results for persistence as raw evidence (checkpoint capture uses this through capture.mjs).
+export async function axeScanFull(page, options = {}) {
+  const { runAxe } = await import('./a11y/axe-engine.mjs');
+  return runAxe(page, { ...options, raw: true }, { nodes: options.nodes });
 }
 
 // ---- Markdown sections every run summary carries

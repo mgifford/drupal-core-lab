@@ -1,0 +1,82 @@
+{
+  "schema": "lab-a11y-scenario/1",
+  "id": "ife-error-summary-bullets",
+  "issue": 3614747,
+  "variant": null,
+  "title": "Error summary bullet points are announced by VoiceOver",
+  "description": "Replay the Inline Form Errors summary on the login form: submit it empty, capture the error summary, and read the list markup and the stylesheet state around it (read-only). The issue's audible symptom ('bullet' before each link) is a screen-reader result, so the replay records the DOM/CSS evidence and the manual review does the VoiceOver pass.",
+  "preconditions": [
+    "Standard install with Inline Form Errors enabled (the issue's own step 1). Standard install does not enable it; it must be turned on for the fixture.",
+    "A Before/After pair for the issue's fix (MR !17931) is not registered in this lab yet.",
+    "The login form is reachable while logged out; the runner logs in with openSide, so this scenario must be run in an anonymous context or the login form must be visited after logging out."
+  ],
+  "fixture": {
+    "standardInstall": true,
+    "notes": "No recipe, variant or reports/issues/3614747 folder exists in this checkout. Plain Standard install is the closest fixture, but Inline Form Errors is not enabled by default, so the precondition must be applied before a replay. The issue's reproduction steps (read from drupal.org) are the only source for the starting state."
+  },
+  "route": "/user/login",
+  "login": false,
+  "viewport": { "width": 1280, "height": 900 },
+  "browser": "chromium",
+  "colourScheme": "light",
+  "forcedColors": false,
+  "reducedMotion": "no-preference",
+  "steps": [
+    {
+      "action": "goto",
+      "path": "/user/login",
+      "readiness": { "selector": "#user-login-form", "state": "visible" },
+      "label": "Open the login form while logged out"
+    },
+    { "action": "checkpoint", "id": "login-form", "label": "The login form is shown" },
+    { "action": "click", "locator": { "role": "button", "name": "Log in" }, "label": "Submit the empty login form" },
+    { "action": "waitFor", "readiness": { "selector": "[data-drupal-messages]", "state": "visible" }, "label": "Wait for the error summary" },
+    { "action": "checkpoint", "id": "error-summary", "label": "The Inline Form Errors summary is shown after the empty submit" },
+    {
+      "action": "evaluate",
+      "expression": "({ itemList: Boolean(document.querySelector('[data-drupal-messages] .item-list')), listClass: document.querySelector('[data-drupal-messages] .item-list') ? document.querySelector('[data-drupal-messages] .item-list').className : null, links: Array.from(document.querySelectorAll('[data-drupal-messages] .item-list a')).map((a) => a.textContent.trim()) })",
+      "label": "Read the summary list markup and its link labels (read-only)"
+    },
+    { "action": "assert", "check": { "state": { "path": "state.application.messages", "countMin": 1 } }, "label": "The error summary is in a message element" }
+  ],
+  "checkpoints": [
+    {
+      "id": "login-form",
+      "label": "The login form is shown",
+      "profile": "quick",
+      "expected": { "content": ["Log in"] }
+    },
+    {
+      "id": "error-summary",
+      "label": "The Inline Form Errors summary is shown after the empty submit",
+      "profile": "dynamic",
+      "scope": "[data-drupal-messages]",
+      "readiness": { "selector": "[data-drupal-messages]", "state": "visible" },
+      "expected": { "states": [{ "path": "state.application.messages", "countMin": 1 }], "content": ["errors have been found"] }
+    }
+  ],
+  "expected": [
+    { "state": { "path": "state.application.messages", "countMin": 1 } }
+  ],
+  "regressionAssertions": [
+    { "state": { "path": "state.application.landmarks", "countMin": 1 } }
+  ],
+  "resetInstructions": [
+    "No registered environment: scaffold one with node scripts/new-issue.mjs 3614747 --branch 3614747-error-summary-bullet, then node tools/compare/setup.mjs 3614747-pinned.",
+    "Enable Inline Form Errors on both sides before the run (the Standard install does not enable it)."
+  ],
+  "manualReview": [
+    "With VoiceOver on macOS and Safari, step through the summary with VO plus Right Arrow and record whether 'bullet' is spoken before each link (the reported symptom), and what happens to the comma stops after the proposed fix.",
+    "Check that the error links still move focus to the invalid fields after the markup change.",
+    "Check the target size of each error link: the issue's comments report the links being about 20px high, below the 24px minimum target size (SC 2.5.8); this is a person/measurement check.",
+    "Decide from the evidence whether the summary should be a normal bulleted list (the maintainer direction in the last comment) or a comma-separated list; the replay does not choose."
+  ],
+  "limits": [
+    "No variant, recipe or reports/issues/3614747 folder exists in this checkout, so nothing can be replayed yet. The fixture is a plain Standard install with Inline Form Errors turned on, which is a precondition, not a verified state.",
+    "The audible symptom needs a real screen reader; the recorder only knows what the DOM and live regions exposed.",
+    "The stylesheet question (whether core/drupal.item-list reaches the summary) is read as evidence and is not asserted: the state check vocabulary cannot express 'this stylesheet is attached'.",
+    "The scenario has not been replayed in this session; no Drupal site was running."
+  ],
+  "verified": false,
+  "notes": "No reports/issues/3614747 files exist in this checkout. Read the public issue page https://www.drupal.org/project/drupal/issues/3614747 on 2026-11-27 (title, status Needs work, Inline Form Errors, steps to reproduce, MR !17931). The route and empty-submit steps come from the issue's steps to reproduce; the #user-login-form readiness selector is from core's login form markup. Inferred, not observed: that an empty submit reaches server-side validation rather than browser validation on the pinned core, and that the summary still renders with the 'errors have been found' text. Not run: no Drupal site was running in this session."
+}
