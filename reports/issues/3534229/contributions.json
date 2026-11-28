@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "issue": "3534229",
+  "entries": [
+    {
+      "id": "K001",
+      "kind": "human-origin",
+      "by": "kentr",
+      "what": "identified CSS masks with system colours as the mechanism in comment #7; the original proof of concept this fix builds on",
+      "date": "2026-11-27",
+      "links": [
+        "https://www.drupal.org/project/drupal/issues/3534229"
+      ],
+      "evidence": [],
+      "verified_by_human": null,
+      "note": null,
+      "history": []
+    },
+    {
+      "id": "K002",
+      "kind": "inherited-decision",
+      "by": "kentr",
+      "what": "use a CSS mask for the toolbar icon and a system colour (CanvasText) to paint it",
+      "date": "2026-11-27",
+      "links": [
+        "https://www.drupal.org/project/drupal/issues/3534229"
+      ],
+      "evidence": [],
+      "verified_by_human": null,
+      "note": null,
+      "history": []
+    },
+    {
+      "id": "K003",
+      "kind": "ai-addition",
+      "by": "AI (DeepSeek Harness)",
+      "what": "extended the mask approach to every Core toolbar icon with an explicit --ckeditor5-toolbar-icon opt-in, moved the Alignment mask to ::before so the caret survives, and added a forced-colors filter reset for the #3637246 dark-mode invert",
+      "date": "2026-11-27",
+      "links": [],
+      "evidence": [
+        "reports/issues/3534229/EVIDENCE.md"
+      ],
+      "verified_by_human": null,
+      "note": null,
+      "history": []
+    },
+    {
+      "id": "K004",
+      "kind": "ai-addition",
+      "by": "AI (DeepSeek Harness)",
+      "what": "produced the Before/After evidence: pixel measurement of all 35 rendered controls, keyboard/drag/save flows, WebKit and accessibility-tree checks, and the combined #3637246 compatibility measurement",
+      "date": "2026-11-27",
+      "links": [],
+      "evidence": [
+        "reports/issues/3534229/EVIDENCE.md"
+      ],
+      "verified_by_human": null,
+      "note": null,
+      "history": []
+    },
+    {
+      "id": "K005",
+      "kind": "ai-test-discovery",
+      "by": "AI-assisted testing",
+      "what": "masking the whole toolbar control clips the Alignment dropdown caret, and a background shorthand removes icons supplied by contributed plugins",
+      "date": "2026-11-27",
+      "links": [],
+      "evidence": [
+        "reports/issues/3534229/PROTOTYPE.md"
+      ],
+      "verified_by_human": null,
+      "note": null,
+      "history": []
+    },
+    {
+      "id": "K006",
+      "kind": "ai-test-discovery",
+      "by": "AI-assisted testing",
+      "what": "with #3637246's dark-mode filter invert active the forced-colors mask becomes invisible (1:1) unless a forced-colors filter reset is added",
+      "date": "2026-11-27",
+      "links": [],
+      "evidence": [
+        "reports/issues/3534229/COMPATIBILITY-3637246.md"
+      ],
+      "verified_by_human": null,
+      "note": null,
+      "history": []
+    },
+    {
+      "id": "K007",
+      "kind": "rejected-ai-approach",
+      "by": "AI (DeepSeek Harness)",
+      "what": "variant B, masking the whole button element, was rejected: it clips descendants, turns un-opted contributed icons into solid boxes in normal mode, and makes the Alignment caret unusable",
+      "date": "2026-11-27",
+      "links": [],
+      "evidence": [
+        "reports/issues/3534229/PROTOTYPE.md"
+      ],
+      "verified_by_human": null,
+      "note": null,
+      "history": []
+    },
+    {
+      "id": "K008",
+      "kind": "human-decision",
+      "by": "mgifford",
+      "what": "consolidated the implementation into MR !18007, chose CanvasText rather than ButtonText, and published it upstream (AI-assisted per the issue comment)",
+      "date": "2026-11-28",
+      "links": [
+        "https://git.drupalcode.org/project/drupal/-/merge_requests/18007"
+      ],
+      "evidence": [],
+      "verified_by_human": null,
+      "note": null,
+      "history": []
+    },
+    {
+      "id": "K009",
+      "kind": "ai-test-discovery",
+      "by": "AI-assisted testing",
+      "what": "the MR-identical stack fails Drupal core stylelint with 35 errors in 18 files (declaration-empty-line-before, one Prettier selector list, one property-order), which is why the issue moved to Needs work",
+      "date": "2026-11-28",
+      "links": [],
+      "evidence": [
+        "reports/issues/3534229/lint/2026-11-28-3534229-pinned-after.md"
+      ],
+      "verified_by_human": null,
+      "note": null,
+      "history": []
+    },
+    {
+      "id": "K010",
+      "kind": "uncertainty",
+      "by": "AI (DeepSeek Harness)",
+      "what": "real Windows contrast themes and a human keyboard/screen-reader pass were not verified; the MR still needs the stylelint repair pushed and its unrelated failed CI jobs resolved",
+      "date": "2026-11-28",
+      "links": [],
+      "evidence": [
+        "reports/issues/3534229/STATUS.md"
+      ],
+      "verified_by_human": null,
+      "note": null,
+      "history": []
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Accessibility tree, ARIA and speech: 3534229-pinned
 
-Generated 2026-11-27T23:34:21.967Z. Before: `baseline-3534229` (8a7df6cc3e 2026-11-27). After: `issue-3534229` (8a7df6cc3e 2026-11-27).
+Generated 2026-11-28T01:42:16.110Z. Before: `baseline-3534229` (8a7df6cc3e 2026-11-27). After: `issue-3534229` (8a7df6cc3e 2026-11-27).
 Chromium 159.0.8154.6, viewport 1280x900, logged in: yes. State: each page as it loads (no clicks).
 
 **0 of 6 views differ.** Hostnames, tokens, random id suffixes and content dates are normalised away.
