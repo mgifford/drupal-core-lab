@@ -34,12 +34,13 @@ import { loadTasks } from '../tools/resource/tasks.mjs';
 import { readRunning, loadBudgets } from '../tools/resource/budgets.mjs';
 import { capacityDecision } from '../tools/compare/scheduler.mjs';
 import { decideEnvironment, findSessionActivity } from '../tools/compare/reconcile.mjs';
+import { leaseFileFor } from '../tools/compare/lease-path.mjs';
 import { dependencyKeys, releasePlan, formatReleased } from '../tools/compare/deps.mjs';
 
 const [cmd, target, action] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const yes = process.argv.includes('--yes');
 const wantBrowser = process.argv.includes('--browser');
-const LEASE_FILE = path.join(labRoot, '.lab-cache/lab-env-leases.json');
+const LEASE_FILE = leaseFileFor(labRoot);
 const force = process.argv.includes('--force');
 const viewerApi = (body) => new Promise((resolve, reject) => { const q = http.request({ host: 'localhost', port: 8100, path: '/api/emulation', method: 'POST', timeout: 60000 }, (r) => { let b = ''; r.on('data', (c) => (b += c)); r.on('end', () => { if (r.statusCode === 200) resolve(b); else { const e = new Error(b || `HTTP ${r.statusCode}`); e.http = true; reject(e); } }); }); q.on('error', reject); q.on('timeout', () => q.destroy(new Error('timed out'))); q.end(JSON.stringify(body)); });
 async function openLabBrowser() { for (let i = 0; i < 30; i++) { try { await viewerApi({ open: true, mode: 'normal' }); console.log('Opened the viewer in the lab browser (Browser colour emulation switch is on the page).'); return; } catch (e) { if (e.http) { console.error('Could not open the lab browser: ' + e.message); return; } await new Promise((r) => setTimeout(r, 1000)); } } console.error('The viewer did not answer; start it first.'); }
