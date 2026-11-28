@@ -33,6 +33,7 @@ import { ensureContrib } from './contrib-state.mjs';
 import { noChangeProblem } from './change-under-test.mjs';
 import { isStaleAptCache, ADDON, ADDON_VERSION } from './ddev-build-failure.mjs';
 import { measure, assessResources, formatPreflight } from './preflight.mjs';
+import { acquireGitLock, releaseGitLock } from './git-lock.mjs';
 
 const args = process.argv.slice(2);
 const dry = args.includes('--dry-run');
@@ -134,18 +135,37 @@ const hasRef = () => !dry && spawnSync('git', [`--git-dir=${bare}`, 'rev-parse',
 // so a new environment starts from current core while existing ones are left alone.
 const needEnv = [v.before, v.after].some((x) => !have(envDir(x.env)));
 const fetchSpec = `${core.commit ? core.commit : `+refs/heads/${core.ref}`}:${coreRef}`;
-if (core.commit ? !hasRef() : (CHECK || needEnv || !hasRef())) {
+if (!dry && (core.commit ? !hasRef() : (CHECK || needEnv || !hasRef()))) {
   // --core-from seeds the commit from a checkout already on disk (a Coder issue-picker workspace, or a mirror) so no network
   // clone is needed; a non-tip commit can be fetched from a local path directly. It falls back to the origin remote, and
   // --core-url=<mirror> is the other way to survive filtered egress (see tools/compare/cloud/README.md).
-  let done = false;
-  if (coreFrom && !dry) {
-    const src = path.resolve(coreFrom);
+  // A Git fetch changes shared objects and shallow boundaries. Although setup already holds envs/.setup.lock for this
+  // checkout, another clone can share envs/core.git; take the repository-scoped lock for the fetch only, then release it
+  // before the long DDEV/Composer work.
+  let src = null;
+  if (coreFrom) {
+    src = path.resolve(coreFrom);
     if (!have(path.join(src, 'HEAD')) && !have(path.join(src, '.git'))) { console.error(`--core-from=${coreFrom} is not a git checkout (no HEAD or .git directory).`); process.exit(1); }
-    done = spawnSync('git', [`--git-dir=${bare}`, 'fetch', '--depth', '1', src, fetchSpec], { stdio: 'inherit' }).status === 0;
-    if (!done) console.log(`\n--core-from: could not fetch ${core.commit || core.ref} from ${src}; trying ${core.url}. Pass --core-url=<mirror> if the network is filtered.`);
   }
-  if (!done) run('git', [`--git-dir=${bare}`, 'fetch', '--depth', '1', 'origin', fetchSpec]);
+  const gitLock = acquireGitLock({ repo: { dir: bare, commonDir: bare }, operation: `setup fetch core ${core.commit || core.ref}`, session: process.env.DSH_SESSION_ID || 'unknown' });
+  if (!gitLock.ok) {
+    const o = gitLock.owner;
+    console.error(`Shared Git repository is busy: ${gitLock.reason}.` + (o ? `\n  ${o.operation} (${o.session}, pid ${o.pid}) has held it since ${new Date(o.started).toISOString()}.` : '') + '\nNo fetch was run; wait for that operation to finish, then run setup again.');
+    process.exit(2);
+  }
+  let done = false, failed = null;
+  try {
+    if (src) {
+      done = spawnSync('git', [`--git-dir=${bare}`, 'fetch', '--depth', '1', src, fetchSpec], { stdio: 'inherit' }).status === 0;
+      if (!done) console.log(`\n--core-from: could not fetch ${core.commit || core.ref} from ${src}; trying ${core.url}. Pass --core-url=<mirror> if the network is filtered.`);
+    }
+    if (!done) {
+      console.log(`$ git --git-dir=${bare} fetch --depth 1 origin ${fetchSpec}`);
+      const r = spawnSync('git', [`--git-dir=${bare}`, 'fetch', '--depth', '1', 'origin', fetchSpec], { stdio: 'inherit' });
+      if (r.status !== 0) failed = r.status || 1;
+    }
+  } finally { releaseGitLock({ repo: { dir: bare, commonDir: bare }, pid: gitLock.owner.pid }); }
+  if (failed != null) { console.error(`\nFailed: core fetch in ${bare}`); process.exit(failed); }
 }
 if (!dry) console.log('core is at: ' + out('git', [`--git-dir=${bare}`, 'log', '-1', '--format=%H %cs %s', coreRef]));
 
