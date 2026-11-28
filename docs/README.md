@@ -20,6 +20,7 @@ Current documentation for this lab (written or verified 2026-10-01), plus a `leg
 | [RESOURCE-PRIVACY.md](RESOURCE-PRIVACY.md) | What resource data is collected, what is public, the export allowlist, retention and removal. |
 | [CONTRIBUTIONS.md](CONTRIBUTIONS.md) | Curated human/AI contribution history: origin, AI additions, human corrections, rejected approaches and verification; never inferred from commits. |
 | [EVIDENCE-BUDGET.md](EVIDENCE-BUDGET.md) | Warn-only evidence inventory by issue: raw, structured, human and image categories, duplicate runs and configurable limits. |
+| [GIT-HISTORY-AND-PUBLICATION.md](GIT-HISTORY-AND-PUBLICATION.md) | Shallow history, bounded deepening, the shared Git lock, external worktrees, and publication readiness. |
 | [WORKSPACE-HYGIENE.md](WORKSPACE-HYGIENE.md) | Several agent sessions share one checkout: safe triage, the never-run list, coordination records and ownership. |
 
 Elsewhere:

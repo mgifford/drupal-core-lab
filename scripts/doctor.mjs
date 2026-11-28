@@ -13,8 +13,27 @@ import { hostsFor, checkHosts } from '../tools/compare/hosts.mjs';
 import { TASKS, checkTask, describeRow, primaryCheckout } from '../tools/compare/deps.mjs';
 import { measure, assessResources } from '../tools/compare/preflight.mjs';
 
-const slug = process.argv.slice(2).find((a) => !a.startsWith('--'));
-const task = (process.argv.find((a) => a.startsWith('--for=')) || '').slice('--for='.length);
+
+// A publication check is not a machine preflight: it needs the network. It is explicit and delegates to the existing
+// preparation tool, which never pushes. Default doctor remains fast and read-only.
+const argv = process.argv.slice(2);
+const flag = (name) => { const eq = argv.find((a) => a.startsWith(`--${name}=`)); if (eq) return eq.slice(name.length + 3); const i = argv.indexOf(`--${name}`); return i >= 0 && argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[i + 1] : ''; };
+const purpose = flag('purpose');
+if (purpose) {
+  if (purpose !== 'publish') { console.error(`Unknown --purpose=${purpose}; known: publish`); process.exit(2); }
+  const issue = flag('issue');
+  if (!/^\d{5,8}$/.test(issue)) { console.error('doctor --purpose publish needs --issue <nid>'); process.exit(2); }
+  const a = [path.join(labRoot, 'scripts/prepare-push.mjs'), issue];
+  for (const [from, to] of [['worktree', 'repo'], ['branch', 'source-branch'], ['remote', 'push-url'], ['fetch-url', 'fetch-url'], ['local', 'local'], ['target', 'target'], ['core-url', 'core-url'], ['patch', 'patch'], ['base', 'base']]) { const v = flag(from); if (v) a.push(`--${to}`, v); }
+  if (argv.includes('--offline')) a.push('--offline');
+  if (argv.includes('--json')) a.push('--json');
+  if (argv.includes('--repair-history')) a.push('--fetch');
+  if (argv.includes('--repair-history')) console.error('doctor: --repair-history runs only the bounded fetch plan; it never pushes or publishes.');
+  const r = spawnSync(process.execPath, a, { cwd: labRoot, stdio: 'inherit', env: process.env });
+  process.exit(r.status == null ? 2 : r.status);
+}
+const slug = argv.find((a) => !a.startsWith('--'));
+const task = (argv.find((a) => a.startsWith('--for=')) || '').slice('--for='.length);
 if (task && !TASKS[task]) { console.error(`Unknown task --for=${task}. Known: ${Object.keys(TASKS).join(', ')}`); process.exit(2); }
 // Without --for: the whole lab (build and run comparisons), as before. With it: only that task's machine tools.
 const needs = task ? TASKS[task].needs : ['docker', 'ddev'];
