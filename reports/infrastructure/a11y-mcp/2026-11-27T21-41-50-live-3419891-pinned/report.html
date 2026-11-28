@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accessibility checkpoints: issue #3419891</title>
+<style>
+:root { color-scheme: light dark; --fg:#111; --bg:#fff; --muted:#555; --line:#bbb; --accent:#0645ad; --bad:#8a1f11; --warn:#6b4b00; --ok:#0b5a25; }
+@media (prefers-color-scheme: dark) { :root { --fg:#e8e8e8; --bg:#111; --muted:#b8b8b8; --line:#555; --accent:#8ab4f8; --bad:#ff9a8a; --warn:#ffd27f; --ok:#8fdca8; } }
+@media (forced-colors: active) { :root { --fg:CanvasText; --bg:Canvas; --muted:GrayText; --line:CanvasText; --accent:LinkText; } }
+* { box-sizing: border-box; }
+body { margin: 0 auto; max-width: 78rem; padding: 1rem; font: 1rem/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+a { color: var(--accent); }
+a:focus-visible, :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+h1 { font-size: 1.6rem; } h2 { font-size: 1.3rem; margin-top: 2rem; border-bottom: 1px solid var(--line); padding-bottom: .25rem; } h3 { font-size: 1.1rem; }
+table { border-collapse: collapse; width: 100%; margin: .5rem 0 1rem; display: block; overflow-x: auto; }
+caption { text-align: left; font-weight: 600; padding: .25rem 0; }
+th, td { border: 1px solid var(--line); padding: .35rem .5rem; text-align: left; vertical-align: top; }
+th { background: color-mix(in srgb, var(--fg) 8%, var(--bg)); }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; }
+.draft { border: 2px solid var(--bad); padding: .5rem .75rem; margin: 1rem 0; }
+.muted { color: var(--muted); }
+.pass { color: var(--ok); font-weight: 600; } .fail { color: var(--bad); font-weight: 600; } .warn { color: var(--warn); font-weight: 600; }
+</style>
+</head>
+<body>
+<main id="main">
+<h1>Accessibility checkpoints: issue #3419891</h1>
+<div class="draft" role="note"><strong>DRAFT.</strong> Automated evidence, generated 2026-11-28T02:28:16.506Z. This is not an independent human accessibility review and nothing here has been published upstream.</div>
+<p>Session <code>2026-11-27T21-41-50-live-3419891-pinned</code>. playwright via Playwright MCP 0.0.84 (playwright-mcp --init-page + --init-script; a single exposed binding; browser_evaluate calls the approved helper). Profile <code>full</code>.</p>
+<p><strong>10 checkpoint(s)</strong>, <strong>49 distinct finding(s)</strong> from 91 observation(s). A persistent finding is counted once.</p>
+<nav aria-labelledby="contents"><h2 id="contents">Contents</h2><ul>
+<li><a href="#summary">Scenario summary</a></li><li><a href="#inventory">Checkpoint inventory</a></li>
+<li><a href="#compare">Before and After at equivalent states</a></li><li><a href="#findings">Findings</a></li>
+<li><a href="#manual">Manual review required</a></li><li><a href="#announcements">Announcement and interaction history</a></li>
+<li><a href="#focus">Focus transitions</a></li><li><a href="#screenshots">Screenshots</a></li><li><a href="#steps">Reproduction steps</a></li>
+<li><a href="#resources">Resource consumption</a></li><li><a href="#engines">Engine capability declarations</a></li><li><a href="#limits">Limits</a></li></ul></nav>
+<h2 id="summary">Scenario summary</h2>
+<table><caption>What this session measured</caption><tbody>
+<tr><th scope="row">Issue</th><td>#3419891</td></tr>
+<tr><th scope="row">Variants</th><td><code>3419891-pinned</code></td></tr>
+<tr><th scope="row">Sides captured</th><td>Before, After</td></tr>
+<tr><th scope="row">Pages</th><td><code>/node/add/page (default_admin)</code></td></tr>
+<tr><th scope="row">Browser</th><td>chromium 157.0.8103.79</td></tr>
+<tr><th scope="row">Viewports</th><td>1280x720</td></tr>
+<tr><th scope="row">Colour modes</th><td>light</td></tr>
+<tr><th scope="row">Core commits</th><td><code>0387fb948f 2026-11-25</code></td></tr>
+</tbody></table>
+<h2 id="inventory">Checkpoint inventory</h2>
+<table><caption>Every named checkpoint, in the order it was reached, with the evidence beside it</caption><thead><tr><th scope="col">#</th><th scope="col">Checkpoint</th><th scope="col">Side</th><th scope="col">Status</th><th scope="col">Page</th><th scope="col">State</th><th scope="col">Engines</th><th scope="col">Findings</th></tr></thead><tbody>
+<tr><td>1</td><td><code>editor-initialized</code> CKEditor initialised<br><span class="muted">reports/infrastructure/a11y-mcp/2026-11-27T21-41-50-live-3419891-pinned/evidence/001-editor-initialized</span></td><td>Before</td><td>captured</td><td><code>/node/add/page</code></td><td>4 expanded; focus body</td><td>axe-core:executed htmlcs:executed</td><td>49</td></tr>
+<tr><td>2</td><td><code>toolbar-item-focused</code> Toolbar item focused: Bold (⌘B)<br><span class="muted">reports/infrastructure/a11y-mcp/2026-11-27T21-41-50-live-3419891-pinned/evidence/002-toolbar-item-focused</span></td><td>Before</td><td>captured</td><td><code>/node/add/page</code></td><td>4 expanded; focus textbox "Rich Text Editor. Editing area: main. Pr"</td><td>axe-core:executed</td><td>14</td></tr>
+<tr><td>3</td><td><code>dropdown-open</code> CKEditor heading dropdown open<br><span class="muted">reports/infrastructure/a11y-mcp/2026-11-27T21-41-50-live-3419891-pinned/evidence/003-dropdown-open</span></td><td>Before</td><td>captured</td><td><code>/node/add/page</code></td><td>5 expanded; focus menuitemradio "Paragraph"</td><td>axe-core:executed</td><td>14</td></tr>
+<tr><td>4</td><td><code>balloon-open</code> CKEditor link balloon open<br><span class="muted">reports/infrastructure/a11y-mcp/2026-11-27T21-41-50-live-3419891-pinned/evidence/004-balloon-open</span></td><td>Before</td><td>captured</td><td><code>/node/add/page</code></td><td>4 expanded; focus textbox "Link URL"</td><td>axe-core:executed</td><td>0</td></tr>
+<tr><td>5</td><td><code>focus-restored</code> Focus restored after the balloon closed<br><span class="muted">reports/infrastructure/a11y-mcp/2026-11-27T21-41-50-live-3419891-pinned/evidence/005-focus-restored</span></td><td>Before</td><td>captured</td><td><code>/node/add/page</code></td><td>4 expanded; focus textbox "Rich Text Editor. Editing area: main. Pr"</td><td>axe-core:executed</td><td>14</td></tr>
+<tr><td>6</td><td><code>editor-initialized</code> CKEditor initialised<br><span class="muted">reports/infrastructure/a11y-mcp/2026-11-27T21-41-50-live-3419891-pinned/evidence/006-editor-initialized</span></td><td>After</td><td>captured</td><td><code>/node/add/page</code></td><td>4 expanded; focus body</td><td>axe-core:executed htmlcs:executed</td><td>49</td></tr>
+<tr><td>7</td><td><code>toolbar-item-focused</code> Toolbar item focused: Bold (⌘B)<br><span class="muted">reports/infrastructure/a11y-mcp/2026-11-27T21-41-50-live-3419891-pinned/evidence/007-toolbar-item-focused</span></td><td>After</td><td>captured</td><td><code>/node/add/page</code></td><td>4 expanded; focus textbox "Rich Text Editor. Editing area: main. Pr"</td><td>axe-core:executed</td><td>14</td></tr>
+<tr><td>8</td><td><code>dropdown-open</code> CKEditor heading dropdown open<br><span class="muted">reports/infrastructure/a11y-mcp/2026-11-27T21-41-50-live-3419891-pinned/evidence/008-dropdown-open</span></td><td>After</td><td>captured</td><td><code>/node/add/page</code></td><td>5 expanded; focus menuitemradio "Paragraph"</td><td>axe-core:executed</td><td>14</td></tr>
+<tr><td>9</td><td><code>balloon-open</code> CKEditor link balloon open<br><span class="muted">reports/infrastructure/a11y-mcp/2026-11-27T21-41-50-live-3419891-pinned/evidence/009-balloon-open</span></td><td>After</td><td>captured</td><td><code>/node/add/page</code></td><td>4 expanded; focus textbox "Link URL"</td><td>axe-core:executed</td><td>0</td></tr>
+<tr><td>10</td><td><code>focus-restored</code> Focus restored after the balloon closed<br><span class="muted">reports/infrastructure/a11y-mcp/2026-11-27T21-41-50-live-3419891-pinned/evidence/010-focus-restored</span></td><td>After</td><td>captured</td><td><code>/node/add/page</code></td><td>4 expanded; focus textbox "Rich Text Editor. Editing area: main. Pr"</td><td>axe-core:executed</td><td>14</td></tr>
+</tbody></table>
+<h2 id="compare">Before and After at equivalent states</h2>
+<table><caption>Comparisons: equivalence is checked before any difference is described</caption><thead><tr><th scope="col">Checkpoint</th><th scope="col">Equivalent?</th><th scope="col">Classifications</th></tr></thead><tbody>
+<tr><td><code>balloon-open</code></td><td><span class="pass">yes</span></td><td>manual-review-required</td></tr>
+<tr><td><code>dropdown-open</code></td><td><span class="pass">yes</span></td><td>existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:target-size); existing-failure (axe-core:target-size); manual-review-required</td></tr>
+<tr><td><code>editor-initialized</code></td><td><span class="pass">yes</span></td><td>existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:target-size); existing-failure (axe-core:target-size); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_10.C32,C31,C33,C38,SCR34,G206); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_3.1_3_1_A.G141); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G145.Abs); existing-failure (htmlcs:WCAG2AA.Principle2.Guideline2_4.2_4_1.G1,G123,G124.NoSuchID); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs); existing-failure (htmlcs:WCAG2AA.Principle4.Guideline4_1.4_1_2.H91.A.Empty); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_10.C32,C31,C33,C38,SCR34,G206); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_3.1_3_1.H85.2); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_3.1_3_1_A.G141); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_10.C32,C31,C33,C38,SCR34,G206); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_3.1_3_1.H44.NotFormControl); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_3.1_3_1.H44.NotFormControl); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_3.1_3_1.H85.2); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G145.Abs); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G145.BgImage); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G145.Abs); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs); existing-failure (htmlcs:WCAG2AA.Principle1.Guideline1_3.1_3_1.F92,ARIA4); manual-review-required</td></tr>
+<tr><td><code>focus-restored</code></td><td><span class="pass">yes</span></td><td>existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:target-size); existing-failure (axe-core:target-size); manual-review-required</td></tr>
+<tr><td><code>toolbar-item-focused</code></td><td><span class="pass">yes</span></td><td>existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:color-contrast); existing-failure (axe-core:target-size); existing-failure (axe-core:target-size); manual-review-required</td></tr>
+</tbody></table>
+<h3><code>balloon-open</code>: state equivalence</h3><table><caption>Conditions used to decide that the two sides are the same state</caption><thead><tr><th scope="col">Check</th><th scope="col">Pass</th><th scope="col">Detail</th></tr></thead><tbody>
+<tr><td>same scenario</td><td><span class="pass">yes</span></td><td>live-3419891-pinned vs live-3419891-pinned</td></tr>
+<tr><td>same checkpoint</td><td><span class="pass">yes</span></td><td>balloon-open vs balloon-open</td></tr>
+<tr><td>same route</td><td><span class="pass">yes</span></td><td>/node/add/page vs /node/add/page</td></tr>
+<tr><td>same viewport</td><td><span class="pass">yes</span></td><td>{&quot;width&quot;:1280,&quot;height&quot;:720} vs {&quot;width&quot;:1280,&quot;height&quot;:720}</td></tr>
+<tr><td>same colorScheme</td><td><span class="pass">yes</span></td><td>light vs light</td></tr>
+<tr><td>same forcedColors</td><td><span class="pass">yes</span></td><td>none vs none</td></tr>
+<tr><td>same reducedMotion</td><td><span class="pass">yes</span></td><td>no-preference vs no-preference</td></tr>
+<tr><td>same contrast</td><td><span class="pass">yes</span></td><td>no-preference vs no-preference</td></tr>
+<tr><td>both reached a captured state</td><td><span class="pass">yes</span></td><td>captured / captured</td></tr>
+</tbody></table>
+<h3><code>dropdown-open</code>: state equivalence</h3><table><caption>Conditions used to decide that the two sides are the same state</caption><thead><tr><th scope="col">Check</th><th scope="col">Pass</th><th scope="col">Detail</th></tr></thead><tbody>
+<tr><td>same scenario</td><td><span class="pass">yes</span></td><td>live-3419891-pinned vs live-3419891-pinned</td></tr>
+<tr><td>same checkpoint</td><td><span class="pass">yes</span></td><td>dropdown-open vs dropdown-open</td></tr>
+<tr><td>same route</td><td><span class="pass">yes</span></td><td>/node/add/page vs /node/add/page</td></tr>
+<tr><td>same viewport</td><td><span class="pass">yes</span></td><td>{&quot;width&quot;:1280,&quot;height&quot;:720} vs {&quot;width&quot;:1280,&quot;height&quot;:720}</td></tr>
+<tr><td>same colorScheme</td><td><span class="pass">yes</span></td><td>light vs light</td></tr>
+<tr><td>same forcedColors</td><td><span class="pass">yes</span></td><td>none vs none</td></tr>
+<tr><td>same reducedMotion</td><td><span class="pass">yes</span></td><td>no-preference vs no-preference</td></tr>
+<tr><td>same contrast</td><td><span class="pass">yes</span></td><td>no-preference vs no-preference</td></tr>
+<tr><td>both reached a captured state</td><td><span class="pass">yes</span></td><td>captured / captured</td></tr>
+</tbody></table>
+<h3><code>editor-initialized</code>: state equivalence</h3><table><caption>Conditions used to decide that the two sides are the same state</caption><thead><tr><th scope="col">Check</th><th scope="col">Pass</th><th scope="col">Detail</th></tr></thead><tbody>
+<tr><td>same scenario</td><td><span class="pass">yes</span></td><td>live-3419891-pinned vs live-3419891-pinned</td></tr>
+<tr><td>same checkpoint</td><td><span class="pass">yes</span></td><td>editor-initialized vs editor-initialized</td></tr>
+<tr><td>same route</td><td><span class="pass">yes</span></td><td>/node/add/page vs /node/add/page</td></tr>
+<tr><td>same viewport</td><td><span class="pass">yes</span></td><td>{&quot;width&quot;:1280,&quot;height&quot;:720} vs {&quot;width&quot;:1280,&quot;height&quot;:720}</td></tr>
+<tr><td>same colorScheme</td><td><span class="pass">yes</span></td><td>light vs light</td></tr>
+<tr><td>same forcedColors</td><td><span class="pass">yes</span></td><td>none vs none</td></tr>
+<tr><td>same reducedMotion</td><td><span class="pass">yes</span></td><td>no-preference vs no-preference</td></tr>
+<tr><td>same contrast</td><td><span class="pass">yes</span></td><td>no-preference vs no-preference</td></tr>
+<tr><td>both reached a captured state</td><td><span class="pass">yes</span></td><td>captured / captured</td></tr>
+</tbody></table>
+<h3><code>focus-restored</code>: state equivalence</h3><table><caption>Conditions used to decide that the two sides are the same state</caption><thead><tr><th scope="col">Check</th><th scope="col">Pass</th><th scope="col">Detail</th></tr></thead><tbody>
+<tr><td>same scenario</td><td><span class="pass">yes</span></td><td>live-3419891-pinned vs live-3419891-pinned</td></tr>
+<tr><td>same checkpoint</td><td><span class="pass">yes</span></td><td>focus-restored vs focus-restored</td></tr>
+<tr><td>same route</td><td><span class="pass">yes</span></td><td>/node/add/page vs /node/add/page</td></tr>
+<tr><td>same viewport</td><td><span class="pass">yes</span></td><td>{&quot;width&quot;:1280,&quot;height&quot;:720} vs {&quot;width&quot;:1280,&quot;height&quot;:720}</td></tr>
+<tr><td>same colorScheme</td><td><span class="pass">yes</span></td><td>light vs light</td></tr>
+<tr><td>same forcedColors</td><td><span class="pass">yes</span></td><td>none vs none</td></tr>
+<tr><td>same reducedMotion</td><td><span class="pass">yes</span></td><td>no-preference vs no-preference</td></tr>
+<tr><td>same contrast</td><td><span class="pass">yes</span></td><td>no-preference vs no-preference</td></tr>
+<tr><td>both reached a captured state</td><td><span class="pass">yes</span></td><td>captured / captured</td></tr>
+</tbody></table>
+<h3><code>toolbar-item-focused</code>: state equivalence</h3><table><caption>Conditions used to decide that the two sides are the same state</caption><thead><tr><th scope="col">Check</th><th scope="col">Pass</th><th scope="col">Detail</th></tr></thead><tbody>
+<tr><td>same scenario</td><td><span class="pass">yes</span></td><td>live-3419891-pinned vs live-3419891-pinned</td></tr>
+<tr><td>same checkpoint</td><td><span class="pass">yes</span></td><td>toolbar-item-focused vs toolbar-item-focused</td></tr>
+<tr><td>same route</td><td><span class="pass">yes</span></td><td>/node/add/page vs /node/add/page</td></tr>
+<tr><td>same viewport</td><td><span class="pass">yes</span></td><td>{&quot;width&quot;:1280,&quot;height&quot;:720} vs {&quot;width&quot;:1280,&quot;height&quot;:720}</td></tr>
+<tr><td>same colorScheme</td><td><span class="pass">yes</span></td><td>light vs light</td></tr>
+<tr><td>same forcedColors</td><td><span class="pass">yes</span></td><td>none vs none</td></tr>
+<tr><td>same reducedMotion</td><td><span class="pass">yes</span></td><td>no-preference vs no-preference</td></tr>
+<tr><td>same contrast</td><td><span class="pass">yes</span></td><td>no-preference vs no-preference</td></tr>
+<tr><td>both reached a captured state</td><td><span class="pass">yes</span></td><td>captured / captured</td></tr>
+</tbody></table>
+<h2 id="findings">Findings</h2>
+<table><caption>49 distinct findings; totals by engine: axe-core 14, htmlcs 35. Impact: serious 14, unrated 35</caption><thead><tr><th scope="col">ID</th><th scope="col">Engine</th><th scope="col">Rule</th><th scope="col">Impact</th><th scope="col">Outcome</th><th scope="col">WCAG</th><th scope="col">Target</th><th scope="col">Observed at</th><th scope="col">Review</th></tr></thead><tbody>
+<tr><td>A11Y-PAT-A86E7889C9BA</td><td>axe-core 4.14.0</td><td><code>color-contrast</code></td><td>serious</td><td>incomplete</td><td>1.4.3</td><td><code>.toolbar-button--icon--navigation-blocks &gt; .toolbar-button__label[data-toolbar-text=&quot;&quot;]</code></td><td>before#editor-initialized, before#toolbar-item-focused, before#dropdown-open, before#focus-restored</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-A685240C2A10</td><td>axe-core 4.14.0</td><td><code>color-contrast</code></td><td>serious</td><td>incomplete</td><td>1.4.3</td><td><code>.toolbar-button--icon--navigation-content &gt; .toolbar-button__label[data-toolbar-text=&quot;&quot;]</code></td><td>before#editor-initialized, before#toolbar-item-focused, before#dropdown-open, before#focus-restored</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-832FBD830BD6</td><td>axe-core 4.14.0</td><td><code>color-contrast</code></td><td>serious</td><td>incomplete</td><td>1.4.3</td><td><code>.toolbar-button--icon--navigation-files &gt; .toolbar-button__label[data-toolbar-text=&quot;&quot;]</code></td><td>before#editor-initialized, before#toolbar-item-focused, before#dropdown-open, before#focus-restored</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-665BE289D348</td><td>axe-core 4.14.0</td><td><code>color-contrast</code></td><td>serious</td><td>incomplete</td><td>1.4.3</td><td><code>.toolbar-button--icon--signpost &gt; .toolbar-button__label[data-toolbar-text=&quot;&quot;]</code></td><td>before#editor-initialized, before#toolbar-item-focused, before#dropdown-open, before#focus-restored</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-BAE94CE3FD3C</td><td>axe-core 4.14.0</td><td><code>color-contrast</code></td><td>serious</td><td>incomplete</td><td>1.4.3</td><td><code>.toolbar-button--icon--system-admin-structure &gt; .toolbar-button__label[data-toolbar-text=&quot;&quot;]</code></td><td>before#editor-initialized, before#toolbar-item-focused, before#dropdown-open, before#focus-restored</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-B837201BBD08</td><td>axe-core 4.14.0</td><td><code>color-contrast</code></td><td>serious</td><td>incomplete</td><td>1.4.3</td><td><code>.toolbar-button--icon--system-themes-page &gt; .toolbar-button__label[data-toolbar-text=&quot;&quot;]</code></td><td>before#editor-initialized, before#toolbar-item-focused, before#dropdown-open, before#focus-restored</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-9705917EFF4D</td><td>axe-core 4.14.0</td><td><code>color-contrast</code></td><td>serious</td><td>incomplete</td><td>1.4.3</td><td><code>.toolbar-button--icon--system-modules-list &gt; .toolbar-button__label[data-toolbar-text=&quot;&quot;]</code></td><td>before#editor-initialized, before#toolbar-item-focused, before#dropdown-open, before#focus-restored</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-35877AF37DC5</td><td>axe-core 4.14.0</td><td><code>color-contrast</code></td><td>serious</td><td>incomplete</td><td>1.4.3</td><td><code>.toolbar-button--icon--system-admin-config &gt; .toolbar-button__label[data-toolbar-text=&quot;&quot;]</code></td><td>before#editor-initialized, before#toolbar-item-focused, before#dropdown-open, before#focus-restored</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-87A1CE446506</td><td>axe-core 4.14.0</td><td><code>color-contrast</code></td><td>serious</td><td>incomplete</td><td>1.4.3</td><td><code>.toolbar-button--icon--entity-user-collection &gt; .toolbar-button__label[data-toolbar-text=&quot;&quot;]</code></td><td>before#editor-initialized, before#toolbar-item-focused, before#dropdown-open, before#focus-restored</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-5A214CFDA1BD</td><td>axe-core 4.14.0</td><td><code>color-contrast</code></td><td>serious</td><td>incomplete</td><td>1.4.3</td><td><code>.toolbar-button--icon--system-admin-reports &gt; .toolbar-button__label[data-toolbar-text=&quot;&quot;]</code></td><td>before#editor-initialized, before#toolbar-item-focused, before#dropdown-open, before#focus-restored</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-B72CD1CF6F0C</td><td>axe-core 4.14.0</td><td><code>color-contrast</code></td><td>serious</td><td>incomplete</td><td>1.4.3</td><td><code>.toolbar-button--icon--announcements-feed-announcement &gt; .toolbar-button__label[data-toolbar-text=&quot;&quot;]</code></td><td>before#editor-initialized, before#toolbar-item-focused, before#dropdown-open, before#focus-restored</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-8911E086E746</td><td>axe-core 4.14.0</td><td><code>color-contrast</code></td><td>serious</td><td>incomplete</td><td>1.4.3</td><td><code>#edit-field-body-0-format--2</code></td><td>before#editor-initialized, before#toolbar-item-focused, before#dropdown-open, before#focus-restored</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-E43E44C8AA0A</td><td>axe-core 4.14.0</td><td><code>target-size</code></td><td>serious</td><td>incomplete</td><td>2.5.8</td><td><code>.ck-splitbutton__arrow[data-cke-tooltip-text=&quot;Bulleted List&quot;][aria-haspopup=&quot;true&quot;]</code></td><td>before#editor-initialized, before#toolbar-item-focused, before#dropdown-open, before#focus-restored</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-F441E5EB7CEA</td><td>axe-core 4.14.0</td><td><code>target-size</code></td><td>serious</td><td>incomplete</td><td>2.5.8</td><td><code>.ck-splitbutton__arrow[data-cke-tooltip-text=&quot;Numbered List&quot;][aria-haspopup=&quot;true&quot;]</code></td><td>before#editor-initialized, before#toolbar-item-focused, before#dropdown-open, before#focus-restored</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-ADB4EEC5FCD0</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>body &gt; a</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-2AC835C2D1CD</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_10.C32,C31,C33,C38,SCR34,G206</code></td><td>—</td><td>incomplete</td><td>1.4.10</td><td><code>body &gt; div:nth-of-type(2)</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-992A4F26EDD8</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_3.1_3_1_A.G141</code></td><td>—</td><td>incomplete</td><td>1.3.1</td><td><code>#system-breadcrumb</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-55611DE348A8</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G145.Abs</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#system-breadcrumb</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-3F06BC3DCB11</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle2.Guideline2_4.2_4_1.G1,G123,G124.NoSuchID</code></td><td>—</td><td>violation</td><td>2.4.1</td><td><code>#edit-default-admin-sticky-actions &gt; a</code></td><td>before#editor-initialized</td><td>unreviewed</td></tr>
+<tr><td>A11Y-PAT-AE49B15857AF</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#edit-default-admin-sticky-actions &gt; a &gt; span</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-30D84D5FCD4A</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle4.Guideline4_1.4_1_2.H91.A.Empty</code></td><td>—</td><td>incomplete</td><td>4.1.2</td><td><code>#main-content</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-D44E905541B9</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_10.C32,C31,C33,C38,SCR34,G206</code></td><td>—</td><td>incomplete</td><td>1.4.10</td><td><code>#node-page-form &gt; div &gt; div:nth-of-type(1) &gt; div:nth-of-type(2)</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-EC3228AC8463</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_3.1_3_1.H85.2</code></td><td>—</td><td>incomplete</td><td>1.3.1</td><td><code>#edit-field-body-0-format--2</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-D521307E1FA2</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#edit-field-body-0-format--2 &gt; option:nth-of-type(1)</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-551BC9B47799</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_3.1_3_1_A.G141</code></td><td>—</td><td>incomplete</td><td>1.3.1</td><td><code>#edit-field-body-0-format-guidelines &gt; div &gt; h4</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-3B549CD3B2AD</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_10.C32,C31,C33,C38,SCR34,G206</code></td><td>—</td><td>incomplete</td><td>1.4.10</td><td><code>#default_admin_sidebar</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-2CB9F21BDA8E</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_3.1_3_1.H44.NotFormControl</code></td><td>—</td><td>incomplete</td><td>1.3.1</td><td><code>#edit-meta-changed &gt; label</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-7AD3981761F2</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_3.1_3_1.H44.NotFormControl</code></td><td>—</td><td>incomplete</td><td>1.3.1</td><td><code>#edit-meta-author &gt; label</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-CECA0EF18021</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_3.1_3_1.H85.2</code></td><td>—</td><td>incomplete</td><td>1.3.1</td><td><code>#edit-menu-menu-parent</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-6CB4CA31EF9E</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#edit-created-0-value &gt; div:nth-of-type(1) &gt; label</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-D5DC2FEEAAF4</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G145.Abs</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#admin-toolbar__scroll-wrapper-1792577257</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-19E9F68FB594</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G145.BgImage</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#menu-builder &gt; div:nth-of-type(2) &gt; h3</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-90C46BC2A8E9</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G145.Abs</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#menu-footer &gt; div:nth-of-type(1) &gt; h3</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-2E0782C6A641</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#menu-footer &gt; button &gt; span</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-9C17F18B9A7D</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#menu-builder &gt; div:nth-of-type(1) &gt; a &gt; span</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-3573D8EEB403</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#navigation-link--navigationcreate-652154234 &gt; button &gt; span:nth-of-type(1)</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-CE20F8AE8678</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#navigation-link--navigationblocks-1374408245 &gt; a &gt; span</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-DAD598641928</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#navigation-link--navigationcontent-398383699 &gt; a &gt; span</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-80C52BFBBC89</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#navigation-link--navigationfiles-2137495659 &gt; a &gt; span</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-A51718E927D8</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#navigation-link--standardwelcome-325510237 &gt; a &gt; span</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-4E59F1BDEBE3</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#navigation-link--systemadmin-structure-1023174967 &gt; button &gt; span:nth-of-type(1)</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-52C8C8913B39</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#navigation-link--systemthemes-page-1827371361 &gt; a &gt; span</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-E36B08A6E7A5</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#navigation-link--systemmodules-list-2054754043 &gt; a &gt; span</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-FF4706AF2EC4</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#navigation-link--systemadmin-config-1971228731 &gt; button &gt; span:nth-of-type(1)</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-3D89D123F0D3</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#navigation-link--entityusercollection-1564519979 &gt; a &gt; span</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-0C291D7EAB26</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#navigation-link--systemadmin-reports-982276584 &gt; button &gt; span:nth-of-type(1)</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-CB01BCDE250F</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.BgImage</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#navigation-link--announcements-feedannouncement-1249979531 &gt; a &gt; span</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-4195CF9FB9FC</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_4.1_4_3.G18.Abs</code></td><td>—</td><td>incomplete</td><td>1.4.3</td><td><code>#navigation-link--navigationuser-linksuserwrapper-523289680 &gt; button &gt; span:nth-of-type(1)</code></td><td>before#editor-initialized</td><td>needs-review</td></tr>
+<tr><td>A11Y-PAT-C6AC7CCD9755</td><td>htmlcs 2.5.1</td><td><code>WCAG2AA.Principle1.Guideline1_3.1_3_1.F92,ARIA4</code></td><td>—</td><td>violation</td><td>1.3.1</td><td><code>#admin-toolbar</code></td><td>before#editor-initialized</td><td>unreviewed</td></tr>
+</tbody></table><p class="muted">Engine agreement is not proof of correctness. Each finding keeps its own engine and rule identifier; WCAG and ACT identifiers are mappings.</p>
+<h2 id="manual">Manual review required</h2>
+<p>These were <strong>not performed by a person</strong> in this session. Stored separately from automated results.</p>
+<table><caption>Manual checks raised by these checkpoints</caption><thead><tr><th scope="col">Checkpoint</th><th scope="col">Check</th><th scope="col">Question</th><th scope="col">Result</th></tr></thead><tbody>
+<tr><td><code>editor-initialized</code></td><td><code>status-understandable</code></td><td>Is the status or error message understandable on its own, without seeing where it appeared?</td><td>not-run</td></tr>
+<tr><td><code>editor-initialized</code></td><td><code>icon-recognisable</code></td><td>Is the icon recognisable and, where it conveys meaning, is its name meaningful in this context?</td><td>not-run</td></tr>
+<tr><td><code>editor-initialized</code></td><td><code>engine-needs-review</code></td><td>Review the engine results marked as needing review; they are not passes.</td><td>not-run</td></tr>
+<tr><td><code>editor-initialized</code></td><td><code>screen-reader-repeat</code></td><td>Does a screen reader announce anything unnecessarily repetitive at this state?</td><td>not-run</td></tr>
+<tr><td><code>toolbar-item-focused</code></td><td><code>status-understandable</code></td><td>Is the status or error message understandable on its own, without seeing where it appeared?</td><td>not-run</td></tr>
+<tr><td><code>toolbar-item-focused</code></td><td><code>screen-reader-repeat</code></td><td>Does a screen reader announce anything unnecessarily repetitive at this state?</td><td>not-run</td></tr>
+<tr><td><code>dropdown-open</code></td><td><code>status-understandable</code></td><td>Is the status or error message understandable on its own, without seeing where it appeared?</td><td>not-run</td></tr>
+<tr><td><code>dropdown-open</code></td><td><code>screen-reader-repeat</code></td><td>Does a screen reader announce anything unnecessarily repetitive at this state?</td><td>not-run</td></tr>
+<tr><td><code>balloon-open</code></td><td><code>status-understandable</code></td><td>Is the status or error message understandable on its own, without seeing where it appeared?</td><td>not-run</td></tr>
+<tr><td><code>balloon-open</code></td><td><code>screen-reader-repeat</code></td><td>Does a screen reader announce anything unnecessarily repetitive at this state?</td><td>not-run</td></tr>
+<tr><td><code>focus-restored</code></td><td><code>status-understandable</code></td><td>Is the status or error message understandable on its own, without seeing where it appeared?</td><td>not-run</td></tr>
+<tr><td><code>focus-restored</code></td><td><code>screen-reader-repeat</code></td><td>Does a screen reader announce anything unnecessarily repetitive at this state?</td><td>not-run</td></tr>
+</tbody></table>
+<h2 id="announcements">Announcement and interaction history</h2>
+<p>Nothing recorded (use profile dynamic or full at a checkpoint that follows an interaction). A final DOM snapshot cannot establish whether an announcement was missed, repeated or interrupted.</p>
+<h2 id="focus">Focus transitions</h2>
+<table><caption>Where focus moved before each checkpoint</caption><thead><tr><th scope="col">Checkpoint</th><th scope="col">Side</th><th scope="col">From</th><th scope="col">To</th></tr></thead><tbody>
+<tr><td><code>toolbar-item-focused</code></td><td>Before</td><td>—</td><td>button Bold</td></tr>
+<tr><td><code>toolbar-item-focused</code></td><td>Before</td><td>button Bold</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td></tr>
+<tr><td><code>dropdown-open</code></td><td>Before</td><td>—</td><td>button Bold</td></tr>
+<tr><td><code>dropdown-open</code></td><td>Before</td><td>button Bold</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td></tr>
+<tr><td><code>dropdown-open</code></td><td>Before</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td><td>button Paragraph, Heading</td></tr>
+<tr><td><code>dropdown-open</code></td><td>Before</td><td>button Paragraph, Heading</td><td>menuitemradio Paragraph</td></tr>
+<tr><td><code>balloon-open</code></td><td>Before</td><td>—</td><td>button Bold</td></tr>
+<tr><td><code>balloon-open</code></td><td>Before</td><td>button Bold</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td></tr>
+<tr><td><code>balloon-open</code></td><td>Before</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td><td>button Paragraph, Heading</td></tr>
+<tr><td><code>balloon-open</code></td><td>Before</td><td>button Paragraph, Heading</td><td>menuitemradio Paragraph</td></tr>
+<tr><td><code>balloon-open</code></td><td>Before</td><td>menuitemradio Paragraph</td><td>button Paragraph, Heading</td></tr>
+<tr><td><code>balloon-open</code></td><td>Before</td><td>button Paragraph, Heading</td><td>button Link</td></tr>
+<tr><td><code>balloon-open</code></td><td>Before</td><td>button Link</td><td>textbox Link URL</td></tr>
+<tr><td><code>focus-restored</code></td><td>Before</td><td>—</td><td>button Bold</td></tr>
+<tr><td><code>focus-restored</code></td><td>Before</td><td>button Bold</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td></tr>
+<tr><td><code>focus-restored</code></td><td>Before</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td><td>button Paragraph, Heading</td></tr>
+<tr><td><code>focus-restored</code></td><td>Before</td><td>button Paragraph, Heading</td><td>menuitemradio Paragraph</td></tr>
+<tr><td><code>focus-restored</code></td><td>Before</td><td>menuitemradio Paragraph</td><td>button Paragraph, Heading</td></tr>
+<tr><td><code>focus-restored</code></td><td>Before</td><td>button Paragraph, Heading</td><td>button Link</td></tr>
+<tr><td><code>focus-restored</code></td><td>Before</td><td>button Link</td><td>textbox Link URL</td></tr>
+<tr><td><code>focus-restored</code></td><td>Before</td><td>textbox Link URL</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td></tr>
+<tr><td><code>focus-restored</code></td><td>Before</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td><td>button Insert</td></tr>
+<tr><td><code>focus-restored</code></td><td>Before</td><td>—</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td></tr>
+<tr><td><code>toolbar-item-focused</code></td><td>After</td><td>—</td><td>button Bold</td></tr>
+<tr><td><code>toolbar-item-focused</code></td><td>After</td><td>button Bold</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td></tr>
+<tr><td><code>dropdown-open</code></td><td>After</td><td>—</td><td>button Bold</td></tr>
+<tr><td><code>dropdown-open</code></td><td>After</td><td>button Bold</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td></tr>
+<tr><td><code>dropdown-open</code></td><td>After</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td><td>button Paragraph, Heading</td></tr>
+<tr><td><code>dropdown-open</code></td><td>After</td><td>button Paragraph, Heading</td><td>menuitemradio Paragraph</td></tr>
+<tr><td><code>balloon-open</code></td><td>After</td><td>—</td><td>button Bold</td></tr>
+<tr><td><code>balloon-open</code></td><td>After</td><td>button Bold</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td></tr>
+<tr><td><code>balloon-open</code></td><td>After</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td><td>button Paragraph, Heading</td></tr>
+<tr><td><code>balloon-open</code></td><td>After</td><td>button Paragraph, Heading</td><td>menuitemradio Paragraph</td></tr>
+<tr><td><code>balloon-open</code></td><td>After</td><td>menuitemradio Paragraph</td><td>button Paragraph, Heading</td></tr>
+<tr><td><code>balloon-open</code></td><td>After</td><td>button Paragraph, Heading</td><td>button Link</td></tr>
+<tr><td><code>balloon-open</code></td><td>After</td><td>button Link</td><td>textbox Link URL</td></tr>
+<tr><td><code>focus-restored</code></td><td>After</td><td>—</td><td>button Bold</td></tr>
+<tr><td><code>focus-restored</code></td><td>After</td><td>button Bold</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td></tr>
+<tr><td><code>focus-restored</code></td><td>After</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td><td>button Paragraph, Heading</td></tr>
+<tr><td><code>focus-restored</code></td><td>After</td><td>button Paragraph, Heading</td><td>menuitemradio Paragraph</td></tr>
+<tr><td><code>focus-restored</code></td><td>After</td><td>menuitemradio Paragraph</td><td>button Paragraph, Heading</td></tr>
+<tr><td><code>focus-restored</code></td><td>After</td><td>button Paragraph, Heading</td><td>button Link</td></tr>
+<tr><td><code>focus-restored</code></td><td>After</td><td>button Link</td><td>textbox Link URL</td></tr>
+<tr><td><code>focus-restored</code></td><td>After</td><td>textbox Link URL</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td></tr>
+<tr><td><code>focus-restored</code></td><td>After</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td><td>button Insert</td></tr>
+<tr><td><code>focus-restored</code></td><td>After</td><td>—</td><td>textbox Rich Text Editor. Editing area: main. Press ⌥0 for help.</td></tr>
+</tbody></table>
+<h2 id="screenshots">Screenshots</h2>
+<ul>
+<li><a href="evidence/001-editor-initialized/viewport.png">Before <code>editor-initialized</code> viewport</a></li>
+<li><a href="evidence/006-editor-initialized/viewport.png">After <code>editor-initialized</code> viewport</a></li>
+</ul>
+<h2 id="steps">Reproduction steps</h2>
+<p>Recorded trusted interactions, in order. These are not MCP element references: convert them to semantic locators in a scenario file before replaying.</p>
+<h3><code>toolbar-item-focused</code> (Before)</h3><ol>
+<li>trusted pointerdown on <code>div:nth-of-type(1) &gt; div &gt; div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; button:nth-of-type(1) &gt; svg &gt; path</code></li>
+</ol>
+<h3><code>dropdown-open</code> (Before)</h3><ol>
+<li>trusted pointerdown on <code>div:nth-of-type(1) &gt; div &gt; div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; button:nth-of-type(1) &gt; svg &gt; path</code></li>
+<li>trusted pointerdown on <code>div:nth-of-type(1) &gt; div &gt; div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; div:nth-of-type(3) &gt; button &gt; span</code></li>
+</ol>
+<h3><code>balloon-open</code> (Before)</h3><ol>
+<li>trusted pointerdown on <code>div:nth-of-type(1) &gt; div &gt; div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; button:nth-of-type(1) &gt; svg &gt; path</code></li>
+<li>trusted pointerdown on <code>div:nth-of-type(1) &gt; div &gt; div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; div:nth-of-type(3) &gt; button &gt; span</code></li>
+<li>trusted key on <code>div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; div:nth-of-type(3) &gt; div &gt; ul &gt; li:nth-of-type(1) &gt; button</code> "Paragraph" key Escape</li>
+<li>trusted pointerdown on <code>div:nth-of-type(1) &gt; div &gt; div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; button:nth-of-type(3) &gt; svg &gt; path</code></li>
+</ol>
+<h3><code>focus-restored</code> (Before)</h3><ol>
+<li>trusted pointerdown on <code>div:nth-of-type(1) &gt; div &gt; div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; button:nth-of-type(1) &gt; svg &gt; path</code></li>
+<li>trusted pointerdown on <code>div:nth-of-type(1) &gt; div &gt; div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; div:nth-of-type(3) &gt; button &gt; span</code></li>
+<li>trusted key on <code>div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; div:nth-of-type(3) &gt; div &gt; ul &gt; li:nth-of-type(1) &gt; button</code> "Paragraph" key Escape</li>
+<li>trusted pointerdown on <code>div:nth-of-type(1) &gt; div &gt; div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; button:nth-of-type(3) &gt; svg &gt; path</code></li>
+<li>trusted key on <code>#ck-labeled-field-view-e8912d082d0ba6bb76cb2228cc3ef0f6a</code> "Link URL" key Escape</li>
+</ol>
+<h3><code>toolbar-item-focused</code> (After)</h3><ol>
+<li>trusted pointerdown on <code>div:nth-of-type(1) &gt; div &gt; div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; button:nth-of-type(1) &gt; svg &gt; path</code></li>
+</ol>
+<h3><code>dropdown-open</code> (After)</h3><ol>
+<li>trusted pointerdown on <code>div:nth-of-type(1) &gt; div &gt; div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; button:nth-of-type(1) &gt; svg &gt; path</code></li>
+<li>trusted pointerdown on <code>div:nth-of-type(1) &gt; div &gt; div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; div:nth-of-type(3) &gt; button &gt; span</code></li>
+</ol>
+<h3><code>balloon-open</code> (After)</h3><ol>
+<li>trusted pointerdown on <code>div:nth-of-type(1) &gt; div &gt; div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; button:nth-of-type(1) &gt; svg &gt; path</code></li>
+<li>trusted pointerdown on <code>div:nth-of-type(1) &gt; div &gt; div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; div:nth-of-type(3) &gt; button &gt; span</code></li>
+<li>trusted key on <code>div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; div:nth-of-type(3) &gt; div &gt; ul &gt; li:nth-of-type(1) &gt; button</code> "Paragraph" key Escape</li>
+<li>trusted pointerdown on <code>div:nth-of-type(1) &gt; div &gt; div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; button:nth-of-type(3) &gt; svg &gt; path</code></li>
+</ol>
+<h3><code>focus-restored</code> (After)</h3><ol>
+<li>trusted pointerdown on <code>div:nth-of-type(1) &gt; div &gt; div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; button:nth-of-type(1) &gt; svg &gt; path</code></li>
+<li>trusted pointerdown on <code>div:nth-of-type(1) &gt; div &gt; div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; div:nth-of-type(3) &gt; button &gt; span</code></li>
+<li>trusted key on <code>div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; div:nth-of-type(3) &gt; div &gt; ul &gt; li:nth-of-type(1) &gt; button</code> "Paragraph" key Escape</li>
+<li>trusted pointerdown on <code>div:nth-of-type(1) &gt; div &gt; div:nth-of-type(2) &gt; div &gt; div:nth-of-type(1) &gt; button:nth-of-type(3) &gt; svg &gt; path</code></li>
+<li>trusted key on <code>#ck-labeled-field-view-eacbb95a74c8002356617e5f0b3fcb529</code> "Link URL" key Escape</li>
+</ol>
+<h2 id="resources">Resource consumption</h2>
+<table><caption>Measured by this integration; no estimate is substituted</caption><tbody>
+<tr><th scope="row">Checkpoints</th><td>10</td></tr>
+<tr><th scope="row">Engine runs</th><td>12</td></tr>
+<tr><th scope="row">Scan time</th><td>6390 ms</td></tr>
+<tr><th scope="row">Evidence on disk</th><td>2228.2 KiB</td></tr>
+<tr><th scope="row">Screenshots</th><td>2</td></tr>
+<tr><th scope="row">Browser launches by this integration</th><td>0 (the MCP browser is reused)</td></tr>
+<tr><th scope="row">Energy</th><td>not measured; no avoided-energy figure is invented</td></tr>
+</tbody></table>
+<h2 id="engines">Engine capability declarations</h2><table><caption>What each engine declared before it was allowed to run</caption><thead><tr><th scope="col">Engine</th><th scope="col">Version</th><th scope="col">Live page</th><th scope="col">Injects JS</th><th scope="col">Navigates</th><th scope="col">Iframes</th><th scope="col">Shadow DOM</th><th scope="col">Computed styles</th><th scope="col">Preserves state</th><th scope="col">Scope</th><th scope="col">Licence</th></tr></thead><tbody>
+<tr><td>axe-core</td><td>4.14.0</td><td>yes</td><td>yes</td><td>no</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>MPL-2.0</td></tr>
+<tr><td>HTML_CodeSniffer</td><td>2.5.1</td><td>yes</td><td>yes</td><td>no</td><td>yes</td><td>no</td><td>yes</td><td>yes</td><td>filter</td><td>BSD-3-Clause</td></tr>
+<tr><td>IBM Equal Access</td><td>not installed</td><td>no</td><td>no</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>no</td><td>no</td><td>Apache-2.0</td></tr>
+</tbody></table>
+<h2 id="limits">Limits</h2><ul>
+<li>Chromium only (the MCP browser); other engines/capabilities are reported per checkpoint, not assumed.</li>
+<li>Automated engines see a minority of real barriers; a clean scan is not an accessibility pass.</li>
+<li>No real screen reader, no person, was involved unless a manual step says so.</li>
+<li>Chromium only. A different engine or browser would build different evidence; nothing here is extrapolated to them.</li>
+<li>Automated results are a DRAFT: a clean scan is not an accessibility pass. The manual checks in this record were not performed by a person unless a result says so.</li>
+<li>Page helper 1.0.0; Playwright MCP 0.0.84 via playwright-mcp --init-page + --init-script; a single exposed binding; browser_evaluate calls the approved helper.</li>
+<li>The accessibility tree was not captured for this checkpoint (profile quick/multi-engine/visual/dynamic do not include it; use semantic or full).</li>
+<li>Announcements and silent changes were not collected for this checkpoint (use profile dynamic or full).</li>
+</ul>
+<p class="muted">Generated with the help of an LLM (DeepSeek Harness) from the recorded evidence. AI-assisted development and evaluation disclosure. A person must review before anything is reported upstream.</p>
+</main>
+</body></html>

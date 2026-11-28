@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dialog with an unlabelled icon button</title>
+<!--
+  Control 1: the defect exists only while the dialog is open.
+  The dialog itself is named correctly (aria-labelledby); the icon button inside it has no accessible name, so
+  axe-core rule button-name fails only in the dialog-open state.
+  WCAG 2.2 SC 4.1.2 Name, Role, Value: https://www.w3.org/TR/WCAG22/#name-role-value
+-->
+<style>
+  body { margin: 2rem; font-family: system-ui, sans-serif; color: #1a1a1a; background: #ffffff; }
+  h1 { font-size: 1.5rem; }
+  button { font: inherit; padding: 0.4rem 0.9rem; background: #0b4fbf; color: #ffffff; border: 2px solid #0b4fbf; border-radius: 4px; }
+  dialog { max-width: 34rem; padding: 1.5rem; border: 1px solid #333333; }
+  .icon-button { width: 2.4rem; height: 2.4rem; display: inline-flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+<h1>Dialog with an unlabelled icon button</h1>
+<p>The dialog contains an icon button with no accessible name. The defect only exists while the dialog is open.</p>
+<p><button type="button" id="open-dialog">Open dialog</button></p>
+<dialog id="example-dialog" aria-labelledby="dialog-title">
+  <h2 id="dialog-title">Example dialog</h2>
+  <p>This icon button has no text, no aria-label and no title.</p>
+  <p>
+    <button type="button" id="icon-button" class="icon-button">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M10 2l2.4 5 5.6.7-4 3.8 1 5.5-5-2.7-5 2.7 1-5.5-4-3.8 5.6-.7z"></path></svg>
+    </button>
+    <button type="button" id="close">Close</button>
+  </p>
+</dialog>
+<script>
+  const dialog = document.getElementById('example-dialog');
+  document.getElementById('open-dialog').addEventListener('click', () => dialog.showModal());
+  document.getElementById('close').addEventListener('click', () => dialog.close());
+</script>
+</body>
+</html>

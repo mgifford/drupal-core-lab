@@ -1,0 +1,196 @@
+{
+  "schema": "lab-a11y-scenario/1",
+  "id": "views-filter-dialog-growth",
+  "issue": 3466040,
+  "variant": null,
+  "title": "Views filter modal does not adjust to increased inner height",
+  "description": "Replay the Views edit page for the Content view, open the 'Content: Content type' filter modal, expand a collapsed details element inside it, and capture the dialog geometry and the primary action button before and after the expansion. The issue is that the dialog does not grow or repositions so the action button is pushed out of reach; the checkpoint records the live geometry and a screenshot for the Before/After comparison, and a person reads the result.",
+  "preconditions": [
+    "Standard install with Views UI enabled and a Content view (recipe repro_3466040).",
+    "Variant 3466040-pinned is built: Before envs/baseline-3466040, After envs/issue-3466040.",
+    "The admin theme is Default Admin; the page must be the Views edit page, not a 404 or access-denied page.",
+    "No registered variant on a clean origin/main: `3466040-pinned` exists only as an uncommitted row in the shared checkout's tools/compare/variants.json (session-owned). Until that row lands, this scenario stays unregistered and --check validates only its representation."
+  ],
+  "fixture": {
+    "recipe": "repro_3466040",
+    "standardInstall": false,
+    "notes": "recipes/repro_3466040/recipe.yml exists and is the registered fixture for variant 3466040-pinned. The Content view is part of a Standard install with Views UI, so no extra fixture file is needed."
+  },
+  "route": "/admin/structure/views/view/content",
+  "login": true,
+  "viewport": {
+    "width": 1280,
+    "height": 900
+  },
+  "browser": "chromium",
+  "colourScheme": "light",
+  "forcedColors": false,
+  "reducedMotion": "no-preference",
+  "steps": [
+    {
+      "action": "goto",
+      "path": "/admin/structure/views/view/content",
+      "readiness": {
+        "selector": ".views-ui-display-tab",
+        "state": "visible"
+      },
+      "label": "Open the Content view edit page"
+    },
+    {
+      "action": "checkpoint",
+      "id": "views-edit-page",
+      "label": "The Content view edit page is loaded"
+    },
+    {
+      "action": "click",
+      "locator": {
+        "role": "link",
+        "name": "Content: Content type"
+      },
+      "label": "Open the Content type filter dialog"
+    },
+    {
+      "action": "waitFor",
+      "readiness": {
+        "selector": ".ui-dialog",
+        "state": "visible"
+      },
+      "label": "Wait for the filter dialog"
+    },
+    {
+      "action": "checkpoint",
+      "id": "filter-dialog-open",
+      "label": "The filter dialog is open"
+    },
+    {
+      "action": "click",
+      "locator": {
+        "selector": ".ui-dialog details:nth-of-type(1) > summary"
+      },
+      "label": "Expand a collapsed details section inside the dialog"
+    },
+    {
+      "action": "waitFor",
+      "readiness": {
+        "selector": ".ui-dialog details[open]",
+        "state": "visible"
+      },
+      "label": "Wait for the details section to be open"
+    },
+    {
+      "action": "evaluate",
+      "expression": "(() => { const dialog = document.querySelector('.ui-dialog'); if (!dialog) return null; const rect = dialog.getBoundingClientRect(); const button = dialog.querySelector('.ui-dialog-buttonpane button:last-child'); const buttonRect = button ? button.getBoundingClientRect() : null; return { dialog: { top: Math.round(rect.top), bottom: Math.round(rect.bottom), height: Math.round(rect.height) }, viewportHeight: innerHeight, button: buttonRect ? { top: Math.round(buttonRect.top), bottom: Math.round(buttonRect.bottom), inViewport: buttonRect.top >= 0 && buttonRect.bottom <= innerHeight } : null }; })()",
+      "label": "Read the dialog and primary-button geometry (read-only)"
+    },
+    {
+      "action": "checkpoint",
+      "id": "filter-dialog-expanded",
+      "label": "The filter dialog after a details section expanded"
+    },
+    {
+      "action": "assert",
+      "check": {
+        "state": {
+          "path": "state.application.dialogs",
+          "countMin": 1
+        }
+      },
+      "label": "A dialog is still open after the expansion"
+    },
+    {
+      "action": "assert",
+      "check": {
+        "focus": {
+          "within": ".ui-dialog"
+        }
+      },
+      "label": "Focus stayed inside the dialog after the expansion"
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "views-edit-page",
+      "label": "The Content view edit page is loaded",
+      "profile": "quick",
+      "expected": {
+        "content": [
+          "Content"
+        ]
+      }
+    },
+    {
+      "id": "filter-dialog-open",
+      "label": "The filter dialog is open",
+      "profile": "dynamic",
+      "scope": ".ui-dialog",
+      "readiness": {
+        "selector": ".ui-dialog",
+        "state": "visible"
+      },
+      "expected": {
+        "dialogOpen": true,
+        "states": [
+          {
+            "path": "state.application.dialogs",
+            "countMin": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "filter-dialog-expanded",
+      "label": "The filter dialog after a details section expanded",
+      "profile": "visual",
+      "scope": ".ui-dialog",
+      "expected": {
+        "dialogOpen": true,
+        "states": [
+          {
+            "path": "state.application.dialogs",
+            "countMin": 1
+          }
+        ]
+      }
+    }
+  ],
+  "expected": [
+    {
+      "state": {
+        "path": "state.application.dialogs",
+        "countMin": 1
+      }
+    }
+  ],
+  "regressionAssertions": [
+    {
+      "focus": {
+        "within": ".ui-dialog"
+      }
+    },
+    {
+      "state": {
+        "path": "state.application.formErrors",
+        "equals": []
+      }
+    }
+  ],
+  "resetInstructions": [
+    "node tools/compare/setup.mjs 3466040-pinned --check-patches",
+    "node scripts/lab-env.mjs reset 3466040-pinned --yes (the scenario does not save the view, but a reset clears any dialog state)"
+  ],
+  "manualReview": [
+    "After expanding the details, check with the keyboard only that the primary action button (Apply/Save) is still reachable and visible, and that Tab does not move focus behind the dialog.",
+    "Repeat with the window short (for example 1000x400) and with browser text zoom, where the dialog growth problem is worst; the replay records geometry but does not judge it.",
+    "Expand and collapse several details sections in a row ('until things get out of hand' in the issue) and watch for the dialog drifting off-screen.",
+    "Check the same flow in the Field UI add-field modal, which the issue's report names as the other affected dialog."
+  ],
+  "limits": [
+    "Views UI already has its own resize workaround (it dispatches dialogContentResize on summary clicks), so Before is not a naive baseline; the comparison records what it actually did.",
+    "The exact summary selector is a positional CSS selector because <summary> has no Playwright role mapping; if the dialog markup changes it will need updating.",
+    "Dialog geometry is evidence, not a verdict: whether a control is out of reach depends on the viewport, zoom and the person's needs.",
+    "The scenario has not been replayed in this session; no Drupal site was running.",
+    "Cannot be replayed until the 3466040-pinned variant is registered (no environment pair is registered here)."
+  ],
+  "verified": false,
+  "notes": "Read reports/issues/3466040/REPRODUCE.md and tools/playwright/evaluate-3466040.mjs (scenario B: /admin/structure/views/view/content, the 'Content: Content type' link, the dialog details expansion, and the dialog geometry measurements). reports/issues/3466040/EVIDENCE.md is still the empty template, so there is no result to copy. Inferred, not observed: the locator for the collapsed details inside the pinned dialog, the accessible name of the primary action button, and the exact page landmarks. Not run: no Drupal site was running in this session. Variant set to null for this branch: the intended comparison is 3466040-pinned (issue #3466040), which is not registered in tools/compare/variants.json on origin/main. When the variant row is registered, set \"variant\": \"3466040-pinned\" and replay it."
+}

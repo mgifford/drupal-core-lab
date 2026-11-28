@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mgifford/drupal-core-lab/scenarios/schema.json",
+  "title": "Drupal Core Lab accessibility scenario (lab-a11y-scenario/1)",
+  "description": "A small data-only description of one accessibility checkpoint flow: an initial route, an ordered list of steps, the named checkpoints to capture, and the assertions to record. It is replayed against Before and After by tools/playwright/scenario-run.mjs. There is no scripting language: custom JavaScript is limited to one bounded, read-only `evaluate` expression per step, and validation refuses anything that can click, focus, type, navigate, reload, submit or write storage. Locators are semantic; an MCP element reference such as `e12` is rejected because those are session-scoped.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "issue", "variant", "title", "description", "preconditions", "fixture", "route", "login", "viewport", "browser", "colourScheme", "forcedColors", "reducedMotion", "steps", "checkpoints", "expected", "regressionAssertions", "resetInstructions", "manualReview", "limits", "verified", "notes"],
+  "properties": {
+    "schema": { "const": "lab-a11y-scenario/1" },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,79}$", "description": "Stable lower-case identifier. Kept stable so evidence and comparisons can be tied to it." },
+    "issue": { "type": ["integer", "null"], "minimum": 1, "description": "drupal.org issue number, or null when there is no issue yet." },
+    "variant": { "type": ["string", "null"], "pattern": "^[a-z0-9][a-z0-9._-]*$", "description": "Registered variant slug that provides the Before/After patch stacks, or null when no environment is registered yet. The runner refuses an unregistered variant instead of writing a fake result; the scenario does not duplicate patch stacks." },
+    "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "description": { "type": "string", "minLength": 1, "maxLength": 2000, "description": "What the flow reaches and why those states matter. Behaviour specific to this issue; do not copy another scenario's expectations." },
+    "preconditions": { "type": "array", "items": { "type": "string", "maxLength": 300 }, "description": "What must be true before the scenario can run (fixture, modules, theme, environment)." },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["notes"],
+      "properties": {
+        "recipe": { "type": "string", "maxLength": 300, "description": "Recipe path or name that creates the starting state." },
+        "standardInstall": { "type": "boolean", "description": "True for a plain Standard install with no recipe. Never set together with recipe." },
+        "notes": { "type": "string", "minLength": 1, "maxLength": 1000, "description": "What the fixture provides and what it does not. Say where the fixture path exists in this checkout." }
+      },
+      "oneOf": [{ "required": ["recipe"] }, { "required": ["standardInstall"] }]
+    },
+    "route": { "type": "string", "pattern": "^/", "maxLength": 300, "description": "Initial path. The goto step repeats it; this field is what the report shows as the starting state." },
+    "login": { "type": "boolean", "description": "Whether each side is logged in with the lab's one-time link before the scenario starts (openSide does this)." },
+    "viewport": {
+      "type": "object", "additionalProperties": false, "required": ["width", "height"],
+      "properties": { "width": { "type": "integer", "minimum": 200, "maximum": 10000 }, "height": { "type": "integer", "minimum": 200, "maximum": 10000 } }
+    },
+    "browser": { "enum": ["chromium", "firefox", "webkit"], "description": "Browser engine. A checkpoint's environment records what actually launched; nothing is extrapolated to another engine." },
+    "colourScheme": { "enum": ["light", "dark"], "description": "prefers-color-scheme emulation. Default Admin's dark mode is a class applied when this is dark and the theme is set to auto." },
+    "forcedColors": { "type": "boolean", "description": "Emulate prefers-forced-colors: active. This is emulation, not a real Windows contrast theme; say so in limits." },
+    "reducedMotion": { "enum": ["no-preference", "reduce"] },
+    "steps": {
+      "type": "array", "minItems": 1, "maxItems": 200,
+      "description": "Ordered steps. Waits are explicit readiness conditions; there is no sleep action.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["action"],
+        "properties": {
+          "action": { "enum": ["goto", "click", "press", "fill", "check", "uncheck", "hover", "selectOption", "waitFor", "checkpoint", "screenshot", "evaluate", "assert"] },
+          "label": { "type": "string", "maxLength": 200, "description": "Human label for the report. A step without a label is described by its action." },
+          "timeoutMs": { "type": "integer", "minimum": 100, "maximum": 120000 },
+          "optional": { "type": "boolean", "description": "Only for genuinely optional UI: a locator that cannot be found is recorded as skipped, not failed. Never use it to hide a required step." },
+          "path": { "type": "string", "pattern": "^/", "maxLength": 300, "description": "goto: the path to load." },
+          "readiness": { "$ref": "#/$defs/readiness" },
+          "locator": { "$ref": "#/$defs/locator" },
+          "key": { "type": "string", "maxLength": 40, "description": "press: a Playwright key name such as Tab, Enter, Escape, ArrowLeft or Shift. Shift on a locator is a documented way to place trusted keyboard focus on an element without activating it." },
+          "value": { "type": ["string", "number", "boolean"], "description": "fill/selectOption: the value to enter or select." },
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,79}$", "description": "checkpoint: id of a declared checkpoint to capture." },
+          "name": { "type": "string", "maxLength": 80, "description": "screenshot: file name suffix." },
+          "expression": { "type": "string", "minLength": 1, "maxLength": 2000, "description": "evaluate: ONE bounded read-only in-page expression (for example getComputedStyle(document.querySelector('.ck-editor__editable')).backgroundColor). It must not change state: no click, focus, typing, navigation, reload, submit, storage or DOM writes. This is not an unrestricted host-code endpoint." },
+          "check": { "$ref": "#/$defs/check" }
+        }
+      }
+    },
+    "checkpoints": {
+      "type": "array", "maxItems": 60,
+      "description": "Named application states. A step {action:'checkpoint', id} captures the matching entry. Every declared checkpoint must be captured.",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["id", "label"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,79}$" },
+          "label": { "type": "string", "maxLength": 200 },
+          "profile": { "enum": ["quick", "semantic", "visual", "dynamic", "multi-engine", "full"], "description": "Engine/collector profile used at this checkpoint (default quick). Use visual where computed styles or screenshots matter and dynamic where announcements matter." },
+          "scope": { "type": "string", "maxLength": 300, "description": "CSS selector of the element this checkpoint is about. Used for the visual evidence; not a substitute for a semantic locator in click/fill steps." },
+          "include": { "type": "array", "items": { "type": "string", "maxLength": 300 }, "maxItems": 50 },
+          "exclude": { "type": "array", "items": { "type": "string", "maxLength": 300 }, "maxItems": 50 },
+          "tags": { "type": "array", "items": { "type": "string", "maxLength": 100 }, "maxItems": 30, "description": "WCAG tags passed to the engines, for example wcag22aa." },
+          "rules": { "type": "array", "items": { "type": "string", "maxLength": 120 }, "maxItems": 200, "description": "Engine rule ids to limit or require, for example color-contrast." },
+          "readiness": { "$ref": "#/$defs/readiness" },
+          "expected": { "$ref": "#/$defs/equivalence", "description": "Facts BOTH sides must share at this state. State-dependent checkpoints need this so the comparison refuses a difference between non-equivalent states. Do not put focus here when focus is the behaviour under test; use a per-side assert instead." }
+        }
+      }
+    },
+    "expected": {
+      "type": "array", "maxItems": 40,
+      "description": "Scenario-level assertions, evaluated on each side after the last step. A failure on After is unexpected; a Before failure with an After pass is the change under test.",
+      "items": { "$ref": "#/$defs/check" }
+    },
+    "regressionAssertions": {
+      "type": "array", "maxItems": 40,
+      "description": "Behaviour that must not get worse. Also evaluated per side; a Before pass with an After failure is a regression.",
+      "items": { "$ref": "#/$defs/check" }
+    },
+    "resetInstructions": { "type": "array", "items": { "type": "string", "maxLength": 300 }, "description": "How a person resets the fixture (database snapshot, environment reset) before replaying." },
+    "manualReview": { "type": "array", "items": { "type": "string", "maxLength": 1000 }, "description": "Checks the replay cannot make: what a person must do (keyboard pass, real screen reader, real Windows contrast theme, contrast measurement by eye). Stored separately from automated results." },
+    "limits": { "type": "array", "items": { "type": "string", "maxLength": 1000 }, "description": "What this scenario does not cover, including anything inferred rather than observed." },
+    "verified": { "type": "boolean", "description": "True only after the scenario reached every checkpoint against a real Before/After pair and a person read the result. Everything in this repository starts false." },
+    "notes": { "type": "string", "minLength": 1, "maxLength": 6000, "description": "Which lab files were read, which steps were inferred from the issue or report, which fixture paths exist, and what is missing." }
+  },
+  "$defs": {
+    "locator": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "A semantic locator. Exactly one kind is used. The selector is a last resort for markup with no usable role/label/text/testId handle (for example <summary>, which Playwright does not map to a role); say why in the scenario notes. An MCP element reference such as e12 is rejected.",
+      "properties": {
+        "role": { "type": "string", "maxLength": 40, "description": "ARIA role, for example option, button, link, checkbox, textbox." },
+        "name": { "type": "string", "maxLength": 160, "description": "Accessible name (case-insensitive substring by default; set exact:true for an exact match). Required with role." },
+        "exact": { "type": "boolean" },
+        "label": { "type": "string", "maxLength": 160 },
+        "text": { "type": "string", "maxLength": 160 },
+        "testId": { "type": "string", "maxLength": 160 },
+        "selector": { "type": "string", "maxLength": 300 }
+      },
+      "oneOf": [{ "required": ["role", "name"] }, { "required": ["label"] }, { "required": ["text"] }, { "required": ["testId"] }, { "required": ["selector"] }]
+    },
+    "readiness": {
+      "description": "An explicit state to wait for. Fixed sleeps are never accepted.",
+      "oneOf": [
+        { "type": "string", "minLength": 1, "maxLength": 300 },
+        {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "selector": { "type": "string", "maxLength": 300 },
+            "state": { "enum": ["visible", "attached", "hidden", "detached"] },
+            "expression": { "type": "string", "maxLength": 2000, "description": "Boolean expression evaluated in the page (for example !!document.querySelector('.ck-editor__editable'))." },
+            "networkIdle": { "const": true },
+            "timeoutMs": { "type": "integer", "minimum": 100, "maximum": 120000 }
+          },
+          "oneOf": [{ "required": ["selector"] }, { "required": ["expression"] }, { "required": ["networkIdle"] }]
+        }
+      ]
+    },
+    "stateExpectation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path"],
+      "description": "A dotted path into a checkpoint record (for example state.application.messages or focus.active.role) with one comparison.",
+      "properties": {
+        "path": { "type": "string", "maxLength": 200 },
+        "equals": {},
+        "truthy": { "type": "boolean" },
+        "countMin": { "type": "integer", "minimum": 0 }
+      },
+      "oneOf": [{ "required": ["equals"] }, { "required": ["truthy"] }, { "required": ["countMin"] }]
+    },
+    "equivalence": {
+      "type": "object", "additionalProperties": false,
+      "description": "Facts two sides must share before their findings or assertions are compared. equivalence() refuses a comparison when one of these fails.",
+      "properties": {
+        "dialogOpen": { "type": "boolean" },
+        "states": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/stateExpectation" } },
+        "content": { "type": "array", "maxItems": 20, "items": { "type": "string", "maxLength": 300 }, "description": "Text that must be visible on both sides." }
+      },
+      "anyOf": [{ "required": ["dialogOpen"] }, { "required": ["states"] }, { "required": ["content"] }]
+    },
+    "check": {
+      "type": "object", "additionalProperties": false,
+      "description": "One data-only assertion. Exactly one check type per object; each records pass/fail with the evidence it looked at.",
+      "properties": {
+        "engine": { "type": "string", "maxLength": 60 },
+        "rule": { "type": "string", "maxLength": 120 },
+        "targetContains": { "type": "string", "maxLength": 200 },
+        "present": { "type": "boolean" },
+        "focus": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "role": { "type": "string", "maxLength": 40 },
+            "name": { "type": "string", "maxLength": 160 },
+            "within": { "type": "string", "maxLength": 300, "description": "CSS selector the focused element must be inside. Use it for 'focus returned to the editor' without pretending to know the exact toolbar button." }
+          },
+          "anyOf": [{ "required": ["role"] }, { "required": ["name"] }, { "required": ["within"] }]
+        },
+        "state": { "$ref": "#/$defs/stateExpectation" },
+        "announcement": {
+          "type": "object", "additionalProperties": false, "required": ["text", "via"],
+          "properties": {
+            "text": { "type": "string", "maxLength": 300, "description": "Substring of the observed text." },
+            "via": { "enum": ["announce", "live"], "description": "announce: Drupal.announce() call; live: text change inside a live region (role alert/status/log or aria-live)." }
+          }
+        },
+        "silentChange": { "type": "boolean", "description": "True: at least one observed text change had no announcement, live region, focus move or disclosure; false: none did. What a screen reader would actually say is still a manual check." },
+        "equivalence": { "$ref": "#/$defs/equivalence", "description": "Decided by compareScenario() against the paired Before/After records, not on one side." }
+      },
+      "oneOf": [
+        { "required": ["engine", "rule"] },
+        { "required": ["focus"] },
+        { "required": ["state"] },
+        { "required": ["announcement"] },
+        { "required": ["silentChange"] },
+        { "required": ["equivalence"] }
+      ]
+    }
+  }
+}

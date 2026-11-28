@@ -4,6 +4,19 @@ Moved out of `AGENTS.md` on 2026-10-15 so that file, which every session loads, 
 The short index is in `AGENTS.md`.
 
 
+Dynamic accessibility checkpoints (the state reached through interaction, not only the page load —
+[docs/DYNAMIC-A11Y-CHECKPOINTS.md](DYNAMIC-A11Y-CHECKPOINTS.md)):
+
+    node tools/a11y-mcp/cli.mjs verify                  # is .mcp.json wired to the init hook and page helper? no browser
+    node tools/a11y-mcp/cli.mjs engines                 # declared engines, versions, capabilities and availability
+    node tools/a11y-mcp/cli.mjs session --variant <slug> [--scenario <id>] [--label <text>] [--out <dir>] [--profile <name>]   # name the MCP session (optional); --clear removes it
+    node tools/a11y-mcp/cli.mjs list                    # checkpoint sessions under reports/ and .lab-cache/
+    node tools/a11y-mcp/cli.mjs check <session-dir>     # record completeness/consistency, no browser
+    node tools/a11y-mcp/cli.mjs report <session-dir>    # regenerate SUMMARY.md + report.html from the canonical JSON
+    node tools/a11y-mcp/cli.mjs compare <session-dir> [--json]   # equivalence checks first, then Before/After classifications
+    node tools/playwright/scenario-run.mjs <scenario> <slug> [--check] [--side=both|before|after] [--browser=] [--scheme=] [--forced-colors] [--viewport=WxH] [--out=<dir>]   # replay explored steps as a deterministic Before/After run; --check needs no browser
+    node tools/a11y-mcp/verify-live.mjs --slug=<slug> [--route=<path>] [--side=both|before|after] [--out=<dir>] [--no-compare]   # live MCP Before/After checkpoints on a running pair; logs in with the one-time link and compares only equivalent states
+
 Everything is driven by **variants** in `tools/compare/variants.json`. A variant says which core (a pinned commit, or the latest
 `main`), which two environments, which patches, the recipe that creates the starting state, the steps, and the checks.
 

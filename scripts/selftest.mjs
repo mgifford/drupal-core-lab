@@ -117,6 +117,8 @@ for (const [name, list] of [['unit tests: lab tools', glob('tests/lab')], ['unit
   record('generated CSS: lab-authored patches carry their compiled .css', bad.length ? 'FAIL' : 'ok', bad.length ? `${bad.length}: ${bad.slice(0, 4).join('; ')}. Run: node scripts/css-build.mjs <slug> --build` : `${imported.length} imported patch(es) change a .pcss.css without its .css in the patch (left as submitted; check with css-build.mjs)`);
 }
 
+// 4a. the dynamic accessibility checkpoint integration is wired up (read-only: .mcp.json, init hook, page helper, config)
+{ const r = run('node', ['tools/a11y-mcp/cli.mjs', 'verify']); record('dynamic a11y checkpoints: Playwright MCP integration configured (a11y-mcp cli verify)', r.status === 0 ? 'ok' : 'FAIL', first(r).slice(0, 400)); }
 // 4. documentation links and the published guide
 for (const [name, a] of [['documentation links (check-docs.mjs)', ['scripts/check-docs.mjs']], ['cloud/ up to date (build-cloud.mjs --check)', ['scripts/build-cloud.mjs', '--check']]]) {
   const r = runStatic('node', a); record(name, r.status === 0 ? 'ok' : 'FAIL', first(r));
