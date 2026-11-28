@@ -114,6 +114,7 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
 | When | Read |
 |---|---|
 | a command fails or something behaves oddly | `docs/PITFALLS.md` (search it for the error text first) |
+| several sessions share this checkout, or uncommitted work is not yours | `docs/WORKSPACE-HYGIENE.md` (safe triage, the never-run list, coordination records) |
 | the exact flags of a lab script | `docs/COMMANDS.md` |
 | building, resetting or removing an environment; which environments exist; the manual fallback | `docs/ENVIRONMENTS.md` |
 | changing the viewer (`tools/compare/index.html`, `serve.mjs`) | `docs/VIEWER-DEV.md` (the security rules are there) |

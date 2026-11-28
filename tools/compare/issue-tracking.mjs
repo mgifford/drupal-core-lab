@@ -6,6 +6,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { htmlToText, neutralize, STATUS, PRIORITY, CATEGORY } from './pack-prepare.mjs';
+import { normalizeStatus, validateStatus, readStatus as readIssueStatus } from './issue-status.mjs';
+export { readStatus } from './issue-status.mjs';
 
 const day = (epoch) => new Date(Number(epoch) * 1000).toISOString().slice(0, 10);
 const GITLAB = 'https://git.drupalcode.org/api/v4';
@@ -93,8 +95,11 @@ export async function fetchStatus(nid, { getJson, labRoot, today = new Date().to
 export function changes(s, prev) {
   if (!prev) return [];
   const c = [];
+  const prevComments = Number.isInteger(prev.comments) ? prev.comments : null;
+  const comments = Number.isInteger(s.comments) ? s.comments : null;
   if (prev.status !== s.status) c.push(`status ${prev.status} → ${s.status}`);
-  if (prev.comments !== s.comments) c.push(`${s.comments - prev.comments} new comment(s)`);
+  if (prevComments != null && comments != null && prevComments !== comments) c.push(`${comments - prevComments} new comment(s)`);
+  else if (prevComments == null && comments != null) c.push(`${comments} comment(s) recorded`);
   if ((prev.mr?.sha || null) !== (s.mr?.sha || null)) c.push(`MR head ${prev.mr?.sha || 'none'} → ${s.mr?.sha || 'none'}`);
   else if ((prev.mr?.state || null) !== (s.mr?.state || null)) c.push(`MR ${prev.mr?.state || 'none'} → ${s.mr?.state || 'none'}`);
   if (prev.title !== s.title) c.push('title changed');
@@ -107,10 +112,7 @@ export function changes(s, prev) {
 // stored MR and the current BRANCHES.md, so re-extracting the patch clears it at once.
 export function retestReason(mr, rec) {
   if (!mr) return '';
-  if (
-    typeof mr.sha !== 'string' ||
-    !/^[a-f0-9]{7,40}$/i.test(mr.sha)
-  ) {
+  if (mr.iid == null || typeof mr.sha !== 'string' || !/^[a-f0-9]{7,40}$/i.test(mr.sha)) {
     return 'MR metadata incomplete; refresh issue status';
   }
   if (!rec || !rec.tip) return '';
@@ -120,7 +122,7 @@ export function retestReason(mr, rec) {
   return head && (tip.startsWith(head) || head.startsWith(tip.slice(0, 8))) ? '' : `MR !${mr.iid} is at ${mr.sha}; the lab tested ${rec.tip.slice(0, 8)}`;
 }
 
-export const readStatus = (dir) => { try { return JSON.parse(fs.readFileSync(path.join(dir, 'status.json'), 'utf8')); } catch { return null; } };
+
 
 // The archive record (ARCHIVED.md, written by scripts/issue-archive.mjs): { date, reason } or null.
 export function readArchived(dir) {
@@ -151,25 +153,31 @@ export function nextStep({ nid, status: s, rec, archived }) {
 
 // A dated snapshot of one issue for STATUS-<date>.md and for the terminal.
 export function statusMarkdown(s, ch, rec, prev) {
-  const mrLine = s.mr ? `!${s.mr.iid} (${s.mr.state}${s.mr.draft ? ', draft' : ''}), branch \`${s.mr.branch}\`, head \`${s.mr.sha}\`, updated ${s.mr.updated}` : 'none found';
+  const mrLine = s.mr ? `!${s.mr.iid ?? '?'} (${s.mr.state || 'state unknown'}${s.mr.draft ? ', draft' : ''}), branch \`${s.mr.branch || 'unknown'}\`, head \`${s.mr.sha || 'unknown'}\`, updated ${s.mr.updated || 'unknown'}` : 'none found';
   const retest = retestReason(s.mr, rec);
   return `# #${s.nid} status snapshot (${s.since})\n\nFetched by \`scripts/issue-status.mjs\` from the drupal.org and GitLab APIs. Re-check on the issue page before relying on it.\n\n` +
-    `- Issue: [${s.title}](${s.url})\n- Status: **${s.status}**; ${s.priority} ${s.category}; component ${s.component}; version ${s.version}\n- Tags: ${s.tags.join(', ') || 'none'}\n- Last updated ${s.changed}; ${s.comments} comments\n` +
-    `- Merge request: ${mrLine}${s.otherMrs.length ? `; others: ${s.otherMrs.map((m) => `!${m.iid} (${m.state})`).join(', ')}` : ''}\n` +
+    `- Issue: [${s.title}](${s.url})\n- Status: **${s.status}**; ${s.priority} ${s.category}; component ${s.component}; version ${s.version}\n- Tags: ${s.tags.join(', ') || 'none'}\n- Last updated ${s.changed || 'unknown'}; ${s.comments == null ? 'unknown' : s.comments} comments\n` +
+    `- Merge request: ${mrLine}${(s.otherMrs || []).length ? `; others: ${(s.otherMrs || []).map((m) => `!${m.iid} (${m.state})`).join(', ')}` : ''}\n` +
     `- Lab patch: ${rec ? `tip \`${rec.tip}\` of \`${rec.branch}\` (BRANCHES.md)` : 'no BRANCHES.md'}${retest ? ` **Re-test: ${retest}.**` : ''}\n` +
-    `- Since the last check: ${!prev ? 'first check' : ch.length ? ch.join('; ') : `no change since ${prev.since}`}\n\n## Latest comments\n\n${s.latest.map((c) => `- #${c.n} ${c.by}, ${c.on}: ${c.text}`).join('\n') || 'none'}\n`;
+    `- Since the last check: ${!prev ? 'first check' : ch.length ? ch.join('; ') : `no change since ${prev.since}`}\n\n## Latest comments\n\n${(s.latest || []).map((c) => `- #${c.n} ${c.by}, ${c.on}: ${c.text}`).join('\n') || 'none'}\n`;
 }
 
 // Keep the state in <issue>/status.json, rewritten only when something changed, so a run that finds nothing new changes no file and
 // `since` keeps the date the lab first saw the current state. A change after an earlier check also gets STATUS-<date>.md (an
 // existing one is kept unless `force`); the first check of an issue gets none.
 export function saveStatus(dir, s, { rec = null, force = false } = {}) {
-  const prev = readStatus(dir), changed = changes(s, prev), wrote = [];
+  const status = normalizeStatus({ ...s, schemaVersion: 1 });
+  const check = validateStatus(status);
+  if (!check.ok) {
+    const detail = check.errors.slice(0, 6).map((e) => `${e.path || '/'} ${e.message}`).join('; ');
+    throw new Error(`refusing to write invalid status.json for #${status.nid || '?'}: ${detail}`);
+  }
+  const prev = readIssueStatus(dir), changed = changes(status, prev), wrote = [];
   if (prev && !changed.length) return { prev, changed, wrote };
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, 'status.json'), JSON.stringify(s, null, 2) + '\n'); wrote.push('status.json');
-  const snapshot = path.join(dir, `STATUS-${s.since}.md`);
-  if (prev && (force || !fs.existsSync(snapshot))) { fs.writeFileSync(snapshot, statusMarkdown(s, changed, rec, prev)); wrote.push(path.basename(snapshot)); }
+  fs.writeFileSync(path.join(dir, 'status.json'), JSON.stringify(status, null, 2) + '\n'); wrote.push('status.json');
+  const snapshot = path.join(dir, `STATUS-${status.since}.md`);
+  if (prev && (force || !fs.existsSync(snapshot))) { fs.writeFileSync(snapshot, statusMarkdown(status, changed, rec, prev)); wrote.push(path.basename(snapshot)); }
   return { prev, changed, wrote };
 }
 
@@ -208,7 +216,7 @@ export function buildIndex(labRoot) {
   for (const nid of issueNids(labRoot)) {
     const dir = issueDir(labRoot, nid), has = (f) => fs.existsSync(path.join(dir, f));
     const heading = (f) => { if (!f || !has(f) || !fs.statSync(path.join(dir, f)).isFile()) return ''; const m = fs.readFileSync(path.join(dir, f), 'utf8').match(/^#\s+(.*)$/m); return m ? m[1].replace(/^Reproduce #\d+:\s*/, '').replace(/^#\d+:\s*/, '').trim() : ''; };
-    const s = readStatus(dir), rec = recordedTip(labRoot, nid), archived = readArchived(dir);
+    const s = readIssueStatus(dir), rec = recordedTip(labRoot, nid), archived = readArchived(dir);
     let what = (s && s.title) || heading('REPRODUCE.md') || heading('SUMMARY.md') || '(see folder)';
     if (what.length > 80) what = what.slice(0, 80).replace(/\s+\S*$/, '').trim() + '…';
     const step = nextStep({ nid, status: s, rec, archived });

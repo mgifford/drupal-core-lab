@@ -24,7 +24,10 @@ for (const nid of nids) {
   let s;
   try { s = await fetchStatus(nid, { getJson, labRoot, today, terms }); } catch (e) { console.error(`#${nid}: could not be read: ${e.message}`); failed.push(nid); continue; }
   const prev = readStatus(dir), ch = changes(s, prev);
-  if (write) saveStatus(dir, s, { rec, force });
+  if (write) {
+    try { saveStatus(dir, s, { rec, force }); }
+    catch (e) { console.error(`#${nid}: ${e.message}`); failed.push(nid); continue; }
+  }
   if (!prev) first.push(nid); else if (ch.length) changed.push(nid);
   if (!all) { console.log(statusMarkdown(s, ch, rec, prev)); continue; }
   const step = nextStep({ nid, status: s, rec, archived: null });

@@ -87,6 +87,14 @@ for (const [name, list] of [['unit tests: lab tools', glob('tests/lab')], ['unit
   record('variants', problems.length ? 'FAIL' : 'ok', problems.length ? problems.slice(0, 8).join('; ') : `${vs.length} variants`);
 }
 
+// 3a. the repository's own issue data, index, FOCUS report and variant references. Synthetic tests do not catch a status.json
+// that makes the index crash or a generated report that is stale.
+{
+  const r = runStatic('node', ['scripts/validate-data.mjs']);
+  const detail = r.status === 0 ? first(r) : (r.stdout || '').split('\n').filter((l) => /ERROR|problem/.test(l)).slice(0, 6).join(' | ');
+  record('repository data (validate-data.mjs)', r.status === 0 ? 'ok' : 'FAIL', detail);
+}
+
 // 3b. patches that changed since the base branch say so (scripts/patch-change.mjs): a changed patch file is changed evidence
 {
   const base = resolveBase(labRoot);
