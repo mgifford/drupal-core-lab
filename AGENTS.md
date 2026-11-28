@@ -95,6 +95,7 @@ Slugs and environments are in `tools/compare/variants.json`; `node scripts/lab-e
 ## Commands (usage and flags: `docs/COMMANDS.md`)
 All are `node <path> ...` from the repository root; `<slug>` is a variant in `tools/compare/variants.json`.
 
+    tools/a11y-mcp/cli.mjs verify|session|engines|list|check|report|compare  |  tools/playwright/scenario-run.mjs <scenario> <slug> [--check]  |  tools/a11y-mcp/verify-live.mjs --slug=<slug>   (dynamic accessibility checkpoints on the state a person reached: docs/DYNAMIC-A11Y-CHECKPOINTS.md)
     scripts/doctor.mjs [slug] [--network] [--for=<task>]  |  scripts/deps.mjs check [--for=<task>] | link  (packages per task; a worktree reuses the primary's)  |  scripts/lab-env.mjs status|start|stop|reset|delete|trim|disk|retire <slug>
     tools/compare/setup.mjs <slug> [--check-patches | --refresh-patches | --checkout-only | --reinstall | --core-from=<path>]
     tools/compare/serve.mjs <slug>  |  tools/compare/diff.mjs <slug>  |  tools/playwright/walkthrough.mjs <slug>  |  tools/playwright/tree-diff.mjs <nid|slug>  (accessibility tree, ARIA, speech: docs/ACCESSIBILITY-TREE-DIFF.md)
@@ -121,6 +122,7 @@ All are `node <path> ...` from the repository root; `<slug>` is a variant in `to
 | a DDEV Coder task, before writing commands | `docs/CLOUD-QUICKSTART.md` and `tools/compare/cloud/README.md` |
 | generating a Coder handoff | `prompts/README.md`; `node scripts/coder-prompt.mjs <slug> --write` |
 | starting a new issue | `docs/NEW-ISSUE.md` |
+| testing the state a page reaches after interaction, not just the page load | `docs/DYNAMIC-A11Y-CHECKPOINTS.md` |
 
 ## Rules for agents
 

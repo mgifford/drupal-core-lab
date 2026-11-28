@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Focus indicator removed for keyboard focus</title>
+<!--
+  Control 2: nothing changes at page load. Only when the button is focused with the keyboard does :focus-visible
+  remove the indicator that the base :focus rule provides, so a scan of the loaded page cannot see the defect.
+  WCAG 2.2 SC 2.4.7 Focus Visible: https://www.w3.org/TR/WCAG22/#focus-visible
+-->
+<style>
+  body { margin: 2rem; font-family: system-ui, sans-serif; color: #1a1a1a; background: #ffffff; }
+  h1 { font-size: 1.5rem; }
+  button { font: inherit; padding: 0.6rem 1.2rem; background: #0b4fbf; color: #ffffff; border: 2px solid #0b4fbf; border-radius: 4px; }
+  /* The base :focus rule does draw a ring (so pointer focus stays visibly indicated). */
+  button:focus { outline: 4px solid #b30000; outline-offset: 3px; }
+  /* The later rule removes the indicator for keyboard focus only. Equal specificity, later wins. */
+  button:focus-visible { outline: none; box-shadow: none; }
+</style>
+</head>
+<body>
+<h1>Focus indicator removed for keyboard focus</h1>
+<p>Nothing on the page changes at load. Press Tab: the button receives keyboard focus and its focus indicator is gone.</p>
+<p><button type="button" id="focus-target">Save draft</button></p>
+</body>
+</html>

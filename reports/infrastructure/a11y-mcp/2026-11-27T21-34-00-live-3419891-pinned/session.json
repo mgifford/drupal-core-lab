@@ -1,0 +1,182 @@
+{
+  "schema": "lab-a11y-session/1",
+  "id": "2026-11-27T21-34-00-live-3419891-pinned",
+  "started": "2026-11-27T21:34:19.559Z",
+  "updated": "2026-11-27T21:34:49.639Z",
+  "issue": "3419891",
+  "variants": [
+    "3419891-pinned"
+  ],
+  "kinds": [
+    "lab-variant"
+  ],
+  "tool": {
+    "name": "playwright",
+    "integration": "playwright-mcp init-page + approved in-page helper; axe-core runs on the live page"
+  },
+  "mcp": {
+    "version": "0.0.84",
+    "integration": "playwright-mcp --init-page + --init-script; a single exposed binding; browser_evaluate calls the approved helper",
+    "initScript": "tools/playwright/lib/a11y/page-helper.js",
+    "initPage": "tools/a11y-mcp/init-page.cjs",
+    "serverStarted": "2026-11-27T21:34:17.060Z"
+  },
+  "configuredProfile": "full",
+  "pages": [
+    {
+      "origin": "https://repro-baseline-3419891.ddev.site",
+      "path": "/node/add/page",
+      "host": "repro-baseline-3419891.ddev.site",
+      "contextId": null,
+      "variant": "3419891-pinned",
+      "side": "before",
+      "env": "baseline-3419891",
+      "when": "2026-11-27T21:34:19.560Z"
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "editor-initialized",
+      "sequence": 1,
+      "label": "CKEditor initialised",
+      "status": "state-not-reached",
+      "side": "before",
+      "when": "2026-11-27T21:34:49.576Z",
+      "page": "/node/add/page",
+      "variant": "3419891-pinned",
+      "scriptedOrExploratory": "playwright-mcp",
+      "engines": [
+        {
+          "engine": "axe-core",
+          "version": "unknown",
+          "status": "not-run",
+          "findings": 0
+        },
+        {
+          "engine": "htmlcs",
+          "version": "unknown",
+          "status": "not-run",
+          "findings": 0
+        }
+      ],
+      "findings": 0,
+      "manual": 1,
+      "evidenceDir": "reports/infrastructure/a11y-mcp/2026-11-27T21-34-00-live-3419891-pinned/evidence/001-editor-initialized",
+      "file": "reports/infrastructure/a11y-mcp/2026-11-27T21-34-00-live-3419891-pinned/checkpoints/001-editor-initialized.json"
+    }
+  ],
+  "findings": [],
+  "manual": [
+    {
+      "id": "screen-reader-repeat",
+      "question": "Does a screen reader announce anything unnecessarily repetitive at this state?",
+      "procedure": "Use a real screen reader (not a simulation) and listen.",
+      "why": "Repetition and verbosity are quality barriers automated tools cannot measure.",
+      "side": "before",
+      "result": "not-run",
+      "requiresPerson": true,
+      "automated": false,
+      "checkpointId": "editor-initialized",
+      "when": "2026-11-27T21:34:49.576Z"
+    }
+  ],
+  "resources": {
+    "checkpoints": 1,
+    "engineRuns": 0,
+    "scanMs": 30074,
+    "evidenceBytes": 16352,
+    "screenshots": 1,
+    "browserLaunches": 0,
+    "energy": null,
+    "energyNote": "not measured; the lab does not estimate energy use"
+  },
+  "limits": [
+    "Chromium only (the MCP browser); other engines/capabilities are reported per checkpoint, not assumed.",
+    "Automated engines see a minority of real barriers; a clean scan is not an accessibility pass.",
+    "No real screen reader, no person, was involved unless a manual step says so."
+  ],
+  "engineCapabilities": [
+    {
+      "id": "axe-core",
+      "label": "axe-core",
+      "version": "4.14.0",
+      "license": "MPL-2.0",
+      "livePage": true,
+      "requiresInjectedJavaScript": true,
+      "requiresNavigation": false,
+      "consumesDomSnapshot": false,
+      "iframes": true,
+      "shadowDom": true,
+      "computedStyles": true,
+      "preservesState": true,
+      "componentScope": true,
+      "resultKinds": [
+        "violations",
+        "incomplete",
+        "passes",
+        "inapplicable"
+      ],
+      "standards": [
+        "WCAG 2.0 A/AA",
+        "WCAG 2.1 A/AA",
+        "WCAG 2.2 A/AA",
+        "axe best-practice"
+      ],
+      "ruleset": "axe-core default ruleset; best-practice rules only when requested",
+      "available": true
+    },
+    {
+      "id": "htmlcs",
+      "label": "HTML_CodeSniffer",
+      "version": "2.5.1",
+      "license": "BSD-3-Clause",
+      "livePage": true,
+      "requiresInjectedJavaScript": true,
+      "requiresNavigation": false,
+      "consumesDomSnapshot": false,
+      "iframes": true,
+      "shadowDom": false,
+      "computedStyles": true,
+      "preservesState": true,
+      "componentScope": "filter",
+      "resultKinds": [
+        "error",
+        "warning",
+        "notice"
+      ],
+      "standards": [
+        "WCAG 2.0 A/AA/AAA (HTML_CodeSniffer standards)"
+      ],
+      "ruleset": "HTML_CodeSniffer 2.5.1 standard WCAG2AA; error = violation, warning = needs review, notice = manual review only",
+      "available": true
+    },
+    {
+      "id": "equal-access",
+      "label": "IBM Equal Access",
+      "version": "not installed",
+      "license": "Apache-2.0",
+      "livePage": false,
+      "requiresInjectedJavaScript": false,
+      "requiresNavigation": true,
+      "consumesDomSnapshot": false,
+      "iframes": true,
+      "shadowDom": true,
+      "computedStyles": true,
+      "preservesState": false,
+      "componentScope": false,
+      "resultKinds": [
+        "violation",
+        "recommendation",
+        "potential"
+      ],
+      "standards": [
+        "WCAG 2.2 A/AA",
+        "IBM Equal Access rulesets"
+      ],
+      "ruleset": "accessibility-checker rulesets (not applicable to live checkpoints yet)",
+      "unavailableReason": "accessibility-checker is not installed (optional: npm --prefix tools/playwright install accessibility-checker)",
+      "livePageVerdict": "not suitable for dynamic checkpoints: no API to inspect an existing page object",
+      "available": false
+    }
+  ]
+}

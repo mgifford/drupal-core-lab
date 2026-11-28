@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Form error without a programmatic association</title>
+<!--
+  Control 8: submitting the empty form shows an error next to the field, but the input gets no aria-invalid, no
+  aria-describedby and no aria-errormessage, and there is no error summary link to a focusable error. Nothing changes
+  at page load; the error only exists after the interaction.
+  WCAG 2.2 SC 3.3.1 Error Identification: https://www.w3.org/TR/WCAG22/#error-identification
+-->
+<style>
+  body { margin: 2rem; font-family: system-ui, sans-serif; color: #1a1a1a; background: #ffffff; }
+  h1 { font-size: 1.5rem; }
+  button { font: inherit; padding: 0.4rem 0.9rem; background: #0b4fbf; color: #ffffff; border: 2px solid #0b4fbf; border-radius: 4px; }
+  input { font: inherit; padding: 0.3rem; border: 2px solid #333333; }
+  .field-error { display: block; margin-top: 0.35rem; color: #b30000; font-weight: 600; }
+  .field-error[hidden] { display: none; }
+</style>
+</head>
+<body>
+<h1>Form error without a programmatic association</h1>
+<p>Submit the empty form: the error text appears next to the field, but the field is not marked invalid and does not
+  point at the error.</p>
+<form id="signup-form" novalidate>
+  <p>
+    <label for="full-name">Full name</label><br>
+    <input id="full-name" name="fullName" type="text" autocomplete="name" required aria-required="true">
+    <span id="full-name-error" class="field-error" hidden>Enter your name.</span>
+  </p>
+  <p><button type="submit" id="submit">Submit</button></p>
+</form>
+<script>
+  const form = document.getElementById('signup-form');
+  const error = document.getElementById('full-name-error');
+  form.addEventListener('submit', (event) => {
+    // The defect: the error text is shown, but nothing programmatically relates it to the input.
+    event.preventDefault();
+    error.hidden = false;
+  });
+</script>
+</body>
+</html>

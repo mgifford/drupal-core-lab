@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dialog that does not restore focus on close</title>
+<!--
+  Control 5: a modal dialog (a div with role="dialog", so the browser does not restore focus for us) opens, moves focus
+  inside, and closes without returning focus to the opener. After Escape, focus falls back to <body>.
+  WCAG 2.2 SC 2.4.3 Focus Order: https://www.w3.org/TR/WCAG22/#focus-order
+-->
+<style>
+  body { margin: 2rem; font-family: system-ui, sans-serif; color: #1a1a1a; background: #ffffff; }
+  h1 { font-size: 1.5rem; }
+  button { font: inherit; padding: 0.4rem 0.9rem; background: #0b4fbf; color: #ffffff; border: 2px solid #0b4fbf; border-radius: 4px; }
+  #modal { max-width: 34rem; padding: 1.5rem; border: 2px solid #333333; background: #ffffff; }
+  #modal[hidden] { display: none; }
+</style>
+</head>
+<body>
+<h1>Dialog that does not restore focus on close</h1>
+<p>Open the dialog, then close it with Escape or Close. Focus is not returned to the Open dialog button.</p>
+<p><button type="button" id="open-dialog">Open dialog</button></p>
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+  <h2 id="modal-title">Confirm</h2>
+  <p>This dialog moves focus to its Close button when it opens.</p>
+  <p><button type="button" id="modal-close">Close</button></p>
+</div>
+<script>
+  const modal = document.getElementById('modal');
+  const openButton = document.getElementById('open-dialog');
+  const closeButton = document.getElementById('modal-close');
+  let previouslyFocused = null;
+
+  function openModal() {
+    previouslyFocused = document.activeElement;
+    modal.hidden = false;
+    closeButton.focus();
+  }
+  function closeModal() {
+    // The defect: the opener (passed in previouslyFocused) is never restored. Hiding the dialog leaves focus on a
+    // hidden control, so the browser falls back to <body>.
+    modal.hidden = true;
+    void previouslyFocused;
+  }
+
+  openButton.addEventListener('click', openModal);
+  closeButton.addEventListener('click', closeModal);
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !modal.hidden) closeModal();
+  });
+</script>
+</body>
+</html>

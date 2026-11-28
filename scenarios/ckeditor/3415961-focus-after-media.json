@@ -1,0 +1,219 @@
+{
+  "schema": "lab-a11y-scenario/1",
+  "id": "ckeditor-insert-media-focus",
+  "issue": 3415961,
+  "variant": "3415961-pinned",
+  "title": "Insert Media from the CKEditor 5 toolbar and where focus goes afterwards",
+  "description": "Replay the real media-library flow on the Article form: open Insert Media, pick the fixture image declared by the recipe, press Insert selected, and capture the dialog and the editor with the media item inserted. Then check where focus is: the issue is that a refocus after the AJAX response pulls focus (and the window) away from the editor, so 'focus is still inside the editor' is the assertion under test and is evaluated separately on each side.",
+  "preconditions": [
+    "Standard install with an Image media type and one Image media item named 'Lab image' (recipe repro_3415961 and its apply.sh).",
+    "Full HTML has the Insert Media (drupalMedia) button and the Article body uses Full HTML (configure-editor.php in the recipe does both).",
+    "Variant 3415961-pinned is built: Before envs/baseline-3415961, After envs/issue-3415961. Both sides carry the test-support PHPUnit patch; only After has the focus fix."
+  ],
+  "fixture": {
+    "recipe": "repro_3415961",
+    "standardInstall": false,
+    "notes": "recipes/repro_3415961/ exists with recipe.yml, apply.sh and configure-editor.php. configure-editor.php creates the single Image media item named 'Lab image' (alt 'Lab image') so the media library has something to insert without a file chooser. This is the only reason the flow is reachable with click/check steps."
+  },
+  "route": "/node/add/article",
+  "login": true,
+  "viewport": {
+    "width": 1280,
+    "height": 900
+  },
+  "browser": "chromium",
+  "colourScheme": "light",
+  "forcedColors": false,
+  "reducedMotion": "no-preference",
+  "steps": [
+    {
+      "action": "goto",
+      "path": "/node/add/article",
+      "readiness": {
+        "selector": ".ck-editor__editable",
+        "state": "visible"
+      },
+      "label": "Open the Add Article form"
+    },
+    {
+      "action": "checkpoint",
+      "id": "editor-initialized",
+      "label": "The CKEditor 5 body editor has initialized"
+    },
+    {
+      "action": "click",
+      "locator": {
+        "role": "button",
+        "name": "Show more items"
+      },
+      "optional": true,
+      "label": "Open the toolbar overflow if the editor is narrow"
+    },
+    {
+      "action": "click",
+      "locator": {
+        "role": "button",
+        "name": "Insert Media"
+      },
+      "label": "Open the media library from the editor toolbar"
+    },
+    {
+      "action": "waitFor",
+      "readiness": {
+        "selector": "#drupal-modal #media-library-content",
+        "state": "visible"
+      },
+      "label": "Wait for the Media Library dialog"
+    },
+    {
+      "action": "checkpoint",
+      "id": "media-library-open",
+      "label": "Media Library dialog is open"
+    },
+    {
+      "action": "check",
+      "locator": {
+        "label": "Select Lab image"
+      },
+      "label": "Select the fixture image in the library"
+    },
+    {
+      "action": "click",
+      "locator": {
+        "role": "button",
+        "name": "Insert selected"
+      },
+      "label": "Insert the selected media item"
+    },
+    {
+      "action": "waitFor",
+      "readiness": {
+        "selector": "figure.drupal-media, .ck-widget.drupal-media, .ck-widget.image, .ck-widget.image-inline",
+        "state": "visible"
+      },
+      "label": "Wait for the media item to appear in the editor"
+    },
+    {
+      "action": "checkpoint",
+      "id": "media-inserted",
+      "label": "The media item is inserted in the editor"
+    },
+    {
+      "action": "checkpoint",
+      "id": "editor-focus-restored",
+      "label": "Where focus is after the dialog closed"
+    },
+    {
+      "action": "assert",
+      "check": {
+        "focus": {
+          "within": ".ck-editor"
+        }
+      },
+      "label": "Focus is still inside the editor after the dialog closed"
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "editor-initialized",
+      "label": "The CKEditor 5 body editor has initialized",
+      "profile": "quick",
+      "scope": ".ck-editor__editable",
+      "expected": {
+        "states": [
+          {
+            "path": "state.application.ckeditor.present",
+            "equals": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "media-library-open",
+      "label": "Media Library dialog is open",
+      "profile": "dynamic",
+      "scope": "#drupal-modal",
+      "readiness": {
+        "selector": "#drupal-modal #media-library-content",
+        "state": "visible"
+      },
+      "expected": {
+        "dialogOpen": true,
+        "content": [
+          "Lab image"
+        ]
+      }
+    },
+    {
+      "id": "media-inserted",
+      "label": "The media item is inserted in the editor",
+      "profile": "quick",
+      "scope": "figure.drupal-media, .ck-widget.drupal-media, .ck-widget.image, .ck-widget.image-inline",
+      "readiness": {
+        "selector": "figure.drupal-media, .ck-widget.drupal-media, .ck-widget.image, .ck-widget.image-inline",
+        "state": "visible"
+      },
+      "expected": {
+        "states": [
+          {
+            "path": "state.application.ckeditor.editables",
+            "countMin": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "editor-focus-restored",
+      "label": "Where focus is after the dialog closed",
+      "profile": "quick",
+      "scope": ".ck-editor",
+      "expected": {
+        "states": [
+          {
+            "path": "state.application.ckeditor.editables",
+            "countMin": 1
+          }
+        ]
+      }
+    }
+  ],
+  "expected": [
+    {
+      "focus": {
+        "within": ".ck-editor"
+      }
+    }
+  ],
+  "regressionAssertions": [
+    {
+      "state": {
+        "path": "state.application.ckeditor.editables",
+        "countMin": 1
+      }
+    },
+    {
+      "state": {
+        "path": "state.application.formErrors",
+        "equals": []
+      }
+    }
+  ],
+  "resetInstructions": [
+    "node tools/compare/setup.mjs 3415961-pinned --check-patches",
+    "node scripts/lab-env.mjs reset 3415961-pinned --yes (the flow says the article is not saved, but a reset returns the media library selection and draft state to the fixture)"
+  ],
+  "manualReview": [
+    "Repeat the insertion with a real keyboard only (Tab to Insert Media, Enter, Tab/arrow in the library, Enter on Insert selected) and confirm the page does not scroll and focus stays in the editor. The issue is about the window jumping, which this headless run cannot reproduce by scrolling: the lab's earlier diagnostic found the headless driver does not scroll on programmatic focus, so the focus target is the evidence.",
+    "Close the media library dialog with its X button as well; the issue mentions a remaining jump there.",
+    "Check the dialog's first announcement and the focus target when it opens.",
+    "A real screen-reader pass on the insertion flow."
+  ],
+  "limits": [
+    "Window scrolling is not asserted: the pinned evidence (reports/issues/3415961/EVIDENCE.md) shows the headless driver does not scroll on programmatic focus, so only the focus target distinguishes the sides.",
+    "The media item is the recipe's fixture; selecting it is not the same as uploading a new image.",
+    "The scenario does not save the article.",
+    "The scenario has not been replayed in this session; no site was running."
+  ],
+  "verified": false,
+  "notes": "Read reports/issues/3415961/EVIDENCE.md, REPRODUCE.md, recipes/repro_3415961/recipe.yml and configure-editor.php (the 'Lab image' fixture), the registered variant 3415961-pinned, and tools/playwright/scroll-3415961.mjs for the real flow and selectors (Insert Media, #media-library-content, .js-media-library-item, Insert selected). The checkbox label 'Select Lab image' comes from core/modules/media_library/src/Plugin/views/field/MediaLibrarySelectForm.php ('Select @label') in this checkout. Inferred, not observed: that the media-library grid renders the checkbox with that label and that focus lands inside .ck-editor on After. Not run: no Drupal site was running in this session."
+}

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Icon drawn by a background image in forced colours</title>
+<!--
+  Control 6: both icons are drawn only by a CSS background-image (inline SVG data URI). In forced-colours mode the
+  first icon's background-image is set to none, so it disappears; the second icon stays declared and must not be
+  reported as missing. Nothing changes at page load in the default (light) rendering.
+  WCAG 2.2 SC 1.4.11 Non-text Contrast: https://www.w3.org/TR/WCAG22/#non-text-contrast
+-->
+<style>
+  body { margin: 2rem; font-family: system-ui, sans-serif; color: #1a1a1a; background: #ffffff; }
+  h1 { font-size: 1.5rem; }
+  a { color: #0b4fbf; }
+  .icon {
+    display: inline-block;
+    padding: 0.2rem 0 0.2rem 1.9rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%230b4fbf'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: left center;
+    background-size: 1.4rem 1.4rem;
+  }
+  /* Only in forced-colours mode: the first icon declaration is removed. The second one is untouched. */
+  @media (forced-colors: active) {
+    #icon-forced { background-image: none; }
+  }
+</style>
+</head>
+<body>
+<main id="main">
+  <h1>Icon drawn by a background image in forced colours</h1>
+  <p>Both links get an icon from a CSS background-image. The first icon is removed in forced-colours mode; the second stays.</p>
+  <p><a id="icon-forced" class="icon" href="#main">Icon link one (icon disappears in forced colours)</a></p>
+  <p><a id="icon-kept" class="icon" href="#main">Icon link two (icon stays visible)</a></p>
+</main>
+</body>
+</html>

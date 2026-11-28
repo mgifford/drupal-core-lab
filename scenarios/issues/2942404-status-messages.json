@@ -1,0 +1,105 @@
+{
+  "schema": "lab-a11y-scenario/1",
+  "id": "system-status-messages",
+  "issue": 2942404,
+  "variant": "2942404-pinned",
+  "title": "System messages should be accessible",
+  "description": "Replay the three server-rendered message states the issue and its evaluator cover: a status message after saving an Article, the page that renders one message of each type, and a status message in the administration theme after clearing caches. Each state is captured as a named checkpoint so Before and After are compared at the same states, and the message text and roles are recorded.",
+  "preconditions": [
+    "Standard install with the lab's repro_2942404 fixture (Article content type plus system_test and the lab-only lab_status_messages page).",
+    "Variant 2942404-pinned is built: Before envs/baseline-2942404, After envs/issue-2942404.",
+    "After carries the 2942404 patch stack; the message markup changes come from it."
+  ],
+  "fixture": {
+    "recipe": "repro_2942404",
+    "standardInstall": false,
+    "notes": "recipes/repro_2942404/ (recipe.yml, apply.sh, lab_status_messages) exists and is the registered fixture for variant 2942404-pinned. system_test is enabled by the recipe, which is why /system-test/status-messages-for-assertions is available."
+  },
+  "route": "/node/add/article",
+  "login": true,
+  "viewport": { "width": 1280, "height": 900 },
+  "browser": "chromium",
+  "colourScheme": "light",
+  "forcedColors": false,
+  "reducedMotion": "no-preference",
+  "steps": [
+    {
+      "action": "goto",
+      "path": "/node/add/article",
+      "readiness": { "selector": "#edit-title-0-value", "state": "visible" },
+      "label": "Open the Add Article form"
+    },
+    { "action": "fill", "locator": { "label": "Title" }, "value": "Lab status message fixture", "label": "Enter a title" },
+    { "action": "click", "locator": { "role": "button", "name": "Save" }, "label": "Save the article" },
+    { "action": "waitFor", "readiness": { "selector": "[data-drupal-messages]", "state": "visible" }, "label": "Wait for the server-rendered status message" },
+    { "action": "checkpoint", "id": "article-saved-status", "label": "Status message after saving an Article (front-end theme)" },
+    {
+      "action": "goto",
+      "path": "/system-test/status-messages-for-assertions",
+      "readiness": { "selector": "[data-drupal-messages] [role], [data-drupal-messages]", "state": "visible" },
+      "label": "Open the core fixture page that renders one message of each type"
+    },
+    { "action": "checkpoint", "id": "all-message-types", "label": "Status, warning and error messages together" },
+    {
+      "action": "goto",
+      "path": "/admin/config/development/performance",
+      "readiness": { "selector": "#edit-clear", "state": "visible" },
+      "label": "Open the Performance settings page (administration theme)"
+    },
+    { "action": "click", "locator": { "role": "button", "name": "Clear all caches" }, "label": "Clear all caches so a status message is rendered in the admin theme" },
+    { "action": "waitFor", "readiness": { "selector": "[data-drupal-messages]", "state": "visible" }, "label": "Wait for the admin-theme status message" },
+    { "action": "checkpoint", "id": "admin-cache-cleared", "label": "Status message after clearing caches (administration theme)" },
+    { "action": "assert", "check": { "state": { "path": "state.application.messages", "countMin": 1 } }, "label": "The final page has at least one message element" }
+  ],
+  "checkpoints": [
+    {
+      "id": "article-saved-status",
+      "label": "Status message after saving an Article (front-end theme)",
+      "profile": "dynamic",
+      "scope": "[data-drupal-messages]",
+      "readiness": { "selector": "[data-drupal-messages]", "state": "visible" },
+      "expected": { "states": [{ "path": "state.application.messages", "countMin": 1 }], "content": ["has been created"] }
+    },
+    {
+      "id": "all-message-types",
+      "label": "Status, warning and error messages together",
+      "profile": "dynamic",
+      "scope": "[data-drupal-messages]",
+      "readiness": { "selector": "[data-drupal-messages]", "state": "visible" },
+      "expected": { "states": [{ "path": "state.application.messages", "countMin": 3 }], "content": ["My Status Message", "My Error Message", "My Warning Message"] }
+    },
+    {
+      "id": "admin-cache-cleared",
+      "label": "Status message after clearing caches (administration theme)",
+      "profile": "dynamic",
+      "scope": "[data-drupal-messages]",
+      "readiness": { "selector": "[data-drupal-messages]", "state": "visible" },
+      "expected": { "states": [{ "path": "state.application.messages", "countMin": 1 }], "content": ["Caches cleared"] }
+    }
+  ],
+  "expected": [
+    { "state": { "path": "state.application.messages", "countMin": 1 } },
+    { "state": { "path": "state.application.landmarks", "countMin": 1 } }
+  ],
+  "regressionAssertions": [
+    { "state": { "path": "state.application.formErrors", "equals": [] } }
+  ],
+  "resetInstructions": [
+    "node tools/compare/setup.mjs 2942404-pinned --check-patches",
+    "node scripts/lab-env.mjs reset 2942404-pinned --yes (saving the article creates content in both sites; reset restores the fixture)"
+  ],
+  "manualReview": [
+    "With a real screen reader (VoiceOver or NVDA), confirm the messages are announced once, that a status message is not announced as an alert, and that the named 'System messages' region is reachable as a landmark. The lab's automated recorder cannot tell what a screen reader says.",
+    "Check the JavaScript-added message path (Drupal.Message) as well: the recipe's lab_status_messages page and tools/playwright/evaluate-2942404.mjs cover it, while this replay covers the server-rendered states.",
+    "Check the empty-message state: a page with no messages must not put an empty landmark in the landmark list.",
+    "Compare the heading level and the message group's accessible name in the accessibility tree, not only the DOM."
+  ],
+  "limits": [
+    "Only server-rendered messages are reached by click/fill steps; a JavaScript-added message would need a state-changing evaluate call, which is not allowed.",
+    "The region landmark name is not asserted: the record lists landmarks, but state assertions cannot filter by role and name. It is a manual review item.",
+    "Whether an announcement is heard once or twice is exactly the kind of question that needs a real screen reader; the replay records Drupal.announce/live-region evidence only.",
+    "The scenario has not been replayed in this session; no Drupal site was running."
+  ],
+  "verified": false,
+  "notes": "Read reports/issues/2942404/EVIDENCE.md, REPRODUCE.md and tools/playwright/evaluate-2942404.mjs, plus recipes/repro_2942404/recipe.yml. The routes (/node/add/article, /system-test/status-messages-for-assertions, /admin/config/development/performance), the title fill, the Save button and the Clear all caches button come from the evaluator. The fixture message texts ('My Status Message', 'My Error Message', 'My Warning Message') come from core/modules/system/tests/modules/system_test/src/Controller/SystemTestController.php in envs/baseline-3534229. Inferred, not observed: that the pinned 2942404-pinned core renders those exact strings and that the admin-theme message says 'Caches cleared'. Not run: no Drupal site was running in this session."
+}

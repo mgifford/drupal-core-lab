@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ARIA reference that breaks after a DOM update</title>
+<!--
+  Control 3: the panel is replaced after the interaction (a DOM replacement, not a network request), but the button's
+  aria-controls attribute still names the removed panel. The live ARIA reference is broken only in the updated state.
+  WCAG 2.2 SC 4.1.2 Name, Role, Value: https://www.w3.org/TR/WCAG22/#name-role-value
+-->
+<style>
+  body { margin: 2rem; font-family: system-ui, sans-serif; color: #1a1a1a; background: #ffffff; }
+  h1 { font-size: 1.5rem; }
+  button { font: inherit; padding: 0.4rem 0.9rem; background: #0b4fbf; color: #ffffff; border: 2px solid #0b4fbf; border-radius: 4px; }
+  #panel-1, #panel-2 { margin-top: 1rem; padding: 0.75rem; border: 1px solid #666666; }
+</style>
+</head>
+<body>
+<h1>ARIA reference that breaks after a DOM update</h1>
+<p>The button's <code>aria-controls</code> keeps naming <code>panel-1</code> after the panel is replaced with <code>panel-2</code>.</p>
+<p><button type="button" id="toggle-panel" aria-controls="panel-1" aria-expanded="false">Show details</button></p>
+<div id="panel-1" hidden><p>First version of the panel.</p></div>
+<script>
+  const panelButton = document.getElementById('toggle-panel');
+  panelButton.addEventListener('click', () => {
+    panelButton.setAttribute('aria-expanded', 'true');
+    const firstPanel = document.getElementById('panel-1');
+    // Simulated asynchronous re-render: no network request, just a DOM replacement after a short delay.
+    setTimeout(() => {
+      const secondPanel = document.createElement('div');
+      secondPanel.id = 'panel-2';
+      const text = document.createElement('p');
+      text.textContent = 'Second version of the panel, rendered after the interaction.';
+      secondPanel.append(text);
+      firstPanel.replaceWith(secondPanel);
+    }, 50);
+  });
+</script>
+</body>
+</html>

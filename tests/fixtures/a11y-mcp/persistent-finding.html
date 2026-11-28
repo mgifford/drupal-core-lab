@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Unnamed button that persists across states</title>
+<!--
+  Control 9: the unnamed button is visible from page load and is not changed by either interaction. The same axe-core
+  button-name finding is observed at every checkpoint but is one defect, counted once in the session.
+  WCAG 2.2 SC 4.1.2 Name, Role, Value: https://www.w3.org/TR/WCAG22/#name-role-value
+-->
+<style>
+  body { margin: 2rem; font-family: system-ui, sans-serif; color: #1a1a1a; background: #ffffff; }
+  h1 { font-size: 1.5rem; }
+  button { font: inherit; padding: 0.4rem 0.9rem; background: #0b4fbf; color: #ffffff; border: 2px solid #0b4fbf; border-radius: 4px; }
+  details { margin: 1rem 0; }
+  summary { cursor: pointer; }
+  .icon-button { width: 2.4rem; height: 2.4rem; display: inline-flex; align-items: center; justify-content: center; }
+  dialog { max-width: 34rem; padding: 1.5rem; border: 1px solid #333333; }
+</style>
+</head>
+<body>
+<h1>Unnamed button that persists across states</h1>
+<p>The button below has no accessible name. It is visible from page load and is not changed by the interactions below.</p>
+<p>
+  <button type="button" id="unnamed-button" class="icon-button">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M3 3h14v14H3z"></path></svg>
+  </button>
+</p>
+<details id="more-details">
+  <summary>More information</summary>
+  <p>Additional text that is revealed by opening the details element.</p>
+</details>
+<p><button type="button" id="open-dialog">Open dialog</button></p>
+<dialog id="persistent-dialog" aria-labelledby="persistent-dialog-title">
+  <h2 id="persistent-dialog-title">Example dialog</h2>
+  <p>This dialog is opened and closed without affecting the unnamed button.</p>
+  <p><button type="button" id="persistent-dialog-close">Close</button></p>
+</dialog>
+<script>
+  const persistentDialog = document.getElementById('persistent-dialog');
+  document.getElementById('open-dialog').addEventListener('click', () => persistentDialog.showModal());
+  document.getElementById('persistent-dialog-close').addEventListener('click', () => persistentDialog.close());
+</script>
+</body>
+</html>

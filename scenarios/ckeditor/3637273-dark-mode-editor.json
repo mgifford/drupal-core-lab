@@ -1,0 +1,90 @@
+{
+  "schema": "lab-a11y-scenario/1",
+  "id": "ckeditor-dark-mode-long-text",
+  "issue": 3637273,
+  "variant": null,
+  "title": "Long-text (CKEditor 5) fields keep a white background in dark mode",
+  "description": "Replay a node form with a CKEditor 5 long-text field in Default Admin dark mode: reach the page, put trusted focus in the editable, type into it, and capture the long-text field at rest and focused. The checkpoints record the computed background and text colours plus a screenshot; whether the white background is gone in dark mode is read from that evidence and confirmed by a person.",
+  "preconditions": [
+    "Standard install with Default Admin as default and admin theme; a Basic page or Article content type whose long-text field uses CKEditor 5 (the Standard install's Basic page body is a long-text field).",
+    "Default Admin dark mode is on: appearance/settings/default_admin set to Dark, or 'auto' with a dark OS scheme, so the theme adds its dark-mode class.",
+    "No environment is registered for #3637273 yet; the intended pair is pristine Before against a fix branch once one exists."
+  ],
+  "fixture": {
+    "standardInstall": true,
+    "notes": "No recipe or variant for #3637273 exists in this checkout. Plain Standard install provides the Article content type with a CKEditor 5 body field; the scenario uses /node/add/article for that reason. The dark-mode setting must be part of the fixture and set the same way on both sides."
+  },
+  "route": "/node/add/article",
+  "login": true,
+  "viewport": { "width": 1280, "height": 900 },
+  "browser": "chromium",
+  "colourScheme": "dark",
+  "forcedColors": false,
+  "reducedMotion": "no-preference",
+  "steps": [
+    {
+      "action": "goto",
+      "path": "/node/add/article",
+      "readiness": { "selector": ".ck-editor__editable", "state": "visible" },
+      "label": "Open the Add Article form in dark mode"
+    },
+    { "action": "checkpoint", "id": "editor-initialized", "label": "The CKEditor 5 body editor has initialized" },
+    { "action": "click", "locator": { "selector": ".ck-editor__editable" }, "label": "Put trusted pointer focus into the body editor" },
+    { "action": "checkpoint", "id": "editor-focused", "label": "The body editor has focus" },
+    {
+      "action": "fill",
+      "locator": { "selector": ".ck-editor__editable" },
+      "value": "A long paragraph in the body field, used to check the field background in dark mode. It is long enough to wrap over several lines and to make the editable's own background visible beside the text.",
+      "label": "Type into the long-text field"
+    },
+    { "action": "checkpoint", "id": "long-text-field", "label": "The long-text field is filled and focused in dark mode" },
+    { "action": "assert", "check": { "state": { "path": "state.application.ckeditor.editables", "countMin": 1 } }, "label": "At least one editabled long-text field is present" }
+  ],
+  "checkpoints": [
+    {
+      "id": "editor-initialized",
+      "label": "The CKEditor 5 body editor has initialized",
+      "profile": "visual",
+      "scope": ".ck-editor__editable",
+      "expected": { "states": [{ "path": "state.application.ckeditor.present", "equals": true }] }
+    },
+    {
+      "id": "editor-focused",
+      "label": "The body editor has focus",
+      "profile": "quick",
+      "scope": ".ck-editor__editable",
+      "expected": { "states": [{ "path": "focus.active.role", "equals": "textbox" }] }
+    },
+    {
+      "id": "long-text-field",
+      "label": "The long-text field is filled and focused in dark mode",
+      "profile": "visual",
+      "scope": ".ck-editor__editable",
+      "expected": { "states": [{ "path": "state.application.ckeditor.editables", "countMin": 1 }] }
+    }
+  ],
+  "expected": [
+    { "state": { "path": "state.application.ckeditor.present", "equals": true } },
+    { "focus": { "within": ".ck-editor" } }
+  ],
+  "regressionAssertions": [
+    { "state": { "path": "state.application.formErrors", "equals": [] } }
+  ],
+  "resetInstructions": [
+    "No registered environment: scaffold one with node scripts/new-issue.mjs 3637273 --branch <fix-branch>, then node tools/compare/setup.mjs 3637273-pinned.",
+    "Reset the site (node scripts/lab-env.mjs reset <slug> --yes) if a previous run saved a node."
+  ],
+  "manualReview": [
+    "Read the captured computed background/text colours for .ck-editor__editable in dark mode and compare them with the surrounding Default Admin dark palette; a colour is not a pass because axe-core says nothing about it.",
+    "Repeat on the Basic page form and on a Full HTML body field, since the issue names both text formats.",
+    "Compare the same field in light mode: the fix must not break the light background or the border.",
+    "Check the field's border and focus indicator contrast against the dark background (non-text contrast, SC 1.4.11)."
+  ],
+  "limits": [
+    "No variant is registered for #3637273, so this scenario cannot be replayed yet and no result exists.",
+    "Default Admin dark mode is a class switched by the theme's own JavaScript (setting Dark or auto + dark OS scheme); Playwright's colorScheme emulation alone is not the theme setting. Both sides must be set identically.",
+    "The captured colours are evidence, not a conformance decision: text and non-text contrast need the actual adjacent colours, which the visual checkpoint records but does not judge."
+  ],
+  "verified": false,
+  "notes": "Read reports/issues/3637246/intake/BRIEF.md, where #3637273 is listed as a related open issue with the title 'The background of long text fields is white for basic and full HTML text formats in dark mode', and reports/known-issues.json for the component list. No reports/issues/3637273 folder or brief exists in this checkout, so the steps are inferred from that title and from the Standard install's content types; the route and the .ck-editor__editable selector match tools/playwright/evaluate-3419891.mjs. Inferred, not observed: that the Standard Article body renders in CKEditor 5 and that the issue is visible there. Not run: no Drupal site was running in this session."
+}

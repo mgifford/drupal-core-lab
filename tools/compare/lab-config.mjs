@@ -4,8 +4,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-export const DEFAULTS = { auto_fix: { enabled: true } };
-const SCHEMA = { auto_fix: { enabled: 'boolean' } };
+export const DEFAULTS = { auto_fix: { enabled: true }, a11y_mcp: { enabled: true, fixtures: true } };
+const SCHEMA = { auto_fix: { enabled: 'boolean' }, a11y_mcp: { enabled: 'boolean', fixtures: 'boolean' } };
 
 export function parseConfig(text) {
   const root = {}, problems = [], stack = [{ indent: -2, obj: root }];

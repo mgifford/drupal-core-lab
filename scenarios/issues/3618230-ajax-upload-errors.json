@@ -1,0 +1,70 @@
+{
+  "schema": "lab-a11y-scenario/1",
+  "id": "ajax-file-upload-error",
+  "issue": 3618230,
+  "variant": "3618230-pinned",
+  "title": "Adopt the AJAX MessageCommand for file upload errors",
+  "description": "Replay the Article form with the Attachment file field, reach the starting state the issue is about, and capture the file widget. The upload that produces the validation error needs a file input, which this data-step representation does not provide, so the error state itself is not reached here: the scenario records the reachable start state and the gap, and tools/playwright/evaluate-3618230.mjs performs the real upload on both sides.",
+  "preconditions": [
+    "Standard install with the Article content type and a file field with a 1 KB size limit (recipe repro_3618230, core fixture recipes).",
+    "Variant 3618230-pinned is built: Before envs/baseline-3618230, After envs/issue-3618230. After carries the MR !16777 patch.",
+    "A file larger than 1 KB is available to the host-side evaluator; a scenario replay cannot attach files."
+  ],
+  "fixture": {
+    "recipe": "repro_3618230",
+    "standardInstall": false,
+    "notes": "recipes/repro_3618230/ exists (config plus recipe.yml built from core's article_content_type and file_field_with_size_limit fixtures). It adds the Attachment file field with the size limit; it does not include a file to upload."
+  },
+  "route": "/node/add/article",
+  "login": true,
+  "viewport": { "width": 1280, "height": 900 },
+  "browser": "chromium",
+  "colourScheme": "light",
+  "forcedColors": false,
+  "reducedMotion": "no-preference",
+  "steps": [
+    {
+      "action": "goto",
+      "path": "/node/add/article",
+      "readiness": { "selector": ".form-managed-file", "state": "visible" },
+      "label": "Open the Add Article form and wait for the file widget"
+    },
+    { "action": "checkpoint", "id": "attachment-widget", "label": "The Attachment file widget is present" },
+    { "action": "evaluate", "expression": "({ inputs: document.querySelectorAll('.form-managed-file input[type=\"file\"]').length, messages: document.querySelectorAll('.file-upload-messages').length })", "label": "Read the file inputs and the upload-message containers (read-only)" },
+    { "action": "assert", "check": { "state": { "path": "state.application.scope.found", "equals": true } }, "label": "The file widget's scope was found on the page" }
+  ],
+  "checkpoints": [
+    {
+      "id": "attachment-widget",
+      "label": "The Attachment file widget is present",
+      "profile": "quick",
+      "scope": ".form-managed-file",
+      "readiness": { "selector": ".form-managed-file", "state": "visible" },
+      "expected": { "states": [{ "path": "state.application.scope.found", "equals": true }] }
+    }
+  ],
+  "expected": [
+    { "state": { "path": "state.application.scope.found", "equals": true } }
+  ],
+  "regressionAssertions": [
+    { "state": { "path": "state.application.formErrors", "equals": [] } }
+  ],
+  "resetInstructions": [
+    "node tools/compare/setup.mjs 3618230-pinned --check-patches",
+    "node scripts/lab-env.mjs reset 3618230-pinned --yes (the real upload leaves a file row and a message; reset restores the fixture)"
+  ],
+  "manualReview": [
+    "Upload a file larger than the 1 KB limit in each frame and check that the error is inside the Attachment widget's .file-upload-messages container, not the page message region.",
+    "Check that the error has a working Hide button, reachable by keyboard, and that the error text is announced (the MR also calls Drupal.announce while the message keeps role=alert, so a screen reader may say it twice).",
+    "Check the second over-limit upload replaces the error instead of piling up a second one, and that a valid upload clears it.",
+    "A real keyboard and screen-reader pass on the upload flow."
+  ],
+  "limits": [
+    "The upload error state is NOT reached: there is no file-input step in the scenario vocabulary and a state-changing evaluate callback is not allowed. The scenario stops at the file widget and records the gap; the real flow is tools/playwright/evaluate-3618230.mjs (setInputFiles).",
+    "The pinned core pair was never run for the original evidence (reports/issues/3618230/EVIDENCE.md covers the -latest pair); the pinned recipe is a precondition, not a verified state.",
+    "The possible double announcement (role=alert plus Drupal.announce) needs a screen reader.",
+    "The scenario has not been replayed in this session; no Drupal site was running."
+  ],
+  "verified": false,
+  "notes": "Read reports/issues/3618230/EVIDENCE.md, REPRODUCE.md, recipes/repro_3618230/recipe.yml and tools/playwright/evaluate-3618230.mjs. The route, the Attachment widget and the .file-upload-messages location come from the evaluator and its evidence. Inferred, not observed: that the pinned variant's recipe exposes a visible .form-managed-file wrapper with the same selector as the -latest pair. The upload itself is deliberately absent and is named as a limit, not silently skipped. Not run: no Drupal site was running in this session."
+}
