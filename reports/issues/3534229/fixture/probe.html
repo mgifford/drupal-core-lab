@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Forced-colors + mask-image probe</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 16px/1.4 system-ui, sans-serif; margin: 20px; }
+  .row { display: flex; gap: 12px; align-items: center; margin: 10px 0; }
+  .box {
+    width: 36px; height: 36px; border: 0; background-color: Canvas;
+    background-repeat: no-repeat; background-position: center; background-size: 20px;
+  }
+  .bg-image { background-image: url("assets/icons/bold.svg"); }
+  .mask-el { background-color: CanvasText; mask-image: url("assets/icons/bold.svg"); }
+  .mask-pseudo { position: relative; }
+  .mask-pseudo::before {
+    content: ""; position: absolute; inset: 0;
+    background-color: CanvasText;
+    mask-image: url("assets/icons/bold.svg");
+    mask-repeat: no-repeat; mask-position: center; mask-size: 20px;
+  }
+  .text-pseudo::before { content: "Heading"; font-size: 14px; }
+  .chip { background-color: #eee; }
+  .mask-chip { background-color: #eee; mask-image: url("assets/icons/bold.svg"); }
+
+  /* Style-query test: property lives on the container (the .sq item). */
+  .sq { container-type: normal; }
+  .sq .icon { width: 36px; height: 36px; background-color: Canvas; }
+  @container style(--probe-icon) {
+    .sq .icon { background-color: CanvasText; mask-image: var(--probe-icon); }
+  }
+  .sq-on { --probe-icon: url("assets/icons/bold.svg"); }
+  .sq-off { }
+  .sq-url-query { }
+  @container style(--probe-icon: url("assets/icons/bold.svg")) {
+    .sq-url-query .icon { background-color: CanvasText; mask-image: var(--probe-icon); }
+  }
+
+  /* Static colour swatches to read system colours. */
+  .sys { display: inline-block; width: 60px; height: 24px; border: 1px solid currentColor; }
+  .c-canvas { background: Canvas; }
+  .c-canvastext { background: CanvasText; }
+  .c-buttonface { background: ButtonFace; }
+  .c-buttontext { background: ButtonText; }
+  .c-linktext { background: LinkText; }
+  .c-graytext { background: GrayText; }
+  .mask-pseudo-focus { position: relative; }
+  .mask-pseudo-focus::before {
+    content: ""; position: absolute; inset: 0;
+    background-color: CanvasText;
+    mask-image: url("assets/icons/bold.svg");
+    mask-repeat: no-repeat; mask-position: center; mask-size: 20px;
+  }
+  .mask-pseudo-focus:focus { outline: 2px solid; }
+  .mask-el-focus:focus { outline: 2px solid; }
+</style>
+</head>
+<body>
+<h1>Probe</h1>
+<div class="row">
+  <div class="box bg-image" id="p-bg-image"></div>
+  <div class="box mask-el" id="p-mask-el"></div>
+  <div class="box mask-pseudo" id="p-mask-pseudo"></div>
+  <div class="box chip mask-chip" id="p-mask-chip"></div>
+  <div class="box text-pseudo" id="p-text-pseudo"></div>
+  <div class="box sq sq-on" id="p-sq-on"><div class="icon" id="p-sq-on-icon"></div></div>
+  <div class="box sq sq-off" id="p-sq-off"><div class="icon" id="p-sq-off-icon"></div></div>
+  <div class="box sq sq-url-query sq-on" id="p-sq-url"><div class="icon" id="p-sq-url-icon"></div></div>
+</div>
+<div class="row" id="swatches">
+  <span class="sys c-canvas"></span>
+  <span class="sys c-canvastext"></span>
+  <span class="sys c-buttonface"></span>
+  <span class="sys c-buttontext"></span>
+  <span class="sys c-linktext"></span>
+  <span class="sys c-graytext"></span>
+</div>
+<div class="row">
+  <div class="box mask-pseudo-focus" tabindex="0" id="p-focus-pseudo"></div>
+  <div class="box mask-el mask-el-focus" tabindex="0" id="p-focus-el"></div>
+</div>
+</body>
+</html>

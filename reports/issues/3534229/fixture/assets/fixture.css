@@ -1,0 +1,90 @@
+/*
+ * Page shell for the #3534229 standalone fixture.
+ *
+ * It deliberately uses the CSS system colours (Canvas/CanvasText/GrayText), so
+ * the page itself behaves the same in normal light, normal dark and both forced
+ * colour palettes. The toolbar markup and all toolbar CSS come from the pinned
+ * Drupal core commit; this file only supplies the page around it.
+ */
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+  background: Canvas;
+  color: CanvasText;
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+main {
+  max-width: 72rem;
+}
+
+h1 {
+  font-size: 1.25rem;
+  margin: 0 0 0.5rem;
+}
+
+h1 small {
+  font-weight: normal;
+  color: GrayText;
+}
+
+.fixture-note {
+  max-width: 70ch;
+  margin: 0 0 1rem;
+  color: GrayText;
+}
+
+code {
+  font-family: ui-monospace, monospace;
+}
+
+.ckeditor5-toolbar-fieldset {
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid GrayText;
+}
+
+.ckeditor5-toolbar-fieldset legend {
+  padding: 0 0.25rem;
+  font-weight: bold;
+}
+
+.fieldset-description {
+  max-width: 70ch;
+  margin-bottom: 0.75rem;
+}
+
+#app label {
+  display: block;
+  margin: 0.5rem 0 0.25rem;
+  font-weight: bold;
+}
+
+/*
+ * Core's visually-hidden utility (copied from core/themes/default_admin and
+ * core's base CSS). Without it the toolbar's accessible labels would render.
+ */
+.visually-hidden {
+  position: absolute !important;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  word-wrap: normal;
+}
+
+/*
+ * Control D: a simulated contributed CKEditor 5 plugin. It supplies only a
+ * background-image from its own stylesheet and does not define the new
+ * --ckeditor5-toolbar-icon custom property, which is the documented
+ * backward-compatibility case for the proposed fix.
+ */
+.ckeditor5-toolbar-button-contribExample {
+  background-image: url(icons/italic.svg);
+}

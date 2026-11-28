@@ -1,0 +1,164 @@
+RootWebArea "Text formats and editors | Drupal core test site" focusable focused url=https://HOST/admin/config/content/formats
+  link "Skip to main content" focusable url=https://HOST/admin/config/content/formats#main-content
+  navigation "Administrative sidebar"
+    heading "Administrative sidebar" level=2
+    link "Home page" focusable url=https://HOST/
+    heading "Content" level=3
+    list
+      listitem level=1
+        link "Create" focusable url=https://HOST/node/add
+      listitem level=1
+        link "Blocks" focusable url=https://HOST/admin/content/block
+      listitem level=1
+        link "Content" focusable url=https://HOST/admin/content
+      listitem level=1
+        link "Files" focusable url=https://HOST/admin/content/files
+    heading "Administration" level=3
+    list
+      listitem level=1
+        link "Welcome" description="Learn about Drupal Core and Drupal CMS." focusable url=https://HOST/admin/welcome
+      listitem level=1
+        button "Extend Structure" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-structure-RANDOM
+          text "Extend"
+          text "Structure"
+      listitem level=1
+        link "Appearance" description="Select and configure themes." focusable url=https://HOST/admin/appearance
+      listitem level=1
+        link "Extend" description="Add and install modules to extend site functionality." focusable url=https://HOST/admin/modules
+      listitem level=1
+        button "Collapse Configuration" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-config-RANDOM
+          text "Collapse"
+          text "Configuration"
+      listitem level=1
+        link "People" description="Manage user accounts, roles, and permissions." focusable url=https://HOST/admin/people
+      listitem level=1
+        button "Extend Reports" invalid=false focusable expanded=false controls=#navigation-link--systemadmin-reports-RANDOM
+          text "Extend"
+          text "Reports"
+      listitem level=1
+        link "Announcements" description="Displays announcements from the Drupal community." focusable url=https://HOST/admin/announcements_feed
+    heading "Help" level=3
+    list
+      listitem level=1
+        link "Help" focusable url=https://HOST/admin/help
+    heading "User" level=3
+    list
+      listitem level=1
+        button "Extend admin" invalid=false focusable expanded=false controls=#navigation-link--navigationuser-linksuserwrapper-RANDOM
+          text "Extend"
+          text "admin"
+    button "Collapse sidebar" invalid=false focusable expanded
+  region "Administrative top bar"
+    navigation "Breadcrumb"
+      heading "Breadcrumb" level=2
+      list
+        listitem level=1
+          link "Back to site" description="Return to site content" focusable url=https://HOST/
+        listitem level=1
+          link "Administration" focusable url=https://HOST/admin
+        listitem level=1
+          link "Configuration" focusable url=https://HOST/admin/config
+        listitem level=1
+          link "Content authoring" focusable url=https://HOST/admin/config/content
+    list
+      listitem level=1
+        link "+ Add text format" focusable url=https://HOST/admin/config/content/formats/add
+          text "+"
+          text "Add text format"
+  banner
+    heading "Text formats and editors" level=1
+  main
+    generic focusable
+    complementary
+      paragraph
+        text "Text formats define how text is filtered for output and how HTML tags and other text is displayed, replaced, or removed."
+        strong
+          text "Improper text format configuration is a security risk."
+        text "Learn more on the"
+        link "Filter module help page" focusable url=https://HOST/admin/help/filter
+        text "."
+      paragraph
+        text "Text formats are presented on content editing pages in the order defined on this page. The first format available to a user will be selected by default."
+    form
+      button "Show row weights" invalid=false focusable
+      table
+        rowgroup
+          row
+            columnheader "Name" readonly=false required=false
+            columnheader "Text editor" readonly=false required=false
+            columnheader "Roles" readonly=false required=false
+            columnheader "Status" readonly=false required=false
+            columnheader "Operations" readonly=false required=false
+        row
+          cell "Change order Basic HTML"
+            link "Change order" focusable url=https://HOST/admin/config/content/formats#
+            text "Basic HTML"
+          cell "CKEditor 5"
+          cell "Authenticated user, Administrator"
+            list
+              listitem level=1
+                text "Authenticated user"
+                text ","
+              listitem level=1
+                text "Administrator"
+          cell "Enabled"
+          cell "Edit Basic HTML List additional actions"
+            list
+              listitem level=1
+                link "Edit Basic HTML" focusable url="https://HOST/admin/config/content/formats/manage/basic_html?destination=/admin/config/content/formats"
+                  text "Configure"
+              listitem level=1
+                button "List additional actions" invalid=false focusable
+        row
+          cell "Change order Restricted HTML"
+            link "Change order" focusable url=https://HOST/admin/config/content/formats#
+            text "Restricted HTML"
+          cell "—"
+          cell "Anonymous user, Administrator"
+            list
+              listitem level=1
+                text "Anonymous user"
+                text ","
+              listitem level=1
+                text "Administrator"
+          cell "Enabled"
+          cell "Edit Restricted HTML List additional actions"
+            list
+              listitem level=1
+                link "Edit Restricted HTML" focusable url="https://HOST/admin/config/content/formats/manage/restricted_html?destination=/admin/config/content/formats"
+                  text "Configure"
+              listitem level=1
+                button "List additional actions" invalid=false focusable
+        row
+          cell "Change order Full HTML"
+            link "Change order" focusable url=https://HOST/admin/config/content/formats#
+            text "Full HTML"
+          cell "CKEditor 5"
+          cell "Administrator"
+            list
+              listitem level=1
+                text "Administrator"
+          cell "Enabled"
+          cell "Edit Full HTML List additional actions"
+            list
+              listitem level=1
+                link "Edit Full HTML" focusable url="https://HOST/admin/config/content/formats/manage/full_html?destination=/admin/config/content/formats"
+                  text "Configure"
+              listitem level=1
+                button "List additional actions" invalid=false focusable
+        row
+          cell "Change order Plain text"
+            link "Change order" focusable url=https://HOST/admin/config/content/formats#
+            text "Plain text"
+          cell "—"
+          cell "This format is shown when no other formats are available"
+            emphasis
+              text "This format is shown when no other formats are available"
+          cell "Enabled"
+          cell "Edit Plain text"
+            list
+              listitem level=1
+                link "Edit Plain text" focusable url="https://HOST/admin/config/content/formats/manage/plain_text?destination=/admin/config/content/formats"
+                  text "Configure"
+      button "Save" invalid=false focusable
+  generic live=polite atomic=false relevant="additions text"
