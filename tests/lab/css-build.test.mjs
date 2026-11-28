@@ -66,7 +66,7 @@ const editBoth = (name, src) => (dir) => { write(path.join(dir, PCSS(name)), src
 
 test('1. an issue with no CSS change skips compilation and never starts the toolchain', () => {
   const s = scenario({ patches: [(d) => write(path.join(d, 'core/modules/m/src/X.php'), '<?php\n')] });
-  const r = analyze(s.opts()); assert.equal(r.overall, 'SKIPPED'); assert.equal(r.ready, true); assert.deepEqual(s.calls, []);
+  const r = analyze(s.opts()); assert.equal(r.overall, 'SKIPPED'); assert.equal(r.applicability, 'not-applicable'); assert.match(r.applicabilityDetail, /no \.pcss\.css source/); assert.equal(r.ready, true); assert.deepEqual(s.calls, []);
 });
 
 test('2. and 3. a changed source triggers a check of that file only; a matching compiled file passes', () => {
@@ -126,19 +126,19 @@ test('9. a revised patch gets an accurate interdiff: the declared patch plus the
 
 test('10. several PostCSS files are checked and built one file per call', () => {
   const s = scenario({ edits: (d) => { write(path.join(d, PCSS('a')), 'a { color: pink; }\n'); write(path.join(d, PCSS('b')), 'b { color: gold; }\n'); } });
-  const r = analyze(s.opts({ build: true })); assert.equal(r.overall, 'PASS'); assert.deepEqual(r.built.sort(), [CSS('a'), CSS('b')]);
+  const r = analyze(s.opts({ build: true })); assert.equal(r.overall, 'PASS'); assert.equal(r.applicability, 'applicable'); assert.deepEqual(r.built.sort(), [CSS('a'), CSS('b')]);
   assert.ok(s.calls.every((c) => (c.match(/--file/g) || []).length === 1), 'each call names one file');
 });
 
 test('11. a stylesheet with no PostCSS source is handled as nothing to compile, not an error', () => {
   const s = scenario({ extra: { 'core/modules/m/css/plain.css': 'p { margin: 0; }\n' }, patches: [(d) => write(path.join(d, 'core/modules/m/css/plain.css'), 'p { margin: 1px; }\n')] });
-  const r = analyze(s.opts()); assert.equal(r.overall, 'SKIPPED'); assert.equal(r.entries[0].state, 'no-source'); assert.deepEqual(s.calls, []);
+  const r = analyze(s.opts()); assert.equal(r.overall, 'SKIPPED'); assert.equal(r.applicability, 'not-applicable'); assert.match(r.applicabilityDetail, /plain CSS/); assert.equal(r.entries[0].state, 'no-source'); assert.deepEqual(s.calls, []);
 });
 
 test('12. a toolchain that does not start is BLOCKED, never an approximate result', () => {
   const s = scenario({ edits: edit('a', 'a { color: pink; }\n') });
   const r = analyze(s.opts({ run: () => ({ status: 127, stdout: '', stderr: 'bash: line 1: yarn: command not found' }), build: true }));
-  assert.equal(r.overall, 'BLOCKED'); assert.equal(r.ready, false); assert.equal(sha(path.join(s.dir, CSS('a'))), sha(path.join(s.dir, CSS('a'))));
+  assert.equal(r.overall, 'BLOCKED'); assert.equal(r.applicability, 'blocked'); assert.equal(r.ready, false); assert.equal(sha(path.join(s.dir, CSS('a'))), sha(path.join(s.dir, CSS('a'))));
   assert.equal(fs.readFileSync(path.join(s.dir, CSS('a')), 'utf8'), compile(BASE.a), 'the compiled file was not touched');
 });
 
