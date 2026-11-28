@@ -277,6 +277,8 @@ function htmlReport(session, records, findings, totals, pairs, filters, generate
   const H = [];
   const title = session.issue ? `Accessibility checkpoints: issue #${session.issue}` : 'Accessibility checkpoints: local session';
   H.push('<!doctype html>', '<html lang="en">', '<head>', '<meta charset="utf-8">', '<meta name="viewport" content="width=device-width, initial-scale=1">', `<title>${esc(title)}</title>`, `<style>${CSS}</style>`, '</head>', '<body>');
+  // The report is itself an accessibility artefact: one main landmark holds its content, and the nav is labelled.
+  H.push('<main id="main">');
   H.push(`<h1>${esc(title)}</h1>`);
   H.push(`<div class="draft" role="note"><strong>DRAFT.</strong> Automated evidence, generated ${esc(generated)}. This is not an independent human accessibility review and nothing here has been published upstream.</div>`);
   H.push(`<p>Session <code>${esc(session.id)}</code>. ${esc(session.tool?.name || 'playwright')}${session.mcp ? ` via Playwright MCP ${esc(session.mcp.version || '')} (${esc(session.mcp.integration || 'init-page')})` : ''}. Profile <code>${esc(session.configuredProfile || 'quick')}</code>.</p>`);
@@ -416,6 +418,6 @@ function htmlReport(session, records, findings, totals, pairs, filters, generate
   for (const l of [...new Set([...(session.limits || []), ...records.flatMap((r) => r.limits || [])])]) H.push(`<li>${esc(l)}</li>`);
   H.push('</ul>');
   H.push('<p class="muted">Generated with the help of an LLM (DeepSeek Harness) from the recorded evidence. AI-assisted development and evaluation disclosure. A person must review before anything is reported upstream.</p>');
-  H.push('</body></html>');
+  H.push('</main>', '</body></html>');
   return H.join('\n') + '\n';
 }

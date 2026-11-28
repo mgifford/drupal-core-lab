@@ -235,3 +235,13 @@ test('SessionStore: one session persists both checkpoints and deduplicates the f
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('the HTML report has one main landmark and no script', async () => {
+  const { renderSession } = await import('../../tools/playwright/lib/a11y/report.mjs');
+  const { markdown, html } = renderSession({ id: 'landmark-test', issue: null, kinds: ['test'], variants: [], checkpoints: [], findings: [], manual: [], limits: [], resources: {}, tool: { name: 'test' }, mcp: null });
+  assert.match(markdown, /# /);
+  assert.equal((html.match(/<main[\s>]/g) || []).length, 1, 'exactly one main landmark');
+  assert.match(html, /<\/main>/);
+  assert.doesNotMatch(html, /<script/i);
+  assert.match(html, /<html lang="en">/);
+});

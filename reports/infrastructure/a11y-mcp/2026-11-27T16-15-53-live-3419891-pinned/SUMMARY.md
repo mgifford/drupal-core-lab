@@ -1,6 +1,6 @@
 # Accessibility checkpoints: issue #3419891
 
-Session `2026-11-27T16-15-53-live-3419891-pinned`, generated 2026-11-27T16:20:07.466Z. **DRAFT: automated evidence, not a human accessibility review or a published finding.**
+Session `2026-11-27T16-15-53-live-3419891-pinned`, generated 2026-11-28T02:28:15.744Z. **DRAFT: automated evidence, not a human accessibility review or a published finding.**
 
 Source: playwright; Playwright MCP 0.0.84 (playwright-mcp --init-page + --init-script; a single exposed binding; browser_evaluate calls the approved helper). Profile: full.
 
