@@ -10,6 +10,7 @@ import { labRoot, variants, envDir } from '../tools/compare/lib.mjs';
 import { loadBudgets, readRunning, registerRunning, unregisterRunning } from '../tools/resource/budgets.mjs';
 import { claimLease, releaseLease, leaseRows } from '../tools/compare/leases.mjs';
 import { capacityDecision } from '../tools/compare/scheduler.mjs';
+import { leaseFileFor } from '../tools/compare/lease-path.mjs';
 import { measure, assessResources, formatPreflight, measureHost, criticalReason } from '../tools/compare/preflight.mjs';
 
 const USAGE = 'usage: node scripts/lab-run.mjs <slug> --kind=test|build|composer|setup|lint [--side=before|after] [--task=<id>] [--minutes=240] [--cwd=lab] [--mode=observe|warn|enforce] [--limit=N] [--ignore-resources] -- <command...>';
@@ -25,7 +26,7 @@ const side = opt.side === 'before' ? 'before' : 'after';
 const cwd = opt.cwd === 'lab' ? labRoot : envDir(v[side].env);
 const kind = String(opt.kind || 'test');
 const minutes = Number(opt.minutes || 240);
-const leaseFile = path.join(labRoot, '.lab-cache/lab-env-leases.json');
+const leaseFile = leaseFileFor(labRoot);
 const budgets = loadBudgets();
 const mode = opt.mode || budgets.config.mode;
 if (!['observe', 'warn', 'enforce'].includes(mode)) { console.error(`lab-run: invalid --mode=${mode}`); process.exit(2); }

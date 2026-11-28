@@ -13,10 +13,11 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { labRoot, variants, envDir } from '../tools/compare/lib.mjs';
 import { releaseLease } from '../tools/compare/leases.mjs';
+import { leaseFileFor } from '../tools/compare/lease-path.mjs';
 
 const args = process.argv.slice(2);
 const keepRunning = args.includes('--keep-running');
-const LEASE_FILE = path.join(labRoot, '.lab-cache/lab-env-leases.json');
+const LEASE_FILE = leaseFileFor(labRoot);
 const nid = args.find((a, i) => /^\d{5,8}$/.test(a) && args[i - 1] !== '--message');
 if (!nid) { console.error('usage: node scripts/close-out.mjs <nid> [--commit] [--message "<subject>"] [--no-refresh] [--keep-running]'); process.exit(2); }
 const mi = args.indexOf('--message'), message = mi >= 0 && args[mi + 1] ? args[mi + 1] : `Close out #${nid}: retain evidence and record the final state`;
