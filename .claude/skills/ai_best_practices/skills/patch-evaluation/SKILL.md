@@ -61,7 +61,7 @@ Generates reports for 10 patches + summary.
 ### 3. View Results
 ```bash
 # Summary
-cat reports/PATCH-EVALUATION-SUMMARY.md
+cat reports/legacy/default-admin/PATCH-EVALUATION-SUMMARY.md
 
 # Per-patch detail
 cat reports/patches/a11y-DRUPAL-A11Y-001-form-errors/PATCH-EVALUATION.md

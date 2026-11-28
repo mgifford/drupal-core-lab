@@ -69,7 +69,7 @@ Do not recursively read or summarize these unless the task explicitly asks:
 
 Treat common generated outputs as derived artifacts unless asked to edit them:
 
-- `reports/index.html`
+- `reports/legacy/default-admin/index.html`
 - `reports/*-latest.html`
 - `reports/*-latest.json`
 - `reports/*-latest.md`

@@ -7,7 +7,7 @@
 - **Description:** Set admin accent color AA defaults
 - **WCAG Criteria:** 1.4.3 (AA)
 - **Affected Rules:** color-contrast
-- **Pattern Source:** reports/pattern-report-2026-07-05.json
+- **Pattern Source:** reports/legacy/default-admin/pattern-report-2026-07-05.json
 - **Pattern Source (Markdown):** reports/pattern-report-2026-07-05.md
 - **Pattern ID Match Type:** runtime-generated-only
 - **Matched Pattern IDs (pattern source):** none
@@ -74,7 +74,7 @@ Use the following deterministic steps to reproduce this exact evaluation run:
 
 | Path | Modified |
 |---|---|
-| reports/pattern-report-2026-07-05.json | 2026-07-13T20:45:12.596Z |
+| reports/legacy/default-admin/pattern-report-2026-07-05.json | 2026-07-13T20:45:12.596Z |
 
 ### Violation Counts
 

@@ -31,3 +31,10 @@ Barriers found outside an issue's question go in `reports/findings/` (`scripts/f
 
 Reports are Markdown plus small artifacts. Do not commit large raw scan output (multi-MB JSON); summarise it and say where it lives.
 Built zips go in `bundles/`.
+
+### Checking the reports tree
+
+`node scripts/reports-audit.mjs [--json] [--max-mb=5] [--warn]` is a read-only check for the rules above: tracked files over the size ceiling,
+tracked files that `.gitignore` already excludes, files directly under `reports/`, issue folders missing their
+canonical documents, and untracked report paths. It does not move or delete anything; use `--json` for a machine
+summary or `--warn` to keep the exit status at 0 during a migration.

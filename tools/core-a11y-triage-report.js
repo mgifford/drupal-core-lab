@@ -245,7 +245,7 @@ async function main() {
     triageRows,
   };
 
-  const jsonPath = path.join(ROOT, 'reports', `core-a11y-triage-${DATE}.json`);
+  const jsonPath = path.join(ROOT, 'reports/legacy/default-admin', `core-a11y-triage-${DATE}.json`);
   fs.mkdirSync(path.dirname(jsonPath), { recursive: true });
   fs.writeFileSync(jsonPath, JSON.stringify(outJson, null, 2));
 
@@ -299,7 +299,7 @@ async function main() {
   }
   lines.push('');
 
-  const mdPath = path.join(ROOT, 'reports', `core-a11y-triage-${DATE}.md`);
+  const mdPath = path.join(ROOT, 'reports/legacy/default-admin', `core-a11y-triage-${DATE}.md`);
   fs.writeFileSync(mdPath, lines.join('\n'));
 
   console.log(JSON.stringify({ jsonPath, mdPath, issueCount: issues.length, shortlistCount: shortlist.length, unlinkedPatches: unlinked.length }, null, 2));

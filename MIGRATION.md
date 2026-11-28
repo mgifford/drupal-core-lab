@@ -69,7 +69,7 @@ Date: 2026-10-01. Nothing from Drupal core itself was migrated.
    check they still point at the right paths and that Pages is enabled.
 3. **Duplicate skills.** `.agents/skills` and `.claude/skills` overlap; decide
    which is canonical.
-4. `reports/index.html` and `*-latest.*` files are generated artifacts; prefer
+4. `reports/legacy/default-admin/index.html` and `*-latest.*` files are generated artifacts; prefer
    editing the generating script.
 5. `.agents/DRUPAL_AGENTS.md` still describes the repo as a Drupal core
    workspace (paths like `core/`, `modules/`). Rewrite it for this layout, or
