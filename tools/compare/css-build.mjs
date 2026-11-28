@@ -10,6 +10,8 @@
 // The Before checkout is never written to.
 //
 // Values used in results: PASS, FAIL, BLOCKED (a tool or file the check needs is missing), SKIPPED, NOT VERIFIED.
+// `applicability` says why: not-applicable (plain CSS has no .pcss.css source), skipped (source exists but no build was run),
+// applicable, or blocked. It is separate from the PASS/FAIL result so existing callers keep their exit codes.
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -144,7 +146,7 @@ export function staticSurvey(patchText) {
 export function analyze(opts) {
   const { slug, side = 'after', build = false, corrective = false, dryRun = false } = opts;
   const v = opts.variant || variants().find((x) => x.slug === slug);
-  const res = { slug, side, env: null, generated: new Date().toISOString(), commands: [], notes: [], entries: [], built: [], overall: 'NOT VERIFIED', ready: false };
+  const res = { slug, side, env: null, generated: new Date().toISOString(), commands: [], notes: [], entries: [], built: [], overall: 'NOT VERIFIED', applicability: null, applicabilityDetail: null, ready: false };
   if (!v) return { ...res, overall: 'BLOCKED', notes: [`unknown variant ${slug}`] };
   const spec = v[side]; res.env = spec.env; const dir = opts.dir || envDir(spec.env);
   if (!fs.existsSync(path.join(dir, 'core/package.json'))) return { ...res, overall: 'BLOCKED', notes: [`${spec.env} has no core checkout. Build it: node tools/compare/setup.mjs ${slug}   (or --checkout-only)`] };
@@ -159,7 +161,7 @@ export function analyze(opts) {
   if (side === 'before' && cap.files.length) res.notes.push(`The Before checkout has ${cap.files.length} change(s) beyond its declared patches. That is not the pristine baseline.`);
   const s = survey(texts, authored, cap.files);
   res.relevant = s.relevant;
-  if (!s.relevant) return { ...res, overall: 'SKIPPED', ready: true, notes: [...res.notes, 'No .pcss.css source is changed by the patch stack or the working tree, so no CSS build is needed.'] };
+  if (!s.relevant) return { ...res, overall: 'SKIPPED', applicability: 'not-applicable', applicabilityDetail: 'no .pcss.css source is changed by the patch stack or the working tree', ready: true, notes: [...res.notes, 'No .pcss.css source is changed by the patch stack or the working tree, so no CSS build is needed.'] };
   if (side === 'before' && build) return { ...res, overall: 'BLOCKED', notes: [...res.notes, 'The Before checkout is never written to, so --build is refused for it.'] };
 
   // the toolchain
@@ -201,6 +203,11 @@ export function analyze(opts) {
     // is each compiled file part of what is submitted? yes when the stack or the edits carry it, or when the source change leaves its output unchanged
     for (const e of res.entries) e.inPatch = e.sourceState === 'deleted' ? e.compiledInStack === 'deleted' : (e.compiledInStack === 'present' || e.built === true || e.state === 'ok');
     res.overall = checked.some((e) => e.result === 'BLOCKED') ? 'BLOCKED' : bad.length ? 'FAIL' : checked.every((e) => e.result === 'SKIPPED') ? 'SKIPPED' : 'PASS';
+    const allNoSource = checked.length > 0 && checked.every((e) => e.state === 'no-source');
+    res.applicability = res.overall === 'BLOCKED' ? 'blocked' : res.overall === 'FAIL' ? 'applicable' : allNoSource ? 'not-applicable' : res.overall === 'PASS' ? 'applicable' : 'skipped';
+    res.applicabilityDetail = allNoSource
+      ? 'the changed .css files have no .pcss.css source; plain CSS does not need compilation'
+      : res.overall === 'SKIPPED' ? 'the source exists but no build was run (check-only or a skipped build)' : null;
     res.ready = res.overall === 'PASS' || res.overall === 'SKIPPED';
     if (res.overall === 'PASS' && !dryRun) writeCache(dir, { key: cacheKey({ dir, coreCommit: res.coreCommit, patches: res.patches.map((p) => p.sha256), entries: [...s.entries, ...s.compiledOnly.map((c) => ({ source: c.source, compiled: c.compiled }))], tools: res.tools }), overall: 'PASS', coreCommit: res.coreCommit, verifiedAt: res.generated, files: checked.map((e) => e.source) });
     return res;
