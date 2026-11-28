@@ -520,7 +520,7 @@ Or via the registered script:
 cd core && yarn a11y:plain-language
 ```
 
-Output: `reports/plain-language-report.md` (human-readable) and `reports/plain-language-report.json`.
+Output: `reports/legacy/default-admin/plain-language-report.md` (human-readable) and `reports/legacy/default-admin/plain-language-report.json`.
 
 ---
 
@@ -544,7 +544,7 @@ cd core && npx playwright test --config=tests/playwright/playwright.config.ts \
   --project=chromium tests/playwright/tests/a11y-axe-crawl.spec.ts
 ```
 
-Results are written to `reports/axe-results.json`. Run `node core/tests/playwright/scripts/analyze-patterns.js` for the pattern report.
+Results are written to `reports/legacy/default-admin/axe-results.json`. Run `node core/tests/playwright/scripts/analyze-patterns.js` for the pattern report.
 
 ---
 

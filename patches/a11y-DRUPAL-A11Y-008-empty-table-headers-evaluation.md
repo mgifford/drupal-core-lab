@@ -7,7 +7,7 @@
 - **Description:** Ensure all table headers have discernible text
 - **WCAG Criteria:** 1.3.1 (A)
 - **Affected Rules:** empty-table-header
-- **Pattern Source:** reports/pattern-report-2026-07-05.json
+- **Pattern Source:** reports/legacy/default-admin/pattern-report-2026-07-05.json
 - **Pattern Source (Markdown):** reports/pattern-report-2026-07-05.md
 - **Target Pattern IDs:** DRU-EDB3860D
 - **Pattern ID Match Type:** source-pattern-not-found
@@ -75,7 +75,7 @@ Use the following deterministic steps to reproduce this exact evaluation run:
 
 | Path | Modified |
 |---|---|
-| reports/pattern-report-2026-07-05.json | 2026-07-13T20:45:12.596Z |
+| reports/legacy/default-admin/pattern-report-2026-07-05.json | 2026-07-13T20:45:12.596Z |
 
 ### Violation Counts
 

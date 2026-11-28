@@ -146,7 +146,7 @@ either project having to adopt the other's identifier format. A short
 `A11Y-PAT-`/`A11Y-OCC-` display ID is never authoritative on its own — treat
 it as a human-readable label, and use the full fingerprint for any
 automated comparison. See
-[`reports/pattern-tracker-map.json`](../../../../../reports/pattern-tracker-map.json)
+[`reports/legacy/default-admin/pattern-tracker-map.json`](../../../../../reports/legacy/default-admin/pattern-tracker-map.json)
 for how a pattern is linked to a filed Drupal.org issue once one exists.
 
 ---

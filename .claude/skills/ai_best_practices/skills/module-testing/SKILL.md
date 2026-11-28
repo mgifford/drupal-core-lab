@@ -81,7 +81,7 @@ npm run a11y:test-module layout_builder
 npm run a11y:analyze-module-impact
 ```
 
-Generates report: `reports/module-impact-summary.md`
+Generates report: `reports/legacy/default-admin/module-impact-summary.md`
 
 ---
 

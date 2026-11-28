@@ -2,8 +2,8 @@
 'use strict';
 
 /**
- * Populates reports/pattern-tracker-map.json from the drupal_issue links
- * already present in reports/bugs-latest.json.
+ * Populates reports/legacy/default-admin/pattern-tracker-map.json from the drupal_issue links
+ * already present in reports/legacy/default-admin/bugs-latest.json.
  *
  * This does not invent tracker relationships. core/tests/playwright/scripts/analyze-patterns.js
  * has a curated table (getDrupalFix / DRUPAL_FIXES-style entries) that maps
@@ -30,7 +30,7 @@ const path = require('path');
 // testing without touching the committed reports directory.
 const REPORTS_DIR = process.env.A11Y_REPORTS_DIR
   ? path.resolve(process.env.A11Y_REPORTS_DIR)
-  : path.resolve(__dirname, '../reports');
+  : path.resolve(__dirname, '../reports/legacy/default-admin');
 const BUGS_LATEST = path.join(REPORTS_DIR, 'bugs-latest.json');
 const TRACKER_MAP = path.join(REPORTS_DIR, 'pattern-tracker-map.json');
 

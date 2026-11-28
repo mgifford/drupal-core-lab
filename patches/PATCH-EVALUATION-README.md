@@ -61,8 +61,8 @@ For each patch and variant:
 
 ### Batch Summary
 
-- `reports/PATCH-EVALUATION-SUMMARY.json`
-- `reports/PATCH-EVALUATION-SUMMARY.md`
+- `reports/legacy/default-admin/PATCH-EVALUATION-SUMMARY.json`
+- `reports/legacy/default-admin/PATCH-EVALUATION-SUMMARY.md`
 
 Only actionable patches should be recommended: a target violation must be observed before patching and verifiably reduced or removed after patching under the same conditions.
 

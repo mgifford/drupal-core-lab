@@ -12,9 +12,9 @@
  *   node merge-results.js
  *
  * Reads all multi-scanner-*.json files from reports/.tmp-crawl/ and writes:
- *   - reports/multi-scanner-results.json (full structured data)
- *   - reports/MULTI-SCANNER-REPORT-latest.md (human-readable)
- *   - reports/bugs-multi-scanner.json (deduplicated bug reports)
+ *   - reports/legacy/default-admin/multi-scanner-results.json (full structured data)
+ *   - reports/legacy/default-admin/MULTI-SCANNER-REPORT-latest.md (human-readable)
+ *   - reports/legacy/default-admin/bugs-multi-scanner.json (deduplicated bug reports)
  */
 const fs = require('fs');
 const path = require('path');
@@ -25,7 +25,7 @@ const {
 } = require('../../../tools/a11y-fingerprints');
 
 const CRAWL_DIR = path.resolve(__dirname, '../../../reports/.tmp-crawl');
-const REPORTS_DIR = path.resolve(__dirname, '../../../reports');
+const REPORTS_DIR = path.resolve(__dirname, '../../../reports/legacy/default-admin');
 const PREFIX = 'MS';
 const MOBILE_BREAKPOINT = 768;
 
@@ -474,7 +474,7 @@ const bugsReport = {
 
 fs.writeFileSync(path.join(REPORTS_DIR, 'bugs-multi-scanner.json'), JSON.stringify(bugsReport, null, 2));
 fs.writeFileSync(path.join(REPORTS_DIR, `bugs-multi-scanner-${date}.json`), JSON.stringify(bugsReport, null, 2));
-console.log(`Wrote reports/bugs-multi-scanner.json`);
+console.log(`Wrote reports/legacy/default-admin/bugs-multi-scanner.json`);
 
 // ── Write full results JSON ──────────────────────────────────────────────────
 
@@ -619,4 +619,4 @@ fs.writeFileSync(path.join(REPORTS_DIR, `MULTI-SCANNER-REPORT-${date}.md`), line
 fs.writeFileSync(path.join(REPORTS_DIR, 'MULTI-SCANNER-REPORT-latest.md'), lines.join('\n'));
 
 console.log(`Wrote reports/MULTI-SCANNER-REPORT-${date}.md`);
-console.log(`Wrote reports/MULTI-SCANNER-REPORT-latest.md`);
+console.log(`Wrote reports/legacy/default-admin/MULTI-SCANNER-REPORT-latest.md`);

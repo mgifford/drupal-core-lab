@@ -7,7 +7,7 @@
 - **Description:** Add aria-label to module details on /admin/modules
 - **WCAG Criteria:** 4.1.2 (A)
 - **Affected Rules:** summary-name
-- **Pattern Source:** reports/pattern-report-2026-07-05.json
+- **Pattern Source:** reports/legacy/default-admin/pattern-report-2026-07-05.json
 - **Pattern Source (Markdown):** reports/pattern-report-2026-07-05.md
 - **Target Pattern IDs:** DRU-4422E904
 - **Pattern ID Match Type:** source-pattern-not-found
@@ -75,7 +75,7 @@ Use the following deterministic steps to reproduce this exact evaluation run:
 
 | Path | Modified |
 |---|---|
-| reports/pattern-report-2026-07-05.json | 2026-07-13T20:45:12.596Z |
+| reports/legacy/default-admin/pattern-report-2026-07-05.json | 2026-07-13T20:45:12.596Z |
 
 ### Violation Counts
 

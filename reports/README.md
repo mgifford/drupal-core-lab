@@ -1,201 +1,69 @@
-# Reports Directory
+# Reports
 
-This directory stores generated accessibility and quality reports for the Default Admin theme and Drupal core.
+This is the report area of the Drupal Core Lab. The current, maintained reports are:
 
-Reports are published as a static site at **<https://mgifford.github.io/drupal-core/>** via GitHub Pages whenever changes are pushed to `main`. See `.github/workflows/pages.yml`.
-
----
-
-## Naming convention
-
-Most generated files follow one of these patterns:
-
-| Pattern | Meaning |
+| Start here | What it is |
 |---|---|
-| `*-latest.*` | Overwritten on every run — always the most recent result |
-| `*-YYYY-MM-DD.*` | Date-stamped snapshot kept for historical comparison |
+| [issues/README.md](issues/README.md) | Every issue the lab has evaluated, grouped by what needs attention, what is waiting and what is archived |
+| [issues/FOCUS.md](issues/FOCUS.md) | The shorter priority-ordered view |
+| `issues/<nid>/SUMMARY.md` | **The entry point for one issue**: what was tested, what was and was not verified, and links to the evidence |
+| [resources/SUMMARY.md](resources/SUMMARY.md) | Resource accounting: AI tokens/cost, CPU/memory, CI time, host capacity, energy estimate |
+| [infrastructure/](infrastructure/) | Cross-issue infrastructure and coordination evidence |
+| [findings/README.md](findings/README.md) | Barriers found outside the issue being tested |
+| [archive/](archive/) | Dated bundles of older cross-issue reports |
+| [_templates/](_templates/) | Hand-written templates used by the issue workflows |
+| [legacy/](legacy/) | Historical Default Admin theme reports and early experiments; not maintained |
+| [ai-usage/](ai-usage/) | AI-usage reduction studies and handoffs (current background material) |
+| [axe-results/](axe-results/) | Generated axe crawl shards and indexes; support data, not a report |
+| [info-yml/](info-yml/) | The info.yml malformed-file investigation |
+| [openacr-pilot/](openacr-pilot/) | Independent OpenACR traceability pilot proposal |
+| [issue-drafts/](issue-drafts/), [issue-queue-933004/](issue-queue-933004/), [module-impact/](module-impact/), [patches/](patches/), [sustainability/](sustainability/), [themes/](themes/) | Older cross-issue material retained for reference; do not start new work here |
 
----
 
-## How to regenerate reports
+## One issue
 
-All scripts live in `core/tests/playwright/scripts/` and are run from the `core/` directory using `yarn`.
-
-### Prerequisites
-
-1. A running Drupal site with the Default Admin theme active. The scripts default to `https://drupal-core.ddev.site` (DDEV). Set `DRUPAL_BASE_URL` to target a different URL.
-2. Node.js and Yarn installed.
-3. Playwright Chromium installed:
-
-```bash
-cd core
-yarn install
-npx playwright install chromium
+```text
+reports/issues/<nid>/
+  SUMMARY.md              entry point
+  REPRODUCE.md            how to reproduce and re-pin
+  EVIDENCE.md             what was verified, with exact commits
+  STATUS.md               current drupal.org/MR state
+  BRANCHES.md             patches and their bases
+  COVERAGE.md             browser/scheme/width coverage
+  ISSUE-COMMENT-DRAFT.md  draft for the human to post
+  status.json             last upstream state
+  branches/               patch files
+  playwright/             selected runs: results.json, SUMMARY.md, paired images
+  screenreader/           screen-reader evidence
+  intake/                 deterministic issue/MR brief and comment index
+  handoffs/               short stage handoffs with cited sources
+  ARCHIVED.md             present when the issue is finished
 ```
 
----
+`docs/RESULTS-LAYOUT.md` is the detailed rule for this folder. `node scripts/index-issues.mjs`
+generates the issue index and `node scripts/close-out.mjs <nid>` checks the folder before the next issue.
 
-### 1. Default Admin color report (main report family)
+## Rules
 
-**What it does:** Logs in as an admin, iterates over all accent and focus presets in all four theme states (light/dark × contrast-off/on), captures computed CSS token values, calculates WCAG and APCA contrast ratios, and generates three HTML reports and one JSON report.
+1. **Summary first.** A person should be able to open `issues/<nid>/SUMMARY.md` and understand the result,
+   the exact commits, and what was not verified without opening every run.
+2. **Generated artefacts say so.** Run folders, indexes, `playwright/README.md` and the root issue index are
+   generated; do not hand-edit them.
+3. **Keep raw scan output out of git.** A run keeps `results.json`, `SUMMARY.md`, a manifest and the paired
+   Before/After images that the summary references. Multi-megabyte `observations.json`, browser traces,
+   `Archive.zip` and full-page screenshot dumps stay local or compressed outside the normal report tree.
+4. **One canonical document per issue.** Stable per-issue documents are uppercase (`SUMMARY.md`, `EVIDENCE.md`,
+   `STATUS.md`). Dated snapshots go in a `history/` subfolder or `reports/archive/`, not beside the canonical file.
+5. **One latest per generated family.** Generated families use lowercase kebab-case and one `latest` entry;
+   dated snapshots live under `reports/archive/YYYY-MM-DD/`.
+6. **Retire, do not delete.** Finished issues get `ARCHIVED.md` and keep their folder so links from drupal.org
+   continue to work. `node scripts/issue-archive.mjs <nid>` does this.
+7. **Large files need an explicit reason.** Tracked report files above 5 MB need a manifest entry explaining why
+   the file is committed. `node scripts/reports-audit.mjs` reports the current exceptions.
 
-**Outputs:**
+## Legacy
 
-| File | Description |
-|---|---|
-| `DEFAULT-ADMIN-COLOR-REPORT-latest.html` | Full monolithic report: all accent/focus grids, token matrices, recommendations |
-| `DEFAULT-ADMIN-COLOR-REPORT-FG-BG-latest.html` | Focused on foreground/background contrast (4.5:1 AA threshold) |
-| `DEFAULT-ADMIN-COLOR-REPORT-FOCUS-latest.html` | Focused on focus indicator visibility (3:1 threshold, WCAG 2.2 SC 2.4.11) |
-| `DEFAULT-ADMIN-COLOR-MODE-GUIDE-latest.html` | Companion guide: contrast mode vs forced-colors, token derivation math, APCA polarity |
-| `CONTRAST-COLOR-CSS-INTEGRATION.html` | Standalone reference: where CSS `contrast-color()` could be used in Default Admin |
-| `default-admin-color-report-latest.json` | Raw collected data: all runtime snapshots, contrast ratios, token values |
-
-**Run (DDEV default):**
-
-```bash
-cd core
-yarn a11y:default-admin-colors
-```
-
-**Run (custom URL via shell wrapper):**
-
-```bash
-# From repo root
-core/tests/playwright/scripts/run-default-admin-color-report.sh \
-  --base-url https://drupal-core.ddev.site \
-  --user admin \
-  --pass admin
-```
-
-**Run (environment variables):**
-
-```bash
-DRUPAL_BASE_URL=https://your-site.example \
-DRUPAL_ADMIN_USER=admin \
-DRUPAL_ADMIN_PASS=secret \
-cd core && yarn a11y:default-admin-colors
-```
-
-**Script:** `core/tests/playwright/scripts/generate-default-admin-color-report.js`
-**Shell wrapper:** `core/tests/playwright/scripts/run-default-admin-color-report.sh`
-
----
-
-### 2. Keyboard review report
-
-**What it does:** Reads a collected keyboard-review JSON (`keyboard-review-latest.json`) and a bug export (`bugs-latest.json`) and generates a Markdown summary report.
-
-**Prerequisite:** `reports/keyboard-review-latest.json` must exist (generated by the Playwright keyboard test suite).
-
-**Outputs:**
-
-| File | Description |
-|---|---|
-| `KEYBOARD-REVIEW-latest.html` | Browser-friendly rendered summary of keyboard accessibility issues by page |
-| `KEYBOARD-REVIEW-latest.md` | Summary of keyboard accessibility issues by page |
-| `KEYBOARD-REVIEW-YYYY-MM-DD.html` | Date-stamped HTML snapshot |
-| `KEYBOARD-REVIEW-YYYY-MM-DD.md` | Date-stamped snapshot |
-
-**Run:**
-
-```bash
-cd core
-yarn a11y:keyboard-report
-```
-
-**Script:** `core/tests/playwright/scripts/generate-keyboard-review-report.js`
-
----
-
-### 3. Accessibility pattern report
-
-**What it does:** Reads `axe-results.json` (collected by the Playwright axe crawl) and clusters the issues by rule and selector similarity to produce a pattern-level view rather than a page-level view.
-
-**Prerequisite:** `reports/axe-results.json` must exist. It is now a small manifest that points to dated/latest shard directories and summary indexes. Run the axe crawl first:
-
-```bash
-cd core
-yarn a11y:crawl-and-report
-```
-
-**Raw crawl bundle produced by the axe crawl:**
-
-| File | Description |
-|---|---|
-| `axe-results.json` | Latest manifest for the sharded crawl bundle |
-| `axe-results/latest/shards/chunk-*.json` | Raw crawl records split into smaller files |
-| `axe-results/latest/by-rule.json` | Summary index grouped by axe rule |
-| `axe-results/latest/by-path.json` | Summary index grouped by route/path |
-| `axe-results/latest/by-context.json` | Summary index grouped by theme, scheme, viewport, language, and accent |
-| `axe-results-YYYY-MM-DD.json` | Date-stamped manifest snapshot |
-
-**Pattern report outputs:**
-
-| File | Description |
-|---|---|
-| `pattern-report-latest.html` | Clustered issue patterns with counts and selectors |
-| `PATTERN-REPORT-latest.md` | Markdown summary |
-| `pattern-report-YYYY-MM-DD.html` | Date-stamped HTML snapshot |
-| `bugs-latest.json` | Structured bug export |
-| `bugs-latest.csv` | CSV export for issue tracking |
-
-**Run (analyze only, after crawl):**
-
-```bash
-cd core
-yarn a11y:analyze
-```
-
-**Script:** `core/tests/playwright/scripts/analyze-patterns.js`
-
----
-
-### 4. Plain-language analysis
-
-**What it does:** Reads `content-patterns.json` (UI strings collected during the Playwright crawl) and scores them against Flesch reading ease, Flesch-Kincaid grade level, and flags for passive voice, long sentences, jargon, and nominalisations.
-
-**Prerequisite:** `reports/content-patterns.json` must exist:
-
-```bash
-cd core
-yarn a11y:extract-content
-```
-
-**Outputs:**
-
-| File | Description |
-|---|---|
-| `plain-language-report.json` | Detailed per-string readability scores |
-| `plain-language-report.html` | Browser-friendly summary with flagged strings |
-| `plain-language-report.md` | Human-readable summary with flagged strings |
-
-**Run:**
-
-```bash
-cd core
-yarn a11y:plain-language
-```
-
-**Script:** `core/tests/playwright/scripts/plain-language-analysis.js`
-
----
-
-## Patches (proposals, not applied)
-
-The `patches/` directory contains proposal patches for Default Admin accessibility improvements. They are **not applied to the running codebase** — they are proposal artifacts for review and discussion.
-
-See [`patches/README.md`](../patches/README.md) for details.
-
----
-
-## Reconciliation documents
-
-`GIN-ISSUES-RECONCILIATION-*.md` compares values from the historical Gin issues workbook against recalculated WCAG contrast values using current project math.
-
----
-
-## Notes
-
-- `Gin-issues.xlsx` is a local/manual analysis artifact ignored via `.gitignore`.
-- The `archive/` folder can be used to move older artifacts that should not be considered current.
-- Date-stamped files accumulate over time. Clean up old snapshots periodically or add them to `archive/`.
+The Default Admin theme reports that used to sit directly in this directory, and the early design-scan
+experiments, were moved under [legacy/](legacy/) on 2026-11-28. They are historical: paths, scripts and
+recommendations inside them may be out of date. Current work starts at [issues/README.md](issues/README.md) and
+`issues/<nid>/SUMMARY.md`.
