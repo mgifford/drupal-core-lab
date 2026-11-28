@@ -132,3 +132,62 @@ DRAFT. Written 2026-11-27 from the evaluation in this folder. Facts are from the
 35. **Another session can hold a lock; do the narrow operation instead.** `setup.mjs --refresh-patches` stopped
     on "another setup is already running (pid …)". The patch refresh itself is git-only: `ensurePatches(...)`
     applied the two patches, recorded them and left `patch-state: verified` without waiting for the lock.
+
+## Reflecting on the engagement (what worked, what I would change)
+
+These are about the work, not about forced colours. They are written after the evaluation was published, the MR
+was verified, and the repair was prepared.
+
+### What worked
+
+36. **Evidence first, ownership later.** Measuring the Before side as a negative control, decoding rendered pixels
+    instead of trusting computed CSS, and recording every control made the result useful even after upstream
+    replaced the Lab proposal with a consolidated MR. The value was the measured claim, not authorship of the fix.
+37. **Reproducibility made the handoff cheap.** Pinned commits, patch hashes, reconstructed earlier revisions and
+    interdiffs meant the MR author could read exactly what was tested. The combined #3637246 variant answered the
+    "does this fight another patch?" question that a single-patch evaluation would have missed.
+38. **Publishing early saved the work.** The shared checkout was on another session's branch with thousands of
+    uncommitted paths; a clean branch from `origin/main` and a draft PR turned untracked work into something that
+    survives the session. Being merged before the manual pass was fine because the evidence and gaps were in the
+    record.
+39. **Re-verifying against the MR-identical stack was the right response to upstream changing the proposal.**
+    Refreshing the environment and the matrix, marking older runs stale, and re-measuring cost a few hours and made
+    the report true again.
+40. **Repair etiquette kept trust.** Fixing formatting in the After checkout, proving the change was formatting-only,
+    capturing an incremental patch, validating it on the pristine tip, and reverting the checkout left the imported
+    MR byte-identical and the `patch-state` honest.
+41. **Crediting people first was easy to do and belongs in the record.** kentr's mechanism came before any AI
+    addition; recording the rejected whole-control mask and the remaining uncertainty makes the record more useful
+    than a success story.
+
+### What I would change
+
+42. **Re-check the issue, MRs and `main` before each work block, not when asked for status.** Upstream moved twice
+    during the engagement (MR published; issue Needs review → Needs work) and the repository gained two conventions
+    (contribution records, evidence budgets). Both changed what "done" meant.
+43. **Check the host before long runs.** Disk went from comfortable to 205 MB free during the session; preflight then
+    blocked, and a full worktree plus duplicate `node_modules` were mine to remove. `df -h` and the resource preflight
+    belong at the start, not after the first failure.
+44. **Identity before action.** The wrong-checkout / wrong-remote failure (apply in another issue's checkout, push a
+    review branch to `project/drupal`) is prevented by three cheap guards: print `pwd`, the branch and `HEAD`, and
+    the remote URL before applying or pushing. Commands handed to a person should include those guards.
+45. **Produce contribution and budget records alongside evidence, not at wrap-up.** Both are cheap at capture time and
+    tedious to reconstruct; the curator also remembers better while the run is fresh.
+46. **Treat a clean worktree as disposable and symlink shared dependencies.** Reusing `tools/playwright/node_modules`
+    and `tools/compare/.deps` into a temporary worktree avoided reinstall and kept the disk cost to the checkout.
+47. **Do not measure a moving target silently.** When the variant stack changed, the ledger said "stale"; the right
+    move was to say so and re-run, not to keep quoting the old numbers because they were favourable.
+48. **The last mile is human.** Automation can prove 7 of 9 matrix rows, identical accessibility trees and clean
+    interaction, and still not answer "does this work in a real Windows contrast theme for a person using a screen
+    reader". Saying that plainly is part of the deliverable.
+49. **Leave the manual testers a running, documented environment.** The viewer and both pairs were kept up and the
+    stop commands written down; that is more useful than a clean machine with no evidence path.
+
+### What the Lab could improve next
+
+- A small command that packages "apply this patch to the MR checkout and push to the issue fork" with the identity
+  guards from #44, so a person cannot land it in the wrong tree.
+- Generate the contribution record from the run evidence while capturing, with kentr-style origin entries required
+  before the record can be marked complete.
+- An evidence-budget view that separates "expensive proof" (pixels, screenshots) from "duplicate captures" and
+  suggests what a reviewer may prune, instead of one total that is either accepted or ignored.
