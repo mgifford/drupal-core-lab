@@ -70,7 +70,7 @@ repository at once.
 
 ## Shared Git lock
 
-`prepare-push --fetch` takes a short, machine-global lock keyed by the canonical `git-common-dir`, stored under
+`prepare-push --fetch` and `setup.mjs` take a short, machine-global lock keyed by the canonical `git-common-dir`, stored under
 `~/.dsh/lab-coordination/git-locks/`. If a sandbox cannot create that directory, the lock falls back to `envs/core.git/.lab-cache/git-locks/`; it then protects one checkout only. If another live owner holds it, the command prints the owner, operation and age
 and exits 3 without fetching. A dead owner is stale and can be replaced; a live owner is never killed. The lock is held
 only around the fetch, never around browser tests, PHPUnit or DDEV work.
