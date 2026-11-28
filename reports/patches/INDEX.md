@@ -92,6 +92,6 @@ This index links accessibility issues found in pattern reports to their proposed
 
 Generated: 2026-05-06  
 Cross-reference between:
-- `/reports/PATTERN-REPORT-latest.md` (accessibility issues)
+- `/reports/legacy/default-admin/PATTERN-REPORT-latest.md` (accessibility issues)
 - `/reports/patches/` (patch evaluations)
 - `/patches/*.patch` (patch files)

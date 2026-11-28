@@ -7,7 +7,7 @@
 - **Description:** Raise admin theme focus indicator contrast (light + dark)
 - **WCAG Criteria:** 2.4.7 (AA), 1.4.11 (AA)
 - **Affected Rules:** 
-- **Pattern Source:** reports/pattern-report-2026-07-05.json
+- **Pattern Source:** reports/legacy/default-admin/pattern-report-2026-07-05.json
 - **Pattern Source (Markdown):** reports/pattern-report-2026-07-05.md
 - **Pattern ID Match Type:** runtime-generated-only
 - **Matched Pattern IDs (pattern source):** none
@@ -73,7 +73,7 @@ Use the following deterministic steps to reproduce this exact evaluation run:
 
 | Path | Modified |
 |---|---|
-| reports/pattern-report-2026-07-05.json | 2026-07-13T20:45:12.596Z |
+| reports/legacy/default-admin/pattern-report-2026-07-05.json | 2026-07-13T20:45:12.596Z |
 
 ### Violation Counts
 

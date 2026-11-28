@@ -160,7 +160,7 @@ npm run a11y:analyze-modules
 Coverage metrics are **generated, not hand-maintained**. Run
 `npm run a11y:coverage` to regenerate
 [USER-STORY-COVERAGE-MATRIX.md](https://github.com/mgifford/drupal-core/blob/main/USER-STORY-COVERAGE-MATRIX.md)
-and `reports/coverage-metrics.json` by parsing story IDs out of
+and `reports/legacy/default-admin/coverage-metrics.json` by parsing story IDs out of
 `USER-STORIES.md` and matching them against `test('X.Y: …')` titles in the
 Playwright specs. The generated files carry their own timestamp and a
 DO-NOT-EDIT header; treat this table's targets as the only hand-set values.
@@ -168,8 +168,8 @@ DO-NOT-EDIT header; treat this table's targets as the only hand-set values.
 | Metric | Source | Target |
 |---|---|---|
 | User Stories Defined | `USER-STORIES.md` (generated count) | 100 |
-| Automated Tests (Playwright) | `reports/coverage-metrics.json` | 40+ Tier 1 |
-| Tier 1 / 2 / 3 Coverage | `reports/coverage-metrics.json` | 100% / 50%+ / 50%+ |
+| Automated Tests (Playwright) | `reports/legacy/default-admin/coverage-metrics.json` | 40+ Tier 1 |
+| Tier 1 / 2 / 3 Coverage | `reports/legacy/default-admin/coverage-metrics.json` | 100% / 50%+ / 50%+ |
 | Modules Tracked | `.drupal-a11y-module-config.json` | All |
 | Patches Evaluated | `reports/patches/INDEX.md` | All submitted |
 
